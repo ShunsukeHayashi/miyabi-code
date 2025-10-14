@@ -242,7 +242,7 @@ export async function runAgent(
         });
 
         const input: IssueInput = {
-          issueNumber: parseInt(options.issue),
+          issueNumber: parseInt(options.issue.replace(/^#/, '')),
           repository: repo, // repo name only (e.g., "Miyabi")
           owner,            // owner name (e.g., "ShunsukeHayashi")
         };
@@ -263,7 +263,7 @@ export async function runAgent(
         const issueResponse = await octokit.issues.get({
           owner,
           repo,
-          issue_number: parseInt(options.issue),
+          issue_number: parseInt(options.issue.replace(/^#/, '')),
         });
 
         const issue = issueResponse.data;
@@ -290,7 +290,7 @@ export async function runAgent(
 
         // Save CodeGenAgent output for PRAgent
         if (result.success && result.data) {
-          saveCodeGenOutput(owner, repo, parseInt(options.issue), result.data);
+          saveCodeGenOutput(owner, repo, parseInt(options.issue.replace(/^#/, '')), result.data);
         }
 
         break;
@@ -340,7 +340,7 @@ export async function runAgent(
 
           // Save ReviewAgent output for PRAgent (if --issue provided)
           if (options.issue && result.success && result.data) {
-            saveReviewOutput(owner, repo, parseInt(options.issue), result.data);
+            saveReviewOutput(owner, repo, parseInt(options.issue.replace(/^#/, '')), result.data);
           }
         } else {
           // TODO: Implement file review
@@ -354,7 +354,7 @@ export async function runAgent(
           throw new Error('--issue option is required for PRAgent. Example: miyabi agent run pr --issue=123');
         }
 
-        const issueNumber = parseInt(options.issue);
+        const issueNumber = parseInt(options.issue.replace(/^#/, ''));
 
         // Check if CodeGenAgent and ReviewAgent outputs exist
         const storage = checkIssueStorage(owner, repo, issueNumber);
@@ -411,7 +411,7 @@ export async function runAgent(
         const agent = new CoordinatorAgent();
 
         const input: CoordinatorInput = {
-          issueNumber: parseInt(options.issue),
+          issueNumber: parseInt(options.issue.replace(/^#/, '')),
           repository: repo,
           owner,
         };

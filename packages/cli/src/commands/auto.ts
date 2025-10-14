@@ -181,7 +181,7 @@ async function monitorAndAnalyze(options?: { scanTodos?: boolean }): Promise<Dec
       decisions.push({
         shouldExecute: true,
         agent,
-        target: `#${issue.number}`,
+        target: issue.number.toString(),
         reason: `${reason} - ${issue.title}`,
         priority,
       });
