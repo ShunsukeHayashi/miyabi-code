@@ -1,0 +1,24 @@
+[package]
+name = "miyabi-worktree"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Git worktree management for Miyabi"
+
+[dependencies]
+miyabi-types = { path = "../miyabi-types" }
+git2 = { workspace = true }
+tokio = { workspace = true, features = ["sync", "process", "fs"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+serial_test = "3.0"
+tokio-test = "0.4"

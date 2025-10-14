@@ -1,0 +1,715 @@
+//! Agent type definitions
+//!
+//! Rust port of TypeScript types from `packages/coding-agents/types/index.ts`
+
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+/// Agent execution status
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AgentStatus {
+    Idle,
+    Running,
+    Completed,
+    Failed,
+    Escalated,
+}
+
+/// Escalation target roles
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EscalationTarget {
+    TechLead,
+    PO,
+    CISO,
+    CTO,
+    DevOps,
+}
+
+/// Agent types (7 coding agents)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
+pub enum AgentType {
+    CoordinatorAgent,
+    CodeGenAgent,
+    ReviewAgent,
+    IssueAgent,
+    PRAgent,
+    DeploymentAgent,
+    AutoFixAgent,
+    WaterSpiderAgent,
+}
+
+impl AgentType {
+    /// Convert to lowercase string (for file paths, etc.)
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            AgentType::CoordinatorAgent => "coordinator",
+            AgentType::CodeGenAgent => "codegen",
+            AgentType::ReviewAgent => "review",
+            AgentType::IssueAgent => "issue",
+            AgentType::PRAgent => "pr",
+            AgentType::DeploymentAgent => "deployment",
+            AgentType::AutoFixAgent => "autofix",
+            AgentType::WaterSpiderAgent => "waterspider",
+        }
+    }
+}
+
+/// Issue severity levels (ordered from lowest to highest severity for Ord)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum Severity {
+    #[serde(rename = "Sev.5-Trivial")]
+    Trivial,
+    #[serde(rename = "Sev.4-Low")]
+    Low,
+    #[serde(rename = "Sev.3-Medium")]
+    Medium,
+    #[serde(rename = "Sev.2-High")]
+    High,
+    #[serde(rename = "Sev.1-Critical")]
+    Critical,
+}
+
+/// Impact level (ordered from lowest to highest impact for Ord)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum ImpactLevel {
+    Low,
+    Medium,
+    High,
+    Critical,
+}
+
+/// Agent execution result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentResult {
+    pub status: ResultStatus,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metrics: Option<AgentMetrics>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub escalation: Option<EscalationInfo>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ResultStatus {
+    Success,
+    Failed,
+    Escalated,
+}
+
+/// Agent execution metrics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentMetrics {
+    pub task_id: String,
+    pub agent_type: AgentType,
+    pub duration_ms: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality_score: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lines_changed: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tests_added: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coverage_percent: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub errors_found: Option<u32>,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+}
+
+/// Escalation information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EscalationInfo {
+    pub reason: String,
+    pub target: EscalationTarget,
+    pub severity: Severity,
+    pub context: HashMap<String, serde_json::Value>,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+}
+
+/// Agent configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentConfig {
+    pub device_identifier: String,
+    pub github_token: String,
+    pub use_task_tool: bool,
+    pub use_worktree: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub worktree_base_path: Option<String>,
+    pub log_directory: String,
+    pub report_directory: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tech_lead_github_username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ciso_github_username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub po_github_username: Option<String>,
+    // Deployment config
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub firebase_production_project: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub firebase_staging_project: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub production_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub staging_url: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ========================================================================
+    // AgentType Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_type_as_str() {
+        assert_eq!(AgentType::CoordinatorAgent.as_str(), "coordinator");
+        assert_eq!(AgentType::CodeGenAgent.as_str(), "codegen");
+        assert_eq!(AgentType::ReviewAgent.as_str(), "review");
+        assert_eq!(AgentType::IssueAgent.as_str(), "issue");
+        assert_eq!(AgentType::PRAgent.as_str(), "pr");
+        assert_eq!(AgentType::DeploymentAgent.as_str(), "deployment");
+        assert_eq!(AgentType::AutoFixAgent.as_str(), "autofix");
+        assert_eq!(AgentType::WaterSpiderAgent.as_str(), "waterspider");
+    }
+
+    #[test]
+    fn test_agent_type_serialization() {
+        let agent = AgentType::CoordinatorAgent;
+        let json = serde_json::to_string(&agent).unwrap();
+        assert_eq!(json, "\"CoordinatorAgent\"");
+
+        let agent = AgentType::CodeGenAgent;
+        let json = serde_json::to_string(&agent).unwrap();
+        assert_eq!(json, "\"CodeGenAgent\"");
+    }
+
+    #[test]
+    fn test_agent_type_deserialization() {
+        let json = "\"CoordinatorAgent\"";
+        let agent: AgentType = serde_json::from_str(json).unwrap();
+        assert_eq!(agent, AgentType::CoordinatorAgent);
+
+        let json = "\"ReviewAgent\"";
+        let agent: AgentType = serde_json::from_str(json).unwrap();
+        assert_eq!(agent, AgentType::ReviewAgent);
+    }
+
+    #[test]
+    fn test_agent_type_roundtrip() {
+        let agents = vec![
+            AgentType::CoordinatorAgent,
+            AgentType::CodeGenAgent,
+            AgentType::ReviewAgent,
+            AgentType::IssueAgent,
+            AgentType::PRAgent,
+            AgentType::DeploymentAgent,
+            AgentType::AutoFixAgent,
+            AgentType::WaterSpiderAgent,
+        ];
+
+        for agent in agents {
+            let json = serde_json::to_string(&agent).unwrap();
+            let deserialized: AgentType = serde_json::from_str(&json).unwrap();
+            assert_eq!(agent, deserialized);
+        }
+    }
+
+    #[test]
+    fn test_agent_type_hash() {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        map.insert(AgentType::CoordinatorAgent, "value1");
+        map.insert(AgentType::CodeGenAgent, "value2");
+        assert_eq!(map.get(&AgentType::CoordinatorAgent), Some(&"value1"));
+    }
+
+    // ========================================================================
+    // AgentStatus Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_status_serialization() {
+        let status = AgentStatus::Completed;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"completed\"");
+
+        let status = AgentStatus::Running;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"running\"");
+
+        let status = AgentStatus::Failed;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"failed\"");
+    }
+
+    #[test]
+    fn test_agent_status_deserialization() {
+        let json = "\"idle\"";
+        let status: AgentStatus = serde_json::from_str(json).unwrap();
+        assert_eq!(status, AgentStatus::Idle);
+
+        let json = "\"escalated\"";
+        let status: AgentStatus = serde_json::from_str(json).unwrap();
+        assert_eq!(status, AgentStatus::Escalated);
+    }
+
+    #[test]
+    fn test_agent_status_roundtrip() {
+        let statuses = vec![
+            AgentStatus::Idle,
+            AgentStatus::Running,
+            AgentStatus::Completed,
+            AgentStatus::Failed,
+            AgentStatus::Escalated,
+        ];
+
+        for status in statuses {
+            let json = serde_json::to_string(&status).unwrap();
+            let deserialized: AgentStatus = serde_json::from_str(&json).unwrap();
+            assert_eq!(status, deserialized);
+        }
+    }
+
+    #[test]
+    fn test_agent_status_equality() {
+        assert_eq!(AgentStatus::Idle, AgentStatus::Idle);
+        assert_ne!(AgentStatus::Running, AgentStatus::Completed);
+    }
+
+    // ========================================================================
+    // Severity Tests
+    // ========================================================================
+
+    #[test]
+    fn test_severity_ordering() {
+        assert!(Severity::Critical > Severity::High);
+        assert!(Severity::High > Severity::Medium);
+        assert!(Severity::Medium > Severity::Low);
+        assert!(Severity::Low > Severity::Trivial);
+    }
+
+    #[test]
+    fn test_severity_serialization() {
+        let sev = Severity::Critical;
+        let json = serde_json::to_string(&sev).unwrap();
+        assert_eq!(json, "\"Sev.1-Critical\"");
+
+        let sev = Severity::High;
+        let json = serde_json::to_string(&sev).unwrap();
+        assert_eq!(json, "\"Sev.2-High\"");
+
+        let sev = Severity::Trivial;
+        let json = serde_json::to_string(&sev).unwrap();
+        assert_eq!(json, "\"Sev.5-Trivial\"");
+    }
+
+    #[test]
+    fn test_severity_deserialization() {
+        let json = "\"Sev.1-Critical\"";
+        let sev: Severity = serde_json::from_str(json).unwrap();
+        assert_eq!(sev, Severity::Critical);
+
+        let json = "\"Sev.3-Medium\"";
+        let sev: Severity = serde_json::from_str(json).unwrap();
+        assert_eq!(sev, Severity::Medium);
+    }
+
+    #[test]
+    fn test_severity_roundtrip() {
+        let severities = vec![
+            Severity::Critical,
+            Severity::High,
+            Severity::Medium,
+            Severity::Low,
+            Severity::Trivial,
+        ];
+
+        for sev in severities {
+            let json = serde_json::to_string(&sev).unwrap();
+            let deserialized: Severity = serde_json::from_str(&json).unwrap();
+            assert_eq!(sev, deserialized);
+        }
+    }
+
+    // ========================================================================
+    // EscalationTarget Tests
+    // ========================================================================
+
+    #[test]
+    fn test_escalation_target_serialization() {
+        let target = EscalationTarget::TechLead;
+        let json = serde_json::to_string(&target).unwrap();
+        assert_eq!(json, "\"TechLead\"");
+
+        let target = EscalationTarget::CISO;
+        let json = serde_json::to_string(&target).unwrap();
+        assert_eq!(json, "\"CISO\"");
+    }
+
+    #[test]
+    fn test_escalation_target_deserialization() {
+        let json = "\"PO\"";
+        let target: EscalationTarget = serde_json::from_str(json).unwrap();
+        assert_eq!(target, EscalationTarget::PO);
+
+        let json = "\"DevOps\"";
+        let target: EscalationTarget = serde_json::from_str(json).unwrap();
+        assert_eq!(target, EscalationTarget::DevOps);
+    }
+
+    #[test]
+    fn test_escalation_target_roundtrip() {
+        let targets = vec![
+            EscalationTarget::TechLead,
+            EscalationTarget::PO,
+            EscalationTarget::CISO,
+            EscalationTarget::CTO,
+            EscalationTarget::DevOps,
+        ];
+
+        for target in targets {
+            let json = serde_json::to_string(&target).unwrap();
+            let deserialized: EscalationTarget = serde_json::from_str(&json).unwrap();
+            assert_eq!(target, deserialized);
+        }
+    }
+
+    // ========================================================================
+    // ImpactLevel Tests
+    // ========================================================================
+
+    #[test]
+    fn test_impact_level_ordering() {
+        assert!(ImpactLevel::Critical > ImpactLevel::High);
+        assert!(ImpactLevel::High > ImpactLevel::Medium);
+        assert!(ImpactLevel::Medium > ImpactLevel::Low);
+    }
+
+    #[test]
+    fn test_impact_level_serialization() {
+        let impact = ImpactLevel::Critical;
+        let json = serde_json::to_string(&impact).unwrap();
+        assert_eq!(json, "\"Critical\"");
+    }
+
+    #[test]
+    fn test_impact_level_roundtrip() {
+        let impacts = vec![
+            ImpactLevel::Critical,
+            ImpactLevel::High,
+            ImpactLevel::Medium,
+            ImpactLevel::Low,
+        ];
+
+        for impact in impacts {
+            let json = serde_json::to_string(&impact).unwrap();
+            let deserialized: ImpactLevel = serde_json::from_str(&json).unwrap();
+            assert_eq!(impact, deserialized);
+        }
+    }
+
+    // ========================================================================
+    // ResultStatus Tests
+    // ========================================================================
+
+    #[test]
+    fn test_result_status_serialization() {
+        let status = ResultStatus::Success;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"success\"");
+
+        let status = ResultStatus::Failed;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"failed\"");
+
+        let status = ResultStatus::Escalated;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"escalated\"");
+    }
+
+    #[test]
+    fn test_result_status_roundtrip() {
+        let statuses = vec![
+            ResultStatus::Success,
+            ResultStatus::Failed,
+            ResultStatus::Escalated,
+        ];
+
+        for status in statuses {
+            let json = serde_json::to_string(&status).unwrap();
+            let deserialized: ResultStatus = serde_json::from_str(&json).unwrap();
+            assert_eq!(status, deserialized);
+        }
+    }
+
+    // ========================================================================
+    // AgentResult Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_result_serialization_minimal() {
+        let result = AgentResult {
+            status: ResultStatus::Success,
+            data: None,
+            error: None,
+            metrics: None,
+            escalation: None,
+        };
+
+        let json = serde_json::to_string(&result).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["status"], "success");
+        assert!(parsed.get("data").is_none());
+        assert!(parsed.get("error").is_none());
+    }
+
+    #[test]
+    fn test_agent_result_serialization_with_data() {
+        let result = AgentResult {
+            status: ResultStatus::Success,
+            data: Some(serde_json::json!({"key": "value"})),
+            error: None,
+            metrics: None,
+            escalation: None,
+        };
+
+        let json = serde_json::to_string(&result).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["data"]["key"], "value");
+    }
+
+    #[test]
+    fn test_agent_result_serialization_with_error() {
+        let result = AgentResult {
+            status: ResultStatus::Failed,
+            data: None,
+            error: Some("Test error message".to_string()),
+            metrics: None,
+            escalation: None,
+        };
+
+        let json = serde_json::to_string(&result).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["status"], "failed");
+        assert_eq!(parsed["error"], "Test error message");
+    }
+
+    #[test]
+    fn test_agent_result_roundtrip() {
+        let result = AgentResult {
+            status: ResultStatus::Success,
+            data: Some(serde_json::json!({"test": 123})),
+            error: None,
+            metrics: None,
+            escalation: None,
+        };
+
+        let json = serde_json::to_string(&result).unwrap();
+        let deserialized: AgentResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(result.status, deserialized.status);
+    }
+
+    // ========================================================================
+    // AgentMetrics Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_metrics_serialization() {
+        let metrics = AgentMetrics {
+            task_id: "task-123".to_string(),
+            agent_type: AgentType::CodeGenAgent,
+            duration_ms: 5000,
+            quality_score: Some(85),
+            lines_changed: Some(150),
+            tests_added: Some(10),
+            coverage_percent: Some(82.5),
+            errors_found: None,
+            timestamp: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&metrics).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["task_id"], "task-123");
+        assert_eq!(parsed["agent_type"], "CodeGenAgent");
+        assert_eq!(parsed["duration_ms"], 5000);
+        assert_eq!(parsed["quality_score"], 85);
+    }
+
+    #[test]
+    fn test_agent_metrics_optional_fields() {
+        let metrics = AgentMetrics {
+            task_id: "task-456".to_string(),
+            agent_type: AgentType::ReviewAgent,
+            duration_ms: 1000,
+            quality_score: None,
+            lines_changed: None,
+            tests_added: None,
+            coverage_percent: None,
+            errors_found: Some(5),
+            timestamp: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&metrics).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("quality_score").is_none());
+        assert_eq!(parsed["errors_found"], 5);
+    }
+
+    #[test]
+    fn test_agent_metrics_roundtrip() {
+        let metrics = AgentMetrics {
+            task_id: "task-789".to_string(),
+            agent_type: AgentType::DeploymentAgent,
+            duration_ms: 10000,
+            quality_score: Some(95),
+            lines_changed: Some(50),
+            tests_added: Some(5),
+            coverage_percent: Some(90.0),
+            errors_found: None,
+            timestamp: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&metrics).unwrap();
+        let deserialized: AgentMetrics = serde_json::from_str(&json).unwrap();
+        assert_eq!(metrics.task_id, deserialized.task_id);
+        assert_eq!(metrics.agent_type, deserialized.agent_type);
+        assert_eq!(metrics.duration_ms, deserialized.duration_ms);
+    }
+
+    // ========================================================================
+    // EscalationInfo Tests
+    // ========================================================================
+
+    #[test]
+    fn test_escalation_info_serialization() {
+        let mut context = HashMap::new();
+        context.insert(
+            "issue_url".to_string(),
+            serde_json::json!("https://github.com/user/repo/issues/123"),
+        );
+
+        let escalation = EscalationInfo {
+            reason: "Security vulnerability detected".to_string(),
+            target: EscalationTarget::CISO,
+            severity: Severity::Critical,
+            context,
+            timestamp: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&escalation).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["reason"], "Security vulnerability detected");
+        assert_eq!(parsed["target"], "CISO");
+        assert_eq!(parsed["severity"], "Sev.1-Critical");
+    }
+
+    #[test]
+    fn test_escalation_info_roundtrip() {
+        let mut context = HashMap::new();
+        context.insert("pr_number".to_string(), serde_json::json!(456));
+
+        let escalation = EscalationInfo {
+            reason: "Build failed multiple times".to_string(),
+            target: EscalationTarget::DevOps,
+            severity: Severity::High,
+            context,
+            timestamp: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&escalation).unwrap();
+        let deserialized: EscalationInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(escalation.reason, deserialized.reason);
+        assert_eq!(escalation.target, deserialized.target);
+        assert_eq!(escalation.severity, deserialized.severity);
+    }
+
+    // ========================================================================
+    // AgentConfig Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_config_serialization() {
+        let config = AgentConfig {
+            device_identifier: "MacBook-Pro".to_string(),
+            github_token: "ghp_test_token".to_string(),
+            use_task_tool: true,
+            use_worktree: true,
+            worktree_base_path: Some("/tmp/worktrees".to_string()),
+            log_directory: "./logs".to_string(),
+            report_directory: "./reports".to_string(),
+            tech_lead_github_username: Some("tech-lead".to_string()),
+            ciso_github_username: None,
+            po_github_username: Some("product-owner".to_string()),
+            firebase_production_project: Some("prod-project".to_string()),
+            firebase_staging_project: Some("staging-project".to_string()),
+            production_url: Some("https://prod.example.com".to_string()),
+            staging_url: Some("https://staging.example.com".to_string()),
+        };
+
+        let json = serde_json::to_string(&config).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["device_identifier"], "MacBook-Pro");
+        assert_eq!(parsed["use_task_tool"], true);
+        assert_eq!(parsed["worktree_base_path"], "/tmp/worktrees");
+    }
+
+    #[test]
+    fn test_agent_config_optional_fields() {
+        let config = AgentConfig {
+            device_identifier: "GitHub-Actions".to_string(),
+            github_token: "ghp_ci_token".to_string(),
+            use_task_tool: false,
+            use_worktree: false,
+            worktree_base_path: None,
+            log_directory: "./logs".to_string(),
+            report_directory: "./reports".to_string(),
+            tech_lead_github_username: None,
+            ciso_github_username: None,
+            po_github_username: None,
+            firebase_production_project: None,
+            firebase_staging_project: None,
+            production_url: None,
+            staging_url: None,
+        };
+
+        let json = serde_json::to_string(&config).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("worktree_base_path").is_none());
+        assert!(parsed.get("tech_lead_github_username").is_none());
+    }
+
+    #[test]
+    fn test_agent_config_roundtrip() {
+        let config = AgentConfig {
+            device_identifier: "Test-Device".to_string(),
+            github_token: "test_token".to_string(),
+            use_task_tool: true,
+            use_worktree: true,
+            worktree_base_path: Some("/var/worktrees".to_string()),
+            log_directory: "./logs".to_string(),
+            report_directory: "./reports".to_string(),
+            tech_lead_github_username: Some("lead".to_string()),
+            ciso_github_username: Some("ciso".to_string()),
+            po_github_username: Some("po".to_string()),
+            firebase_production_project: Some("prod".to_string()),
+            firebase_staging_project: Some("staging".to_string()),
+            production_url: Some("https://prod.com".to_string()),
+            staging_url: Some("https://staging.com".to_string()),
+        };
+
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: AgentConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(config.device_identifier, deserialized.device_identifier);
+        assert_eq!(config.use_task_tool, deserialized.use_task_tool);
+        assert_eq!(
+            config.worktree_base_path,
+            deserialized.worktree_base_path
+        );
+    }
+}

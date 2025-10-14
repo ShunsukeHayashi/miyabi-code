@@ -1,0 +1,18 @@
+[build]
+# Use all CPU cores for parallel compilation
+jobs = 8
+
+[target.x86_64-apple-darwin]
+# macOS optimization
+rustflags = ["-C", "target-cpu=native"]
+
+[target.aarch64-apple-darwin]
+# Apple Silicon optimization
+rustflags = ["-C", "target-cpu=native"]
+
+[alias]
+# Custom aliases for development
+check-all = "check --workspace --all-targets"
+test-all = "test --workspace --all-targets"
+clippy-all = "clippy --workspace --all-targets -- -D warnings"
+fmt-all = "fmt --all -- --check"

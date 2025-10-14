@@ -133,3 +133,4 @@ external/data/*.db
 # Temporary directories (removed in consolidation)
 hooks/
 playwright-report/
+/target/

@@ -1,0 +1,29 @@
+[package]
+name = "miyabi-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Miyabi CLI - 一つのコマンドで全てが完結"
+
+[[bin]]
+name = "miyabi"
+path = "src/main.rs"
+
+[dependencies]
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
+miyabi-github = { path = "../miyabi-github" }
+miyabi-agents = { path = "../miyabi-agents" }
+miyabi-worktree = { path = "../miyabi-worktree" }
+
+tokio = { workspace = true }
+clap = { workspace = true }
+indicatif = { workspace = true }
+console = { workspace = true }
+dialoguer = { workspace = true }
+colored = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
