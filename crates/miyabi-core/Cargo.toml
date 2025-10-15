@@ -15,7 +15,7 @@ miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_yaml = "0.9"
-toml = "0.8"
+toml = "0.9"
 tokio = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
