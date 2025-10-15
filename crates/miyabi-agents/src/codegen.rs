@@ -5,8 +5,9 @@
 
 use crate::base::BaseAgent;
 use async_trait::async_trait;
+use miyabi_core::retry::{retry_with_backoff, RetryConfig};
 use miyabi_types::agent::{AgentMetrics, ResultStatus};
-use miyabi_types::error::{MiyabiError, Result};
+use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use miyabi_worktree::{WorktreeInfo, WorktreeManager};
@@ -54,57 +55,91 @@ impl CodeGenAgent {
         })
     }
 
-    /// Setup Worktree for task execution
+    /// Setup Worktree for task execution with retry
     ///
-    /// Creates an isolated worktree for parallel task execution
-    /// Uses spawn_blocking to handle git2's !Send types
+    /// Creates an isolated worktree for parallel task execution.
+    /// Uses spawn_blocking to handle git2's !Send types.
+    /// Retries on transient failures (git lock conflicts, etc.)
     async fn setup_worktree(&self, task: &Task) -> Result<WorktreeInfo> {
         let task_id = task.id.clone();
+        let task_id_for_log = task.id.clone();
         let worktree_base = self
             .config
             .worktree_base_path
             .clone()
             .unwrap_or_else(|| ".worktrees".to_string());
 
-        // Wrap in spawn_blocking since git2 types are !Send
-        let worktree_info = tokio::task::spawn_blocking(move || {
-            let repo_path = std::env::current_dir().map_err(|e| {
-                MiyabiError::Io(std::io::Error::new(
-                    e.kind(),
-                    format!("Failed to get current directory: {}", e),
-                ))
-            })?;
+        // Retry with conservative config (git operations can be slow)
+        let retry_config = RetryConfig::conservative();
 
-            // Extract issue number from task ID (format: "task-{issue_number}" or numeric ID)
-            let issue_number = task_id
-                .trim_start_matches("task-")
-                .parse::<u64>()
-                .unwrap_or(0);
+        let worktree_info = retry_with_backoff(retry_config, || {
+            let task_id = task_id.clone();
+            let task_id_for_error = task_id.clone(); // Clone for map_err
+            let worktree_base = worktree_base.clone();
 
-            let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)?;
+            async move {
+                // Wrap in spawn_blocking since git2 types are !Send
+                let result = tokio::task::spawn_blocking(move || {
+                    let repo_path = std::env::current_dir().map_err(|e| {
+                        AgentError::with_cause(
+                            "Failed to get current directory",
+                            AgentType::CodeGenAgent,
+                            Some(task_id.clone()),
+                            e,
+                        )
+                    })?;
 
-            // Create worktree - need to block on the async call
-            let runtime = tokio::runtime::Handle::current();
-            let worktree_info = runtime.block_on(manager.create_worktree(issue_number))?;
+                    // Extract issue number from task ID (format: "task-{issue_number}" or numeric ID)
+                    let issue_number = task_id
+                        .trim_start_matches("task-")
+                        .parse::<u64>()
+                        .unwrap_or(0);
 
-            Ok::<WorktreeInfo, MiyabiError>(worktree_info)
+                    let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
+                        .map_err(|e| {
+                            AgentError::with_cause(
+                                "Failed to create WorktreeManager",
+                                AgentType::CodeGenAgent,
+                                Some(task_id.clone()),
+                                Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
+                            )
+                        })?;
+
+                    // Create worktree - need to block on the async call
+                    let runtime = tokio::runtime::Handle::current();
+                    let worktree_info =
+                        runtime.block_on(manager.create_worktree(issue_number))?;
+
+                    Ok::<WorktreeInfo, MiyabiError>(worktree_info)
+                })
+                .await
+                .map_err(|e| {
+                    AgentError::new(
+                        format!("Spawn blocking failed: {}", e),
+                        AgentType::CodeGenAgent,
+                        Some(task_id_for_error.clone()),
+                    )
+                })??;
+
+                Ok(result)
+            }
         })
-        .await
-        .map_err(|e| MiyabiError::Unknown(format!("Spawn blocking failed: {}", e)))??;
+        .await?;
 
         tracing::info!(
             "Created worktree for task {} at {:?}",
-            task.id,
+            task_id_for_log,
             worktree_info.path
         );
 
         Ok(worktree_info)
     }
 
-    /// Cleanup Worktree after task completion
+    /// Cleanup Worktree after task completion with retry
     ///
-    /// Removes the worktree and associated resources
-    /// Uses spawn_blocking to handle git2's !Send types
+    /// Removes the worktree and associated resources.
+    /// Uses spawn_blocking to handle git2's !Send types.
+    /// Retries on transient failures (filesystem delays, locks, etc.)
     async fn cleanup_worktree(&self, worktree_info: &WorktreeInfo) -> Result<()> {
         let worktree_id = worktree_info.id.clone();
         let worktree_path = worktree_info.path.clone();
@@ -114,25 +149,54 @@ impl CodeGenAgent {
             .clone()
             .unwrap_or_else(|| ".worktrees".to_string());
 
-        // Wrap in spawn_blocking since git2 types are !Send
-        tokio::task::spawn_blocking(move || {
-            let repo_path = std::env::current_dir().map_err(|e| {
-                MiyabiError::Io(std::io::Error::new(
-                    e.kind(),
-                    format!("Failed to get current directory: {}", e),
-                ))
-            })?;
+        // Retry with aggressive config (cleanup is less critical, faster retries OK)
+        let retry_config = RetryConfig::aggressive();
 
-            let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)?;
+        retry_with_backoff(retry_config, || {
+            let worktree_id = worktree_id.clone();
+            let worktree_base = worktree_base.clone();
 
-            // Remove worktree - need to block on the async call
-            let runtime = tokio::runtime::Handle::current();
-            runtime.block_on(manager.remove_worktree(&worktree_id))?;
+            async move {
+                // Wrap in spawn_blocking since git2 types are !Send
+                tokio::task::spawn_blocking(move || {
+                    let repo_path = std::env::current_dir().map_err(|e| {
+                        AgentError::with_cause(
+                            "Failed to get current directory for cleanup",
+                            AgentType::CodeGenAgent,
+                            None,
+                            e,
+                        )
+                    })?;
 
-            Ok::<(), MiyabiError>(())
+                    let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
+                        .map_err(|e| {
+                            AgentError::with_cause(
+                                "Failed to create WorktreeManager for cleanup",
+                                AgentType::CodeGenAgent,
+                                None,
+                                Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
+                            )
+                        })?;
+
+                    // Remove worktree - need to block on the async call
+                    let runtime = tokio::runtime::Handle::current();
+                    runtime.block_on(manager.remove_worktree(&worktree_id))?;
+
+                    Ok::<(), MiyabiError>(())
+                })
+                .await
+                .map_err(|e| {
+                    AgentError::new(
+                        format!("Cleanup spawn blocking failed: {}", e),
+                        AgentType::CodeGenAgent,
+                        None,
+                    )
+                })??;
+
+                Ok(())
+            }
         })
-        .await
-        .map_err(|e| MiyabiError::Unknown(format!("Spawn blocking failed: {}", e)))??;
+        .await?;
 
         tracing::info!("Removed worktree: {:?}", worktree_path);
 
@@ -400,5 +464,185 @@ mod tests {
 
         let agent_result = result.unwrap();
         assert_eq!(agent_result.status, ResultStatus::Success);
+    }
+
+    // ========================================================================
+    // Error Handling & Retry Tests
+    // ========================================================================
+
+    #[tokio::test]
+    async fn test_retry_config_integration() {
+        use miyabi_core::retry::RetryConfig;
+
+        // Test that retry configs are created correctly
+        let conservative = RetryConfig::conservative();
+        assert_eq!(conservative.max_attempts, 2);
+        assert_eq!(conservative.initial_delay_ms, 500);
+
+        let aggressive = RetryConfig::aggressive();
+        assert_eq!(aggressive.max_attempts, 5);
+        assert_eq!(aggressive.initial_delay_ms, 50);
+    }
+
+    #[tokio::test]
+    async fn test_agent_error_context() {
+        use miyabi_types::error::AgentError;
+
+        // Test that AgentError includes proper context
+        let error = AgentError::new(
+            "Test error",
+            AgentType::CodeGenAgent,
+            Some("task-123".to_string()),
+        );
+
+        assert_eq!(error.agent_type, AgentType::CodeGenAgent);
+        assert_eq!(error.task_id, Some("task-123".to_string()));
+        assert_eq!(error.message, "Test error");
+    }
+
+    #[tokio::test]
+    async fn test_agent_error_with_cause() {
+        use miyabi_types::error::AgentError;
+        use std::io::Error as IoError;
+
+        let io_error = IoError::new(std::io::ErrorKind::NotFound, "File not found");
+        let agent_error = AgentError::with_cause(
+            "Failed to read file",
+            AgentType::CodeGenAgent,
+            Some("task-456".to_string()),
+            io_error,
+        );
+
+        assert_eq!(agent_error.message, "Failed to read file");
+        assert!(agent_error.cause.is_some());
+
+        use std::error::Error;
+        assert!(agent_error.source().is_some());
+    }
+
+    #[tokio::test]
+    async fn test_validation_error_not_retryable() {
+        use miyabi_core::retry::is_retryable;
+        use miyabi_types::error::MiyabiError;
+
+        let error = MiyabiError::Validation("Invalid task ID".to_string());
+        assert!(!is_retryable(&error));
+    }
+
+    #[tokio::test]
+    async fn test_timeout_error_retryable() {
+        use miyabi_core::retry::is_retryable;
+        use miyabi_types::error::MiyabiError;
+
+        let error = MiyabiError::Timeout(5000);
+        assert!(is_retryable(&error));
+    }
+
+    #[tokio::test]
+    async fn test_git_lock_error_retryable() {
+        use miyabi_core::retry::is_retryable;
+        use miyabi_types::error::MiyabiError;
+
+        let error = MiyabiError::Git("Unable to create lock file".to_string());
+        assert!(is_retryable(&error));
+    }
+
+    #[tokio::test]
+    async fn test_invalid_task_type_provides_context() {
+        let config = create_test_config();
+        let agent = CodeGenAgent::new(config);
+
+        let mut task = create_test_task();
+        task.task_type = TaskType::Docs; // Invalid for CodeGen
+
+        let result = agent.generate_code(&task).await;
+        assert!(result.is_err());
+
+        let error = result.unwrap_err();
+        let error_msg = error.to_string();
+        assert!(error_msg.contains("Validation error"));
+        assert!(error_msg.contains("Docs")); // Task type should be in error message
+    }
+
+    #[tokio::test]
+    async fn test_code_generation_result_serialization() {
+        let result = CodeGenerationResult {
+            files_created: vec!["src/main.rs".to_string()],
+            files_modified: vec!["Cargo.toml".to_string()],
+            lines_added: 50,
+            lines_removed: 10,
+            tests_added: 3,
+            commit_sha: Some("abc123".to_string()),
+        };
+
+        // Test that result can be serialized to JSON
+        let json = serde_json::to_value(&result).unwrap();
+        assert!(json["files_created"].is_array());
+        assert_eq!(json["lines_added"], 50);
+        assert_eq!(json["commit_sha"], "abc123");
+
+        // Test deserialization
+        let deserialized: CodeGenerationResult = serde_json::from_value(json).unwrap();
+        assert_eq!(deserialized.files_created.len(), 1);
+        assert_eq!(deserialized.lines_added, 50);
+    }
+
+    #[tokio::test]
+    async fn test_agent_metrics_calculation() {
+        let config = create_test_config();
+        let agent = CodeGenAgent::new(config);
+        let task = create_test_task();
+
+        let result = agent.execute(&task).await.unwrap();
+
+        // Verify metrics are generated
+        assert!(result.metrics.is_some());
+        let metrics = result.metrics.unwrap();
+
+        assert_eq!(metrics.agent_type, AgentType::CodeGenAgent);
+        assert_eq!(metrics.task_id, "task-1");
+        // Duration may be 0 for very fast operations, just verify it exists
+        assert!(metrics.lines_changed.is_some());
+        assert!(metrics.tests_added.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_validate_code_empty_result() {
+        let config = create_test_config();
+        let agent = CodeGenAgent::new(config);
+
+        let empty_result = CodeGenerationResult {
+            files_created: vec![],
+            files_modified: vec![],
+            lines_added: 0,
+            lines_removed: 0,
+            tests_added: 0,
+            commit_sha: None,
+        };
+
+        let validation = agent.validate_code(&empty_result);
+        assert!(validation.is_err());
+        assert!(validation
+            .unwrap_err()
+            .to_string()
+            .contains("No files were created or modified"));
+    }
+
+    #[tokio::test]
+    async fn test_validate_code_with_files() {
+        let config = create_test_config();
+        let agent = CodeGenAgent::new(config);
+
+        let valid_result = CodeGenerationResult {
+            files_created: vec!["src/lib.rs".to_string()],
+            files_modified: vec![],
+            lines_added: 100,
+            lines_removed: 0,
+            tests_added: 5,
+            commit_sha: Some("def456".to_string()),
+        };
+
+        let validation = agent.validate_code(&valid_result);
+        assert!(validation.is_ok());
     }
 }
