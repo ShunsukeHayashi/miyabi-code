@@ -1,11 +1,63 @@
+# ==============================================================================
+# Dependabot Configuration - Automated Dependency Updates
+# ==============================================================================
+
 version: 2
+
 updates:
-  - package-ecosystem: "npm"
+  # Rust Dependencies (Cargo) - Daily
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ShunsukeHayashi"
+    labels:
+      - "dependencies"
+      - "🔄 dependencies"
+      - "rust"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      tokio-ecosystem:
+        patterns:
+          - "tokio*"
+          - "async-trait"
+      serde-ecosystem:
+        patterns:
+          - "serde*"
+
+  # GitHub Actions - Weekly
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "🔄 dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # Docker - Weekly
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "11:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "🔄 dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
