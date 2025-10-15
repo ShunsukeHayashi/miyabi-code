@@ -12,6 +12,7 @@ readme = "../README.md"
 
 [dependencies]
 miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
+miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
 git2 = { workspace = true }
 tokio = { workspace = true, features = ["sync", "process", "fs"] }
 serde = { workspace = true, features = ["derive"] }

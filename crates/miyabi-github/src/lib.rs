@@ -36,6 +36,7 @@
 //! }
 //! ```
 
+pub mod auth;
 pub mod client;
 pub mod issues;
 pub mod labels;
@@ -43,6 +44,7 @@ pub mod projects;
 pub mod pull_requests;
 
 // Re-export main types
+pub use auth::{check_gh_cli_status, discover_token, validate_token_format, GhCliStatus};
 pub use client::GitHubClient;
 pub use labels::Label;
 pub use projects::{ContentType, KPIReport, ProjectItem};

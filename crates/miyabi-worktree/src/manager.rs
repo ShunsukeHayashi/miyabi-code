@@ -40,12 +40,54 @@ pub struct WorktreeManager {
 }
 
 impl WorktreeManager {
+    /// Create a new WorktreeManager with automatic Git repository discovery
+    ///
+    /// This is the recommended constructor. It automatically discovers the Git
+    /// repository root from the current directory, even if running from a subdirectory.
+    ///
+    /// # Arguments
+    /// * `worktree_base_name` - Name of the worktree base directory (default: ".worktrees")
+    /// * `max_concurrency` - Maximum number of concurrent worktrees
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use miyabi_worktree::WorktreeManager;
+    ///
+    /// # async fn example() -> miyabi_types::error::Result<()> {
+    /// // Works from any subdirectory within a Git repository
+    /// let manager = WorktreeManager::new_with_discovery(Some(".worktrees"), 3)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new_with_discovery(
+        worktree_base_name: Option<&str>,
+        max_concurrency: usize,
+    ) -> Result<Self> {
+        // Discover Git repository root from current directory
+        let repo_path = miyabi_core::find_git_root(None)?;
+
+        tracing::info!(
+            "Discovered Git repository root at: {:?}",
+            repo_path
+        );
+
+        // Create worktree base directory relative to repo root
+        let worktree_base = repo_path.join(worktree_base_name.unwrap_or(".worktrees"));
+
+        Self::new(repo_path, worktree_base, max_concurrency)
+    }
+
     /// Create a new WorktreeManager
     ///
     /// # Arguments
     /// * `repo_path` - Path to the main repository
     /// * `worktree_base` - Base directory for worktrees
     /// * `max_concurrency` - Maximum number of concurrent worktrees
+    ///
+    /// # Note
+    /// Consider using `new_with_discovery()` instead, which automatically
+    /// finds the Git repository root even when running from a subdirectory.
     pub fn new(
         repo_path: impl AsRef<Path>,
         worktree_base: impl AsRef<Path>,
@@ -453,16 +495,9 @@ impl WorktreeManager {
     }
 
     /// Get main branch name (tries 'main' then 'master')
-    fn get_main_branch(&self, repo: &Repository) -> Result<String> {
-        if repo.find_branch("main", BranchType::Local).is_ok() {
-            Ok("main".to_string())
-        } else if repo.find_branch("master", BranchType::Local).is_ok() {
-            Ok("master".to_string())
-        } else {
-            Err(MiyabiError::Git(
-                "Neither 'main' nor 'master' branch found".to_string(),
-            ))
-        }
+    fn get_main_branch(&self, _repo: &Repository) -> Result<String> {
+        // Use the miyabi-core git utility
+        miyabi_core::get_main_branch(&self.repo_path)
     }
 }
 

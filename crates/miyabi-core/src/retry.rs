@@ -195,6 +195,7 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
         MiyabiError::Agent(_) => false,
         MiyabiError::Escalation(_) => false,
         MiyabiError::CircularDependency(_) => false,
+        MiyabiError::Auth(_) => false, // Authentication errors are permanent
         MiyabiError::Config(_) => false,
         MiyabiError::Validation(_) => false,
         MiyabiError::Json(_) => false,

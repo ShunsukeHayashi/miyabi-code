@@ -2,6 +2,7 @@
 
 mod commands;
 mod error;
+mod startup;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
@@ -74,6 +75,9 @@ async fn main() -> Result<()> {
         miyabi_core::LogLevel::Info
     };
     miyabi_core::init_logger(log_level);
+
+    // Perform startup checks (non-fatal warnings)
+    startup::perform_startup_checks();
 
     let result = match cli.command {
         Some(Commands::Init { name, private }) => {

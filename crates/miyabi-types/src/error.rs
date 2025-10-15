@@ -30,6 +30,9 @@ pub enum MiyabiError {
     #[error("Git error: {0}")]
     Git(String),
 
+    #[error("Authentication error: {0}")]
+    Auth(String),
+
     #[error("Configuration error: {0}")]
     Config(String),
 

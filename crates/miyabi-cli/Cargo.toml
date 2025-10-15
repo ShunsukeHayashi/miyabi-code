@@ -37,6 +37,8 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 hostname = { workspace = true }
+dirs = "5.0"
+shellexpand = "3.1"
 
 [dev-dependencies]
 tokio-test = "0.4"
