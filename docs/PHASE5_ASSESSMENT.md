@@ -8,13 +8,16 @@
 
 ## 📊 Executive Summary
 
-Phase 5 "Agent実装" は**基盤が既に実装済み**で、完全実装に向けて進行中です。
+Phase 5 "Agent実装" は**基盤が既に実装済み**で、P0-1完了により順調に進行中です。
 
-**現状**:
+**現状** (2025-10-15更新):
 - ✅ BaseAgent trait完全実装
-- ✅ CoordinatorAgent 70-80%完成 (451行, 4テスト)
+- ✅ CoordinatorAgent **85-90%完成** (451行, 4テスト) **← P0-1完了**
 - ✅ CodeGenAgent 40-50%完成 (208行, 4テスト)
 - ⚠️ 残り5 Agents未実装 (ReviewAgent, IssueAgent, PRAgent, DeploymentAgent, AutoFixAgent)
+
+**最新の完了タスク**:
+- ✅ **P0-1: CoordinatorAgent GitHub API統合** (2025-10-15, 4h, commit: 35985ac)
 
 ---
 
@@ -25,7 +28,7 @@ Phase 5 "Agent実装" は**基盤が既に実装済み**で、完全実装に向
 | # | Agent | 実装状況 | コード行数 | テスト数 | 完成度 | 優先度 |
 |---|-------|----------|------------|----------|--------|--------|
 | 5.1 | BaseAgent trait | ✅ 完了 | 27行 | - | 100% | - |
-| 5.2 | CoordinatorAgent | 🟡 基盤実装 | 451行 | 4 | 70-80% | P0 |
+| 5.2 | CoordinatorAgent | 🟢 P0-1完了 | 451行 | 4 | **85-90%** | P0 |
 | 5.3 | CodeGenAgent | 🟡 基盤実装 | 208行 | 4 | 40-50% | P0 |
 | 5.4 | ReviewAgent | ❌ 未実装 | 0行 | 0 | 0% | P1 |
 | 5.5 | IssueAgent | ❌ 未実装 | 0行 | 0 | 0% | P1 |
@@ -34,6 +37,7 @@ Phase 5 "Agent実装" は**基盤が既に実装済み**で、完全実装に向
 | 5.8 | AutoFixAgent | ❌ 未実装 | 0行 | 0 | 0% | P2 |
 
 **総計**: 687行実装済み (目標: ~3,000行)、8テスト実装済み
+**P0タスク進捗**: 1/4完了 (25%)
 
 ---
 
@@ -58,7 +62,7 @@ pub trait BaseAgent: Send + Sync {
 
 ---
 
-### 🟡 CoordinatorAgent (70-80% 完成)
+### 🟢 CoordinatorAgent (85-90% 完成) - **P0-1完了 (2025-10-15)**
 
 **ファイル**: `crates/miyabi-agents/src/coordinator.rs` (451行)
 
@@ -93,22 +97,25 @@ pub trait BaseAgent: Send + Sync {
 - test_dag_construction
 - test_task_type_inference
 
-#### 未実装 / 改善が必要な機能
-
-❌ **GitHub API統合**
+✅ **GitHub API統合** (完了 - 2025-10-15, commit: 35985ac)
 ```rust
-// 現状: ダミーIssue生成 (line 320)
-let issue = Issue {
-    number: issue_number,
-    title: task.title.clone(),
-    body: task.description.clone(),
-    // ...
-};
+// ✅ 実装完了: miyabi-github経由で実際のIssue取得
+let owner = self.config.repo_owner.as_ref()
+    .ok_or_else(|| MiyabiError::Config("repo_owner not configured"))?;
+let repo = self.config.repo_name.as_ref()
+    .ok_or_else(|| MiyabiError::Config("repo_name not configured"))?;
 
-// 必要: miyabi-github経由で実際のIssue取得
-let github_client = GitHubClient::new(&self.config.github_token);
-let issue = github_client.get_issue(repo_owner, repo_name, issue_number).await?;
+let github_client = GitHubClient::new(&self.config.github_token, owner, repo)?;
+let issue = github_client.get_issue(issue_number).await?;
 ```
+
+**変更内容**:
+- AgentConfigにrepo_owner/repo_name追加 (`crates/miyabi-types/src/agent.rs`)
+- 全テストケース更新（miyabi-types: 170テスト全てパス）
+- CoordinatorAgent::execute()でGitHubClient使用
+- ダミーIssue生成コード削除
+
+#### 未実装 / 改善が必要な機能
 
 ❌ **Plans.md生成 (Feler's pattern)**
 ```rust
@@ -135,12 +142,13 @@ fn generate_plans_md(&self, decomposition: &TaskDecomposition) -> Result<String>
 
 #### 推奨実装順序
 
-1. **GitHub API統合** (優先度: High)
-   - `miyabi-github::GitHubClient`使用
-   - 実際のIssue取得
-   - 見積もり: 4時間
+1. ✅ **GitHub API統合** (優先度: High) **完了 - 4時間**
+   - ✅ `miyabi-github::GitHubClient`使用
+   - ✅ 実際のIssue取得
+   - ✅ AgentConfig拡張 (repo_owner/repo_name)
+   - **完了日**: 2025-10-15, commit: 35985ac
 
-2. **Plans.md生成** (優先度: High)
+2. **Plans.md生成** (優先度: High) **次タスク**
    - TaskDecomposition → Markdownフォーマット
    - ファイル書き込み
    - 見積もり: 3時間
@@ -156,7 +164,9 @@ fn generate_plans_md(&self, decomposition: &TaskDecomposition) -> Result<String>
    - WorkerPool統合
    - 見積もり: 8時間
 
-**合計見積もり**: 20時間 (High priority: 12時間)
+**合計見積もり**: 20時間
+**完了**: 4時間 (20%)
+**残り**: 16時間 (High priority: 8時間)
 
 ---
 
@@ -367,7 +377,7 @@ async fn generate_tests(&self, generated_files: &[String]) -> Result<Vec<String>
 
 | # | 項目 | 現状 | 目標 | ステータス |
 |---|------|------|------|------------|
-| 1 | CoordinatorAgent完成 | 70% | 100% | 🟡 進行中 |
+| 1 | CoordinatorAgent完成 | **85%** (**P0-1完了**) | 100% | 🟢 進行中 |
 | 2 | CodeGenAgent完成 | 40% | 100% | 🟡 進行中 |
 | 3 | ReviewAgent実装 | 0% | 100% | ❌ 未着手 |
 | 4 | IssueAgent実装 | 0% | 100% | ❌ 未着手 |
@@ -387,15 +397,16 @@ async fn generate_tests(&self, generated_files: &[String]) -> Result<Vec<String>
 ## 🗓️ 推奨実装スケジュール
 
 ### Week 1 (2025-10-15 ~ 2025-10-21)
-- [ ] CoordinatorAgent完成
-  - GitHub API統合 (4h)
-  - Plans.md生成 (3h)
-  - テスト拡充 (5h)
+- [ ] CoordinatorAgent完成 (進捗: 85% → 100%)
+  - [x] **GitHub API統合 (4h)** ✅ **完了 2025-10-15**
+  - [ ] Plans.md生成 (3h) ← **次タスク**
+  - [ ] テスト拡充 (5h)
 - [ ] CodeGenAgent進捗
-  - Worktree統合 (6h)
-  - Claude Code統合開始 (12h → 6h完了)
+  - [ ] Worktree統合 (6h)
+  - [ ] Claude Code統合開始 (12h → 6h完了)
 
 **Week 1目標**: CoordinatorAgent 100%完成
+**Week 1進捗**: 4h/18h完了 (22.2%)
 
 ### Week 2 (2025-10-22 ~ 2025-10-28)
 - [ ] CodeGenAgent完成
@@ -429,8 +440,9 @@ async fn generate_tests(&self, generated_files: &[String]) -> Result<Vec<String>
 | Agent実装数 | 3/7 | 7/7 | 42.9% |
 | コード行数 | 687行 | ~3,000行 | 22.9% |
 | テスト数 | 8 | 40+ | 20.0% |
+| P0タスク完了 | **1/4 (P0-1)** | 4/4 | **25.0%** |
 | 実装済みAgent完成度 | - | - | - |
-| - CoordinatorAgent | 70% | 100% | 70% |
+| - CoordinatorAgent | **85%** (**+15%**) | 100% | **85%** |
 | - CodeGenAgent | 40% | 100% | 40% |
 
 ---
@@ -439,18 +451,16 @@ async fn generate_tests(&self, generated_files: &[String]) -> Result<Vec<String>
 
 ### 即座に開始すべきタスク (P0)
 
-1. **CoordinatorAgent GitHub API統合** (4時間)
+1. ✅ **CoordinatorAgent GitHub API統合** (4時間) **完了 - 2025-10-15**
    ```rust
-   // crates/miyabi-agents/src/coordinator.rs
-   use miyabi_github::GitHubClient;
-
-   async fn fetch_real_issue(&self, issue_number: u64) -> Result<Issue> {
-       let client = GitHubClient::new(&self.config.github_token);
-       client.get_issue(owner, repo, issue_number).await
-   }
+   // ✅ 実装完了: crates/miyabi-agents/src/coordinator.rs
+   let github_client = GitHubClient::new(&self.config.github_token, owner, repo)?;
+   let issue = github_client.get_issue(issue_number).await?;
    ```
+   - **commit**: 35985ac
+   - **テスト**: miyabi-types (170), miyabi-agents (13) 全パス
 
-2. **CoordinatorAgent Plans.md生成** (3時間)
+2. **CoordinatorAgent Plans.md生成** (3時間) **← 次タスク**
    ```rust
    // crates/miyabi-agents/src/coordinator.rs
    fn generate_plans_md(&self, decomposition: &TaskDecomposition) -> Result<String> {
