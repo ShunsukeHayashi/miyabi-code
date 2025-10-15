@@ -19,12 +19,17 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  # Optional: Set SLACK_WEBHOOK_URL secret in repository settings for failure notifications
 
 jobs:
   check:
     name: Check
     runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
     steps:
+      - name: Start time tracking
+        id: start-time
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -52,6 +57,49 @@ jobs:
       - name: Show sccache statistics
         if: always()
         uses: ./.github/actions/sccache-stats
+
+      - name: Build time report
+        if: always()
+        run: |
+          end_time=$(date +%s)
+          duration=$((end_time - ${{ steps.start-time.outputs.start_time }}))
+          minutes=$((duration / 60))
+          seconds=$((duration % 60))
+
+          echo "### ⏱️ Job Duration: ${minutes}m ${seconds}s" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Performance benchmarks
+          if [ $duration -lt 120 ]; then
+            echo "✅ **Excellent**: Job completed in under 2 minutes" >> $GITHUB_STEP_SUMMARY
+          elif [ $duration -lt 300 ]; then
+            echo "🟢 **Good**: Job completed in under 5 minutes" >> $GITHUB_STEP_SUMMARY
+          elif [ $duration -lt 600 ]; then
+            echo "🟡 **Acceptable**: Job completed in under 10 minutes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "🔴 **Slow**: Job took over 10 minutes (investigate caching)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Notify on failure (Slack)
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ Rust CI Check Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Rust CI Check Failed*\n\nJob: `check`\nWorkflow: ${{ github.workflow }}\nCommit: <${{ github.event.head_commit.url }}|${{ github.sha }}>\nAuthor: ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   test:
     name: Test

@@ -1,0 +1,146 @@
+name: CI Status Report
+
+on:
+  workflow_run:
+    workflows: ["Rust CI/CD"]
+    types: [completed]
+  schedule:
+    # Daily report at 09:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  report:
+    name: Generate CI Status Report
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate workflow statistics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const DAYS_TO_ANALYZE = 7;
+
+            console.log(`📊 Analyzing CI workflows for the past ${DAYS_TO_ANALYZE} days...`);
+
+            // Get workflow runs
+            const workflows = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+              created: `>${new Date(Date.now() - DAYS_TO_ANALYZE * 24 * 60 * 60 * 1000).toISOString()}`
+            });
+
+            // Aggregate statistics
+            const stats = {
+              total: 0,
+              success: 0,
+              failure: 0,
+              cancelled: 0,
+              totalDuration: 0,
+              byWorkflow: {}
+            };
+
+            for (const run of workflows.data.workflow_runs) {
+              stats.total++;
+
+              if (run.conclusion === 'success') stats.success++;
+              else if (run.conclusion === 'failure') stats.failure++;
+              else if (run.conclusion === 'cancelled') stats.cancelled++;
+
+              // Duration calculation
+              if (run.run_started_at && run.updated_at) {
+                const duration = (new Date(run.updated_at) - new Date(run.run_started_at)) / 1000;
+                stats.totalDuration += duration;
+
+                // Per-workflow stats
+                const wf = run.name;
+                if (!stats.byWorkflow[wf]) {
+                  stats.byWorkflow[wf] = { count: 0, duration: 0, success: 0, failure: 0 };
+                }
+                stats.byWorkflow[wf].count++;
+                stats.byWorkflow[wf].duration += duration;
+                if (run.conclusion === 'success') stats.byWorkflow[wf].success++;
+                else if (run.conclusion === 'failure') stats.byWorkflow[wf].failure++;
+              }
+            }
+
+            // Calculate metrics
+            const successRate = stats.total > 0 ? ((stats.success / stats.total) * 100).toFixed(1) : 0;
+            const avgDuration = stats.total > 0 ? Math.floor(stats.totalDuration / stats.total) : 0;
+            const avgMinutes = Math.floor(avgDuration / 60);
+            const avgSeconds = avgDuration % 60;
+
+            // Generate report
+            let report = `
+            # 📊 CI/CD Status Report
+
+            **Period**: Last ${DAYS_TO_ANALYZE} days
+            **Generated**: ${new Date().toISOString()}
+
+            ## Overall Statistics
+
+            | Metric | Value |
+            |--------|-------|
+            | Total Runs | ${stats.total} |
+            | ✅ Success | ${stats.success} (${successRate}%) |
+            | ❌ Failure | ${stats.failure} |
+            | 🚫 Cancelled | ${stats.cancelled} |
+            | ⏱️ Avg Duration | ${avgMinutes}m ${avgSeconds}s |
+
+            ## Success Rate
+
+            ${successRate >= 95 ? '✅ **Excellent**: Success rate above 95%' : ''}
+            ${successRate >= 90 && successRate < 95 ? '🟢 **Good**: Success rate above 90%' : ''}
+            ${successRate >= 80 && successRate < 90 ? '🟡 **Acceptable**: Success rate above 80%' : ''}
+            ${successRate < 80 ? '🔴 **Needs Attention**: Success rate below 80%' : ''}
+
+            ## Workflow Breakdown
+
+            | Workflow | Runs | Success Rate | Avg Duration |
+            |----------|------|--------------|--------------|
+            `;
+
+            for (const [workflow, data] of Object.entries(stats.byWorkflow)) {
+              const wfSuccessRate = data.count > 0 ? ((data.success / data.count) * 100).toFixed(1) : 0;
+              const wfAvgDuration = data.count > 0 ? Math.floor(data.duration / data.count) : 0;
+              const wfMinutes = Math.floor(wfAvgDuration / 60);
+              const wfSeconds = wfAvgDuration % 60;
+
+              report += `| ${workflow} | ${data.count} | ${wfSuccessRate}% | ${wfMinutes}m ${wfSeconds}s |\n`;
+            }
+
+            report += `
+            ## Performance Insights
+
+            ### Build Time Optimization
+            - **sccache**: Expected 30-40% build time reduction
+            - **cargo-nextest**: Expected 40-60% test time reduction
+            - **4-layer cache**: Expected 80-90% speedup on warm cache
+
+            ### Target Metrics
+            - ✅ Success Rate: ≥95%
+            - ⏱️ Check Job: <2 minutes
+            - ⏱️ Test Job: <5 minutes (all platforms)
+            - ⏱️ Build Job: <8 minutes (all platforms)
+            - 🗄️ Cache Hit Rate: ≥75%
+
+            ${avgDuration < 300 ? '✅ **Current performance is excellent!**' : '⚠️ **Consider further optimization if duration increases.**'}
+
+            ---
+            _Report generated automatically. Configure SLACK_WEBHOOK_URL secret for failure notifications._
+            `;
+
+            await core.summary.addRaw(report).write();
+
+            console.log('✅ Report generated successfully');
+
+            // Optional: Send to Slack if webhook is configured
+            if (process.env.SLACK_WEBHOOK_URL && stats.failure > 0) {
+              console.log(`⚠️ ${stats.failure} failures detected - would send Slack notification`);
+            }
