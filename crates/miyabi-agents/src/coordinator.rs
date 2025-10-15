@@ -295,6 +295,112 @@ impl CoordinatorAgent {
 
         recommendations
     }
+
+    /// Generate Plans.md markdown from TaskDecomposition (Feler's pattern)
+    pub fn generate_plans_md(&self, decomposition: &TaskDecomposition) -> String {
+        let mut md = String::new();
+
+        // Header
+        md.push_str(&format!("# Plans for Issue #{}\n\n", decomposition.original_issue.number));
+        md.push_str(&format!("**Title**: {}\n\n", decomposition.original_issue.title));
+        md.push_str(&format!("**URL**: {}\n\n", decomposition.original_issue.url));
+        md.push_str("---\n\n");
+
+        // Summary
+        md.push_str("## 📋 Summary\n\n");
+        md.push_str(&format!("- **Total Tasks**: {}\n", decomposition.tasks.len()));
+        md.push_str(&format!("- **Estimated Duration**: {} minutes\n", decomposition.estimated_total_duration));
+        md.push_str(&format!("- **Execution Levels**: {}\n", decomposition.dag.levels.len()));
+        md.push_str(&format!("- **Has Cycles**: {}\n", if decomposition.has_cycles { "⚠️ Yes" } else { "✅ No" }));
+        md.push('\n');
+
+        // Task breakdown
+        md.push_str("## 📝 Task Breakdown\n\n");
+
+        for (i, task) in decomposition.tasks.iter().enumerate() {
+            let agent_name = task.assigned_agent.map(|a| format!("{:?}", a)).unwrap_or_else(|| "Unassigned".to_string());
+            let duration = task.estimated_duration.map(|d| format!("{} min", d)).unwrap_or_else(|| "N/A".to_string());
+
+            md.push_str(&format!("### {}. {}\n\n", i + 1, task.title));
+            md.push_str(&format!("- **ID**: `{}`\n", task.id));
+            md.push_str(&format!("- **Type**: {:?}\n", task.task_type));
+            md.push_str(&format!("- **Assigned Agent**: {}\n", agent_name));
+            md.push_str(&format!("- **Priority**: {}\n", task.priority));
+            md.push_str(&format!("- **Estimated Duration**: {}\n", duration));
+
+            if !task.dependencies.is_empty() {
+                md.push_str(&format!("- **Dependencies**: {}\n", task.dependencies.join(", ")));
+            }
+
+            if !task.description.is_empty() {
+                md.push_str(&format!("\n**Description**: {}\n", task.description));
+            }
+
+            md.push('\n');
+        }
+
+        // Execution plan (DAG levels)
+        md.push_str("## 🔄 Execution Plan (DAG Levels)\n\n");
+        md.push_str("Tasks can be executed in parallel within each level:\n\n");
+
+        for (level_idx, level) in decomposition.dag.levels.iter().enumerate() {
+            md.push_str(&format!("### Level {} (Parallel Execution)\n\n", level_idx));
+            for task_id in level {
+                if let Some(task) = decomposition.tasks.iter().find(|t| t.id == *task_id) {
+                    md.push_str(&format!("- `{}` - {}\n", task.id, task.title));
+                }
+            }
+            md.push('\n');
+        }
+
+        // Dependencies graph
+        md.push_str("## 📊 Dependency Graph\n\n");
+        md.push_str("```mermaid\ngraph TD\n");
+        for task in &decomposition.tasks {
+            let task_label = task.title.replace('"', "'");
+            md.push_str(&format!("    {}[\"{}\"]\n", task.id.replace('-', "_"), task_label));
+        }
+        for edge in &decomposition.dag.edges {
+            md.push_str(&format!("    {} --> {}\n", edge.from.replace('-', "_"), edge.to.replace('-', "_")));
+        }
+        md.push_str("```\n\n");
+
+        // Recommendations
+        if !decomposition.recommendations.is_empty() {
+            md.push_str("## 💡 Recommendations\n\n");
+            for rec in &decomposition.recommendations {
+                md.push_str(&format!("- {}\n", rec));
+            }
+            md.push('\n');
+        }
+
+        // Timeline
+        md.push_str("## ⏱️ Timeline Estimation\n\n");
+        let hours = decomposition.estimated_total_duration as f32 / 60.0;
+        md.push_str(&format!("- **Sequential Execution**: {} minutes ({:.1} hours)\n", decomposition.estimated_total_duration, hours));
+
+        // Calculate parallel execution time (critical path)
+        let critical_path = decomposition.dag.critical_path();
+        let critical_duration: u32 = critical_path
+            .iter()
+            .filter_map(|task_id| {
+                decomposition.tasks
+                    .iter()
+                    .find(|t| t.id == *task_id)
+                    .and_then(|t| t.estimated_duration)
+            })
+            .sum();
+        let critical_hours = critical_duration as f32 / 60.0;
+        md.push_str(&format!("- **Parallel Execution (Critical Path)**: {} minutes ({:.1} hours)\n", critical_duration, critical_hours));
+        md.push_str(&format!("- **Estimated Speedup**: {:.1}x\n", decomposition.estimated_total_duration as f32 / critical_duration as f32));
+        md.push('\n');
+
+        // Footer
+        md.push_str("---\n\n");
+        md.push_str(&format!("*Generated by CoordinatorAgent on {}*\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+
+        md
+    }
 }
 
 #[async_trait]
@@ -450,5 +556,70 @@ mod tests {
 
         issue.labels = vec![];
         assert_eq!(agent.infer_task_type(&issue), TaskType::Feature); // default
+    }
+
+    #[tokio::test]
+    async fn test_generate_plans_md() {
+        let config = create_test_config();
+        let agent = CoordinatorAgent::new(config);
+        let issue = create_test_issue();
+
+        // Generate task decomposition
+        let decomposition = agent.decompose_issue(&issue).await.unwrap();
+
+        // Generate Plans.md
+        let plans_md = agent.generate_plans_md(&decomposition);
+
+        // Validate markdown contains expected sections
+        assert!(plans_md.contains("# Plans for Issue #123"));
+        assert!(plans_md.contains("**Title**: Implement new feature"));
+        assert!(plans_md.contains("https://github.com/user/repo/issues/123"));
+
+        // Validate Summary section
+        assert!(plans_md.contains("## 📋 Summary"));
+        assert!(plans_md.contains("- **Total Tasks**: 4"));
+        assert!(plans_md.contains("- **Estimated Duration**: 60 minutes"));
+        assert!(plans_md.contains("- **Execution Levels**: 4"));
+        assert!(plans_md.contains("- **Has Cycles**: ✅ No"));
+
+        // Validate Task Breakdown section
+        assert!(plans_md.contains("## 📝 Task Breakdown"));
+        assert!(plans_md.contains("### 1. Analyze requirements for #123"));
+        assert!(plans_md.contains("### 2. Implement solution for #123"));
+        assert!(plans_md.contains("### 3. Add tests for #123"));
+        assert!(plans_md.contains("### 4. Review code quality for #123"));
+
+        // Validate task details
+        assert!(plans_md.contains("- **ID**: `task-123-analysis`"));
+        assert!(plans_md.contains("- **Type**: Docs"));
+        assert!(plans_md.contains("- **Assigned Agent**: IssueAgent"));
+        assert!(plans_md.contains("- **Type**: Feature"));
+        assert!(plans_md.contains("- **Assigned Agent**: CodeGenAgent"));
+        assert!(plans_md.contains("- **Type**: Test"));
+        assert!(plans_md.contains("- **Type**: Refactor"));
+        assert!(plans_md.contains("- **Assigned Agent**: ReviewAgent"));
+
+        // Validate Execution Plan section
+        assert!(plans_md.contains("## 🔄 Execution Plan (DAG Levels)"));
+        assert!(plans_md.contains("### Level 0 (Parallel Execution)"));
+        assert!(plans_md.contains("`task-123-analysis` - Analyze requirements for #123"));
+
+        // Validate Dependency Graph section
+        assert!(plans_md.contains("## 📊 Dependency Graph"));
+        assert!(plans_md.contains("```mermaid"));
+        assert!(plans_md.contains("graph TD"));
+        assert!(plans_md.contains("task_123_analysis[\"Analyze requirements for #123\"]"));
+        assert!(plans_md.contains("task_123_impl[\"Implement solution for #123\"]"));
+        assert!(plans_md.contains("task_123_analysis --> task_123_impl"));
+
+        // Validate Timeline Estimation section
+        assert!(plans_md.contains("## ⏱️ Timeline Estimation"));
+        assert!(plans_md.contains("- **Sequential Execution**: 60 minutes (1.0 hours)"));
+        // Note: critical_path() implementation is simplified, just check the section exists
+        assert!(plans_md.contains("- **Parallel Execution (Critical Path)**: "));
+        assert!(plans_md.contains("- **Estimated Speedup**: "));
+
+        // Validate footer
+        assert!(plans_md.contains("*Generated by CoordinatorAgent on"));
     }
 }
