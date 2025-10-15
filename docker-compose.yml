@@ -1,11 +1,23 @@
+# ==============================================================================
+# Miyabi Docker Compose - Rust Edition
+# ==============================================================================
+# Purpose: Multi-service orchestration for Miyabi autonomous agent platform
+# Target: Mac mini SSH access + self-hosted runner environment
+# Author: Shunsuke Hayashi
+# Version: 2.0 (Rust Edition)
+# ==============================================================================
+
 version: '3.8'
 
 services:
+  # ===========================================================================
+  # Main Service: Miyabi Agent Runtime (Rust Edition)
+  # ===========================================================================
   miyabi-agent:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runtime
+      target: runtime  # Use 'development' for dev environment
     image: miyabi-agent:latest
     container_name: miyabi-agent
     restart: unless-stopped
@@ -16,124 +28,202 @@ services:
       - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
       - GITHUB_REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER}
 
-      # Agent Configuration
-      - NODE_ENV=production
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - WORKDIR=/app
+      # Rust Configuration
+      - RUST_LOG=${RUST_LOG:-info}
+      - RUST_BACKTRACE=${RUST_BACKTRACE:-0}
 
-      # Optional: Issue number for targeted execution
+      # Device Identifier
+      - DEVICE_IDENTIFIER=${DEVICE_IDENTIFIER:-mac-mini-docker}
+
+      # Optional: Agent execution parameters
+      # - AGENT_TYPE=coordinator
       # - ISSUE_NUMBER=${ISSUE_NUMBER}
+      # - CONCURRENCY=${CONCURRENCY:-1}
 
     volumes:
-      # Mount configuration
-      - ./config:/app/config:ro
+      # Mount .claude directory (Agent prompts, commands)
+      - ./.claude:/app/.claude:ro
 
       # Mount logs
       - ./logs:/app/logs
 
-      # Mount output artifacts
-      - ./output:/app/output
-
       # Mount AI working directory (for agent state)
       - agent-data:/app/.ai
+
+      # Git configuration (for Worktree operations)
+      - ~/.gitconfig:/home/miyabi/.gitconfig:ro
+      - ~/.ssh:/home/miyabi/.ssh:ro
 
     networks:
       - miyabi-network
 
     healthcheck:
-      test: ["CMD", "node", "-e", "console.log('OK')"]
+      test: ["CMD", "miyabi", "--version"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
-    # Resource limits
+    # Resource limits (適切に調整)
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2G
+          cpus: '4.0'      # Rust並列ビルド用に増量
+          memory: 4G       # Rustコンパイル用に増量
         reservations:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '1.0'
+          memory: 1G
 
-  # Optional: PostgreSQL for agent state persistence
+  # ===========================================================================
+  # Development Service: Miyabi Agent Development Environment
+  # ===========================================================================
+  miyabi-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: miyabi-dev:latest
+    container_name: miyabi-dev
+    restart: "no"  # 開発環境は手動起動
+
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - RUST_LOG=debug
+      - RUST_BACKTRACE=1
+
+    volumes:
+      # ソースコード全体をマウント（ホットリロード）
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - cargo-git:/usr/local/cargo/git
+      - target-cache:/app/target
+
+    networks:
+      - miyabi-network
+
+    # インタラクティブモード
+    stdin_open: true
+    tty: true
+
+    command: ["bash"]
+
+    profiles:
+      - development
+
+  # ===========================================================================
+  # Optional: PostgreSQL (Agent state persistence)
+  # ===========================================================================
   postgres:
     image: postgres:16-alpine
     container_name: miyabi-postgres
     restart: unless-stopped
+
     environment:
       - POSTGRES_DB=miyabi
       - POSTGRES_USER=miyabi
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-miyabi_secure_password}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-miyabi_secure_password_change_me}
+
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
     networks:
       - miyabi-network
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U miyabi"]
       interval: 10s
       timeout: 5s
       retries: 5
+
     profiles:
       - with-database
 
-  # Optional: Redis for agent coordination and caching
+  # ===========================================================================
+  # Optional: Redis (Agent coordination & caching)
+  # ===========================================================================
   redis:
     image: redis:7-alpine
     container_name: miyabi-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-miyabi_redis_password}
+
     volumes:
       - redis-data:/data
+
     networks:
       - miyabi-network
+
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-miyabi_redis_password}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+
     profiles:
       - with-cache
 
-  # Context Engineering API Service
-  context-api:
-    build:
-      context: ./services/context-api
-      dockerfile: Dockerfile
-    container_name: miyabi-context-api
+  # ===========================================================================
+  # Optional: Monitoring with Prometheus
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: miyabi-prometheus
     restart: unless-stopped
-    ports:
-      - "8888:8888"  # AI Guides API
-      - "9001:9001"  # Context Engineering API
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - UVICORN_HOST=0.0.0.0
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - CONTEXT_OPTIMIZATION_THRESHOLD=${CONTEXT_OPTIMIZATION_THRESHOLD:-80}
+
     volumes:
-      - ./templates/prompts:/app/templates:ro
-      - context-api-data:/app/data
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+    ports:
+      - "9090:9090"
+
     networks:
       - miyabi-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9001/api/stats"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    profiles:
-      - context-engineering
 
+    profiles:
+      - monitoring
+
+  # ===========================================================================
+  # Optional: Grafana (Metrics visualization)
+  # ===========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: miyabi-grafana
+    restart: unless-stopped
+
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+    ports:
+      - "3000:3000"
+
+    networks:
+      - miyabi-network
+
+    profiles:
+      - monitoring
+
+# =============================================================================
+# Networks
+# =============================================================================
 networks:
   miyabi-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
+# =============================================================================
+# Volumes
+# =============================================================================
 volumes:
   agent-data:
     driver: local
@@ -141,5 +231,52 @@ volumes:
     driver: local
   redis-data:
     driver: local
-  context-api-data:
+  prometheus-data:
     driver: local
+  grafana-data:
+    driver: local
+  # Development caches
+  cargo-cache:
+    driver: local
+  cargo-git:
+    driver: local
+  target-cache:
+    driver: local
+
+# =============================================================================
+# 使用例:
+#
+# 1. 本番環境起動（最小構成）:
+#    docker-compose up -d miyabi-agent
+#
+# 2. データベース付き起動:
+#    docker-compose --profile with-database up -d
+#
+# 3. キャッシュ付き起動:
+#    docker-compose --profile with-cache up -d
+#
+# 4. 開発環境起動:
+#    docker-compose --profile development up miyabi-dev
+#
+# 5. モニタリング付き起動:
+#    docker-compose --profile monitoring up -d
+#
+# 6. 全サービス起動:
+#    docker-compose --profile with-database --profile with-cache --profile monitoring up -d
+#
+# 7. SSH経由での起動（Mac mini）:
+#    ssh user@mac-mini "cd /path/to/miyabi && docker-compose up -d"
+#
+# 8. ログ確認:
+#    docker-compose logs -f miyabi-agent
+#
+# 9. Agent実行（ワンショット）:
+#    docker-compose run --rm miyabi-agent miyabi agent run coordinator --issue 270
+#
+# 10. 停止:
+#     docker-compose down
+#
+# 11. 完全クリーンアップ（ボリューム削除）:
+#     docker-compose down -v
+#
+# =============================================================================

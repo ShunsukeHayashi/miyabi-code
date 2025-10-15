@@ -1,79 +1,216 @@
+# ==============================================================================
+# Miyabi .dockerignore - Rust Edition
+# ==============================================================================
+# Purpose: Exclude unnecessary files from Docker build context
+# Target: Optimize build performance and reduce image size
+# ==============================================================================
+
+# -----------------------------------------------------------------------------
 # Git
+# -----------------------------------------------------------------------------
 .git
 .gitignore
+.gitattributes
 .gitmodules
+.github
 
-# Dependencies
-node_modules
-**/node_modules
+# -----------------------------------------------------------------------------
+# Rust Build Artifacts
+# -----------------------------------------------------------------------------
+target/
+**/target/
+Cargo.lock  # Included in Dockerfile for dependencies layer
 
-# Build artifacts
-dist
-**/dist
-build
-**/build
-.cache
-.turbo
+# Rust toolchain
+.rustup/
 
-# Test and coverage
-coverage
-test-results
-*.test.ts
-**/*.test.ts
-tests
-**/tests
+# Rust cache
+.cargo/registry/
+.cargo/git/
 
-# IDE and editor
-.vscode
-.idea
+# Test binaries
+**/*.test
+**/*.bench
+
+# -----------------------------------------------------------------------------
+# TypeScript/Node.js (Legacy - 参考用に保持)
+# -----------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+.cache/
+.turbo/
+*.tsbuildinfo
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Legacy TypeScript packages (Rust移行により不要)
+packages/
+agents/  # TypeScript版Agent実装
+
+# -----------------------------------------------------------------------------
+# Testing & Coverage
+# -----------------------------------------------------------------------------
+coverage/
+test-results/
+playwright-report/
+.vitest/
+
+# Rust test binaries
+crates/*/target/debug/
+crates/*/target/release/
+
+# Keep test source code (exclude only artifacts)
+!**/*.test.rs
+!crates/*/tests/
+
+# -----------------------------------------------------------------------------
+# IDE and Editor
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
 .DS_Store
+*.sublime-*
 
+# -----------------------------------------------------------------------------
 # Logs
-logs
+# -----------------------------------------------------------------------------
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment and secrets
+# -----------------------------------------------------------------------------
+# Environment & Secrets
+# -----------------------------------------------------------------------------
 .env
 .env.*
 !.env.example
 *.key
 *.pem
+*.crt
 credentials.json
-
-# Documentation
-docs
-*.md
-!README.md
-!packages/*/README.md
-
-# CI/CD
-.github
-.gitlab-ci.yml
-.travis.yml
-azure-pipelines.yml
-
-# Other
-*.backup
-*.bak
-tmp
-temp
-.tmp
-*.tmp
-
-# AI and cache
-.ai/deployment-reports
-.ai/agent-runs
-.ai/cache
 .miyabi.yml
 !.miyabi.yml.example
 
-# Go cache (if any)
-.gocache
-.gomodcache
+# SSH keys
+.ssh/
+*.pub
+
+# -----------------------------------------------------------------------------
+# Documentation (Build時には不要)
+# -----------------------------------------------------------------------------
+docs/
+*.md
+!README.md
+
+# Keep CLAUDE.md (プロジェクトコンテキスト)
+!CLAUDE.md
+
+# -----------------------------------------------------------------------------
+# CI/CD (Runtime不要)
+# -----------------------------------------------------------------------------
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+.circleci/
+
+# -----------------------------------------------------------------------------
+# Docker関連 (再帰的ビルド防止)
+# -----------------------------------------------------------------------------
+Dockerfile
+.dockerignore
+docker-compose.yml
+.docker/
+
+# -----------------------------------------------------------------------------
+# AI & Cache
+# -----------------------------------------------------------------------------
+.ai/deployment-reports/
+.ai/agent-runs/
+.ai/cache/
+.ai/logs/
+.ai/parallel-reports/
+.ai/issues/
+
+# Keep .ai directory structure
+!.ai/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Worktree (並列実行時の一時ディレクトリ)
+# -----------------------------------------------------------------------------
+.worktrees/
+worktrees/
+
+# -----------------------------------------------------------------------------
+# Temporary Files
+# -----------------------------------------------------------------------------
+tmp/
+temp/
+.tmp/
+*.tmp
+*.backup
+*.bak
+*.swp
+*~
+
+# -----------------------------------------------------------------------------
+# OS-specific
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------------------------------------------------------
+# Archive & Old Files
+# -----------------------------------------------------------------------------
+.archive/
+archive/
+old/
+backup/
+
+# -----------------------------------------------------------------------------
+# Monitoring & Analytics (Runtime生成)
+# -----------------------------------------------------------------------------
+monitoring/data/
+prometheus/data/
+grafana/data/
+
+# Keep configuration files
+!monitoring/*.yml
+!monitoring/*.json
+
+# -----------------------------------------------------------------------------
+# Generated Files
+# -----------------------------------------------------------------------------
+generated/
+*.generated.*
+
+# -----------------------------------------------------------------------------
+# Claude Code (Keep essential files only)
+# -----------------------------------------------------------------------------
+# .claude directory is essential for Agent prompts
+!.claude/
+!.claude/agents/
+!.claude/agents/specs/
+!.claude/agents/prompts/
+!.claude/commands/
+
+# Exclude Claude Code local settings
+.claude/settings.local.json
+.claude/.env*
+
+# ==============================================================================
+# Note: このファイルはRust Edition用に最適化されています。
+#       TypeScript版の除外ルールは互換性のため保持しています。
+# ==============================================================================
