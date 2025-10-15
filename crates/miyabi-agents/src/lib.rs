@@ -3,6 +3,7 @@
 pub mod base;
 pub mod codegen;
 pub mod coordinator;
+pub mod deployment;
 pub mod issue;
 pub mod pr;
 pub mod review;
