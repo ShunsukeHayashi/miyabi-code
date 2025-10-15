@@ -1050,11 +1050,12 @@ dependencies = [
 name = "miyabi-agents"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-trait",
+ "chrono",
  "miyabi-core",
  "miyabi-github",
  "miyabi-types",
+ "miyabi-worktree",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
