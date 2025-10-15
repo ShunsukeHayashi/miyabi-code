@@ -2,11 +2,18 @@
 //!
 //! This file tests JSON serialization/deserialization roundtrips for all types
 
-use miyabi_types::agent::*;
-use miyabi_types::issue::*;
-use miyabi_types::quality::*;
-use miyabi_types::task::*;
-use miyabi_types::workflow::*;
+use miyabi_types::agent::{
+    AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType, EscalationInfo,
+    EscalationTarget, ImpactLevel as AgentImpactLevel, ResultStatus, Severity,
+};
+use miyabi_types::issue::{DeploymentStatus, Issue, IssueState, IssueStateGithub, PRState};
+use miyabi_types::quality::{QualityBreakdown, QualityIssue, QualityIssueType, QualityReport, QualitySeverity};
+use miyabi_types::task::{
+    GroupingConfig, Task, TaskGroup, TaskType,
+};
+use miyabi_types::workflow::{
+    DAG, Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus,
+};
 
 // ============================================================================
 // Agent Types Roundtrip Tests
@@ -129,7 +136,7 @@ fn test_task_roundtrip() {
         task_type: TaskType::Feature,
         priority: 1,
         severity: Some(Severity::High),
-        impact: Some(ImpactLevel::High),
+        impact: Some(AgentImpactLevel::High),
         assigned_agent: Some(AgentType::CodeGenAgent),
         dependencies: vec!["task-000".to_string()],
         estimated_duration: Some(60),
@@ -410,7 +417,7 @@ fn test_complex_nested_structure() {
         task_type: TaskType::Feature,
         priority: 1,
         severity: Some(Severity::High),
-        impact: Some(ImpactLevel::High),
+        impact: Some(AgentImpactLevel::High),
         assigned_agent: Some(AgentType::CodeGenAgent),
         dependencies: vec!["task-0".to_string()],
         estimated_duration: Some(30),
