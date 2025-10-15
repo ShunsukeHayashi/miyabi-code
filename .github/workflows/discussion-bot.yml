@@ -5,6 +5,11 @@ on:
     types: [created]
   discussion_comment:
     types: [created]
+  schedule:
+    # Check for high-reaction ideas every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Manual trigger for testing
 
 permissions:
   discussions: write
@@ -88,7 +93,7 @@ jobs:
 
 This idea has been converted to a trackable Issue for implementation.
 
-🤖 Automated by Discussion Bot (Issue #5 Phase C)`
+🤖 Automated by Discussion Bot (Issue #139 Phase C)`
               });
             }
 
@@ -103,3 +108,40 @@ This idea has been converted to a trackable Issue for implementation.
               discussion_number: context.payload.discussion.number,
               body: '⚠️ Failed to convert to Issue. Please try again or create an Issue manually.'
             });
+
+  # Auto-convert high-reaction ideas (scheduled check)
+  auto-convert-popular-ideas:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for High-Reaction Ideas
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          REACTION_THRESHOLD: 5
+        run: |
+          npx tsx scripts/github/auto-convert-ideas.ts
+
+      - name: Notify on completion
+        if: always()
+        run: |
+          echo "✅ Auto-conversion check completed"
+          echo "Check logs for conversion details"
