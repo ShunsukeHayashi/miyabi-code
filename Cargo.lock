@@ -1137,7 +1137,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "tracing",
 ]
@@ -1162,7 +1162,7 @@ dependencies = [
  "serde_json",
  "serial_test",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-test",
  "tracing",
@@ -1183,7 +1183,7 @@ dependencies = [
  "serde_yaml",
  "serial_test",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "toml",
  "tracing",
@@ -1202,7 +1202,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-test",
 ]
@@ -1215,7 +1215,7 @@ dependencies = [
  "insta",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -1229,7 +1229,7 @@ dependencies = [
  "serde_json",
  "serial_test",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-test",
  "tracing",

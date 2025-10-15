@@ -28,7 +28,7 @@ tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "fs", "proc
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 
 # CLI dependencies
 clap = { version = "4.5", features = ["derive", "cargo", "env"] }
