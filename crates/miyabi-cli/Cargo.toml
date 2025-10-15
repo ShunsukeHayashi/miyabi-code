@@ -19,11 +19,11 @@ name = "miyabi"
 path = "src/main.rs"
 
 [dependencies]
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-github = { path = "../miyabi-github" }
-miyabi-agents = { path = "../miyabi-agents" }
-miyabi-worktree = { path = "../miyabi-worktree" }
+miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
+miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
+miyabi-github = { version = "1.0.0", path = "../miyabi-github" }
+miyabi-agents = { version = "1.0.0", path = "../miyabi-agents" }
+miyabi-worktree = { version = "1.0.0", path = "../miyabi-worktree" }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }

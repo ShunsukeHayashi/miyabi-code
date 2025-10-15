@@ -11,7 +11,7 @@ categories = ["config", "development-tools"]
 readme = "../README.md"
 
 [dependencies]
-miyabi-types = { path = "../miyabi-types" }
+miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_yaml = "0.9"
