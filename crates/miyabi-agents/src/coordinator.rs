@@ -41,10 +41,7 @@ impl CoordinatorAgent {
         }
 
         // Calculate total estimated duration
-        let estimated_total_duration = tasks
-            .iter()
-            .filter_map(|t| t.estimated_duration)
-            .sum();
+        let estimated_total_duration = tasks.iter().filter_map(|t| t.estimated_duration).sum();
 
         // Generate recommendations
         let recommendations = self.generate_recommendations(&tasks, &dag);

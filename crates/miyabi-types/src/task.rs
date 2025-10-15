@@ -85,12 +85,12 @@ pub struct TaskGroup {
 /// Grouping configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroupingConfig {
-    pub min_group_size: usize,      // Default: 3
-    pub max_group_size: usize,      // Default: 10
+    pub min_group_size: usize,        // Default: 3
+    pub max_group_size: usize,        // Default: 10
     pub max_concurrent_groups: usize, // Default: 5
-    pub priority_weight: f32,       // Default: 0.3
-    pub duration_weight: f32,       // Default: 0.4
-    pub agent_weight: f32,          // Default: 0.3
+    pub priority_weight: f32,         // Default: 0.3
+    pub duration_weight: f32,         // Default: 0.4
+    pub agent_weight: f32,            // Default: 0.3
 }
 
 impl Default for GroupingConfig {
@@ -502,6 +502,9 @@ mod tests {
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: GroupingConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(config.min_group_size, deserialized.min_group_size);
-        assert_eq!(config.max_concurrent_groups, deserialized.max_concurrent_groups);
+        assert_eq!(
+            config.max_concurrent_groups,
+            deserialized.max_concurrent_groups
+        );
     }
 }

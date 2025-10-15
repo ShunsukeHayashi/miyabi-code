@@ -56,7 +56,10 @@ impl WorktreeManager {
 
         // Validate repository exists
         Repository::open(&repo_path).map_err(|e| {
-            MiyabiError::Git(format!("Failed to open repository at {:?}: {}", repo_path, e))
+            MiyabiError::Git(format!(
+                "Failed to open repository at {:?}: {}",
+                repo_path, e
+            ))
         })?;
 
         // Create worktree base directory if it doesn't exist
@@ -88,9 +91,9 @@ impl WorktreeManager {
             .map_err(|e| MiyabiError::Unknown(format!("Failed to acquire semaphore: {}", e)))?;
 
         let worktree_id = Uuid::new_v4().to_string();
-        let worktree_path = self
-            .worktree_base
-            .join(format!("issue-{}-{}", issue_number, &worktree_id[..8]));
+        let worktree_path =
+            self.worktree_base
+                .join(format!("issue-{}-{}", issue_number, &worktree_id[..8]));
         let branch_name = format!("feature/issue-{}", issue_number);
 
         tracing::info!(
@@ -100,9 +103,8 @@ impl WorktreeManager {
         );
 
         // Open repository
-        let repo = Repository::open(&self.repo_path).map_err(|e| {
-            MiyabiError::Git(format!("Failed to open repository: {}", e))
-        })?;
+        let repo = Repository::open(&self.repo_path)
+            .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
 
         // Check repository state
         if repo.state() != RepositoryState::Clean {
@@ -143,9 +145,7 @@ impl WorktreeManager {
             .current_dir(&self.repo_path)
             .output()
             .await
-            .map_err(|e| {
-                MiyabiError::Git(format!("Failed to execute git worktree add: {}", e))
-            })?;
+            .map_err(|e| MiyabiError::Git(format!("Failed to execute git worktree add: {}", e)))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -179,10 +179,9 @@ impl WorktreeManager {
     pub async fn remove_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
-            worktrees
-                .get(worktree_id)
-                .cloned()
-                .ok_or_else(|| MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))?
+            worktrees.get(worktree_id).cloned().ok_or_else(|| {
+                MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
+            })?
         };
 
         tracing::info!("Removing worktree {:?}", worktree_info.path);
@@ -196,7 +195,9 @@ impl WorktreeManager {
             .current_dir(&self.repo_path)
             .output()
             .await
-            .map_err(|e| MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e)))?;
+            .map_err(|e| {
+                MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e))
+            })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -204,9 +205,8 @@ impl WorktreeManager {
         }
 
         // Remove branch
-        let repo = Repository::open(&self.repo_path).map_err(|e| {
-            MiyabiError::Git(format!("Failed to open repository: {}", e))
-        })?;
+        let repo = Repository::open(&self.repo_path)
+            .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
 
         if let Ok(mut branch) = repo.find_branch(&worktree_info.branch_name, BranchType::Local) {
             branch
@@ -229,10 +229,9 @@ impl WorktreeManager {
     pub async fn push_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
-            worktrees
-                .get(worktree_id)
-                .cloned()
-                .ok_or_else(|| MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))?
+            worktrees.get(worktree_id).cloned().ok_or_else(|| {
+                MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
+            })?
         };
 
         tracing::info!("Pushing worktree branch {}", worktree_info.branch_name);
@@ -261,16 +260,14 @@ impl WorktreeManager {
     pub async fn merge_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
-            worktrees
-                .get(worktree_id)
-                .cloned()
-                .ok_or_else(|| MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))?
+            worktrees.get(worktree_id).cloned().ok_or_else(|| {
+                MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
+            })?
         };
 
         let main_branch = {
-            let repo = Repository::open(&self.repo_path).map_err(|e| {
-                MiyabiError::Git(format!("Failed to open repository: {}", e))
-            })?;
+            let repo = Repository::open(&self.repo_path)
+                .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
             self.get_main_branch(&repo)?
         };
 

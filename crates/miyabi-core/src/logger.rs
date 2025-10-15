@@ -95,8 +95,7 @@ pub fn init_logger(level: LogLevel) {
 /// Initialize logging with custom configuration
 pub fn init_logger_with_config(config: LoggerConfig) {
     let level_str: &'static str = config.level.into();
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(level_str));
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level_str));
 
     let subscriber = tracing_subscriber::registry().with(filter);
 
@@ -141,10 +140,7 @@ pub fn init_logger_with_config(config: LoggerConfig) {
                 .with_writer(non_blocking)
                 .with_ansi(false);
 
-            subscriber
-                .with(console_layer)
-                .with(file_layer)
-                .init();
+            subscriber.with(console_layer).with(file_layer).init();
 
             // Store guard to prevent dropping
             std::mem::forget(_guard);
@@ -154,19 +150,14 @@ pub fn init_logger_with_config(config: LoggerConfig) {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
             let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-            let console_layer = fmt::layer()
-                .compact()
-                .with_target(false);
+            let console_layer = fmt::layer().compact().with_target(false);
 
             let file_layer = fmt::layer()
                 .json()
                 .with_writer(non_blocking)
                 .with_ansi(false);
 
-            subscriber
-                .with(console_layer)
-                .with(file_layer)
-                .init();
+            subscriber.with(console_layer).with(file_layer).init();
 
             std::mem::forget(_guard);
         }
@@ -175,19 +166,14 @@ pub fn init_logger_with_config(config: LoggerConfig) {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
             let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-            let console_layer = fmt::layer()
-                .json()
-                .with_current_span(true);
+            let console_layer = fmt::layer().json().with_current_span(true);
 
             let file_layer = fmt::layer()
                 .json()
                 .with_writer(non_blocking)
                 .with_ansi(false);
 
-            subscriber
-                .with(console_layer)
-                .with(file_layer)
-                .init();
+            subscriber.with(console_layer).with(file_layer).init();
 
             std::mem::forget(_guard);
         }

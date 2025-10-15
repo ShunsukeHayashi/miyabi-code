@@ -129,16 +129,20 @@ Issue本文から以下の形式を自動認識:
 
 ```bash
 # 単一Issue実行
-npm run agents:parallel:exec -- --issues=270 --concurrency=2
+cargo run --bin miyabi-cli -- agent execute --issues=270 --concurrency=2
 
 # 複数Issue並行実行
-npm run agents:parallel:exec -- --issues=270,240,276 --concurrency=3
+cargo run --bin miyabi-cli -- agent execute --issues=270,240,276 --concurrency=3
 
 # Task tool統合モード
-USE_TASK_TOOL=true npm run agents:parallel:exec -- --issues=270
+USE_TASK_TOOL=true cargo run --bin miyabi-cli -- agent execute --issues=270
 
 # Worktree分離モード (ブランチ完全分離)
-USE_WORKTREE=true npm run agents:parallel:exec -- --issues=276
+USE_WORKTREE=true cargo run --bin miyabi-cli -- agent execute --issues=276
+
+# Release build（最適化済み）
+cargo build --release
+./target/release/miyabi-cli agent execute --issues=270,240,276 --concurrency=3
 ```
 
 ### GitHub Actions実行
@@ -155,12 +159,19 @@ Issueに `🤖agent-execute` ラベル追加で自動実行
 
 ### 並行度算出
 
-```typescript
-const concurrency = Math.min(
-  独立タスク数,
-  CPUコア数,
-  最大並行数(5)
-);
+```rust
+use std::cmp::min;
+use num_cpus;
+
+fn calculate_concurrency(independent_task_count: usize) -> usize {
+    let cpu_cores = num_cpus::get();
+    let max_concurrency = 5;
+
+    min(
+        independent_task_count,
+        min(cpu_cores, max_concurrency)
+    )
+}
 ```
 
 ### 進捗表示

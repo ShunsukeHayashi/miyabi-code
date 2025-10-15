@@ -119,9 +119,10 @@ impl AgentCommand {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([
-                ("issue_number".to_string(), serde_json::json!(issue_number)),
-            ])),
+            metadata: Some(HashMap::from([(
+                "issue_number".to_string(),
+                serde_json::json!(issue_number),
+            )])),
         };
 
         // Execute agent
@@ -169,9 +170,10 @@ impl AgentCommand {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([
-                ("issue_number".to_string(), serde_json::json!(issue_number)),
-            ])),
+            metadata: Some(HashMap::from([(
+                "issue_number".to_string(),
+                serde_json::json!(issue_number),
+            )])),
         };
 
         // Execute agent

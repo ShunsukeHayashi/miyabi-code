@@ -252,10 +252,7 @@ mod tests {
     fn test_issue_state_to_label() {
         assert_eq!(IssueState::Pending.to_label(), "📥 state:pending");
         assert_eq!(IssueState::Analyzing.to_label(), "🔍 state:analyzing");
-        assert_eq!(
-            IssueState::Implementing.to_label(),
-            "🏗️ state:implementing"
-        );
+        assert_eq!(IssueState::Implementing.to_label(), "🏗️ state:implementing");
         assert_eq!(IssueState::Reviewing.to_label(), "👀 state:reviewing");
         assert_eq!(IssueState::Deploying.to_label(), "🚀 state:deploying");
         assert_eq!(IssueState::Done.to_label(), "✅ state:done");

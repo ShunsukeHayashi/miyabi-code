@@ -19,6 +19,9 @@ import {
   AgentConfig,
   Task,
   Issue,
+  SubIssue,
+  IssueCreationRequest,
+  IssueHierarchyNode,
   Severity,
   ImpactLevel,
   AgentType,
@@ -497,6 +500,313 @@ ${analysis.dependencies.map(d => `- #${d.replace('issue-', '')}`).join('\n')}` :
 
 🤖 Generated with Claude Code
 Co-Authored-By: Claude <noreply@anthropic.com>`;
+  }
+
+  // ============================================================================
+  // Sub-Issue / Hierarchical Issue Support (E14)
+  // ============================================================================
+
+  /**
+   * Create a sub-issue under a parent issue
+   */
+  async createSubIssue(request: IssueCreationRequest): Promise<SubIssue> {
+    this.log(`🌳 Creating sub-issue under parent #${request.parentIssueNumber}`);
+
+    try {
+      // 1. Create the child issue
+      const createdIssue = await withRetry(async () => {
+        return await this.octokit.issues.create({
+          owner: this.owner,
+          repo: this.repo,
+          title: request.title,
+          body: this.formatSubIssueBody(request),
+          labels: [...(request.labels || []), '📄 hierarchy:child'],
+          assignees: request.assignees || [],
+        });
+      });
+
+      // 2. Fetch parent issue to update hierarchy
+      if (request.parentIssueNumber) {
+        const parentIssue = await this.fetchIssue(request.parentIssueNumber);
+
+        // 3. Update parent issue with child reference
+        await this.updateParentIssueWithChild(
+          request.parentIssueNumber,
+          createdIssue.data.number,
+          parentIssue
+        );
+
+        // 4. Add hierarchy label to parent if not already present
+        const hasParentLabel = parentIssue.labels.includes('📂 hierarchy:parent');
+        if (!hasParentLabel) {
+          await this.applyLabels(request.parentIssueNumber, ['📂 hierarchy:parent']);
+        }
+      }
+
+      // 5. Convert to SubIssue format
+      const subIssue = await this.convertToSubIssue(createdIssue.data, request.parentIssueNumber);
+
+      this.log(`✅ Sub-issue #${subIssue.number} created under parent #${request.parentIssueNumber}`);
+
+      return subIssue;
+    } catch (error) {
+      this.log(`❌ Failed to create sub-issue: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch issue hierarchy tree (parent + all descendants)
+   */
+  async fetchIssueHierarchy(rootIssueNumber: number): Promise<IssueHierarchyNode> {
+    this.log(`🌲 Fetching issue hierarchy for #${rootIssueNumber}`);
+
+    const rootIssue = await this.fetchIssue(rootIssueNumber);
+    const rootSubIssue = await this.convertToSubIssue(rootIssue, undefined);
+
+    return await this.buildHierarchyTree(rootSubIssue, 0);
+  }
+
+  /**
+   * Build hierarchy tree recursively
+   */
+  private async buildHierarchyTree(
+    issue: SubIssue,
+    depth: number
+  ): Promise<IssueHierarchyNode> {
+    const node: IssueHierarchyNode = {
+      issue,
+      children: [],
+      depth,
+    };
+
+    // Recursively fetch children
+    if (issue.childIssueNumbers.length > 0) {
+      for (const childNumber of issue.childIssueNumbers) {
+        const childIssue = await this.fetchIssue(childNumber);
+        const childSubIssue = await this.convertToSubIssue(childIssue, issue.number);
+        const childNode = await this.buildHierarchyTree(childSubIssue, depth + 1);
+        node.children.push(childNode);
+      }
+    }
+
+    return node;
+  }
+
+  /**
+   * Convert Issue to SubIssue with hierarchy metadata
+   */
+  private async convertToSubIssue(
+    issue: Issue | any,
+    parentIssueNumber?: number
+  ): Promise<SubIssue> {
+    // Extract child issue numbers from issue body
+    const childIssueNumbers = this.extractChildIssueNumbers(issue.body || '');
+
+    // Calculate hierarchy level
+    let hierarchyLevel = 0;
+    let ancestorPath: number[] = [];
+
+    if (parentIssueNumber) {
+      const parentIssue = await this.fetchIssue(parentIssueNumber);
+      const parentBody = parentIssue.body || '';
+      const parentMetadata = this.parseHierarchyMetadata(parentBody);
+      hierarchyLevel = parentMetadata.hierarchyLevel + 1;
+      ancestorPath = [...parentMetadata.ancestorPath, issue.number];
+    } else {
+      ancestorPath = [issue.number];
+    }
+
+    // Calculate completion progress
+    const completionProgress = await this.calculateCompletionProgress(childIssueNumbers);
+
+    const subIssue: SubIssue = {
+      number: issue.number,
+      title: issue.title,
+      body: issue.body || '',
+      state: issue.state,
+      labels: Array.isArray(issue.labels)
+        ? issue.labels.map((l: any) => (typeof l === 'string' ? l : l.name))
+        : [],
+      assignee: issue.assignee?.login,
+      createdAt: issue.created_at,
+      updatedAt: issue.updated_at,
+      url: issue.html_url,
+      parentIssueNumber,
+      childIssueNumbers,
+      hierarchyLevel,
+      siblingIssueNumbers: [], // TODO: Calculate siblings
+      ancestorPath,
+      isLeaf: childIssueNumbers.length === 0,
+      isRoot: !parentIssueNumber,
+      totalDescendants: await this.countDescendants(childIssueNumbers),
+      completionProgress,
+    };
+
+    return subIssue;
+  }
+
+  /**
+   * Format sub-issue body with hierarchy metadata
+   */
+  private formatSubIssueBody(request: IssueCreationRequest): string {
+    const parentRef = request.parentIssueNumber
+      ? `\n\n**Parent Issue**: #${request.parentIssueNumber}`
+      : '';
+
+    return `${request.body}${parentRef}
+
+---
+
+<!-- HIERARCHY_METADATA
+parentIssueNumber: ${request.parentIssueNumber || 'null'}
+hierarchyLevel: ${request.parentIssueNumber ? '1' : '0'}
+ancestorPath: [${request.parentIssueNumber || ''}]
+-->`;
+  }
+
+  /**
+   * Update parent issue with child reference
+   */
+  private async updateParentIssueWithChild(
+    parentIssueNumber: number,
+    childIssueNumber: number,
+    parentIssue: Issue
+  ): Promise<void> {
+    const childRef = `- [ ] #${childIssueNumber}`;
+    const existingBody = parentIssue.body || '';
+
+    // Check if "Child Issues" section exists
+    const childIssuesSection = '## Child Issues';
+    let updatedBody: string;
+
+    if (existingBody.includes(childIssuesSection)) {
+      // Append to existing section
+      const sectionIndex = existingBody.indexOf(childIssuesSection);
+      const beforeSection = existingBody.substring(0, sectionIndex + childIssuesSection.length);
+      const afterSection = existingBody.substring(sectionIndex + childIssuesSection.length);
+      updatedBody = `${beforeSection}\n${childRef}${afterSection}`;
+    } else {
+      // Create new section
+      updatedBody = `${existingBody}\n\n${childIssuesSection}\n${childRef}`;
+    }
+
+    await withRetry(async () => {
+      await this.octokit.issues.update({
+        owner: this.owner,
+        repo: this.repo,
+        issue_number: parentIssueNumber,
+        body: updatedBody,
+      });
+    });
+
+    this.log(`✅ Updated parent #${parentIssueNumber} with child #${childIssueNumber}`);
+  }
+
+  /**
+   * Extract child issue numbers from issue body
+   */
+  private extractChildIssueNumbers(body: string): number[] {
+    const childNumbers: number[] = [];
+    const childIssuesSection = body.match(/## Child Issues\n([\s\S]*?)(\n##|$)/);
+
+    if (childIssuesSection) {
+      const issueRefs = childIssuesSection[1].match(/#(\d+)/g);
+      if (issueRefs) {
+        childNumbers.push(...issueRefs.map(ref => parseInt(ref.replace('#', ''), 10)));
+      }
+    }
+
+    return childNumbers;
+  }
+
+  /**
+   * Parse hierarchy metadata from issue body
+   */
+  private parseHierarchyMetadata(body: string): {
+    parentIssueNumber?: number;
+    hierarchyLevel: number;
+    ancestorPath: number[];
+  } {
+    const metadataMatch = body.match(/<!-- HIERARCHY_METADATA\n([\s\S]*?)\n-->/);
+
+    if (!metadataMatch) {
+      return {
+        hierarchyLevel: 0,
+        ancestorPath: [],
+      };
+    }
+
+    const metadata = metadataMatch[1];
+    const parentMatch = metadata.match(/parentIssueNumber: (\d+|null)/);
+    const levelMatch = metadata.match(/hierarchyLevel: (\d+)/);
+    const pathMatch = metadata.match(/ancestorPath: \[([\d,\s]*)\]/);
+
+    return {
+      parentIssueNumber: parentMatch && parentMatch[1] !== 'null' ? parseInt(parentMatch[1], 10) : undefined,
+      hierarchyLevel: levelMatch ? parseInt(levelMatch[1], 10) : 0,
+      ancestorPath: pathMatch && pathMatch[1]
+        ? pathMatch[1].split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n))
+        : [],
+    };
+  }
+
+  /**
+   * Calculate completion progress from child issues
+   */
+  private async calculateCompletionProgress(childIssueNumbers: number[]): Promise<{
+    total: number;
+    completed: number;
+    percentage: number;
+  }> {
+    if (childIssueNumbers.length === 0) {
+      return { total: 0, completed: 0, percentage: 0 };
+    }
+
+    let completed = 0;
+
+    for (const childNumber of childIssueNumbers) {
+      try {
+        const childIssue = await this.fetchIssue(childNumber);
+        if (childIssue.state === 'closed') {
+          completed++;
+        }
+      } catch (error) {
+        // Skip if issue not found
+        this.log(`⚠️  Child issue #${childNumber} not found`);
+      }
+    }
+
+    const percentage = Math.round((completed / childIssueNumbers.length) * 100);
+
+    return {
+      total: childIssueNumbers.length,
+      completed,
+      percentage,
+    };
+  }
+
+  /**
+   * Count total descendants recursively
+   */
+  private async countDescendants(childIssueNumbers: number[]): Promise<number> {
+    if (childIssueNumbers.length === 0) {
+      return 0;
+    }
+
+    let count = childIssueNumbers.length;
+
+    for (const childNumber of childIssueNumbers) {
+      try {
+        const childIssue = await this.fetchIssue(childNumber);
+        const grandchildNumbers = this.extractChildIssueNumbers(childIssue.body || '');
+        count += await this.countDescendants(grandchildNumbers);
+      } catch (error) {
+        // Skip if issue not found
+      }
+    }
+
+    return count;
   }
 
 }

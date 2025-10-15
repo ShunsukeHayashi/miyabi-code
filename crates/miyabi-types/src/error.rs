@@ -55,11 +55,7 @@ pub struct AgentError {
 }
 
 impl AgentError {
-    pub fn new(
-        message: impl Into<String>,
-        agent_type: AgentType,
-        task_id: Option<String>,
-    ) -> Self {
+    pub fn new(message: impl Into<String>, agent_type: AgentType, task_id: Option<String>) -> Self {
         Self {
             message: message.into(),
             agent_type,
@@ -181,11 +177,8 @@ mod tests {
 
     #[test]
     fn test_miyabi_error_circular_dependency_variant() {
-        let cycle_error = CircularDependencyError::new(vec![
-            "A".to_string(),
-            "B".to_string(),
-            "A".to_string(),
-        ]);
+        let cycle_error =
+            CircularDependencyError::new(vec!["A".to_string(), "B".to_string(), "A".to_string()]);
         let miyabi_error = MiyabiError::CircularDependency(cycle_error);
         assert!(miyabi_error.to_string().contains("Circular dependency"));
     }
@@ -327,11 +320,7 @@ mod tests {
 
     #[test]
     fn test_agent_error_into_miyabi_error() {
-        let agent_error = AgentError::new(
-            "Test",
-            AgentType::PRAgent,
-            Some("task-1".to_string()),
-        );
+        let agent_error = AgentError::new("Test", AgentType::PRAgent, Some("task-1".to_string()));
         let miyabi_error: MiyabiError = agent_error.into();
         assert!(matches!(miyabi_error, MiyabiError::Agent(_)));
     }
@@ -339,12 +328,8 @@ mod tests {
     #[test]
     fn test_agent_error_source_trait() {
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "File not found");
-        let error = AgentError::with_cause(
-            "Wrapper error",
-            AgentType::CodeGenAgent,
-            None,
-            io_error,
-        );
+        let error =
+            AgentError::with_cause("Wrapper error", AgentType::CodeGenAgent, None, io_error);
 
         use std::error::Error;
         assert!(error.source().is_some());
@@ -394,12 +379,8 @@ mod tests {
         ];
 
         for target in targets {
-            let error = EscalationError::new(
-                "Test",
-                target,
-                Severity::Medium,
-                serde_json::json!({}),
-            );
+            let error =
+                EscalationError::new("Test", target, Severity::Medium, serde_json::json!({}));
             assert_eq!(error.target, target);
         }
     }
@@ -476,7 +457,11 @@ mod tests {
 
     #[test]
     fn test_circular_dependency_error_display() {
-        let cycle = vec!["task-A".to_string(), "task-B".to_string(), "task-A".to_string()];
+        let cycle = vec![
+            "task-A".to_string(),
+            "task-B".to_string(),
+            "task-A".to_string(),
+        ];
         let error = CircularDependencyError::new(cycle);
         let display = error.to_string();
         assert!(display.contains("Circular dependency detected"));
@@ -486,11 +471,8 @@ mod tests {
 
     #[test]
     fn test_circular_dependency_error_into_miyabi_error() {
-        let error = CircularDependencyError::new(vec![
-            "1".to_string(),
-            "2".to_string(),
-            "1".to_string(),
-        ]);
+        let error =
+            CircularDependencyError::new(vec!["1".to_string(), "2".to_string(), "1".to_string()]);
         let miyabi_error: MiyabiError = error.into();
         assert!(matches!(miyabi_error, MiyabiError::CircularDependency(_)));
     }
@@ -501,14 +483,20 @@ mod tests {
 
     #[test]
     fn test_result_type_alias_ok() {
-        let result: Result<String> = Ok("success".to_string());
+        fn returns_ok() -> Result<String> {
+            Ok("success".to_string())
+        }
+        let result = returns_ok();
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "success");
     }
 
     #[test]
     fn test_result_type_alias_err() {
-        let result: Result<String> = Err(MiyabiError::Config("Missing config".to_string()));
+        fn returns_err() -> Result<String> {
+            Err(MiyabiError::Config("Missing config".to_string()))
+        }
+        let result = returns_err();
         assert!(result.is_err());
         let error = result.unwrap_err();
         assert!(matches!(error, MiyabiError::Config(_)));
@@ -545,19 +533,12 @@ mod tests {
         use std::error::Error;
 
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "Original error");
-        let agent_error = AgentError::with_cause(
-            "Wrapped error",
-            AgentType::DeploymentAgent,
-            None,
-            io_error,
-        );
+        let agent_error =
+            AgentError::with_cause("Wrapped error", AgentType::DeploymentAgent, None, io_error);
 
         let source = agent_error.source();
         assert!(source.is_some());
-        assert!(source
-            .unwrap()
-            .to_string()
-            .contains("Original error"));
+        assert!(source.unwrap().to_string().contains("Original error"));
     }
 
     #[test]

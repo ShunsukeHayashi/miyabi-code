@@ -205,9 +205,9 @@ fn convert_pull_request(pr: OctoPR) -> Result<PRResult> {
         number: pr.number,
         url: pr.html_url.map(|u| u.to_string()).unwrap_or_default(),
         state,
-        created_at: pr.created_at.ok_or_else(|| {
-            MiyabiError::GitHub("Pull request created_at is missing".to_string())
-        })?,
+        created_at: pr
+            .created_at
+            .ok_or_else(|| MiyabiError::GitHub("Pull request created_at is missing".to_string()))?,
     })
 }
 

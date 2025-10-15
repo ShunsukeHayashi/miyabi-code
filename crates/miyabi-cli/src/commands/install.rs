@@ -46,10 +46,7 @@ impl InstallCommand {
         self.update_gitignore()?;
 
         println!();
-        println!(
-            "{}",
-            "✅ Miyabi installed successfully!".green().bold()
-        );
+        println!("{}", "✅ Miyabi installed successfully!".green().bold());
         println!();
         println!("Next steps:");
         println!("  export GITHUB_TOKEN=ghp_xxx");
@@ -158,8 +155,7 @@ reports/
 
             // Check if Miyabi entries already exist
             if !existing_gitignore.contains("# Miyabi") {
-                let updated_gitignore =
-                    format!("{}{}", existing_gitignore, gitignore_entries);
+                let updated_gitignore = format!("{}{}", existing_gitignore, gitignore_entries);
                 fs::write(".gitignore", updated_gitignore)?;
                 println!("  Updated: .gitignore");
             } else {

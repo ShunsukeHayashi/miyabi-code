@@ -37,7 +37,7 @@ Miyabiプロジェクトの全エンティティとその関係性を統一的�
 
 ## コアエンティティ
 
-### 📋 エンティティ一覧（13種類）
+### 📋 エンティティ一覧（14種類）
 
 | ID | エンティティ | 説明 | 型定義 | 主要属性 |
 |----|------------|------|--------|---------|
@@ -54,6 +54,7 @@ Miyabiプロジェクトの全エンティティとその関係性を統一的�
 | E11 | **DAG** | タスク依存グラフ | `DAG` | nodes, edges, levels |
 | E12 | **Worktree** | Git Worktree | `string` (path) | path, branch, taskId |
 | E13 | **DiscordCommunity** | Discordコミュニティ | `DiscordCommunity` | serverId, channels, roles, members |
+| E14 | **SubIssue** | 階層的Issue | `SubIssue` | parentIssueNumber, childIssueNumbers, hierarchyLevel |
 
 ---
 
@@ -76,12 +77,14 @@ graph TB
     DAG[E11: DAG]
     Worktree[E12: Worktree]
     Discord[E13: DiscordCommunity]
+    SubIssue[E14: SubIssue]
 
     %% Issue関連
     Issue -->|R1: analyzed-by| Agent
     Issue -->|R2: decomposed-into| Task
     Issue -->|R3: tagged-with| Label
     Issue -->|R4: creates| PR
+    Issue -->|R36: parent-of| SubIssue
 
     %% Task関連
     Task -->|R5: assigned-to| Agent
@@ -129,6 +132,11 @@ graph TB
     Label -->|R33: triggers-notification-to| Discord
     Escalation -->|R34: notifies-to| Discord
     Command -->|R35: integrated-with| Discord
+
+    %% SubIssue Hierarchy
+    SubIssue -->|R37: child-of| Issue
+    SubIssue -->|R38: sibling-of| SubIssue
+    SubIssue -->|R39: tracked-by| Label
 ```
 
 ### 📊 関係性統計
@@ -141,7 +149,8 @@ graph TB
 | **品質管理** | 3 | QualityReport → PR/Agent |
 | **並列実行** | 4 | DAG/Worktree → Task |
 | **コミュニティ統合** | 8 | All → DiscordCommunity |
-| **合計** | 35関係 | 13エンティティ |
+| **階層管理** | 4 | Issue ↔ SubIssue ↔ Label |
+| **合計** | 39関係 | 14エンティティ |
 
 ---
 
@@ -638,6 +647,92 @@ interface WebhookConfig {
 - ドキュメント: `docs/DISCORD_COMMUNITY_PLAN.md`
 - Issue: `#52 - Create Discord server and launch community`
 - 型定義: `agents/types/index.ts` (追加予定)
+
+---
+
+### E14: SubIssue
+
+```typescript
+/**
+ * E14: SubIssue - Hierarchical Issue Support
+ * Extends Issue with parent-child relationship tracking
+ */
+interface SubIssue extends Issue {
+  // Hierarchy
+  parentIssueNumber?: number;        // Parent Issue number (undefined for root)
+  childIssueNumbers: number[];       // Direct child Issue numbers
+  hierarchyLevel: number;            // 0 = root, 1 = first level, 2 = second level, etc.
+
+  // Relationships
+  siblingIssueNumbers: number[];     // Sibling Issues at same level
+  ancestorPath: number[];            // Path from root to current: [root, parent, current]
+
+  // Metadata
+  isLeaf: boolean;                   // True if no children
+  isRoot: boolean;                   // True if no parent
+  totalDescendants: number;          // Total number of descendants (recursive count)
+
+  // Progress tracking (aggregated from children)
+  completionProgress: {
+    total: number;                   // Total child issues
+    completed: number;               // Completed child issues
+    percentage: number;              // Completion percentage (0-100)
+  };
+}
+```
+
+**階層構造の例**:
+```
+🌳 Issue #100 (hierarchy:root + hierarchy:parent)
+  ├─ 📄 Issue #101 (hierarchy:child + hierarchy:parent)
+  │   ├─ 🍃 Issue #102 (hierarchy:child + hierarchy:leaf)
+  │   └─ 🍃 Issue #103 (hierarchy:child + hierarchy:leaf)
+  └─ 📄 Issue #104 (hierarchy:child + hierarchy:parent)
+      ├─ 🍃 Issue #105 (hierarchy:child + hierarchy:leaf)
+      └─ 🍃 Issue #106 (hierarchy:child + hierarchy:leaf)
+```
+
+**関係性**:
+- **R36**: `parent-of` ← Issue (1:N - 1つの親が複数の子を持つ)
+- **R37**: `child-of` → Issue (N:1 - 複数の子が1つの親を持つ)
+- **R38**: `sibling-of` ↔ SubIssue (N:N - 兄弟関係)
+- **R39**: `tracked-by` → Label (N:N - HIERARCHY Labelによる追跡)
+
+**HIERARCHY Labels**:
+- `🌳 hierarchy:root` - ルートIssue（親なし）
+- `📂 hierarchy:parent` - 子Issueを持つ
+- `📄 hierarchy:child` - 親Issueを持つ
+- `🍃 hierarchy:leaf` - 子Issueなし（リーフノード）
+
+**主要メソッド** (IssueAgent):
+```typescript
+// 子Issue作成
+const subIssue = await issueAgent.createSubIssue({
+  title: "子タスク",
+  body: "詳細",
+  parentIssueNumber: 100,
+  labels: ["type:feature"]
+});
+
+// 階層ツリー取得
+const hierarchy = await issueAgent.fetchIssueHierarchy(100);
+
+// 完了率計算（自動）
+// Issue #100: 3/5 完了 → 60%
+// Issue #101: 2/2 完了 → 100%
+```
+
+**ユースケース**:
+1. **エピック分解**: 大規模機能を複数の子Issueに分解
+2. **進捗管理**: 親Issueで全体の完了率を自動追跡
+3. **依存関係管理**: 階層的なタスク依存を明示化
+4. **組織化**: プロジェクトを論理的な階層で整理
+
+**ファイル位置**:
+- 型定義: `packages/coding-agents/types/index.ts:67-114`
+- 実装: `packages/coding-agents/issue/issue-agent.ts` (createSubIssue, fetchIssueHierarchy)
+- Label体系: `docs/LABEL_SYSTEM_GUIDE.md` (HIERARCHY Labels)
+- ドキュメント: `docs/ENTITY_RELATION_MODEL.md` (本ファイル)
 
 ---
 

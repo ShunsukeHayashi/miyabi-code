@@ -283,11 +283,12 @@ export class WorktreeManager {
    */
   private checkRemoteBranch(branchName: string): boolean {
     try {
-      execSync(`git ls-remote --heads origin ${branchName}`, {
+      const output = execSync(`git ls-remote --heads origin ${branchName}`, {
         cwd: this.config.repoRoot,
         encoding: 'utf-8',
       });
-      return true;
+      // ブランチが存在する場合のみ出力がある
+      return output.trim().length > 0;
     } catch {
       return false;
     }

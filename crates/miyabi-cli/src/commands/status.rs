@@ -48,12 +48,7 @@ impl StatusCommand {
             println!("  ✅ Miyabi is installed");
 
             // Check directory structure
-            let required_dirs = vec![
-                ".claude/agents",
-                ".github/workflows",
-                "logs",
-                "reports",
-            ];
+            let required_dirs = vec![".claude/agents", ".github/workflows", "logs", "reports"];
 
             for dir in required_dirs {
                 if Path::new(dir).exists() {
@@ -63,10 +58,7 @@ impl StatusCommand {
                 }
             }
         } else {
-            println!(
-                "  {} Miyabi is not installed",
-                "❌".red()
-            );
+            println!("  {} Miyabi is not installed", "❌".red());
             println!("    Run: miyabi install");
         }
 
@@ -133,9 +125,7 @@ impl StatusCommand {
         }
 
         // Get uncommitted changes
-        let output = Command::new("git")
-            .args(["status", "--short"])
-            .output()?;
+        let output = Command::new("git").args(["status", "--short"]).output()?;
 
         if output.status.success() {
             let changes = String::from_utf8_lossy(&output.stdout);
@@ -161,9 +151,7 @@ impl StatusCommand {
 
         println!("{}", "Worktrees:".bold());
 
-        let output = Command::new("git")
-            .args(["worktree", "list"])
-            .output();
+        let output = Command::new("git").args(["worktree", "list"]).output();
 
         if let Ok(output) = output {
             if output.status.success() {

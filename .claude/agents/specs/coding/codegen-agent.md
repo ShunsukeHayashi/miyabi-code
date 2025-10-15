@@ -14,11 +14,11 @@ GitHub Issueの内容を解析し、Claude Sonnet 4 APIを使用して必要な�
 ## 責任範囲
 
 - Issue内容の理解と要件抽出
-- TypeScriptコード自動生成（Strict mode準拠）
-- ユニットテスト自動生成（Vitest）
-- 型定義の追加
-- JSDocコメントの生成
-- BaseAgentパターンに従った実装
+- Rustコード自動生成（Rust 2021 Edition、Clippy準拠）
+- ユニットテスト自動生成（`cargo test` + `#[tokio::test]`）
+- 型定義の追加（`struct`, `enum`, trait実装）
+- Rustdocコメントの生成（`///` ドキュメントコメント）
+- BaseAgent traitに従った実装
 
 ## 実行権限
 
@@ -32,18 +32,18 @@ GitHub Issueの内容を解析し、Claude Sonnet 4 APIを使用して必要な�
 - **API**: Anthropic SDK
 
 ### 生成対象
-- **言語**: TypeScript（Strict mode）
-- **フレームワーク**: BaseAgentパターン
-- **テスト**: Vitest
-- **ドキュメント**: JSDoc + README
+- **言語**: Rust 2021 Edition（Clippy lints準拠）
+- **フレームワーク**: BaseAgent trait実装パターン
+- **テスト**: `cargo test` + `#[tokio::test]` + `insta`スナップショット
+- **ドキュメント**: Rustdoc (`///`) + README.md
 
 ## 成功条件
 
 ✅ **必須条件**:
-- コードがビルド成功する
-- TypeScriptエラー0件
-- ESLintエラー0件
-- 基本的なテストが生成される
+- コードが`cargo build`成功する
+- `cargo clippy`警告0件（32 lints準拠）
+- `cargo test`がパスする
+- 基本的なテストが生成される（`#[tokio::test]`）
 
 ✅ **品質条件**:
 - 品質スコア: 80点以上（ReviewAgent判定）
@@ -58,47 +58,77 @@ GitHub Issueの内容を解析し、Claude Sonnet 4 APIを使用して必要な�
 - 複雑度が高い（新規アーキテクチャ設計が必要）
 - セキュリティ影響がある
 - 外部システム統合が必要
-- BaseAgentパターンに適合しない
+- BaseAgent trait実装パターンに適合しない
 
 ## 実装パターン
 
-### BaseAgent拡張
+### BaseAgent trait実装
 
-```typescript
-import { BaseAgent } from '../base-agent.js';
-import { AgentResult, Task } from '../types/index.js';
+```rust
+use async_trait::async_trait;
+use miyabi_agents::BaseAgent;
+use miyabi_types::{AgentResult, Task, MiyabiError};
+use std::sync::Arc;
+use tracing::{info, error};
 
-export class NewAgent extends BaseAgent {
-  constructor(config: any) {
-    super('NewAgent', config);
-  }
+pub struct NewAgent {
+    config: AgentConfig,
+}
 
-  async execute(task: Task): Promise<AgentResult> {
-    this.log('🤖 NewAgent starting');
-
-    try {
-      // 実装
-
-      return {
-        status: 'success',
-        data: result,
-        metrics: {
-          taskId: task.id,
-          agentType: this.agentType,
-          durationMs: Date.now() - this.startTime,
-          timestamp: new Date().toISOString(),
-        },
-      };
-    } catch (error) {
-      await this.escalate(
-        `Error: ${(error as Error).message}`,
-        'TechLead',
-        'Sev.2-High',
-        { error: (error as Error).stack }
-      );
-      throw error;
+impl NewAgent {
+    pub fn new(config: AgentConfig) -> Self {
+        Self { config }
     }
-  }
+}
+
+#[async_trait]
+impl BaseAgent for NewAgent {
+    async fn execute(&self, task: Task) -> Result<AgentResult, MiyabiError> {
+        info!("🤖 NewAgent starting");
+
+        let start_time = std::time::Instant::now();
+
+        // 実装
+        let result = self.process_task(&task).await?;
+
+        Ok(AgentResult {
+            status: "success".to_string(),
+            data: result,
+            metrics: AgentMetrics {
+                task_id: task.id.clone(),
+                agent_type: "NewAgent".to_string(),
+                duration_ms: start_time.elapsed().as_millis() as u64,
+                timestamp: chrono::Utc::now(),
+            },
+        })
+    }
+
+    async fn escalate(
+        &self,
+        message: &str,
+        target: &str,
+        severity: &str,
+        context: serde_json::Value,
+    ) -> Result<(), MiyabiError> {
+        error!("Escalating to {}: {} ({})", target, message, severity);
+        // Escalation処理
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_execute_success() {
+        let config = AgentConfig::default();
+        let agent = NewAgent::new(config);
+        let task = Task::new("test-task");
+
+        let result = agent.execute(task).await;
+        assert!(result.is_ok());
+    }
 }
 ```
 
@@ -108,10 +138,14 @@ export class NewAgent extends BaseAgent {
 
 ```bash
 # 新規Issue処理
-npm run agents:parallel:exec -- --issue 123
+cargo run --bin miyabi-cli -- agent execute --issue 123
 
 # Dry run（コード生成のみ、書き込みなし）
-npm run agents:parallel:exec -- --issue 123 --dry-run
+cargo run --bin miyabi-cli -- agent execute --issue 123 --dry-run
+
+# Release build（最適化済み）
+cargo build --release
+./target/release/miyabi-cli agent execute --issue 123
 ```
 
 ### GitHub Actions実行
@@ -123,10 +157,10 @@ Issueに `🤖agent-execute` ラベルを追加すると自動実行されます
 | 項目 | 基準値 | 測定方法 |
 |------|--------|---------|
 | 品質スコア | 80点以上 | ReviewAgent判定 |
-| TypeScriptエラー | 0件 | `npm run typecheck` |
-| ESLintエラー | 0件 | ESLint実行 |
-| テストカバレッジ | 80%以上 | Vitest coverage |
-| セキュリティ | Critical 0件 | npm audit |
+| Clippy警告 | 0件 | `cargo clippy --all-targets` |
+| ビルドエラー | 0件 | `cargo build` |
+| テストカバレッジ | 80%以上 | `cargo tarpaulin` |
+| セキュリティ | Critical 0件 | `cargo audit` |
 
 ## ログ出力例
 

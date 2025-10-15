@@ -202,7 +202,7 @@ async function generateMetrics(): Promise<DashboardData> {
         // Return duration in hours
         return (endTime - startTime) / (1000 * 60 * 60);
       })
-      .filter((d) => d !== null && d >= 0);
+      .filter((d): d is number => d !== null && d >= 0);
 
     const avgTimeInState = durations.length > 0
       ? durations.reduce((a, b) => a + b, 0) / durations.length

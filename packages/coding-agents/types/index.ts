@@ -64,6 +64,55 @@ export interface Issue {
   url: string;
 }
 
+/**
+ * E14: SubIssue - Hierarchical Issue Support
+ * Extends Issue with parent-child relationship tracking
+ */
+export interface SubIssue extends Issue {
+  // Hierarchy
+  parentIssueNumber?: number;        // Parent Issue number (undefined for root)
+  childIssueNumbers: number[];       // Direct child Issue numbers
+  hierarchyLevel: number;            // 0 = root, 1 = first level, 2 = second level, etc.
+
+  // Relationships
+  siblingIssueNumbers: number[];     // Sibling Issues at same level
+  ancestorPath: number[];            // Path from root to current: [root, parent, current]
+
+  // Metadata
+  isLeaf: boolean;                   // True if no children
+  isRoot: boolean;                   // True if no parent
+  totalDescendants: number;          // Total number of descendants (recursive count)
+
+  // Progress tracking (aggregated from children)
+  completionProgress: {
+    total: number;                   // Total child issues
+    completed: number;               // Completed child issues
+    percentage: number;              // Completion percentage (0-100)
+  };
+}
+
+/**
+ * Issue Hierarchy Tree Node
+ * Used for tree visualization and traversal
+ */
+export interface IssueHierarchyNode {
+  issue: SubIssue;
+  children: IssueHierarchyNode[];
+  depth: number;
+}
+
+/**
+ * Issue Creation Request with Hierarchy Support
+ */
+export interface IssueCreationRequest {
+  title: string;
+  body: string;
+  labels?: string[];
+  assignees?: string[];
+  parentIssueNumber?: number;        // If provided, creates as child of parent
+  createAsSubIssues?: boolean;       // If true, create checklist items as sub-issues
+}
+
 export interface DAG {
   nodes: Task[];
   edges: Array<{ from: string; to: string }>;

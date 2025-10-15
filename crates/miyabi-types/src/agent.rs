@@ -707,9 +707,6 @@ mod tests {
         let deserialized: AgentConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(config.device_identifier, deserialized.device_identifier);
         assert_eq!(config.use_task_tool, deserialized.use_task_tool);
-        assert_eq!(
-            config.worktree_base_path,
-            deserialized.worktree_base_path
-        );
+        assert_eq!(config.worktree_base_path, deserialized.worktree_base_path);
     }
 }

@@ -132,12 +132,7 @@ impl GitHubClient {
                         "Cannot update issue to 'All' state".to_string(),
                     ))
                 }
-                _ => {
-                    return Err(MiyabiError::GitHub(format!(
-                        "Unknown state: {:?}",
-                        s
-                    )))
-                }
+                _ => return Err(MiyabiError::GitHub(format!("Unknown state: {:?}", s))),
             };
             handler = handler.state(issue_state);
         }

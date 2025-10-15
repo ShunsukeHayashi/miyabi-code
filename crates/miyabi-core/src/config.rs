@@ -165,15 +165,12 @@ impl Config {
         })?;
 
         let config = match path.extension().and_then(|s| s.to_str()) {
-            Some("yml") | Some("yaml") => serde_yaml::from_str(&content).map_err(|e| {
-                MiyabiError::Config(format!("Failed to parse YAML config: {}", e))
-            })?,
-            Some("toml") => toml::from_str(&content).map_err(|e| {
-                MiyabiError::Config(format!("Failed to parse TOML config: {}", e))
-            })?,
-            Some("json") => serde_json::from_str(&content).map_err(|e| {
-                MiyabiError::Config(format!("Failed to parse JSON config: {}", e))
-            })?,
+            Some("yml") | Some("yaml") => serde_yaml::from_str(&content)
+                .map_err(|e| MiyabiError::Config(format!("Failed to parse YAML config: {}", e)))?,
+            Some("toml") => toml::from_str(&content)
+                .map_err(|e| MiyabiError::Config(format!("Failed to parse TOML config: {}", e)))?,
+            Some("json") => serde_json::from_str(&content)
+                .map_err(|e| MiyabiError::Config(format!("Failed to parse JSON config: {}", e)))?,
             _ => {
                 return Err(MiyabiError::Config(format!(
                     "Unsupported config file extension: {:?}",
@@ -235,10 +232,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             github_token: String::new(),
-            device_identifier: hostname::get()
-                .unwrap()
-                .to_string_lossy()
-                .to_string(),
+            device_identifier: hostname::get().unwrap().to_string_lossy().to_string(),
             log_level: default_log_level(),
             max_concurrency: default_concurrency(),
             log_directory: default_log_directory(),

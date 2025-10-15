@@ -150,19 +150,12 @@ impl GitHubClient {
 
         for label in labels {
             match self
-                .create_label(
-                    &label.name,
-                    &label.color,
-                    label.description.as_deref(),
-                )
+                .create_label(&label.name, &label.color, label.description.as_deref())
                 .await
             {
                 Ok(l) => created.push(l),
                 Err(e) => {
-                    eprintln!(
-                        "Warning: Failed to create label '{}': {}",
-                        label.name, e
-                    );
+                    eprintln!("Warning: Failed to create label '{}': {}", label.name, e);
                     // Continue with next label instead of aborting
                 }
             }
@@ -206,12 +199,8 @@ impl GitHubClient {
                 }
                 false => {
                     // Create new label
-                    self.create_label(
-                        &label.name,
-                        &label.color,
-                        label.description.as_deref(),
-                    )
-                    .await?;
+                    self.create_label(&label.name, &label.color, label.description.as_deref())
+                        .await?;
                     synced += 1;
                 }
             }

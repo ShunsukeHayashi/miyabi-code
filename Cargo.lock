@@ -1067,11 +1067,12 @@ dependencies = [
 name = "miyabi-cli"
 version = "0.1.0"
 dependencies = [
- "anyhow",
+ "chrono",
  "clap",
  "colored",
  "console",
  "dialoguer",
+ "hostname",
  "indicatif",
  "miyabi-agents",
  "miyabi-core",
@@ -1080,7 +1081,11 @@ dependencies = [
  "miyabi-worktree",
  "serde",
  "serde_json",
+ "tempfile",
+ "thiserror 1.0.69",
  "tokio",
+ "tokio-test",
+ "tracing",
 ]
 
 [[package]]
@@ -1115,8 +1120,10 @@ dependencies = [
  "octocrab",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror 1.0.69",
  "tokio",
+ "tokio-test",
 ]
 
 [[package]]
@@ -2005,7 +2012,6 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
- "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",

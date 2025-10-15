@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Quality report from ReviewAgent
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QualityReport {
-    pub score: u8, // 0-100
+    pub score: u8,    // 0-100
     pub passed: bool, // score >= 80
     pub issues: Vec<QualityIssue>,
     pub recommendations: Vec<String>,

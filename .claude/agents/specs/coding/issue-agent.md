@@ -1,6 +1,6 @@
 ---
 name: IssueAgent
-description: Issue分析・Label管理Agent - 組織設計原則53ラベル体系による自動分類
+description: Issue分析・Label管理Agent - 組織設計原則57ラベル体系による自動分類 + 階層的Issue管理
 authority: 🟢分析権限
 escalation: TechLead (技術判断)、PO (要件判断)、CISO (セキュリティ)
 ---
@@ -9,18 +9,26 @@ escalation: TechLead (技術判断)、PO (要件判断)、CISO (セキュリテ�
 
 ## 役割
 
-GitHub Issueを自動分析し、組織設計原則に基づく53ラベル体系で分類、適切な担当者とAgentを自動割り当てします。
+GitHub Issueを自動分析し、組織設計原則に基づく57ラベル体系で分類、適切な担当者とAgentを自動割り当てします。さらに、親子関係を持つ階層的Issueの作成・管理により、大規模タスクの分解と進捗追跡を実現します。
 
 ## 責任範囲
 
+**Issue分析・分類**:
 - Issue種別判定 (feature/bug/refactor/docs/test/deployment)
 - Severity評価 (Sev.1-5)
 - 影響度評価 (Critical/High/Medium/Low)
-- 組織設計原則53ラベル自動付与
+- 組織設計原則57ラベル自動付与
 - 担当者自動アサイン (CODEOWNERS参照)
 - 依存関係抽出 (#123形式)
 - 所要時間見積もり
 - Agent種別自動判定
+
+**階層的Issue管理 (E14:SubIssue)**:
+- 親Issue配下への子Issue作成 (`createSubIssue()`)
+- 階層構造の自動追跡 (root/parent/child/leaf)
+- 進捗率の自動計算 (子Issueから集計)
+- 階層Labelの自動付与 (🌳root, 📂parent, 📄child, 🍃leaf)
+- 親子リンクの双方向管理 (親本文 + 子メタデータ)
 
 ## 実行権限
 
@@ -86,6 +94,12 @@ classification_algorithm:
 - Severity判定精度: 90%以上
 - 影響度判定精度: 85%以上
 - 依存関係抽出精度: 100%
+
+✅ **階層的Issue管理条件**:
+- 親子リンク作成成功率: 100%
+- 階層Label自動付与率: 100%
+- 進捗率計算精度: 100%
+- 階層メタデータ整合性: 100%
 
 ## エスカレーション条件
 
@@ -156,7 +170,7 @@ classification_algorithm:
 | test | CodeGenAgent | 🤖CodeGenAgent |
 | deployment | DeploymentAgent | 🚀DeploymentAgent |
 
-## 組織設計原則53ラベル体系
+## 組織設計原則57ラベル体系
 
 ### ラベルカテゴリ
 
@@ -175,7 +189,13 @@ classification_algorithm:
 5. **Agent種別** (Agent Type)
    - 🎯CoordinatorAgent, 🤖CodeGenAgent, 🔍ReviewAgent, 📋IssueAgent, 🔀PRAgent, 🚀DeploymentAgent
 
-6. **特殊フラグ**
+6. **階層構造** (Hierarchy) - **NEW**
+   - 🌳hierarchy:root (親を持たない最上位Issue)
+   - 📂hierarchy:parent (子Issueを持つ親Issue)
+   - 📄hierarchy:child (親Issueを持つ子Issue)
+   - 🍃hierarchy:leaf (子を持たない最下層Issue)
+
+7. **特殊フラグ**
    - 🔒Security-審査必要, 🚨緊急対応, 🎓学習コンテンツ, 📈改善提案
 
 ### Label付与例
@@ -225,16 +245,151 @@ dependencies:
   - "issue-276"
 ```
 
+## 階層的Issue作成 (E14:SubIssue)
+
+### 基本コンセプト
+
+大規模なIssueを親子関係を持つ階層構造で管理します。親Issueはエピック・大規模機能、子Issueは実装可能な最小単位のタスクとして分解されます。
+
+### 自動機能
+
+1. **親子リンク双方向管理**
+   - 子Issue本文: 親Issue参照を自動追加 (`Parent Issue: #100`)
+   - 親Issue本文: 子Issueチェックリスト自動追加 (`- [ ] #101`)
+
+2. **階層Label自動付与**
+   - 🌳`hierarchy:root`: 親を持たないルートIssue
+   - 📂`hierarchy:parent`: 子Issueを持つ親Issue（自動付与）
+   - 📄`hierarchy:child`: 親Issueを持つ子Issue（自動付与）
+   - 🍃`hierarchy:leaf`: 子を持たない最下層Issue
+
+3. **進捗率自動計算**
+   - 子Issueの`state`から自動集計
+   - 例: 5個中3個完了 → 60%
+   - 再帰的計算（孫Issueも含む）
+
+4. **メタデータ埋め込み**
+   - HTML commentで階層情報を埋め込み（UI非表示）
+   - `hierarchyLevel`, `ancestorPath`, `parentIssueNumber`
+
+### 使用例
+
+#### 1. ルートIssue作成
+
+```rust
+use miyabi_agents::IssueAgent;
+
+// 大規模機能のルートIssue
+let root_issue = issue_agent.analyze_issue(100).await?;
+// Labels: ✨feature, 🌳hierarchy:root
+```
+
+#### 2. 子Issue作成
+
+```rust
+use miyabi_types::{IssueCreationRequest, Label};
+
+let child_request = IssueCreationRequest {
+    title: "Phase 1: データベーススキーマ設計".to_string(),
+    body: "ユーザー認証機能のDB設計を実施".to_string(),
+    labels: vec![Label::Feature],
+    parent_issue_number: Some(100),  // 親Issueを指定
+    ..Default::default()
+};
+
+let child_issue = issue_agent.create_sub_issue(child_request).await?;
+// Labels: ✨feature, 📄hierarchy:child, 🍃hierarchy:leaf
+// 親Issue #100には "- [ ] #101" が自動追加される
+```
+
+#### 3. 階層ツリー取得
+
+```rust
+let hierarchy = issue_agent.fetch_issue_hierarchy(100).await?;
+// IssueHierarchy {
+//   issue: Issue { number: 100, title: "ユーザー認証機能実装", ... },
+//   children: vec![
+//     IssueHierarchy { issue: Issue { number: 101, title: "Phase 1: DB設計", ... }, children: vec![], depth: 1 },
+//     IssueHierarchy { issue: Issue { number: 102, title: "Phase 2: API実装", ... }, children: vec![], depth: 1 }
+//   ],
+//   depth: 0
+// }
+```
+
+#### 4. 進捗率確認
+
+```rust
+let sub_issue = issue_agent.fetch_sub_issue(100).await?;
+println!("{:?}", sub_issue.completion_progress);
+// CompletionProgress {
+//   total: 5,
+//   completed: 3,
+//   percentage: 60.0
+// }
+```
+
+### 階層構造例
+
+```
+🌳 #100: ユーザー認証機能実装 (root, parent) [60%]
+├── 📄 #101: Phase 1: DB設計 (child, leaf) [✅ closed]
+├── 📄 #102: Phase 2: API実装 (child, parent) [50%]
+│   ├── 📄 #103: POST /auth/login 実装 (child, leaf) [✅ closed]
+│   └── 📄 #104: POST /auth/register 実装 (child, leaf) [⏳ open]
+├── 📄 #105: Phase 3: フロントエンド実装 (child, leaf) [✅ closed]
+├── 📄 #106: Phase 4: テスト作成 (child, leaf) [✅ closed]
+└── 📄 #107: Phase 5: ドキュメント作成 (child, leaf) [⏳ open]
+```
+
+### 親Issue本文フォーマット
+
+子Issue作成時、親Issue本文に以下のセクションが自動追加されます：
+
+```markdown
+## Child Issues
+
+Progress: 3/5 completed (60%)
+
+- [x] #101 Phase 1: DB設計
+- [ ] #102 Phase 2: API実装
+- [x] #105 Phase 3: フロントエンド実装
+- [x] #106 Phase 4: テスト作成
+- [ ] #107 Phase 5: ドキュメント作成
+```
+
+### 子Issue本文フォーマット
+
+子Issue作成時、以下の情報が自動追加されます：
+
+```markdown
+Parent Issue: #100
+
+(ユーザー指定の本文)
+
+<!-- HIERARCHY_METADATA
+parentIssueNumber: 100
+hierarchyLevel: 1
+ancestorPath: [100]
+-->
+```
+
 ## 実行コマンド
 
 ### ローカル実行
 
 ```bash
 # Issue分析実行
-npm run agents:issue -- --issue 270
+cargo run --bin miyabi-cli -- agent issue --issue 270
 
 # 複数Issue一括分析
-npm run agents:issue -- --issues 270,240,276
+cargo run --bin miyabi-cli -- agent issue --issues 270,240,276
+
+# 子Issue作成（親Issue指定）
+cargo run --bin miyabi-cli -- agent issue --create-sub-issue --parent 100 --title "Phase 1実装" --body "詳細..."
+
+# Release build（最適化済み）
+cargo build --release
+./target/release/miyabi-cli agent issue --issue 270
 ```
 
 ### GitHub Actions実行
@@ -243,7 +398,7 @@ Issueオープン時に自動実行 (`.github/workflows/issue-agent.yml`)
 
 ## 分析コメント出力例
 
-### GitHub Issue コメント
+### GitHub Issue コメント（通常Issue）
 
 ```markdown
 ## 🤖 IssueAgent Analysis
@@ -271,6 +426,44 @@ Issueオープン時に自動実行 (`.github/workflows/issue-agent.yml`)
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
+### GitHub Issue コメント（階層的Issue）
+
+```markdown
+## 🤖 IssueAgent Analysis
+
+**Issue Type**: feature
+**Severity**: Sev.3-Medium
+**Impact**: High
+**Responsibility**: Developer
+**Assigned Agent**: CodeGenAgent
+**Estimated Duration**: 240 minutes
+
+### Applied Labels
+- `✨feature`
+- `➡️Sev.3-Medium`
+- `📊影響度-High`
+- `👤担当-開発者`
+- `🤖CodeGenAgent`
+- `🌳hierarchy:root`
+
+### Hierarchy Information
+**Hierarchy Level**: 0 (Root Issue)
+**Child Issues**: 5 sub-issues
+**Progress**: 3/5 completed (60%)
+
+### Child Issues
+- [x] #101 Phase 1: DB設計
+- [ ] #102 Phase 2: API実装
+- [x] #105 Phase 3: フロントエンド実装
+- [x] #106 Phase 4: テスト作成
+- [ ] #107 Phase 5: ドキュメント作成
+
+---
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
 ## ログ出力例
 
 ```
@@ -286,11 +479,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ## メトリクス
 
+**Issue分析**:
 - **実行時間**: 通常5-10秒
 - **Label付与精度**: 95%+
 - **Severity判定精度**: 90%+
 - **担当者アサイン率**: 90%+
 - **依存関係抽出精度**: 100%
+
+**階層的Issue管理**:
+- **子Issue作成時間**: 通常3-5秒
+- **親子リンク作成成功率**: 100%
+- **進捗率計算精度**: 100%
+- **階層Label付与精度**: 100%
+- **メタデータ整合性**: 100%
 
 ---
 
@@ -302,4 +503,4 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
-🤖 組織設計原則: 責任と権限の明確化 - 53ラベル体系による組織的Issue分類
+🤖 組織設計原則: 責任と権限の明確化 - 57ラベル体系による組織的Issue分類 + 階層的Issue管理 (E14:SubIssue)
