@@ -35,6 +35,11 @@ jobs:
           components: rustfmt, clippy
           cache-key-prefix: check
 
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
+          cache-key-prefix: check
+
       - name: Check formatting
         run: cargo fmt --all -- --check
 
@@ -43,6 +48,10 @@ jobs:
 
       - name: Check compilation
         run: cargo check --workspace --all-targets
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
 
   test:
     name: Test
@@ -61,6 +70,11 @@ jobs:
           toolchain: ${{ matrix.rust }}
           cache-key-prefix: test
 
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
+          cache-key-prefix: test-${{ matrix.os }}-${{ matrix.rust }}
+
       - name: Run tests
         run: cargo test --workspace --all-targets
         env:
@@ -68,6 +82,10 @@ jobs:
 
       - name: Run doc tests
         run: cargo test --workspace --doc
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
 
   coverage:
     name: Code Coverage
@@ -80,6 +98,11 @@ jobs:
         uses: ./.github/actions/setup-rust
         with:
           toolchain: stable
+          cache-key-prefix: coverage
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
           cache-key-prefix: coverage
 
       - name: Install cargo-tarpaulin
@@ -99,6 +122,10 @@ jobs:
           files: ./coverage/cobertura.xml
           fail_ci_if_error: false
 
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
+
   security:
     name: Security Audit
     runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
@@ -110,6 +137,11 @@ jobs:
         uses: ./.github/actions/setup-rust
         with:
           toolchain: stable
+          cache-key-prefix: security
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
           cache-key-prefix: security
 
       - name: Install cargo-audit
@@ -133,6 +165,10 @@ jobs:
 
       - name: Check licenses and bans
         run: cargo deny check
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
 
   build:
     name: Build Release
@@ -158,8 +194,17 @@ jobs:
           targets: ${{ matrix.target }}
           cache-key-prefix: build-release
 
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
+          cache-key-prefix: build-release-${{ matrix.os }}
+
       - name: Build release binary
         run: cargo build --release -p miyabi-cli
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
@@ -182,9 +227,18 @@ jobs:
           toolchain: stable
           cache-key-prefix: benchmark
 
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
+          cache-key-prefix: benchmark
+
       - name: Run benchmarks
         run: cargo bench --workspace
         continue-on-error: true # Benchmarks may not be implemented yet
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4

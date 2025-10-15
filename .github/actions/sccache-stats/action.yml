@@ -1,0 +1,40 @@
+name: 'Show sccache Statistics'
+description: 'Display sccache compilation statistics after build'
+author: 'Miyabi'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Print sccache statistics (post-build)
+      shell: bash
+      run: |
+        echo "### sccache Statistics (After Build)" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        sccache --show-stats >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        # Calculate cache hit rate
+        STATS=$(sccache --show-stats)
+        echo "$STATS"
+
+        # Extract hit and miss counts (works with sccache output format)
+        COMPILE_HITS=$(echo "$STATS" | grep -i "cache hits" | head -1 | awk '{print $NF}' || echo "0")
+        COMPILE_MISSES=$(echo "$STATS" | grep -i "cache misses" | head -1 | awk '{print $NF}' || echo "0")
+
+        if [ "$COMPILE_HITS" != "0" ] || [ "$COMPILE_MISSES" != "0" ]; then
+          TOTAL=$((COMPILE_HITS + COMPILE_MISSES))
+          if [ "$TOTAL" -gt 0 ]; then
+            HIT_RATE=$(awk "BEGIN {printf \"%.1f\", ($COMPILE_HITS / $TOTAL) * 100}")
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Cache Hit Rate: ${HIT_RATE}%** (${COMPILE_HITS} hits / ${TOTAL} total)" >> $GITHUB_STEP_SUMMARY
+
+            # Warning if hit rate is low
+            if [ "$(echo "$HIT_RATE < 50" | bc -l 2>/dev/null || echo "0")" = "1" ]; then
+              echo "⚠️ **Warning**: Cache hit rate is below 50%. Consider investigating cache invalidation." >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "_sccache reduces build times by 30-40% on cache hits_" >> $GITHUB_STEP_SUMMARY

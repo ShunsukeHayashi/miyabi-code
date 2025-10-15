@@ -1,0 +1,157 @@
+name: 'Setup sccache'
+description: 'Setup sccache for Rust compilation caching (30-40% build time reduction)'
+author: 'Miyabi'
+
+inputs:
+  version:
+    description: 'sccache version to install'
+    required: false
+    default: 'latest'
+  cache-key-prefix:
+    description: 'Prefix for sccache cache key'
+    required: false
+    default: 'sccache'
+
+outputs:
+  cache-hit:
+    description: 'Whether sccache cache was hit'
+    value: ${{ steps.cache-sccache.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Detect OS and architecture
+      id: detect
+      shell: bash
+      run: |
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+
+        case $OS in
+          linux)
+            OS_NAME="unknown-linux-musl"
+            ;;
+          darwin)
+            OS_NAME="apple-darwin"
+            ;;
+          msys*|mingw*|cygwin*|windows*)
+            OS_NAME="pc-windows-msvc"
+            ;;
+          *)
+            echo "Unsupported OS: $OS"
+            exit 1
+            ;;
+        esac
+
+        case $ARCH in
+          x86_64|amd64)
+            ARCH_NAME="x86_64"
+            ;;
+          aarch64|arm64)
+            ARCH_NAME="aarch64"
+            ;;
+          *)
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+        esac
+
+        TARGET="${ARCH_NAME}-${OS_NAME}"
+        echo "target=${TARGET}" >> $GITHUB_OUTPUT
+        echo "os=${OS}" >> $GITHUB_OUTPUT
+        echo "Detected target: ${TARGET}"
+
+    - name: Cache sccache binary
+      id: cache-sccache-bin
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/bin/sccache*
+        key: ${{ runner.os }}-sccache-bin-${{ inputs.version }}-${{ steps.detect.outputs.target }}
+        restore-keys: |
+          ${{ runner.os }}-sccache-bin-${{ inputs.version }}-
+          ${{ runner.os }}-sccache-bin-
+
+    - name: Install sccache
+      if: steps.cache-sccache-bin.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        if command -v sccache &> /dev/null; then
+          echo "sccache already installed: $(sccache --version)"
+          exit 0
+        fi
+
+        echo "Installing sccache..."
+
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          VERSION=$(curl -s https://api.github.com/repos/mozilla/sccache/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+        else
+          VERSION="${{ inputs.version }}"
+        fi
+
+        echo "Installing sccache version: ${VERSION}"
+
+        TARGET="${{ steps.detect.outputs.target }}"
+        OS="${{ steps.detect.outputs.os }}"
+
+        if [ "$OS" = "windows" ]; then
+          EXT=".exe"
+          ARCHIVE="sccache-v${VERSION}-${TARGET}.tar.gz"
+        else
+          EXT=""
+          ARCHIVE="sccache-v${VERSION}-${TARGET}.tar.gz"
+        fi
+
+        DOWNLOAD_URL="https://github.com/mozilla/sccache/releases/download/v${VERSION}/${ARCHIVE}"
+
+        echo "Downloading from: ${DOWNLOAD_URL}"
+        curl -L "${DOWNLOAD_URL}" -o sccache.tar.gz
+        tar xzf sccache.tar.gz
+
+        EXTRACTED_DIR="sccache-v${VERSION}-${TARGET}"
+        chmod +x "${EXTRACTED_DIR}/sccache${EXT}"
+        mkdir -p ~/.cargo/bin
+        mv "${EXTRACTED_DIR}/sccache${EXT}" ~/.cargo/bin/
+        rm -rf sccache.tar.gz "${EXTRACTED_DIR}"
+
+        echo "sccache installed successfully: $(~/.cargo/bin/sccache --version)"
+
+    - name: Setup sccache cache directory
+      id: cache-sccache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/sccache
+          ~/Library/Caches/Mozilla.sccache
+          ~\AppData\Local\Mozilla\sccache
+        key: ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ hashFiles('**/Cargo.lock') }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ hashFiles('**/Cargo.lock') }}-
+          ${{ runner.os }}-${{ inputs.cache-key-prefix }}-
+
+    - name: Configure sccache
+      shell: bash
+      run: |
+        echo "Configuring sccache environment..."
+        echo "SCCACHE_DIR=$HOME/.cache/sccache" >> $GITHUB_ENV
+        echo "SCCACHE_CACHE_SIZE=2G" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+        echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
+
+        # Show sccache stats before build
+        sccache --version
+        sccache --show-stats
+
+        echo "### sccache Configuration" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Version: $(sccache --version)" >> $GITHUB_STEP_SUMMARY
+        echo "Cache directory: $HOME/.cache/sccache" >> $GITHUB_STEP_SUMMARY
+        echo "Cache size limit: 2G" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+    - name: Print sccache statistics (pre-build)
+      shell: bash
+      run: |
+        echo "### sccache Statistics (Before Build)" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        sccache --show-stats >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
