@@ -579,7 +579,7 @@ $ npm run project:report
 ## 🔗 関連ドキュメント
 
 - [GITHUB_TOKEN_SETUP.md](./GITHUB_TOKEN_SETUP.md) - Token スコープ設定
-- [Issue #5](https://github.com/YOUR_USERNAME/Autonomous-Operations/issues/5) - Full OS Integration
+- [Issue #5](https://github.com/YOUR_USERNAME/Autonomous-Operations/issues/139) - Full OS Integration
 - [GitHub Projects V2 API Docs](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects)
 
 ---
@@ -911,7 +911,7 @@ npx tsx scripts/training-material-generator.ts tutorial
 
 ## 🎉 全フェーズ完了！
 
-**Issue #5 - GitHub as Operating System: 10/10 フェーズ実装完了**
+**Issue #139 - GitHub as Operating System: 10/10 フェーズ実装完了**
 
 ✅ Phase A: Data Persistence Layer
 ✅ Phase B: Agent Communication Layer
@@ -969,4 +969,4 @@ npm test -- --grep "Phase B"
 - **npm スクリプト**: 20+ 個
 - **統合テスト**: 50+ ケース
 
-詳細: [Issue #5](https://github.com/ShunsukeHayashi/Autonomous-Operations/issues/5)
+詳細: [Issue #5](https://github.com/ShunsukeHayashi/Autonomous-Operations/issues/139)

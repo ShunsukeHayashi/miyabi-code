@@ -305,7 +305,7 @@ Every routing decision is logged as an Issue comment:
 
 ---
 
-*Automated by Webhook Event Router (Issue #5 Phase B)*
+*Automated by Webhook Event Router (Issue #139 Phase B)*
 ```
 
 ### GitHub Actions Logs

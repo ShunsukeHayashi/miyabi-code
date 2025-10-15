@@ -1,6 +1,6 @@
 # 📊 GitHub OS Integration Status Report
 
-**Issue**: #5 - GitHub as Operating System Integration
+**Issue**: #139 - GitHub as Operating System Integration
 **作成日**: 2025-10-15
 **バージョン**: 1.0
 **対象**: 全15コンポーネントの統合状況
@@ -485,7 +485,7 @@ High Priority:
 - `.github/workflows/weekly-report.yml` - KPI report
 
 ### Issues
-- [#5 - GitHub OS Integration](https://github.com/ShunsukeHayashi/miyabi-private/issues/5)
+- [#139 - GitHub OS Integration](https://github.com/ShunsukeHayashi/miyabi-private/issues/139)
 
 ---
 

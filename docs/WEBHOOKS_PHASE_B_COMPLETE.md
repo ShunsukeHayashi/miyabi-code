@@ -1,6 +1,6 @@
 # 🔔 Phase B Complete - Webhooks Event Bus
 
-**Issue**: #5 - GitHub as Operating System Integration
+**Issue**: #139 - GitHub as Operating System Integration
 **Phase**: Phase B - Webhooks: Event Bus
 **作成日**: 2025-10-15
 **ステータス**: ✅ **100% Complete**
