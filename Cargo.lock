@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-agents"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1200,7 +1200,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-cli"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "clap",
@@ -1226,7 +1226,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1249,7 +1249,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-github"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "miyabi-types",
@@ -1264,7 +1264,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-types"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "insta",
@@ -1275,7 +1275,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-worktree"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "git2",
