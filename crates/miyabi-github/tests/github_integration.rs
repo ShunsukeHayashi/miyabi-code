@@ -16,8 +16,8 @@ fn test_github_client_auth() {
     assert!(result.is_ok());
 }
 
-#[test]
-fn test_github_client_creation() {
+#[tokio::test]
+async fn test_github_client_creation() {
     let client = GitHubClient::new("ghp_test", "owner", "repo");
     assert!(client.is_ok());
 
@@ -27,8 +27,8 @@ fn test_github_client_creation() {
     assert_eq!(client.full_name(), "owner/repo");
 }
 
-#[test]
-fn test_github_client_cloning() {
+#[tokio::test]
+async fn test_github_client_cloning() {
     let client = GitHubClient::new("ghp_test", "owner", "repo").unwrap();
     let cloned = client.clone();
 
@@ -60,11 +60,11 @@ fn test_get_repository() {
 }
 
 // Test error cases
-#[test]
-fn test_invalid_token() {
+#[tokio::test]
+async fn test_invalid_token() {
     let client = GitHubClient::new("invalid_token", "owner", "repo").unwrap();
 
     // This should fail authentication
-    let result = tokio_test::block_on(client.verify_auth());
+    let result = client.verify_auth().await;
     assert!(result.is_err());
 }
