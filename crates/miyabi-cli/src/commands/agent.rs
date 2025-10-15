@@ -5,6 +5,7 @@ use colored::Colorize;
 use miyabi_agents::base::BaseAgent;
 use miyabi_agents::codegen::CodeGenAgent;
 use miyabi_agents::coordinator::CoordinatorAgent;
+use miyabi_agents::issue::IssueAgent;
 use miyabi_types::{AgentConfig, AgentType, Task};
 use std::collections::HashMap;
 
@@ -39,6 +40,9 @@ impl AgentCommand {
             }
             AgentType::CodeGenAgent => {
                 self.run_codegen_agent(config).await?;
+            }
+            AgentType::IssueAgent => {
+                self.run_issue_agent(config).await?;
             }
             _ => {
                 println!(
@@ -194,6 +198,67 @@ impl AgentCommand {
             }
             if let Some(tests_added) = metrics.tests_added {
                 println!("    Tests added: {}", tests_added);
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn run_issue_agent(&self, config: AgentConfig) -> Result<()> {
+        let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
+
+        println!("  Issue: #{}", issue_number);
+        println!("  Type: IssueAgent (Issue analysis & labeling)");
+        println!();
+
+        // Create agent
+        let agent = IssueAgent::new(config);
+
+        // Create task for issue analysis
+        let task = Task {
+            id: format!("issue-analysis-{}", issue_number),
+            title: format!("Analyze Issue #{}", issue_number),
+            description: format!("Classify Issue #{} and apply labels", issue_number),
+            task_type: miyabi_types::task::TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::IssueAgent),
+            dependencies: vec![],
+            estimated_duration: Some(5),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(HashMap::from([(
+                "issue_number".to_string(),
+                serde_json::json!(issue_number),
+            )])),
+        };
+
+        // Execute agent
+        println!("{}", "  Executing...".dimmed());
+        let result = agent.execute(&task).await?;
+
+        // Display results
+        println!();
+        println!("  Results:");
+        println!("    Status: {:?}", result.status);
+
+        if let Some(metrics) = result.metrics {
+            println!("    Duration: {}ms", metrics.duration_ms);
+        }
+
+        if let Some(data) = result.data {
+            // Try to parse as IssueAnalysis
+            if let Ok(analysis) = serde_json::from_value::<miyabi_types::IssueAnalysis>(data) {
+                println!("  Analysis:");
+                println!("    Issue Type: {:?}", analysis.issue_type);
+                println!("    Severity: {:?}", analysis.severity);
+                println!("    Impact: {:?}", analysis.impact);
+                println!("    Assigned Agent: {:?}", analysis.assigned_agent);
+                println!("    Estimated Duration: {} minutes", analysis.estimated_duration);
+                println!("    Dependencies: {}", analysis.dependencies.join(", "));
+                println!("    Applied Labels: {}", analysis.labels.join(", "));
             }
         }
 

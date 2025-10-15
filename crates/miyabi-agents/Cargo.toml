@@ -20,3 +20,4 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 async-trait = "0.1"
+regex = "1.10"

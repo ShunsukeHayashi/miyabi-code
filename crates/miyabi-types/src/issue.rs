@@ -157,6 +157,29 @@ pub enum DeploymentStatus {
     RolledBack,
 }
 
+/// Impact level for issues
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub enum ImpactLevel {
+    Critical,
+    High,
+    Medium,
+    Low,
+}
+
+/// Issue analysis result from IssueAgent
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IssueAnalysis {
+    pub issue_number: u64,
+    pub issue_type: crate::task::TaskType,
+    pub severity: crate::agent::Severity,
+    pub impact: ImpactLevel,
+    pub assigned_agent: crate::agent::AgentType,
+    pub estimated_duration: u32, // minutes
+    pub dependencies: Vec<String>,
+    pub labels: Vec<String>,
+}
+
 /// Issue Trace Log - complete lifecycle tracking
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IssueTraceLog {
