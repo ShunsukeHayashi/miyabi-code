@@ -10,6 +10,8 @@ fn create_test_config() -> AgentConfig {
     AgentConfig {
         device_identifier: "test-device".to_string(),
         github_token: "ghp_test_token".to_string(),
+        repo_owner: Some("test-owner".to_string()),
+        repo_name: Some("test-repo".to_string()),
         use_task_tool: false,
         use_worktree: false,
         worktree_base_path: None,
@@ -108,6 +110,7 @@ async fn test_agent_type_identification() {
 }
 
 #[tokio::test]
+#[ignore] // Requires real GitHub token and Issue
 async fn test_coordinator_execute() {
     let config = create_test_config();
     let agent = CoordinatorAgent::new(config);

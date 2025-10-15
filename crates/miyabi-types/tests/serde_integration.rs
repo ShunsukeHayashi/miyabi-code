@@ -54,6 +54,8 @@ fn test_agent_config_roundtrip() {
     let config = AgentConfig {
         device_identifier: "test-device".to_string(),
         github_token: "ghp_test".to_string(),
+        repo_owner: Some("test-owner".to_string()),
+        repo_name: Some("test-repo".to_string()),
         use_task_tool: true,
         use_worktree: true,
         worktree_base_path: Some("/tmp/worktrees".to_string()),
@@ -71,6 +73,8 @@ fn test_agent_config_roundtrip() {
     let json = serde_json::to_string(&config).unwrap();
     let deserialized: AgentConfig = serde_json::from_str(&json).unwrap();
     assert_eq!(config.device_identifier, deserialized.device_identifier);
+    assert_eq!(config.repo_owner, deserialized.repo_owner);
+    assert_eq!(config.repo_name, deserialized.repo_name);
     assert_eq!(config.use_task_tool, deserialized.use_task_tool);
 }
 

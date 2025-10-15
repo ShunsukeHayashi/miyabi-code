@@ -5,6 +5,7 @@
 
 use crate::base::BaseAgent;
 use async_trait::async_trait;
+use miyabi_github::GitHubClient;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
@@ -315,19 +316,20 @@ impl BaseAgent for CoordinatorAgent {
                 MiyabiError::Validation("Task metadata missing issue_number".to_string())
             })?;
 
-        // In real implementation, would fetch issue from GitHub
-        // For now, create a dummy issue
-        let issue = Issue {
-            number: issue_number,
-            title: task.title.clone(),
-            body: task.description.clone(),
-            state: miyabi_types::issue::IssueStateGithub::Open,
-            labels: vec![],
-            assignee: None,
-            created_at: chrono::Utc::now(),
-            updated_at: chrono::Utc::now(),
-            url: format!("https://github.com/example/repo/issues/{}", issue_number),
-        };
+        // Fetch issue from GitHub
+        let owner = self
+            .config
+            .repo_owner
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Config("repo_owner not configured".to_string()))?;
+        let repo = self
+            .config
+            .repo_name
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Config("repo_name not configured".to_string()))?;
+
+        let github_client = GitHubClient::new(&self.config.github_token, owner, repo)?;
+        let issue = github_client.get_issue(issue_number).await?;
 
         // Decompose issue into tasks
         let decomposition = self.decompose_issue(&issue).await?;
@@ -366,6 +368,8 @@ mod tests {
         AgentConfig {
             device_identifier: "test-device".to_string(),
             github_token: "test-token".to_string(),
+            repo_owner: Some("test-owner".to_string()),
+            repo_name: Some("test-repo".to_string()),
             use_task_tool: false,
             use_worktree: false,
             worktree_base_path: None,

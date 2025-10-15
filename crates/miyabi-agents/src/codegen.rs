@@ -129,6 +129,8 @@ mod tests {
         AgentConfig {
             device_identifier: "test-device".to_string(),
             github_token: "test-token".to_string(),
+            repo_owner: Some("test-owner".to_string()),
+            repo_name: Some("test-repo".to_string()),
             use_task_tool: false,
             use_worktree: false,
             worktree_base_path: None,

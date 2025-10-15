@@ -135,6 +135,11 @@ pub struct EscalationInfo {
 pub struct AgentConfig {
     pub device_identifier: String,
     pub github_token: String,
+    // Repository information
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repo_owner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repo_name: Option<String>,
     pub use_task_tool: bool,
     pub use_worktree: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -638,6 +643,8 @@ mod tests {
         let config = AgentConfig {
             device_identifier: "MacBook-Pro".to_string(),
             github_token: "ghp_test_token".to_string(),
+            repo_owner: Some("test-owner".to_string()),
+            repo_name: Some("test-repo".to_string()),
             use_task_tool: true,
             use_worktree: true,
             worktree_base_path: Some("/tmp/worktrees".to_string()),
@@ -655,6 +662,8 @@ mod tests {
         let json = serde_json::to_string(&config).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed["device_identifier"], "MacBook-Pro");
+        assert_eq!(parsed["repo_owner"], "test-owner");
+        assert_eq!(parsed["repo_name"], "test-repo");
         assert_eq!(parsed["use_task_tool"], true);
         assert_eq!(parsed["worktree_base_path"], "/tmp/worktrees");
     }
@@ -664,6 +673,8 @@ mod tests {
         let config = AgentConfig {
             device_identifier: "GitHub-Actions".to_string(),
             github_token: "ghp_ci_token".to_string(),
+            repo_owner: None,
+            repo_name: None,
             use_task_tool: false,
             use_worktree: false,
             worktree_base_path: None,
@@ -680,6 +691,8 @@ mod tests {
 
         let json = serde_json::to_string(&config).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("repo_owner").is_none());
+        assert!(parsed.get("repo_name").is_none());
         assert!(parsed.get("worktree_base_path").is_none());
         assert!(parsed.get("tech_lead_github_username").is_none());
     }
@@ -689,6 +702,8 @@ mod tests {
         let config = AgentConfig {
             device_identifier: "Test-Device".to_string(),
             github_token: "test_token".to_string(),
+            repo_owner: Some("owner".to_string()),
+            repo_name: Some("repo".to_string()),
             use_task_tool: true,
             use_worktree: true,
             worktree_base_path: Some("/var/worktrees".to_string()),
@@ -706,6 +721,8 @@ mod tests {
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: AgentConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(config.device_identifier, deserialized.device_identifier);
+        assert_eq!(config.repo_owner, deserialized.repo_owner);
+        assert_eq!(config.repo_name, deserialized.repo_name);
         assert_eq!(config.use_task_tool, deserialized.use_task_tool);
         assert_eq!(config.worktree_base_path, deserialized.worktree_base_path);
     }
