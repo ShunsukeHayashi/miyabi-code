@@ -170,7 +170,7 @@ async fn test_codegen_invalid_task_type() {
     };
 
     // Should fail with validation error
-    let result = agent.generate_code(&task).await;
+    let result = agent.generate_code(&task, None).await;
     assert!(result.is_err());
 }
 
