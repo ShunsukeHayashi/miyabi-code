@@ -1,7 +1,12 @@
 //! Miyabi CLI - 一つのコマンドで全てが完結
 
+mod commands;
+mod error;
+
 use clap::{Parser, Subcommand};
 use colored::Colorize;
+use commands::{AgentCommand, InitCommand, InstallCommand, StatusCommand};
+use error::Result;
 
 #[derive(Parser)]
 #[command(name = "miyabi")]
@@ -53,7 +58,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Initialize logger
@@ -64,37 +69,22 @@ async fn main() -> anyhow::Result<()> {
     };
     miyabi_core::init_logger(log_level);
 
-    match cli.command {
+    let result = match cli.command {
         Some(Commands::Init { name, private }) => {
-            println!("{}", "🚀 Initializing new project...".cyan().bold());
-            println!("  Project: {}", name);
-            println!("  Private: {}", private);
-            // TODO: Implement init command
-            Ok(())
+            let cmd = InitCommand::new(name, private);
+            cmd.execute().await
         }
         Some(Commands::Install { dry_run }) => {
-            println!("{}", "📦 Installing Miyabi to existing project...".cyan().bold());
-            if dry_run {
-                println!("{}", "  (Dry run - no changes will be made)".yellow());
-            }
-            // TODO: Implement install command
-            Ok(())
+            let cmd = InstallCommand::new(dry_run);
+            cmd.execute().await
         }
         Some(Commands::Status { watch }) => {
-            println!("{}", "📊 Checking project status...".cyan().bold());
-            if watch {
-                println!("{}", "  (Watch mode enabled)".green());
-            }
-            // TODO: Implement status command
-            Ok(())
+            let cmd = StatusCommand::new(watch);
+            cmd.execute().await
         }
         Some(Commands::Agent { agent_type, issue }) => {
-            println!("{}", format!("🤖 Running {} agent...", agent_type).cyan().bold());
-            if let Some(issue_num) = issue {
-                println!("  Issue: #{}", issue_num);
-            }
-            // TODO: Implement agent command
-            Ok(())
+            let cmd = AgentCommand::new(agent_type, issue);
+            cmd.execute().await
         }
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
@@ -103,5 +93,13 @@ async fn main() -> anyhow::Result<()> {
             println!("Use --help to see available commands");
             Ok(())
         }
+    };
+
+    // Handle errors
+    if let Err(ref e) = result {
+        eprintln!("{} {}", "Error:".red().bold(), e);
+        std::process::exit(1);
     }
+
+    result
 }
