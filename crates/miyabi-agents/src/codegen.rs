@@ -5,12 +5,16 @@
 
 use crate::base::BaseAgent;
 use async_trait::async_trait;
+use miyabi_core::documentation::{
+    generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, ReadmeTemplate,
+};
 use miyabi_core::retry::{retry_with_backoff, RetryConfig};
 use miyabi_types::agent::{AgentMetrics, ResultStatus};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use miyabi_worktree::{WorktreeInfo, WorktreeManager};
+use std::path::Path;
 
 pub struct CodeGenAgent {
     #[allow(dead_code)] // Reserved for future Agent configuration
@@ -203,6 +207,79 @@ impl CodeGenAgent {
         Ok(())
     }
 
+    /// Generate documentation for the generated code
+    ///
+    /// Creates Rustdoc documentation and README files
+    ///
+    /// # Arguments
+    /// * `project_path` - Path to the project root
+    /// * `result` - Code generation result
+    ///
+    /// # Returns
+    /// * `Ok(DocumentationGenerationResult)` - Documentation generated
+    /// * `Err(MiyabiError)` - Failed to generate documentation
+    pub async fn generate_documentation(
+        &self,
+        project_path: &Path,
+        result: &CodeGenerationResult,
+    ) -> Result<DocumentationGenerationResult> {
+        tracing::info!("Generating documentation for {:?}", project_path);
+
+        // Generate Rustdoc
+        let doc_config = DocumentationConfig::new(project_path).with_private_items();
+
+        let rustdoc_result = generate_rustdoc(&doc_config).await?;
+
+        // Generate README if there are new files
+        let readme_path = if !result.files_created.is_empty() {
+            let readme = self.generate_readme_for_files(&result.files_created)?;
+            let readme_path = project_path.join("README.md");
+
+            tokio::fs::write(&readme_path, readme).await?;
+
+            Some(readme_path.to_string_lossy().to_string())
+        } else {
+            None
+        };
+
+        Ok(DocumentationGenerationResult {
+            rustdoc_path: rustdoc_result.doc_path,
+            readme_path,
+            warnings: rustdoc_result.warnings,
+            success: rustdoc_result.success,
+        })
+    }
+
+    /// Generate README content for created files
+    fn generate_readme_for_files(&self, files: &[String]) -> Result<String> {
+        // Extract project name from first file path
+        let project_name = files
+            .first()
+            .and_then(|f| Path::new(f).file_stem())
+            .and_then(|s| s.to_str())
+            .unwrap_or("Project")
+            .to_string();
+
+        // Create basic README template
+        let template = ReadmeTemplate {
+            project_name: project_name.clone(),
+            description: format!("Auto-generated documentation for {}", project_name),
+            installation: Some(format!(
+                "```bash\ncargo add {}\n```",
+                project_name.to_lowercase()
+            )),
+            usage_examples: vec![CodeExample::new(
+                "Basic Usage",
+                format!("use {};\n\nfn main() {{\n    // Your code here\n}}", project_name),
+            )
+            .with_description("A simple usage example")],
+            api_docs_link: Some(format!("https://docs.rs/{}", project_name.to_lowercase())),
+            license: Some("MIT OR Apache-2.0".to_string()),
+        };
+
+        Ok(generate_readme(&template))
+    }
+
     /// Validate generated code
     #[allow(dead_code)] // Will be used in production implementation (see execute() line 80)
     fn validate_code(&self, result: &CodeGenerationResult) -> Result<()> {
@@ -291,6 +368,19 @@ pub struct CodeGenerationResult {
     pub lines_removed: u32,
     pub tests_added: u32,
     pub commit_sha: Option<String>,
+}
+
+/// Result of documentation generation
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DocumentationGenerationResult {
+    /// Path to generated Rustdoc
+    pub rustdoc_path: String,
+    /// Path to generated README (if any)
+    pub readme_path: Option<String>,
+    /// Documentation warnings
+    pub warnings: Vec<String>,
+    /// Whether documentation generation succeeded
+    pub success: bool,
 }
 
 #[cfg(test)]
@@ -644,5 +734,151 @@ mod tests {
 
         let validation = agent.validate_code(&valid_result);
         assert!(validation.is_ok());
+    }
+
+    // ========================================================================
+    // Documentation Generation Tests
+    // ========================================================================
+
+    #[tokio::test]
+    async fn test_generate_readme_for_files() {
+        let config = create_test_config();
+        let agent = CodeGenAgent::new(config);
+
+        let files = vec!["src/my_module.rs".to_string()];
+        let readme = agent.generate_readme_for_files(&files).unwrap();
+
+        assert!(readme.contains("# my_module"));
+        assert!(readme.contains("## Installation"));
+        assert!(readme.contains("## Usage"));
+        assert!(readme.contains("```rust"));
+        assert!(readme.contains("use my_module;"));
+        assert!(readme.contains("## API Documentation"));
+        assert!(readme.contains("## License"));
+    }
+
+    #[tokio::test]
+    async fn test_generate_readme_multiple_files() {
+        let config = create_test_config();
+        let agent = CodeGenAgent::new(config);
+
+        let files = vec![
+            "src/parser.rs".to_string(),
+            "src/lexer.rs".to_string(),
+            "src/ast.rs".to_string(),
+        ];
+
+        let readme = agent.generate_readme_for_files(&files).unwrap();
+
+        // Should use first file for project name
+        assert!(readme.contains("# parser"));
+        assert!(readme.contains("Auto-generated documentation for parser"));
+    }
+
+    #[tokio::test]
+    async fn test_documentation_generation_result_serialization() {
+        let result = DocumentationGenerationResult {
+            rustdoc_path: "target/doc".to_string(),
+            readme_path: Some("README.md".to_string()),
+            warnings: vec!["missing docs".to_string()],
+            success: true,
+        };
+
+        let json = serde_json::to_value(&result).unwrap();
+        assert_eq!(json["rustdoc_path"], "target/doc");
+        assert_eq!(json["readme_path"], "README.md");
+        assert_eq!(json["success"], true);
+        assert!(json["warnings"].is_array());
+
+        let deserialized: DocumentationGenerationResult =
+            serde_json::from_value(json).unwrap();
+        assert_eq!(deserialized.rustdoc_path, "target/doc");
+        assert_eq!(deserialized.readme_path, Some("README.md".to_string()));
+        assert_eq!(deserialized.warnings.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_readme_template_components() {
+        use miyabi_core::documentation::{CodeExample, ReadmeTemplate};
+        use miyabi_core::generate_readme;
+
+        let example = CodeExample::new("Example 1", "let x = 42;")
+            .with_description("Variable declaration")
+            .with_language("rust");
+
+        let template = ReadmeTemplate {
+            project_name: "Test Crate".to_string(),
+            description: "A test crate".to_string(),
+            installation: Some("cargo add test-crate".to_string()),
+            usage_examples: vec![example],
+            api_docs_link: Some("https://docs.rs/test-crate".to_string()),
+            license: Some("MIT".to_string()),
+        };
+
+        let readme = generate_readme(&template);
+
+        assert!(readme.contains("# Test Crate"));
+        assert!(readme.contains("A test crate"));
+        assert!(readme.contains("cargo add test-crate"));
+        assert!(readme.contains("### Example 1"));
+        assert!(readme.contains("Variable declaration"));
+        assert!(readme.contains("let x = 42;"));
+        assert!(readme.contains("docs.rs/test-crate"));
+        assert!(readme.contains("MIT"));
+    }
+
+    #[tokio::test]
+    async fn test_documentation_config_builder() {
+        use miyabi_core::documentation::DocumentationConfig;
+        use std::path::PathBuf;
+
+        let config = DocumentationConfig::new("/tmp/project")
+            .with_private_items()
+            .with_browser();
+
+        assert_eq!(config.project_root, PathBuf::from("/tmp/project"));
+        assert!(config.document_private_items);
+        assert!(config.open_browser);
+    }
+
+    #[tokio::test]
+    async fn test_code_example_builder() {
+        use miyabi_core::documentation::CodeExample;
+
+        let example = CodeExample::new("Advanced Usage", "fn advanced() {}")
+            .with_description("More complex example")
+            .with_language("rust");
+
+        assert_eq!(example.title, "Advanced Usage");
+        assert_eq!(
+            example.description,
+            Some("More complex example".to_string())
+        );
+        assert_eq!(example.language, "rust");
+        assert_eq!(example.code, "fn advanced() {}");
+    }
+
+    #[tokio::test]
+    async fn test_readme_without_optional_sections() {
+        use miyabi_core::documentation::ReadmeTemplate;
+        use miyabi_core::generate_readme;
+
+        let template = ReadmeTemplate {
+            project_name: "Minimal".to_string(),
+            description: "Minimal description".to_string(),
+            installation: None,
+            usage_examples: vec![],
+            api_docs_link: None,
+            license: None,
+        };
+
+        let readme = generate_readme(&template);
+
+        assert!(readme.contains("# Minimal"));
+        assert!(readme.contains("Minimal description"));
+        assert!(!readme.contains("## Installation"));
+        assert!(!readme.contains("## Usage"));
+        assert!(!readme.contains("## API Documentation"));
+        assert!(!readme.contains("## License"));
     }
 }
