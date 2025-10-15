@@ -319,6 +319,50 @@
   aliases: ["discussion"]
 
 # ============================================================================
+# 11. DISCUSSION-SPECIFIC LABELS
+# ============================================================================
+
+- name: "promote-to-issue"
+  color: "0E8A16"
+  description: "Promote this discussion to an issue"
+  aliases: ["promote"]
+
+- name: "confirmed-bug"
+  color: "D73A4A"
+  description: "Bug confirmed by community"
+  aliases: ["confirmed"]
+
+- name: "source:discussion"
+  color: "FBCA04"
+  description: "Originated from GitHub Discussions"
+  aliases: ["from-discussion"]
+
+- name: "showcase"
+  color: "BFD4F2"
+  description: "Community showcase"
+  aliases: ["show-and-tell"]
+
+- name: "answered"
+  color: "2EA44F"
+  description: "Discussion question has been answered"
+  aliases: ["resolved"]
+
+- name: "announcement"
+  color: "0075CA"
+  description: "Official project announcement"
+  aliases: ["official"]
+
+- name: "cannot-reproduce"
+  color: "E4E4E4"
+  description: "Bug cannot be reproduced"
+  aliases: ["cannot-repro"]
+
+- name: "high-priority"
+  color: "D93F0B"
+  description: "High priority discussion item"
+  aliases: ["priority"]
+
+# ============================================================================
 # STATE TRANSITION RULES
 # ============================================================================
 #

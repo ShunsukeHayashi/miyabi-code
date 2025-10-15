@@ -1,0 +1,302 @@
+name: Discussions Automation
+
+on:
+  discussion:
+    types: [created, answered, labeled]
+  workflow_dispatch:
+
+permissions:
+  discussions: write
+  issues: write
+  contents: read
+
+jobs:
+  idea-to-issue:
+    name: Convert Idea to Issue
+    runs-on: ubuntu-latest
+    if: github.event.discussion.category.slug == 'ideas' && contains(github.event.discussion.labels.*.name, 'promote-to-issue')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Issue from Idea
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const discussion = context.payload.discussion;
+
+            // Parse discussion body to extract issue details
+            let body = discussion.body;
+            let labels = ['type:feature', 'state:pending', 'source:discussion'];
+
+            // Detect priority from discussion labels
+            const discussionLabels = discussion.labels.map(l => l.name);
+            if (discussionLabels.includes('high-priority')) {
+              labels.push('priority:P1-High');
+            } else if (discussionLabels.includes('critical')) {
+              labels.push('priority:P0-Critical');
+            } else {
+              labels.push('priority:P2-Medium');
+            }
+
+            // Detect type from keywords
+            const lowerBody = body.toLowerCase();
+            if (lowerBody.includes('bug') || lowerBody.includes('error')) {
+              labels = labels.filter(l => l !== 'type:feature');
+              labels.push('type:bug');
+            } else if (lowerBody.includes('docs') || lowerBody.includes('documentation')) {
+              labels = labels.filter(l => l !== 'type:feature');
+              labels.push('type:docs');
+            }
+
+            // Add discussion reference to body
+            body += `\n\n---\n\n**Originally proposed in Discussion**: ${discussion.html_url}\n`;
+            body += `**Discussion Author**: @${discussion.user.login}\n`;
+            body += `**Upvotes**: ${discussion.reactions['+1'] || 0}\n`;
+
+            // Create issue
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[From Discussion] ${discussion.title}`,
+              body: body,
+              labels: labels,
+              assignees: [] // Will be assigned by IssueAgent
+            });
+
+            console.log(`✅ Created Issue #${issue.data.number} from Discussion #${discussion.number}`);
+
+            // Add comment to discussion linking to issue
+            await github.rest.discussions.createDiscussionComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              discussion_number: discussion.number,
+              body: `🎉 This idea has been promoted to Issue #${issue.data.number}!\n\n[View Issue](${issue.data.html_url})`
+            });
+
+            // Remove promote-to-issue label
+            const labelToRemove = discussion.labels.find(l => l.name === 'promote-to-issue');
+            if (labelToRemove) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: discussion.number,
+                name: 'promote-to-issue'
+              });
+            }
+
+  auto-label-discussions:
+    name: Auto-Label Discussions
+    runs-on: ubuntu-latest
+    if: github.event.action == 'created'
+    steps:
+      - name: Auto-label based on content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const discussion = context.payload.discussion;
+            const body = discussion.body.toLowerCase();
+            const title = discussion.title.toLowerCase();
+            const content = `${title} ${body}`;
+
+            const labels = [];
+
+            // Detect question
+            if (content.includes('how to') || content.includes('how do') || content.includes('?')) {
+              labels.push('question');
+            }
+
+            // Detect help wanted
+            if (content.includes('help') || content.includes('stuck') || content.includes('problem')) {
+              labels.push('help-wanted');
+            }
+
+            // Detect good first issue candidates
+            if (content.includes('beginner') || content.includes('first time') || content.includes('simple')) {
+              labels.push('good-first-issue');
+            }
+
+            // Detect enhancement
+            if (content.includes('improve') || content.includes('enhance') || content.includes('better')) {
+              labels.push('enhancement');
+            }
+
+            // Apply labels if any detected
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: discussion.number,
+                labels: labels
+              });
+
+              console.log(`✅ Auto-labeled discussion with: ${labels.join(', ')}`);
+            }
+
+  answered-notification:
+    name: Mark Discussion as Answered
+    runs-on: ubuntu-latest
+    if: github.event.action == 'answered'
+    steps:
+      - name: Add answered label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const discussion = context.payload.discussion;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: discussion.number,
+              labels: ['answered']
+            });
+
+            console.log(`✅ Marked discussion #${discussion.number} as answered`);
+
+  discussion-stats:
+    name: Generate Discussion Statistics
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze discussions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const DAYS_TO_ANALYZE = 30;
+
+            console.log(`📊 Analyzing discussions for the past ${DAYS_TO_ANALYZE} days...`);
+
+            // Get discussions
+            const discussions = await github.graphql(`
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  discussions(first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+                    nodes {
+                      number
+                      title
+                      category {
+                        name
+                        slug
+                      }
+                      createdAt
+                      comments(first: 1) {
+                        totalCount
+                      }
+                      labels(first: 10) {
+                        nodes {
+                          name
+                        }
+                      }
+                      answer {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            `, {
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            // Aggregate statistics
+            const stats = {
+              total: 0,
+              byCategory: {},
+              answered: 0,
+              unanswered: 0,
+              avgComments: 0,
+              totalComments: 0,
+              promotedToIssues: 0
+            };
+
+            const now = Date.now();
+            const cutoffTime = now - (DAYS_TO_ANALYZE * 24 * 60 * 60 * 1000);
+
+            for (const discussion of discussions.repository.discussions.nodes) {
+              const createdAt = new Date(discussion.createdAt).getTime();
+
+              if (createdAt < cutoffTime) continue;
+
+              stats.total++;
+
+              // By category
+              const category = discussion.category.name;
+              if (!stats.byCategory[category]) {
+                stats.byCategory[category] = { count: 0, answered: 0 };
+              }
+              stats.byCategory[category].count++;
+
+              // Answered
+              if (discussion.answer) {
+                stats.answered++;
+                stats.byCategory[category].answered++;
+              } else {
+                stats.unanswered++;
+              }
+
+              // Comments
+              stats.totalComments += discussion.comments.totalCount;
+
+              // Promoted to issues
+              const labels = discussion.labels.nodes.map(l => l.name);
+              if (labels.includes('source:discussion')) {
+                stats.promotedToIssues++;
+              }
+            }
+
+            stats.avgComments = stats.total > 0 ? (stats.totalComments / stats.total).toFixed(1) : 0;
+            const answerRate = stats.total > 0 ? ((stats.answered / stats.total) * 100).toFixed(1) : 0;
+
+            // Generate report
+            let report = `
+            # 💬 Discussions Statistics Report
+
+            **Period**: Last ${DAYS_TO_ANALYZE} days
+            **Generated**: ${new Date().toISOString()}
+
+            ## Overall Statistics
+
+            | Metric | Value |
+            |--------|-------|
+            | Total Discussions | ${stats.total} |
+            | ✅ Answered | ${stats.answered} (${answerRate}%) |
+            | ❓ Unanswered | ${stats.unanswered} |
+            | 💬 Avg Comments | ${stats.avgComments} |
+            | 🎯 Promoted to Issues | ${stats.promotedToIssues} |
+
+            ## Engagement Quality
+
+            ${answerRate >= 80 ? '✅ **Excellent**: Answer rate above 80%' : ''}
+            ${answerRate >= 60 && answerRate < 80 ? '🟢 **Good**: Answer rate above 60%' : ''}
+            ${answerRate >= 40 && answerRate < 60 ? '🟡 **Acceptable**: Answer rate above 40%' : ''}
+            ${answerRate < 40 ? '🔴 **Needs Attention**: Answer rate below 40%' : ''}
+
+            ## Category Breakdown
+
+            | Category | Discussions | Answer Rate |
+            |----------|-------------|-------------|
+            `;
+
+            for (const [category, data] of Object.entries(stats.byCategory)) {
+              const categoryAnswerRate = data.count > 0 ? ((data.answered / data.count) * 100).toFixed(1) : 0;
+              report += `| ${category} | ${data.count} | ${categoryAnswerRate}% |\n`;
+            }
+
+            report += `
+            ## Automation Insights
+
+            - **Idea→Issue Conversion**: ${stats.promotedToIssues} discussions promoted to issues
+            - **Auto-labeling**: Active for new discussions
+            - **Answer Detection**: Automatic label on answered discussions
+
+            ---
+            _Report generated automatically. Configure discussion categories in repository settings._
+            `;
+
+            await core.summary.addRaw(report).write();
+
+            console.log('✅ Report generated successfully');
