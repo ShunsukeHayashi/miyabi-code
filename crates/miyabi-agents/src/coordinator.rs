@@ -14,6 +14,7 @@ use serde_json::json;
 use std::collections::HashMap;
 
 pub struct CoordinatorAgent {
+    #[allow(dead_code)] // Reserved for future Agent configuration
     config: AgentConfig,
 }
 

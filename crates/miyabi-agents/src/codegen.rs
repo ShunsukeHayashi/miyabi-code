@@ -11,6 +11,7 @@ use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 
 pub struct CodeGenAgent {
+    #[allow(dead_code)] // Reserved for future Agent configuration
     config: AgentConfig,
 }
 
@@ -53,6 +54,7 @@ impl CodeGenAgent {
     }
 
     /// Validate generated code
+    #[allow(dead_code)] // Will be used in production implementation (see execute() line 80)
     fn validate_code(&self, result: &CodeGenerationResult) -> Result<()> {
         if result.files_created.is_empty() && result.files_modified.is_empty() {
             return Err(MiyabiError::Validation(

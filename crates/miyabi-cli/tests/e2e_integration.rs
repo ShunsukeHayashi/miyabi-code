@@ -1,11 +1,16 @@
 //! End-to-end integration tests for Miyabi CLI
 //!
 //! Tests the complete workflow from CLI commands to agent execution
+//!
+//! NOTE: These tests use #[serial] to prevent race conditions when changing
+//! the current working directory. They must run sequentially.
 
+use serial_test::serial;
 use std::fs;
 use tempfile::TempDir;
 
 #[test]
+#[serial]
 fn test_init_command_creates_structure() {
     use miyabi_cli::commands::InitCommand;
 
@@ -36,6 +41,7 @@ fn test_init_command_creates_structure() {
 }
 
 #[test]
+#[serial]
 fn test_init_with_invalid_name() {
     use miyabi_cli::commands::InitCommand;
 
@@ -55,6 +61,7 @@ fn test_init_with_invalid_name() {
 }
 
 #[test]
+#[serial]
 fn test_install_command_detects_git_repo() {
     use miyabi_cli::commands::InstallCommand;
     use std::process::Command;
@@ -76,6 +83,7 @@ fn test_install_command_detects_git_repo() {
 }
 
 #[test]
+#[serial]
 fn test_install_fails_without_git() {
     use miyabi_cli::commands::InstallCommand;
 
@@ -137,6 +145,7 @@ fn test_agent_execution_e2e() {
 }
 
 #[test]
+#[serial]
 fn test_full_workflow_init_to_status() {
     use miyabi_cli::commands::{InitCommand, StatusCommand};
 
@@ -168,6 +177,7 @@ fn test_full_workflow_init_to_status() {
 }
 
 #[test]
+#[serial]
 fn test_config_file_content() {
     use miyabi_cli::commands::InitCommand;
 

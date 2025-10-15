@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 
 pub struct InitCommand {
     pub name: String,
+    #[allow(dead_code)] // Reserved for GitHub repo creation (public vs private)
     pub private: bool,
 }
 
