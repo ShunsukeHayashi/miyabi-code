@@ -1188,6 +1188,7 @@ dependencies = [
  "miyabi-github",
  "miyabi-types",
  "miyabi-worktree",
+ "octocrab",
  "regex",
  "reqwest",
  "serde",
