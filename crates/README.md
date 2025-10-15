@@ -1,19 +1,29 @@
 # Miyabi Rust Crates
 
-Complete Rust implementation of the Miyabi autonomous development framework.
+<div align="center">
 
-**Status**: ✅ **Production Ready** - 8/9 Phases Complete (88.9%)
+[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0)
+[![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge&logo=apache)](https://opensource.org/licenses/Apache-2.0)
 
-## Crates Overview
+**Complete Rust implementation of the Miyabi autonomous development framework**
 
-| Crate | Description | Version | Lines | Tests | Status |
-|-------|-------------|---------|-------|-------|--------|
-| **miyabi-types** | Core type definitions | 0.1.0 | 1,200 | 149 | ✅ 100% |
-| **miyabi-core** | Configuration, retry, logger, docs | 0.1.0 | 1,100 | 57 | ✅ 100% |
-| **miyabi-worktree** | Git worktree parallel execution | 0.1.0 | 485 | 3 | ✅ 100% |
-| **miyabi-github** | GitHub API integration (octocrab) | 0.1.0 | 950 | 15 | ✅ 100% |
-| **miyabi-agents** | 7 autonomous AI agents | 0.1.0 | 5,477 | 110 | ✅ 100% |
-| **miyabi-cli** | Command-line interface | 0.1.0 | 1,700 | 13 | ✅ 100% |
+**Status**: ✅ **v1.0.0 Production Release** - All 9 Phases Complete (100%)
+
+</div>
+
+---
+
+## 📦 Crates Overview
+
+| Crate | Description | Version | crates.io | Lines | Tests | Status |
+|-------|-------------|---------|-----------|-------|-------|--------|
+| **miyabi-types** | Core type definitions | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-types) | 1,200 | 149 | ✅ 100% |
+| **miyabi-core** | Configuration, retry, logger, docs | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-core) | 1,100 | 57 | ✅ 100% |
+| **miyabi-worktree** | Git worktree parallel execution | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-worktree) | 485 | 3 | ✅ 100% |
+| **miyabi-github** | GitHub API integration (octocrab) | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-github) | 950 | 15 | ✅ 100% |
+| **miyabi-agents** | 7 autonomous AI agents | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-agents) | 5,477 | 110 | ✅ 100% |
+| **miyabi-cli** | Command-line interface | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-cli) | 1,700 | 13 | ✅ 100% |
 
 **Total**: **~10,912 lines**, **347 tests** (100% passing) ✅
 
@@ -238,7 +248,7 @@ cargo doc --workspace --no-deps --open
 
 ## Project Status
 
-### Completed Phases (8/9)
+### Completed Phases (9/9) ✅
 
 - ✅ **Phase 1-2**: Planning & Design (100%)
 - ✅ **Phase 3**: Type Definitions (100% - 170 tests)
@@ -247,7 +257,7 @@ cargo doc --workspace --no-deps --open
 - ✅ **Phase 6**: Worktree Management (100% - 3 tests)
 - ✅ **Phase 7**: GitHub Integration (100% - 15 tests)
 - ✅ **Phase 8**: Test Implementation (100% - 347 tests)
-- 🟡 **Phase 9**: Documentation (In Progress)
+- ✅ **Phase 9**: Documentation (100% - v1.0.0 Released)
 
 ### Quality Metrics
 

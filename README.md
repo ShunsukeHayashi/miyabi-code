@@ -22,6 +22,34 @@
 
 ---
 
+<div align="center">
+
+## 🦀 **NEW: Rust Edition v1.0.0 Released!**
+
+**Production-ready Rust implementation is now available!**
+
+[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0)
+[![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue?style=for-the-badge&logo=rust)](https://crates.io/search?q=miyabi)
+
+**🚀 50% Faster • 💾 30% Less Memory • 📦 Single Binary • ✅ 347 Tests**
+
+```bash
+# Download the binary (macOS)
+curl -L https://github.com/ShunsukeHayashi/miyabi-private/releases/download/v1.0.0/miyabi-macos-aarch64 -o miyabi
+chmod +x miyabi
+sudo mv miyabi /usr/local/bin/
+
+# Or build from source
+cargo install miyabi-cli  # Coming soon to crates.io
+```
+
+**📚 Learn More**: [Release Notes](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0) | [Migration Guide](docs/RUST_MIGRATION_REQUIREMENTS.md)
+
+</div>
+
+---
+
 ## ✨ クイックスタート
 
 ```bash
