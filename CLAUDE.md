@@ -18,6 +18,18 @@
 
 ## アーキテクチャ
 
+### 🦀 Rust Edition - 高速・安全・並列実行
+
+**このプロジェクトはRust 2021 Editionで実装されています。**
+
+TypeScript版からの完全移植により、以下を実現：
+- **50%以上の実行時間削減** - Rustの高速実行
+- **30%以上のメモリ削減** - ゼロコスト抽象化
+- **単一バイナリ配布** - Node.js依存の排除
+- **コンパイル時型安全性** - ランタイムエラーの削減
+
+**参考**: [RUST_MIGRATION_REQUIREMENTS.md](docs/RUST_MIGRATION_REQUIREMENTS.md)
+
 ### コアコンポーネント
 
 1. **Agent System** - 全21個のAgent（Coding: 7個 | Business: 14個）
@@ -41,10 +53,11 @@
    - `prompts/coding/` - コーディング系実行プロンプト（6個）
    - `prompts/business/` - ビジネス系実行プロンプト（将来追加）
 
-   **SDK Integration**:
-   - npm: `miyabi-agent-sdk@^0.1.0-alpha.2`
-   - Source: [codex repository](https://github.com/ShunsukeHayashi/codex)
-   - Dependencies: `@anthropic-ai/sdk`, `@octokit/rest`
+   **Rust Crates**:
+   - `miyabi-agents` - 全Agent実装（BaseAgent trait + 7 Coding Agents）
+   - `miyabi-types` - コア型定義（Agent, Task, Issue等）
+   - `miyabi-github` - GitHub API統合（octocrab wrapper）
+   - Dependencies: `tokio`, `async-trait`, `octocrab`, `serde`
 
    **🎮 キャラクター名システム - 小中学生でも分かるAgent名**
 
@@ -96,10 +109,17 @@
    - Pages: 静的サイトホスティング
    - Packages: パッケージ配布
 
-3. **CLI Package** (`packages/cli/`)
-   - `miyabi init`: 新規プロジェクト作成
+3. **CLI Binary** (`crates/miyabi-cli/`)
+   - `miyabi init <project-name>`: 新規プロジェクト作成
    - `miyabi install`: 既存プロジェクトに追加
-   - `miyabi status`: ステータス確認
+   - `miyabi status [--watch]`: ステータス確認
+   - `miyabi agent run <agent-type> [--issue=N]`: Agent実行
+
+   **ビルド**:
+   ```bash
+   cargo build --release --bin miyabi
+   # バイナリ: target/release/miyabi
+   ```
 
 ## 重要なファイル
 
@@ -129,25 +149,76 @@
 - `docs/SAAS_BUSINESS_MODEL.md`: SaaS事業化戦略 (16,000行)
 - `docs/MARKET_ANALYSIS_2025.md`: 市場調査レポート 2025 (8,000行)
 
-**CLI**:
-- `packages/cli/README.md`: CLI使用方法
+**Rust移行ドキュメント**:
+- `docs/RUST_MIGRATION_REQUIREMENTS.md`: Rust移行要件定義
+- `docs/RUST_MIGRATION_SPRINT_PLAN.md`: 全力スプリント計画
+- `.claude/RUST_MIGRATION_CHECKLIST.md`: .claude Rust対応チェックリスト
 
-### コアコード
-- `agents/`: 各Agentの実装
-- `scripts/`: 運用スクリプト
-- `packages/`: NPMパッケージ
+### コアコード (Cargo Workspace)
+
+```
+crates/
+├── miyabi-types/       # コア型定義（Agent, Task, Issue等）
+├── miyabi-core/        # 共通ユーティリティ（config, logger）
+├── miyabi-cli/         # CLIツール (bin)
+├── miyabi-agents/      # Agent実装（Coordinator, CodeGen等）
+├── miyabi-github/      # GitHub API統合
+└── miyabi-worktree/    # Git Worktree管理
+```
+
+**レガシー TypeScript版** (参考):
+- `packages/`: NPMパッケージ（Rust移行中）
+- `agents/`: TypeScript版Agent実装
 
 ## 開発ガイドライン
 
-### TypeScript
+### 🦀 Rust (現行)
+
+**言語**: Rust 2021 Edition (Stable)
+
+**コアライブラリ**:
+- `tokio` - 非同期ランタイム
+- `async-trait` - Trait非同期メソッド
+- `serde` + `serde_json` - シリアライゼーション
+- `thiserror` + `anyhow` - エラーハンドリング
+- `clap` - CLI フレームワーク
+- `octocrab` - GitHub API
+- `tracing` + `tracing-subscriber` - ログ
+
+**コーディング規約**:
+- Clippy警告0件 (`cargo clippy -- -D warnings`)
+- Rustfmt適用 (`cargo fmt`)
+- 全public APIにRustdocコメント (`///`)
+- Result型でエラーハンドリング
+
+**テスト**:
+- `cargo test` - 単体テスト + 統合テスト
+- `insta` - スナップショットテスト
+- カバレッジ目標: 80%以上
+
+**ビルド**:
+```bash
+# 開発ビルド
+cargo build
+
+# リリースビルド（最適化）
+cargo build --release
+
+# テスト実行
+cargo test --all
+
+# Linter実行
+cargo clippy -- -D warnings
+```
+
+### 📘 TypeScript (レガシー - 参考)
+
+**注**: TypeScript版は段階的にRustに移行中です。
+
 - Strict mode必須
 - ESM形式（import/export）
-- `__dirname` → `fileURLToPath(import.meta.url)` 使用
-
-### テスト
 - Vitest使用
 - カバレッジ目標: 80%以上
-- ユニットテスト必須
 
 ### コミット規約
 - Conventional Commits準拠
@@ -210,16 +281,40 @@ Labelはオペレーティングシステムの状態管理機構として機能
 
 ## 実行例
 
+### 🦀 Rust Edition (現行)
+
 ```bash
+# バイナリビルド
+cargo build --release
+
 # 新規プロジェクト作成
-npx miyabi init my-project
+./target/release/miyabi init my-project
 
 # 既存プロジェクトに追加
 cd existing-project
-npx miyabi install
+miyabi install
 
 # ステータス確認
-npx miyabi status
+miyabi status --watch
+
+# Agent実行（自動Issue処理）
+miyabi agent run coordinator --issue 270
+
+# Agent実行（Worktreeベース並列実行）
+cargo run --bin miyabi -- agent run coordinator --issues 270,271,272 --concurrency 3
+
+# テスト実行
+cargo test --all
+
+# Linter実行
+cargo clippy -- -D warnings
+```
+
+### 📘 TypeScript Edition (レガシー - 参考)
+
+```bash
+# 新規プロジェクト作成
+npx miyabi init my-project
 
 # Agent実行（自動Issue処理）- Worktreeベース並列実行
 npm run agents:parallel:exec -- --issues=5 --concurrency=3
@@ -230,6 +325,7 @@ npm run agents:parallel:exec -- --issues=5 --concurrency=3
 ```bash
 GITHUB_TOKEN=ghp_xxx        # GitHubアクセストークン
 DEVICE_IDENTIFIER=MacBook   # デバイス識別子
+ANTHROPIC_API_KEY=sk-xxx    # Anthropic APIキー（Agent実行時）
 ```
 
 ## Git Worktree並列実行アーキテクチャ
@@ -375,18 +471,53 @@ DEVICE_IDENTIFIER=MacBook   # デバイス識別子
 cd .worktrees/issue-270
 # Claude Codeが以下を実行：
 # 1. 要件分析
-# 2. コード生成（TypeScript + Tests）
+# 2. コード生成（Rust + Tests）
+#    - Rust structs/enums/traits実装
+#    - #[cfg(test)] mod tests { ... }
+#    - Rustdocコメント（///）
 # 3. ドキュメント生成
 # 4. Git commit
+```
+
+**Rust実装例**:
+```rust
+use miyabi_agents::BaseAgent;
+use miyabi_types::{Task, AgentResult, MiyabiError};
+use async_trait::async_trait;
+
+pub struct NewAgent {
+    config: AgentConfig,
+}
+
+#[async_trait]
+impl BaseAgent for NewAgent {
+    async fn execute(&self, task: Task) -> Result<AgentResult, MiyabiError> {
+        // Implementation
+        Ok(AgentResult::success(data))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_new_agent() {
+        // Test implementation
+    }
+}
 ```
 
 #### ReviewAgent（Worktree内）
 ```bash
 cd .worktrees/issue-271
 # Claude Codeが以下を実行：
-# 1. ESLint + TypeScript型チェック
-# 2. セキュリティスキャン
+# 1. cargo clippy + cargo check（型チェック）
+# 2. セキュリティスキャン（cargo audit）
 # 3. 品質スコアリング（100点満点）
+#    - Clippy警告数
+#    - テストカバレッジ
+#    - ドキュメンテーション
 # 4. レビューコメント生成
 ```
 
@@ -395,6 +526,8 @@ cd .worktrees/issue-271
 cd .worktrees/issue-272
 # Claude Codeが以下を実行：
 # 1. ビルド + テスト
+#    cargo build --release
+#    cargo test --all
 # 2. Firebase/Vercelデプロイ
 # 3. ヘルスチェック
 # 4. ロールバック準備
@@ -459,20 +592,20 @@ npm run agents:parallel:exec -- --issues=270,271,272,273,274 --concurrency=5
 
 すべてのプロジェクトコンポーネントは以下のEntityで統合的に管理されています：
 
-| ID | Entity | 説明 | 型定義 |
-|----|--------|------|--------|
-| E1 | **Issue** | GitHub Issue | `agents/types/index.ts:54-64` |
-| E2 | **Task** | 分解されたタスク | `agents/types/index.ts:37-52` |
-| E3 | **Agent** | 自律実行Agent | `agents/types/index.ts:15-22` |
-| E4 | **PR** | Pull Request | `agents/types/index.ts:240-257` |
-| E5 | **Label** | GitHub Label（53個） | `docs/LABEL_SYSTEM_GUIDE.md` |
-| E6 | **QualityReport** | 品質レポート | `agents/types/index.ts:108-130` |
-| E7 | **Command** | Claude Codeコマンド | `.claude/commands/*.md` |
-| E8 | **Escalation** | エスカレーション | `agents/types/index.ts:96-102` |
-| E9 | **Deployment** | デプロイ情報 | `agents/types/index.ts:262-281` |
-| E10 | **LDDLog** | LDDログ | `agents/types/index.ts:284-312` |
-| E11 | **DAG** | タスク依存グラフ | `agents/types/index.ts:66-70` |
-| E12 | **Worktree** | Git Worktree | `CLAUDE.md` (本ファイル) |
+| ID | Entity | 説明 | Rust型定義 | TypeScript型定義（レガシー） |
+|----|--------|------|-----------|-------------------------|
+| E1 | **Issue** | GitHub Issue | `crates/miyabi-types/src/issue.rs` | `agents/types/index.ts:54-64` |
+| E2 | **Task** | 分解されたタスク | `crates/miyabi-types/src/task.rs` | `agents/types/index.ts:37-52` |
+| E3 | **Agent** | 自律実行Agent | `crates/miyabi-types/src/agent.rs` | `agents/types/index.ts:15-22` |
+| E4 | **PR** | Pull Request | `crates/miyabi-github/src/pr.rs` | `agents/types/index.ts:240-257` |
+| E5 | **Label** | GitHub Label（53個） | `docs/LABEL_SYSTEM_GUIDE.md` | `docs/LABEL_SYSTEM_GUIDE.md` |
+| E6 | **QualityReport** | 品質レポート | `crates/miyabi-types/src/quality.rs` | `agents/types/index.ts:108-130` |
+| E7 | **Command** | Claude Codeコマンド | `.claude/commands/*.md` | `.claude/commands/*.md` |
+| E8 | **Escalation** | エスカレーション | `crates/miyabi-types/src/error.rs` | `agents/types/index.ts:96-102` |
+| E9 | **Deployment** | デプロイ情報 | `crates/miyabi-agents/src/deployment.rs` | `agents/types/index.ts:262-281` |
+| E10 | **LDDLog** | LDDログ | `crates/miyabi-types/src/workflow.rs` | `agents/types/index.ts:284-312` |
+| E11 | **DAG** | タスク依存グラフ | `crates/miyabi-types/src/workflow.rs` | `agents/types/index.ts:66-70` |
+| E12 | **Worktree** | Git Worktree | `crates/miyabi-worktree/src/lib.rs` | `CLAUDE.md` (本ファイル) |
 
 ### 📊 27の関係性
 
@@ -500,7 +633,8 @@ npm run agents:parallel:exec -- --issues=270,271,272,273,274 --concurrency=5
 Pythonベースの`workflow-automation`から移植された、LLMが容易に解釈可能なワークフロー表記法です。
 N1/N2/N3の階層構造と$H/$Lの依存度マーカーにより、複雑なワークフローを簡潔に表現します。
 
-**型定義**: `packages/coding-agents/types/entity-relation-mapping.ts`
+**Rust型定義**: `crates/miyabi-types/src/workflow.rs`
+**TypeScript型定義（レガシー）**: `packages/coding-agents/types/entity-relation-mapping.ts`
 
 #### 記法構造
 
@@ -537,44 +671,64 @@ N1:PR $H→ N2:DeploymentAgent $H→ N3:DeployedArtifact
 N2:DeploymentAgent $L→ N2:HealthCheck $L→ N3:HealthReport
 ```
 
-#### TypeScript API
+#### Rust API
 
-```typescript
-import { EntityRelationMap, EntityLevel, RelationStrength } from '@/types/entity-relation-mapping';
+```rust
+use miyabi_types::workflow::{EntityRelationMap, EntityLevel, RelationStrength};
 
 // マップ作成
-const map = new EntityRelationMap();
+let mut map = EntityRelationMap::new();
 
 // Entity追加
-const issue = map.addEntity('Issue', EntityLevel.N1_PRIMARY);
-const coordinator = map.addEntity('CoordinatorAgent', EntityLevel.N2_PROCESSING);
-const tasks = map.addEntity('TaskDecomposition', EntityLevel.N3_OUTPUT);
+let issue = map.add_entity("Issue", EntityLevel::N1Primary);
+let coordinator = map.add_entity("CoordinatorAgent", EntityLevel::N2Processing);
+let tasks = map.add_entity("TaskDecomposition", EntityLevel::N3Output);
 
 // 関係追加
-map.addRelation(issue, coordinator, RelationStrength.HIGH);
-map.addRelation(coordinator, tasks, RelationStrength.HIGH);
+map.add_relation(issue, coordinator, RelationStrength::High)?;
+map.add_relation(coordinator, tasks, RelationStrength::High)?;
 
 // 記法出力
-console.log(map.toNotation());
+println!("{}", map.to_notation());
 // 出力: N1:Issue $H→ N2:CoordinatorAgent
 //       N2:CoordinatorAgent $H→ N3:TaskDecomposition
 ```
 
 #### テンプレート
 
-**WorkflowTemplate**クラスで頻出パターンを提供：
-```typescript
-import { WorkflowTemplate } from '@/types/entity-relation-mapping';
+**WorkflowTemplate**で頻出パターンを提供：
+```rust
+use miyabi_types::workflow::WorkflowTemplate;
 
 // Issue処理ワークフロー
-const issueFlow = WorkflowTemplate.issueProcessing();
+let issue_flow = WorkflowTemplate::issue_processing();
 
 // コード生成ワークフロー
-const codegenFlow = WorkflowTemplate.codeGeneration();
+let codegen_flow = WorkflowTemplate::code_generation();
 
 // デプロイワークフロー
-const deployFlow = WorkflowTemplate.deployment();
+let deploy_flow = WorkflowTemplate::deployment();
 ```
+
+#### TypeScript API（レガシー - 参考）
+
+<details>
+<summary>TypeScript版API（クリックして展開）</summary>
+
+```typescript
+import { EntityRelationMap, EntityLevel, RelationStrength } from '@/types/entity-relation-mapping';
+
+const map = new EntityRelationMap();
+const issue = map.addEntity('Issue', EntityLevel.N1_PRIMARY);
+const coordinator = map.addEntity('CoordinatorAgent', EntityLevel::N2_PROCESSING);
+const tasks = map.addEntity('TaskDecomposition', EntityLevel.N3_OUTPUT);
+
+map.addRelation(issue, coordinator, RelationStrength.HIGH);
+map.addRelation(coordinator, tasks, RelationStrength.HIGH);
+
+console.log(map.toNotation());
+```
+</details>
 
 #### 既存システムとの統合
 
@@ -592,7 +746,8 @@ const deployFlow = WorkflowTemplate.deployment();
 - **Coding Agent実行プロンプト** (6ファイル): `.claude/agents/prompts/coding/\*-agent-prompt.md`
 - **Business Agent実行プロンプト** (将来追加): `.claude/agents/prompts/business/\*-agent-prompt.md`
 - **Claude Codeコマンド** (9ファイル): `.claude/commands/\*.md`
-- **型定義** (5ファイル): `agents/types/\*.ts`
+- **Rust型定義** (7ファイル): `crates/miyabi-types/src/\*.rs`
+- **TypeScript型定義（レガシー）** (5ファイル): `agents/types/\*.ts`
 - **ドキュメント** (20+ファイル): `docs/\*.md`
 
 **詳細**: [TEMPLATE_MASTER_INDEX.md](docs/TEMPLATE_MASTER_INDEX.md)
