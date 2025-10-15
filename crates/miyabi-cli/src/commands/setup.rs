@@ -77,7 +77,7 @@ impl SetupCommand {
 
         // Check authentication status
         let auth_status = Command::new("gh")
-            .args(&["auth", "status"])
+            .args(["auth", "status"])
             .output()
             .map_err(|e| CliError::GitConfig(format!("Failed to check gh auth status: {}", e)))?;
 
@@ -96,7 +96,7 @@ impl SetupCommand {
                     println!();
                     println!("  Running: gh auth login");
                     let login_result = Command::new("gh")
-                        .args(&["auth", "login"])
+                        .args(["auth", "login"])
                         .status()
                         .map_err(|e| CliError::GitConfig(format!("Failed to run gh auth login: {}", e)))?;
 
@@ -121,7 +121,7 @@ impl SetupCommand {
     fn detect_git_repository(&self) -> Result<(String, String)> {
         // Run git remote get-url origin
         let output = Command::new("git")
-            .args(&["remote", "get-url", "origin"])
+            .args(["remote", "get-url", "origin"])
             .output()
             .map_err(|e| CliError::GitConfig(format!("Failed to run git command: {}", e)))?;
 
@@ -240,7 +240,6 @@ WORKTREE_BASE_DIR=.worktrees
             hostname::get()
                 .unwrap()
                 .to_string_lossy()
-                .to_string()
         );
 
         fs::write(env_path, content)

@@ -112,7 +112,7 @@ impl AgentCommand {
     fn parse_git_remote(&self) -> Result<(String, String)> {
         // Run git remote get-url origin
         let output = std::process::Command::new("git")
-            .args(&["remote", "get-url", "origin"])
+            .args(["remote", "get-url", "origin"])
             .output()
             .map_err(|e| CliError::GitConfig(format!("Failed to run git command: {}", e)))?;
 

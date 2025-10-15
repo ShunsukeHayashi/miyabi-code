@@ -177,7 +177,7 @@ reports/
         if let Ok(output) = output {
             if output.status.success() {
                 let url = String::from_utf8_lossy(&output.stdout);
-                if let Some(name) = url.split('/').last() {
+                if let Some(name) = url.split('/').next_back() {
                     return Ok(name.trim().trim_end_matches(".git").to_string());
                 }
             }

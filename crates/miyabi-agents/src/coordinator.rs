@@ -719,7 +719,7 @@ mod tests {
             metadata: None,
         };
 
-        let result = agent.build_dag(&vec![task]);
+        let result = agent.build_dag(&[task]);
         if let Ok(dag) = result {
             // Self-loop creates a cycle
             assert!(dag.has_cycles(), "DAG should detect self-loop as cycle");
@@ -749,7 +749,7 @@ mod tests {
             metadata: None,
         };
 
-        let result = agent.build_dag(&vec![task]);
+        let result = agent.build_dag(&[task]);
         assert!(
             result.is_err(),
             "build_dag should reject tasks with non-existent dependencies"

@@ -3,13 +3,13 @@
 //! This file tests JSON serialization/deserialization roundtrips for all types
 
 use miyabi_types::agent::{
-    AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType, EscalationInfo,
-    EscalationTarget, ImpactLevel as AgentImpactLevel, ResultStatus, Severity,
+    AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType,
+    ImpactLevel as AgentImpactLevel, ResultStatus, Severity,
 };
 use miyabi_types::issue::{DeploymentStatus, Issue, IssueState, IssueStateGithub, PRState};
-use miyabi_types::quality::{QualityBreakdown, QualityIssue, QualityIssueType, QualityReport, QualitySeverity};
+use miyabi_types::quality::{QualityBreakdown, QualityIssueType, QualityReport, QualitySeverity};
 use miyabi_types::task::{
-    GroupingConfig, Task, TaskGroup, TaskType,
+    GroupingConfig, Task, TaskType,
 };
 use miyabi_types::workflow::{
     DAG, Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus,

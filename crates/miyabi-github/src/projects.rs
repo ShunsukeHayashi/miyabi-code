@@ -107,7 +107,7 @@ impl GitHubClient {
             .items
             .nodes
             .into_iter()
-            .map(|node| ProjectItem::from_node(node))
+            .map(ProjectItem::from_node)
             .collect())
     }
 
@@ -404,6 +404,7 @@ struct User {
 
 #[derive(Debug, Deserialize)]
 struct ProjectV2 {
+    #[allow(dead_code)]
     id: String,
     items: Items,
 }
@@ -433,6 +434,7 @@ struct IssueContent {
     number: u64,
     title: String,
     state: String,
+    #[allow(dead_code)]
     labels: Labels,
 }
 
@@ -445,11 +447,13 @@ struct PRContent {
 
 #[derive(Debug, Deserialize)]
 struct Labels {
+    #[allow(dead_code)]
     nodes: Vec<LabelNode>,
 }
 
 #[derive(Debug, Deserialize)]
 struct LabelNode {
+    #[allow(dead_code)]
     name: String,
 }
 

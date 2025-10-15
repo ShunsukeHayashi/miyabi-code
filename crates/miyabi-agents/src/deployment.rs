@@ -525,7 +525,7 @@ mod tests {
         assert_eq!(json["duration_ms"], 45000);
 
         let deserialized: BuildResult = serde_json::from_value(json).unwrap();
-        assert_eq!(deserialized.success, true);
+        assert!(deserialized.success);
         assert_eq!(deserialized.duration_ms, 45000);
     }
 
@@ -567,6 +567,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Integration test - runs cargo build --release (very slow, 60+ seconds)
     async fn test_execute_build() {
         let config = create_test_config();
         let agent = DeploymentAgent::new(config);
@@ -582,6 +583,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Integration test - runs cargo test --all (very slow, may cause recursive test execution)
     async fn test_execute_tests() {
         let config = create_test_config();
         let agent = DeploymentAgent::new(config);

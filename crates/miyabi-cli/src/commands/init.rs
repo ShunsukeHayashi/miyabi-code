@@ -93,8 +93,7 @@ impl InitCommand {
             .output()?;
 
         if !output.status.success() {
-            return Err(CliError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            return Err(CliError::Io(std::io::Error::other(
                 "Failed to initialize git repository",
             )));
         }

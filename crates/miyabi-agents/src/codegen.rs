@@ -193,7 +193,7 @@ impl CodeGenAgent {
     /// Setup Worktree for task execution with retry
     ///
     /// Creates an isolated worktree for parallel task execution.
-    /// Uses spawn_blocking to handle git2's !Send types.
+    /// Uses spawn_blocking with a dedicated runtime to handle git2's !Send types.
     /// Retries on transient failures (git lock conflicts, etc.)
     async fn setup_worktree(&self, task: &Task) -> Result<WorktreeInfo> {
         let task_id = task.id.clone();
@@ -209,43 +209,53 @@ impl CodeGenAgent {
 
         let worktree_info = retry_with_backoff(retry_config, || {
             let task_id = task_id.clone();
-            let task_id_for_error = task_id.clone(); // Clone for map_err
             let worktree_base = worktree_base.clone();
 
             async move {
-                // Wrap in spawn_blocking since git2 types are !Send
+                // Use spawn_blocking with a dedicated runtime to avoid deadlock
+                let task_id_for_error = task_id.clone(); // Clone for error handler
                 let result = tokio::task::spawn_blocking(move || {
-                    let repo_path = std::env::current_dir().map_err(|e| {
+                    // Create a new runtime for the blocking task
+                    let rt = tokio::runtime::Runtime::new().map_err(|e| {
                         AgentError::with_cause(
-                            "Failed to get current directory",
+                            "Failed to create runtime",
                             AgentType::CodeGenAgent,
                             Some(task_id.clone()),
                             e,
                         )
                     })?;
 
-                    // Extract issue number from task ID (format: "task-{issue_number}" or numeric ID)
-                    let issue_number = task_id
-                        .trim_start_matches("task-")
-                        .parse::<u64>()
-                        .unwrap_or(0);
-
-                    let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
-                        .map_err(|e| {
+                    rt.block_on(async {
+                        let repo_path = std::env::current_dir().map_err(|e| {
                             AgentError::with_cause(
-                                "Failed to create WorktreeManager",
+                                "Failed to get current directory",
                                 AgentType::CodeGenAgent,
                                 Some(task_id.clone()),
-                                Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
+                                e,
                             )
                         })?;
 
-                    // Create worktree - need to block on the async call
-                    let runtime = tokio::runtime::Handle::current();
-                    let worktree_info =
-                        runtime.block_on(manager.create_worktree(issue_number))?;
+                        // Extract issue number from task ID (format: "task-{issue_number}" or numeric ID)
+                        let issue_number = task_id
+                            .trim_start_matches("task-")
+                            .parse::<u64>()
+                            .unwrap_or(0);
 
-                    Ok::<WorktreeInfo, MiyabiError>(worktree_info)
+                        let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
+                            .map_err(|e| {
+                                AgentError::with_cause(
+                                    "Failed to create WorktreeManager",
+                                    AgentType::CodeGenAgent,
+                                    Some(task_id.clone()),
+                                    Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
+                                )
+                            })?;
+
+                        // Create worktree using dedicated runtime
+                        let worktree_info = manager.create_worktree(issue_number).await?;
+
+                        Ok::<WorktreeInfo, MiyabiError>(worktree_info)
+                    })
                 })
                 .await
                 .map_err(|e| {
@@ -273,7 +283,7 @@ impl CodeGenAgent {
     /// Cleanup Worktree after task completion with retry
     ///
     /// Removes the worktree and associated resources.
-    /// Uses spawn_blocking to handle git2's !Send types.
+    /// Uses spawn_blocking with a dedicated runtime to handle git2's !Send types.
     /// Retries on transient failures (filesystem delays, locks, etc.)
     async fn cleanup_worktree(&self, worktree_info: &WorktreeInfo) -> Result<()> {
         let worktree_id = worktree_info.id.clone();
@@ -292,32 +302,43 @@ impl CodeGenAgent {
             let worktree_base = worktree_base.clone();
 
             async move {
-                // Wrap in spawn_blocking since git2 types are !Send
+                // Use spawn_blocking with a dedicated runtime to avoid deadlock
                 tokio::task::spawn_blocking(move || {
-                    let repo_path = std::env::current_dir().map_err(|e| {
+                    // Create a new runtime for the blocking task
+                    let rt = tokio::runtime::Runtime::new().map_err(|e| {
                         AgentError::with_cause(
-                            "Failed to get current directory for cleanup",
+                            "Failed to create runtime for cleanup",
                             AgentType::CodeGenAgent,
                             None,
                             e,
                         )
                     })?;
 
-                    let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
-                        .map_err(|e| {
+                    rt.block_on(async {
+                        let repo_path = std::env::current_dir().map_err(|e| {
                             AgentError::with_cause(
-                                "Failed to create WorktreeManager for cleanup",
+                                "Failed to get current directory for cleanup",
                                 AgentType::CodeGenAgent,
                                 None,
-                                Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
+                                e,
                             )
                         })?;
 
-                    // Remove worktree - need to block on the async call
-                    let runtime = tokio::runtime::Handle::current();
-                    runtime.block_on(manager.remove_worktree(&worktree_id))?;
+                        let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
+                            .map_err(|e| {
+                                AgentError::with_cause(
+                                    "Failed to create WorktreeManager for cleanup",
+                                    AgentType::CodeGenAgent,
+                                    None,
+                                    Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
+                                )
+                            })?;
 
-                    Ok::<(), MiyabiError>(())
+                        // Remove worktree using dedicated runtime
+                        manager.remove_worktree(&worktree_id).await?;
+
+                        Ok::<(), MiyabiError>(())
+                    })
                 })
                 .await
                 .map_err(|e| {
