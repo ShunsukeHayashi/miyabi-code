@@ -12,15 +12,19 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.75.0"
 authors = ["Shunsuke Hayashi <supernovasyun@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/ShunsukeHayashi/Miyabi"
 homepage = "https://github.com/ShunsukeHayashi/Miyabi"
 description = "Complete autonomous AI development operations platform - Rust edition"
+keywords = ["github", "automation", "ai", "agents", "devops"]
+categories = ["command-line-utilities", "development-tools"]
 
 [workspace.dependencies]
 # Core dependencies
-tokio = { version = "1.40", features = ["full"] }
+# Note: Only include necessary tokio features to reduce compile time
+tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "fs", "process", "io-util", "sync", "time"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
@@ -63,10 +67,35 @@ insta = "1.40"
 
 [profile.release]
 opt-level = 3
-lto = true
+lto = "fat"
 codegen-units = 1
 strip = true
+panic = "abort"
 
 [profile.dev]
 opt-level = 0
 debug = true
+split-debuginfo = "unpacked"
+
+# Optimized profile for development with better performance
+[profile.dev-opt]
+inherits = "dev"
+opt-level = 1
+
+# Profile for CI/CD testing
+[profile.ci]
+inherits = "dev"
+debug = false
+incremental = false
+
+# Smaller binary size for distribution
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"
+
+# Workspace optimization: compile dependencies with optimizations even in dev mode
+[profile.dev.package."*"]
+opt-level = 3

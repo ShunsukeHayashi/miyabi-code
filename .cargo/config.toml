@@ -1,18 +1,41 @@
+# Cargo build configuration for Miyabi workspace
+
 [build]
-# Use all CPU cores for parallel compilation
-jobs = 8
+# Use all available CPU cores for parallel compilation
+jobs = 4
 
-[target.x86_64-apple-darwin]
-# macOS optimization
-rustflags = ["-C", "target-cpu=native"]
-
-[target.aarch64-apple-darwin]
-# Apple Silicon optimization
-rustflags = ["-C", "target-cpu=native"]
+# Incremental compilation for faster rebuilds in development
+incremental = true
 
 [alias]
-# Custom aliases for development
+# Convenient aliases for common operations
+b = "build"
+c = "check"
+t = "test"
+r = "run"
+br = "build --release"
+rr = "run --release"
+
+# Build with optimized profile
+build-opt = "build --profile dev-opt"
+
+# Build small binary
+build-small = "build --profile release-small"
+
+# Run all tests with output
+test-all = "test --workspace -- --nocapture"
+
+# Run tests in release mode
+test-release = "test --workspace --release"
+
+# Check all targets
 check-all = "check --workspace --all-targets"
-test-all = "test --workspace --all-targets"
-clippy-all = "clippy --workspace --all-targets -- -D warnings"
-fmt-all = "fmt --all -- --check"
+
+# Clippy with strict lints
+clippy-strict = "clippy --workspace --all-targets -- -D warnings"
+
+# Format check
+fmt-check = "fmt --all -- --check"
+
+# Security audit
+audit-check = "audit --deny warnings"
