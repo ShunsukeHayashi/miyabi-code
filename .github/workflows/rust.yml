@@ -75,13 +75,26 @@ jobs:
         with:
           cache-key-prefix: test-${{ matrix.os }}-${{ matrix.rust }}
 
-      - name: Run tests
-        run: cargo test --workspace --all-targets
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Run tests (cargo-nextest)
+        run: cargo nextest run --workspace --all-targets --no-fail-fast
         env:
-          RUST_TEST_THREADS: 1
+          NEXTEST_PROFILE: ci
+          RUST_BACKTRACE: 1
 
       - name: Run doc tests
         run: cargo test --workspace --doc
+
+      - name: Upload test results (JUnit XML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.rust }}
+          path: target/nextest/ci/junit.xml
 
       - name: Show sccache statistics
         if: always()

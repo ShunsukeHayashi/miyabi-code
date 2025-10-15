@@ -134,3 +134,6 @@ external/data/*.db
 hooks/
 playwright-report/
 /target/
+
+# Rust test artifacts
+target/nextest/
