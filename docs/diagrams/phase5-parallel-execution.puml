@@ -1,87 +1,75 @@
 @startuml Phase5 Parallel Execution Plan
 !theme blueprint
 
-title Phase 5 並列実行計画 - DAG & Timeline
+title Phase 5 並列実行計画 - DAG依存関係
 
-' ========================================
-' タスク依存関係グラフ (DAG)
-' ========================================
+' 完了タスク (緑)
+rectangle "P0-1\nGitHub API\n4h" as P0_1 #90EE90
+rectangle "P0-2\nPlans.md\n3h" as P0_2 #90EE90
 
-digraph G {
-  rankdir=LR
-  node [shape=box, style=filled]
+' Level 0 (金)
+rectangle "P0-3\nWorktree統合\n6h" as P0_3 #FFD700
+rectangle "P1-1\nCoordinator\nテスト 5h" as P1_1 #FFD700
+rectangle "P1-5\nReview\n静的解析 8h" as P1_5 #FFD700
+rectangle "P1-9\nIssue\n種別判定 6h" as P1_9 #FFD700
 
-  ' 完了タスク (緑)
-  P0_1 [label="P0-1\nGitHub API\n4h", fillcolor="#90EE90"]
-  P0_2 [label="P0-2\nPlans.md\n3h", fillcolor="#90EE90"]
+' Level 1 (青)
+rectangle "P0-4\nClaude Code\n12h" as P0_4 #87CEEB
+rectangle "P1-6\nReview\n品質スコア 8h" as P1_6 #87CEEB
+rectangle "P1-10\nIssue\nSeverity 6h" as P1_10 #87CEEB
+rectangle "P1-13\nPR\nConventional 6h" as P1_13 #87CEEB
 
-  ' Level 0 (金)
-  P0_3 [label="P0-3\nWorktree統合\n6h", fillcolor="#FFD700"]
-  P1_1 [label="P1-1\nCoordinator\nテスト 5h", fillcolor="#FFD700"]
-  P1_5 [label="P1-5\nReview\n静的解析 8h", fillcolor="#FFD700"]
-  P1_9 [label="P1-9\nIssue\n種別判定 6h", fillcolor="#FFD700"]
+' Level 2 (水色)
+rectangle "P1-2\nGit commit\n4h" as P1_2 #B0E0E6
+rectangle "P1-7\nReview\nコメント 8h" as P1_7 #B0E0E6
+rectangle "P1-11\nIssue\nLabel付与 6h" as P1_11 #B0E0E6
+rectangle "P1-14\nPR\n本文生成 6h" as P1_14 #B0E0E6
 
-  ' Level 1 (青)
-  P0_4 [label="P0-4\nClaude Code\n12h", fillcolor="#87CEEB"]
-  P1_6 [label="P1-6\nReview\n品質スコア 8h", fillcolor="#87CEEB"]
-  P1_10 [label="P1-10\nIssue\nSeverity 6h", fillcolor="#87CEEB"]
-  P1_13 [label="P1-13\nPR\nConventional 6h", fillcolor="#87CEEB"]
+' Level 3 (ピンク)
+rectangle "P1-3\nテスト生成\n8h" as P1_3 #FFB6C1
+rectangle "P1-8a\nReview\nテスト 8h" as P1_8a #FFB6C1
+rectangle "P1-12a\nIssue\nテスト 6h" as P1_12a #FFB6C1
+rectangle "P1-15\nPR\nDraft作成 6h" as P1_15 #FFB6C1
 
-  ' Level 2 (水色)
-  P1_2 [label="P1-2\nGit commit\n4h", fillcolor="#B0E0E6"]
-  P1_7 [label="P1-7\nReview\nコメント 8h", fillcolor="#B0E0E6"]
-  P1_11 [label="P1-11\nIssue\nLabel付与 6h", fillcolor="#B0E0E6"]
-  P1_14 [label="P1-14\nPR\n本文生成 6h", fillcolor="#B0E0E6"]
+' Level 4 (薄紫)
+rectangle "P1-4\n統合テスト\n6h" as P1_4 #DDA0DD
+rectangle "P1-8b\nReview\nテスト 8h" as P1_8b #DDA0DD
+rectangle "P1-16\nPR\nテスト 6h" as P1_16 #DDA0DD
 
-  ' Level 3 (ピンク)
-  P1_3 [label="P1-3\nテスト生成\n8h", fillcolor="#FFB6C1"]
-  P1_8a [label="P1-8a\nReview\nテスト 8h", fillcolor="#FFB6C1"]
-  P1_12a [label="P1-12a\nIssue\nテスト 6h", fillcolor="#FFB6C1"]
-  P1_15 [label="P1-15\nPR\nDraft作成 6h", fillcolor="#FFB6C1"]
+' 依存関係
+P0_1 --> P0_2
+P0_2 --> P1_1
 
-  ' Level 4 (薄紫)
-  P1_4 [label="P1-4\n統合テスト\n6h", fillcolor="#DDA0DD"]
-  P1_8b [label="P1-8b\nReview\nテスト 8h", fillcolor="#DDA0DD"]
-  P1_16 [label="P1-16\nPR\nテスト 6h", fillcolor="#DDA0DD"]
+P0_3 --> P0_4
+P0_4 --> P1_2
+P0_4 --> P1_3
+P1_2 --> P1_4
+P1_3 --> P1_4
 
-  ' 依存関係
-  P0_1 -> P0_2
-  P0_2 -> P1_1
+P1_5 --> P1_7
+P1_5 --> P1_8a
+P1_6 --> P1_8a
+P1_7 --> P1_8a
+P1_8a --> P1_8b
 
-  P0_3 -> P0_4
-  P0_4 -> P1_2
-  P0_4 -> P1_3
-  P1_2 -> P1_4
-  P1_3 -> P1_4
+P0_1 --> P1_11
+P1_9 --> P1_12a
+P1_10 --> P1_12a
+P1_11 --> P1_12a
 
-  P1_5 -> P1_7
-  P1_5 -> P1_8a
-  P1_6 -> P1_8a
-  P1_7 -> P1_8a
-  P1_8a -> P1_8b
+P0_1 --> P1_15
+P1_13 --> P1_16
+P1_14 --> P1_16
+P1_15 --> P1_16
 
-  P0_1 -> P1_11
-  P1_9 -> P1_12a
-  P1_10 -> P1_12a
-  P1_11 -> P1_12a
-
-  P0_1 -> P1_15
-  P1_13 -> P1_16
-  P1_14 -> P1_16
-  P1_15 -> P1_16
-
-  ' 凡例
-  subgraph cluster_legend {
-    label="凡例"
-    style=dashed
-    Legend_Done [label="完了", fillcolor="#90EE90"]
-    Legend_L0 [label="Level 0", fillcolor="#FFD700"]
-    Legend_L1 [label="Level 1", fillcolor="#87CEEB"]
-    Legend_L2 [label="Level 2", fillcolor="#B0E0E6"]
-    Legend_L3 [label="Level 3", fillcolor="#FFB6C1"]
-    Legend_L4 [label="Level 4", fillcolor="#DDA0DD"]
-  }
-}
+legend right
+  |<#90EE90>| 完了 |
+  |<#FFD700>| Level 0 (8h) |
+  |<#87CEEB>| Level 1 (12h) |
+  |<#B0E0E6>| Level 2 (8h) |
+  |<#FFB6C1>| Level 3 (8h) |
+  |<#DDA0DD>| Level 4 (8h) |
+endlegend
 
 @enduml
 
