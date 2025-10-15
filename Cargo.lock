@@ -1109,11 +1109,12 @@ dependencies = [
 name = "miyabi-github"
 version = "0.1.0"
 dependencies = [
- "anyhow",
+ "chrono",
  "miyabi-types",
  "octocrab",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
  "tokio",
 ]
 
