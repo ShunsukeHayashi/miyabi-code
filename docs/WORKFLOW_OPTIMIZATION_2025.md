@@ -167,6 +167,11 @@
    - cargo-tarpaulin, cargo-audit, cargo-deny
 4. ✅ 条件付きインストール
    - ツールが既にインストール済みならスキップ
+5. ✅ **Phase 8追加**: Self-hosted runner対応完了
+   - `coverage`, `security`, `benchmark`ジョブを柔軟なランナーに変更
+   - `runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}`
+6. ✅ Matrix strategyの最適化判断
+   - `test`/`build`ジョブはクロスプラットフォームテスト優先のため現状維持
 
 **Before**:
 ```yaml
@@ -346,6 +351,11 @@
 - [x] Phase 7-3: discussion-bot.yml最適化（2ジョブ）
 - [x] Phase 7-4: project-pr-sync.yml最適化（npm→pnpm移行）
 
+### Phase 8-10: Rust CI/CD完全最適化 + Self-hosted runner対応（完了）
+- [x] Phase 8: rust.yml残りジョブ最適化（coverage, security, benchmark）
+- [x] Phase 9: Matrix strategy最適化判断（test/buildは現状維持）
+- [x] Phase 10: ドキュメント更新（WORKFLOW_OPTIMIZATION_2025.md）
+
 ### 最適化済みワークフロー（10個）
 1. ✅ **integrated-system-ci.yml** - 5ジョブでComposite Actions適用（273→217行）
 2. ✅ **rust.yml** - 6ジョブでComposite Actions適用 + ツールキャッシュ（209→195行）
@@ -368,7 +378,7 @@
 
 **作成者**: Claude Code
 **最終更新**: 2025年10月15日
-**バージョン**: 3.0
+**バージョン**: 4.0 (Rust CI/CD完全最適化 + Self-hosted runner対応完了)
 
 ---
 
