@@ -59,7 +59,7 @@ fn check_cargo_bin_in_path() {
         };
 
         if shell.contains("fish") {
-            eprintln!("  {}", format!("set -gx PATH $HOME/.cargo/bin $PATH").cyan());
+            eprintln!("  {}", "set -gx PATH $HOME/.cargo/bin $PATH".cyan());
             eprintln!("  Add to: {}", config_file.dimmed());
         } else {
             eprintln!("  {}", "export PATH=\"$HOME/.cargo/bin:$PATH\"".cyan());
