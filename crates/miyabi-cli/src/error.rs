@@ -13,9 +13,6 @@ pub enum CliError {
     #[error("Not in a git repository")]
     NotGitRepository,
 
-    #[error("GitHub token not found. Set GITHUB_TOKEN environment variable")]
-    MissingGitHubToken,
-
     #[error("Invalid agent type: {0}")]
     InvalidAgentType(String),
 
