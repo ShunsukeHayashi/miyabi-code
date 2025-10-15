@@ -78,17 +78,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Run TypeScript compilation check
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Create agent configuration
         run: |
@@ -106,7 +102,7 @@ jobs:
           echo "🚀 Starting Autonomous Agent execution for Issue #${{ needs.check-trigger.outputs.issue_number }}"
 
           # Run the parallel executor script
-          npm run agents:parallel:exec -- \
+          pnpm run agents:parallel:exec -- \
             --issue ${{ needs.check-trigger.outputs.issue_number }} \
             --concurrency 3 \
             --log-level info

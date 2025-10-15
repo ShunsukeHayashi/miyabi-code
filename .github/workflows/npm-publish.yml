@@ -36,27 +36,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
 
-      - name: Install dependencies
-        run: |
-          cd packages/cli
-          npm install
+      - name: Configure npm registry
+        run: npm config set registry https://registry.npmjs.org
 
       - name: Run tests
         run: |
           cd packages/cli
-          npm test
+          pnpm test
         continue-on-error: false
 
       - name: Build package
         run: |
           cd packages/cli
-          npm run build
+          pnpm run build
 
       - name: Check package contents
         run: |
