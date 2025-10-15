@@ -32,7 +32,7 @@
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue?style=for-the-badge&logo=rust)](https://crates.io/search?q=miyabi)
 
-**🚀 50% Faster • 💾 30% Less Memory • 📦 Single Binary • ✅ 347 Tests**
+**🚀 50% Faster • 💾 30% Less Memory • 📦 Single Binary • ✅ 79+ Tests**
 
 ```bash
 # Download the binary (macOS)

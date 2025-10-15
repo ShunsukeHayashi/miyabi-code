@@ -66,7 +66,8 @@ fn check_cargo_bin_in_path() {
             eprintln!("  Add to: {}", config_file.dimmed());
         }
         eprintln!();
-        eprintln!("Then restart your terminal or run: {}", format!("source {}", config_file).cyan());
+        let source_cmd = format!("source {}", config_file);
+        eprintln!("Then restart your terminal or run: {}", source_cmd.cyan());
         eprintln!();
     }
 }
