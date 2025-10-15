@@ -54,21 +54,68 @@ impl WorktreeManager {
         let repo_path = repo_path.as_ref().to_path_buf();
         let worktree_base = worktree_base.as_ref().to_path_buf();
 
-        // Validate repository exists
-        Repository::open(&repo_path).map_err(|e| {
+        // Check if repo_path exists
+        if !repo_path.exists() {
+            return Err(MiyabiError::Git(format!(
+                "Repository path does not exist: {:?}\n\
+                 Hint: Make sure you're running this command from the git repository root, \
+                 or the repository directory has been deleted.",
+                repo_path
+            )));
+        }
+
+        // Validate repository can be opened
+        let repo = Repository::open(&repo_path).map_err(|e| {
+            let git_error = e.to_string();
             MiyabiError::Git(format!(
-                "Failed to open repository at {:?}: {}",
-                repo_path, e
+                "Failed to open git repository at {:?}\n\
+                 Git error: {}\n\
+                 Hint: This directory may not be a valid git repository. \
+                 Try running 'git status' to verify the repository state, \
+                 or initialize a new repository with 'git init'.",
+                repo_path, git_error
             ))
         })?;
+
+        // Check repository state
+        let state = repo.state();
+        if state != RepositoryState::Clean {
+            tracing::warn!(
+                "Repository is not in a clean state: {:?}. This may cause issues with worktree operations.",
+                state
+            );
+        }
+
+        // Check if there are uncommitted changes (warning only)
+        if let Ok(statuses) = repo.statuses(None) {
+            let uncommitted_count = statuses.len();
+            if uncommitted_count > 0 {
+                tracing::warn!(
+                    "Repository has {} uncommitted change(s). \
+                     Worktree operations will proceed, but you may want to commit or stash changes first.",
+                    uncommitted_count
+                );
+            }
+        }
 
         // Create worktree base directory if it doesn't exist
         std::fs::create_dir_all(&worktree_base).map_err(|e| {
             MiyabiError::Io(std::io::Error::new(
                 e.kind(),
-                format!("Failed to create worktree base directory: {}", e),
+                format!(
+                    "Failed to create worktree base directory at {:?}: {}\n\
+                     Hint: Check file permissions and available disk space.",
+                    worktree_base, e
+                ),
             ))
         })?;
+
+        tracing::info!(
+            "WorktreeManager initialized: repo={:?}, worktree_base={:?}, max_concurrency={}",
+            repo_path,
+            worktree_base,
+            max_concurrency
+        );
 
         Ok(Self {
             repo_path,
@@ -106,12 +153,14 @@ impl WorktreeManager {
         let repo = Repository::open(&self.repo_path)
             .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
 
-        // Check repository state
-        if repo.state() != RepositoryState::Clean {
-            return Err(MiyabiError::Git(format!(
-                "Repository is not in a clean state: {:?}",
-                repo.state()
-            )));
+        // Check repository state (warning only, don't block worktree creation)
+        let state = repo.state();
+        if state != RepositoryState::Clean {
+            tracing::warn!(
+                "Repository is not in a clean state: {:?}. \
+                 Worktree creation will proceed, but be aware of potential conflicts.",
+                state
+            );
         }
 
         // Get main branch (try 'main' first, then 'master')
