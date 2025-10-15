@@ -11,7 +11,7 @@
 # ------------------------------------------------------------------------------
 # Stage 1: Base Builder - Rust環境セットアップ
 # ------------------------------------------------------------------------------
-FROM rust:1.75-slim-bookworm AS base-builder
+FROM rust:1.90-slim-bookworm AS base-builder
 
 # 作業ディレクトリ設定
 WORKDIR /app
