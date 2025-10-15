@@ -79,6 +79,8 @@ impl AgentCommand {
         Ok(AgentConfig {
             device_identifier,
             github_token,
+            repo_owner: None, // TODO: Parse from git config
+            repo_name: None,  // TODO: Parse from git config
             use_task_tool: false,
             use_worktree: true,
             worktree_base_path: Some(".worktrees".to_string()),

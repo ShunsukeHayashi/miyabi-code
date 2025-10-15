@@ -280,8 +280,8 @@ fn test_quality_report_roundtrip() {
         issues: vec![],
         recommendations: vec!["Fix types".to_string()],
         breakdown: QualityBreakdown {
-            eslint_score: 90,
-            typescript_score: 85,
+            clippy_score: 90,
+            rustc_score: 85,
             security_score: 80,
             test_coverage_score: 85,
         },

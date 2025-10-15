@@ -15,10 +15,27 @@ pub struct QualityReport {
 /// Quality score breakdown
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QualityBreakdown {
-    pub eslint_score: u8,
-    pub typescript_score: u8,
+    /// Linter score (ESLint for TS, Clippy for Rust)
+    #[serde(alias = "eslint_score")]
+    pub clippy_score: u8,
+    /// Type checker score (TypeScript for TS, rustc for Rust)
+    #[serde(alias = "typescript_score")]
+    pub rustc_score: u8,
+    /// Security audit score
     pub security_score: u8,
+    /// Test coverage score
     pub test_coverage_score: u8,
+}
+
+impl QualityBreakdown {
+    /// Calculate average score
+    pub fn average_score(&self) -> u8 {
+        ((self.clippy_score as u16
+            + self.rustc_score as u16
+            + self.security_score as u16
+            + self.test_coverage_score as u16)
+            / 4) as u8
+    }
 }
 
 /// Quality issue
@@ -183,31 +200,44 @@ mod tests {
     #[test]
     fn test_quality_breakdown_serialization() {
         let breakdown = QualityBreakdown {
-            eslint_score: 90,
-            typescript_score: 85,
+            clippy_score: 90,
+            rustc_score: 85,
             security_score: 95,
             test_coverage_score: 80,
         };
 
         let json = serde_json::to_string(&breakdown).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed["eslint_score"], 90);
+        assert_eq!(parsed["clippy_score"], 90);
+        assert_eq!(parsed["rustc_score"], 85);
         assert_eq!(parsed["security_score"], 95);
     }
 
     #[test]
     fn test_quality_breakdown_roundtrip() {
         let breakdown = QualityBreakdown {
-            eslint_score: 100,
-            typescript_score: 95,
+            clippy_score: 100,
+            rustc_score: 95,
             security_score: 90,
             test_coverage_score: 85,
         };
 
         let json = serde_json::to_string(&breakdown).unwrap();
         let deserialized: QualityBreakdown = serde_json::from_str(&json).unwrap();
-        assert_eq!(breakdown.eslint_score, deserialized.eslint_score);
+        assert_eq!(breakdown.clippy_score, deserialized.clippy_score);
+        assert_eq!(breakdown.rustc_score, deserialized.rustc_score);
         assert_eq!(breakdown.security_score, deserialized.security_score);
+    }
+
+    #[test]
+    fn test_quality_breakdown_average_score() {
+        let breakdown = QualityBreakdown {
+            clippy_score: 100,
+            rustc_score: 90,
+            security_score: 80,
+            test_coverage_score: 70,
+        };
+        assert_eq!(breakdown.average_score(), 85); // (100+90+80+70)/4 = 85
     }
 
     // ========================================================================
@@ -266,8 +296,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 90,
-                typescript_score: 85,
+                clippy_score: 90,
+                rustc_score: 85,
                 security_score: 80,
                 test_coverage_score: 85,
             },
@@ -280,8 +310,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 75,
-                typescript_score: 75,
+                clippy_score: 75,
+                rustc_score: 75,
                 security_score: 75,
                 test_coverage_score: 75,
             },
@@ -297,8 +327,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 95,
-                typescript_score: 95,
+                clippy_score: 95,
+                rustc_score: 95,
                 security_score: 95,
                 test_coverage_score: 95,
             },
@@ -311,8 +341,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 85,
-                typescript_score: 85,
+                clippy_score: 85,
+                rustc_score: 85,
                 security_score: 85,
                 test_coverage_score: 85,
             },
@@ -325,8 +355,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 70,
-                typescript_score: 70,
+                clippy_score: 70,
+                rustc_score: 70,
                 security_score: 70,
                 test_coverage_score: 70,
             },
@@ -342,8 +372,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 50,
-                typescript_score: 50,
+                clippy_score: 50,
+                rustc_score: 50,
                 security_score: 50,
                 test_coverage_score: 50,
             },
@@ -369,8 +399,8 @@ mod tests {
             issues: vec![issue],
             recommendations: vec!["Fix type annotations".to_string()],
             breakdown: QualityBreakdown {
-                eslint_score: 90,
-                typescript_score: 75,
+                clippy_score: 90,
+                rustc_score: 75,
                 security_score: 85,
                 test_coverage_score: 80,
             },
@@ -450,8 +480,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 90,
-                typescript_score: 90,
+                clippy_score: 90,
+                rustc_score: 90,
                 security_score: 90,
                 test_coverage_score: 90,
             },
@@ -479,8 +509,8 @@ mod tests {
             issues: vec![],
             recommendations: vec![],
             breakdown: QualityBreakdown {
-                eslint_score: 50,
-                typescript_score: 50,
+                clippy_score: 50,
+                rustc_score: 50,
                 security_score: 40,
                 test_coverage_score: 60,
             },

@@ -3,5 +3,6 @@
 pub mod base;
 pub mod codegen;
 pub mod coordinator;
+pub mod review;
 
 pub use base::BaseAgent;
