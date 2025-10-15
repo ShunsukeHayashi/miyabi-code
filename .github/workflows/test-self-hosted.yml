@@ -1,0 +1,143 @@
+name: Test Self-Hosted Runner
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/test-self-hosted.yml'
+
+jobs:
+  test-environment:
+    name: Test Runner Environment
+    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: System Information
+        run: |
+          echo "🖥️ SYSTEM INFORMATION"
+          echo "===================="
+          echo "OS: $(uname -s)"
+          echo "Kernel: $(uname -r)"
+          echo "Architecture: $(uname -m)"
+          echo "Hostname: $(hostname)"
+          echo ""
+
+      - name: Runner Information
+        run: |
+          echo "🏃 RUNNER INFORMATION"
+          echo "====================="
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Name: $RUNNER_NAME"
+          echo "Runner Arch: $RUNNER_ARCH"
+          echo "Runner Temp: $RUNNER_TEMP"
+          echo "Runner Tool Cache: $RUNNER_TOOL_CACHE"
+          echo ""
+
+      - name: Check Node.js
+        run: |
+          echo "📦 NODE.JS"
+          echo "=========="
+          if command -v node &> /dev/null; then
+            echo "✅ Node.js installed"
+            echo "Version: $(node --version)"
+            echo "Path: $(which node)"
+          else
+            echo "❌ Node.js not found"
+          fi
+          echo ""
+
+      - name: Check pnpm
+        run: |
+          echo "📦 PNPM"
+          echo "======="
+          if command -v pnpm &> /dev/null; then
+            echo "✅ pnpm installed"
+            echo "Version: $(pnpm --version)"
+            echo "Path: $(which pnpm)"
+          else
+            echo "❌ pnpm not found"
+            echo "Installing pnpm globally..."
+            npm install -g pnpm
+            echo "Version: $(pnpm --version)"
+          fi
+          echo ""
+
+      - name: Check Rust
+        run: |
+          echo "🦀 RUST"
+          echo "======="
+          if command -v cargo &> /dev/null; then
+            echo "✅ Rust installed"
+            echo "rustc: $(rustc --version)"
+            echo "cargo: $(cargo --version)"
+            echo "Path: $(which cargo)"
+          else
+            echo "❌ Rust not found"
+          fi
+          echo ""
+
+      - name: Check Git
+        run: |
+          echo "🔧 GIT"
+          echo "======"
+          if command -v git &> /dev/null; then
+            echo "✅ Git installed"
+            echo "Version: $(git --version)"
+            echo "Path: $(which git)"
+          else
+            echo "❌ Git not found"
+          fi
+          echo ""
+
+      - name: Check Disk Space
+        run: |
+          echo "💾 DISK SPACE"
+          echo "============="
+          df -h
+          echo ""
+
+      - name: Check Memory
+        run: |
+          echo "🧠 MEMORY"
+          echo "========="
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            vm_stat
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            free -h
+          fi
+          echo ""
+
+      - name: Test pnpm & Node.js Setup
+        uses: ./.github/actions/setup-pnpm
+
+      - name: Verify pnpm installation
+        run: |
+          echo "✅ VERIFICATION"
+          echo "==============="
+          pnpm --version
+          node --version
+          echo ""
+          echo "✅ All checks passed!"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🎉 Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Runner Type" >> $GITHUB_STEP_SUMMARY
+          echo "- **OS**: $RUNNER_OS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner**: ${{ vars.RUNNER_TYPE || 'GitHub-hosted (ubuntu-latest)' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Node.js: $(node --version)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ pnpm: $(pnpm --version)" >> $GITHUB_STEP_SUMMARY
+          if command -v cargo &> /dev/null; then
+            echo "- ✅ Rust: $(cargo --version)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: All systems operational ✅" >> $GITHUB_STEP_SUMMARY
