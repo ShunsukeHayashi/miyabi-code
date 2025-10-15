@@ -72,10 +72,7 @@ impl DeploymentAgent {
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         if !success {
-            return Err(MiyabiError::Unknown(format!(
-                "Build failed: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Unknown(format!("Build failed: {}", stderr)));
         }
 
         tracing::info!("Build completed in {}ms", duration_ms);
@@ -144,10 +141,18 @@ impl DeploymentAgent {
 
         // Parse "test result: ok. X passed; Y failed"
         if let Some(line) = output.lines().find(|l| l.contains("test result:")) {
-            if let Some(passed_str) = line.split("passed").next().and_then(|s| s.split_whitespace().last()) {
+            if let Some(passed_str) = line
+                .split("passed")
+                .next()
+                .and_then(|s| s.split_whitespace().last())
+            {
                 passed = passed_str.parse().unwrap_or(0);
             }
-            if let Some(failed_str) = line.split("failed").next().and_then(|s| s.split_whitespace().last()) {
+            if let Some(failed_str) = line
+                .split("failed")
+                .next()
+                .and_then(|s| s.split_whitespace().last())
+            {
                 failed = failed_str.parse().unwrap_or(0);
             }
         }
@@ -214,7 +219,11 @@ impl DeploymentAgent {
     }
 
     /// Deploy to environment (placeholder for Firebase CLI integration)
-    async fn deploy(&self, _environment: Environment, _project_path: &Path) -> Result<DeploymentResult> {
+    async fn deploy(
+        &self,
+        _environment: Environment,
+        _project_path: &Path,
+    ) -> Result<DeploymentResult> {
         tracing::info!("Deploying to {:?} (placeholder)", _environment);
 
         // Placeholder: Firebase CLI integration would go here
@@ -233,7 +242,11 @@ impl DeploymentAgent {
     }
 
     /// Rollback to previous version (placeholder)
-    async fn rollback(&self, _environment: Environment, _project_path: &Path) -> Result<RollbackResult> {
+    async fn rollback(
+        &self,
+        _environment: Environment,
+        _project_path: &Path,
+    ) -> Result<RollbackResult> {
         tracing::info!("Rolling back to previous version (placeholder)");
 
         // Placeholder: Git + deploy logic would go here
@@ -327,7 +340,10 @@ impl BaseAgent for DeploymentAgent {
         let escalation = if environment == Environment::Production && !health_result.success {
             let mut context = HashMap::new();
             context.insert("environment".to_string(), serde_json::json!("production"));
-            context.insert("health_check".to_string(), serde_json::to_value(&health_result)?);
+            context.insert(
+                "health_check".to_string(),
+                serde_json::to_value(&health_result)?,
+            );
 
             Some(EscalationInfo {
                 reason: "Production deployment health check failed".to_string(),
@@ -338,8 +354,14 @@ impl BaseAgent for DeploymentAgent {
             })
         } else if !build_result.success || !test_result.success {
             let mut context = HashMap::new();
-            context.insert("build_success".to_string(), serde_json::json!(build_result.success));
-            context.insert("test_success".to_string(), serde_json::json!(test_result.success));
+            context.insert(
+                "build_success".to_string(),
+                serde_json::json!(build_result.success),
+            );
+            context.insert(
+                "test_success".to_string(),
+                serde_json::json!(test_result.success),
+            );
 
             Some(EscalationInfo {
                 reason: "Build or test failed".to_string(),
@@ -354,11 +376,20 @@ impl BaseAgent for DeploymentAgent {
 
         // Construct result data
         let mut data = HashMap::new();
-        data.insert("environment".to_string(), serde_json::to_value(environment)?);
+        data.insert(
+            "environment".to_string(),
+            serde_json::to_value(environment)?,
+        );
         data.insert("build".to_string(), serde_json::to_value(&build_result)?);
         data.insert("tests".to_string(), serde_json::to_value(&test_result)?);
-        data.insert("deployment".to_string(), serde_json::to_value(&deploy_result)?);
-        data.insert("health_check".to_string(), serde_json::to_value(&health_result)?);
+        data.insert(
+            "deployment".to_string(),
+            serde_json::to_value(&deploy_result)?,
+        );
+        data.insert(
+            "health_check".to_string(),
+            serde_json::to_value(&health_result)?,
+        );
         if let Some(ref rollback) = rollback_result {
             data.insert("rollback".to_string(), serde_json::to_value(rollback)?);
         }
@@ -483,7 +514,8 @@ mod tests {
 
     #[test]
     fn test_parse_test_output_with_failures() {
-        let output = "test result: FAILED. 38 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out";
+        let output =
+            "test result: FAILED. 38 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out";
         let (passed, failed) = DeploymentAgent::parse_test_output(output);
         assert_eq!(passed, 38);
         assert_eq!(failed, 4);

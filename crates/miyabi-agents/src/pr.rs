@@ -272,9 +272,11 @@ impl BaseAgent for PRAgent {
 
         Ok(AgentResult {
             status: ResultStatus::Success,
-            data: Some(serde_json::to_value(data).map_err(|e| {
-                MiyabiError::Unknown(format!("Failed to serialize data: {}", e))
-            })?),
+            data: Some(
+                serde_json::to_value(data).map_err(|e| {
+                    MiyabiError::Unknown(format!("Failed to serialize data: {}", e))
+                })?,
+            ),
             error: None,
             metrics: None,
             escalation: None,
@@ -321,10 +323,7 @@ mod tests {
 
     fn create_test_task(title: &str, task_type: TaskType) -> Task {
         let mut metadata = HashMap::new();
-        metadata.insert(
-            "branch".to_string(),
-            serde_json::json!("fix/test-branch"),
-        );
+        metadata.insert("branch".to_string(), serde_json::json!("fix/test-branch"));
         metadata.insert("baseBranch".to_string(), serde_json::json!("main"));
         metadata.insert("issueNumber".to_string(), serde_json::json!(123));
 
@@ -406,14 +405,13 @@ mod tests {
         );
 
         // No scope detected
-        assert_eq!(
-            PRAgent::detect_scope_from_title("Generic task"),
-            None
-        );
+        assert_eq!(PRAgent::detect_scope_from_title("Generic task"), None);
 
         // Invalid scope (too long with colon)
         assert_eq!(
-            PRAgent::detect_scope_from_title("This is a very long scope that should not be detected: title"),
+            PRAgent::detect_scope_from_title(
+                "This is a very long scope that should not be detected: title"
+            ),
             None
         );
     }

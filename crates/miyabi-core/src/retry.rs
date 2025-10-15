@@ -64,8 +64,7 @@ impl RetryConfig {
 
     /// Calculate delay for a given attempt number (0-indexed)
     pub fn calculate_delay(&self, attempt: u32) -> Duration {
-        let delay_ms = (self.initial_delay_ms as f64
-            * self.backoff_multiplier.powi(attempt as i32))
+        let delay_ms = (self.initial_delay_ms as f64 * self.backoff_multiplier.powi(attempt as i32))
             .min(self.max_delay_ms as f64) as u64;
         Duration::from_millis(delay_ms)
     }
@@ -187,8 +186,7 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
 
         // Git errors - check message for lock conflicts
         MiyabiError::Git(msg) => {
-            msg.to_lowercase().contains("lock")
-                || msg.to_lowercase().contains("unable to create")
+            msg.to_lowercase().contains("lock") || msg.to_lowercase().contains("unable to create")
         }
 
         // Never retryable

@@ -57,7 +57,11 @@ impl SetupCommand {
         println!("{}", "🎉 Setup complete!".green().bold());
         println!();
         println!("You can now run:");
-        println!("  {} {}", "miyabi agent coordinator --issue".dimmed(), "<issue-number>".yellow());
+        println!(
+            "  {} {}",
+            "miyabi agent coordinator --issue".dimmed(),
+            "<issue-number>".yellow()
+        );
         println!("  {} {}", "miyabi status".dimmed(), "".dimmed());
         println!();
 
@@ -66,13 +70,16 @@ impl SetupCommand {
 
     fn check_github_auth(&self) -> Result<()> {
         // Check if gh CLI is installed
-        let gh_version = Command::new("gh")
-            .arg("--version")
-            .output()
-            .map_err(|_| CliError::GitConfig("gh CLI not found. Please install GitHub CLI: https://cli.github.com/".to_string()))?;
+        let gh_version = Command::new("gh").arg("--version").output().map_err(|_| {
+            CliError::GitConfig(
+                "gh CLI not found. Please install GitHub CLI: https://cli.github.com/".to_string(),
+            )
+        })?;
 
         if !gh_version.status.success() {
-            return Err(CliError::GitConfig("gh CLI not working properly".to_string()));
+            return Err(CliError::GitConfig(
+                "gh CLI not working properly".to_string(),
+            ));
         }
 
         // Check authentication status
@@ -98,10 +105,14 @@ impl SetupCommand {
                     let login_result = Command::new("gh")
                         .args(["auth", "login"])
                         .status()
-                        .map_err(|e| CliError::GitConfig(format!("Failed to run gh auth login: {}", e)))?;
+                        .map_err(|e| {
+                            CliError::GitConfig(format!("Failed to run gh auth login: {}", e))
+                        })?;
 
                     if !login_result.success() {
-                        return Err(CliError::GitConfig("GitHub authentication failed".to_string()));
+                        return Err(CliError::GitConfig(
+                            "GitHub authentication failed".to_string(),
+                        ));
                     }
                 } else {
                     return Err(CliError::GitConfig(
@@ -184,7 +195,7 @@ impl SetupCommand {
         }
 
         let content = format!(
-r#"# ==============================================================================
+            r#"# ==============================================================================
 # Miyabi - Environment Configuration
 # ==============================================================================
 # Generated: {}
@@ -237,9 +248,7 @@ WORKTREE_BASE_DIR=.worktrees
             owner,
             repo,
             owner,
-            hostname::get()
-                .unwrap()
-                .to_string_lossy()
+            hostname::get().unwrap().to_string_lossy()
         );
 
         fs::write(env_path, content)
@@ -266,7 +275,7 @@ WORKTREE_BASE_DIR=.worktrees
         }
 
         let content = format!(
-r#"github:
+            r#"github:
   defaultPrivate: true
   owner: {}
   repo: {}
@@ -294,11 +303,7 @@ cli:
     }
 
     fn create_directories(&self) -> Result<()> {
-        let dirs = vec![
-            ".ai/logs",
-            ".ai/parallel-reports",
-            ".worktrees",
-        ];
+        let dirs = vec![".ai/logs", ".ai/parallel-reports", ".worktrees"];
 
         for dir in dirs {
             fs::create_dir_all(dir)

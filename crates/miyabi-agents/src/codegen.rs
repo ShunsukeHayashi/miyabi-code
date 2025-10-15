@@ -428,7 +428,10 @@ impl CodeGenAgent {
             )),
             usage_examples: vec![CodeExample::new(
                 "Basic Usage",
-                format!("use {};\n\nfn main() {{\n    // Your code here\n}}", project_name),
+                format!(
+                    "use {};\n\nfn main() {{\n    // Your code here\n}}",
+                    project_name
+                ),
             )
             .with_description("A simple usage example")],
             api_docs_link: Some(format!("https://docs.rs/{}", project_name.to_lowercase())),
@@ -949,8 +952,7 @@ mod tests {
         assert_eq!(json["success"], true);
         assert!(json["warnings"].is_array());
 
-        let deserialized: DocumentationGenerationResult =
-            serde_json::from_value(json).unwrap();
+        let deserialized: DocumentationGenerationResult = serde_json::from_value(json).unwrap();
         assert_eq!(deserialized.rustdoc_path, "target/doc");
         assert_eq!(deserialized.readme_path, Some("README.md".to_string()));
         assert_eq!(deserialized.warnings.len(), 1);
@@ -1215,7 +1217,10 @@ mod tests {
         let json_str = agent.generate_agent_context_json(&task).unwrap();
         let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
         assert_eq!(json["task"]["title"], "Fix authentication bug");
-        assert_eq!(json["task"]["description"], "User login fails with 401 error");
+        assert_eq!(
+            json["task"]["description"],
+            "User login fails with 401 error"
+        );
         assert_eq!(json["task"]["taskType"], "bug"); // lowercase (serde rename_all)
         assert_eq!(json["task"]["priority"], 0);
         assert_eq!(json["task"]["severity"], "Sev.1-Critical"); // Severity serde rename

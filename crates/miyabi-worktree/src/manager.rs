@@ -67,10 +67,7 @@ impl WorktreeManager {
         // Discover Git repository root from current directory
         let repo_path = miyabi_core::find_git_root(None)?;
 
-        tracing::info!(
-            "Discovered Git repository root at: {:?}",
-            repo_path
-        );
+        tracing::info!("Discovered Git repository root at: {:?}", repo_path);
 
         // Create worktree base directory relative to repo root
         let worktree_base = repo_path.join(worktree_base_name.unwrap_or(".worktrees"));

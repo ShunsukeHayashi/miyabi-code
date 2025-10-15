@@ -31,6 +31,4 @@ pub use git::{
 pub use git_utils::is_in_git_repo;
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
-pub use security::{
-    run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity,
-};
+pub use security::{run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity};

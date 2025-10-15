@@ -8,11 +8,9 @@ use miyabi_types::agent::{
 };
 use miyabi_types::issue::{DeploymentStatus, Issue, IssueState, IssueStateGithub, PRState};
 use miyabi_types::quality::{QualityBreakdown, QualityIssueType, QualityReport, QualitySeverity};
-use miyabi_types::task::{
-    GroupingConfig, Task, TaskType,
-};
+use miyabi_types::task::{GroupingConfig, Task, TaskType};
 use miyabi_types::workflow::{
-    DAG, Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus,
+    Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus, DAG,
 };
 
 // ============================================================================

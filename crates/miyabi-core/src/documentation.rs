@@ -137,10 +137,7 @@ pub async fn generate_rustdoc(config: &DocumentationConfig) -> Result<Documentat
         )));
     }
 
-    tracing::info!(
-        "Documentation generated successfully at {:?}",
-        doc_path
-    );
+    tracing::info!("Documentation generated successfully at {:?}", doc_path);
 
     Ok(DocumentationResult {
         doc_path: doc_path.to_string_lossy().to_string(),
@@ -248,7 +245,10 @@ pub fn generate_readme(template: &ReadmeTemplate) -> String {
     // API docs link
     if let Some(ref api_docs) = template.api_docs_link {
         content.push_str("## API Documentation\n\n");
-        content.push_str(&format!("For detailed API documentation, see [{}]({})\n\n", api_docs, api_docs));
+        content.push_str(&format!(
+            "For detailed API documentation, see [{}]({})\n\n",
+            api_docs, api_docs
+        ));
     }
 
     // License
@@ -462,8 +462,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_readme_with_examples() {
-        let example = CodeExample::new("Basic Usage", "fn main() {}")
-            .with_description("Simple example");
+        let example =
+            CodeExample::new("Basic Usage", "fn main() {}").with_description("Simple example");
 
         let template = ReadmeTemplate {
             project_name: "Example".to_string(),

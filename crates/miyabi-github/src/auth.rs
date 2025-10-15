@@ -96,14 +96,11 @@ fn get_token_from_gh_config() -> Result<String> {
         .join("hosts.yml");
 
     if !config_path.exists() {
-        return Err(MiyabiError::Auth(
-            "gh config file not found".to_string(),
-        ));
+        return Err(MiyabiError::Auth("gh config file not found".to_string()));
     }
 
-    let content = fs::read_to_string(&config_path).map_err(|e| {
-        MiyabiError::Auth(format!("Failed to read gh config file: {}", e))
-    })?;
+    let content = fs::read_to_string(&config_path)
+        .map_err(|e| MiyabiError::Auth(format!("Failed to read gh config file: {}", e)))?;
 
     // Parse YAML to extract token
     // Format: github.com:
@@ -204,9 +201,7 @@ mod tests {
         // Status will vary by environment, so just check it's one of the valid variants
         assert!(matches!(
             status,
-            GhCliStatus::NotInstalled
-                | GhCliStatus::NotAuthenticated
-                | GhCliStatus::Authenticated
+            GhCliStatus::NotInstalled | GhCliStatus::NotAuthenticated | GhCliStatus::Authenticated
         ));
     }
 

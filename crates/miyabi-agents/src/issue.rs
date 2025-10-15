@@ -5,7 +5,9 @@
 
 use crate::base::BaseAgent;
 use async_trait::async_trait;
-use miyabi_types::agent::{AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity};
+use miyabi_types::agent::{
+    AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
+};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::issue::{ImpactLevel, IssueAnalysis};
 use miyabi_types::task::TaskType;
@@ -27,7 +29,11 @@ impl IssueAgent {
         tracing::info!("Analyzing issue #{}: {}", issue.number, issue.title);
 
         // Combine title and body for keyword analysis
-        let combined_text = format!("{} {}", issue.title.to_lowercase(), issue.body.to_lowercase());
+        let combined_text = format!(
+            "{} {}",
+            issue.title.to_lowercase(),
+            issue.body.to_lowercase()
+        );
 
         // 1. Determine issue type
         let issue_type = self.infer_issue_type(&combined_text, &issue.labels);
@@ -76,41 +82,58 @@ impl IssueAgent {
             if label_lower.contains("refactor") || label_lower.contains("type:refactor") {
                 return TaskType::Refactor;
             }
-            if label_lower.contains("docs") || label_lower.contains("documentation") || label_lower.contains("type:docs") {
+            if label_lower.contains("docs")
+                || label_lower.contains("documentation")
+                || label_lower.contains("type:docs")
+            {
                 return TaskType::Docs;
             }
             if label_lower.contains("test") || label_lower.contains("type:test") {
                 return TaskType::Test;
             }
-            if label_lower.contains("deployment") || label_lower.contains("deploy") || label_lower.contains("type:deployment") {
+            if label_lower.contains("deployment")
+                || label_lower.contains("deploy")
+                || label_lower.contains("type:deployment")
+            {
                 return TaskType::Deployment;
             }
         }
 
         // Keyword-based detection
         // Bug keywords have highest priority
-        if text.contains("bug") || text.contains("fix") || text.contains("error")
-            || text.contains("issue") || text.contains("problem") || text.contains("broken")
+        if text.contains("bug")
+            || text.contains("fix")
+            || text.contains("error")
+            || text.contains("issue")
+            || text.contains("problem")
+            || text.contains("broken")
         {
             return TaskType::Bug;
         }
 
         // Feature keywords
-        if text.contains("feature") || text.contains("add") || text.contains("new")
-            || text.contains("implement") || text.contains("create")
+        if text.contains("feature")
+            || text.contains("add")
+            || text.contains("new")
+            || text.contains("implement")
+            || text.contains("create")
         {
             return TaskType::Feature;
         }
 
         // Refactor keywords
-        if text.contains("refactor") || text.contains("cleanup") || text.contains("improve")
+        if text.contains("refactor")
+            || text.contains("cleanup")
+            || text.contains("improve")
             || text.contains("optimize")
         {
             return TaskType::Refactor;
         }
 
         // Docs keywords
-        if text.contains("doc") || text.contains("documentation") || text.contains("readme")
+        if text.contains("doc")
+            || text.contains("documentation")
+            || text.contains("readme")
             || text.contains("guide")
         {
             return TaskType::Docs;
@@ -122,7 +145,9 @@ impl IssueAgent {
         }
 
         // Deployment keywords
-        if text.contains("deploy") || text.contains("release") || text.contains("ci")
+        if text.contains("deploy")
+            || text.contains("release")
+            || text.contains("ci")
             || text.contains("cd")
         {
             return TaskType::Deployment;
@@ -135,29 +160,43 @@ impl IssueAgent {
     /// Assess severity based on keywords
     fn assess_severity(&self, text: &str) -> Severity {
         // Sev.1-Critical: immediate response required
-        if text.contains("critical") || text.contains("urgent") || text.contains("emergency")
-            || text.contains("blocking") || text.contains("blocker") || text.contains("production")
-            || text.contains("data loss") || text.contains("security breach")
+        if text.contains("critical")
+            || text.contains("urgent")
+            || text.contains("emergency")
+            || text.contains("blocking")
+            || text.contains("blocker")
+            || text.contains("production")
+            || text.contains("data loss")
+            || text.contains("security breach")
         {
             return Severity::Critical;
         }
 
         // Sev.2-High: high priority
-        if text.contains("high priority") || text.contains("asap") || text.contains("important")
-            || text.contains("major") || text.contains("broken")
+        if text.contains("high priority")
+            || text.contains("asap")
+            || text.contains("important")
+            || text.contains("major")
+            || text.contains("broken")
         {
             return Severity::High;
         }
 
         // Sev.4-Low: minor issues
-        if text.contains("minor") || text.contains("small") || text.contains("trivial")
-            || text.contains("typo") || text.contains("cosmetic")
+        if text.contains("minor")
+            || text.contains("small")
+            || text.contains("trivial")
+            || text.contains("typo")
+            || text.contains("cosmetic")
         {
             return Severity::Low;
         }
 
         // Sev.5-Trivial: lowest priority
-        if text.contains("nice to have") || text.contains("enhancement") || text.contains("suggestion") {
+        if text.contains("nice to have")
+            || text.contains("enhancement")
+            || text.contains("suggestion")
+        {
             return Severity::Low; // Using Low as proxy for Trivial
         }
 
@@ -168,21 +207,25 @@ impl IssueAgent {
     /// Evaluate impact based on scope
     fn evaluate_impact(&self, text: &str) -> ImpactLevel {
         // Critical: affects all users
-        if text.contains("all users") || text.contains("entire system")
-            || text.contains("complete failure") || text.contains("data loss")
+        if text.contains("all users")
+            || text.contains("entire system")
+            || text.contains("complete failure")
+            || text.contains("data loss")
         {
             return ImpactLevel::Critical;
         }
 
         // High: affects major functionality
-        if text.contains("many users") || text.contains("major feature")
+        if text.contains("many users")
+            || text.contains("major feature")
             || text.contains("main functionality")
         {
             return ImpactLevel::High;
         }
 
         // Low: minimal impact
-        if text.contains("few users") || text.contains("cosmetic") || text.contains("documentation") {
+        if text.contains("few users") || text.contains("cosmetic") || text.contains("documentation")
+        {
             return ImpactLevel::Low;
         }
 
@@ -210,13 +253,18 @@ impl IssueAgent {
         };
 
         // Adjust based on complexity keywords
-        let multiplier = if text.contains("large") || text.contains("major") || text.contains("complex") {
-            2.0
-        } else if text.contains("quick") || text.contains("small") || text.contains("minor") || text.contains("simple") {
-            0.5
-        } else {
-            1.0
-        };
+        let multiplier =
+            if text.contains("large") || text.contains("major") || text.contains("complex") {
+                2.0
+            } else if text.contains("quick")
+                || text.contains("small")
+                || text.contains("minor")
+                || text.contains("simple")
+            {
+                0.5
+            } else {
+                1.0
+            };
 
         (base_duration as f32 * multiplier) as u32
     }
@@ -239,7 +287,12 @@ impl IssueAgent {
     }
 
     /// Generate labels based on issue analysis
-    fn generate_labels(&self, issue_type: &TaskType, severity: &Severity, impact: &ImpactLevel) -> Vec<String> {
+    fn generate_labels(
+        &self,
+        issue_type: &TaskType,
+        severity: &Severity,
+        impact: &ImpactLevel,
+    ) -> Vec<String> {
         let mut labels = Vec::new();
 
         // Issue type label
@@ -541,7 +594,7 @@ mod tests {
 
         let issue = create_test_issue(
             "Fix critical bug in authentication",
-            "This is a high priority issue affecting all users. Depends on #270."
+            "This is a high priority issue affecting all users. Depends on #270.",
         );
 
         let analysis = agent.analyze_issue(&issue).unwrap();

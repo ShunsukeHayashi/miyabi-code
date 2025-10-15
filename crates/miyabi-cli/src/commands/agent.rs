@@ -127,7 +127,13 @@ impl AgentCommand {
         {
             if output.status.success() {
                 let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !token.is_empty() && (token.starts_with("ghp_") || token.starts_with("gho_") || token.starts_with("ghu_") || token.starts_with("ghs_") || token.starts_with("ghr_")) {
+                if !token.is_empty()
+                    && (token.starts_with("ghp_")
+                        || token.starts_with("gho_")
+                        || token.starts_with("ghu_")
+                        || token.starts_with("ghs_")
+                        || token.starts_with("ghr_"))
+                {
                     return Ok(token);
                 }
             }
@@ -357,7 +363,10 @@ impl AgentCommand {
                 println!("    Severity: {:?}", analysis.severity);
                 println!("    Impact: {:?}", analysis.impact);
                 println!("    Assigned Agent: {:?}", analysis.assigned_agent);
-                println!("    Estimated Duration: {} minutes", analysis.estimated_duration);
+                println!(
+                    "    Estimated Duration: {} minutes",
+                    analysis.estimated_duration
+                );
                 println!("    Dependencies: {}", analysis.dependencies.join(", "));
                 println!("    Applied Labels: {}", analysis.labels.join(", "));
             }

@@ -308,12 +308,7 @@ pub struct ProjectItem {
 impl ProjectItem {
     fn from_node(node: ProjectItemNode) -> Self {
         let (content_type, number, title, state) = match node.content {
-            Content::Issue(issue) => (
-                ContentType::Issue,
-                issue.number,
-                issue.title,
-                issue.state,
-            ),
+            Content::Issue(issue) => (ContentType::Issue, issue.number, issue.title, issue.state),
             Content::PullRequest(pr) => (ContentType::PullRequest, pr.number, pr.title, pr.state),
         };
 
@@ -465,14 +460,8 @@ struct FieldValues {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum FieldValue {
-    SingleSelect {
-        name: String,
-        field: FieldName,
-    },
-    Number {
-        number: f64,
-        field: FieldName,
-    },
+    SingleSelect { name: String, field: FieldName },
+    Number { number: f64, field: FieldName },
 }
 
 #[derive(Debug, Deserialize)]

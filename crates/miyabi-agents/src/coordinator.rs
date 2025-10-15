@@ -301,25 +301,56 @@ impl CoordinatorAgent {
         let mut md = String::new();
 
         // Header
-        md.push_str(&format!("# Plans for Issue #{}\n\n", decomposition.original_issue.number));
-        md.push_str(&format!("**Title**: {}\n\n", decomposition.original_issue.title));
-        md.push_str(&format!("**URL**: {}\n\n", decomposition.original_issue.url));
+        md.push_str(&format!(
+            "# Plans for Issue #{}\n\n",
+            decomposition.original_issue.number
+        ));
+        md.push_str(&format!(
+            "**Title**: {}\n\n",
+            decomposition.original_issue.title
+        ));
+        md.push_str(&format!(
+            "**URL**: {}\n\n",
+            decomposition.original_issue.url
+        ));
         md.push_str("---\n\n");
 
         // Summary
         md.push_str("## 📋 Summary\n\n");
-        md.push_str(&format!("- **Total Tasks**: {}\n", decomposition.tasks.len()));
-        md.push_str(&format!("- **Estimated Duration**: {} minutes\n", decomposition.estimated_total_duration));
-        md.push_str(&format!("- **Execution Levels**: {}\n", decomposition.dag.levels.len()));
-        md.push_str(&format!("- **Has Cycles**: {}\n", if decomposition.has_cycles { "⚠️ Yes" } else { "✅ No" }));
+        md.push_str(&format!(
+            "- **Total Tasks**: {}\n",
+            decomposition.tasks.len()
+        ));
+        md.push_str(&format!(
+            "- **Estimated Duration**: {} minutes\n",
+            decomposition.estimated_total_duration
+        ));
+        md.push_str(&format!(
+            "- **Execution Levels**: {}\n",
+            decomposition.dag.levels.len()
+        ));
+        md.push_str(&format!(
+            "- **Has Cycles**: {}\n",
+            if decomposition.has_cycles {
+                "⚠️ Yes"
+            } else {
+                "✅ No"
+            }
+        ));
         md.push('\n');
 
         // Task breakdown
         md.push_str("## 📝 Task Breakdown\n\n");
 
         for (i, task) in decomposition.tasks.iter().enumerate() {
-            let agent_name = task.assigned_agent.map(|a| format!("{:?}", a)).unwrap_or_else(|| "Unassigned".to_string());
-            let duration = task.estimated_duration.map(|d| format!("{} min", d)).unwrap_or_else(|| "N/A".to_string());
+            let agent_name = task
+                .assigned_agent
+                .map(|a| format!("{:?}", a))
+                .unwrap_or_else(|| "Unassigned".to_string());
+            let duration = task
+                .estimated_duration
+                .map(|d| format!("{} min", d))
+                .unwrap_or_else(|| "N/A".to_string());
 
             md.push_str(&format!("### {}. {}\n\n", i + 1, task.title));
             md.push_str(&format!("- **ID**: `{}`\n", task.id));
@@ -329,7 +360,10 @@ impl CoordinatorAgent {
             md.push_str(&format!("- **Estimated Duration**: {}\n", duration));
 
             if !task.dependencies.is_empty() {
-                md.push_str(&format!("- **Dependencies**: {}\n", task.dependencies.join(", ")));
+                md.push_str(&format!(
+                    "- **Dependencies**: {}\n",
+                    task.dependencies.join(", ")
+                ));
             }
 
             if !task.description.is_empty() {
@@ -358,10 +392,18 @@ impl CoordinatorAgent {
         md.push_str("```mermaid\ngraph TD\n");
         for task in &decomposition.tasks {
             let task_label = task.title.replace('"', "'");
-            md.push_str(&format!("    {}[\"{}\"]\n", task.id.replace('-', "_"), task_label));
+            md.push_str(&format!(
+                "    {}[\"{}\"]\n",
+                task.id.replace('-', "_"),
+                task_label
+            ));
         }
         for edge in &decomposition.dag.edges {
-            md.push_str(&format!("    {} --> {}\n", edge.from.replace('-', "_"), edge.to.replace('-', "_")));
+            md.push_str(&format!(
+                "    {} --> {}\n",
+                edge.from.replace('-', "_"),
+                edge.to.replace('-', "_")
+            ));
         }
         md.push_str("```\n\n");
 
@@ -377,27 +419,40 @@ impl CoordinatorAgent {
         // Timeline
         md.push_str("## ⏱️ Timeline Estimation\n\n");
         let hours = decomposition.estimated_total_duration as f32 / 60.0;
-        md.push_str(&format!("- **Sequential Execution**: {} minutes ({:.1} hours)\n", decomposition.estimated_total_duration, hours));
+        md.push_str(&format!(
+            "- **Sequential Execution**: {} minutes ({:.1} hours)\n",
+            decomposition.estimated_total_duration, hours
+        ));
 
         // Calculate parallel execution time (critical path)
         let critical_path = decomposition.dag.critical_path();
         let critical_duration: u32 = critical_path
             .iter()
             .filter_map(|task_id| {
-                decomposition.tasks
+                decomposition
+                    .tasks
                     .iter()
                     .find(|t| t.id == *task_id)
                     .and_then(|t| t.estimated_duration)
             })
             .sum();
         let critical_hours = critical_duration as f32 / 60.0;
-        md.push_str(&format!("- **Parallel Execution (Critical Path)**: {} minutes ({:.1} hours)\n", critical_duration, critical_hours));
-        md.push_str(&format!("- **Estimated Speedup**: {:.1}x\n", decomposition.estimated_total_duration as f32 / critical_duration as f32));
+        md.push_str(&format!(
+            "- **Parallel Execution (Critical Path)**: {} minutes ({:.1} hours)\n",
+            critical_duration, critical_hours
+        ));
+        md.push_str(&format!(
+            "- **Estimated Speedup**: {:.1}x\n",
+            decomposition.estimated_total_duration as f32 / critical_duration as f32
+        ));
         md.push('\n');
 
         // Footer
         md.push_str("---\n\n");
-        md.push_str(&format!("*Generated by CoordinatorAgent on {}*\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        md.push_str(&format!(
+            "*Generated by CoordinatorAgent on {}*\n",
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        ));
 
         md
     }
@@ -797,10 +852,9 @@ mod tests {
         assert!(plans_md.contains("## 📋 Summary"));
         // The title will appear in the header
         assert!(
-            plans_md.contains("**Title**:") && (
-                plans_md.contains("Fix \"bug\" with <special> & chars")
-                || plans_md.contains("Fix 'bug' with <special> & chars")
-            )
+            plans_md.contains("**Title**:")
+                && (plans_md.contains("Fix \"bug\" with <special> & chars")
+                    || plans_md.contains("Fix 'bug' with <special> & chars"))
         );
     }
 
@@ -941,9 +995,7 @@ mod tests {
 
         // Should recommend adding test coverage
         assert!(
-            recommendations
-                .iter()
-                .any(|r| r.contains("test coverage")),
+            recommendations.iter().any(|r| r.contains("test coverage")),
             "Should recommend adding test coverage when no test task exists"
         );
     }

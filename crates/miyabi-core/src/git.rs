@@ -125,15 +125,9 @@ pub fn get_main_branch(repo_path: impl AsRef<Path>) -> Result<String> {
     let repo = git2::Repository::open(repo_path.as_ref())
         .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
 
-    if repo
-        .find_branch("main", git2::BranchType::Local)
-        .is_ok()
-    {
+    if repo.find_branch("main", git2::BranchType::Local).is_ok() {
         Ok("main".to_string())
-    } else if repo
-        .find_branch("master", git2::BranchType::Local)
-        .is_ok()
-    {
+    } else if repo.find_branch("master", git2::BranchType::Local).is_ok() {
         Ok("master".to_string())
     } else {
         Err(MiyabiError::Git(

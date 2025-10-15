@@ -38,12 +38,20 @@ fn check_cargo_bin_in_path() {
     });
 
     if !in_path {
-        eprintln!("{}", "⚠️  Warning: ~/.cargo/bin is not in your PATH".yellow().bold());
+        eprintln!(
+            "{}",
+            "⚠️  Warning: ~/.cargo/bin is not in your PATH"
+                .yellow()
+                .bold()
+        );
         eprintln!();
         eprintln!("This may cause issues if you installed miyabi via cargo install.");
         eprintln!("The miyabi binary might not be found in future terminal sessions.");
         eprintln!();
-        eprintln!("{}", "To fix this, add the following to your shell configuration:".bold());
+        eprintln!(
+            "{}",
+            "To fix this, add the following to your shell configuration:".bold()
+        );
         eprintln!();
 
         // Detect shell and provide specific instructions
@@ -78,10 +86,7 @@ fn check_cargo_bin_in_path() {
 /// when users have both the Node.js version (npm) and Rust version (cargo) installed.
 fn check_version_conflicts() {
     // Use `which -a` to find all miyabi binaries in PATH
-    let output = Command::new("which")
-        .arg("-a")
-        .arg("miyabi")
-        .output();
+    let output = Command::new("which").arg("-a").arg("miyabi").output();
 
     if let Ok(output) = output {
         if output.status.success() {
@@ -89,7 +94,12 @@ fn check_version_conflicts() {
             let paths: Vec<&str> = paths_str.lines().collect();
 
             if paths.len() > 1 {
-                eprintln!("{}", "⚠️  Warning: Multiple miyabi installations detected".yellow().bold());
+                eprintln!(
+                    "{}",
+                    "⚠️  Warning: Multiple miyabi installations detected"
+                        .yellow()
+                        .bold()
+                );
                 eprintln!();
                 eprintln!("Found {} miyabi binaries in your PATH:", paths.len());
                 for (i, path) in paths.iter().enumerate() {

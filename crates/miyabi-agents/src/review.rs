@@ -403,10 +403,7 @@ impl BaseAgent for ReviewAgent {
             lines_changed: None,
             tests_added: None,
             coverage_percent: Some(
-                review_result
-                    .quality_report
-                    .breakdown
-                    .test_coverage_score as f32,
+                review_result.quality_report.breakdown.test_coverage_score as f32,
             ),
             errors_found: Some(review_result.quality_report.issues.len() as u32),
             timestamp: end_time,
