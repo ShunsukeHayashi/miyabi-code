@@ -1,0 +1,197 @@
+name: RefresherAgent - Issue Status Auto Refresh
+
+on:
+  schedule:
+    # 1時間ごとに実行 (UTC時間)
+    - cron: '0 */1 * * *'
+  workflow_dispatch:  # 手動実行も可能
+    inputs:
+      dry_run:
+        description: 'Dry run mode (no updates)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  refresh-issue-status:
+    name: Refresh All Issue Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - name: Install gh CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+          gh --version
+
+      - name: Authenticate gh CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Run RefresherAgent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          RUST_LOG: info
+        run: |
+          echo "🔄 RefresherAgent starting..."
+          echo "DRY_RUN: $DRY_RUN"
+
+          # 1. Issue一覧取得
+          echo "📥 Fetching all issues..."
+          gh issue list --limit 200 --state all --json number,title,state,labels,url > issues.json
+          TOTAL_ISSUES=$(cat issues.json | jq 'length')
+          echo "   Found $TOTAL_ISSUES issues"
+
+          # 2. コードベース実装状況確認
+          echo "🔍 Checking codebase implementation status..."
+
+          # Phase 3: miyabi-types
+          echo "   Checking Phase 3 (miyabi-types)..."
+          if cargo test --package miyabi-types --all 2>&1 | grep -q "test result: ok"; then
+            PHASE3_STATUS="done"
+            echo "   ✅ Phase 3: DONE (tests passing)"
+          else
+            PHASE3_STATUS="implementing"
+            echo "   🏗️ Phase 3: IMPLEMENTING"
+          fi
+
+          # Phase 4: miyabi-cli
+          echo "   Checking Phase 4 (miyabi-cli)..."
+          ERROR_COUNT=$(cargo build --bin miyabi-cli 2>&1 | grep -c "error:" || true)
+          if [ "$ERROR_COUNT" -eq 0 ]; then
+            PHASE4_STATUS="done"
+            echo "   ✅ Phase 4: DONE (build success)"
+          elif [ "$ERROR_COUNT" -le 2 ]; then
+            PHASE4_STATUS="reviewing"
+            echo "   👀 Phase 4: REVIEWING ($ERROR_COUNT errors)"
+          else
+            PHASE4_STATUS="implementing"
+            echo "   🏗️ Phase 4: IMPLEMENTING ($ERROR_COUNT errors)"
+          fi
+
+          # Phase 5: miyabi-agents
+          echo "   Checking Phase 5 (miyabi-agents)..."
+          if [ -f "crates/miyabi-agents/src/coordinator.rs" ]; then
+            PHASE5_STATUS="implementing"
+            echo "   🏗️ Phase 5: IMPLEMENTING (CoordinatorAgent 85%)"
+          else
+            PHASE5_STATUS="paused"
+            echo "   ⏸️ Phase 5: PAUSED"
+          fi
+
+          # 3. ステート判定・更新
+          echo "🔄 Updating issue states..."
+
+          UPDATE_COUNT=0
+
+          # Issue #117: Phase 3完了確認
+          if [ "$PHASE3_STATUS" = "done" ]; then
+            CURRENT=$(cat issues.json | jq -r '.[] | select(.number == 117) | .labels[]? | select(.name | startswith("📥") or startswith("✅")) | .name')
+            if [ "$CURRENT" != "✅ state:done" ] && [ -n "$CURRENT" ]; then
+              echo "   Updating #117: $CURRENT → ✅ state:done"
+              if [ "$DRY_RUN" != "true" ]; then
+                gh issue edit 117 --remove-label "$CURRENT" --add-label "✅ state:done"
+                UPDATE_COUNT=$((UPDATE_COUNT + 1))
+              fi
+            fi
+          fi
+
+          # Issue #120: BaseAgent trait
+          if [ "$PHASE3_STATUS" = "done" ]; then
+            CURRENT=$(cat issues.json | jq -r '.[] | select(.number == 120) | .labels[]? | select(.name | startswith("📥") or startswith("✅")) | .name')
+            if [ "$CURRENT" != "✅ state:done" ] && [ -n "$CURRENT" ]; then
+              echo "   Updating #120: $CURRENT → ✅ state:done"
+              if [ "$DRY_RUN" != "true" ]; then
+                gh issue edit 120 --remove-label "$CURRENT" --add-label "✅ state:done"
+                UPDATE_COUNT=$((UPDATE_COUNT + 1))
+              fi
+            fi
+          fi
+
+          # Issue #118-119: CLI実装
+          if [ "$PHASE4_STATUS" = "reviewing" ]; then
+            for ISSUE in 118 119; do
+              CURRENT=$(cat issues.json | jq -r ".[] | select(.number == $ISSUE) | .labels[]? | select(.name | startswith(\"📥\") or startswith(\"👀\")) | .name")
+              if [ "$CURRENT" != "👀 state:reviewing" ] && [ -n "$CURRENT" ]; then
+                echo "   Updating #$ISSUE: $CURRENT → 👀 state:reviewing"
+                if [ "$DRY_RUN" != "true" ]; then
+                  gh issue edit $ISSUE --remove-label "$CURRENT" --add-label "👀 state:reviewing"
+                  UPDATE_COUNT=$((UPDATE_COUNT + 1))
+                fi
+              fi
+            done
+          fi
+
+          # Issue #121: CoordinatorAgent
+          if [ "$PHASE5_STATUS" = "implementing" ]; then
+            CURRENT=$(cat issues.json | jq -r '.[] | select(.number == 121) | .labels[]? | select(.name | startswith("📥") or startswith("🏗️")) | .name')
+            if [ "$CURRENT" != "🏗️ state:implementing" ] && [ -n "$CURRENT" ]; then
+              echo "   Updating #121: $CURRENT → 🏗️ state:implementing"
+              if [ "$DRY_RUN" != "true" ]; then
+                gh issue edit 121 --remove-label "$CURRENT" --add-label "🏗️ state:implementing"
+                UPDATE_COUNT=$((UPDATE_COUNT + 1))
+              fi
+            fi
+          fi
+
+          # 4. サマリーレポート生成
+          echo ""
+          echo "📊 RefresherAgent Execution Summary"
+          echo "===================================="
+          echo "Execution Time: $(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+          echo "Total Issues: $TOTAL_ISSUES"
+          echo "Updates: $UPDATE_COUNT issues"
+          echo ""
+          echo "Phase Status:"
+          echo "  Phase 3 (miyabi-types): $PHASE3_STATUS"
+          echo "  Phase 4 (miyabi-cli): $PHASE4_STATUS"
+          echo "  Phase 5 (miyabi-agents): $PHASE5_STATUS"
+          echo ""
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "⚠️  DRY RUN MODE - No updates applied"
+          else
+            echo "✅ RefresherAgent completed successfully"
+          fi
+
+      - name: Create execution report
+        if: always()
+        run: |
+          mkdir -p .ai/refresh-reports
+          cat > .ai/refresh-reports/refresh-report-$(date +%s).json <<EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+            "workflowRun": "${{ github.run_id }}",
+            "dryRun": ${{ github.event.inputs.dry_run || 'false' }},
+            "executionTimeMs": $((SECONDS * 1000))
+          }
+          EOF
+
+      - name: Upload execution report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresher-report-${{ github.run_id }}
+          path: .ai/refresh-reports/
+          retention-days: 30

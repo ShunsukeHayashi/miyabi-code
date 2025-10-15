@@ -26,7 +26,7 @@ pub enum EscalationTarget {
     DevOps,
 }
 
-/// Agent types (7 coding agents)
+/// Agent types (8 coding agents)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum AgentType {
     CoordinatorAgent,
@@ -37,6 +37,7 @@ pub enum AgentType {
     DeploymentAgent,
     AutoFixAgent,
     WaterSpiderAgent,
+    RefresherAgent,
 }
 
 impl AgentType {
@@ -51,6 +52,7 @@ impl AgentType {
             AgentType::DeploymentAgent => "deployment",
             AgentType::AutoFixAgent => "autofix",
             AgentType::WaterSpiderAgent => "waterspider",
+            AgentType::RefresherAgent => "refresher",
         }
     }
 }
@@ -181,6 +183,7 @@ mod tests {
         assert_eq!(AgentType::DeploymentAgent.as_str(), "deployment");
         assert_eq!(AgentType::AutoFixAgent.as_str(), "autofix");
         assert_eq!(AgentType::WaterSpiderAgent.as_str(), "waterspider");
+        assert_eq!(AgentType::RefresherAgent.as_str(), "refresher");
     }
 
     #[test]
@@ -216,6 +219,7 @@ mod tests {
             AgentType::DeploymentAgent,
             AgentType::AutoFixAgent,
             AgentType::WaterSpiderAgent,
+            AgentType::RefresherAgent,
         ];
 
         for agent in agents {
