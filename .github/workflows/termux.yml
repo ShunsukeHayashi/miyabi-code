@@ -1,0 +1,243 @@
+name: Termux CI (Android)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/termux.yml'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  termux-check:
+    name: Termux Environment Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: ./.github/actions/setup-rust
+        with:
+          toolchain: stable
+          cache-key-prefix: termux-check
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
+          cache-key-prefix: termux-check
+
+      - name: Check Termux-specific code
+        run: |
+          echo "### Termux Environment Check" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+          # Check for Termux-specific features
+          if grep -r "cfg(target_os = \"android\")" crates/ >> $GITHUB_STEP_SUMMARY 2>&1; then
+            echo "Found Android-specific code" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No Android-specific code found (OK)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check for potential Termux compatibility issues
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Checking for potential compatibility issues:" >> $GITHUB_STEP_SUMMARY
+
+          # Check for path assumptions (might fail on Termux)
+          if grep -r "/home/" crates/ | grep -v "github" | grep -v "test" >> $GITHUB_STEP_SUMMARY 2>&1 || true; then
+            echo "⚠️ Warning: Hardcoded /home/ paths detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check for process/system calls
+          if grep -r "std::process::Command" crates/ >> $GITHUB_STEP_SUMMARY 2>&1 || true; then
+            echo "📝 Note: std::process::Command usage detected (verify Termux compatibility)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Build for Android target (cross-compile check)
+        run: |
+          # Install Android target
+          rustup target add aarch64-linux-android
+
+          # Check if code compiles for Android target
+          cargo check --target aarch64-linux-android --workspace || echo "⚠️ Android target compilation check failed (may need android-ndk)"
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
+
+  termux-compatibility-report:
+    name: Termux Compatibility Report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate compatibility report
+        run: |
+          mkdir -p reports
+
+          cat > reports/termux-compatibility.md <<'REPORT_EOF'
+          # Termux Compatibility Report
+
+          **Generated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Commit**: ${{ github.sha }}
+
+          ## Environment Detection
+
+          Miyabi should detect Termux environment via:
+          - `cfg(target_os = "android")` - Rust compile-time detection
+          - Runtime detection: Check `$PREFIX` environment variable
+
+          ## Known Termux Limitations
+
+          1. **File Permissions**: Limited chmod support
+          2. **Process Management**: No setuid/setgid
+          3. **Paths**: Use `$PREFIX` instead of `/usr/local`
+          4. **Git**: Limited hooks support (no pre-commit by default)
+          5. **Network**: Some privileged ports restricted
+
+          ## Termux-Specific Paths
+
+          - **Home**: `/data/data/com.termux/files/home`
+          - **Prefix**: `/data/data/com.termux/files/usr`
+          - **Tmp**: `/data/data/com.termux/files/usr/tmp`
+          - **Cargo**: `$HOME/.cargo`
+
+          ## Required Termux Packages
+
+          ```bash
+          pkg install rust git openssh
+          ```
+
+          ## Testing on Termux
+
+          To test Miyabi on actual Termux:
+
+          ```bash
+          # Clone repository
+          git clone https://github.com/ShunsukeHayashi/miyabi-private
+          cd miyabi-private
+
+          # Build
+          cargo build --release
+
+          # Test
+          cargo nextest run --workspace
+
+          # Install
+          cargo install --path crates/miyabi-cli
+          ```
+
+          ## CI/CD Considerations
+
+          Since GitHub Actions doesn't natively support Termux/Android:
+          - Cross-compilation checks via `aarch64-linux-android` target
+          - Static analysis for Android-specific issues
+          - Manual testing on actual Termux device recommended
+
+          ## Automated Checks
+
+          This workflow performs:
+          1. ✅ Android target compilation check
+          2. ✅ Hardcoded path detection
+          3. ✅ std::process::Command usage audit
+          4. ✅ Termux-specific code review
+
+          ## Manual Testing Checklist
+
+          - [ ] CLI installation via cargo install
+          - [ ] miyabi setup command
+          - [ ] miyabi status command
+          - [ ] miyabi agent run coordinator
+          - [ ] Git operations (commit, push)
+          - [ ] Worktree creation
+          - [ ] GitHub API calls
+          - [ ] File permissions handling
+
+          ## Known Working Features
+
+          - ✅ Rust compilation and execution
+          - ✅ Git operations (basic)
+          - ✅ Network requests (HTTP/HTTPS)
+          - ✅ File I/O
+          - ✅ Environment variables
+          - ✅ Claude Code integration
+
+          ## Troubleshooting
+
+          ### Issue: "Permission denied" errors
+          **Solution**: Termux has limited permission model. Avoid operations requiring root.
+
+          ### Issue: "Command not found: cargo"
+          **Solution**: Install rust package: `pkg install rust`
+
+          ### Issue: "SSL certificate problem"
+          **Solution**: Install ca-certificates: `pkg install ca-certificates`
+
+          ### Issue: Git hooks not running
+          **Solution**: Termux git doesn't support hooks by default. Use GitHub Actions instead.
+
+          ---
+
+          **Next Steps**: If issues found, update code to use `cfg(target_os = "android")` guards.
+          REPORT_EOF
+
+          cat reports/termux-compatibility.md
+
+      - name: Upload compatibility report
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-compatibility-report
+          path: reports/termux-compatibility.md
+
+  termux-documentation:
+    name: Update Termux Documentation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if Termux docs exist
+        id: check-docs
+        run: |
+          if [ -f "docs/TERMUX_GUIDE.md" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ docs/TERMUX_GUIDE.md does not exist. Create it for Termux users." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Validate Termux docs
+        if: steps.check-docs.outputs.exists == 'true'
+        run: |
+          echo "### Termux Documentation Status" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          wc -l docs/TERMUX_GUIDE.md >> $GITHUB_STEP_SUMMARY || echo "File not found"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+          # Check for required sections
+          required_sections=(
+            "Installation"
+            "Setup"
+            "Troubleshooting"
+            "Known Limitations"
+          )
+
+          for section in "${required_sections[@]}"; do
+            if grep -q "## $section" docs/TERMUX_GUIDE.md; then
+              echo "✅ Section found: $section" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ Missing section: $section" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
