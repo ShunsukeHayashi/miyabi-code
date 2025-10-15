@@ -1,0 +1,69 @@
+name: 'Setup Rust Toolchain'
+description: 'Reusable action to setup Rust toolchain with caching'
+author: 'Miyabi'
+
+inputs:
+  toolchain:
+    description: 'Rust toolchain version (stable, beta, nightly, or specific version)'
+    required: false
+    default: 'stable'
+  components:
+    description: 'Comma-separated list of components to install (e.g., rustfmt, clippy)'
+    required: false
+    default: ''
+  targets:
+    description: 'Comma-separated list of targets to install'
+    required: false
+    default: ''
+  cache-key-prefix:
+    description: 'Prefix for cache key (e.g., build, test, release)'
+    required: false
+    default: 'cargo'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache cargo build
+      uses: actions/cache@v4
+      with:
+        path: target
+        key: ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ inputs.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ inputs.toolchain }}-
+          ${{ runner.os }}-${{ inputs.cache-key-prefix }}-
+
+    - name: Cache Rust tools
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+        key: ${{ runner.os }}-cargo-tools-${{ inputs.toolchain }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-tools-
+
+    - name: Print Rust version
+      shell: bash
+      run: |
+        echo "### Rust Environment" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        rustc --version >> $GITHUB_STEP_SUMMARY
+        cargo --version >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY

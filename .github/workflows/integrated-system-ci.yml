@@ -15,19 +15,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
 
       - name: Run ESLint
         run: pnpm run lint
@@ -44,19 +33,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
 
       - name: Run unit tests
         run: pnpm run test
@@ -66,25 +44,15 @@ jobs:
   e2e-integrated-tests:
     name: E2E Integrated System Tests
     runs-on: ubuntu-latest
+    # Run after lint and tests pass for faster feedback
     needs: [lint-and-typecheck, unit-tests]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
 
       - name: Run E2E integrated system tests
         run: pnpm run test:e2e:integrated
@@ -110,19 +78,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
 
       - name: Test MetricsCollector
         run: pnpm run integrated:test:metrics
@@ -187,19 +144,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup-pnpm
 
       - name: Build project
         run: pnpm run build

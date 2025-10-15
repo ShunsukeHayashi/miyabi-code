@@ -1,16 +1,18 @@
-# cargo-deny configuration
+# cargo-deny configuration for Miyabi
 # https://embarkstudios.github.io/cargo-deny/
 
 [advisories]
-# Security vulnerability database check
+# Security vulnerabilities database
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
 vulnerability = "deny"
 unmaintained = "warn"
-yanked = "deny"
+yanked = "warn"
 notice = "warn"
 ignore = []
 
 [licenses]
-# License policy
+# License compliance
 unlicensed = "deny"
 allow = [
     "MIT",
@@ -21,27 +23,34 @@ allow = [
     "ISC",
     "Unicode-DFS-2016",
 ]
-deny = []
+deny = [
+    "GPL-2.0",
+    "GPL-3.0",
+    "AGPL-3.0",
+]
 copyleft = "warn"
+allow-osi-fsf-free = "both"
 default = "deny"
+confidence-threshold = 0.8
 
 [bans]
 # Crate banning
 multiple-versions = "warn"
-wildcards = "warn"
+wildcards = "allow"
 highlight = "all"
-
-# Specific crates to deny
-deny = []
-
-# Allow specific duplicate versions (if needed)
-skip = []
+workspace-default-features = "allow"
+external-default-features = "allow"
+allow = []
+deny = [
+    # Security-sensitive crates that should not be used
+]
 
 [sources]
-# Source repository policy
-unknown-registry = "deny"
-unknown-git = "deny"
+# Crate sources
+unknown-registry = "warn"
+unknown-git = "warn"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
 
-[sources.allow-org]
-# Allow specific organizations
-github = ["rust-lang", "tokio-rs", "serde-rs"]
+[output]
+feature-depth = 1
