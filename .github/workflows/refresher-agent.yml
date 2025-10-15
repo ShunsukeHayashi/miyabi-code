@@ -22,7 +22,7 @@ permissions:
 jobs:
   refresh-issue-status:
     name: Refresh All Issue Status
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
     timeout-minutes: 10
 
     steps:
@@ -39,10 +39,19 @@ jobs:
         with:
           cache-on-failure: true
 
-      - name: Install gh CLI
+      - name: Install gh CLI (Ubuntu)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y gh
+          gh --version
+
+      - name: Install gh CLI (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          if ! command -v gh &> /dev/null; then
+            brew install gh
+          fi
           gh --version
 
       - name: Authenticate gh CLI
@@ -160,6 +169,7 @@ jobs:
           echo ""
           echo "📊 RefresherAgent Execution Summary"
           echo "===================================="
+          echo "Runner: $RUNNER_OS ($RUNNER_NAME)"
           echo "Execution Time: $(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
           echo "Total Issues: $TOTAL_ISSUES"
           echo "Updates: $UPDATE_COUNT issues"
@@ -174,6 +184,11 @@ jobs:
           else
             echo "✅ RefresherAgent completed successfully"
           fi
+          echo ""
+          echo "🏃 Runner Info:"
+          echo "  - Runner Type: ${{ vars.RUNNER_TYPE || 'GitHub-hosted (ubuntu-latest)' }}"
+          echo "  - OS: $RUNNER_OS"
+          echo "  - Architecture: $(uname -m)"
 
       - name: Create execution report
         if: always()
@@ -183,6 +198,12 @@ jobs:
           {
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
             "workflowRun": "${{ github.run_id }}",
+            "runner": {
+              "type": "${{ vars.RUNNER_TYPE || 'GitHub-hosted (ubuntu-latest)' }}",
+              "os": "$RUNNER_OS",
+              "name": "$RUNNER_NAME",
+              "architecture": "$(uname -m)"
+            },
             "dryRun": ${{ github.event.inputs.dry_run || 'false' }},
             "executionTimeMs": $((SECONDS * 1000))
           }
