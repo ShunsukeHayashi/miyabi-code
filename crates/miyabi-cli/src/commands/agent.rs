@@ -71,9 +71,8 @@ impl AgentCommand {
     }
 
     fn load_config(&self) -> Result<AgentConfig> {
-        // Get GitHub token from environment
-        let github_token =
-            std::env::var("GITHUB_TOKEN").map_err(|_| CliError::MissingGitHubToken)?;
+        // Get GitHub token with auto-detection from multiple sources
+        let github_token = self.get_github_token()?;
 
         // Get device identifier (optional)
         let device_identifier = std::env::var("DEVICE_IDENTIFIER")
@@ -101,6 +100,50 @@ impl AgentCommand {
             production_url: None,
             staging_url: None,
         })
+    }
+
+    /// Get GitHub token with auto-detection from multiple sources
+    ///
+    /// Tries the following sources in order:
+    /// 1. GITHUB_TOKEN environment variable
+    /// 2. gh CLI (`gh auth token`)
+    /// 3. Error with helpful instructions
+    ///
+    /// # Returns
+    /// * `Ok(String)` - GitHub token
+    /// * `Err(CliError)` - Token not found with helpful error message
+    fn get_github_token(&self) -> Result<String> {
+        // 1. Try environment variable first
+        if let Ok(token) = std::env::var("GITHUB_TOKEN") {
+            if !token.trim().is_empty() {
+                return Ok(token.trim().to_string());
+            }
+        }
+
+        // 2. Try gh CLI
+        if let Ok(output) = std::process::Command::new("gh")
+            .args(["auth", "token"])
+            .output()
+        {
+            if output.status.success() {
+                let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !token.is_empty() && (token.starts_with("ghp_") || token.starts_with("gho_") || token.starts_with("ghu_") || token.starts_with("ghs_") || token.starts_with("ghr_")) {
+                    return Ok(token);
+                }
+            }
+        }
+
+        // 3. Token not found - provide helpful error
+        Err(CliError::GitConfig(
+            "GitHub token not found. Please set up authentication:\n\n\
+             Option 1: Set environment variable\n\
+             export GITHUB_TOKEN=ghp_xxx\n\n\
+             Option 2: Authenticate with gh CLI\n\
+             gh auth login\n\n\
+             Option 3: Add to .env file (uncomment the GITHUB_TOKEN line)\n\
+             GITHUB_TOKEN=ghp_xxx"
+                .to_string(),
+        ))
     }
 
     /// Parse repository owner and name from git remote URL

@@ -1231,6 +1231,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "dirs",
+ "git2",
  "hostname",
  "miyabi-types",
  "serde",

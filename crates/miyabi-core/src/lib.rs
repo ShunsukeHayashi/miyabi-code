@@ -6,10 +6,12 @@
 //! - Retry logic with exponential backoff
 //! - Documentation generation (Rustdoc, README, code examples)
 //! - Security audit (cargo-audit integration)
+//! - Git utilities (repository discovery, branch management)
 //! - Error handling integration with miyabi-types
 
 pub mod config;
 pub mod documentation;
+pub mod git_utils;
 pub mod logger;
 pub mod retry;
 pub mod security;
@@ -19,6 +21,7 @@ pub use documentation::{
     generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, DocumentationResult,
     ReadmeTemplate, ValidationResult,
 };
+pub use git_utils::{find_git_root, get_current_branch, is_in_git_repo};
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
 pub use security::{

@@ -226,12 +226,15 @@ impl CodeGenAgent {
                     })?;
 
                     rt.block_on(async {
-                        let repo_path = std::env::current_dir().map_err(|e| {
-                            AgentError::with_cause(
-                                "Failed to get current directory",
+                        let repo_path = miyabi_core::find_git_root(None).map_err(|e| {
+                            AgentError::new(
+                                format!(
+                                    "Failed to find git repository root: {}\n\
+                                     Hint: Make sure you're running this command from within a git repository.",
+                                    e
+                                ),
                                 AgentType::CodeGenAgent,
                                 Some(task_id.clone()),
-                                e,
                             )
                         })?;
 
@@ -315,12 +318,15 @@ impl CodeGenAgent {
                     })?;
 
                     rt.block_on(async {
-                        let repo_path = std::env::current_dir().map_err(|e| {
-                            AgentError::with_cause(
-                                "Failed to get current directory for cleanup",
+                        let repo_path = miyabi_core::find_git_root(None).map_err(|e| {
+                            AgentError::new(
+                                format!(
+                                    "Failed to find git repository root for cleanup: {}\n\
+                                     Hint: Make sure you're running this command from within a git repository.",
+                                    e
+                                ),
                                 AgentType::CodeGenAgent,
                                 None,
-                                e,
                             )
                         })?;
 
