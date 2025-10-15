@@ -30,34 +30,92 @@ runs:
         components: ${{ inputs.components }}
         targets: ${{ inputs.targets }}
 
-    - name: Cache cargo registry
+    - name: Cache Layer 1 - Rust Toolchain (rarely changes)
+      id: cache-toolchain
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.rustup/toolchains
+          ~/.rustup/update-hashes
+          ~/.rustup/settings.toml
+        key: ${{ runner.os }}-rustup-${{ inputs.toolchain }}-v1
+        restore-keys: |
+          ${{ runner.os }}-rustup-${{ inputs.toolchain }}-
+          ${{ runner.os }}-rustup-
+
+    - name: Cache Layer 2 - Dependencies (Cargo.lock hash)
+      id: cache-deps
       uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/registry/index/
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-deps-${{ hashFiles('**/Cargo.lock') }}-v1
         restore-keys: |
-          ${{ runner.os }}-cargo-registry-
+          ${{ runner.os }}-cargo-deps-
 
-    - name: Cache cargo build
+    - name: Cache Layer 3 - Build Artifacts (incremental)
+      id: cache-build
       uses: actions/cache@v4
       with:
-        path: target
-        key: ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ inputs.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+        path: |
+          target/
+        key: ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ inputs.toolchain }}-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/*.rs') }}-v1
         restore-keys: |
+          ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ inputs.toolchain }}-${{ hashFiles('**/Cargo.lock') }}-
           ${{ runner.os }}-${{ inputs.cache-key-prefix }}-${{ inputs.toolchain }}-
           ${{ runner.os }}-${{ inputs.cache-key-prefix }}-
 
-    - name: Cache Rust tools
+    - name: Cache Layer 3b - Cargo Tools
+      id: cache-tools
       uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/bin/
-        key: ${{ runner.os }}-cargo-tools-${{ inputs.toolchain }}
+        key: ${{ runner.os }}-cargo-tools-${{ inputs.toolchain }}-v1
         restore-keys: |
           ${{ runner.os }}-cargo-tools-
+
+    - name: Cache Statistics
+      shell: bash
+      run: |
+        echo "### 🗄️ Cache Performance" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Layer | Status | Description |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+
+        # Layer 1: Toolchain
+        if [ "${{ steps.cache-toolchain.outputs.cache-hit }}" == "true" ]; then
+          echo "| 🟢 Layer 1 | ✅ Hit | Rust toolchain cached |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🔴 Layer 1 | ❌ Miss | Rust toolchain downloaded |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Layer 2: Dependencies
+        if [ "${{ steps.cache-deps.outputs.cache-hit }}" == "true" ]; then
+          echo "| 🟢 Layer 2 | ✅ Hit | Dependencies cached |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🔴 Layer 2 | ❌ Miss | Dependencies downloaded |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Layer 3: Build artifacts
+        if [ "${{ steps.cache-build.outputs.cache-hit }}" == "true" ]; then
+          echo "| 🟢 Layer 3 | ✅ Hit | Build artifacts cached |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🔴 Layer 3 | ❌ Miss | Incremental build required |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Layer 3b: Tools
+        if [ "${{ steps.cache-tools.outputs.cache-hit }}" == "true" ]; then
+          echo "| 🟢 Layer 3b | ✅ Hit | Cargo tools cached |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🔴 Layer 3b | ❌ Miss | Tools need installation |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "_Cache hit rate determines build speed. 3/4 hits = excellent performance._" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Print Rust version
       shell: bash
