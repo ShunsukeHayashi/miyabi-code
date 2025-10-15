@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Git worktree management for Miyabi"
+keywords = ["git", "worktree", "parallel", "execution", "automation"]
+categories = ["development-tools"]
+readme = "../README.md"
 
 [dependencies]
 miyabi-types = { path = "../miyabi-types" }

@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Core utilities for Miyabi"
+keywords = ["config", "logging", "retry", "utilities", "core"]
+categories = ["config", "development-tools"]
+readme = "../README.md"
 
 [dependencies]
 miyabi-types = { path = "../miyabi-types" }

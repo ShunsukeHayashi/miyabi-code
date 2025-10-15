@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Miyabi CLI - 一つのコマンドで全てが完結"
+keywords = ["cli", "automation", "ai", "github", "devops"]
+categories = ["command-line-utilities", "development-tools"]
+readme = "../README.md"
 
 [lib]
 name = "miyabi_cli"

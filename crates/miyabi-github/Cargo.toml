@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "GitHub API integration for Miyabi"
+keywords = ["github", "api", "octocrab", "automation", "integration"]
+categories = ["api-bindings", "web-programming"]
+readme = "../README.md"
 
 [dependencies]
 miyabi-types = { path = "../miyabi-types" }

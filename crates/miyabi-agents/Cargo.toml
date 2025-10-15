@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Miyabi Agents - Autonomous AI agents"
+keywords = ["agents", "ai", "automation", "github", "cicd"]
+categories = ["development-tools", "web-programming"]
+readme = "../README.md"
 
 [dependencies]
 miyabi-types = { path = "../miyabi-types" }

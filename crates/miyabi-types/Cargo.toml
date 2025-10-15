@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Core type definitions for Miyabi - Autonomous AI Development Operations Platform"
+keywords = ["types", "agents", "github", "ai", "automation"]
+categories = ["data-structures", "api-bindings"]
+readme = "../README.md"
 
 [dependencies]
 serde = { workspace = true }
