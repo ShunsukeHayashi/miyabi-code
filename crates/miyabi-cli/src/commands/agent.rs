@@ -79,12 +79,15 @@ impl AgentCommand {
         let device_identifier = std::env::var("DEVICE_IDENTIFIER")
             .unwrap_or_else(|_| hostname::get().unwrap().to_string_lossy().to_string());
 
+        // Parse repository owner and name from git remote
+        let (repo_owner, repo_name) = self.parse_git_remote()?;
+
         // Load from .miyabi.yml or use defaults
         Ok(AgentConfig {
             device_identifier,
             github_token,
-            repo_owner: None, // TODO: Parse from git config
-            repo_name: None,  // TODO: Parse from git config
+            repo_owner: Some(repo_owner),
+            repo_name: Some(repo_name),
             use_task_tool: false,
             use_worktree: true,
             worktree_base_path: Some(".worktrees".to_string()),
@@ -98,6 +101,61 @@ impl AgentCommand {
             production_url: None,
             staging_url: None,
         })
+    }
+
+    /// Parse repository owner and name from git remote URL
+    ///
+    /// Supports formats:
+    /// - https://github.com/owner/repo
+    /// - https://github.com/owner/repo.git
+    /// - git@github.com:owner/repo.git
+    fn parse_git_remote(&self) -> Result<(String, String)> {
+        // Run git remote get-url origin
+        let output = std::process::Command::new("git")
+            .args(&["remote", "get-url", "origin"])
+            .output()
+            .map_err(|e| CliError::GitConfig(format!("Failed to run git command: {}", e)))?;
+
+        if !output.status.success() {
+            return Err(CliError::GitConfig(
+                "Failed to get git remote URL. Not a git repository?".to_string(),
+            ));
+        }
+
+        let remote_url = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+        // Parse HTTPS format: https://github.com/owner/repo(.git)?
+        if remote_url.starts_with("http") && remote_url.contains("github.com/") {
+            let parts: Vec<&str> = remote_url
+                .split("github.com/")
+                .nth(1)
+                .ok_or_else(|| CliError::GitConfig("Invalid GitHub URL".to_string()))?
+                .trim_end_matches(".git")
+                .split('/')
+                .collect();
+
+            if parts.len() >= 2 {
+                return Ok((parts[0].to_string(), parts[1].to_string()));
+            }
+        }
+
+        // Parse SSH format: git@github.com:owner/repo.git
+        if remote_url.starts_with("git@github.com:") {
+            let repo_part = remote_url
+                .strip_prefix("git@github.com:")
+                .ok_or_else(|| CliError::GitConfig("Invalid SSH URL".to_string()))?
+                .trim_end_matches(".git");
+
+            let parts: Vec<&str> = repo_part.split('/').collect();
+            if parts.len() >= 2 {
+                return Ok((parts[0].to_string(), parts[1].to_string()));
+            }
+        }
+
+        Err(CliError::GitConfig(format!(
+            "Could not parse GitHub owner/repo from remote URL: {}",
+            remote_url
+        )))
     }
 
     async fn run_coordinator_agent(&self, config: AgentConfig) -> Result<()> {

@@ -1,0 +1,18 @@
+github:
+  defaultPrivate: true
+  owner: ShunsukeHayashi
+  repo: miyabi-private
+  # token: ghp_YOUR_TOKEN_HERE  # DO NOT commit actual token
+  # Set GITHUB_TOKEN environment variable instead
+project:
+  gitignoreTemplate: Node
+  licenseTemplate: Apache-2.0
+labels: {}
+workflows:
+  autoLabel: true
+  autoReview: true
+  autoSync: true
+cli:
+  language: ja
+  theme: default
+  verboseErrors: true

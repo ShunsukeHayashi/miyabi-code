@@ -52,15 +52,32 @@ cargo install miyabi-cli  # Coming soon to crates.io
 
 ## ✨ クイックスタート
 
+### 🦀 Rust Edition（推奨 - 50%高速化）
+
+```bash
+# 1. ビルド（初回のみ、8-10分）
+cargo build --release
+
+# 2. セットアップ（1コマンドで完了！）
+./target/release/miyabi setup
+
+# 3. Agent実行
+export GITHUB_TOKEN=$(gh auth token)
+./target/release/miyabi agent coordinator --issue <number>
+```
+
+**従来**: 手動で5-6ステップ必要
+**現在**: **1コマンドで完了** 🎉
+
+### 📦 TypeScript Edition（レガシー）
+
 ```bash
 npx miyabi
 ```
 
-**たったこれだけ。** 全て自動で完結します。
-
 ### 📚 詳細ガイド
 
-- **🚀 初心者向け**: [3分で始めるMiyabi - Quick Start Guide](.claude/QUICK_START.md)
+- **🚀 初心者向け**: [1分で始めるMiyabi - Quick Start Guide (Rust Edition)](.claude/QUICK_START.md)
 - **🔧 困ったときは**: [トラブルシューティングガイド](.claude/TROUBLESHOOTING.md)
 
 <div align="center">

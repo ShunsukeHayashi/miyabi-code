@@ -5,7 +5,7 @@ mod error;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::{AgentCommand, InitCommand, InstallCommand, StatusCommand};
+use commands::{AgentCommand, InitCommand, InstallCommand, SetupCommand, StatusCommand};
 use error::Result;
 
 #[derive(Parser)]
@@ -40,6 +40,12 @@ enum Commands {
         /// Dry run (don't make changes)
         #[arg(long)]
         dry_run: bool,
+    },
+    /// Interactive setup wizard
+    Setup {
+        /// Skip interactive prompts (use defaults)
+        #[arg(long)]
+        yes: bool,
     },
     /// Check project status
     Status {
@@ -76,6 +82,10 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Install { dry_run }) => {
             let cmd = InstallCommand::new(dry_run);
+            cmd.execute().await
+        }
+        Some(Commands::Setup { yes }) => {
+            let cmd = SetupCommand::new(yes);
             cmd.execute().await
         }
         Some(Commands::Status { watch }) => {

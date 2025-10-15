@@ -22,6 +22,9 @@ pub enum CliError {
     #[error("Issue number required for agent execution")]
     MissingIssueNumber,
 
+    #[error("Git configuration error: {0}")]
+    GitConfig(String),
+
     #[error("Miyabi error: {0}")]
     Miyabi(#[from] miyabi_types::error::MiyabiError),
 
