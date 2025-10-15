@@ -1,0 +1,430 @@
+@startuml Phase5 Parallel Execution Plan
+!theme blueprint
+
+title Phase 5 並列実行計画 - DAG & Timeline
+
+' ========================================
+' タスク依存関係グラフ (DAG)
+' ========================================
+
+digraph G {
+  rankdir=LR
+  node [shape=box, style=filled]
+
+  ' 完了タスク (緑)
+  P0_1 [label="P0-1\nGitHub API\n4h", fillcolor="#90EE90"]
+  P0_2 [label="P0-2\nPlans.md\n3h", fillcolor="#90EE90"]
+
+  ' Level 0 (金)
+  P0_3 [label="P0-3\nWorktree統合\n6h", fillcolor="#FFD700"]
+  P1_1 [label="P1-1\nCoordinator\nテスト 5h", fillcolor="#FFD700"]
+  P1_5 [label="P1-5\nReview\n静的解析 8h", fillcolor="#FFD700"]
+  P1_9 [label="P1-9\nIssue\n種別判定 6h", fillcolor="#FFD700"]
+
+  ' Level 1 (青)
+  P0_4 [label="P0-4\nClaude Code\n12h", fillcolor="#87CEEB"]
+  P1_6 [label="P1-6\nReview\n品質スコア 8h", fillcolor="#87CEEB"]
+  P1_10 [label="P1-10\nIssue\nSeverity 6h", fillcolor="#87CEEB"]
+  P1_13 [label="P1-13\nPR\nConventional 6h", fillcolor="#87CEEB"]
+
+  ' Level 2 (水色)
+  P1_2 [label="P1-2\nGit commit\n4h", fillcolor="#B0E0E6"]
+  P1_7 [label="P1-7\nReview\nコメント 8h", fillcolor="#B0E0E6"]
+  P1_11 [label="P1-11\nIssue\nLabel付与 6h", fillcolor="#B0E0E6"]
+  P1_14 [label="P1-14\nPR\n本文生成 6h", fillcolor="#B0E0E6"]
+
+  ' Level 3 (ピンク)
+  P1_3 [label="P1-3\nテスト生成\n8h", fillcolor="#FFB6C1"]
+  P1_8a [label="P1-8a\nReview\nテスト 8h", fillcolor="#FFB6C1"]
+  P1_12a [label="P1-12a\nIssue\nテスト 6h", fillcolor="#FFB6C1"]
+  P1_15 [label="P1-15\nPR\nDraft作成 6h", fillcolor="#FFB6C1"]
+
+  ' Level 4 (薄紫)
+  P1_4 [label="P1-4\n統合テスト\n6h", fillcolor="#DDA0DD"]
+  P1_8b [label="P1-8b\nReview\nテスト 8h", fillcolor="#DDA0DD"]
+  P1_16 [label="P1-16\nPR\nテスト 6h", fillcolor="#DDA0DD"]
+
+  ' 依存関係
+  P0_1 -> P0_2
+  P0_2 -> P1_1
+
+  P0_3 -> P0_4
+  P0_4 -> P1_2
+  P0_4 -> P1_3
+  P1_2 -> P1_4
+  P1_3 -> P1_4
+
+  P1_5 -> P1_7
+  P1_5 -> P1_8a
+  P1_6 -> P1_8a
+  P1_7 -> P1_8a
+  P1_8a -> P1_8b
+
+  P0_1 -> P1_11
+  P1_9 -> P1_12a
+  P1_10 -> P1_12a
+  P1_11 -> P1_12a
+
+  P0_1 -> P1_15
+  P1_13 -> P1_16
+  P1_14 -> P1_16
+  P1_15 -> P1_16
+
+  ' 凡例
+  subgraph cluster_legend {
+    label="凡例"
+    style=dashed
+    Legend_Done [label="完了", fillcolor="#90EE90"]
+    Legend_L0 [label="Level 0", fillcolor="#FFD700"]
+    Legend_L1 [label="Level 1", fillcolor="#87CEEB"]
+    Legend_L2 [label="Level 2", fillcolor="#B0E0E6"]
+    Legend_L3 [label="Level 3", fillcolor="#FFB6C1"]
+    Legend_L4 [label="Level 4", fillcolor="#DDA0DD"]
+  }
+}
+
+@enduml
+
+@startuml Phase5 Gantt Chart - Parallel Execution
+!theme blueprint
+
+title Phase 5 並列実行ガントチャート (4並列)
+
+projectscale daily
+printscale daily zoom 2
+
+Project starts 2025-10-15
+
+' 完了タスク
+[P0-1: GitHub API] as P01 lasts 1 days
+[P0-1: GitHub API] is colored in GreenYellow
+[P0-1: GitHub API] starts 2025-10-15
+
+[P0-2: Plans.md] as P02 lasts 1 days
+[P0-2: Plans.md] is colored in GreenYellow
+[P0-2: Plans.md] starts at P01's end
+
+' Level 0 (8h = 1日) - 4並列
+[Level 0] as L0_Label lasts 1 days
+[Level 0] is colored in Lavender
+[Level 0] starts at P02's end
+
+[P0-3: Worktree統合 (6h)] as P03 lasts 1 days
+[P0-3: Worktree統合 (6h)] is colored in Gold
+[P0-3: Worktree統合 (6h)] starts at P02's end
+
+[P1-1: Coordinatorテスト (5h)] as P11 lasts 1 days
+[P1-1: Coordinatorテスト (5h)] is colored in Gold
+[P1-1: Coordinatorテスト (5h)] starts at P02's end
+
+[P1-5: Review静的解析 (8h)] as P15 lasts 1 days
+[P1-5: Review静的解析 (8h)] is colored in Gold
+[P1-5: Review静的解析 (8h)] starts at P02's end
+
+[P1-9: Issue種別 (6h)] as P19 lasts 1 days
+[P1-9: Issue種別 (6h)] is colored in Gold
+[P1-9: Issue種別 (6h)] starts at P02's end
+
+' Level 1 (12h = 1.5日) - 4並列
+[Level 1] as L1_Label lasts 2 days
+[Level 1] is colored in Lavender
+[Level 1] starts at L0_Label's end
+
+[P0-4: Claude Code (12h)] as P04 lasts 2 days
+[P0-4: Claude Code (12h)] is colored in SkyBlue
+[P0-4: Claude Code (12h)] starts at P03's end
+
+[P1-6: 品質スコア (8h)] as P16 lasts 1 days
+[P1-6: 品質スコア (8h)] is colored in SkyBlue
+[P1-6: 品質スコア (8h)] starts at L0_Label's end
+
+[P1-10: Severity (6h)] as P110 lasts 1 days
+[P1-10: Severity (6h)] is colored in SkyBlue
+[P1-10: Severity (6h)] starts at L0_Label's end
+
+[P1-13: Conventional Commits (6h)] as P113 lasts 1 days
+[P1-13: Conventional Commits (6h)] is colored in SkyBlue
+[P1-13: Conventional Commits (6h)] starts at L0_Label's end
+
+' Level 2 (8h = 1日) - 4並列
+[Level 2] as L2_Label lasts 1 days
+[Level 2] is colored in Lavender
+[Level 2] starts at L1_Label's end
+
+[P1-2: Git commit (4h)] as P12 lasts 1 days
+[P1-2: Git commit (4h)] is colored in LightBlue
+[P1-2: Git commit (4h)] starts at P04's end
+
+[P1-7: レビューコメント (8h)] as P17 lasts 1 days
+[P1-7: レビューコメント (8h)] is colored in LightBlue
+[P1-7: レビューコメント (8h)] starts at P15's end
+
+[P1-11: Label付与 (6h)] as P111 lasts 1 days
+[P1-11: Label付与 (6h)] is colored in LightBlue
+[P1-11: Label付与 (6h)] starts at L1_Label's end
+
+[P1-14: PR本文 (6h)] as P114 lasts 1 days
+[P1-14: PR本文 (6h)] is colored in LightBlue
+[P1-14: PR本文 (6h)] starts at L1_Label's end
+
+' Level 3 (8h = 1日) - 4並列
+[Level 3] as L3_Label lasts 1 days
+[Level 3] is colored in Lavender
+[Level 3] starts at L2_Label's end
+
+[P1-3: テスト生成 (8h)] as P13 lasts 1 days
+[P1-3: テスト生成 (8h)] is colored in Pink
+[P1-3: テスト生成 (8h)] starts at P04's end
+
+[P1-8a: Reviewテスト (8h)] as P18a lasts 1 days
+[P1-8a: Reviewテスト (8h)] is colored in Pink
+[P1-8a: Reviewテスト (8h)] starts at P17's end
+
+[P1-12: Issueテスト (6h)] as P112 lasts 1 days
+[P1-12: Issueテスト (6h)] is colored in Pink
+[P1-12: Issueテスト (6h)] starts at P111's end
+
+[P1-15: Draft PR (6h)] as P115 lasts 1 days
+[P1-15: Draft PR (6h)] is colored in Pink
+[P1-15: Draft PR (6h)] starts at L2_Label's end
+
+' Level 4 (8h = 1日) - 3並列
+[Level 4] as L4_Label lasts 1 days
+[Level 4] is colored in Lavender
+[Level 4] starts at L3_Label's end
+
+[P1-4: 統合テスト (6h)] as P14 lasts 1 days
+[P1-4: 統合テスト (6h)] is colored in Plum
+[P1-4: 統合テスト (6h)] starts at P13's end
+
+[P1-8b: Reviewテスト (8h)] as P18b lasts 1 days
+[P1-8b: Reviewテスト (8h)] is colored in Plum
+[P1-8b: Reviewテスト (8h)] starts at P18a's end
+
+[P1-16: PRテスト (6h)] as P116 lasts 1 days
+[P1-16: PRテスト (6h)] is colored in Plum
+[P1-16: PRテスト (6h)] starts at P115's end
+
+' マイルストーン
+[Phase 5完了] as Milestone happens at P18b's end
+[Phase 5完了] is colored in Red
+
+@enduml
+
+@startuml Phase5 Timeline Comparison
+!theme blueprint
+
+title Sequential vs Parallel実行時間比較
+
+scale 500 width
+
+' Sequential実行 (119時間 = 15日)
+concise "Sequential\n実行" as SEQ
+@0
+SEQ is P0-1_P0-2
+@7
+SEQ is P0-3
+@13
+SEQ is P0-4
+@25
+SEQ is P1-1_Tests
+@30
+SEQ is P1-2_Git
+@34
+SEQ is P1-3_TestGen
+@42
+SEQ is P1-4_Integration
+@48
+SEQ is P1-5_Static
+@56
+SEQ is P1-6_Score
+@64
+SEQ is P1-7_Comment
+@72
+SEQ is P1-8_ReviewTest
+@88
+SEQ is P1-9_IssueType
+@94
+SEQ is P1-10_Severity
+@100
+SEQ is P1-11_Label
+@106
+SEQ is P1-12_IssueTest
+@112
+SEQ is P1-13_Conventional
+@118
+SEQ is P1-14_PRBody
+@124
+SEQ is P1-15_DraftPR
+@130
+SEQ is P1-16_PRTest
+@136
+SEQ is Done
+
+' Parallel実行 (44時間 = 5.5日)
+concise "Parallel\n実行 (4並列)" as PAR
+@0
+PAR is P0-1_P0-2
+@7
+PAR is Level_0
+@15
+PAR is Level_1
+@27
+PAR is Level_2
+@35
+PAR is Level_3
+@43
+PAR is Level_4
+@51
+PAR is Done
+
+' 凡例
+legend right
+  |<#90EE90>| 完了 |
+  |<#FFD700>| Level 0 (8h) |
+  |<#87CEEB>| Level 1 (12h) |
+  |<#B0E0E6>| Level 2 (8h) |
+  |<#FFB6C1>| Level 3 (8h) |
+  |<#DDA0DD>| Level 4 (8h) |
+  ====
+  **効率化効果**
+  Sequential: 119h (15日)
+  Parallel: 44h (5.5日)
+  **削減率: 63%**
+endlegend
+
+@enduml
+
+@startuml Phase5 Resource Allocation
+!theme blueprint
+
+title Phase 5 リソース配分 - Level 0 (4並列)
+
+!define AGENT(name, desc) rectangle name as "name\n<size:10>desc</size>"
+
+package "Level 0 (8時間並列)" {
+  AGENT(Worker1, "Terminal 1\nP0-3: Worktree統合\n6h")
+  AGENT(Worker2, "Terminal 2\nP1-1: テスト拡充\n5h")
+  AGENT(Worker3, "Terminal 3\nP1-5: 静的解析\n8h")
+  AGENT(Worker4, "Terminal 4\nP1-9: Issue種別\n6h")
+}
+
+package "Agent実装対象" {
+  rectangle CodeGenAgent #Gold
+  rectangle CoordinatorAgent #Gold
+  rectangle ReviewAgent #SkyBlue
+  rectangle IssueAgent #SkyBlue
+}
+
+Worker1 --> CodeGenAgent : 実装
+Worker2 --> CoordinatorAgent : テスト拡充
+Worker3 --> ReviewAgent : 新規実装
+Worker4 --> IssueAgent : 新規実装
+
+note right of Worker3
+  **Critical Path**
+  Level 0で最長タスク (8h)
+  並列実行の律速段階
+end note
+
+legend left
+  |= リソース |= 所要時間 |= Agent |
+  | Worker1 | 6h | CodeGenAgent |
+  | Worker2 | 5h | CoordinatorAgent |
+  | Worker3 | 8h | ReviewAgent |
+  | Worker4 | 6h | IssueAgent |
+  ====
+  **総所要時間: max(6,5,8,6) = 8時間**
+endlegend
+
+@enduml
+
+@startuml Phase5 Critical Path Analysis
+!theme blueprint
+
+title Phase 5 Critical Path (最長経路) 分析
+
+start
+
+:P0-1: GitHub API統合\n4h (完了);
+note right: ✅ 2025-10-15完了
+
+:P0-2: Plans.md生成\n3h (完了);
+note right: ✅ 2025-10-15完了
+
+fork
+  :P0-3: Worktree統合\n6h;
+  note right
+    **Critical Path開始**
+    Level 0最長: 6h
+  end note
+
+  :P0-4: Claude Code統合\n12h;
+  note right
+    **Critical Path**
+    Level 1最長: 12h
+  end note
+
+  :P1-2: Git commit統合\n4h;
+
+  :P1-3: テスト生成\n8h;
+
+  :P1-4: 統合テスト\n6h;
+  note right
+    **Critical Path終了**
+    総時間: 36h
+  end note
+
+fork again
+  :P1-1: テスト拡充\n5h;
+  note right: Level 0
+
+fork again
+  :P1-5: 静的解析統合\n8h;
+  note right
+    Level 0最長タスク
+    並列実行の律速
+  end note
+
+  :P1-7: レビューコメント\n8h;
+
+  :P1-8: Reviewテスト\n16h;
+
+fork again
+  :P1-9: Issue種別判定\n6h;
+  note right: Level 0
+
+  :P1-10: Severity評価\n6h;
+
+  :P1-11: Label付与\n6h;
+
+  :P1-12: Issueテスト\n6h;
+
+fork again
+  :P1-13: Conventional Commits\n6h;
+  note right: Level 1
+
+  :P1-14: PR本文生成\n6h;
+
+  :P1-15: Draft PR作成\n6h;
+
+  :P1-16: PRテスト\n6h;
+
+end fork
+
+:Phase 5完了;
+
+stop
+
+note right
+  **Critical Path (最長経路)**
+  P0-3 → P0-4 → P1-2 → P1-3 → P1-4
+  総時間: 6 + 12 + 4 + 8 + 6 = 36時間
+
+  **並列実行により**
+  Sequential: 119時間
+  Parallel: 44時間
+  **効率化: 63%削減**
+end note
+
+@enduml
