@@ -54,7 +54,7 @@ impl AgentCommand {
         Ok(())
     }
 
-    fn parse_agent_type(&self) -> Result<AgentType> {
+    pub fn parse_agent_type(&self) -> Result<AgentType> {
         match self.agent_type.to_lowercase().as_str() {
             "coordinator" => Ok(AgentType::CoordinatorAgent),
             "codegen" | "code-gen" => Ok(AgentType::CodeGenAgent),
