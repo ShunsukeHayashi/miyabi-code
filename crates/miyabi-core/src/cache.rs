@@ -143,7 +143,7 @@ impl LLMCacheKey {
         Self {
             prompt_hash: format!("{:x}", hasher.finish()),
             model: model.to_string(),
-            temperature: temperature.map(|t| t.to_bits() as u32),
+            temperature: temperature.map(|t| t.to_bits()),
         }
     }
 }
