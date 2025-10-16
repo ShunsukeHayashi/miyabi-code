@@ -22,6 +22,9 @@ miyabi-github = { version = "1.0.0", path = "../miyabi-github" }
 miyabi-worktree = { version = "1.0.0", path = "../miyabi-worktree" }
 miyabi-business-agents = { version = "1.0.0", path = "../miyabi-business-agents" }
 
+# GitHub API
+octocrab = { workspace = true }
+
 # MCP Protocol (JSON-RPC 2.0)
 jsonrpc-core = "18.0"
 jsonrpc-derive = "18.0"
