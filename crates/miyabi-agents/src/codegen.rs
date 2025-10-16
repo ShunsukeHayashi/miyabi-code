@@ -117,6 +117,7 @@ impl CodeGenAgent {
     ///
     /// This async version includes semantic search results from Potpie
     /// to provide existing implementation examples.
+    #[allow(dead_code)] // Will be used in production deployment with Potpie enabled
     async fn generate_enhanced_execution_context(
         &self,
         task: &Task,
