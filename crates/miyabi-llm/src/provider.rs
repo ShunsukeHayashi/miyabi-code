@@ -217,6 +217,19 @@ impl GPTOSSProvider {
         })
     }
 
+    /// Build Ollama-specific request body
+    fn build_ollama_request_body(&self, request: &LLMRequest) -> serde_json::Value {
+        serde_json::json!({
+            "model": self.model,
+            "prompt": request.prompt,
+            "stream": false,
+            "options": {
+                "temperature": request.temperature,
+                "num_predict": request.max_tokens,
+            }
+        })
+    }
+
     /// Build chat request body
     fn build_chat_request_body(
         &self,
@@ -272,6 +285,39 @@ impl GPTOSSProvider {
             function_call: None, // TODO: Parse function calls
         })
     }
+
+    /// Parse Ollama-specific response
+    fn parse_ollama_response(&self, response_json: &serde_json::Value) -> Result<LLMResponse> {
+        let response_text = response_json
+            .get("response")
+            .and_then(|r| r.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let done_reason = response_json
+            .get("done_reason")
+            .and_then(|d| d.as_str())
+            .unwrap_or("stop")
+            .to_string();
+
+        // Calculate tokens from context if available
+        let tokens_used = response_json
+            .get("eval_count")
+            .and_then(|e| e.as_u64())
+            .unwrap_or(0) as u32;
+
+        Ok(LLMResponse {
+            text: response_text,
+            tokens_used,
+            finish_reason: done_reason,
+            function_call: None,
+        })
+    }
+
+    /// Check if this is an Ollama endpoint
+    fn is_ollama(&self) -> bool {
+        self.endpoint.contains("11434") || self.model.contains("gpt-oss:20b")
+    }
 }
 
 #[async_trait]
@@ -283,12 +329,22 @@ impl LLMProvider for GPTOSSProvider {
             request.reasoning_effort
         );
 
-        let request_body = self.build_request_body(request);
+        let (request_body, endpoint_path) = if self.is_ollama() {
+            (
+                self.build_ollama_request_body(request),
+                "/api/generate".to_string(),
+            )
+        } else {
+            (
+                self.build_request_body(request),
+                "/chat/completions".to_string(),
+            )
+        };
 
         // Build HTTP request
         let mut http_request = self
             .client
-            .post(format!("{}/chat/completions", self.endpoint))
+            .post(format!("{}{}", self.endpoint, endpoint_path))
             .json(&request_body)
             .timeout(self.timeout);
 
@@ -318,7 +374,12 @@ impl LLMProvider for GPTOSSProvider {
 
         // Parse response
         let response_json: serde_json::Value = response.json().await?;
-        self.parse_response(&response_json)
+        
+        if self.is_ollama() {
+            self.parse_ollama_response(&response_json)
+        } else {
+            self.parse_response(&response_json)
+        }
     }
 
     async fn chat(&self, messages: &[ChatMessage]) -> Result<ChatMessage> {
@@ -535,5 +596,49 @@ mod tests {
             .unwrap()
             .with_timeout(Duration::from_secs(60));
         assert_eq!(provider.timeout, Duration::from_secs(60));
+    }
+
+    #[test]
+    fn test_is_ollama() {
+        let ollama_provider = GPTOSSProvider::new_mac_mini_tailscale().unwrap();
+        assert!(ollama_provider.is_ollama());
+
+        let groq_provider = GPTOSSProvider::new_groq("test").unwrap();
+        assert!(!groq_provider.is_ollama());
+    }
+
+    #[test]
+    fn test_build_ollama_request_body() {
+        let provider = GPTOSSProvider::new_mac_mini_tailscale().unwrap();
+        let request = LLMRequest::new("test prompt")
+            .with_temperature(0.5)
+            .with_max_tokens(1024);
+
+        let body = provider.build_ollama_request_body(&request);
+
+        assert_eq!(body["model"], "gpt-oss:20b");
+        assert_eq!(body["prompt"], "test prompt");
+        assert_eq!(body["stream"], false);
+        assert_eq!(body["options"]["temperature"], 0.5);
+        assert_eq!(body["options"]["num_predict"], 1024);
+    }
+
+    #[test]
+    fn test_parse_ollama_response() {
+        let provider = GPTOSSProvider::new_mac_mini_tailscale().unwrap();
+
+        let response_json = serde_json::json!({
+            "model": "gpt-oss:20b",
+            "created_at": "2025-10-16T18:39:31.214203Z",
+            "response": "Hello! I'm just a bunch of algorithms, so I don't have feelings in the human sense, but I'm here and ready to help. How can I assist you today?",
+            "done": true,
+            "done_reason": "stop",
+            "eval_count": 71
+        });
+
+        let result = provider.parse_ollama_response(&response_json).unwrap();
+        assert!(result.text.contains("Hello! I'm just a bunch of algorithms"));
+        assert_eq!(result.tokens_used, 71);
+        assert_eq!(result.finish_reason, "stop");
     }
 }

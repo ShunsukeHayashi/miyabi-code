@@ -16,6 +16,7 @@ miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
 miyabi-github = { version = "1.0.0", path = "../miyabi-github" }
 miyabi-worktree = { version = "1.0.0", path = "../miyabi-worktree" }
 miyabi-llm = { version = "1.0.0", path = "../miyabi-llm" }
+futures = "0.3"
 miyabi-potpie = { version = "1.0.0", path = "../miyabi-potpie" }
 
 tokio = { workspace = true }

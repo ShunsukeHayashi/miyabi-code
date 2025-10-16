@@ -6,6 +6,7 @@ pub mod codegen;
 pub mod coordinator;
 pub mod deployment;
 pub mod issue;
+pub mod parallel;
 pub mod potpie_integration;
 pub mod pr;
 pub mod refresher;

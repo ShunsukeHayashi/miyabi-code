@@ -1166,6 +1166,7 @@ version = "1.0.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "futures",
  "miyabi-core",
  "miyabi-github",
  "miyabi-llm",
@@ -1219,6 +1220,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "dirs 6.0.0",
+ "futures",
  "git2",
  "hostname",
  "miyabi-types",
