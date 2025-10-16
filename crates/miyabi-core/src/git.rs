@@ -175,7 +175,12 @@ mod tests {
         let (_temp, repo_path) = setup_test_repo();
 
         let found_root = find_git_root(Some(&repo_path)).unwrap();
-        assert_eq!(found_root, repo_path);
+
+        // Canonicalize both paths to handle symlink differences (e.g., /var -> /private/var on macOS)
+        let canonical_found = fs::canonicalize(&found_root).unwrap();
+        let canonical_expected = fs::canonicalize(&repo_path).unwrap();
+
+        assert_eq!(canonical_found, canonical_expected);
     }
 
     #[test]
@@ -188,7 +193,12 @@ mod tests {
 
         // Find root from subdirectory
         let found_root = find_git_root(Some(&sub_dir)).unwrap();
-        assert_eq!(found_root, repo_path);
+
+        // Canonicalize both paths to handle symlink differences (e.g., /var -> /private/var on macOS)
+        let canonical_found = fs::canonicalize(&found_root).unwrap();
+        let canonical_expected = fs::canonicalize(&repo_path).unwrap();
+
+        assert_eq!(canonical_found, canonical_expected);
     }
 
     #[test]
