@@ -35,8 +35,7 @@ fn init_test_repo() -> (TempDir, PathBuf) {
         .expect("Failed to configure git email");
 
     // Create initial commit
-    std::fs::write(repo_path.join("README.md"), "# Test Repo\n")
-        .expect("Failed to write README");
+    std::fs::write(repo_path.join("README.md"), "# Test Repo\n").expect("Failed to write README");
 
     std::process::Command::new("git")
         .args(["add", "README.md"])
@@ -148,7 +147,7 @@ async fn test_pool_execution_success() {
             let test_file = path.join(format!("test-{}.txt", issue));
             tokio::fs::write(&test_file, format!("Test for issue #{}", issue))
                 .await
-                .map_err(|e| miyabi_types::error::MiyabiError::Io(e))?;
+                .map_err(miyabi_types::error::MiyabiError::Io)?;
 
             Ok(())
         })

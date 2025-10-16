@@ -17,11 +17,8 @@ pub trait LLMProvider: Send + Sync {
     async fn chat(&self, messages: &[ChatMessage]) -> Result<ChatMessage>;
 
     /// Call a function using function calling
-    async fn call_function(
-        &self,
-        name: &str,
-        args: serde_json::Value,
-    ) -> Result<serde_json::Value>;
+    async fn call_function(&self, name: &str, args: serde_json::Value)
+        -> Result<serde_json::Value>;
 
     /// Get model name
     fn model_name(&self) -> &str;
@@ -60,7 +57,7 @@ impl GPTOSSProvider {
         }
 
         let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(120))
+            .timeout(Duration::from_secs(300)) // 5 minutes timeout
             .build()
             .map_err(|e| LLMError::Unknown(format!("Failed to create HTTP client: {}", e)))?;
 
@@ -69,7 +66,7 @@ impl GPTOSSProvider {
             api_key,
             model: "openai/gpt-oss-20b".to_string(),
             client,
-            timeout: Duration::from_secs(120),
+            timeout: Duration::from_secs(300), // 5 minutes timeout
         })
     }
 
@@ -85,10 +82,7 @@ impl GPTOSSProvider {
     /// let provider = GPTOSSProvider::new_groq("gsk_xxxxx").unwrap();
     /// ```
     pub fn new_groq(api_key: impl Into<String>) -> Result<Self> {
-        Self::new(
-            "https://api.groq.com/openai/v1",
-            Some(api_key.into()),
-        )
+        Self::new("https://api.groq.com/openai/v1", Some(api_key.into()))
     }
 
     /// Create a vLLM provider
@@ -374,7 +368,7 @@ impl LLMProvider for GPTOSSProvider {
 
         // Parse response
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if self.is_ollama() {
             self.parse_ollama_response(&response_json)
         } else {
@@ -637,7 +631,9 @@ mod tests {
         });
 
         let result = provider.parse_ollama_response(&response_json).unwrap();
-        assert!(result.text.contains("Hello! I'm just a bunch of algorithms"));
+        assert!(result
+            .text
+            .contains("Hello! I'm just a bunch of algorithms"));
         assert_eq!(result.tokens_used, 71);
         assert_eq!(result.finish_reason, "stop");
     }

@@ -61,6 +61,15 @@
 
     "//": "=== Optional Servers (Enable as needed) ===",
 
+    "ollama-integration": {
+      "command": "node",
+      "args": [
+        ".claude/mcp-servers/ollama-integration.cjs"
+      ],
+      "disabled": false,
+      "description": "Ollama Mac mini integration - GPT-OSS-20B local LLM inference"
+    },
+
     "context-engineering": {
       "command": "node",
       "args": [
