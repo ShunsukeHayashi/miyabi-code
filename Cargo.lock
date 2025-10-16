@@ -1169,6 +1169,7 @@ dependencies = [
  "miyabi-core",
  "miyabi-github",
  "miyabi-llm",
+ "miyabi-potpie",
  "miyabi-types",
  "miyabi-worktree",
  "octocrab",
@@ -1272,6 +1273,23 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "miyabi-potpie"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "miyabi-core",
+ "miyabi-types",
+ "mockito",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

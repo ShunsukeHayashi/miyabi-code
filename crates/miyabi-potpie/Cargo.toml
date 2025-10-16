@@ -1,30 +1,32 @@
 [package]
-name = "miyabi-agents"
+name = "miyabi-potpie"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Miyabi Agents - Autonomous AI agents"
-keywords = ["agents", "ai", "automation", "github", "cicd"]
+description = "Potpie AI integration for Miyabi - Neo4j knowledge graph and RAG engine"
+keywords = ["potpie", "knowledge-graph", "rag", "ai", "code-analysis"]
 categories = ["development-tools", "web-programming"]
 readme = "../README.md"
 
 [dependencies]
 miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
 miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
-miyabi-github = { version = "1.0.0", path = "../miyabi-github" }
-miyabi-worktree = { version = "1.0.0", path = "../miyabi-worktree" }
-miyabi-llm = { version = "1.0.0", path = "../miyabi-llm" }
-miyabi-potpie = { version = "1.0.0", path = "../miyabi-potpie" }
 
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-chrono = { workspace = true }
 thiserror = { workspace = true }
+anyhow = { workspace = true }
 tracing = { workspace = true }
-async-trait = "0.1"
-regex = "1.10"
+
+# HTTP client
 reqwest = { version = "0.12", features = ["json"] }
-octocrab = "0.47"
+
+# Date/Time
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+mockito = "1.5"
