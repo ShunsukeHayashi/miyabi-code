@@ -78,7 +78,10 @@ fn benchmark1_simple_tool_creation(task_count: usize) -> BenchmarkResult {
     result.finalize(&durations);
     result.total_duration_ms = total_duration;
 
-    println!("✅ 完了: {}/{} 成功", result.successful_tasks, result.total_tasks);
+    println!(
+        "✅ 完了: {}/{} 成功",
+        result.successful_tasks, result.total_tasks
+    );
     println!("⏱️  総時間: {:.2}ms", result.total_duration_ms);
     println!("📈 平均: {:.2}ms/task", result.avg_duration_ms);
     println!("🚀 スループット: {:.2} tasks/sec", result.throughput);
@@ -88,7 +91,10 @@ fn benchmark1_simple_tool_creation(task_count: usize) -> BenchmarkResult {
 
 /// Scenario 2: Cached Execution
 fn benchmark2_cached_execution(task_count: usize) -> BenchmarkResult {
-    println!("\n📊 Benchmark 2: キャッシュ付きツール実行 ({}タスク)", task_count);
+    println!(
+        "\n📊 Benchmark 2: キャッシュ付きツール実行 ({}タスク)",
+        task_count
+    );
 
     use std::collections::HashMap;
     let mut cache: HashMap<String, String> = HashMap::new();
@@ -120,7 +126,10 @@ fn benchmark2_cached_execution(task_count: usize) -> BenchmarkResult {
     result.total_duration_ms = total_duration;
 
     let hit_rate = ((task_count - 100) as f64 / task_count as f64) * 100.0;
-    println!("✅ 完了: {}/{} 成功", result.successful_tasks, result.total_tasks);
+    println!(
+        "✅ 完了: {}/{} 成功",
+        result.successful_tasks, result.total_tasks
+    );
     println!("⏱️  総時間: {:.2}ms", result.total_duration_ms);
     println!("📈 平均: {:.2}ms/task", result.avg_duration_ms);
     println!("🚀 スループット: {:.2} tasks/sec", result.throughput);
@@ -131,7 +140,10 @@ fn benchmark2_cached_execution(task_count: usize) -> BenchmarkResult {
 
 /// Scenario 3: Security Validation
 fn benchmark3_security_validation(task_count: usize) -> BenchmarkResult {
-    println!("\n📊 Benchmark 3: セキュリティ検証付き ({}タスク)", task_count);
+    println!(
+        "\n📊 Benchmark 3: セキュリティ検証付き ({}タスク)",
+        task_count
+    );
 
     let test_codes = vec![
         "function add(a, b) { return a + b; }",
@@ -149,9 +161,7 @@ fn benchmark3_security_validation(task_count: usize) -> BenchmarkResult {
 
         let code = test_codes[i % test_codes.len()];
         // 簡易セキュリティ検証（文字列検索）
-        let _is_safe = !code.contains("eval")
-            && !code.contains("exec")
-            && !code.contains("system");
+        let _is_safe = !code.contains("eval") && !code.contains("exec") && !code.contains("system");
 
         let task_duration = task_start.elapsed().as_secs_f64() * 1000.0;
         durations.push(task_duration);
@@ -163,7 +173,10 @@ fn benchmark3_security_validation(task_count: usize) -> BenchmarkResult {
     result.finalize(&durations);
     result.total_duration_ms = total_duration;
 
-    println!("✅ 完了: {}/{} 成功", result.successful_tasks, result.total_tasks);
+    println!(
+        "✅ 完了: {}/{} 成功",
+        result.successful_tasks, result.total_tasks
+    );
     println!("⏱️  総時間: {:.2}ms", result.total_duration_ms);
     println!("📈 平均: {:.2}ms/task", result.avg_duration_ms);
     println!("🚀 スループット: {:.2} tasks/sec", result.throughput);
@@ -207,7 +220,10 @@ fn benchmark4_retry_execution(task_count: usize) -> BenchmarkResult {
     result.finalize(&durations);
     result.total_duration_ms = total_duration;
 
-    println!("✅ 完了: {}/{} 成功", result.successful_tasks, result.total_tasks);
+    println!(
+        "✅ 完了: {}/{} 成功",
+        result.successful_tasks, result.total_tasks
+    );
     println!("⏱️  総時間: {:.2}ms", result.total_duration_ms);
     println!("📈 平均: {:.2}ms/task", result.avg_duration_ms);
     println!("🚀 スループット: {:.2} tasks/sec", result.throughput);
@@ -257,7 +273,10 @@ fn benchmark5_e2e_integration(task_count: usize) -> BenchmarkResult {
     result.total_duration_ms = total_duration;
 
     let hit_rate = ((task_count - 50) as f64 / task_count as f64) * 100.0;
-    println!("✅ 完了: {}/{} 成功", result.successful_tasks, result.total_tasks);
+    println!(
+        "✅ 完了: {}/{} 成功",
+        result.successful_tasks, result.total_tasks
+    );
     println!("⏱️  総時間: {:.2}ms", result.total_duration_ms);
     println!("📈 平均: {:.2}ms/task", result.avg_duration_ms);
     println!("🚀 スループット: {:.2} tasks/sec", result.throughput);
@@ -285,11 +304,7 @@ fn display_summary(results: &[BenchmarkResult]) {
     for r in results {
         println!(
             "│ {:<23} │ {:>8} │ {:>8.0} │ {:>10.2} │ {:>9.2} │",
-            r.scenario,
-            r.total_tasks,
-            r.total_duration_ms,
-            r.avg_duration_ms,
-            r.throughput
+            r.scenario, r.total_tasks, r.total_duration_ms, r.avg_duration_ms, r.throughput
         );
     }
 
@@ -302,12 +317,27 @@ fn display_summary(results: &[BenchmarkResult]) {
 
     // ボトルネック分析
     println!("\n🔍 ボトルネック分析:");
-    let slowest = results.iter().max_by(|a, b| a.avg_duration_ms.partial_cmp(&b.avg_duration_ms).unwrap()).unwrap();
-    let fastest = results.iter().min_by(|a, b| a.avg_duration_ms.partial_cmp(&b.avg_duration_ms).unwrap()).unwrap();
+    let slowest = results
+        .iter()
+        .max_by(|a, b| a.avg_duration_ms.partial_cmp(&b.avg_duration_ms).unwrap())
+        .unwrap();
+    let fastest = results
+        .iter()
+        .min_by(|a, b| a.avg_duration_ms.partial_cmp(&b.avg_duration_ms).unwrap())
+        .unwrap();
 
-    println!("   最速: {} ({:.2}ms/task)", fastest.scenario, fastest.avg_duration_ms);
-    println!("   最遅: {} ({:.2}ms/task)", slowest.scenario, slowest.avg_duration_ms);
-    println!("   差分: {:.2}ms/task", slowest.avg_duration_ms - fastest.avg_duration_ms);
+    println!(
+        "   最速: {} ({:.2}ms/task)",
+        fastest.scenario, fastest.avg_duration_ms
+    );
+    println!(
+        "   最遅: {} ({:.2}ms/task)",
+        slowest.scenario, slowest.avg_duration_ms
+    );
+    println!(
+        "   差分: {:.2}ms/task",
+        slowest.avg_duration_ms - fastest.avg_duration_ms
+    );
 
     println!("\n");
 }

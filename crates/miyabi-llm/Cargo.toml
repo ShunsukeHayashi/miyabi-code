@@ -1,0 +1,53 @@
+[package]
+name = "miyabi-llm"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "LLM abstraction layer for Miyabi - GPT-OSS-20B integration"
+keywords = ["llm", "gpt", "openai", "ai", "inference"]
+categories = ["api-bindings", "development-tools"]
+readme = "../README.md"
+
+[dependencies]
+# Core dependencies
+miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
+miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = "0.1"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+# Regex for template variable extraction
+regex = "1.10"
+
+[dev-dependencies]
+# Testing
+tokio = { workspace = true, features = ["test-util"] }
+serial_test = { workspace = true }
+insta = { workspace = true }
+tempfile = { workspace = true }
+
+# Logging for examples
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Mocking HTTP requests for tests
+mockito = "1.5"

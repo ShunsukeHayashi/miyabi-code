@@ -26,9 +26,10 @@ pub enum EscalationTarget {
     DevOps,
 }
 
-/// Agent types (8 coding agents)
+/// Agent types (9 coding agents + 14 business agents)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum AgentType {
+    // Coding Agents (9)
     CoordinatorAgent,
     CodeGenAgent,
     ReviewAgent,
@@ -38,12 +39,29 @@ pub enum AgentType {
     AutoFixAgent,
     WaterSpiderAgent,
     RefresherAgent,
+    
+    // Business Agents (14)
+    AIEntrepreneurAgent,
+    ProductConceptAgent,
+    ProductDesignAgent,
+    FunnelDesignAgent,
+    PersonaAgent,
+    SelfAnalysisAgent,
+    MarketResearchAgent,
+    MarketingAgent,
+    ContentCreationAgent,
+    SNSStrategyAgent,
+    YouTubeAgent,
+    SalesAgent,
+    CRMAgent,
+    AnalyticsAgent,
 }
 
 impl AgentType {
     /// Convert to lowercase string (for file paths, etc.)
     pub fn as_str(&self) -> &'static str {
         match self {
+            // Coding Agents
             AgentType::CoordinatorAgent => "coordinator",
             AgentType::CodeGenAgent => "codegen",
             AgentType::ReviewAgent => "review",
@@ -53,6 +71,22 @@ impl AgentType {
             AgentType::AutoFixAgent => "autofix",
             AgentType::WaterSpiderAgent => "waterspider",
             AgentType::RefresherAgent => "refresher",
+            
+            // Business Agents
+            AgentType::AIEntrepreneurAgent => "ai-entrepreneur",
+            AgentType::ProductConceptAgent => "product-concept",
+            AgentType::ProductDesignAgent => "product-design",
+            AgentType::FunnelDesignAgent => "funnel-design",
+            AgentType::PersonaAgent => "persona",
+            AgentType::SelfAnalysisAgent => "self-analysis",
+            AgentType::MarketResearchAgent => "market-research",
+            AgentType::MarketingAgent => "marketing",
+            AgentType::ContentCreationAgent => "content-creation",
+            AgentType::SNSStrategyAgent => "sns-strategy",
+            AgentType::YouTubeAgent => "youtube",
+            AgentType::SalesAgent => "sales",
+            AgentType::CRMAgent => "crm",
+            AgentType::AnalyticsAgent => "analytics",
         }
     }
 }
@@ -175,6 +209,7 @@ mod tests {
 
     #[test]
     fn test_agent_type_as_str() {
+        // Coding Agents
         assert_eq!(AgentType::CoordinatorAgent.as_str(), "coordinator");
         assert_eq!(AgentType::CodeGenAgent.as_str(), "codegen");
         assert_eq!(AgentType::ReviewAgent.as_str(), "review");
@@ -184,6 +219,22 @@ mod tests {
         assert_eq!(AgentType::AutoFixAgent.as_str(), "autofix");
         assert_eq!(AgentType::WaterSpiderAgent.as_str(), "waterspider");
         assert_eq!(AgentType::RefresherAgent.as_str(), "refresher");
+        
+        // Business Agents
+        assert_eq!(AgentType::AIEntrepreneurAgent.as_str(), "ai-entrepreneur");
+        assert_eq!(AgentType::ProductConceptAgent.as_str(), "product-concept");
+        assert_eq!(AgentType::ProductDesignAgent.as_str(), "product-design");
+        assert_eq!(AgentType::FunnelDesignAgent.as_str(), "funnel-design");
+        assert_eq!(AgentType::PersonaAgent.as_str(), "persona");
+        assert_eq!(AgentType::SelfAnalysisAgent.as_str(), "self-analysis");
+        assert_eq!(AgentType::MarketResearchAgent.as_str(), "market-research");
+        assert_eq!(AgentType::MarketingAgent.as_str(), "marketing");
+        assert_eq!(AgentType::ContentCreationAgent.as_str(), "content-creation");
+        assert_eq!(AgentType::SNSStrategyAgent.as_str(), "sns-strategy");
+        assert_eq!(AgentType::YouTubeAgent.as_str(), "youtube");
+        assert_eq!(AgentType::SalesAgent.as_str(), "sales");
+        assert_eq!(AgentType::CRMAgent.as_str(), "crm");
+        assert_eq!(AgentType::AnalyticsAgent.as_str(), "analytics");
     }
 
     #[test]
@@ -211,6 +262,7 @@ mod tests {
     #[test]
     fn test_agent_type_roundtrip() {
         let agents = vec![
+            // Coding Agents
             AgentType::CoordinatorAgent,
             AgentType::CodeGenAgent,
             AgentType::ReviewAgent,
@@ -220,6 +272,22 @@ mod tests {
             AgentType::AutoFixAgent,
             AgentType::WaterSpiderAgent,
             AgentType::RefresherAgent,
+            
+            // Business Agents
+            AgentType::AIEntrepreneurAgent,
+            AgentType::ProductConceptAgent,
+            AgentType::ProductDesignAgent,
+            AgentType::FunnelDesignAgent,
+            AgentType::PersonaAgent,
+            AgentType::SelfAnalysisAgent,
+            AgentType::MarketResearchAgent,
+            AgentType::MarketingAgent,
+            AgentType::ContentCreationAgent,
+            AgentType::SNSStrategyAgent,
+            AgentType::YouTubeAgent,
+            AgentType::SalesAgent,
+            AgentType::CRMAgent,
+            AgentType::AnalyticsAgent,
         ];
 
         for agent in agents {

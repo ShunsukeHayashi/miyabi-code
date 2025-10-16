@@ -28,7 +28,6 @@ impl CoordinatorAgent {
     pub async fn decompose_issue(&self, issue: &Issue) -> Result<TaskDecomposition> {
         tracing::info!("Decomposing issue #{}: {}", issue.number, issue.title);
 
-        // Analyze issue to determine task breakdown
         let tasks = self.analyze_and_create_tasks(issue).await?;
 
         // Build DAG from task dependencies

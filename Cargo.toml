@@ -6,7 +6,7 @@ members = [
     "crates/miyabi-cli",
     "crates/miyabi-agents",
     "crates/miyabi-github",
-    "crates/miyabi-worktree",
+    "crates/miyabi-worktree", "crates/miyabi-llm",
 ]
 
 [workspace.package]
