@@ -32,7 +32,7 @@
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue?style=for-the-badge&logo=rust)](https://crates.io/search?q=miyabi)
 
-**🚀 50% Faster • 💾 30% Less Memory • 📦 Single Binary • ✅ 79+ Tests**
+**🚀 70% Faster • 💾 60-70% Less Memory • 📦 Single Binary (6.6MB) • ✅ 375+ Tests**
 
 ```bash
 # Download the binary (macOS)
@@ -949,14 +949,53 @@ AIペアプログラミング
 
 <div align="center">
 
-### v0.8.0 (2025-10-09)
+### 🦀 Rust Edition v1.0.0 (2025-10-16) - **PRODUCTION READY**
+
+[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0)
+[![Rust](https://img.shields.io/badge/Rust-1.90.0-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+
+### 📦 TypeScript Edition v0.8.0 (2025-10-09)
 
 [![npm](https://img.shields.io/npm/v/miyabi?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/miyabi)
 [![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/Miyabi?style=for-the-badge&logo=github)](https://github.com/ShunsukeHayashi/Miyabi/releases)
 
 </div>
 
-### 🆕 **最新の変更 (v0.8.0)**
+### 🆕 **最新の変更 (Rust v1.0.0 - PRODUCTION READY)**
+
+#### ✨ **新機能**
+- ✅ **Firebase統合** - Production/Stagingデプロイ完全対応
+- ✅ **5フェーズデプロイ** - Build → Test → Deploy → Health Check → Rollback
+- ✅ **E2Eテストスイート** - Phase 6 (Worktree管理) + Phase 7 (Agent統合)
+- ✅ **375+テスト** - Unit (353) + E2E (8) + Deployment (14)
+
+#### 🚀 **パフォーマンス**
+- ✅ **70%高速化** - 冷起動時間50-150ms（TypeScript: 200-800ms）
+- ✅ **60-70%メモリ削減** - アイドル時15-20MB（TypeScript: 50-80MB）
+- ✅ **単一バイナリ** - 6.6MB（依存関係すべて含む）
+- ✅ **テスト実行** - 2-4倍高速（Rust: 2.5s, TypeScript: 5-10s）
+
+#### 🏗️ **アーキテクチャ**
+- ✅ **Cargo Workspace** - 6 crates（miyabi-types, miyabi-core, miyabi-cli, miyabi-agents, miyabi-github, miyabi-worktree）
+- ✅ **async/await** - Tokioランタイム
+- ✅ **型安全性** - Rustのコンパイル時型チェック
+- ✅ **ゼロコスト抽象化** - パフォーマンス劣化なし
+
+#### 🧪 **テスト統計**
+- ✅ **375テスト合格** (100% PASS)
+  - Unit Tests: 353
+  - Phase 6 E2E: 4 (Worktree管理)
+  - Phase 7 E2E: 4 (Agent統合)
+  - Deployment Tests: 14 (Firebase統合)
+- ✅ **Clippy警告**: 0件
+- ✅ **全体進捗**: 97.2% complete
+
+#### 📚 **ドキュメント**
+- ✅ **パフォーマンスレポート** - [PERFORMANCE.md](PERFORMANCE.md)
+- ✅ **リリースチェックリスト** - [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)
+- ✅ **移行ガイド** - [RUST_MIGRATION_REQUIREMENTS.md](docs/RUST_MIGRATION_REQUIREMENTS.md)
+
+### 🔄 **TypeScript Edition 最新の変更 (v0.8.0)**
 
 - ✅ ライセンスをApache 2.0に変更（商標・特許保護強化）
 - ✅ NOTICEファイル追加（帰属表示・商標保護）

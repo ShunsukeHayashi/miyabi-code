@@ -576,6 +576,284 @@ miyabi --version
 
 ---
 
+## 🔥 Firebase Deployment
+
+**New in v1.0.0**: Automated Firebase deployment integration via DeploymentAgent
+
+### Prerequisites
+
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Verify installation
+firebase --version
+```
+
+### Configuration
+
+Add Firebase project configuration to `.miyabi.yml`:
+
+```yaml
+deployment:
+  firebase:
+    production_project: "your-prod-project-id"
+    staging_project: "your-staging-project-id"
+    production_url: "https://your-prod-project.web.app"
+    staging_url: "https://your-staging-project.web.app"
+```
+
+Or use environment variables:
+
+```bash
+export FIREBASE_PRODUCTION_PROJECT="your-prod-project-id"
+export FIREBASE_STAGING_PROJECT="your-staging-project-id"
+export PRODUCTION_URL="https://your-prod-project.web.app"
+export STAGING_URL="https://your-staging-project.web.app"
+```
+
+### Deployment Methods
+
+#### Method 1: Via DeploymentAgent (Recommended)
+
+```bash
+# Deploy to staging
+miyabi agent run deployment --environment staging
+
+# Deploy to production
+miyabi agent run deployment --environment production
+```
+
+**What it does**:
+1. ✅ **Build** - `cargo build --release`
+2. ✅ **Test** - `cargo test --all`
+3. ✅ **Deploy** - `firebase deploy --only hosting,functions --project {project_id}`
+4. ✅ **Health Check** - HTTP GET with retries (3 attempts, 10s interval)
+5. ✅ **Rollback** - Automatic rollback on failure
+
+#### Method 2: Manual Firebase Deploy
+
+```bash
+# Build project
+cargo build --release
+
+# Run tests
+cargo test --all
+
+# Deploy to Firebase
+firebase deploy --only hosting,functions --project your-project-id
+```
+
+### Deployment Pipeline
+
+DeploymentAgent executes a 5-phase pipeline:
+
+```
+┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+│  Build   │ → │   Test   │ → │  Deploy  │ → │  Health  │ → │ Rollback │
+│          │   │          │   │          │   │  Check   │   │(on fail) │
+└──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘
+```
+
+**Phase Details**:
+- **Phase 1 (Build)**: Compiles release binary with optimizations
+- **Phase 2 (Test)**: Runs full test suite (375 tests)
+- **Phase 3 (Deploy)**: Executes `firebase deploy` command
+- **Phase 4 (Health Check)**: Verifies deployment URL accessibility
+- **Phase 5 (Rollback)**: Restores previous version on failure
+
+### Environment-Specific Deployment
+
+#### Staging Environment
+
+```bash
+# Deploy to staging
+miyabi agent run deployment --environment staging
+
+# Expected output:
+# ✅ Build completed (3.5s)
+# ✅ Tests passed (375/375)
+# ✅ Deployed to https://your-staging-project.web.app
+# ✅ Health check passed (200 OK)
+```
+
+**Use cases**:
+- Pre-production testing
+- QA validation
+- Feature previews
+- Hotfix verification
+
+#### Production Environment
+
+```bash
+# Deploy to production (requires confirmation)
+miyabi agent run deployment --environment production --confirm
+
+# Expected output:
+# ✅ Build completed (3.5s)
+# ✅ Tests passed (375/375)
+# ✅ Deployed to https://your-prod-project.web.app
+# ✅ Health check passed (200 OK)
+```
+
+**Use cases**:
+- Stable releases
+- Customer-facing deployments
+- Critical hotfixes
+
+### GitHub Actions Integration
+
+#### Automatic Staging Deployment
+
+```yaml
+# .github/workflows/deploy-staging.yml
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Miyabi
+        run: |
+          curl -sSL https://raw.githubusercontent.com/ShunsukeHayashi/miyabi-private/main/scripts/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Deploy to Staging
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIREBASE_STAGING_PROJECT: ${{ secrets.FIREBASE_STAGING_PROJECT }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase login:ci --token $FIREBASE_TOKEN
+          miyabi agent run deployment --environment staging
+```
+
+#### Manual Production Deployment
+
+```yaml
+# .github/workflows/deploy-production.yml
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "DEPLOY" to confirm production deployment'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'DEPLOY'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Miyabi
+        run: |
+          curl -sSL https://raw.githubusercontent.com/ShunsukeHayashi/miyabi-private/main/scripts/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Deploy to Production
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIREBASE_PRODUCTION_PROJECT: ${{ secrets.FIREBASE_PRODUCTION_PROJECT }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase login:ci --token $FIREBASE_TOKEN
+          miyabi agent run deployment --environment production
+```
+
+### Troubleshooting
+
+#### Issue 1: Firebase CLI not found
+
+```bash
+# Check Firebase CLI installation
+which firebase
+
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Verify
+firebase --version
+```
+
+#### Issue 2: Authentication failed
+
+```bash
+# Login to Firebase
+firebase login
+
+# Use CI token for automation
+firebase login:ci
+
+# Set token as environment variable
+export FIREBASE_TOKEN=your-ci-token
+```
+
+#### Issue 3: Deployment URL not accessible
+
+```bash
+# Check Firebase hosting status
+firebase hosting:sites:list --project your-project-id
+
+# Verify domain configuration
+firebase hosting:channel:list --project your-project-id
+
+# Check deployment history
+firebase hosting:releases:list --project your-project-id
+```
+
+#### Issue 4: Build/Test failures
+
+```bash
+# Run build manually
+cargo build --release
+
+# Run tests manually
+cargo test --all
+
+# Check specific test failures
+cargo test --package miyabi-agents -- --nocapture
+```
+
+### Rollback Procedure
+
+If deployment fails, DeploymentAgent automatically triggers rollback:
+
+```bash
+# Manual rollback to previous version
+firebase hosting:rollback --project your-project-id
+
+# Verify rollback
+curl https://your-project.web.app
+```
+
+### Monitoring
+
+```bash
+# View deployment logs
+firebase hosting:logs --project your-project-id
+
+# Check health status
+curl -I https://your-project.web.app
+
+# Monitor performance
+firebase performance:data --project your-project-id
+```
+
+---
+
 ## 📚 Next Steps
 
 After deployment:
@@ -586,5 +864,5 @@ After deployment:
 
 ---
 
-**Last Updated**: 2025-10-15
-**Version**: 2.0 (Rust Edition)
+**Last Updated**: 2025-10-16
+**Version**: 2.0 (Rust Edition v1.0.0)

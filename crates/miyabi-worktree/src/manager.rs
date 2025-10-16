@@ -31,6 +31,7 @@ pub enum WorktreeStatus {
 }
 
 /// Worktree manager for parallel execution
+#[derive(Clone)]
 pub struct WorktreeManager {
     repo_path: PathBuf,
     worktree_base: PathBuf,

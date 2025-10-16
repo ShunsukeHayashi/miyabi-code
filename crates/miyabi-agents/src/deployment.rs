@@ -218,27 +218,88 @@ impl DeploymentAgent {
         })
     }
 
-    /// Deploy to environment (placeholder for Firebase CLI integration)
+    /// Deploy to environment (Firebase CLI integration)
     async fn deploy(
         &self,
-        _environment: Environment,
-        _project_path: &Path,
+        environment: Environment,
+        project_path: &Path,
     ) -> Result<DeploymentResult> {
-        tracing::info!("Deploying to {:?} (placeholder)", _environment);
+        tracing::info!("Deploying to {:?}", environment);
 
-        // Placeholder: Firebase CLI integration would go here
-        // In production:
-        // 1. firebase deploy --only hosting,functions --project {project_id}
-        // 2. Extract deployment URL from output
-        // 3. Return DeploymentResult with URL
+        let start_time = std::time::Instant::now();
+
+        // Determine Firebase project based on environment
+        let firebase_project = match environment {
+            Environment::Production => &self.config.firebase_production_project,
+            Environment::Staging => &self.config.firebase_staging_project,
+        };
+
+        let project_id = firebase_project
+            .as_ref()
+            .ok_or_else(|| {
+                MiyabiError::Config(format!(
+                    "Firebase project not configured for {:?}",
+                    environment
+                ))
+            })?;
+
+        tracing::info!("Deploying to Firebase project: {}", project_id);
+
+        // Execute firebase deploy command
+        let output = tokio::process::Command::new("firebase")
+            .arg("deploy")
+            .arg("--only")
+            .arg("hosting,functions")
+            .arg("--project")
+            .arg(project_id)
+            .current_dir(project_path)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .await
+            .map_err(|e| {
+                MiyabiError::Unknown(format!("Failed to execute firebase deploy: {}", e))
+            })?;
+
+        let duration_ms = start_time.elapsed().as_millis() as u64;
+        let success = output.status.success();
+
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+
+        if !success {
+            return Err(MiyabiError::Unknown(format!(
+                "Firebase deploy failed: {}",
+                stderr
+            )));
+        }
+
+        // Extract deployment URL from output
+        // Firebase CLI outputs: "Hosting URL: https://project-id.web.app"
+        let deployment_url = Self::extract_firebase_url(&stdout, project_id);
+
+        tracing::info!("Deploy completed in {}ms: {}", duration_ms, deployment_url);
 
         Ok(DeploymentResult {
-            success: true,
-            duration_ms: 0,
-            deployment_url: "https://example.com".to_string(),
-            stdout: String::new(),
-            stderr: String::new(),
+            success,
+            duration_ms,
+            deployment_url,
+            stdout,
+            stderr,
         })
+    }
+
+    /// Extract Firebase deployment URL from deploy output
+    fn extract_firebase_url(output: &str, project_id: &str) -> String {
+        // Try to find "Hosting URL: https://..." in output
+        if let Some(line) = output.lines().find(|l| l.contains("Hosting URL:")) {
+            if let Some(url) = line.split("Hosting URL:").nth(1) {
+                return url.trim().to_string();
+            }
+        }
+
+        // Fallback: construct default Firebase URL
+        format!("https://{}.web.app", project_id)
     }
 
     /// Rollback to previous version (placeholder)
@@ -637,18 +698,31 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_deploy_placeholder() {
+    async fn test_deploy_missing_config() {
         let config = create_test_config();
         let agent = DeploymentAgent::new(config);
 
         let project_path = std::env::current_dir().unwrap();
         let result = agent.deploy(Environment::Staging, &project_path).await;
 
-        // Placeholder always succeeds
-        assert!(result.is_ok());
-        let deploy_result = result.unwrap();
-        assert!(deploy_result.success);
-        assert!(deploy_result.deployment_url.starts_with("https://"));
+        // Should fail due to missing Firebase configuration
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert!(error.to_string().contains("Firebase project not configured"));
+    }
+
+    #[test]
+    fn test_extract_firebase_url_from_output() {
+        let output = "Deploying...\nHosting URL: https://my-project.web.app\nDeploy complete!";
+        let url = DeploymentAgent::extract_firebase_url(output, "my-project");
+        assert_eq!(url, "https://my-project.web.app");
+    }
+
+    #[test]
+    fn test_extract_firebase_url_fallback() {
+        let output = "Deploying...\nDeploy complete!";
+        let url = DeploymentAgent::extract_firebase_url(output, "my-project");
+        assert_eq!(url, "https://my-project.web.app");
     }
 
     #[tokio::test]

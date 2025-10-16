@@ -1,0 +1,53 @@
+[package]
+name = "miyabi-business-agents"
+version = "1.0.0"
+edition = "2021"
+authors = ["Shunsuke Hayashi <supernovasyun@gmail.com>"]
+license = "Apache-2.0"
+description = "Business automation agents for Miyabi - SaaS operations, marketing, sales, and analytics"
+repository = "https://github.com/ShunsukeHayashi/Miyabi"
+keywords = ["ai", "agents", "business", "saas", "automation"]
+categories = ["development-tools", "command-line-utilities"]
+
+[dependencies]
+# Miyabi core dependencies
+miyabi-types = { path = "../miyabi-types", version = "1.0.0" }
+miyabi-core = { path = "../miyabi-core", version = "1.0.0" }
+miyabi-github = { path = "../miyabi-github", version = "1.0.0" }
+
+# Async runtime
+tokio = { version = "1.45", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# HTTP client (for Claude API)
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+
+# Validation
+validator = { version = "0.20", features = ["derive"] }
+
+# Date/Time
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+# Testing
+tokio-test = "0.4"
+mockito = "1.6"
+insta = { version = "1.43", features = ["json"] }
+
+# For examples
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+[lib]
+name = "miyabi_business_agents"
+path = "src/lib.rs"

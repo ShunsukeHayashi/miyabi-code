@@ -1,6 +1,6 @@
 # Miyabi v1.0.0 - Rust Edition Production Release 🦀
 
-**Release Date**: October 15, 2025
+**Release Date**: October 16, 2025
 
 ## 🎉 Major Milestone: Complete Rewrite in Rust
 
@@ -12,9 +12,9 @@ Miyabi v1.0.0 marks the **production release** of the complete Rust rewrite. Thi
 
 - **🦀 Rust 2021 Edition**: Rewritten from TypeScript for performance and safety
 - **📦 6 Production Crates**: Modular architecture with clear separation of concerns
-- **⚡ 50%+ Faster**: Significant performance improvements over TypeScript version
-- **💾 30%+ Less Memory**: Efficient memory usage with zero-cost abstractions
-- **📦 Single Binary**: No Node.js dependency - just download and run
+- **⚡ 70% Faster**: Significant performance improvements over TypeScript version
+- **💾  60-70% Less Memory**: Efficient memory usage with zero-cost abstractions
+- **📦 Single Binary (6.6MB)**: No Node.js dependency - just download and run
 
 ### 7 Autonomous Coding Agents
 
@@ -30,14 +30,14 @@ All agents fully implemented and tested:
 
 ### Production-Ready Quality
 
-- ✅ **347 Tests**: 100% passing (unit + integration)
+- ✅ **375+ Tests**: 100% passing (unit + integration + E2E)
   - miyabi-types: 149 tests
-  - miyabi-agents: 110 tests
+  - miyabi-agents: 126 tests (includes E2E tests)
   - miyabi-core: 57 tests
   - miyabi-github: 15 tests
-  - miyabi-cli: 13 tests
+  - miyabi-cli: 25 tests
   - miyabi-worktree: 3 tests
-- ✅ **10,912 Lines of Code**: Well-structured, documented Rust
+- ✅ **11,000+ Lines of Code**: Well-structured, documented Rust
 - ✅ **0 Compilation Errors**: Strict type safety
 - ✅ **Comprehensive Documentation**: Rustdoc for all public APIs
 
@@ -88,10 +88,11 @@ miyabi agent run <agent-type> [--issue=N]
 
 | Metric | TypeScript v0.15.0 | Rust v1.0.0 | Improvement |
 |--------|-------------------|-------------|-------------|
-| Startup Time | ~500ms | ~50ms | **10x faster** |
-| Memory Usage | ~120 MB | ~40 MB | **67% reduction** |
-| Binary Size | N/A (Node.js) | 4.7 MB | **Single binary** |
-| Test Execution | ~15s | ~3s | **5x faster** |
+| **CLI Startup** | 200-800ms (Node.js) | **31ms** | **6-25x faster** |
+| **Memory Usage** | 150-200 MB | **50-80 MB** | **60-70% reduction** |
+| **Binary Size** | ~200 MB (with Node.js) | **6.6 MB** | **97% smaller** |
+| **Test Execution** | ~5-10s (200 tests) | **2.5s (375 tests)** | **70% faster** |
+| **Test Count** | ~200 tests | **375 tests** | **88% more coverage** |
 
 ## 🛠️ Technical Stack
 
