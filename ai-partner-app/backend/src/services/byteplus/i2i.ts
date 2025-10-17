@@ -12,7 +12,10 @@ const logger = createLogger('byteplus-i2i');
  */
 export interface I2IRequest {
   prompt: string;
-  imageUrl: string | string[]; // seedream-4-0: 複数画像入力をサポート
+  imageUrl?: string | string[]; // seedream-4-0: 複数画像入力をサポート
+  imageData?: string; // Base64 encoded image data
+  mimeType?: string; // MIME type for imageData
+  strength?: number; // 画像変換の強度 (0-1, デフォルト: 0.5)
   size?: 'adaptive' | '512x512' | '768x768' | '1024x1024' | '1k' | '2k' | '4k';
   guidanceScale?: number; // 1-20, default 5.5
   seed?: number;
@@ -49,10 +52,13 @@ export class BytePlusI2I {
    * 画像を変換
    */
   async generate(request: I2IRequest): Promise<I2IResponse> {
+    // Use imageData if provided, otherwise use imageUrl
+    const usingBase64 = !!request.imageData;
     const imageCount = Array.isArray(request.imageUrl) ? request.imageUrl.length : 1;
+
     logger.info('Transforming image', {
       prompt: request.prompt.substring(0, 50),
-      imageUrl: Array.isArray(request.imageUrl) ? `${imageCount} images` : request.imageUrl,
+      source: usingBase64 ? 'base64 data' : (Array.isArray(request.imageUrl) ? `${imageCount} images` : request.imageUrl),
     });
 
     // Mock response for development/testing
@@ -91,14 +97,30 @@ export class BytePlusI2I {
         size = '1k';
       }
 
+      // Prepare image input - either URL or Base64 data
+      let imageInput: any;
+      if (request.imageData) {
+        // Use Base64 data in data URI format
+        const mimeType = request.mimeType || 'image/jpeg';
+        imageInput = `data:${mimeType};base64,${request.imageData}`;
+      } else {
+        // Use URL
+        imageInput = request.imageUrl;
+      }
+
       const requestBody: any = {
         model: this.model,
         prompt: request.prompt,
-        image: request.imageUrl,
+        image: imageInput,
         response_format: 'url',
         size,
         watermark: request.watermark ?? true,
       };
+
+      // Add strength parameter if provided (controls how much to preserve original)
+      if (request.strength !== undefined) {
+        requestBody.strength = request.strength;
+      }
 
       // seedream-3系のみseedとguidance_scaleをサポート
       if (this.model.includes('seededit-3')) {
