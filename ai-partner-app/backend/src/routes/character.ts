@@ -399,7 +399,7 @@ router.get(
 
 /**
  * POST /api/characters/:id/generate-image
- * キャラクター画像生成
+ * キャラクター画像生成（リファレンス画像ベース I2I）
  * TODO: 本番環境では requireAuth を有効化すること
  */
 router.post(
@@ -421,14 +421,48 @@ router.post(
         throw new AppError('Character not found', 404);
       }
 
-      // Build appearance description
-      const appearance = `${character.hairColor} ${character.hairStyle} hair, ${character.eyeColor} eyes, ${character.skinTone} skin, ${character.height}, ${character.bodyType} body type, wearing ${character.outfit}`;
+      // Check if source image exists
+      if (!character.sourceImagePath) {
+        throw new AppError(
+          'Source image not found. Please upload a reference image first.',
+          400
+        );
+      }
 
-      // Generate primary image
-      const result = await bytePlusT2I.generateCharacter({
-        appearance,
-        style: character.appearanceStyle,
-        expression: 'neutral',
+      // Convert local file path to full URL for BytePlus API
+      // Read the local image file as base64
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const fullPath = path.resolve(character.sourceImagePath);
+      const imageBuffer = await fs.readFile(fullPath);
+      const base64Image = imageBuffer.toString('base64');
+
+      // Determine MIME type from file extension
+      const ext = path.extname(fullPath).toLowerCase();
+      const mimeTypeMap: Record<string, string> = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+      };
+      const mimeType = mimeTypeMap[ext] || 'image/jpeg';
+
+      // Build prompt for image generation
+      const prompt = `High quality ${character.appearanceStyle} style portrait.
+${character.hairColor} ${character.hairStyle} hair, ${character.eyeColor} eyes, ${character.skinTone} skin tone.
+${character.height}, ${character.bodyType} body type, wearing ${character.outfit}.
+${character.accessories ? `Accessories: ${character.accessories}.` : ''}
+Neutral expression, professional quality, detailed.`;
+
+      // Generate image using I2I (Image-to-Image) from reference
+      const result = await bytePlusI2I.generate({
+        prompt,
+        imageData: base64Image,
+        mimeType,
+        strength: 0.7, // Preserve 30% of original image
+        size: '1024x1024',
+        watermark: false,
       });
 
       // Update character with image URL
@@ -443,7 +477,8 @@ router.post(
 
       res.json({
         imageUrl: result.imageUrl,
-        message: 'Character image generated successfully',
+        message: 'Character image generated from reference successfully',
+        usedReferenceImage: true,
       });
     } catch (error) {
       next(error);
