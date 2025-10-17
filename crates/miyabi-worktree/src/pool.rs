@@ -137,6 +137,10 @@ impl WorktreePool {
     ///
     /// # Returns
     /// Pool execution result with individual task results
+    ///
+    /// # Fail-Fast Behavior
+    /// If `fail_fast` is enabled in config, execution stops after the first failure
+    /// and all remaining tasks are cancelled.
     pub async fn execute_parallel<F, Fut>(
         &self,
         tasks: Vec<WorktreeTask>,
@@ -150,25 +154,48 @@ impl WorktreePool {
         let task_count = tasks.len();
 
         info!(
-            "Starting parallel execution of {} tasks with max concurrency: {}",
-            task_count, self.config.max_concurrency
+            "Starting parallel execution of {} tasks with max concurrency: {}, fail_fast: {}",
+            task_count, self.config.max_concurrency, self.config.fail_fast
         );
 
         // Use futures::stream with buffer_unordered to respect concurrency limit
         use futures::stream::{self, StreamExt};
+        use tokio::sync::watch;
 
         let manager = self.manager.clone();
         let active_tasks = self.active_tasks.clone();
         let timeout_seconds = self.config.timeout_seconds;
         let max_concurrency = self.config.max_concurrency;
+        let fail_fast = self.config.fail_fast;
+
+        // Create cancellation channel for fail-fast
+        let (cancel_tx, cancel_rx) = watch::channel(false);
 
         let results: Vec<TaskResult> = stream::iter(tasks)
             .map(|task| {
                 let manager = manager.clone();
                 let active_tasks = active_tasks.clone();
                 let executor = executor.clone();
+                let cancel_tx = cancel_tx.clone();
+                let cancel_rx = cancel_rx.clone();
 
                 async move {
+                // Check if we should cancel (fail-fast mode)
+                if *cancel_rx.borrow() {
+                    warn!(
+                        "Task for issue #{} cancelled due to fail-fast",
+                        task.issue_number
+                    );
+                    return TaskResult {
+                        issue_number: task.issue_number,
+                        worktree_id: String::new(),
+                        status: TaskStatus::Cancelled,
+                        duration_ms: 0,
+                        error: Some("Cancelled due to fail-fast".to_string()),
+                        output: None,
+                    };
+                }
+
                 let task_start = std::time::Instant::now();
 
                 // Create worktree (semaphore is acquired inside)
@@ -229,6 +256,13 @@ impl WorktreePool {
                         let _ = manager
                             .update_status(&worktree_info.id, WorktreeStatus::Failed)
                             .await;
+
+                        // Trigger cancellation if fail_fast is enabled
+                        if fail_fast {
+                            warn!("Triggering fail-fast cancellation due to task failure");
+                            let _ = cancel_tx.send(true);
+                        }
+
                         TaskResult {
                             issue_number: task.issue_number,
                             worktree_id: worktree_info.id.clone(),
@@ -246,6 +280,13 @@ impl WorktreePool {
                         let _ = manager
                             .update_status(&worktree_info.id, WorktreeStatus::Failed)
                             .await;
+
+                        // Trigger cancellation if fail_fast is enabled
+                        if fail_fast {
+                            warn!("Triggering fail-fast cancellation due to task timeout");
+                            let _ = cancel_tx.send(true);
+                        }
+
                         TaskResult {
                             issue_number: task.issue_number,
                             worktree_id: worktree_info.id.clone(),
@@ -285,10 +326,14 @@ impl WorktreePool {
             .iter()
             .filter(|r| r.status == TaskStatus::Timeout)
             .count();
+        let cancelled_count = results
+            .iter()
+            .filter(|r| r.status == TaskStatus::Cancelled)
+            .count();
 
         info!(
-            "Parallel execution completed: {} successful, {} failed, {} timed out, {}ms total",
-            success_count, failed_count, timeout_count, total_duration
+            "Parallel execution completed: {} successful, {} failed, {} timed out, {} cancelled, {}ms total",
+            success_count, failed_count, timeout_count, cancelled_count, total_duration
         );
 
         // Cleanup if configured
@@ -306,7 +351,7 @@ impl WorktreePool {
             success_count,
             failed_count,
             timeout_count,
-            cancelled_count: 0,
+            cancelled_count,
         }
     }
 
@@ -392,12 +437,31 @@ impl PoolExecutionResult {
         self.success_count == self.total_tasks
     }
 
+    /// Check if any tasks failed
+    pub fn has_failures(&self) -> bool {
+        self.failed_count > 0 || self.timeout_count > 0
+    }
+
+    /// Check if any tasks were cancelled
+    pub fn has_cancellations(&self) -> bool {
+        self.cancelled_count > 0
+    }
+
     /// Get success rate as percentage
     pub fn success_rate(&self) -> f64 {
         if self.total_tasks == 0 {
             0.0
         } else {
             (self.success_count as f64 / self.total_tasks as f64) * 100.0
+        }
+    }
+
+    /// Get failure rate as percentage
+    pub fn failure_rate(&self) -> f64 {
+        if self.total_tasks == 0 {
+            0.0
+        } else {
+            ((self.failed_count + self.timeout_count) as f64 / self.total_tasks as f64) * 100.0
         }
     }
 
@@ -409,6 +473,67 @@ impl PoolExecutionResult {
             let total: u64 = self.results.iter().map(|r| r.duration_ms).sum();
             total as f64 / self.results.len() as f64
         }
+    }
+
+    /// Get minimum task duration in milliseconds
+    pub fn min_duration_ms(&self) -> u64 {
+        self.results.iter().map(|r| r.duration_ms).min().unwrap_or(0)
+    }
+
+    /// Get maximum task duration in milliseconds
+    pub fn max_duration_ms(&self) -> u64 {
+        self.results.iter().map(|r| r.duration_ms).max().unwrap_or(0)
+    }
+
+    /// Get throughput (tasks per second)
+    pub fn throughput(&self) -> f64 {
+        if self.total_duration_ms == 0 {
+            0.0
+        } else {
+            (self.total_tasks as f64) / (self.total_duration_ms as f64 / 1000.0)
+        }
+    }
+
+    /// Get average concurrency (based on actual execution time vs total time)
+    pub fn effective_concurrency(&self) -> f64 {
+        if self.total_duration_ms == 0 {
+            0.0
+        } else {
+            let total_work: u64 = self.results.iter().map(|r| r.duration_ms).sum();
+            (total_work as f64) / (self.total_duration_ms as f64)
+        }
+    }
+
+    /// Get failed tasks
+    pub fn failed_tasks(&self) -> Vec<&TaskResult> {
+        self.results
+            .iter()
+            .filter(|r| r.status == TaskStatus::Failed)
+            .collect()
+    }
+
+    /// Get timed out tasks
+    pub fn timed_out_tasks(&self) -> Vec<&TaskResult> {
+        self.results
+            .iter()
+            .filter(|r| r.status == TaskStatus::Timeout)
+            .collect()
+    }
+
+    /// Get cancelled tasks
+    pub fn cancelled_tasks(&self) -> Vec<&TaskResult> {
+        self.results
+            .iter()
+            .filter(|r| r.status == TaskStatus::Cancelled)
+            .collect()
+    }
+
+    /// Get successful tasks
+    pub fn successful_tasks(&self) -> Vec<&TaskResult> {
+        self.results
+            .iter()
+            .filter(|r| r.status == TaskStatus::Success)
+            .collect()
     }
 }
 
