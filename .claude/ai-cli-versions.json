@@ -1,0 +1,56 @@
+{
+  "lastUpdated": "2025-10-17",
+  "tools": {
+    "claudeCode": {
+      "model": "claude-sonnet-4-5-20250929",
+      "releaseUrl": "https://claude.com/claude-code/releases",
+      "updateMethod": "Auto (official site)",
+      "features": [
+        "Hooks (9 types)",
+        "MCP Servers",
+        "Git Worktree",
+        "Task tracking"
+      ]
+    },
+    "geminiCli": {
+      "version": "0.9.0",
+      "latestVersion": "0.9.0",
+      "installed": true,
+      "releaseUrl": "https://github.com/google-gemini/gemini-cli/releases",
+      "updateMethod": "npm update -g @google/gemini-cli",
+      "features": [
+        "Interactive shell",
+        "VS Code integration",
+        "/copy command",
+        "Custom themes",
+        "@file referencing"
+      ],
+      "recentUpdates": [
+        {
+          "date": "2025-10-15",
+          "feature": "Interactive shell enhancement (vim, git rebase -i, top)"
+        },
+        {
+          "date": "2025-08",
+          "feature": "Deep VS Code integration, /copy command, custom themes"
+        }
+      ]
+    },
+    "openaiCodex": {
+      "version": "N/A",
+      "installed": false,
+      "releaseUrl": "https://github.com/openai/codex/releases",
+      "updateMethod": "npm update -g @openai/codex",
+      "features": [
+        "Sandbox environment",
+        "MCP support",
+        "Rust-based (96.6%)",
+        "ChatGPT integration"
+      ],
+      "status": "Optional - Not currently used in Miyabi project"
+    }
+  },
+  "checkFrequency": "weekly",
+  "lastCheck": "2025-10-17",
+  "nextCheck": "2025-10-24"
+}

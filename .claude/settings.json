@@ -1,0 +1,106 @@
+{
+  "$schema": "https://docs.claude.com/schemas/settings.json",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "command": ".claude/hooks/log-commands.sh \"$PROMPT\"",
+        "description": "Log user prompts to .ai/logs/ for LDD (Log-Driven Development)"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": ".claude/hooks/auto-format.sh",
+        "description": "Auto-format code before editing/writing files"
+      },
+      {
+        "matcher": "Bash",
+        "command": "echo \"⚠️  About to execute: $TOOL_INPUT\" >&2",
+        "description": "Warn before executing bash commands"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": ".claude/hooks/validate-typescript.sh",
+        "description": "Validate TypeScript after editing/writing files"
+      },
+      {
+        "matcher": "Bash",
+        "command": ".claude/hooks/agent-event.sh progress $AGENT_ID $ISSUE_NUMBER 50 \"Command executed: $TOOL_INPUT\"",
+        "description": "Send agent progress event after bash execution"
+      }
+    ],
+    "Stop": [
+      {
+        "command": ".claude/hooks/session-continue.sh",
+        "description": "Prompt to continue or save session state"
+      }
+    ],
+    "SessionStart": [
+      {
+        "command": "echo \"🚀 Miyabi Project Session Started\" && echo \"📍 Working directory: $CLAUDE_PROJECT_DIR\" && git status --short",
+        "description": "Display project status on session start"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "command": "echo \"📊 Session Statistics:\" && echo \"Duration: $(date)\" && git status --short",
+        "description": "Display session summary on exit"
+      }
+    ],
+    "Notification": [
+      {
+        "command": "echo \"🔔 Notification: $NOTIFICATION_MESSAGE\"",
+        "description": "Log Claude Code notifications"
+      }
+    ],
+    "PreCompact": [
+      {
+        "command": "echo \"🗜️  Context window compacting...\" && echo \"Current size: $CONTEXT_SIZE tokens\"",
+        "description": "Warn before context compaction"
+      }
+    ]
+  },
+  "timeout": {
+    "default": 60000,
+    "perCommand": {
+      ".claude/hooks/auto-format.sh": 120000,
+      ".claude/hooks/validate-typescript.sh": 180000
+    }
+  },
+  "security": {
+    "blockedPaths": [
+      ".env",
+      ".env.local",
+      ".git/",
+      "*.key",
+      "*.pem",
+      "**/node_modules/**",
+      "**/.worktrees/**"
+    ],
+    "allowedCommands": [
+      "echo",
+      "git",
+      "npm",
+      "cargo",
+      "rustc",
+      ".claude/hooks/*.sh"
+    ]
+  },
+  "plugins": [],
+  "mcpServers": {
+    "github-enhanced": {
+      "command": "node",
+      "args": [".claude/mcp-servers/github-enhanced.cjs"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "REPOSITORY": "${GITHUB_REPOSITORY}"
+      }
+    },
+    "miyabi-integration": {
+      "command": "node",
+      "args": [".claude/mcp-servers/miyabi-integration.js"]
+    }
+  }
+}
