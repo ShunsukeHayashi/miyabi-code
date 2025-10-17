@@ -502,15 +502,13 @@ router.post(
 /**
  * GET /api/characters
  * キャラクター一覧取得
- * TODO: 本番環境では requireAuth を有効化すること
  */
 router.get(
   '/',
-  // requireAuth, // 開発中は一時的にコメントアウト
+  requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
-      const userId = req.user?.userId || 'dev-user-001';
+      const userId = req.user!.userId;
 
       const characters = await prisma.character.findMany({
         where: { userId: userId },
@@ -530,15 +528,13 @@ router.get(
 /**
  * GET /api/characters/:id
  * キャラクター詳細取得
- * TODO: 本番環境では requireAuth を有効化すること
  */
 router.get(
   '/:id',
-  // requireAuth, // 開発中は一時的にコメントアウト
+  requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
-      const userId = req.user?.userId || 'dev-user-001';
+      const userId = req.user!.userId;
 
       const character = await prisma.character.findFirst({
         where: {

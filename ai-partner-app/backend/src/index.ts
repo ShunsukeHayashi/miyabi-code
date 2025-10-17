@@ -11,6 +11,7 @@ import { createLogger } from './utils/logger.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { initializeUploadDirectories } from './utils/image-storage.js';
+import { initBytePlus } from './services/byteplus/index.js';
 import authRoutes from './routes/auth.js';
 import characterRoutes from './routes/character.js';
 import conversationRoutes from './routes/conversation.js';
@@ -25,6 +26,14 @@ const PORT = process.env.PORT || 3001;
 
 // Initialize upload directories on startup
 await initializeUploadDirectories();
+
+// Initialize BytePlus SDK
+if (process.env.BYTEPLUS_API_KEY) {
+  initBytePlus(process.env.BYTEPLUS_API_KEY);
+  logger.info('BytePlus SDK initialized');
+} else {
+  logger.warn('BYTEPLUS_API_KEY not found - image/video generation will not work');
+}
 
 // Middleware
 app.use(helmet());

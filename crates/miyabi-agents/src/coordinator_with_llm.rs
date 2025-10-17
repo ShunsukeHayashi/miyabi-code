@@ -7,7 +7,7 @@ use crate::base::BaseAgent;
 use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_github::GitHubClient;
-use miyabi_llm::{GPTOSSProvider, LLMConversation, LLMProvider, LLMRequest, ReasoningEffort};
+use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
@@ -63,7 +63,11 @@ impl CoordinatorAgentWithLLM {
 
     /// Decompose an Issue into Tasks using LLM
     pub async fn decompose_issue_with_llm(&self, issue: &Issue) -> Result<TaskDecomposition> {
-        tracing::info!("Decomposing issue #{} with LLM: {}", issue.number, issue.title);
+        tracing::info!(
+            "Decomposing issue #{} with LLM: {}",
+            issue.number,
+            issue.title
+        );
 
         // If LLM is not available, fall back to base coordinator
         let llm = match &self.llm_provider {
@@ -118,15 +122,21 @@ impl CoordinatorAgentWithLLM {
 
     /// Create task decomposition prompt for LLM
     fn create_task_decomposition_prompt(&self, issue: &Issue) -> String {
+        let issue_number = issue.number;
+        let issue_title = &issue.title;
+        let issue_body = &issue.body;
+        let issue_labels = issue.labels.join(", ");
+        let issue_state = issue.state;
+
         format!(
             r#"You are an expert software project coordinator. Your task is to decompose a GitHub Issue into executable tasks.
 
 ISSUE INFORMATION:
-- Number: #{}
-- Title: {}
-- Description: {}
-- Labels: {}
-- State: {:?}
+- Number: #{issue_number}
+- Title: {issue_title}
+- Description: {issue_body}
+- Labels: {issue_labels}
+- State: {issue_state:?}
 
 TASK DECOMPOSITION REQUIREMENTS:
 
@@ -151,15 +161,15 @@ TASK DECOMPOSITION REQUIREMENTS:
 4. Task dependencies must form a Directed Acyclic Graph (DAG) - no cycles!
 
 5. Assign task IDs in the format: "task-<issue_number>-<task_name>"
-   Example: "task-{}-analysis", "task-{}-impl", "task-{}-test"
+   Example: "task-{issue_number}-analysis", "task-{issue_number}-impl", "task-{issue_number}-test"
 
 OUTPUT FORMAT (JSON):
 
 {{
   "tasks": [
     {{
-      "id": "task-{}-analysis",
-      "title": "Analyze requirements for #{}",
+      "id": "task-{issue_number}-analysis",
+      "title": "Analyze requirements for #{issue_number}",
       "description": "Detailed analysis description",
       "task_type": "Docs",
       "priority": 0,
@@ -168,13 +178,13 @@ OUTPUT FORMAT (JSON):
       "estimated_duration": 10
     }},
     {{
-      "id": "task-{}-impl",
-      "title": "Implement solution for #{}",
+      "id": "task-{issue_number}-impl",
+      "title": "Implement solution for #{issue_number}",
       "description": "Implementation details",
       "task_type": "Feature",
       "priority": 1,
       "assigned_agent": "CodeGenAgent",
-      "dependencies": ["task-{}-analysis"],
+      "dependencies": ["task-{issue_number}-analysis"],
       "estimated_duration": 30
     }}
   ]
@@ -183,20 +193,11 @@ OUTPUT FORMAT (JSON):
 IMPORTANT: Output ONLY the JSON object, no additional text or markdown code blocks.
 
 Now, decompose this issue into tasks:"#,
-            issue.number,
-            issue.title,
-            issue.body,
-            issue.labels.join(", "),
-            issue.state,
-            issue.number,
-            issue.number,
-            issue.number,
-            issue.number,
-            issue.number,
-            issue.number,
-            issue.number,
-            issue.number,
-            issue.number
+            issue_number = issue_number,
+            issue_title = issue_title,
+            issue_body = issue_body,
+            issue_labels = issue_labels,
+            issue_state = issue_state
         )
     }
 
@@ -211,17 +212,19 @@ Now, decompose this issue into tasks:"#,
             .trim();
 
         // Parse JSON
-        let response_json: serde_json::Value = serde_json::from_str(json_text)
-            .map_err(|e| MiyabiError::Validation(format!("Failed to parse LLM response as JSON: {}. Response: {}", e, json_text)))?;
+        let response_json: serde_json::Value = serde_json::from_str(json_text).map_err(|e| {
+            MiyabiError::Validation(format!(
+                "Failed to parse LLM response as JSON: {}. Response: {}",
+                e, json_text
+            ))
+        })?;
 
         // Extract tasks array
         let tasks_array = response_json
             .get("tasks")
             .and_then(|t| t.as_array())
             .ok_or_else(|| {
-                MiyabiError::Validation(
-                    "LLM response missing 'tasks' array".to_string(),
-                )
+                MiyabiError::Validation("LLM response missing 'tasks' array".to_string())
             })?;
 
         // Convert JSON tasks to Task structs
@@ -339,7 +342,11 @@ Now, decompose this issue into tasks:"#,
     }
 
     /// Generate recommendations based on task analysis
-    fn generate_recommendations(&self, tasks: &[Task], dag: &miyabi_types::workflow::DAG) -> Vec<String> {
+    fn generate_recommendations(
+        &self,
+        tasks: &[Task],
+        dag: &miyabi_types::workflow::DAG,
+    ) -> Vec<String> {
         let mut recommendations = Vec::new();
 
         // Check for long critical path
@@ -493,10 +500,13 @@ mod tests {
 
         let prompt = agent.create_task_decomposition_prompt(&issue);
 
-        assert!(prompt.contains("Issue #123"));
-        assert!(prompt.contains("Implement new feature"));
-        assert!(prompt.contains("Feature description"));
-        assert!(prompt.contains("type:feature"));
+        // Check for issue details in the prompt
+        assert!(prompt.contains("Number: #123"));
+        assert!(prompt.contains("Title: Implement new feature"));
+        assert!(prompt.contains("Description: Feature description"));
+        assert!(prompt.contains("Labels: type:feature"));
+        assert!(prompt.contains("TASK DECOMPOSITION REQUIREMENTS"));
+        assert!(prompt.contains("OUTPUT FORMAT (JSON)"));
     }
 
     #[tokio::test]
@@ -519,9 +529,18 @@ mod tests {
         let agent = CoordinatorAgentWithLLM::new(config);
 
         assert_eq!(agent.parse_agent_type("IssueAgent"), AgentType::IssueAgent);
-        assert_eq!(agent.parse_agent_type("CodeGenAgent"), AgentType::CodeGenAgent);
-        assert_eq!(agent.parse_agent_type("ReviewAgent"), AgentType::ReviewAgent);
-        assert_eq!(agent.parse_agent_type("DeploymentAgent"), AgentType::DeploymentAgent);
+        assert_eq!(
+            agent.parse_agent_type("CodeGenAgent"),
+            AgentType::CodeGenAgent
+        );
+        assert_eq!(
+            agent.parse_agent_type("ReviewAgent"),
+            AgentType::ReviewAgent
+        );
+        assert_eq!(
+            agent.parse_agent_type("DeploymentAgent"),
+            AgentType::DeploymentAgent
+        );
         assert_eq!(agent.parse_agent_type("PRAgent"), AgentType::PRAgent);
         assert_eq!(agent.parse_agent_type("Unknown"), AgentType::CodeGenAgent);
     }

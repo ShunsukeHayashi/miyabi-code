@@ -62,8 +62,9 @@ impl ParallelCommand {
         println!("    Auto cleanup: {}", pool_config.auto_cleanup);
         println!();
 
-        let pool = WorktreePool::new(pool_config)
-            .map_err(|e| CliError::ExecutionError(format!("Failed to create worktree pool: {}", e)))?;
+        let pool = WorktreePool::new(pool_config).map_err(|e| {
+            CliError::ExecutionError(format!("Failed to create worktree pool: {}", e))
+        })?;
 
         // Create tasks for each issue
         let tasks: Vec<WorktreeTask> = self
@@ -172,11 +173,7 @@ impl ParallelCommand {
             result.success_count
         );
         if result.failed_count > 0 {
-            println!(
-                "    {} Failed: {}",
-                "✗".red().bold(),
-                result.failed_count
-            );
+            println!("    {} Failed: {}", "✗".red().bold(), result.failed_count);
         }
         if result.timeout_count > 0 {
             println!(
@@ -189,11 +186,11 @@ impl ParallelCommand {
 
         println!("  Performance:");
         println!("    Wall time: {:.2}s", elapsed.as_secs_f64());
-        println!("    Total duration: {:.2}s", result.total_duration_ms as f64 / 1000.0);
         println!(
-            "    Success rate: {:.1}%",
-            result.success_rate()
+            "    Total duration: {:.2}s",
+            result.total_duration_ms as f64 / 1000.0
         );
+        println!("    Success rate: {:.1}%", result.success_rate());
         println!(
             "    Average task duration: {:.2}s",
             result.average_duration_ms() / 1000.0
@@ -204,10 +201,7 @@ impl ParallelCommand {
         let parallel_time = result.total_duration_ms as f64;
         let speedup = sequential_time / parallel_time;
 
-        println!(
-            "    Estimated speedup: {:.2}x",
-            speedup
-        );
+        println!("    Estimated speedup: {:.2}x", speedup);
         println!();
 
         // Show individual results

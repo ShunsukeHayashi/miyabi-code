@@ -155,7 +155,7 @@ impl CoordinatorAgent {
     }
 
     /// Build DAG from tasks
-    fn build_dag(&self, tasks: &[Task]) -> Result<DAG> {
+    pub(crate) fn build_dag(&self, tasks: &[Task]) -> Result<DAG> {
         let mut edges = Vec::new();
         let mut task_map: HashMap<String, &Task> = HashMap::new();
 

@@ -1,148 +1,57 @@
 /**
- * BytePlus API Client
+ * BytePlus API Base Client
  */
 
-import { createLogger } from '../../utils/logger.js';
-import {
-  BytePlusConfig,
-  BytePlusTaskRequest,
-  BytePlusTaskResponse,
-} from './types.js';
-
-const logger = createLogger('byteplus-client');
+import axios, { AxiosInstance } from 'axios';
+import { BytePlusConfig, BytePlusError } from './types';
 
 export class BytePlusClient {
-  private config: BytePlusConfig;
+  private client: AxiosInstance;
+  private apiKey: string;
 
-  constructor(config?: Partial<BytePlusConfig>) {
-    this.config = {
-      apiKey: config?.apiKey || process.env.BYTEPLUS_API_KEY || '',
-      endpoint:
-        config?.endpoint ||
-        process.env.BYTEPLUS_API_ENDPOINT ||
-        'https://ark.ap-southeast-1.bytepluses.com',
-    };
+  constructor(config: BytePlusConfig) {
+    this.apiKey = config.apiKey;
 
-    if (!this.config.apiKey) {
-      logger.warn('BytePlus API key is not set');
-    }
+    this.client = axios.create({
+      baseURL: config.baseUrl || 'https://api.byteplus.com/v1',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 60000, // 60 seconds
+    });
+
+    // Request interceptor to add API key
+    this.client.interceptors.request.use((config) => {
+      config.headers['Authorization'] = `Bearer ${this.apiKey}`;
+      return config;
+    });
+
+    // Response interceptor for error handling
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response) {
+          throw new BytePlusError(
+            error.response.data?.error?.message || 'BytePlus API Error',
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          throw new BytePlusError('Network error: No response from BytePlus API');
+        } else {
+          throw new BytePlusError(`Request error: ${error.message}`);
+        }
+      }
+    );
   }
 
-  /**
-   * タスクを作成
-   */
-  async createTask(request: BytePlusTaskRequest): Promise<BytePlusTaskResponse> {
-    const url = `${this.config.endpoint}/api/v3/contents/generations/tasks`;
-
-    try {
-      logger.info('Creating BytePlus task', { model: request.model });
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.config.apiKey}`,
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        logger.error('BytePlus API error', {
-          status: response.status,
-          error: errorText,
-        });
-        throw new Error(`BytePlus API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = (await response.json()) as BytePlusTaskResponse;
-      logger.info('BytePlus task created', { taskId: data.id, status: data.status });
-
-      return data;
-    } catch (error) {
-      logger.error('Failed to create BytePlus task', { error });
-      throw error;
-    }
+  protected async post<T>(endpoint: string, data: any): Promise<T> {
+    const response = await this.client.post<T>(endpoint, data);
+    return response.data;
   }
 
-  /**
-   * タスクの状態を取得
-   */
-  async getTask(taskId: string): Promise<BytePlusTaskResponse> {
-    const url = `${this.config.endpoint}/api/v3/contents/generations/tasks/${taskId}`;
-
-    try {
-      logger.info('Querying BytePlus task', { taskId });
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.config.apiKey}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        logger.error('BytePlus API error', {
-          status: response.status,
-          error: errorText,
-        });
-        throw new Error(`BytePlus API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = (await response.json()) as BytePlusTaskResponse;
-      logger.info('BytePlus task queried', { taskId, status: data.status });
-
-      return data;
-    } catch (error) {
-      logger.error('Failed to query BytePlus task', { error });
-      throw error;
-    }
-  }
-
-  /**
-   * タスクが完了するまでポーリング
-   */
-  async waitForCompletion(
-    taskId: string,
-    options: {
-      maxAttempts?: number;
-      intervalMs?: number;
-    } = {}
-  ): Promise<BytePlusTaskResponse> {
-    const maxAttempts = options.maxAttempts || 60; // 5分（5秒 * 60）
-    const intervalMs = options.intervalMs || 5000; // 5秒
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const task = await this.getTask(taskId);
-
-      if (task.status === 'completed') {
-        logger.info('BytePlus task completed', { taskId, attempts: attempt + 1 });
-        return task;
-      }
-
-      if (task.status === 'failed') {
-        logger.error('BytePlus task failed', {
-          taskId,
-          error: task.error,
-        });
-        throw new Error(`Task failed: ${task.error?.message || 'Unknown error'}`);
-      }
-
-      // Still processing, wait and retry
-      logger.debug('BytePlus task still processing', {
-        taskId,
-        status: task.status,
-        attempt: attempt + 1,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, intervalMs));
-    }
-
-    throw new Error(`Task timeout: exceeded ${maxAttempts} attempts`);
+  protected async get<T>(endpoint: string, params?: any): Promise<T> {
+    const response = await this.client.get<T>(endpoint, { params });
+    return response.data;
   }
 }
-
-// Singleton instance
-export const bytePlusClient = new BytePlusClient();

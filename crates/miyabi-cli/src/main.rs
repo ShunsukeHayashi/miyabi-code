@@ -6,7 +6,9 @@ mod startup;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::{AgentCommand, InitCommand, InstallCommand, ParallelCommand, SetupCommand, StatusCommand};
+use commands::{
+    AgentCommand, InitCommand, InstallCommand, ParallelCommand, SetupCommand, StatusCommand,
+};
 use error::Result;
 
 #[derive(Parser)]
@@ -109,7 +111,10 @@ async fn main() -> Result<()> {
             let cmd = AgentCommand::new(agent_type, issue);
             cmd.execute().await
         }
-        Some(Commands::Parallel { issues, concurrency }) => {
+        Some(Commands::Parallel {
+            issues,
+            concurrency,
+        }) => {
             let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
         }

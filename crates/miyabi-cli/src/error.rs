@@ -22,6 +22,12 @@ pub enum CliError {
     #[error("Git configuration error: {0}")]
     GitConfig(String),
 
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+
+    #[error("Execution error: {0}")]
+    ExecutionError(String),
+
     #[error("Miyabi error: {0}")]
     Miyabi(#[from] miyabi_types::error::MiyabiError),
 

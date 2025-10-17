@@ -5,7 +5,6 @@
 
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
 use serial_test::serial;
-use std::path::PathBuf;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
@@ -128,10 +127,7 @@ async fn test_parallel_execution_basic() {
     eprintln!("[Test]   Failed: {}", result.failed_count);
     eprintln!("[Test]   Timeout: {}", result.timeout_count);
     eprintln!("[Test]   Total duration: {}ms", result.total_duration_ms);
-    eprintln!(
-        "[Test]   Success rate: {:.1}%",
-        result.success_rate()
-    );
+    eprintln!("[Test]   Success rate: {:.1}%", result.success_rate());
     eprintln!(
         "[Test]   Average duration: {:.1}ms",
         result.average_duration_ms()
@@ -329,16 +325,19 @@ async fn test_execute_simple() {
     let issue_numbers = vec![4001, 4002, 4003];
 
     let result = pool
-        .execute_simple(issue_numbers, move |worktree_path, issue_number| async move {
-            eprintln!(
-                "[Test] Processing issue #{} in worktree {:?}",
-                issue_number, worktree_path
-            );
+        .execute_simple(
+            issue_numbers,
+            move |worktree_path, issue_number| async move {
+                eprintln!(
+                    "[Test] Processing issue #{} in worktree {:?}",
+                    issue_number, worktree_path
+                );
 
-            tokio::time::sleep(Duration::from_millis(200)).await;
+                tokio::time::sleep(Duration::from_millis(200)).await;
 
-            Ok(())
-        })
+                Ok(())
+            },
+        )
         .await;
 
     eprintln!("[Test] Simple execution completed");
@@ -415,6 +414,8 @@ async fn test_parallel_execution_benchmark() {
         auto_cleanup: true,
     };
 
+    let max_concurrency = config.max_concurrency;
+
     let pool = match WorktreePool::new(config) {
         Ok(p) => p,
         Err(e) => {
@@ -434,7 +435,7 @@ async fn test_parallel_execution_benchmark() {
         .collect();
 
     eprintln!("[Benchmark] Starting execution of {} tasks", tasks.len());
-    eprintln!("[Benchmark] Max concurrency: {}", config.max_concurrency);
+    eprintln!("[Benchmark] Max concurrency: {}", max_concurrency);
 
     let start = std::time::Instant::now();
 
@@ -466,7 +467,8 @@ async fn test_parallel_execution_benchmark() {
     );
     eprintln!(
         "  Speedup: {:.2}x",
-        (result.average_duration_ms() * result.total_tasks as f64) / result.total_duration_ms as f64
+        (result.average_duration_ms() * result.total_tasks as f64)
+            / result.total_duration_ms as f64
     );
 
     assert_eq!(result.success_count, 10);

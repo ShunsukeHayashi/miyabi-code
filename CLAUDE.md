@@ -121,6 +121,37 @@ TypeScript版からの完全移植により、以下を実現：
    # バイナリ: target/release/miyabi
    ```
 
+4. **Codex Integration** (`.codex/`)
+   - **Context Index**: `.codex/CONTEXT_INDEX.md` - Codex Agentの知識ベース統合インデックス
+   - **Playbooks**: `.codex/agents/*.md` - Agent実行ガイド（9ファイル）
+     - `ISSUE_CREATION_INSTRUCTIONS.md` - Issue作成フロー
+     - `coordinator-playbook.md` - Coordinatorタスク分解
+     - `codegen-playbook.md` - コード生成チェックリスト
+     - `review-playbook.md` - 品質レビュー手順
+     - `pr-playbook.md` - PR作成ガイド
+     - `deployment-playbook.md` - デプロイオーケストレーション
+     - `hooks-playbook.md` - ライフサイクルフック
+   - **Hooks**: `.codex/hooks/` - Codexワークフローフック設定
+
+5. **Agent Lifecycle Hooks** (`crates/miyabi-agents/src/hooks.rs`)
+   - **Hook System**: Agent実行前後のライフサイクル管理
+     - `AgentHook` trait: `on_pre_execute`, `on_post_execute`, `on_error`
+     - `HookedAgent<A>`: Baseagent wrapper with hook support
+   - **Built-in Hooks**:
+     - `EnvironmentCheckHook`: 必須環境変数の検証
+     - `MetricsHook`: 実行メトリクスのtracing記録
+     - `AuditLogHook`: `.ai/logs/YYYY-MM-DD.md` への実行ログ追記
+   - **使用例**:
+     ```rust
+     use miyabi_agents::{HookedAgent, MetricsHook, AuditLogHook};
+
+     let mut hooked = HookedAgent::new(CodeGenAgent::new(config));
+     hooked.register_hook(MetricsHook::new());
+     hooked.register_hook(AuditLogHook::new(".ai/logs"));
+
+     let result = hooked.execute(&task).await?;
+     ```
+
 ## 重要なファイル
 
 ### 設定ファイル

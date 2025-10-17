@@ -2,18 +2,24 @@
 
 use crate::error::{CliError, Result};
 use colored::Colorize;
-use miyabi_agents::base::BaseAgent;
 use miyabi_agents::business::{
     AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
     MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
     SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
 };
 use miyabi_agents::codegen::CodeGenAgent;
-use miyabi_agents::coordinator::CoordinatorAgent;
-use miyabi_agents::CoordinatorAgentWithLLM;
+use miyabi_agents::deployment::DeploymentAgent;
+use miyabi_agents::hooks::{AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 use miyabi_agents::issue::IssueAgent;
+use miyabi_agents::pr::PRAgent;
+use miyabi_agents::review::ReviewAgent;
+use miyabi_agents::BaseAgent;
+use miyabi_agents::CoordinatorAgentWithLLM;
+use miyabi_core::git_utils::{find_git_root, get_current_branch};
+use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentType, Task};
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 pub struct AgentCommand {
     pub agent_type: String,
@@ -48,8 +54,17 @@ impl AgentCommand {
             AgentType::CodeGenAgent => {
                 self.run_codegen_agent(config).await?;
             }
+            AgentType::ReviewAgent => {
+                self.run_review_agent(config).await?;
+            }
             AgentType::IssueAgent => {
                 self.run_issue_agent(config).await?;
+            }
+            AgentType::PRAgent => {
+                self.run_pr_agent(config).await?;
+            }
+            AgentType::DeploymentAgent => {
+                self.run_deployment_agent(config).await?;
             }
 
             // Business Agents - Strategy & Planning
@@ -178,6 +193,10 @@ impl AgentCommand {
             production_url: None,
             staging_url: None,
         })
+    }
+
+    fn git_root(&self) -> Result<PathBuf> {
+        find_git_root(None).map_err(CliError::GitConfig)
     }
 
     /// Get GitHub token with auto-detection from multiple sources
@@ -343,8 +362,12 @@ impl AgentCommand {
         println!("  Type: CodeGenAgent (Code generation)");
         println!();
 
-        // Create agent
-        let agent = CodeGenAgent::new(config);
+        // Create agent with lifecycle hooks
+        let log_dir = config.log_directory.clone();
+        let mut agent = HookedAgent::new(CodeGenAgent::new(config));
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(log_dir));
 
         // Create task for codegen
         let task = Task {
@@ -389,6 +412,63 @@ impl AgentCommand {
         Ok(())
     }
 
+    async fn run_review_agent(&self, config: AgentConfig) -> Result<()> {
+        let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
+
+        println!("  Issue: #{}", issue_number);
+        println!("  Type: ReviewAgent (Code quality review)");
+        println!();
+
+        let log_dir = config.log_directory.clone();
+        let mut agent = HookedAgent::new(ReviewAgent::new(config));
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(log_dir));
+
+        let task = Task {
+            id: format!("review-issue-{}", issue_number),
+            title: format!("Review implementation for Issue #{}", issue_number),
+            description: format!(
+                "Run lint, tests, security checks for Issue #{}",
+                issue_number
+            ),
+            task_type: TaskType::Refactor,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::ReviewAgent),
+            dependencies: vec![],
+            estimated_duration: Some(15),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(HashMap::from([(
+                "issue_number".to_string(),
+                serde_json::json!(issue_number),
+            )])),
+        };
+
+        println!("{}", "  Executing...".dimmed());
+        let result = agent.execute(&task).await?;
+
+        println!();
+        println!("  Results:");
+        println!("    Status: {:?}", result.status);
+
+        if let Some(ref metrics) = result.metrics {
+            println!("    Duration: {}ms", metrics.duration_ms);
+            if let Some(score) = metrics.quality_score {
+                println!("    Quality Score: {}", score);
+            }
+        }
+
+        if let Some(ref data) = result.data {
+            println!("    Data: {}", serde_json::to_string_pretty(data)?);
+        }
+
+        Ok(())
+    }
+
     async fn run_issue_agent(&self, config: AgentConfig) -> Result<()> {
         let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
 
@@ -396,8 +476,12 @@ impl AgentCommand {
         println!("  Type: IssueAgent (Issue analysis & labeling)");
         println!();
 
-        // Create agent
-        let agent = IssueAgent::new(config);
+        // Create agent with lifecycle hooks
+        let log_dir = config.log_directory.clone();
+        let mut agent = HookedAgent::new(IssueAgent::new(config));
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(log_dir));
 
         // Create task for issue analysis
         let task = Task {
@@ -448,6 +532,149 @@ impl AgentCommand {
                 println!("    Dependencies: {}", analysis.dependencies.join(", "));
                 println!("    Applied Labels: {}", analysis.labels.join(", "));
             }
+        }
+
+        Ok(())
+    }
+
+    async fn run_pr_agent(&self, config: AgentConfig) -> Result<()> {
+        let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
+
+        println!("  Issue: #{}", issue_number);
+        println!("  Type: PRAgent (Pull Request creation)");
+        println!();
+
+        let repo_root = self.git_root()?;
+        let branch =
+            get_current_branch(&repo_root).map_err(|e| CliError::GitConfig(e.to_string()))?;
+        let base_branch =
+            std::env::var("MIYABI_BASE_BRANCH").unwrap_or_else(|_| "main".to_string());
+
+        let mut metadata = HashMap::new();
+        metadata.insert("issueNumber".to_string(), serde_json::json!(issue_number));
+        metadata.insert("branch".to_string(), serde_json::json!(branch.clone()));
+        metadata.insert(
+            "baseBranch".to_string(),
+            serde_json::json!(base_branch.clone()),
+        );
+
+        let log_dir = config.log_directory.clone();
+        let mut agent = HookedAgent::new(PRAgent::new(config));
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(log_dir));
+
+        let task = Task {
+            id: format!("pr-issue-{}", issue_number),
+            title: format!("Create PR for Issue #{}", issue_number),
+            description: format!("Generate pull request for Issue #{}", issue_number),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::PRAgent),
+            dependencies: vec![],
+            estimated_duration: Some(5),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(metadata),
+        };
+
+        println!("{}", "  Executing...".dimmed());
+        let result = agent.execute(&task).await?;
+
+        println!();
+        println!("  Results:");
+        println!("    Status: {:?}", result.status);
+
+        if let Some(ref data) = result.data {
+            println!("    Data: {}", serde_json::to_string_pretty(data)?);
+        }
+
+        println!("    Branch: {}", branch);
+        println!("    Base Branch: {}", base_branch);
+
+        Ok(())
+    }
+
+    async fn run_deployment_agent(&self, config: AgentConfig) -> Result<()> {
+        let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
+
+        println!("  Issue: #{}", issue_number);
+        println!("  Type: DeploymentAgent (Build/Test/Deploy)");
+        println!();
+
+        let environment =
+            std::env::var("MIYABI_DEPLOY_ENV").unwrap_or_else(|_| "staging".to_string());
+
+        let health_url = match environment.as_str() {
+            "production" => config
+                .production_url
+                .clone()
+                .or_else(|| std::env::var("MIYABI_PRODUCTION_HEALTH_URL").ok()),
+            _ => config
+                .staging_url
+                .clone()
+                .or_else(|| std::env::var("MIYABI_STAGING_HEALTH_URL").ok()),
+        };
+
+        let mut metadata = HashMap::new();
+        metadata.insert("issue_number".to_string(), serde_json::json!(issue_number));
+        metadata.insert(
+            "environment".to_string(),
+            serde_json::json!(environment.clone()),
+        );
+        if let Some(url) = health_url {
+            metadata.insert("health_url".to_string(), serde_json::json!(url));
+        }
+
+        let log_dir = config.log_directory.clone();
+        let mut agent = HookedAgent::new(DeploymentAgent::new(config));
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(log_dir));
+
+        let task = Task {
+            id: format!("deployment-issue-{}", issue_number),
+            title: format!("Deploy changes for Issue #{}", issue_number),
+            description: format!(
+                "Build, test, and deploy code associated with Issue #{}",
+                issue_number
+            ),
+            task_type: TaskType::Deployment,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::DeploymentAgent),
+            dependencies: vec![],
+            estimated_duration: Some(30),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(metadata),
+        };
+
+        println!("{}", "  Executing...".dimmed());
+        let result = agent.execute(&task).await?;
+
+        println!();
+        println!("  Results:");
+        println!("    Status: {:?}", result.status);
+
+        if let Some(ref metrics) = result.metrics {
+            println!("    Duration: {}ms", metrics.duration_ms);
+        }
+
+        if let Some(ref data) = result.data {
+            println!("    Data: {}", serde_json::to_string_pretty(data)?);
+        }
+
+        if let Some(ref escalation) = result.escalation {
+            println!(
+                "    Escalation: {:?} ({})",
+                escalation.target, escalation.reason
+            );
         }
 
         Ok(())

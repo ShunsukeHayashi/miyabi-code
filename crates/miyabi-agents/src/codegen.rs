@@ -96,7 +96,7 @@ impl CodeGenAgent {
             for dep in &task.dependencies {
                 prompt.push_str(&format!("- {}\n", dep));
             }
-            prompt.push_str("\n");
+            prompt.push('\n');
         }
 
         prompt.push_str("## Instructions\n");
@@ -431,14 +431,14 @@ impl CodeGenAgent {
         // Retry with conservative config (git operations can be slow)
         let retry_config = RetryConfig::conservative();
 
-        let _worktree_info = retry_with_backoff(retry_config, || {
+        retry_with_backoff(retry_config, || {
             let task_id = task_id.clone();
             let _worktree_base = worktree_base.clone();
 
             async move {
                 // Use spawn_blocking with a dedicated runtime to avoid deadlock
                 let task_id_for_error = task_id.clone(); // Clone for error handler
-                let result = tokio::task::spawn_blocking(move || {
+                tokio::task::spawn_blocking(move || {
                     // Create a new runtime for the blocking task
                     let rt = tokio::runtime::Runtime::new().map_err(|e| {
                         AgentError::with_cause(
@@ -493,7 +493,7 @@ impl CodeGenAgent {
                     )
                 })??;
 
-                Ok(result)
+                Ok(())
             }
         })
         .await?;
