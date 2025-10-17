@@ -7,10 +7,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../middleware/error-handler.js';
-import { bytePlusT2I } from '../services/byteplus/t2i.js';
-import { bytePlusI2I } from '../services/byteplus/i2i.js';
-import { bytePlusI2V } from '../services/byteplus/i2v.js';
-import { bytePlusT2V } from '../services/byteplus/t2v.js';
+import { bytePlusT2I, bytePlusI2I, bytePlusI2V, bytePlusT2V } from '../services/byteplus/legacy.js';
 import { geminiTTS } from '../services/ai/gemini-tts.js';
 import { claudeService } from '../services/ai/claude.js';
 
