@@ -791,6 +791,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Requires Ollama server running (Mac mini or local)
     async fn test_codegen_agent_with_ollama() {
         let config = create_test_config();
         let agent = CodeGenAgent::new_with_ollama(config).unwrap();
@@ -798,6 +799,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Requires Ollama server running (Mac mini or local)
     async fn test_generate_code_with_llm() {
         let config = create_test_config();
         let agent = CodeGenAgent::new_with_ollama(config).unwrap();
