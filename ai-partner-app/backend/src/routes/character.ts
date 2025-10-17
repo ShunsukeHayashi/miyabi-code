@@ -562,11 +562,10 @@ router.get(
  */
 router.post(
   '/:id/generate-image',
-  // requireAuth, // 開発中は一時的にコメントアウト
+  requireAuth, // 認証必須に変更
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
-      const userId = req.user?.userId || 'dev-user-001';
+      const userId = req.user!.userId; // 認証済みユーザーIDを使用
 
       const character = await prisma.character.findFirst({
         where: {
