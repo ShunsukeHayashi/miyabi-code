@@ -205,6 +205,106 @@ class APIClient {
     );
   }
 
+  async changeHairstyle(
+    characterId: string,
+    data: {
+      hairstyle: string;
+      hairColor?: string;
+      customPrompt?: string;
+    }
+  ) {
+    return this.request<{
+      hairstyle: string;
+      imageUrl: string;
+      message: string;
+      usedCustomPrompt?: boolean;
+    }>(
+      `/api/characters/${characterId}/change-hairstyle`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async changeBackground(
+    characterId: string,
+    data: {
+      location: string;
+      timeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night';
+      weather?: 'sunny' | 'cloudy' | 'rainy' | 'snowy';
+      customPrompt?: string;
+    }
+  ) {
+    return this.request<{
+      location: string;
+      imageUrl: string;
+      message: string;
+      usedCustomPrompt?: boolean;
+    }>(
+      `/api/characters/${characterId}/change-background`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async changeOutfit(
+    characterId: string,
+    data: {
+      outfit: string;
+      style?: 'casual' | 'formal' | 'sporty' | 'elegant' | 'cute' | 'cool';
+      color?: string;
+      accessories?: string;
+      customPrompt?: string;
+    }
+  ) {
+    return this.request<{
+      outfit: string;
+      imageUrl: string;
+      message: string;
+      usedCustomPrompt?: boolean;
+    }>(
+      `/api/characters/${characterId}/change-outfit`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async generateVideo(
+    characterId: string,
+    data: {
+      action: string;
+      duration?: number;
+      customPrompt?: string;
+    }
+  ) {
+    return this.request<{
+      taskId: string;
+      message: string;
+    }>(
+      `/api/characters/${characterId}/generate-video`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async getVideoStatus(characterId: string, taskId: string) {
+    return this.request<{
+      taskId: string;
+      status: 'pending' | 'processing' | 'completed' | 'failed';
+      videoUrl?: string;
+      progress?: number;
+    }>(
+      `/api/characters/${characterId}/video-status/${taskId}`
+    );
+  }
+
   async deleteCharacter(id: string) {
     return this.request<{ message: string }>(`/api/characters/${id}`, {
       method: 'DELETE',

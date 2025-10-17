@@ -10,6 +10,7 @@ use miyabi_agents::business::{
 };
 use miyabi_agents::codegen::CodeGenAgent;
 use miyabi_agents::coordinator::CoordinatorAgent;
+use miyabi_agents::CoordinatorAgentWithLLM;
 use miyabi_agents::issue::IssueAgent;
 use miyabi_types::{AgentConfig, AgentType, Task};
 use std::collections::HashMap;
@@ -288,11 +289,11 @@ impl AgentCommand {
         let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
 
         println!("  Issue: #{}", issue_number);
-        println!("  Type: CoordinatorAgent (Task decomposition & DAG)");
+        println!("  Type: CoordinatorAgent with LLM (Task decomposition & DAG)");
         println!();
 
-        // Create agent
-        let agent = CoordinatorAgent::new(config);
+        // Create agent with LLM integration
+        let agent = CoordinatorAgentWithLLM::new(config);
 
         // Create task for coordinator
         let task = Task {
