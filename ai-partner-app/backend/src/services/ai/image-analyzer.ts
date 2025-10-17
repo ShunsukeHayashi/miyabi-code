@@ -121,8 +121,16 @@ JSON形式で回答してください:
         responseLength: responseText.length
       });
 
+      // Strip markdown code blocks if present
+      let jsonText = responseText;
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.replace(/```json\n?/, '').replace(/\n?```$/, '');
+      } else if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/```\n?/, '').replace(/\n?```$/, '');
+      }
+
       // Parse JSON response
-      const analysisResult = JSON.parse(responseText) as ImageAnalysisResult;
+      const analysisResult = JSON.parse(jsonText.trim()) as ImageAnalysisResult;
 
       // Validate required fields
       if (!analysisResult.hairColor || !analysisResult.estimatedAge) {
@@ -235,7 +243,15 @@ JSON形式で出力:
     const profileText =
       message.content[0].type === 'text' ? message.content[0].text.trim() : '';
 
-    const profile = JSON.parse(profileText);
+    // Strip markdown code blocks if present
+    let jsonProfileText = profileText;
+    if (jsonProfileText.startsWith('```json')) {
+      jsonProfileText = jsonProfileText.replace(/```json\n?/, '').replace(/\n?```$/, '');
+    } else if (jsonProfileText.startsWith('```')) {
+      jsonProfileText = jsonProfileText.replace(/```\n?/, '').replace(/\n?```$/, '');
+    }
+
+    const profile = JSON.parse(jsonProfileText.trim());
 
     logger.info('Full character profile generated from image');
 
