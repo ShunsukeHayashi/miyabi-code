@@ -154,17 +154,21 @@ router.post(
 /**
  * POST /api/characters/generate-from-image
  * 画像からキャラクター生成
+ * TODO: 本番環境では requireAuth を有効化すること
  */
 router.post(
   '/generate-from-image',
-  requireAuth,
+  // requireAuth, // 開発中は一時的にコメントアウト
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = generateFromImageSchema.parse(req.body);
 
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
       // Save image to local filesystem FIRST
       const savedImage = await saveImage({
-        userId: req.user!.userId,
+        userId,
         imageType: 'source',
         base64Data: body.imageData,
         mimeType: body.mimeType,
@@ -195,7 +199,7 @@ router.post(
       // Create character with analyzed appearance and generated profile
       const character = await prisma.character.create({
         data: {
-          userId: req.user!.userId,
+          userId,
           name: finalName,
           age: finalAge,
           birthday,
@@ -236,7 +240,7 @@ router.post(
       await prisma.stageProgress.create({
         data: {
           characterId: character.id,
-          userId: req.user!.userId,
+          userId,
           currentStage: 'first_meet',
           affection: 0,
           unlockedStages: 'first_meet',
@@ -334,14 +338,18 @@ router.post(
 /**
  * GET /api/characters
  * キャラクター一覧取得
+ * TODO: 本番環境では requireAuth を有効化すること
  */
 router.get(
   '/',
-  requireAuth,
+  // requireAuth, // 開発中は一時的にコメントアウト
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
       const characters = await prisma.character.findMany({
-        where: { userId: req.user!.userId },
+        where: { userId: userId },
         include: {
           stageProgress: true,
         },
@@ -358,16 +366,20 @@ router.get(
 /**
  * GET /api/characters/:id
  * キャラクター詳細取得
+ * TODO: 本番環境では requireAuth を有効化すること
  */
 router.get(
   '/:id',
-  requireAuth,
+  // requireAuth, // 開発中は一時的にコメントアウト
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
       const character = await prisma.character.findFirst({
         where: {
           id: req.params.id,
-          userId: req.user!.userId,
+          userId: userId,
         },
         include: {
           stageProgress: true,
@@ -388,16 +400,20 @@ router.get(
 /**
  * POST /api/characters/:id/generate-image
  * キャラクター画像生成
+ * TODO: 本番環境では requireAuth を有効化すること
  */
 router.post(
   '/:id/generate-image',
-  requireAuth,
+  // requireAuth, // 開発中は一時的にコメントアウト
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
       const character = await prisma.character.findFirst({
         where: {
           id: req.params.id,
-          userId: req.user!.userId,
+          userId: userId,
         },
       });
 
@@ -438,10 +454,11 @@ router.post(
 /**
  * POST /api/characters/:id/generate-expression
  * 表情画像生成（カスタムプロンプト対応）
+ * TODO: 本番環境では requireAuth を有効化すること
  */
 router.post(
   '/:id/generate-expression',
-  requireAuth,
+  // requireAuth, // 開発中は一時的にコメントアウト
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { expression, customPrompt } = req.body;
@@ -450,10 +467,13 @@ router.post(
         throw new AppError('Expression is required', 400);
       }
 
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
       const character = await prisma.character.findFirst({
         where: {
           id: req.params.id,
-          userId: req.user!.userId,
+          userId: userId,
         },
       });
 
