@@ -431,9 +431,9 @@ impl CodeGenAgent {
         // Retry with conservative config (git operations can be slow)
         let retry_config = RetryConfig::conservative();
 
-        let worktree_info = retry_with_backoff(retry_config, || {
+        let _worktree_info = retry_with_backoff(retry_config, || {
             let task_id = task_id.clone();
-            let worktree_base = worktree_base.clone();
+            let _worktree_base = worktree_base.clone();
 
             async move {
                 // Use spawn_blocking with a dedicated runtime to avoid deadlock
@@ -450,7 +450,7 @@ impl CodeGenAgent {
                     })?;
 
                     rt.block_on(async {
-                        let repo_path = miyabi_core::find_git_root(None).map_err(|e| {
+                        let _repo_path = miyabi_core::find_git_root(None).map_err(|e| {
                             AgentError::new(
                                 format!(
                                     "Failed to find git repository root: {}\n\
@@ -463,7 +463,7 @@ impl CodeGenAgent {
                         })?;
 
                         // Extract issue number from task ID (format: "task-{issue_number}" or numeric ID)
-                        let issue_number = task_id
+                        let _issue_number = task_id
                             .trim_start_matches("task-")
                             .parse::<u64>()
                             .unwrap_or(0);
@@ -523,7 +523,7 @@ impl CodeGenAgent {
 
         retry_with_backoff(retry_config, || {
             // let worktree_id = worktree_id.clone();
-            let worktree_base = worktree_base.clone();
+            let _worktree_base = worktree_base.clone();
 
             async move {
                 // Use spawn_blocking with a dedicated runtime to avoid deadlock
@@ -539,7 +539,7 @@ impl CodeGenAgent {
                     })?;
 
                     rt.block_on(async {
-                        let repo_path = miyabi_core::find_git_root(None).map_err(|e| {
+                        let _repo_path = miyabi_core::find_git_root(None).map_err(|e| {
                             AgentError::new(
                                 format!(
                                     "Failed to find git repository root for cleanup: {}\n\

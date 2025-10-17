@@ -319,7 +319,9 @@ async fn test_semantic_search() {
         .await;
 
     let client = create_test_client(&server.url()).await;
-    let result = client.semantic_search("authentication logic", Some(5)).await;
+    let result = client
+        .semantic_search("authentication logic", Some(5))
+        .await;
 
     mock.assert_async().await;
     assert!(result.is_ok());
@@ -351,7 +353,7 @@ async fn test_api_error_handling() {
 async fn test_timeout_handling() {
     let config = PotpieConfig {
         api_url: "http://10.255.255.1:8000".to_string(), // Non-routable IP
-        timeout_seconds: 1, // Very short timeout
+        timeout_seconds: 1,                              // Very short timeout
         ..Default::default()
     };
 

@@ -1,13 +1,13 @@
 //! Caching utilities for Miyabi
-//! 
+//!
 //! Provides in-memory caching with TTL support for LLM responses and other expensive operations
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use serde::{Deserialize, Serialize};
 
 /// Cache entry with TTL support
 #[derive(Debug, Clone)]
@@ -52,7 +52,7 @@ where
     /// Get a value from the cache
     pub async fn get(&self, key: &K) -> Option<V> {
         let mut cache = self.inner.write().await;
-        
+
         if let Some(entry) = cache.get(key) {
             if entry.is_expired() {
                 cache.remove(key);
@@ -86,9 +86,9 @@ where
     pub async fn cleanup_expired(&self) -> usize {
         let mut cache = self.inner.write().await;
         let initial_size = cache.len();
-        
+
         cache.retain(|_, entry| !entry.is_expired());
-        
+
         initial_size - cache.len()
     }
 
@@ -97,7 +97,7 @@ where
         let cache = self.inner.read().await;
         let total_entries = cache.len();
         let expired_entries = cache.values().filter(|entry| entry.is_expired()).count();
-        
+
         CacheStats {
             total_entries,
             expired_entries,
@@ -132,14 +132,14 @@ impl LLMCacheKey {
     pub fn new(prompt: &str, model: &str, temperature: Option<f32>) -> Self {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
-        
+
         let mut hasher = DefaultHasher::new();
         prompt.hash(&mut hasher);
         model.hash(&mut hasher);
         if let Some(temp) = temperature {
             temp.to_bits().hash(&mut hasher);
         }
-        
+
         Self {
             prompt_hash: format!("{:x}", hasher.finish()),
             model: model.to_string(),
@@ -168,10 +168,10 @@ impl BusinessAgentCacheKey {
     pub fn new(agent_type: &str, task_id: &str, task_content: &str) -> Self {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
-        
+
         let mut hasher = DefaultHasher::new();
         task_content.hash(&mut hasher);
-        
+
         Self {
             agent_type: agent_type.to_string(),
             task_id: task_id.to_string(),
@@ -196,11 +196,11 @@ mod tests {
     #[tokio::test]
     async fn test_ttl_cache_basic_operations() {
         let cache = TTLCache::new(Duration::from_millis(100));
-        
+
         // Insert and get
         cache.insert("key1", "value1").await;
         assert_eq!(cache.get(&"key1").await, Some("value1"));
-        
+
         // Wait for expiration
         sleep(Duration::from_millis(150)).await;
         assert_eq!(cache.get(&"key1").await, None);
@@ -209,15 +209,17 @@ mod tests {
     #[tokio::test]
     async fn test_ttl_cache_custom_ttl() {
         let cache = TTLCache::new(Duration::from_millis(100));
-        
+
         // Insert with custom TTL
-        cache.insert_with_ttl("key1", "value1", Duration::from_millis(200)).await;
+        cache
+            .insert_with_ttl("key1", "value1", Duration::from_millis(200))
+            .await;
         assert_eq!(cache.get(&"key1").await, Some("value1"));
-        
+
         // Wait for default TTL but not custom TTL
         sleep(Duration::from_millis(150)).await;
         assert_eq!(cache.get(&"key1").await, Some("value1"));
-        
+
         // Wait for custom TTL
         sleep(Duration::from_millis(100)).await;
         assert_eq!(cache.get(&"key1").await, None);
@@ -226,16 +228,16 @@ mod tests {
     #[tokio::test]
     async fn test_ttl_cache_cleanup() {
         let cache = TTLCache::new(Duration::from_millis(50));
-        
+
         cache.insert("key1", "value1").await;
         cache.insert("key2", "value2").await;
-        
+
         // Wait for expiration
         sleep(Duration::from_millis(100)).await;
-        
+
         let cleaned = cache.cleanup_expired().await;
         assert_eq!(cleaned, 2);
-        
+
         let stats = cache.stats().await;
         assert_eq!(stats.total_entries, 0);
     }
@@ -245,7 +247,7 @@ mod tests {
         let key1 = LLMCacheKey::new("prompt1", "model1", Some(0.7));
         let key2 = LLMCacheKey::new("prompt1", "model1", Some(0.7));
         let key3 = LLMCacheKey::new("prompt2", "model1", Some(0.7));
-        
+
         assert_eq!(key1, key2);
         assert_ne!(key1, key3);
     }
@@ -255,7 +257,7 @@ mod tests {
         let key1 = BusinessAgentCacheKey::new("agent1", "task1", "content1");
         let key2 = BusinessAgentCacheKey::new("agent1", "task1", "content1");
         let key3 = BusinessAgentCacheKey::new("agent1", "task1", "content2");
-        
+
         assert_eq!(key1, key2);
         assert_ne!(key1, key3);
     }

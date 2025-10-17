@@ -141,9 +141,7 @@ impl LLMContext {
         for path in paths {
             let content = tokio::fs::read_to_string(path)
                 .await
-                .map_err(|e| {
-                    LLMError::Unknown(format!("Failed to read file {:?}: {}", path, e))
-                })?;
+                .map_err(|e| LLMError::Unknown(format!("Failed to read file {:?}: {}", path, e)))?;
 
             self.file_contents.insert(path.clone(), content);
         }
@@ -224,7 +222,10 @@ impl LLMContext {
         // Task information
         vars.insert("task_id".to_string(), self.task.id.clone());
         vars.insert("task_title".to_string(), self.task.title.clone());
-        vars.insert("task_description".to_string(), self.task.description.clone());
+        vars.insert(
+            "task_description".to_string(),
+            self.task.description.clone(),
+        );
         vars.insert(
             "task_type".to_string(),
             format!("{:?}", self.task.task_type),
@@ -382,9 +383,7 @@ mod tests {
         // Create temporary file
         let temp_dir = std::env::temp_dir();
         let test_file = temp_dir.join("test_context.txt");
-        tokio::fs::write(&test_file, "test content")
-            .await
-            .unwrap();
+        tokio::fs::write(&test_file, "test content").await.unwrap();
 
         // Load file
         context.load_files(&[test_file.clone()]).await.unwrap();
@@ -439,7 +438,10 @@ mod tests {
         context.add_metric("complexity", serde_json::json!(42));
         context.add_metric("author", serde_json::json!("Alice"));
 
-        assert_eq!(context.get_metric("complexity"), Some(&serde_json::json!(42)));
+        assert_eq!(
+            context.get_metric("complexity"),
+            Some(&serde_json::json!(42))
+        );
         assert_eq!(
             context.get_metric("author"),
             Some(&serde_json::json!("Alice"))
@@ -577,10 +579,9 @@ mod tests {
         let task = create_test_task();
         let mut context = LLMContext::from_task(&task);
 
-        context.file_contents.insert(
-            PathBuf::from("test1.rs"),
-            "line1\nline2\nline3".to_string(),
-        );
+        context
+            .file_contents
+            .insert(PathBuf::from("test1.rs"), "line1\nline2\nline3".to_string());
         context
             .file_contents
             .insert(PathBuf::from("test2.rs"), "line1\nline2".to_string());

@@ -17,18 +17,19 @@ impl PotpieIntegration {
     /// Create new Potpie integration with optional configuration
     pub fn new(config: Option<PotpieConfig>) -> Self {
         let (client, enabled) = match config {
-            Some(cfg) => {
-                match PotpieClient::new(cfg.clone()) {
-                    Ok(client) => {
-                        info!("Potpie integration enabled");
-                        (Some(client), true)
-                    }
-                    Err(e) => {
-                        warn!("Failed to create Potpie client: {}. Fallback mode activated.", e);
-                        (None, false)
-                    }
+            Some(cfg) => match PotpieClient::new(cfg.clone()) {
+                Ok(client) => {
+                    info!("Potpie integration enabled");
+                    (Some(client), true)
                 }
-            }
+                Err(e) => {
+                    warn!(
+                        "Failed to create Potpie client: {}. Fallback mode activated.",
+                        e
+                    );
+                    (None, false)
+                }
+            },
             None => {
                 debug!("Potpie integration disabled (no config provided)");
                 (None, false)
@@ -65,9 +66,10 @@ impl PotpieIntegration {
             return Ok(vec![]);
         }
 
-        let client = self.client.as_ref().ok_or_else(|| {
-            MiyabiError::Unknown("Potpie client not initialized".to_string())
-        })?;
+        let client = self
+            .client
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Unknown("Potpie client not initialized".to_string()))?;
 
         match client.semantic_search(query, top_k).await {
             Ok(results) => {
@@ -103,8 +105,12 @@ impl PotpieIntegration {
         context.push_str("The following existing code may be relevant:\n\n");
 
         for (idx, result) in results.iter().enumerate() {
-            context.push_str(&format!("### {}. {} (Score: {:.2})\n\n",
-                idx + 1, result.node_name, result.score));
+            context.push_str(&format!(
+                "### {}. {} (Score: {:.2})\n\n",
+                idx + 1,
+                result.node_name,
+                result.score
+            ));
             context.push_str(&format!("**File**: `{}`\n\n", result.file_path));
 
             if let Some(ref snippet) = result.snippet {
@@ -129,9 +135,10 @@ impl PotpieIntegration {
             return Ok(vec![]);
         }
 
-        let client = self.client.as_ref().ok_or_else(|| {
-            MiyabiError::Unknown("Potpie client not initialized".to_string())
-        })?;
+        let client = self
+            .client
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Unknown("Potpie client not initialized".to_string()))?;
 
         match client.track_dependencies(module_name).await {
             Ok(deps) => {
@@ -174,7 +181,10 @@ mod tests {
     #[tokio::test]
     async fn test_find_existing_implementations_empty() {
         let integration = PotpieIntegration::new(None);
-        let context = integration.find_existing_implementations("test").await.unwrap();
+        let context = integration
+            .find_existing_implementations("test")
+            .await
+            .unwrap();
         assert_eq!(context, "");
     }
 

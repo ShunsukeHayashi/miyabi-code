@@ -12,7 +12,7 @@
 //! cargo run --example test_mac_mini
 //! ```
 
-use miyabi_llm::{LLMProvider, GPTOSSProvider, LLMRequest, ReasoningEffort};
+use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
 use std::env;
 use std::time::Instant;
 

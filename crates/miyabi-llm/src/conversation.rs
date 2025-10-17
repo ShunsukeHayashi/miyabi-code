@@ -306,9 +306,9 @@ mod tests {
     use super::*;
     use crate::types::{LLMResponse, ReasoningEffort};
     use async_trait::async_trait;
-    use miyabi_types::Task;
     use miyabi_types::agent::{AgentStatus, AgentType};
     use miyabi_types::task::TaskType;
+    use miyabi_types::Task;
 
     // Helper function to create a test task
     fn create_test_task() -> Task {
@@ -364,10 +364,7 @@ mod tests {
             })
         }
 
-        async fn chat(
-            &self,
-            _messages: &[ChatMessage],
-        ) -> Result<ChatMessage> {
+        async fn chat(&self, _messages: &[ChatMessage]) -> Result<ChatMessage> {
             Ok(ChatMessage::assistant("Mock chat response"))
         }
 
@@ -421,10 +418,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_ask_multiple_messages() {
-        let provider = MockProvider::new(vec![
-            "Response 1".to_string(),
-            "Response 2".to_string(),
-        ]);
+        let provider = MockProvider::new(vec!["Response 1".to_string(), "Response 2".to_string()]);
         let task = create_test_task();
         let context = LLMContext::from_task(&task);
 
@@ -479,8 +473,8 @@ mod tests {
         let task = create_test_task();
         let context = LLMContext::from_task(&task);
 
-        let conversation =
-            LLMConversation::new(Box::new(provider), context).with_reasoning_effort(ReasoningEffort::High);
+        let conversation = LLMConversation::new(Box::new(provider), context)
+            .with_reasoning_effort(ReasoningEffort::High);
 
         assert_eq!(conversation.reasoning_effort, ReasoningEffort::High);
     }
@@ -524,7 +518,10 @@ fn main() {
 
         let mut conversation = LLMConversation::new(Box::new(provider), context);
 
-        let code = conversation.ask_for_code("Generate code", "rust").await.unwrap();
+        let code = conversation
+            .ask_for_code("Generate code", "rust")
+            .await
+            .unwrap();
 
         assert!(code.contains("fn main()"));
         assert!(code.contains("println!"));

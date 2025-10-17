@@ -1,12 +1,18 @@
 # Miyabi Claude Code Skills
 
-This directory contains 4 specialized Skills that extend Claude Code's capabilities for the Miyabi project.
+This directory contains **15 specialized Skills** that extend Claude Code's capabilities for the Miyabi project.
 
 ## 📚 What are Skills?
 
 Skills are **model-invoked** capabilities that Claude autonomously activates based on your request. Unlike slash commands (which require explicit invocation), Skills are automatically used when Claude detects a relevant task.
 
-## 🎯 Available Skills (10 Total)
+## 🎯 Available Skills (15 Total)
+
+### Technical Skills (10) - Development & Operations
+**Focus**: Rust development, Git workflows, debugging, performance, security
+
+### Business Skills (5) - Strategy & Growth
+**Focus**: Business planning, market research, content marketing, sales, analytics
 
 ### 1. Rust Development Workflow
 
@@ -265,6 +271,127 @@ Skills are **model-invoked** capabilities that Claude autonomously activates bas
 
 ---
 
+### 11. Business Strategy and Planning
+
+**Location**: `.claude/Skills/business-strategy-planning/SKILL.md`
+
+**When Invoked**:
+- "Create a business plan"
+- "Define our product strategy"
+- "Identify target customers"
+- Starting new business/product
+
+**Capabilities**:
+- Self-analysis and career assessment (SelfAnalysisAgent)
+- Product concept design with USP and BMC (ProductConceptAgent)
+- Detailed persona development 3-5 personas (PersonaAgent)
+- Comprehensive 8-phase business plan (AIEntrepreneurAgent)
+- TAM/SAM/SOM market sizing
+- Revenue model and funding strategy
+
+**Business Agents**: じぶんるん, つくるそん, ぺるそん, あきんどさん
+
+**Tools**: Read, Write, WebFetch, Bash
+
+---
+
+### 12. Market Research and Competitive Analysis
+
+**Location**: `.claude/Skills/market-research-analysis/SKILL.md`
+
+**When Invoked**:
+- "Analyze the market"
+- "Who are our competitors?"
+- "Validate this business idea"
+- Entering new markets
+
+**Capabilities**:
+- TAM/SAM/SOM calculation with data sources
+- Competitor analysis (20+ companies in 3 tiers)
+- 5 major market trends identification
+- Customer needs assessment (interviews, surveys)
+- Competitive positioning matrix
+- SWOT analysis and opportunity mapping
+
+**Business Agent**: しらべるん (MarketResearchAgent)
+
+**Tools**: WebFetch, Read, Write, Bash
+
+---
+
+### 13. Content Marketing and Social Media Strategy
+
+**Location**: `.claude/Skills/content-marketing-strategy/SKILL.md`
+
+**When Invoked**:
+- "Create content strategy"
+- "How to grow on social media?"
+- "Start a YouTube channel"
+- Building brand awareness
+
+**Capabilities**:
+- 6-month content calendar (90+ pieces)
+- Multi-platform SNS strategy (Twitter, LinkedIn, Instagram)
+- YouTube channel optimization (13 workflows)
+- Blog, video, podcast content creation
+- Editorial calendar management
+- Content distribution matrix
+
+**Business Agents**: かくちゃん, つぶやくん, どうがるん
+
+**Tools**: WebFetch, Read, Write, Bash
+
+---
+
+### 14. Sales and CRM Management
+
+**Location**: `.claude/Skills/sales-crm-management/SKILL.md`
+
+**When Invoked**:
+- "Build our sales process"
+- "How to reduce churn?"
+- "Increase customer LTV"
+- Optimizing sales operations
+
+**Capabilities**:
+- Complete sales funnel design (Awareness → Purchase → LTV)
+- B2B sales playbook with BANT qualification
+- CRM setup with pipeline stages
+- Customer health scoring (0-100 points)
+- Churn prevention and win-back campaigns
+- LTV optimization and NRR tracking
+
+**Business Agents**: うるくん, かんりるん, じょうごるん
+
+**Tools**: Read, Write, WebFetch, Bash
+
+---
+
+### 15. Growth Analytics and Dashboard Management
+
+**Location**: `.claude/Skills/growth-analytics-dashboard/SKILL.md`
+
+**When Invoked**:
+- "Analyze our growth metrics"
+- "What's our CAC/LTV?"
+- "Build a KPI dashboard"
+- Making data-driven decisions
+
+**Capabilities**:
+- KPI framework setup (20+ metrics across 5 categories)
+- Dashboard design (Executive, Product, Marketing, Sales)
+- Cohort analysis (retention + revenue)
+- A/B testing framework
+- PDCA cycle implementation (4-week sprints)
+- Predictive analytics (churn prediction, revenue forecasting)
+- Automated reporting and alerting
+
+**Business Agent**: すうじるん (AnalyticsAgent)
+
+**Tools**: Read, Write, WebFetch, Bash
+
+---
+
 ## 🚀 How to Use Skills
 
 ### Automatic Invocation
@@ -371,6 +498,7 @@ All Skills are designed around Miyabi's core concepts:
 
 Track which Skills are most frequently used to identify high-value workflows:
 
+### Technical Skills (1-10)
 | Skill | Common Triggers | Frequency | Use Case |
 |-------|----------------|-----------|----------|
 | 1. Rust Development | "build", "test", "clippy" | Very High | Daily development |
@@ -383,6 +511,15 @@ Track which Skills are most frequently used to identify high-value workflows:
 | 8. Performance | "optimize", "slow performance" | Medium | Performance tuning |
 | 9. Security Audit | "scan for vulnerabilities" | Medium | Security hardening |
 | 10. Dependency Mgmt | "update dependencies" | Medium | Maintenance |
+
+### Business Skills (11-15)
+| Skill | Common Triggers | Frequency | Use Case |
+|-------|----------------|-----------|----------|
+| 11. Business Strategy | "business plan", "product strategy" | Medium | Strategic planning |
+| 12. Market Research | "analyze market", "competitors" | Medium | Market validation |
+| 13. Content Marketing | "content strategy", "grow social" | High | Brand building |
+| 14. Sales & CRM | "sales process", "reduce churn" | High | Revenue growth |
+| 15. Growth Analytics | "analyze metrics", "KPI dashboard" | Very High | Data-driven decisions |
 
 ---
 

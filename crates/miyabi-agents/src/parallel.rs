@@ -1,5 +1,5 @@
 //! Parallel execution utilities for Business Agents
-//! 
+//!
 //! Provides concurrent execution capabilities for multiple Business Agents
 
 use crate::base::BaseAgent;
@@ -97,7 +97,7 @@ impl ParallelExecutor {
 
             let handle = tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.expect("Semaphore closed");
-                
+
                 let result = tokio::time::timeout(
                     std::time::Duration::from_secs(timeout_seconds),
                     agent.execute(&task),
@@ -123,7 +123,10 @@ impl ParallelExecutor {
                         }
                     }
                     Err(_) => {
-                        warn!("Agent {} timed out after {} seconds", task.id, timeout_seconds);
+                        warn!(
+                            "Agent {} timed out after {} seconds",
+                            task.id, timeout_seconds
+                        );
                         AgentResult {
                             status: miyabi_types::agent::ResultStatus::Failed,
                             metrics: None,
@@ -195,7 +198,7 @@ impl ParallelExecutor {
 
             let handle = tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.expect("Semaphore closed");
-                
+
                 let result = tokio::time::timeout(
                     std::time::Duration::from_secs(timeout_seconds),
                     agent.execute(&task),
@@ -221,7 +224,10 @@ impl ParallelExecutor {
                         }
                     }
                     Err(_) => {
-                        warn!("Agent {} timed out after {} seconds", task.id, timeout_seconds);
+                        warn!(
+                            "Agent {} timed out after {} seconds",
+                            task.id, timeout_seconds
+                        );
                         AgentResult {
                             status: miyabi_types::agent::ResultStatus::Failed,
                             metrics: None,
@@ -332,7 +338,7 @@ mod tests {
     async fn test_parallel_executor_creation() {
         let config = ParallelConfig::default();
         let executor = ParallelExecutor::new(config);
-        
+
         assert_eq!(executor.config.max_concurrency, 4);
         assert_eq!(executor.config.timeout_seconds, 300);
         assert_eq!(executor.config.fail_fast, false);
@@ -349,8 +355,14 @@ mod tests {
         let agent_config = create_test_config();
 
         let agents = vec![
-            (MarketingAgent::new(agent_config.clone()), create_test_task("task1")),
-            (MarketingAgent::new(agent_config.clone()), create_test_task("task2")),
+            (
+                MarketingAgent::new(agent_config.clone()),
+                create_test_task("task1"),
+            ),
+            (
+                MarketingAgent::new(agent_config.clone()),
+                create_test_task("task2"),
+            ),
             (MarketingAgent::new(agent_config), create_test_task("task3")),
         ];
 

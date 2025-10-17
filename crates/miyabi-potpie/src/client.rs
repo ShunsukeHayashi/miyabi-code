@@ -46,7 +46,9 @@ impl PotpieClient {
         let http_client = Client::builder()
             .timeout(Duration::from_secs(config.timeout_seconds))
             .build()
-            .map_err(|e| PotpieError::ConfigError(format!("Failed to create HTTP client: {}", e)))?;
+            .map_err(|e| {
+                PotpieError::ConfigError(format!("Failed to create HTTP client: {}", e))
+            })?;
 
         Ok(Self {
             config,
@@ -96,12 +98,20 @@ impl PotpieClient {
     pub async fn health_check(&self) -> Result<bool> {
         debug!("Performing Potpie health check");
 
-        match self.http_client.get(format!("{}/health", self.config.api_url)).send().await {
+        match self
+            .http_client
+            .get(format!("{}/health", self.config.api_url))
+            .send()
+            .await
+        {
             Ok(response) => {
                 if response.status() == StatusCode::OK {
                     Ok(true)
                 } else {
-                    Err(PotpieError::ServiceUnavailable(format!("Health check returned status: {}", response.status())))
+                    Err(PotpieError::ServiceUnavailable(format!(
+                        "Health check returned status: {}",
+                        response.status()
+                    )))
                 }
             }
             Err(e) => {
@@ -116,7 +126,11 @@ impl PotpieClient {
     // ============================================
 
     /// Tool 1: Search nodes by name
-    pub async fn search_nodes(&self, query: &str, node_types: Option<Vec<String>>) -> Result<Vec<GraphNode>> {
+    pub async fn search_nodes(
+        &self,
+        query: &str,
+        node_types: Option<Vec<String>>,
+    ) -> Result<Vec<GraphNode>> {
         info!("Searching nodes with query: {}", query);
 
         #[derive(Serialize)]
@@ -168,8 +182,15 @@ impl PotpieClient {
     }
 
     /// Tool 3: Detect changes and their impact
-    pub async fn detect_changes(&self, base_commit: &str, head_commit: &str) -> Result<ChangeDetection> {
-        info!("Detecting changes between {} and {}", base_commit, head_commit);
+    pub async fn detect_changes(
+        &self,
+        base_commit: &str,
+        head_commit: &str,
+    ) -> Result<ChangeDetection> {
+        info!(
+            "Detecting changes between {} and {}",
+            base_commit, head_commit
+        );
 
         #[derive(Serialize)]
         struct ChangesRequest {
@@ -285,7 +306,11 @@ impl PotpieClient {
     }
 
     /// Tool 8: Semantic search (RAG-powered)
-    pub async fn semantic_search(&self, query: &str, top_k: Option<usize>) -> Result<Vec<SemanticSearchResult>> {
+    pub async fn semantic_search(
+        &self,
+        query: &str,
+        top_k: Option<usize>,
+    ) -> Result<Vec<SemanticSearchResult>> {
         info!("Performing semantic search: {}", query);
 
         #[derive(Serialize)]

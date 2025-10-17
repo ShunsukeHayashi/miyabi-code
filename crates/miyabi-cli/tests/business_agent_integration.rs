@@ -1,15 +1,14 @@
 //! Business Agent Integration Tests
-//! 
+//!
 //! Tests the integration of Business Agents with the CLI and core systems
 
-use miyabi_agents::business::{
-    AIEntrepreneurAgent, AnalyticsAgent, ContentCreationAgent, CRMAgent,
-    FunnelDesignAgent, MarketResearchAgent, MarketingAgent, PersonaAgent,
-    ProductConceptAgent, ProductDesignAgent, SalesAgent, SelfAnalysisAgent,
-    SNSStrategyAgent, YouTubeAgent,
-};
 use miyabi_agents::base::BaseAgent;
-use miyabi_types::{AgentConfig, AgentType, Task, task::TaskType, agent::ResultStatus};
+use miyabi_agents::business::{
+    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
+    MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
+    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+};
+use miyabi_types::{agent::ResultStatus, task::TaskType, AgentConfig, AgentType, Task};
 use std::collections::HashMap;
 
 /// Helper function to create a test configuration
@@ -61,19 +60,19 @@ fn create_test_task(id: &str, title: &str, description: &str) -> Task {
 async fn test_ai_entrepreneur_agent_integration() {
     let config = create_test_config();
     let agent = AIEntrepreneurAgent::new(config);
-    
+
     let task = create_test_task(
         "test-entrepreneur",
         "Test Business Plan Generation",
-        "Generate a test business plan for integration testing"
+        "Generate a test business plan for integration testing",
     );
-    
+
     // Test agent type
     assert_eq!(agent.agent_type(), AgentType::AIEntrepreneurAgent);
-    
+
     // Test execution (this will use mock LLM responses in test environment)
     let result = agent.execute(&task).await;
-    
+
     // In test environment, LLM calls might fail due to missing API keys
     // Just verify the agent structure is correct
     match result {
@@ -92,15 +91,15 @@ async fn test_ai_entrepreneur_agent_integration() {
 async fn test_product_concept_agent_integration() {
     let config = create_test_config();
     let agent = ProductConceptAgent::new(config);
-    
+
     let task = create_test_task(
         "test-product-concept",
         "Test Product Concept Design",
-        "Design a test product concept for integration testing"
+        "Design a test product concept for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::ProductConceptAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -117,15 +116,15 @@ async fn test_product_concept_agent_integration() {
 async fn test_product_design_agent_integration() {
     let config = create_test_config();
     let agent = ProductDesignAgent::new(config);
-    
+
     let task = create_test_task(
         "test-product-design",
         "Test Product Design Specification",
-        "Create a test product design specification"
+        "Create a test product design specification",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::ProductDesignAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -142,15 +141,15 @@ async fn test_product_design_agent_integration() {
 async fn test_funnel_design_agent_integration() {
     let config = create_test_config();
     let agent = FunnelDesignAgent::new(config);
-    
+
     let task = create_test_task(
         "test-funnel-design",
         "Test Funnel Design Strategy",
-        "Design a test funnel strategy for integration testing"
+        "Design a test funnel strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::FunnelDesignAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -167,15 +166,15 @@ async fn test_funnel_design_agent_integration() {
 async fn test_persona_agent_integration() {
     let config = create_test_config();
     let agent = PersonaAgent::new(config);
-    
+
     let task = create_test_task(
         "test-persona",
         "Test Customer Persona Analysis",
-        "Analyze test customer personas for integration testing"
+        "Analyze test customer personas for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::PersonaAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -192,15 +191,15 @@ async fn test_persona_agent_integration() {
 async fn test_self_analysis_agent_integration() {
     let config = create_test_config();
     let agent = SelfAnalysisAgent::new(config);
-    
+
     let task = create_test_task(
         "test-self-analysis",
         "Test Self Analysis Strategy",
-        "Perform test self-analysis for integration testing"
+        "Perform test self-analysis for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::SelfAnalysisAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -217,15 +216,15 @@ async fn test_self_analysis_agent_integration() {
 async fn test_market_research_agent_integration() {
     let config = create_test_config();
     let agent = MarketResearchAgent::new(config);
-    
+
     let task = create_test_task(
         "test-market-research",
         "Test Market Research Analysis",
-        "Conduct test market research for integration testing"
+        "Conduct test market research for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::MarketResearchAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -242,15 +241,15 @@ async fn test_market_research_agent_integration() {
 async fn test_marketing_agent_integration() {
     let config = create_test_config();
     let agent = MarketingAgent::new(config);
-    
+
     let task = create_test_task(
         "test-marketing",
         "Test Marketing Strategy Plan",
-        "Develop test marketing strategy for integration testing"
+        "Develop test marketing strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::MarketingAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -267,15 +266,15 @@ async fn test_marketing_agent_integration() {
 async fn test_content_creation_agent_integration() {
     let config = create_test_config();
     let agent = ContentCreationAgent::new(config);
-    
+
     let task = create_test_task(
         "test-content-creation",
         "Test Content Creation Strategy",
-        "Create test content strategy for integration testing"
+        "Create test content strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::ContentCreationAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -292,15 +291,15 @@ async fn test_content_creation_agent_integration() {
 async fn test_sns_strategy_agent_integration() {
     let config = create_test_config();
     let agent = SNSStrategyAgent::new(config);
-    
+
     let task = create_test_task(
         "test-sns-strategy",
         "Test SNS Strategy Plan",
-        "Develop test SNS strategy for integration testing"
+        "Develop test SNS strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::SNSStrategyAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -317,15 +316,15 @@ async fn test_sns_strategy_agent_integration() {
 async fn test_youtube_agent_integration() {
     let config = create_test_config();
     let agent = YouTubeAgent::new(config);
-    
+
     let task = create_test_task(
         "test-youtube",
         "Test YouTube Strategy Plan",
-        "Develop test YouTube strategy for integration testing"
+        "Develop test YouTube strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::YouTubeAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -342,15 +341,15 @@ async fn test_youtube_agent_integration() {
 async fn test_sales_agent_integration() {
     let config = create_test_config();
     let agent = SalesAgent::new(config);
-    
+
     let task = create_test_task(
         "test-sales",
         "Test Sales Strategy Plan",
-        "Develop test sales strategy for integration testing"
+        "Develop test sales strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::SalesAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -367,15 +366,15 @@ async fn test_sales_agent_integration() {
 async fn test_crm_agent_integration() {
     let config = create_test_config();
     let agent = CRMAgent::new(config);
-    
+
     let task = create_test_task(
         "test-crm",
         "Test CRM Strategy Plan",
-        "Develop test CRM strategy for integration testing"
+        "Develop test CRM strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::CRMAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -392,15 +391,15 @@ async fn test_crm_agent_integration() {
 async fn test_analytics_agent_integration() {
     let config = create_test_config();
     let agent = AnalyticsAgent::new(config);
-    
+
     let task = create_test_task(
         "test-analytics",
         "Test Analytics Strategy Plan",
-        "Develop test analytics strategy for integration testing"
+        "Develop test analytics strategy for integration testing",
     );
-    
+
     assert_eq!(agent.agent_type(), AgentType::AnalyticsAgent);
-    
+
     let result = agent.execute(&task).await;
     match result {
         Ok(agent_result) => {
@@ -417,51 +416,60 @@ async fn test_analytics_agent_integration() {
 async fn test_business_agent_workflow_integration() {
     // Test a complete business workflow using multiple agents
     let config = create_test_config();
-    
+
     // 1. Self Analysis
     let self_analysis_agent = SelfAnalysisAgent::new(config.clone());
     let self_analysis_task = create_test_task(
         "workflow-self-analysis",
         "Self Analysis for Business Workflow",
-        "Perform self-analysis as part of business workflow"
+        "Perform self-analysis as part of business workflow",
     );
-    
+
     let self_analysis_result = self_analysis_agent.execute(&self_analysis_task).await;
-    assert_eq!(self_analysis_agent.agent_type(), AgentType::SelfAnalysisAgent);
-    
+    assert_eq!(
+        self_analysis_agent.agent_type(),
+        AgentType::SelfAnalysisAgent
+    );
+
     // 2. Market Research
     let market_research_agent = MarketResearchAgent::new(config.clone());
     let market_research_task = create_test_task(
         "workflow-market-research",
         "Market Research for Business Workflow",
-        "Conduct market research as part of business workflow"
+        "Conduct market research as part of business workflow",
     );
-    
+
     let market_research_result = market_research_agent.execute(&market_research_task).await;
-    assert_eq!(market_research_agent.agent_type(), AgentType::MarketResearchAgent);
-    
+    assert_eq!(
+        market_research_agent.agent_type(),
+        AgentType::MarketResearchAgent
+    );
+
     // 3. Product Concept
     let product_concept_agent = ProductConceptAgent::new(config.clone());
     let product_concept_task = create_test_task(
         "workflow-product-concept",
         "Product Concept for Business Workflow",
-        "Design product concept as part of business workflow"
+        "Design product concept as part of business workflow",
     );
-    
+
     let product_concept_result = product_concept_agent.execute(&product_concept_task).await;
-    assert_eq!(product_concept_agent.agent_type(), AgentType::ProductConceptAgent);
-    
+    assert_eq!(
+        product_concept_agent.agent_type(),
+        AgentType::ProductConceptAgent
+    );
+
     // 4. Marketing Strategy
     let marketing_agent = MarketingAgent::new(config.clone());
     let marketing_task = create_test_task(
         "workflow-marketing",
         "Marketing Strategy for Business Workflow",
-        "Develop marketing strategy as part of business workflow"
+        "Develop marketing strategy as part of business workflow",
     );
-    
+
     let marketing_result = marketing_agent.execute(&marketing_task).await;
     assert_eq!(marketing_agent.agent_type(), AgentType::MarketingAgent);
-    
+
     // All agents should be created successfully
     assert!(self_analysis_result.is_ok() || self_analysis_result.is_err());
     assert!(market_research_result.is_ok() || market_research_result.is_err());
@@ -473,7 +481,7 @@ async fn test_business_agent_workflow_integration() {
 async fn test_business_agent_error_handling() {
     let config = create_test_config();
     let agent = AIEntrepreneurAgent::new(config);
-    
+
     // Test with invalid task (empty description)
     let invalid_task = Task {
         id: "invalid-task".to_string(),
@@ -491,26 +499,41 @@ async fn test_business_agent_error_handling() {
         end_time: None,
         metadata: None,
     };
-    
+
     // Should handle error gracefully
     let result = agent.execute(&invalid_task).await;
     // In test environment, this might succeed with mock data, but the structure should be correct
     if let Ok(agent_result) = result {
-        assert!(matches!(agent_result.status, ResultStatus::Success | ResultStatus::Failed));
+        assert!(matches!(
+            agent_result.status,
+            ResultStatus::Success | ResultStatus::Failed
+        ));
     }
 }
 
 #[tokio::test]
 async fn test_business_agent_concurrent_execution() {
     let config = create_test_config();
-    
+
     // Test concurrent execution of multiple business agents
     let tasks = vec![
-        ("concurrent-1", "Concurrent Task 1", "First concurrent business task"),
-        ("concurrent-2", "Concurrent Task 2", "Second concurrent business task"),
-        ("concurrent-3", "Concurrent Task 3", "Third concurrent business task"),
+        (
+            "concurrent-1",
+            "Concurrent Task 1",
+            "First concurrent business task",
+        ),
+        (
+            "concurrent-2",
+            "Concurrent Task 2",
+            "Second concurrent business task",
+        ),
+        (
+            "concurrent-3",
+            "Concurrent Task 3",
+            "Third concurrent business task",
+        ),
     ];
-    
+
     let mut handles = Vec::new();
     for (id, title, description) in tasks {
         let config = config.clone();
@@ -521,10 +544,10 @@ async fn test_business_agent_concurrent_execution() {
         });
         handles.push(handle);
     }
-    
+
     // Execute all tasks concurrently
     let results: Vec<_> = futures::future::join_all(handles).await;
-    
+
     // All should succeed or fail gracefully
     for result in results {
         assert!(result.is_ok());

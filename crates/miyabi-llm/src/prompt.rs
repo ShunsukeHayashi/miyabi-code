@@ -793,11 +793,7 @@ mod tests {
 
     #[test]
     fn test_render_simple() {
-        let template = LLMPromptTemplate::new(
-            "System",
-            "Hello {name}!",
-            ResponseFormat::PlainText,
-        );
+        let template = LLMPromptTemplate::new("System", "Hello {name}!", ResponseFormat::PlainText);
 
         let mut vars = HashMap::new();
         vars.insert("name".to_string(), "World".to_string());
@@ -816,10 +812,7 @@ mod tests {
 
         let mut vars = HashMap::new();
         vars.insert("title".to_string(), "Test Task".to_string());
-        vars.insert(
-            "description".to_string(),
-            "This is a test".to_string(),
-        );
+        vars.insert("description".to_string(), "This is a test".to_string());
 
         let rendered = template.render(&vars).unwrap();
         assert_eq!(rendered, "Task: Test Task\nDescription: This is a test");
@@ -827,11 +820,7 @@ mod tests {
 
     #[test]
     fn test_render_missing_variable() {
-        let template = LLMPromptTemplate::new(
-            "System",
-            "Hello {name}!",
-            ResponseFormat::PlainText,
-        );
+        let template = LLMPromptTemplate::new("System", "Hello {name}!", ResponseFormat::PlainText);
 
         let vars = HashMap::new(); // Empty
 

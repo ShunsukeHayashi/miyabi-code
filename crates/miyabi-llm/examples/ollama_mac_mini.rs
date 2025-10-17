@@ -16,17 +16,18 @@ async fn main() -> anyhow::Result<()> {
 
     // Create Ollama provider (Tailscale address)
     let provider = GPTOSSProvider::new_mac_mini_tailscale()?;
-    
+
     println!("✅ Provider created: {}", provider.model_name());
     println!("🔗 Endpoint: {}", provider.endpoint());
     println!("📊 Max tokens: {}", provider.max_tokens());
 
     // Test basic generation
     println!("\n📝 Testing basic generation...");
-    let request = LLMRequest::new("Write a simple Rust function to calculate the factorial of a number")
-        .with_temperature(0.2)
-        .with_max_tokens(512)
-        .with_reasoning_effort(ReasoningEffort::Medium);
+    let request =
+        LLMRequest::new("Write a simple Rust function to calculate the factorial of a number")
+            .with_temperature(0.2)
+            .with_max_tokens(512)
+            .with_reasoning_effort(ReasoningEffort::Medium);
 
     let start_time = std::time::Instant::now();
     let response = provider.generate(&request).await?;
@@ -40,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Test different reasoning levels
     println!("\n🧠 Testing different reasoning levels...");
-    
+
     let reasoning_levels = [
         (ReasoningEffort::Low, "Low reasoning"),
         (ReasoningEffort::Medium, "Medium reasoning"),
@@ -49,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
 
     for (effort, description) in reasoning_levels.iter() {
         println!("\n🔍 Testing {}...", description);
-        
+
         let request = LLMRequest::new("Explain the concept of recursion in programming")
             .with_temperature(0.3)
             .with_max_tokens(256)
@@ -59,9 +60,14 @@ async fn main() -> anyhow::Result<()> {
         let response = provider.generate(&request).await?;
         let duration = start_time.elapsed();
 
-        println!("⏱️  {} completed in {:.2}s", description, duration.as_secs_f64());
+        println!(
+            "⏱️  {} completed in {:.2}s",
+            description,
+            duration.as_secs_f64()
+        );
         println!("📊 Tokens used: {}", response.tokens_used);
-        println!("🤖 Response preview: {}", 
+        println!(
+            "🤖 Response preview: {}",
             if response.text.len() > 100 {
                 format!("{}...", &response.text[..100])
             } else {
@@ -72,7 +78,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Test performance with multiple requests
     println!("\n⚡ Testing performance with multiple requests...");
-    
+
     let requests = vec![
         "Write a hello world program in Rust",
         "Explain what is a trait in Rust",
@@ -86,7 +92,7 @@ async fn main() -> anyhow::Result<()> {
 
     for (i, prompt) in requests.iter().enumerate() {
         println!("📝 Processing request {}...", i + 1);
-        
+
         let request = LLMRequest::new(*prompt)
             .with_temperature(0.2)
             .with_max_tokens(200)
@@ -108,10 +114,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Test error handling
     println!("\n❌ Testing error handling...");
-    
+
     let invalid_provider = GPTOSSProvider::new("http://invalid-endpoint:9999", None)?;
     let request = LLMRequest::new("This should fail");
-    
+
     match invalid_provider.generate(&request).await {
         Ok(_) => println!("❌ Unexpected success"),
         Err(e) => println!("✅ Expected error: {}", e),

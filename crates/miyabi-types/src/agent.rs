@@ -39,7 +39,7 @@ pub enum AgentType {
     AutoFixAgent,
     WaterSpiderAgent,
     RefresherAgent,
-    
+
     // Business Agents (14)
     AIEntrepreneurAgent,
     ProductConceptAgent,
@@ -71,7 +71,7 @@ impl AgentType {
             AgentType::AutoFixAgent => "autofix",
             AgentType::WaterSpiderAgent => "waterspider",
             AgentType::RefresherAgent => "refresher",
-            
+
             // Business Agents
             AgentType::AIEntrepreneurAgent => "ai-entrepreneur",
             AgentType::ProductConceptAgent => "product-concept",
@@ -219,7 +219,7 @@ mod tests {
         assert_eq!(AgentType::AutoFixAgent.as_str(), "autofix");
         assert_eq!(AgentType::WaterSpiderAgent.as_str(), "waterspider");
         assert_eq!(AgentType::RefresherAgent.as_str(), "refresher");
-        
+
         // Business Agents
         assert_eq!(AgentType::AIEntrepreneurAgent.as_str(), "ai-entrepreneur");
         assert_eq!(AgentType::ProductConceptAgent.as_str(), "product-concept");
@@ -272,7 +272,6 @@ mod tests {
             AgentType::AutoFixAgent,
             AgentType::WaterSpiderAgent,
             AgentType::RefresherAgent,
-            
             // Business Agents
             AgentType::AIEntrepreneurAgent,
             AgentType::ProductConceptAgent,

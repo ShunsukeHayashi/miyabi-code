@@ -38,22 +38,22 @@
 //! }
 //! ```
 
-mod provider;
-mod types;
-mod error;
-pub mod prompt;
 pub mod context;
 pub mod conversation;
+mod error;
+pub mod prompt;
+mod provider;
+mod types;
 
-pub use provider::{LLMProvider, GPTOSSProvider};
+pub use context::{LLMContext, TestResults};
+pub use conversation::LLMConversation;
+pub use error::{LLMError, Result};
+pub use prompt::{LLMPromptTemplate, PromptError, ResponseFormat};
+pub use provider::{GPTOSSProvider, LLMProvider};
 pub use types::{
     ChatMessage, ChatRole, FunctionCall, FunctionDefinition, FunctionParameter, LLMRequest,
     LLMResponse, ReasoningEffort,
 };
-pub use error::{LLMError, Result};
-pub use prompt::{LLMPromptTemplate, ResponseFormat, PromptError};
-pub use context::{LLMContext, TestResults};
-pub use conversation::LLMConversation;
 
 /// Re-export common types
 pub use miyabi_types::error::MiyabiError;

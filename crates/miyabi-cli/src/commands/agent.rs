@@ -3,15 +3,14 @@
 use crate::error::{CliError, Result};
 use colored::Colorize;
 use miyabi_agents::base::BaseAgent;
+use miyabi_agents::business::{
+    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
+    MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
+    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+};
 use miyabi_agents::codegen::CodeGenAgent;
 use miyabi_agents::coordinator::CoordinatorAgent;
 use miyabi_agents::issue::IssueAgent;
-use miyabi_agents::business::{
-    AIEntrepreneurAgent, AnalyticsAgent, ContentCreationAgent, CRMAgent,
-    FunnelDesignAgent, MarketResearchAgent, MarketingAgent, PersonaAgent,
-    ProductConceptAgent, ProductDesignAgent, SalesAgent, SelfAnalysisAgent,
-    SNSStrategyAgent, YouTubeAgent,
-};
 use miyabi_types::{AgentConfig, AgentType, Task};
 use std::collections::HashMap;
 
@@ -51,7 +50,7 @@ impl AgentCommand {
             AgentType::IssueAgent => {
                 self.run_issue_agent(config).await?;
             }
-            
+
             // Business Agents - Strategy & Planning
             AgentType::AIEntrepreneurAgent => {
                 self.run_ai_entrepreneur_agent(config).await?;
@@ -71,7 +70,7 @@ impl AgentCommand {
             AgentType::SelfAnalysisAgent => {
                 self.run_self_analysis_agent(config).await?;
             }
-            
+
             // Business Agents - Marketing & Content
             AgentType::MarketResearchAgent => {
                 self.run_market_research_agent(config).await?;
@@ -88,7 +87,7 @@ impl AgentCommand {
             AgentType::YouTubeAgent => {
                 self.run_youtube_agent(config).await?;
             }
-            
+
             // Business Agents - Sales & Customer Management
             AgentType::SalesAgent => {
                 self.run_sales_agent(config).await?;
@@ -99,7 +98,7 @@ impl AgentCommand {
             AgentType::AnalyticsAgent => {
                 self.run_analytics_agent(config).await?;
             }
-            
+
             _ => {
                 println!(
                     "{}",
@@ -123,7 +122,7 @@ impl AgentCommand {
             "issue" => Ok(AgentType::IssueAgent),
             "pr" => Ok(AgentType::PRAgent),
             "deployment" | "deploy" => Ok(AgentType::DeploymentAgent),
-            
+
             // Business Agents - Strategy & Planning
             "ai-entrepreneur" | "entrepreneur" => Ok(AgentType::AIEntrepreneurAgent),
             "product-concept" | "concept" => Ok(AgentType::ProductConceptAgent),
@@ -131,19 +130,19 @@ impl AgentCommand {
             "funnel-design" | "funnel" => Ok(AgentType::FunnelDesignAgent),
             "persona" => Ok(AgentType::PersonaAgent),
             "self-analysis" | "analysis" => Ok(AgentType::SelfAnalysisAgent),
-            
+
             // Business Agents - Marketing & Content
             "market-research" | "research" => Ok(AgentType::MarketResearchAgent),
             "marketing" => Ok(AgentType::MarketingAgent),
             "content-creation" | "content" => Ok(AgentType::ContentCreationAgent),
             "sns-strategy" | "sns" => Ok(AgentType::SNSStrategyAgent),
             "youtube" => Ok(AgentType::YouTubeAgent),
-            
+
             // Business Agents - Sales & Customer Management
             "sales" => Ok(AgentType::SalesAgent),
             "crm" => Ok(AgentType::CRMAgent),
             "analytics" => Ok(AgentType::AnalyticsAgent),
-            
+
             _ => Err(CliError::InvalidAgentType(self.agent_type.clone())),
         }
     }
@@ -462,7 +461,11 @@ impl AgentCommand {
         println!();
 
         let agent = AIEntrepreneurAgent::new(config);
-        let task = self.create_business_task(issue_number, "AI Entrepreneur Business Plan", "Generate comprehensive 8-phase business plan");
+        let task = self.create_business_task(
+            issue_number,
+            "AI Entrepreneur Business Plan",
+            "Generate comprehensive 8-phase business plan",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -479,7 +482,11 @@ impl AgentCommand {
         println!();
 
         let agent = ProductConceptAgent::new(config);
-        let task = self.create_business_task(issue_number, "Product Concept Design", "Design MVP and product strategy");
+        let task = self.create_business_task(
+            issue_number,
+            "Product Concept Design",
+            "Design MVP and product strategy",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -496,7 +503,11 @@ impl AgentCommand {
         println!();
 
         let agent = ProductDesignAgent::new(config);
-        let task = self.create_business_task(issue_number, "Product Design Specification", "Create comprehensive product design and technical specification");
+        let task = self.create_business_task(
+            issue_number,
+            "Product Design Specification",
+            "Create comprehensive product design and technical specification",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -513,7 +524,11 @@ impl AgentCommand {
         println!();
 
         let agent = FunnelDesignAgent::new(config);
-        let task = self.create_business_task(issue_number, "Funnel Design Strategy", "Design AARRR metrics and conversion optimization");
+        let task = self.create_business_task(
+            issue_number,
+            "Funnel Design Strategy",
+            "Design AARRR metrics and conversion optimization",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -530,7 +545,11 @@ impl AgentCommand {
         println!();
 
         let agent = PersonaAgent::new(config);
-        let task = self.create_business_task(issue_number, "Customer Persona Analysis", "Analyze customer personas and segments");
+        let task = self.create_business_task(
+            issue_number,
+            "Customer Persona Analysis",
+            "Analyze customer personas and segments",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -547,7 +566,11 @@ impl AgentCommand {
         println!();
 
         let agent = SelfAnalysisAgent::new(config);
-        let task = self.create_business_task(issue_number, "Self Analysis Strategy", "Perform self-assessment and business strategy formulation");
+        let task = self.create_business_task(
+            issue_number,
+            "Self Analysis Strategy",
+            "Perform self-assessment and business strategy formulation",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -564,7 +587,11 @@ impl AgentCommand {
         println!();
 
         let agent = MarketResearchAgent::new(config);
-        let task = self.create_business_task(issue_number, "Market Research Analysis", "Conduct market research and competitive analysis");
+        let task = self.create_business_task(
+            issue_number,
+            "Market Research Analysis",
+            "Conduct market research and competitive analysis",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -581,7 +608,11 @@ impl AgentCommand {
         println!();
 
         let agent = MarketingAgent::new(config);
-        let task = self.create_business_task(issue_number, "Marketing Strategy Plan", "Develop comprehensive marketing strategy and campaigns");
+        let task = self.create_business_task(
+            issue_number,
+            "Marketing Strategy Plan",
+            "Develop comprehensive marketing strategy and campaigns",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -598,7 +629,11 @@ impl AgentCommand {
         println!();
 
         let agent = ContentCreationAgent::new(config);
-        let task = self.create_business_task(issue_number, "Content Creation Strategy", "Create content strategy and blog articles");
+        let task = self.create_business_task(
+            issue_number,
+            "Content Creation Strategy",
+            "Create content strategy and blog articles",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -615,7 +650,11 @@ impl AgentCommand {
         println!();
 
         let agent = SNSStrategyAgent::new(config);
-        let task = self.create_business_task(issue_number, "SNS Strategy Plan", "Develop social media strategy and community management");
+        let task = self.create_business_task(
+            issue_number,
+            "SNS Strategy Plan",
+            "Develop social media strategy and community management",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -632,7 +671,11 @@ impl AgentCommand {
         println!();
 
         let agent = YouTubeAgent::new(config);
-        let task = self.create_business_task(issue_number, "YouTube Strategy Plan", "Develop YouTube strategy and video content planning");
+        let task = self.create_business_task(
+            issue_number,
+            "YouTube Strategy Plan",
+            "Develop YouTube strategy and video content planning",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -649,7 +692,11 @@ impl AgentCommand {
         println!();
 
         let agent = SalesAgent::new(config);
-        let task = self.create_business_task(issue_number, "Sales Strategy Plan", "Develop sales strategy and process optimization");
+        let task = self.create_business_task(
+            issue_number,
+            "Sales Strategy Plan",
+            "Develop sales strategy and process optimization",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -666,7 +713,11 @@ impl AgentCommand {
         println!();
 
         let agent = CRMAgent::new(config);
-        let task = self.create_business_task(issue_number, "CRM Strategy Plan", "Develop CRM strategy and customer relationship management");
+        let task = self.create_business_task(
+            issue_number,
+            "CRM Strategy Plan",
+            "Develop CRM strategy and customer relationship management",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -683,7 +734,11 @@ impl AgentCommand {
         println!();
 
         let agent = AnalyticsAgent::new(config);
-        let task = self.create_business_task(issue_number, "Analytics Strategy Plan", "Develop analytics strategy and business intelligence");
+        let task = self.create_business_task(
+            issue_number,
+            "Analytics Strategy Plan",
+            "Develop analytics strategy and business intelligence",
+        );
 
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
@@ -728,7 +783,12 @@ impl AgentCommand {
         }
 
         if let Some(data) = result.data {
-            println!("    Summary: {}", data.get("summary").unwrap_or(&serde_json::Value::String("No summary available".to_string())));
+            println!(
+                "    Summary: {}",
+                data.get("summary").unwrap_or(&serde_json::Value::String(
+                    "No summary available".to_string()
+                ))
+            );
         }
 
         Ok(())

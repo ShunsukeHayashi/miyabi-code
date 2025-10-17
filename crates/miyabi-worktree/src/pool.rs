@@ -179,7 +179,10 @@ impl WorktreePool {
                         info
                     }
                     Err(e) => {
-                        error!("Failed to create worktree for issue #{}: {}", task.issue_number, e);
+                        error!(
+                            "Failed to create worktree for issue #{}: {}",
+                            task.issue_number, e
+                        );
                         return TaskResult {
                             issue_number: task.issue_number,
                             worktree_id: String::new(),
@@ -201,7 +204,10 @@ impl WorktreePool {
                 // Process result
                 let task_result = match execution_result {
                     Ok(Ok(output)) => {
-                        info!("Task for issue #{} completed successfully", task.issue_number);
+                        info!(
+                            "Task for issue #{} completed successfully",
+                            task.issue_number
+                        );
                         // Update worktree status
                         let _ = manager
                             .update_status(&worktree_info.id, WorktreeStatus::Completed)
