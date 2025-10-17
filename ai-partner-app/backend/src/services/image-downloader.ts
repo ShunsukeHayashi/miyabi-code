@@ -7,7 +7,9 @@ import axios from 'axios';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { logger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('image-downloader');
 
 export interface DownloadedImage {
   localPath: string;
