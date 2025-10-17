@@ -80,6 +80,7 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert!(!VERSION.is_empty());
+        // VERSION is a compile-time constant from CARGO_PKG_VERSION
+        assert_eq!(VERSION, env!("CARGO_PKG_VERSION"));
     }
 }

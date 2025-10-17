@@ -341,7 +341,7 @@ mod tests {
 
         assert_eq!(executor.config.max_concurrency, 4);
         assert_eq!(executor.config.timeout_seconds, 300);
-        assert_eq!(executor.config.fail_fast, false);
+        assert!(!executor.config.fail_fast);
     }
 
     #[tokio::test]

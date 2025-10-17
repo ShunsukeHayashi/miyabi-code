@@ -386,7 +386,7 @@ mod tests {
         tokio::fs::write(&test_file, "test content").await.unwrap();
 
         // Load file
-        context.load_files(&[test_file.clone()]).await.unwrap();
+        context.load_files(std::slice::from_ref(&test_file)).await.unwrap();
 
         assert_eq!(context.file_contents.len(), 1);
         assert_eq!(

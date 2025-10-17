@@ -4,7 +4,6 @@
 //! via Ollama server.
 
 use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -79,7 +78,7 @@ async fn main() -> anyhow::Result<()> {
     // Test performance with multiple requests
     println!("\n⚡ Testing performance with multiple requests...");
 
-    let requests = vec![
+    let requests = [
         "Write a hello world program in Rust",
         "Explain what is a trait in Rust",
         "What are the benefits of using async/await?",
