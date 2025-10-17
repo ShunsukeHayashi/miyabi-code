@@ -70,7 +70,7 @@ export function CharacterGrid() {
             >
               {character.primaryImageUrl ? (
                 <img
-                  src={character.primaryImageUrl}
+                  src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/${character.primaryImageUrl}`}
                   alt={character.name}
                   className="w-full h-64 object-cover"
                 />

@@ -10,12 +10,16 @@ export default function DashboardPage() {
   const { user, logout, checkAuth } = useAuthStore();
 
   useEffect(() => {
-    checkAuth().then(() => {
-      if (!user) {
-        router.push('/login');
-      }
-    });
-  }, [user]);
+    // Only check auth once on mount
+    checkAuth();
+  }, []); // Empty dependency array - run once on mount
+
+  useEffect(() => {
+    // Redirect if user is null after auth check
+    if (user === null) {
+      router.push('/login');
+    }
+  }, [user, router]);
 
   const handleLogout = () => {
     logout();

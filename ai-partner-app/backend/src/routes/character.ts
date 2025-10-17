@@ -622,18 +622,30 @@ Neutral expression, professional quality, detailed.`;
         watermark: false,
       });
 
-      // Update character with image URL
+      // Download and store image locally (BytePlus URLs expire after 24h)
+      const { imageDownloader } = await import('../services/image-downloader.js');
+      const downloaded = await imageDownloader.downloadImage(
+        result.imageUrl,
+        userId,
+        character.id,
+        'primary'
+      );
+
+      // Update character with local image path
       await prisma.character.update({
         where: { id: character.id },
         data: {
-          primaryImageUrl: result.imageUrl,
+          primaryImageUrl: downloaded.localPath, // Store local path instead of temporary URL
           imagesGenerated: true,
           lastGeneratedAt: new Date(),
         },
       });
 
+      // Cleanup old images (keep last 5)
+      await imageDownloader.cleanupOldImages(userId, character.id, 5);
+
       res.json({
-        imageUrl: result.imageUrl,
+        imageUrl: downloaded.localPath, // Return local path
         message: 'Character image generated from reference successfully',
         usedReferenceImage: true,
       });
