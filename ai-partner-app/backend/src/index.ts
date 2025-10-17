@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import { createLogger } from './utils/logger.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
+import { initializeUploadDirectories } from './utils/image-storage.js';
 import authRoutes from './routes/auth.js';
 import characterRoutes from './routes/character.js';
 import conversationRoutes from './routes/conversation.js';
@@ -21,6 +22,9 @@ dotenv.config();
 const logger = createLogger('server');
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize upload directories on startup
+await initializeUploadDirectories();
 
 // Middleware
 app.use(helmet());
