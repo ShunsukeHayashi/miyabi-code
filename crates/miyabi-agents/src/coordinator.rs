@@ -28,7 +28,6 @@ impl CoordinatorAgent {
     pub async fn decompose_issue(&self, issue: &Issue) -> Result<TaskDecomposition> {
         tracing::info!("Decomposing issue #{}: {}", issue.number, issue.title);
 
-        // Analyze issue to determine task breakdown
         let tasks = self.analyze_and_create_tasks(issue).await?;
 
         // Build DAG from task dependencies
@@ -156,7 +155,7 @@ impl CoordinatorAgent {
     }
 
     /// Build DAG from tasks
-    fn build_dag(&self, tasks: &[Task]) -> Result<DAG> {
+    pub(crate) fn build_dag(&self, tasks: &[Task]) -> Result<DAG> {
         let mut edges = Vec::new();
         let mut task_map: HashMap<String, &Task> = HashMap::new();
 

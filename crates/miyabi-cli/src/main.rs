@@ -6,7 +6,9 @@ mod startup;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::{AgentCommand, InitCommand, InstallCommand, SetupCommand, StatusCommand};
+use commands::{
+    AgentCommand, InitCommand, InstallCommand, ParallelCommand, SetupCommand, StatusCommand,
+};
 use error::Result;
 
 #[derive(Parser)]
@@ -62,6 +64,15 @@ enum Commands {
         #[arg(long)]
         issue: Option<u64>,
     },
+    /// Execute agents in parallel worktrees
+    Parallel {
+        /// Issue numbers to process (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        issues: Vec<u64>,
+        /// Maximum concurrency (default: 3)
+        #[arg(long, default_value = "3")]
+        concurrency: usize,
+    },
 }
 
 #[tokio::main]
@@ -98,6 +109,13 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Agent { agent_type, issue }) => {
             let cmd = AgentCommand::new(agent_type, issue);
+            cmd.execute().await
+        }
+        Some(Commands::Parallel {
+            issues,
+            concurrency,
+        }) => {
+            let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
         }
         None => {

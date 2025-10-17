@@ -1,13 +1,31 @@
 {
   "mcpServers": {
-    "ide-integration": {
-      "command": "node",
+    "//": "=== Core Servers (Always Enabled) ===",
+
+    "filesystem": {
+      "command": "npx",
       "args": [
-        ".claude/mcp-servers/ide-integration.cjs"
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
       ],
       "disabled": false,
-      "description": "VS Code diagnostics and Jupyter execution integration"
+      "description": "Filesystem access for project files"
     },
+
+    "miyabi": {
+      "command": "node",
+      "args": [
+        ".claude/mcp-servers/miyabi-integration.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "REPOSITORY": "${REPOSITORY}"
+      },
+      "disabled": false,
+      "description": "Miyabi CLI統合 - プロジェクト作成、Agent実行、自動化機能"
+    },
+
     "github-enhanced": {
       "command": "node",
       "args": [
@@ -20,6 +38,7 @@
       "disabled": false,
       "description": "Enhanced GitHub operations for Issue/PR management"
     },
+
     "project-context": {
       "command": "node",
       "args": [
@@ -28,16 +47,20 @@
       "disabled": false,
       "description": "Project-specific context and dependency information"
     },
-    "filesystem": {
-      "command": "npx",
+
+    "//": "=== Development Servers (Enable when developing) ===",
+
+    "ide-integration": {
+      "command": "node",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."
+        ".claude/mcp-servers/ide-integration.cjs"
       ],
       "disabled": false,
-      "description": "Filesystem access for project files"
+      "description": "VS Code diagnostics and Jupyter execution integration"
     },
+
+    "//": "=== Optional Servers (Enable as needed) ===",
+
     "context-engineering": {
       "command": "node",
       "args": [
@@ -46,17 +69,10 @@
       "env": {
         "AI_GUIDES_API_URL": "http://localhost:8888"
       },
-      "disabled": false,
-      "description": "Context Engineering - AI-powered context analysis, optimization, and semantic search"
+      "disabled": true,
+      "description": "Context Engineering - AI-powered context analysis (requires external API)"
     },
-    "miyabi": {
-      "command": "node",
-      "args": [
-        ".claude/mcp-servers/miyabi-integration.js"
-      ],
-      "disabled": false,
-      "description": "Miyabi CLI統合 - プロジェクト作成、Agent実行、自動化機能"
-    },
+
     "gemini-image-generation": {
       "command": "node",
       "args": [
@@ -65,8 +81,25 @@
       "env": {
         "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
       },
-      "disabled": false,
+      "disabled": true,
       "description": "Gemini 2.5 Flash Image - テキストから画像生成（note.com記事用）"
+    },
+
+    "discord-community": {
+      "command": "node",
+      "args": [
+        ".claude/mcp-servers/discord-integration.js"
+      ],
+      "env": {
+        "DISCORD_BOT_TOKEN": "${DISCORD_BOT_TOKEN}",
+        "DISCORD_GUILD_ID": "${DISCORD_GUILD_ID}",
+        "DISCORD_ANNOUNCE_CHANNEL": "${DISCORD_ANNOUNCE_CHANNEL}",
+        "DISCORD_GITHUB_CHANNEL": "${DISCORD_GITHUB_CHANNEL}",
+        "DISCORD_SUPPORT_JP_CHANNEL": "${DISCORD_SUPPORT_JP_CHANNEL}",
+        "DISCORD_SUPPORT_EN_CHANNEL": "${DISCORD_SUPPORT_EN_CHANNEL}"
+      },
+      "disabled": true,
+      "description": "Miyabi Discord community management - subproject for community operations"
     }
   }
 }

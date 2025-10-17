@@ -1,16 +1,26 @@
 # Dependencies
 node_modules/
+**/node_modules/
 package-lock.json
 
 # Build outputs
 dist/
 build/
+**/dist/
+**/build/
+**/out/
+**/.next/
 *.tsbuildinfo
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
+**/.env.test
 
 # Configuration files with secrets
 .miyabi.yml
@@ -60,6 +70,9 @@ coverage/
 tmp/
 temp/
 *.tmp
+*.bak
+*.backup
+*.old
 
 # Firebase
 .firebase/
@@ -114,6 +127,9 @@ claude-plugin/
 # Archive directory
 .archive/
 
+# Developer personal notes (not tracked)
+.shunsuke/
+
 # Work-in-progress/experimental code (not integrated)
 # Only exclude root-level directories, not packages/*/src/
 /src/
@@ -129,6 +145,15 @@ external/.env
 external/data/*.csv
 external/data/*.json
 external/data/*.db
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Local test scripts
+**/test-*.sh
+**/create-user.sh
 
 # Temporary directories (removed in consolidation)
 hooks/

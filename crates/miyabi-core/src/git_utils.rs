@@ -189,8 +189,7 @@ mod tests {
 
         let result = find_git_root(Some(&non_repo));
 
-        if result.is_err() {
-            let error = result.unwrap_err();
+        if let Err(error) = result {
             // Error should be informative
             assert!(error.contains("git repository") || error.contains("Git error"));
             // Error should have hints

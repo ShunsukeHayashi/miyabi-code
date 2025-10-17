@@ -1,0 +1,32 @@
+[package]
+name = "miyabi-potpie"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Potpie AI integration for Miyabi - Neo4j knowledge graph and RAG engine"
+keywords = ["potpie", "knowledge-graph", "rag", "ai", "code-analysis"]
+categories = ["development-tools", "web-programming"]
+readme = "../README.md"
+
+[dependencies]
+miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
+miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# Date/Time
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+mockito = "1.5"

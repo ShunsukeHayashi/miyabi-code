@@ -2,27 +2,75 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: true,
+    // テスト環境設定
     environment: 'node',
-    testTimeout: 30000, // 30 seconds for agent tests
-    // Exclude Playwright E2E tests from Vitest
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/tests/e2e/**',
-      '**/.{idea,git,cache,output,temp,worktrees}/**',
-      '**/.worktrees/**', // Exclude worktree directories
-      '**/*.spec.ts', // Playwright uses .spec.ts
+    
+    // テストファイルのパターン
+    include: [
+      'tests/**/*.test.ts',
+      'tests/**/*.spec.ts'
     ],
+    
+    // 除外パターン
+    exclude: [
+      'node_modules/**',
+      'target/**',
+      'dist/**'
+    ],
+    
+    // タイムアウト設定（30分）
+    testTimeout: 30 * 60 * 1000,
+    
+    // 並列実行設定
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        maxThreads: 4
+      }
+    },
+    
+    // レポーター設定
+    reporter: ['verbose', 'json'],
+    outputFile: {
+      json: 'test-results/results.json'
+    },
+    
+    // カバレッジ設定
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.test.ts',
-        '**/*.config.ts',
+      reportsDirectory: 'test-results/coverage',
+      include: [
+        'src/**/*.ts',
+        'crates/**/*.rs'
       ],
+      exclude: [
+        'node_modules/**',
+        'target/**',
+        'dist/**',
+        'tests/**'
+      ],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
+        }
+      }
     },
-  },
+    
+    // グローバル設定
+    globals: true,
+    
+    // セットアップファイル
+    setupFiles: ['tests/setup.ts'],
+    
+    // 環境変数
+    env: {
+      NODE_ENV: 'test',
+      TEST_MODE: 'true'
+    }
+  }
 });

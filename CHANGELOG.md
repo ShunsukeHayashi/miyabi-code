@@ -7,12 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Work in Progress
+
+**Potpie AI Integration Exploration** (2025-10-17)
+- Attempted integration of Potpie AI (Neo4j-based knowledge graph + RAG engine)
+- Implemented Potpie integration code for 3 agents:
+  - CodeGenAgent: `analyze_codebase()` + `CodeContext`
+  - ReviewAgent: `analyze_impact()` + `ImpactAnalysis`
+  - CoordinatorAgent: `decompose_with_potpie()` + task enrichment
+- **Result**: Code removed due to missing `miyabi-potpie` crate
+- **Reason**: Potpie crate does not exist in current workspace
+- **Status**: Integration postponed until Potpie crate is available
+- **Lessons Learned**:
+  - Implemented 238 lines of Potpie integration code across 3 agents
+  - Fixed 27 compilation errors (type exports, API methods, HashMap property access)
+  - Successfully demonstrated integration pattern for future implementation
+  - All code cleanly removed without affecting existing functionality
+
 ### Next Version Planning
 
 - [ ] crates.io publishing (awaiting credentials)
 - [ ] Cross-platform binaries (Linux, Windows)
 - [ ] Business Agents implementation (14 agents)
 - [ ] Enhanced CLI features
+- [ ] Potpie AI integration (awaiting miyabi-potpie crate)
 
 ---
 

@@ -15,6 +15,7 @@ miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
 miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
 git2 = { workspace = true }
 tokio = { workspace = true, features = ["sync", "process", "fs"] }
+futures = "0.3"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
@@ -23,6 +24,8 @@ chrono = { workspace = true }
 uuid = { version = "1.6", features = ["v4", "serde"] }
 
 [dev-dependencies]
+miyabi-agents = { version = "1.0.0", path = "../miyabi-agents" }
+async-trait = "0.1"
 tempfile = { workspace = true }
 serial_test = "3.0"
 tokio-test = "0.4"

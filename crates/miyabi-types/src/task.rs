@@ -106,6 +106,157 @@ impl Default for GroupingConfig {
     }
 }
 
+impl Task {
+    /// Validate task fields and return detailed errors
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_types::task::{Task, TaskType};
+    ///
+    /// let task = Task {
+    ///     id: "task-1".to_string(),
+    ///     title: "Valid task".to_string(),
+    ///     description: "Description".to_string(),
+    ///     task_type: TaskType::Feature,
+    ///     priority: 1,
+    ///     severity: None,
+    ///     impact: None,
+    ///     assigned_agent: None,
+    ///     dependencies: vec![],
+    ///     estimated_duration: Some(60),
+    ///     status: None,
+    ///     start_time: None,
+    ///     end_time: None,
+    ///     metadata: None,
+    /// };
+    ///
+    /// assert!(task.validate().is_ok());
+    /// ```
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate ID
+        if self.id.is_empty() {
+            return Err(
+                "Task ID cannot be empty. \
+                Hint: Use format 'task-{number}' or '{feature}-{number}'"
+                    .to_string(),
+            );
+        }
+
+        if self.id.len() > 100 {
+            return Err(format!(
+                "Task ID too long ({} characters). Maximum 100 characters allowed. \
+                Hint: Use shorter, descriptive IDs like 'task-123' or 'feature-xyz'",
+                self.id.len()
+            ));
+        }
+
+        // Validate title
+        if self.title.is_empty() {
+            return Err(
+                "Task title cannot be empty. \
+                Hint: Provide a clear, concise title describing the task"
+                    .to_string(),
+            );
+        }
+
+        if self.title.len() > 200 {
+            return Err(format!(
+                "Task title too long ({} characters). Maximum 200 characters allowed. \
+                Hint: Keep titles concise and move details to description",
+                self.title.len()
+            ));
+        }
+
+        // Validate description
+        if self.description.is_empty() {
+            return Err(
+                "Task description cannot be empty. \
+                Hint: Provide context, requirements, and acceptance criteria"
+                    .to_string(),
+            );
+        }
+
+        // Validate priority range (0-3)
+        if self.priority > 3 {
+            return Err(format!(
+                "Invalid priority {}. Must be 0 (P0-Critical), 1 (P1-High), 2 (P2-Medium), or 3 (P3-Low). \
+                Hint: P0=Critical/Urgent, P1=High, P2=Medium, P3=Low",
+                self.priority
+            ));
+        }
+
+        // Validate estimated_duration if present
+        if let Some(duration) = self.estimated_duration {
+            if duration == 0 {
+                return Err(
+                    "Estimated duration cannot be 0. \
+                    Hint: Provide realistic estimate in minutes, or omit if unknown"
+                        .to_string(),
+                );
+            }
+
+            if duration > 10080 {
+                // 7 days in minutes
+                return Err(format!(
+                    "Estimated duration too long ({} minutes = {:.1} days). Consider splitting into smaller tasks. \
+                    Hint: Tasks should typically be < 1 day (1440 minutes)",
+                    duration,
+                    duration as f64 / 1440.0
+                ));
+            }
+        }
+
+        // Validate timestamps if both present
+        if let (Some(start), Some(end)) = (self.start_time, self.end_time) {
+            if end < start {
+                return Err(format!(
+                    "Invalid time range: end_time ({}) < start_time ({}). \
+                    Hint: Ensure end_time is after start_time",
+                    end, start
+                ));
+            }
+        }
+
+        // Validate dependencies don't include self
+        if self.dependencies.contains(&self.id) {
+            return Err(format!(
+                "Task cannot depend on itself (ID: {}). \
+                Hint: Remove self-reference from dependencies list",
+                self.id
+            ));
+        }
+
+        Ok(())
+    }
+
+    /// Check if task is ready to be executed (all dependencies met)
+    pub fn is_ready(&self, completed_tasks: &[String]) -> bool {
+        self.dependencies
+            .iter()
+            .all(|dep| completed_tasks.contains(dep))
+    }
+
+    /// Get task urgency score (0.0 - 1.0) based on priority and severity
+    pub fn urgency_score(&self) -> f64 {
+        let priority_score = 1.0 - (self.priority as f64 / 3.0);
+
+        let severity_mult = match self.severity {
+            Some(crate::agent::Severity::Critical) => 1.5,
+            Some(crate::agent::Severity::High) => 1.25,
+            Some(crate::agent::Severity::Medium) => 1.0,
+            Some(crate::agent::Severity::Low) => 0.75,
+            Some(crate::agent::Severity::Trivial) => 0.5,
+            None => 1.0,
+        };
+
+        (priority_score * severity_mult).min(1.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -506,5 +657,277 @@ mod tests {
             config.max_concurrent_groups,
             deserialized.max_concurrent_groups
         );
+    }
+
+    // ========================================================================
+    // Task Validation Tests
+    // ========================================================================
+
+    fn create_valid_task() -> Task {
+        Task {
+            id: "task-1".to_string(),
+            title: "Valid task title".to_string(),
+            description: "Valid description with context".to_string(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: Some(Severity::Medium),
+            impact: None,
+            assigned_agent: None,
+            dependencies: vec![],
+            estimated_duration: Some(60),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        }
+    }
+
+    #[test]
+    fn test_task_validate_valid() {
+        let task = create_valid_task();
+        assert!(task.validate().is_ok());
+    }
+
+    #[test]
+    fn test_task_validate_empty_id() {
+        let mut task = create_valid_task();
+        task.id = "".to_string();
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Task ID cannot be empty"));
+        assert!(err_msg.contains("Hint:"));
+    }
+
+    #[test]
+    fn test_task_validate_long_id() {
+        let mut task = create_valid_task();
+        task.id = "a".repeat(101);
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Task ID too long"));
+        assert!(err_msg.contains("101 characters"));
+    }
+
+    #[test]
+    fn test_task_validate_empty_title() {
+        let mut task = create_valid_task();
+        task.title = "".to_string();
+        let result = task.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Task title cannot be empty"));
+    }
+
+    #[test]
+    fn test_task_validate_long_title() {
+        let mut task = create_valid_task();
+        task.title = "a".repeat(201);
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Task title too long"));
+        assert!(err_msg.contains("201 characters"));
+    }
+
+    #[test]
+    fn test_task_validate_empty_description() {
+        let mut task = create_valid_task();
+        task.description = "".to_string();
+        let result = task.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Task description cannot be empty"));
+    }
+
+    #[test]
+    fn test_task_validate_invalid_priority() {
+        let mut task = create_valid_task();
+        task.priority = 4;
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Invalid priority 4"));
+        assert!(err_msg.contains("P0-Critical"));
+        assert!(err_msg.contains("P3-Low"));
+    }
+
+    #[test]
+    fn test_task_validate_zero_duration() {
+        let mut task = create_valid_task();
+        task.estimated_duration = Some(0);
+        let result = task.validate();
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .contains("Estimated duration cannot be 0"));
+    }
+
+    #[test]
+    fn test_task_validate_long_duration() {
+        let mut task = create_valid_task();
+        task.estimated_duration = Some(10081); // > 7 days
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Estimated duration too long"));
+        assert!(err_msg.contains("10081 minutes"));
+        assert!(err_msg.contains("days"));
+    }
+
+    #[test]
+    fn test_task_validate_invalid_timestamps() {
+        let mut task = create_valid_task();
+        task.start_time = Some(1000);
+        task.end_time = Some(500); // end < start
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Invalid time range"));
+        assert!(err_msg.contains("end_time (500) < start_time (1000)"));
+    }
+
+    #[test]
+    fn test_task_validate_self_dependency() {
+        let mut task = create_valid_task();
+        task.dependencies = vec!["task-1".to_string()]; // self-reference
+        let result = task.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Task cannot depend on itself"));
+        assert!(err_msg.contains("ID: task-1"));
+    }
+
+    #[test]
+    fn test_task_validate_valid_timestamps() {
+        let mut task = create_valid_task();
+        task.start_time = Some(500);
+        task.end_time = Some(1000);
+        assert!(task.validate().is_ok());
+    }
+
+    #[test]
+    fn test_task_validate_valid_priority_range() {
+        for priority in 0..=3 {
+            let mut task = create_valid_task();
+            task.priority = priority;
+            assert!(task.validate().is_ok());
+        }
+    }
+
+    #[test]
+    fn test_task_validate_valid_duration() {
+        let mut task = create_valid_task();
+        task.estimated_duration = Some(1440); // 1 day
+        assert!(task.validate().is_ok());
+
+        task.estimated_duration = Some(10080); // 7 days (max)
+        assert!(task.validate().is_ok());
+    }
+
+    // ========================================================================
+    // Task is_ready Tests
+    // ========================================================================
+
+    #[test]
+    fn test_task_is_ready_no_dependencies() {
+        let task = create_valid_task();
+        assert!(task.is_ready(&[]));
+        assert!(task.is_ready(&["task-2".to_string()]));
+    }
+
+    #[test]
+    fn test_task_is_ready_with_dependencies() {
+        let mut task = create_valid_task();
+        task.dependencies = vec!["task-2".to_string(), "task-3".to_string()];
+
+        // Not ready when dependencies incomplete
+        assert!(!task.is_ready(&[]));
+        assert!(!task.is_ready(&["task-2".to_string()]));
+
+        // Ready when all dependencies complete
+        assert!(task.is_ready(&["task-2".to_string(), "task-3".to_string()]));
+        assert!(task.is_ready(&[
+            "task-2".to_string(),
+            "task-3".to_string(),
+            "task-4".to_string()
+        ]));
+    }
+
+    // ========================================================================
+    // Task urgency_score Tests
+    // ========================================================================
+
+    #[test]
+    fn test_task_urgency_score_priority_only() {
+        let mut task = create_valid_task();
+
+        // P0 (Critical) = 1.0
+        task.priority = 0;
+        task.severity = None;
+        assert!((task.urgency_score() - 1.0).abs() < 0.01);
+
+        // P1 (High) = 0.667
+        task.priority = 1;
+        assert!((task.urgency_score() - 0.667).abs() < 0.01);
+
+        // P2 (Medium) = 0.333
+        task.priority = 2;
+        assert!((task.urgency_score() - 0.333).abs() < 0.01);
+
+        // P3 (Low) = 0.0
+        task.priority = 3;
+        assert!(task.urgency_score() < 0.01);
+    }
+
+    #[test]
+    fn test_task_urgency_score_with_severity() {
+        let mut task = create_valid_task();
+        task.priority = 1; // Base 0.667
+
+        // Critical severity (1.5x multiplier)
+        task.severity = Some(Severity::Critical);
+        assert!(task.urgency_score() >= 1.0); // Capped at 1.0
+
+        // High severity (1.25x multiplier)
+        task.severity = Some(Severity::High);
+        assert!((task.urgency_score() - 0.834).abs() < 0.01);
+
+        // Medium severity (1.0x multiplier)
+        task.severity = Some(Severity::Medium);
+        assert!((task.urgency_score() - 0.667).abs() < 0.01);
+
+        // Low severity (0.75x multiplier)
+        task.severity = Some(Severity::Low);
+        assert!((task.urgency_score() - 0.500).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_task_urgency_score_max_capped() {
+        let mut task = create_valid_task();
+        task.priority = 0; // Highest priority (1.0)
+        task.severity = Some(Severity::Critical); // 1.5x multiplier
+
+        // Should be capped at 1.0
+        assert!((task.urgency_score() - 1.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_task_urgency_score_combinations() {
+        let mut task = create_valid_task();
+
+        // P0 + Critical = 1.0 (capped)
+        task.priority = 0;
+        task.severity = Some(Severity::Critical);
+        assert_eq!(task.urgency_score(), 1.0);
+
+        // P2 + High = 0.417
+        task.priority = 2;
+        task.severity = Some(Severity::High);
+        assert!((task.urgency_score() - 0.417).abs() < 0.01);
+
+        // P3 + Low = 0.0
+        task.priority = 3;
+        task.severity = Some(Severity::Low);
+        assert!(task.urgency_score() < 0.01);
     }
 }

@@ -26,9 +26,10 @@ pub enum EscalationTarget {
     DevOps,
 }
 
-/// Agent types (8 coding agents)
+/// Agent types (9 coding agents + 14 business agents)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum AgentType {
+    // Coding Agents (9)
     CoordinatorAgent,
     CodeGenAgent,
     ReviewAgent,
@@ -38,12 +39,29 @@ pub enum AgentType {
     AutoFixAgent,
     WaterSpiderAgent,
     RefresherAgent,
+
+    // Business Agents (14)
+    AIEntrepreneurAgent,
+    ProductConceptAgent,
+    ProductDesignAgent,
+    FunnelDesignAgent,
+    PersonaAgent,
+    SelfAnalysisAgent,
+    MarketResearchAgent,
+    MarketingAgent,
+    ContentCreationAgent,
+    SNSStrategyAgent,
+    YouTubeAgent,
+    SalesAgent,
+    CRMAgent,
+    AnalyticsAgent,
 }
 
 impl AgentType {
     /// Convert to lowercase string (for file paths, etc.)
     pub fn as_str(&self) -> &'static str {
         match self {
+            // Coding Agents
             AgentType::CoordinatorAgent => "coordinator",
             AgentType::CodeGenAgent => "codegen",
             AgentType::ReviewAgent => "review",
@@ -53,6 +71,22 @@ impl AgentType {
             AgentType::AutoFixAgent => "autofix",
             AgentType::WaterSpiderAgent => "waterspider",
             AgentType::RefresherAgent => "refresher",
+
+            // Business Agents
+            AgentType::AIEntrepreneurAgent => "ai-entrepreneur",
+            AgentType::ProductConceptAgent => "product-concept",
+            AgentType::ProductDesignAgent => "product-design",
+            AgentType::FunnelDesignAgent => "funnel-design",
+            AgentType::PersonaAgent => "persona",
+            AgentType::SelfAnalysisAgent => "self-analysis",
+            AgentType::MarketResearchAgent => "market-research",
+            AgentType::MarketingAgent => "marketing",
+            AgentType::ContentCreationAgent => "content-creation",
+            AgentType::SNSStrategyAgent => "sns-strategy",
+            AgentType::YouTubeAgent => "youtube",
+            AgentType::SalesAgent => "sales",
+            AgentType::CRMAgent => "crm",
+            AgentType::AnalyticsAgent => "analytics",
         }
     }
 }
@@ -165,6 +199,138 @@ pub struct AgentConfig {
     pub staging_url: Option<String>,
 }
 
+impl AgentConfig {
+    /// Validate agent configuration fields
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate device_identifier
+        if self.device_identifier.is_empty() {
+            return Err(
+                "Device identifier cannot be empty. \
+                Hint: Use a descriptive name like 'MacBook-Pro' or 'GitHub-Actions'"
+                    .to_string(),
+            );
+        }
+
+        if self.device_identifier.len() > 50 {
+            return Err(format!(
+                "Device identifier too long ({} characters). Maximum 50 characters allowed. \
+                Hint: Use shorter identifier like 'macbook' or 'ci-runner'",
+                self.device_identifier.len()
+            ));
+        }
+
+        // Validate github_token (basic format check)
+        if self.github_token.is_empty() {
+            return Err(
+                "GitHub token cannot be empty. \
+                Hint: Set GITHUB_TOKEN environment variable or provide token in config"
+                    .to_string(),
+            );
+        }
+
+        if self.github_token.len() < 20 {
+            return Err(format!(
+                "GitHub token too short ({} characters). Valid tokens are at least 20 characters. \
+                Hint: Check token format (should start with 'ghp_' or 'github_pat_')",
+                self.github_token.len()
+            ));
+        }
+
+        // Validate repo_owner and repo_name consistency
+        match (&self.repo_owner, &self.repo_name) {
+            (Some(_), None) => {
+                return Err(
+                    "Repository name is required when owner is specified. \
+                    Hint: Set both repo_owner and repo_name, or omit both"
+                        .to_string(),
+                );
+            }
+            (None, Some(_)) => {
+                return Err(
+                    "Repository owner is required when name is specified. \
+                    Hint: Set both repo_owner and repo_name, or omit both"
+                        .to_string(),
+                );
+            }
+            _ => {}
+        }
+
+        // Validate log_directory
+        if self.log_directory.is_empty() {
+            return Err(
+                "Log directory cannot be empty. \
+                Hint: Use './logs' or '/var/log/miyabi'"
+                    .to_string(),
+            );
+        }
+
+        // Validate report_directory
+        if self.report_directory.is_empty() {
+            return Err(
+                "Report directory cannot be empty. \
+                Hint: Use './reports' or '/var/reports/miyabi'"
+                    .to_string(),
+            );
+        }
+
+        // Validate worktree_base_path if use_worktree is enabled
+        if self.use_worktree && self.worktree_base_path.is_none() {
+            return Err(
+                "Worktree base path is required when use_worktree is enabled. \
+                Hint: Set worktree_base_path to '.worktrees' or absolute path"
+                    .to_string(),
+            );
+        }
+
+        // Validate URL formats if provided
+        if let Some(ref url) = self.production_url {
+            if !url.starts_with("http://") && !url.starts_with("https://") {
+                return Err(format!(
+                    "Invalid production URL format: '{}'. \
+                    Hint: URL must start with 'http://' or 'https://'",
+                    url
+                ));
+            }
+        }
+
+        if let Some(ref url) = self.staging_url {
+            if !url.starts_with("http://") && !url.starts_with("https://") {
+                return Err(format!(
+                    "Invalid staging URL format: '{}'. \
+                    Hint: URL must start with 'http://' or 'https://'",
+                    url
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Check if the config is set up for GitHub repository operations
+    pub fn has_repo_config(&self) -> bool {
+        self.repo_owner.is_some() && self.repo_name.is_some()
+    }
+
+    /// Check if the config has escalation targets configured
+    pub fn has_escalation_targets(&self) -> bool {
+        self.tech_lead_github_username.is_some()
+            || self.ciso_github_username.is_some()
+            || self.po_github_username.is_some()
+    }
+
+    /// Check if deployment configuration is complete
+    pub fn has_deployment_config(&self) -> bool {
+        self.firebase_production_project.is_some()
+            && self.firebase_staging_project.is_some()
+            && self.production_url.is_some()
+            && self.staging_url.is_some()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,6 +341,7 @@ mod tests {
 
     #[test]
     fn test_agent_type_as_str() {
+        // Coding Agents
         assert_eq!(AgentType::CoordinatorAgent.as_str(), "coordinator");
         assert_eq!(AgentType::CodeGenAgent.as_str(), "codegen");
         assert_eq!(AgentType::ReviewAgent.as_str(), "review");
@@ -184,6 +351,22 @@ mod tests {
         assert_eq!(AgentType::AutoFixAgent.as_str(), "autofix");
         assert_eq!(AgentType::WaterSpiderAgent.as_str(), "waterspider");
         assert_eq!(AgentType::RefresherAgent.as_str(), "refresher");
+
+        // Business Agents
+        assert_eq!(AgentType::AIEntrepreneurAgent.as_str(), "ai-entrepreneur");
+        assert_eq!(AgentType::ProductConceptAgent.as_str(), "product-concept");
+        assert_eq!(AgentType::ProductDesignAgent.as_str(), "product-design");
+        assert_eq!(AgentType::FunnelDesignAgent.as_str(), "funnel-design");
+        assert_eq!(AgentType::PersonaAgent.as_str(), "persona");
+        assert_eq!(AgentType::SelfAnalysisAgent.as_str(), "self-analysis");
+        assert_eq!(AgentType::MarketResearchAgent.as_str(), "market-research");
+        assert_eq!(AgentType::MarketingAgent.as_str(), "marketing");
+        assert_eq!(AgentType::ContentCreationAgent.as_str(), "content-creation");
+        assert_eq!(AgentType::SNSStrategyAgent.as_str(), "sns-strategy");
+        assert_eq!(AgentType::YouTubeAgent.as_str(), "youtube");
+        assert_eq!(AgentType::SalesAgent.as_str(), "sales");
+        assert_eq!(AgentType::CRMAgent.as_str(), "crm");
+        assert_eq!(AgentType::AnalyticsAgent.as_str(), "analytics");
     }
 
     #[test]
@@ -211,6 +394,7 @@ mod tests {
     #[test]
     fn test_agent_type_roundtrip() {
         let agents = vec![
+            // Coding Agents
             AgentType::CoordinatorAgent,
             AgentType::CodeGenAgent,
             AgentType::ReviewAgent,
@@ -220,6 +404,21 @@ mod tests {
             AgentType::AutoFixAgent,
             AgentType::WaterSpiderAgent,
             AgentType::RefresherAgent,
+            // Business Agents
+            AgentType::AIEntrepreneurAgent,
+            AgentType::ProductConceptAgent,
+            AgentType::ProductDesignAgent,
+            AgentType::FunnelDesignAgent,
+            AgentType::PersonaAgent,
+            AgentType::SelfAnalysisAgent,
+            AgentType::MarketResearchAgent,
+            AgentType::MarketingAgent,
+            AgentType::ContentCreationAgent,
+            AgentType::SNSStrategyAgent,
+            AgentType::YouTubeAgent,
+            AgentType::SalesAgent,
+            AgentType::CRMAgent,
+            AgentType::AnalyticsAgent,
         ];
 
         for agent in agents {
@@ -729,5 +928,215 @@ mod tests {
         assert_eq!(config.repo_name, deserialized.repo_name);
         assert_eq!(config.use_task_tool, deserialized.use_task_tool);
         assert_eq!(config.worktree_base_path, deserialized.worktree_base_path);
+    }
+
+    // ========================================================================
+    // AgentConfig Validation Tests
+    // ========================================================================
+
+    fn create_valid_agent_config() -> AgentConfig {
+        AgentConfig {
+            device_identifier: "test-device".to_string(),
+            github_token: "ghp_valid_token_12345678".to_string(),
+            repo_owner: Some("owner".to_string()),
+            repo_name: Some("repo".to_string()),
+            use_task_tool: false,
+            use_worktree: false,
+            worktree_base_path: None,
+            log_directory: "./logs".to_string(),
+            report_directory: "./reports".to_string(),
+            tech_lead_github_username: None,
+            ciso_github_username: None,
+            po_github_username: None,
+            firebase_production_project: None,
+            firebase_staging_project: None,
+            production_url: None,
+            staging_url: None,
+        }
+    }
+
+    #[test]
+    fn test_agent_config_validate_valid() {
+        let config = create_valid_agent_config();
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_agent_config_validate_empty_device_identifier() {
+        let mut config = create_valid_agent_config();
+        config.device_identifier = "".to_string();
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Device identifier cannot be empty"));
+        assert!(err_msg.contains("Hint:"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_long_device_identifier() {
+        let mut config = create_valid_agent_config();
+        config.device_identifier = "a".repeat(51);
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Device identifier too long"));
+        assert!(err_msg.contains("51 characters"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_empty_github_token() {
+        let mut config = create_valid_agent_config();
+        config.github_token = "".to_string();
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("GitHub token cannot be empty"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_short_github_token() {
+        let mut config = create_valid_agent_config();
+        config.github_token = "short".to_string();
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("GitHub token too short"));
+        assert!(err_msg.contains("5 characters"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_repo_owner_without_name() {
+        let mut config = create_valid_agent_config();
+        config.repo_owner = Some("owner".to_string());
+        config.repo_name = None;
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Repository name is required"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_repo_name_without_owner() {
+        let mut config = create_valid_agent_config();
+        config.repo_owner = None;
+        config.repo_name = Some("repo".to_string());
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Repository owner is required"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_empty_log_directory() {
+        let mut config = create_valid_agent_config();
+        config.log_directory = "".to_string();
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Log directory cannot be empty"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_empty_report_directory() {
+        let mut config = create_valid_agent_config();
+        config.report_directory = "".to_string();
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Report directory cannot be empty"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_worktree_without_path() {
+        let mut config = create_valid_agent_config();
+        config.use_worktree = true;
+        config.worktree_base_path = None;
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Worktree base path is required"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_invalid_production_url() {
+        let mut config = create_valid_agent_config();
+        config.production_url = Some("invalid-url".to_string());
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Invalid production URL format"));
+        assert!(err_msg.contains("invalid-url"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_invalid_staging_url() {
+        let mut config = create_valid_agent_config();
+        config.staging_url = Some("ftp://staging.com".to_string());
+        let result = config.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("Invalid staging URL format"));
+    }
+
+    #[test]
+    fn test_agent_config_validate_valid_urls() {
+        let mut config = create_valid_agent_config();
+        config.production_url = Some("https://prod.com".to_string());
+        config.staging_url = Some("http://staging.com".to_string());
+        assert!(config.validate().is_ok());
+    }
+
+    // ========================================================================
+    // AgentConfig Helper Methods Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_config_has_repo_config() {
+        let mut config = create_valid_agent_config();
+        config.repo_owner = Some("owner".to_string());
+        config.repo_name = Some("repo".to_string());
+        assert!(config.has_repo_config());
+
+        config.repo_owner = None;
+        assert!(!config.has_repo_config());
+
+        config.repo_owner = Some("owner".to_string());
+        config.repo_name = None;
+        assert!(!config.has_repo_config());
+    }
+
+    #[test]
+    fn test_agent_config_has_escalation_targets() {
+        let mut config = create_valid_agent_config();
+        assert!(!config.has_escalation_targets());
+
+        config.tech_lead_github_username = Some("lead".to_string());
+        assert!(config.has_escalation_targets());
+
+        config.tech_lead_github_username = None;
+        config.ciso_github_username = Some("ciso".to_string());
+        assert!(config.has_escalation_targets());
+
+        config.ciso_github_username = None;
+        config.po_github_username = Some("po".to_string());
+        assert!(config.has_escalation_targets());
+    }
+
+    #[test]
+    fn test_agent_config_has_deployment_config() {
+        let mut config = create_valid_agent_config();
+        assert!(!config.has_deployment_config());
+
+        config.firebase_production_project = Some("prod".to_string());
+        assert!(!config.has_deployment_config());
+
+        config.firebase_staging_project = Some("staging".to_string());
+        assert!(!config.has_deployment_config());
+
+        config.production_url = Some("https://prod.com".to_string());
+        assert!(!config.has_deployment_config());
+
+        config.staging_url = Some("https://staging.com".to_string());
+        assert!(config.has_deployment_config());
     }
 }

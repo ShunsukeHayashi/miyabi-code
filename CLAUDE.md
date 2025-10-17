@@ -121,6 +121,37 @@ TypeScript版からの完全移植により、以下を実現：
    # バイナリ: target/release/miyabi
    ```
 
+4. **Codex Integration** (`.codex/`)
+   - **Context Index**: `.codex/CONTEXT_INDEX.md` - Codex Agentの知識ベース統合インデックス
+   - **Playbooks**: `.codex/agents/*.md` - Agent実行ガイド（9ファイル）
+     - `ISSUE_CREATION_INSTRUCTIONS.md` - Issue作成フロー
+     - `coordinator-playbook.md` - Coordinatorタスク分解
+     - `codegen-playbook.md` - コード生成チェックリスト
+     - `review-playbook.md` - 品質レビュー手順
+     - `pr-playbook.md` - PR作成ガイド
+     - `deployment-playbook.md` - デプロイオーケストレーション
+     - `hooks-playbook.md` - ライフサイクルフック
+   - **Hooks**: `.codex/hooks/` - Codexワークフローフック設定
+
+5. **Agent Lifecycle Hooks** (`crates/miyabi-agents/src/hooks.rs`)
+   - **Hook System**: Agent実行前後のライフサイクル管理
+     - `AgentHook` trait: `on_pre_execute`, `on_post_execute`, `on_error`
+     - `HookedAgent<A>`: Baseagent wrapper with hook support
+   - **Built-in Hooks**:
+     - `EnvironmentCheckHook`: 必須環境変数の検証
+     - `MetricsHook`: 実行メトリクスのtracing記録
+     - `AuditLogHook`: `.ai/logs/YYYY-MM-DD.md` への実行ログ追記
+   - **使用例**:
+     ```rust
+     use miyabi_agents::{HookedAgent, MetricsHook, AuditLogHook};
+
+     let mut hooked = HookedAgent::new(CodeGenAgent::new(config));
+     hooked.register_hook(MetricsHook::new());
+     hooked.register_hook(AuditLogHook::new(".ai/logs"));
+
+     let result = hooked.execute(&task).await?;
+     ```
+
 ## 重要なファイル
 
 ### 設定ファイル
@@ -850,6 +881,97 @@ Claude Codeセッション中のタスク管理は、以下の構造化ルール
 - 完全完了後に即座に`completed`に変更
 - ブロックされたら`in_progress`のまま維持
 - 新規タスク発見時に即座に追加
+
+---
+
+## 📋 報告プロトコル
+
+**目的**: 複数のClaude Codeセッション（特にWorktreeベースの並列実行環境）において、どのAgentがどの作業を担当したかを明確にするための標準化。
+
+**テンプレート**: [`.claude/templates/reporting-protocol.md`](.claude/templates/reporting-protocol.md) - 完全なテンプレート仕様（v1.0.0）
+
+### Claude Codeからの報告形式
+
+**全ての作業報告は、以下の標準形式に従うこと:**
+
+```markdown
+## 📋 Claude Code からの作業報告
+
+**報告者**: Claude Code (AI Assistant)
+**報告日時**: YYYY-MM-DD
+**セッション**: [セッション名/タスク名]
+
+---
+
+### ✅ 完了した作業
+
+#### 1. [作業項目名]
+**担当**: Claude Code
+- 作業内容の詳細
+- 実施した変更
+
+#### 2. [作業項目名]
+**実行者**: Claude Code（ユーザー指示のもと）
+- 実行内容
+
+---
+
+### 📊 変更統計
+
+**コミット情報**:
+- **コミットID**: [hash]
+- **変更ファイル数**: N ファイル
+- **追加行数**: +N行
+- **削除行数**: -N行
+
+---
+
+### 🎯 動作確認結果
+
+**確認者**: Claude Code
+
+✅ [確認項目1]
+✅ [確認項目2]
+
+---
+
+### ⚠️ 注意事項
+
+**報告者**: Claude Code
+
+1. [注意点1]
+2. [注意点2]
+
+---
+
+### 🚀 次のステップ（提案）
+
+**提案者**: Claude Code
+
+1. [提案1]
+2. [提案2]
+
+---
+
+**報告終了**
+Claude Code
+```
+
+### 報告ルール
+
+1. **報告者の明記**: 全ての報告で「Claude Code」として名乗る
+2. **担当者の明記**: 各作業項目に「担当: Claude Code」または「実行者: Claude Code」を記載
+3. **確認者の明記**: 動作確認結果に「確認者: Claude Code」を記載
+4. **提案者の明記**: 次のステップ提案に「提案者: Claude Code」を記載
+5. **報告終了の明記**: 報告の最後に「**報告終了** Claude Code」を記載
+
+### 適用範囲
+
+- セッション終了時の作業サマリー
+- 重要なマイルストーン達成時
+- Issue処理完了時
+- Agent実行結果の報告
+- エラー・問題発生時の報告
 
 ---
 

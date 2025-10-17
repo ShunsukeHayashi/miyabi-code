@@ -27,6 +27,7 @@ validator = { version = "0.20", features = ["derive"] }
 dirs = "6.0"
 hostname = "0.4"
 git2 = { workspace = true }
+futures = "0.3"
 
 [dev-dependencies]
 tempfile = "3.8"

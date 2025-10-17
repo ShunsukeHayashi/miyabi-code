@@ -9,6 +9,7 @@
 //! - Git utilities (repository discovery, branch management, validation)
 //! - Error handling integration with miyabi-types
 
+pub mod cache;
 pub mod config;
 pub mod documentation;
 pub mod git;
