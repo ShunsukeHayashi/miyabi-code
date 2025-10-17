@@ -153,106 +153,6 @@ impl MetricsHook {
         Self
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use async_trait::async_trait;
-    use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
-    use miyabi_types::task::TaskType;
-    use miyabi_types::{AgentResult, Task};
-    use std::sync::{Arc, Mutex};
-
-    struct TestAgent;
-
-    #[async_trait]
-    impl BaseAgent for TestAgent {
-        fn agent_type(&self) -> AgentType {
-            AgentType::CodeGenAgent
-        }
-
-        async fn execute(&self, _task: &Task) -> Result<AgentResult> {
-            Ok(AgentResult {
-                status: ResultStatus::Success,
-                data: None,
-                error: None,
-                metrics: Some(AgentMetrics {
-                    task_id: "test-task".into(),
-                    agent_type: AgentType::CodeGenAgent,
-                    duration_ms: 10,
-                    quality_score: None,
-                    lines_changed: None,
-                    tests_added: None,
-                    coverage_percent: None,
-                    errors_found: None,
-                    timestamp: chrono::Utc::now(),
-                }),
-                escalation: None,
-            })
-        }
-    }
-
-    struct RecordingHook {
-        events: Arc<Mutex<Vec<&'static str>>>,
-    }
-
-    impl RecordingHook {
-        fn new(events: Arc<Mutex<Vec<&'static str>>>) -> Self {
-            Self { events }
-        }
-    }
-
-    #[async_trait]
-    impl AgentHook for RecordingHook {
-        async fn on_pre_execute(&self, _agent: AgentType, _task: &Task) -> Result<()> {
-            self.events.lock().unwrap().push("pre");
-            Ok(())
-        }
-
-        async fn on_post_execute(
-            &self,
-            _agent: AgentType,
-            _task: &Task,
-            _result: &AgentResult,
-        ) -> Result<()> {
-            self.events.lock().unwrap().push("post");
-            Ok(())
-        }
-    }
-
-    #[tokio::test]
-    async fn hooked_agent_executes_hooks() {
-        let events = Arc::new(Mutex::new(Vec::new()));
-        let hook = RecordingHook::new(events.clone());
-
-        let mut agent = HookedAgent::new(TestAgent);
-        agent.register_hook(hook);
-
-        let task = Task {
-            id: "test".into(),
-            title: "Test".into(),
-            description: "Run test".into(),
-            task_type: TaskType::Feature,
-            priority: 1,
-            severity: None,
-            impact: None,
-            assigned_agent: Some(AgentType::CodeGenAgent),
-            dependencies: vec![],
-            estimated_duration: Some(1),
-            status: None,
-            start_time: None,
-            end_time: None,
-            metadata: None,
-        };
-
-        let result = agent.execute(&task).await.unwrap();
-        assert_eq!(result.status, ResultStatus::Success);
-
-        let recorded = events.lock().unwrap();
-        assert_eq!(recorded.as_slice(), &["pre", "post"]);
-    }
-}
-
 #[async_trait]
 impl AgentHook for MetricsHook {
     async fn on_pre_execute(&self, agent: AgentType, task: &Task) -> Result<()> {
@@ -357,5 +257,103 @@ impl AgentHook for AuditLogHook {
             error
         );
         self.append(&entry).await
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use async_trait::async_trait;
+    use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
+    use miyabi_types::task::TaskType;
+    use miyabi_types::{AgentResult, Task};
+    use std::sync::{Arc, Mutex};
+
+    struct TestAgent;
+
+    #[async_trait]
+    impl BaseAgent for TestAgent {
+        fn agent_type(&self) -> AgentType {
+            AgentType::CodeGenAgent
+        }
+
+        async fn execute(&self, _task: &Task) -> Result<AgentResult> {
+            Ok(AgentResult {
+                status: ResultStatus::Success,
+                data: None,
+                error: None,
+                metrics: Some(AgentMetrics {
+                    task_id: "test-task".into(),
+                    agent_type: AgentType::CodeGenAgent,
+                    duration_ms: 10,
+                    quality_score: None,
+                    lines_changed: None,
+                    tests_added: None,
+                    coverage_percent: None,
+                    errors_found: None,
+                    timestamp: chrono::Utc::now(),
+                }),
+                escalation: None,
+            })
+        }
+    }
+
+    struct RecordingHook {
+        events: Arc<Mutex<Vec<&'static str>>>,
+    }
+
+    impl RecordingHook {
+        fn new(events: Arc<Mutex<Vec<&'static str>>>) -> Self {
+            Self { events }
+        }
+    }
+
+    #[async_trait]
+    impl AgentHook for RecordingHook {
+        async fn on_pre_execute(&self, _agent: AgentType, _task: &Task) -> Result<()> {
+            self.events.lock().unwrap().push("pre");
+            Ok(())
+        }
+
+        async fn on_post_execute(
+            &self,
+            _agent: AgentType,
+            _task: &Task,
+            _result: &AgentResult,
+        ) -> Result<()> {
+            self.events.lock().unwrap().push("post");
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn hooked_agent_executes_hooks() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let hook = RecordingHook::new(events.clone());
+
+        let mut agent = HookedAgent::new(TestAgent);
+        agent.register_hook(hook);
+
+        let task = Task {
+            id: "test".into(),
+            title: "Test".into(),
+            description: "Run test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::CodeGenAgent),
+            dependencies: vec![],
+            estimated_duration: Some(1),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        let result = agent.execute(&task).await.unwrap();
+        assert_eq!(result.status, ResultStatus::Success);
+
+        let recorded = events.lock().unwrap();
+        assert_eq!(recorded.as_slice(), &["pre", "post"]);
     }
 }

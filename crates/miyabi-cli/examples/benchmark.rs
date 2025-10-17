@@ -145,7 +145,7 @@ fn benchmark3_security_validation(task_count: usize) -> BenchmarkResult {
         task_count
     );
 
-    let test_codes = vec![
+    let test_codes = [
         "function add(a, b) { return a + b; }",
         "function multiply(x, y) { return x * y; }",
         "function divide(a, b) { return a / b; }",
@@ -352,22 +352,18 @@ fn main() {
     println!("║                                                                   ║");
     println!("╚═══════════════════════════════════════════════════════════════════╝");
 
-    let mut results = Vec::new();
-
-    // Scenario 1: Simple Tool Creation (100タスク)
-    results.push(benchmark1_simple_tool_creation(100));
-
-    // Scenario 2: Cached Execution (1000タスク)
-    results.push(benchmark2_cached_execution(1000));
-
-    // Scenario 3: Security Validation (1000タスク)
-    results.push(benchmark3_security_validation(1000));
-
-    // Scenario 4: Retry Execution (500タスク)
-    results.push(benchmark4_retry_execution(500));
-
-    // Scenario 5: E2E Integration (200タスク)
-    results.push(benchmark5_e2e_integration(200));
+    let results = vec![
+        // Scenario 1: Simple Tool Creation (100タスク)
+        benchmark1_simple_tool_creation(100),
+        // Scenario 2: Cached Execution (1000タスク)
+        benchmark2_cached_execution(1000),
+        // Scenario 3: Security Validation (1000タスク)
+        benchmark3_security_validation(1000),
+        // Scenario 4: Retry Execution (500タスク)
+        benchmark4_retry_execution(500),
+        // Scenario 5: E2E Integration (200タスク)
+        benchmark5_e2e_integration(200),
+    ];
 
     // サマリー表示
     display_summary(&results);
