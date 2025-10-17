@@ -305,6 +305,15 @@ class APIClient {
     );
   }
 
+  async deleteImage(characterId: string, imageKey: string) {
+    return this.request<{ message: string; deletedKey: string }>(
+      `/api/characters/${characterId}/image/${encodeURIComponent(imageKey)}`,
+      {
+        method: 'DELETE',
+      }
+    );
+  }
+
   async deleteCharacter(id: string) {
     return this.request<{ message: string }>(`/api/characters/${id}`, {
       method: 'DELETE',

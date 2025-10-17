@@ -1143,6 +1143,59 @@ router.post(
 );
 
 /**
+ * DELETE /api/characters/:id/image/:imageKey
+ * 画像削除
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.delete(
+  '/:id/image/:imageKey',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { imageKey } = req.params;
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      const character = await prisma.character.findFirst({
+        where: {
+          id: req.params.id,
+          userId: userId,
+        },
+      });
+
+      if (!character) {
+        throw new AppError('Character not found', 404);
+      }
+
+      const expressionUrls = (character.expressionUrls as Record<string, string>) || {};
+
+      if (!expressionUrls[imageKey]) {
+        throw new AppError('Image not found', 404);
+      }
+
+      // Remove the image from expressionUrls
+      delete expressionUrls[imageKey];
+
+      // Update character
+      await prisma.character.update({
+        where: { id: character.id },
+        data: {
+          expressionUrls,
+        },
+      });
+
+      res.json({
+        message: 'Image deleted successfully',
+        deletedKey: imageKey,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * DELETE /api/characters/:id
  * キャラクター削除
  */
