@@ -124,6 +124,16 @@ class APIClient {
     });
   }
 
+  async generateCharacterDetails(data: { name: string; age: number; description: string }) {
+    return this.request<{ character: any; generatedDetails: boolean }>(
+      '/api/characters/generate-details',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
   async getCharacters() {
     return this.request<{ characters: any[] }>('/api/characters');
   }

@@ -9,6 +9,7 @@ import { AppError } from '../middleware/error-handler.js';
 import { requireAuth } from '../middleware/auth.js';
 import { bytePlusT2I } from '../services/byteplus/t2i.js';
 import { bytePlusI2I } from '../services/byteplus/i2i.js';
+import { characterGeneratorService } from '../services/ai/character-generator.js';
 
 const router = Router();
 
@@ -45,6 +46,100 @@ const createCharacterSchema = z.object({
   voiceSpeed: z.number().optional(),
   voiceStyle: z.string().optional(),
 });
+
+const generateCharacterDetailsSchema = z.object({
+  name: z.string().min(1).max(50),
+  age: z.number().min(18).max(100),
+  description: z.string().min(10).max(500),
+});
+
+/**
+ * POST /api/characters/generate-details
+ * AI自動生成でキャラクター詳細を生成
+ */
+router.post(
+  '/generate-details',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = generateCharacterDetailsSchema.parse(req.body);
+
+      // Generate character details with Claude
+      const generatedDetails = await characterGeneratorService.generateCharacterDetails({
+        name: body.name,
+        age: body.age,
+        description: body.description,
+      });
+
+      // Generate a random birthday for the current age
+      const today = new Date();
+      const birthYear = today.getFullYear() - body.age;
+      const birthMonth = Math.floor(Math.random() * 12);
+      const birthDay = Math.floor(Math.random() * 28) + 1;
+      const birthday = new Date(birthYear, birthMonth, birthDay);
+
+      // Create character with generated details
+      const character = await prisma.character.create({
+        data: {
+          userId: req.user!.userId,
+          name: body.name,
+          age: body.age,
+          birthday,
+          // Generated fields
+          occupation: generatedDetails.occupation,
+          hobbies: generatedDetails.hobbies,
+          favoriteFood: generatedDetails.favoriteFood,
+          bio: generatedDetails.bio,
+          // Appearance
+          appearanceStyle: generatedDetails.appearanceStyle,
+          hairColor: generatedDetails.hairColor,
+          hairStyle: generatedDetails.hairStyle,
+          eyeColor: generatedDetails.eyeColor,
+          skinTone: generatedDetails.skinTone,
+          height: generatedDetails.height,
+          bodyType: generatedDetails.bodyType,
+          outfit: generatedDetails.outfit,
+          accessories: generatedDetails.accessories,
+          customPrompt: generatedDetails.customPrompt,
+          // Personality
+          personalityArchetype: generatedDetails.personalityArchetype,
+          traits: generatedDetails.traits,
+          speechStyle: generatedDetails.speechStyle,
+          emotionalTendency: generatedDetails.emotionalTendency,
+          interests: generatedDetails.interests,
+          values: generatedDetails.values,
+          // Voice
+          voiceId: generatedDetails.voiceId,
+          voicePitch: generatedDetails.voicePitch,
+          voiceSpeed: generatedDetails.voiceSpeed,
+          voiceStyle: generatedDetails.voiceStyle,
+        },
+      });
+
+      // Create initial stage progress
+      await prisma.stageProgress.create({
+        data: {
+          characterId: character.id,
+          userId: req.user!.userId,
+          currentStage: 'first_meet',
+          affection: 0,
+          unlockedStages: 'first_meet',
+          completedEvents: '',
+        },
+      });
+
+      res.status(201).json({
+        character,
+        generatedDetails: true,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new AppError('Invalid input', 400));
+      }
+      next(error);
+    }
+  }
+);
 
 /**
  * POST /api/characters
