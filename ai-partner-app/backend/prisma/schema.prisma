@@ -71,6 +71,10 @@ model Character {
   imagesGenerated Boolean @default(false)
   lastGeneratedAt DateTime?
 
+  // 動画 (I2V)
+  videoUrls       Json?   // { action_name: "video_url", ... } e.g. { "wave": "url", "smile": "url" }
+  videosGenerated Boolean @default(false)
+
   // 統計
   totalConversations   Int      @default(0)
   totalMessages        Int      @default(0)

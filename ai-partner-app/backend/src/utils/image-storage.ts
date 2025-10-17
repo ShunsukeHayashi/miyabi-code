@@ -19,6 +19,7 @@ interface SaveImageOptions {
   imageType: 'source' | 'generated';
   base64Data: string;
   mimeType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  suffix?: string; // 複数画像保存時のインデックス (例: "_1", "_2")
   metadata?: {
     expression?: string;
     originalFilename?: string;
@@ -52,18 +53,22 @@ function generateFilename(
   characterId: string | undefined,
   imageType: 'source' | 'generated',
   extension: string,
+  suffix?: string,
   metadata?: SaveImageOptions['metadata']
 ): string {
   const timestamp = Date.now();
   const charId = characterId || 'temp';
 
   if (imageType === 'source') {
-    // source-images: {characterId}_{timestamp}.{ext}
-    return `${charId}_${timestamp}.${extension}`;
+    // source-images: {characterId}_{timestamp}{suffix}.{ext}
+    // 例: temp_1234567890_1.jpg (複数画像の1枚目)
+    const suffixPart = suffix || '';
+    return `${charId}_${timestamp}${suffixPart}.${extension}`;
   } else {
-    // generated-images: {characterId}_{expression}_{timestamp}.{ext}
+    // generated-images: {characterId}_{expression}_{timestamp}{suffix}.{ext}
     const expression = metadata?.expression || 'default';
-    return `${charId}_${expression}_${timestamp}.${extension}`;
+    const suffixPart = suffix || '';
+    return `${charId}_${expression}_${timestamp}${suffixPart}.${extension}`;
   }
 }
 
@@ -89,6 +94,7 @@ export async function saveImage(options: SaveImageOptions): Promise<SaveImageRes
     imageType,
     base64Data,
     mimeType,
+    suffix,
     metadata,
   } = options;
 
@@ -97,6 +103,7 @@ export async function saveImage(options: SaveImageOptions): Promise<SaveImageRes
     characterId,
     imageType,
     mimeType,
+    suffix,
     metadata,
   });
 
@@ -111,7 +118,7 @@ export async function saveImage(options: SaveImageOptions): Promise<SaveImageRes
 
     // Generate filename
     const extension = getExtensionFromMimeType(mimeType);
-    const filename = generateFilename(characterId, imageType, extension, metadata);
+    const filename = generateFilename(characterId, imageType, extension, suffix, metadata);
     const filePath = path.join(targetDir, filename);
 
     // Convert base64 to buffer

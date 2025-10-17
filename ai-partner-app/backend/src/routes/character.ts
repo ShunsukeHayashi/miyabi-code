@@ -9,6 +9,7 @@ import { AppError } from '../middleware/error-handler.js';
 import { requireAuth } from '../middleware/auth.js';
 import { bytePlusT2I } from '../services/byteplus/t2i.js';
 import { bytePlusI2I } from '../services/byteplus/i2i.js';
+import { bytePlusI2V } from '../services/byteplus/i2v.js';
 import { characterGeneratorService } from '../services/ai/character-generator.js';
 import { imageAnalyzerService } from '../services/ai/image-analyzer.js';
 import { saveImage } from '../utils/image-storage.js';
@@ -61,6 +62,17 @@ const generateFromImageSchema = z.object({
   name: z.string().min(1).max(50).optional(),
   age: z.number().min(18).max(100).optional(),
   description: z.string().max(500).optional(),
+});
+
+const generateFromMultipleImagesSchema = z.object({
+  images: z.array(z.object({
+    imageData: z.string().min(1),
+    mimeType: z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']).optional().default('image/jpeg'),
+  })).min(2).max(5), // 2-5枚の画像
+  name: z.string().min(1).max(50).optional(),
+  age: z.number().min(18).max(100).optional(),
+  description: z.string().max(500).optional(),
+  customPrompt: z.string().max(500).optional(), // 画像合成用のカスタムプロンプト
 });
 
 /**
@@ -252,6 +264,158 @@ router.post(
         character,
         generatedFromImage: true,
         savedImagePath: savedImage.relativePath,
+        analysis: {
+          appearance,
+          personality: appearance.estimatedPersonality,
+        },
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new AppError('Invalid input', 400));
+      }
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/characters/generate-from-multiple-images
+ * 複数画像からキャラクター生成
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.post(
+  '/generate-from-multiple-images',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = generateFromMultipleImagesSchema.parse(req.body);
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      // Save all images to local filesystem
+      const savedImages = await Promise.all(
+        body.images.map((img, index) =>
+          saveImage({
+            userId,
+            imageType: 'source',
+            base64Data: img.imageData,
+            mimeType: img.mimeType,
+            suffix: `_${index + 1}`, // Add index to filename
+          })
+        )
+      );
+
+      // Analyze first image with Claude Vision (primary reference)
+      const { appearance, profile } = await imageAnalyzerService.generateCharacterFromImage(
+        body.images[0].imageData,
+        body.images[0].mimeType,
+        {
+          name: body.name,
+          age: body.age,
+          description: body.description,
+        }
+      );
+
+      // Use provided values or defaults from analysis
+      const finalName = body.name || appearance.suggestedName;
+      const finalAge = body.age || appearance.estimatedAge;
+
+      // Generate a random birthday for the age
+      const today = new Date();
+      const birthYear = today.getFullYear() - finalAge;
+      const birthMonth = Math.floor(Math.random() * 12);
+      const birthDay = Math.floor(Math.random() * 28) + 1;
+      const birthday = new Date(birthYear, birthMonth, birthDay);
+
+      // Create character with analyzed appearance and generated profile
+      const character = await prisma.character.create({
+        data: {
+          userId,
+          name: finalName,
+          age: finalAge,
+          birthday,
+          // Profile from AI generation
+          occupation: profile.occupation,
+          hobbies: profile.hobbies,
+          favoriteFood: profile.favoriteFood,
+          bio: profile.bio,
+          // Appearance from image analysis
+          appearanceStyle: appearance.appearanceStyle,
+          hairColor: appearance.hairColor,
+          hairStyle: appearance.hairStyle,
+          eyeColor: appearance.eyeColor,
+          skinTone: appearance.skinTone,
+          height: appearance.estimatedHeight,
+          bodyType: appearance.bodyType,
+          outfit: appearance.outfit,
+          accessories: appearance.accessories,
+          customPrompt: body.customPrompt || appearance.customPrompt,
+          // Personality from profile generation
+          personalityArchetype: profile.personalityArchetype,
+          traits: profile.traits,
+          speechStyle: profile.speechStyle,
+          emotionalTendency: profile.emotionalTendency,
+          interests: profile.interests,
+          values: profile.values,
+          // Voice settings from profile
+          voiceId: profile.voiceId,
+          voicePitch: profile.voicePitch,
+          voiceSpeed: profile.voiceSpeed,
+          voiceStyle: profile.voiceStyle,
+          // Save first image path as primary source
+          sourceImagePath: savedImages[0].relativePath,
+        },
+      });
+
+      // Create initial stage progress
+      await prisma.stageProgress.create({
+        data: {
+          characterId: character.id,
+          userId,
+          currentStage: 'first_meet',
+          affection: 0,
+          unlockedStages: 'first_meet',
+          completedEvents: '',
+        },
+      });
+
+      // Now generate primary image using all uploaded images via I2I
+      const imageDataURIs = body.images.map(
+        (img) => `data:${img.mimeType};base64,${img.imageData}`
+      );
+
+      const combinedPrompt = body.customPrompt
+        ? `${body.customPrompt}. ${appearance.customPrompt}`
+        : appearance.customPrompt;
+
+      const imageResult = await bytePlusI2I.generate({
+        prompt: combinedPrompt,
+        imageUrl: imageDataURIs, // Multiple images as data URIs
+        size: '1024x1024',
+        watermark: false,
+        strength: 0.6, // More transformation for multiple images
+      });
+
+      // Update character with generated image
+      await prisma.character.update({
+        where: { id: character.id },
+        data: {
+          primaryImageUrl: imageResult.imageUrl,
+          imagesGenerated: true,
+          lastGeneratedAt: new Date(),
+        },
+      });
+
+      res.status(201).json({
+        character: {
+          ...character,
+          primaryImageUrl: imageResult.imageUrl,
+          imagesGenerated: true,
+        },
+        generatedFromMultipleImages: true,
+        imageCount: body.images.length,
+        savedImagePaths: savedImages.map((img) => img.relativePath),
         analysis: {
           appearance,
           personality: appearance.estimatedPersonality,
@@ -604,6 +768,294 @@ router.post(
         imageUrls: result.imageUrls,
         message: 'Images combined successfully',
         usedMultipleImages: true,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/characters/:id/generate-video
+ * キャラクター動画生成（I2V - Image to Video）
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.post(
+  '/:id/generate-video',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { action, duration, customPrompt } = req.body;
+
+      if (!action) {
+        throw new AppError('Action is required', 400);
+      }
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      const character = await prisma.character.findFirst({
+        where: {
+          id: req.params.id,
+          userId: userId,
+        },
+      });
+
+      if (!character) {
+        throw new AppError('Character not found', 404);
+      }
+
+      if (!character.primaryImageUrl) {
+        throw new AppError(
+          'Primary image must be generated first before creating video',
+          400
+        );
+      }
+
+      // Generate video from primary character image
+      const videoPrompt = customPrompt
+        ? `${action}. ${customPrompt}`
+        : action;
+
+      const videoTask = await bytePlusI2V.animateCharacter({
+        imageUrl: character.primaryImageUrl,
+        action: videoPrompt,
+        duration: duration || 5,
+      });
+
+      // Update video URLs in character
+      const videoUrls =
+        (character.videoUrls as Record<string, string>) || {};
+
+      // Store task ID temporarily (will be replaced with actual URL after processing)
+      videoUrls[action] = videoTask.taskId;
+
+      await prisma.character.update({
+        where: { id: character.id },
+        data: {
+          videoUrls,
+          videosGenerated: true,
+        },
+      });
+
+      res.json({
+        action,
+        taskId: videoTask.taskId,
+        status: videoTask.status,
+        videoUrl: videoTask.videoUrl,
+        message: 'Video generation started. Use task ID to check status.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/characters/:id/video-status/:taskId
+ * 動画生成ステータス確認
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.get(
+  '/:id/video-status/:taskId',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { taskId } = req.params;
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      const character = await prisma.character.findFirst({
+        where: {
+          id: req.params.id,
+          userId: userId,
+        },
+      });
+
+      if (!character) {
+        throw new AppError('Character not found', 404);
+      }
+
+      // Get task status from BytePlus
+      const taskStatus = await bytePlusI2V.getTaskStatus(taskId);
+
+      // If completed, update the video URL in database
+      if (taskStatus.status === 'completed' && taskStatus.videoUrl) {
+        const videoUrls = (character.videoUrls as Record<string, string>) || {};
+
+        // Find the action key for this task ID and update with actual URL
+        const actionKey = Object.keys(videoUrls).find(
+          (key) => videoUrls[key] === taskId
+        );
+
+        if (actionKey) {
+          videoUrls[actionKey] = taskStatus.videoUrl;
+
+          await prisma.character.update({
+            where: { id: character.id },
+            data: {
+              videoUrls,
+            },
+          });
+        }
+      }
+
+      res.json({
+        taskId,
+        status: taskStatus.status,
+        videoUrl: taskStatus.videoUrl,
+        duration: taskStatus.duration,
+        resolution: taskStatus.resolution,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/characters/:id/change-hairstyle
+ * 髪型変更（I2I）
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.post(
+  '/:id/change-hairstyle',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { hairstyle, hairColor, customPrompt } = req.body;
+
+      if (!hairstyle) {
+        throw new AppError('Hairstyle is required', 400);
+      }
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      const character = await prisma.character.findFirst({
+        where: {
+          id: req.params.id,
+          userId: userId,
+        },
+      });
+
+      if (!character) {
+        throw new AppError('Character not found', 404);
+      }
+
+      if (!character.primaryImageUrl) {
+        throw new AppError(
+          'Primary image must be generated first',
+          400
+        );
+      }
+
+      // Change hairstyle using I2I
+      const result = await bytePlusI2I.changeHairstyle({
+        sourceImageUrl: character.primaryImageUrl,
+        hairstyle,
+        hairColor,
+        customPrompt,
+      });
+
+      // Update hairstyle URLs in character (similar to expressionUrls)
+      const hairstyleUrls =
+        (character.expressionUrls as Record<string, any>) || {};
+
+      // Store in expressionUrls with hairstyle prefix
+      const key = hairColor ? `${hairstyle}-${hairColor}` : hairstyle;
+      hairstyleUrls[`hairstyle:${key}`] = result.imageUrl;
+
+      await prisma.character.update({
+        where: { id: character.id },
+        data: {
+          expressionUrls: hairstyleUrls,
+        },
+      });
+
+      res.json({
+        hairstyle,
+        hairColor,
+        imageUrl: result.imageUrl,
+        message: 'Hairstyle changed successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/characters/:id/change-background
+ * 背景/場所変更（I2I）
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.post(
+  '/:id/change-background',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { location, timeOfDay, weather, customPrompt } = req.body;
+
+      if (!location) {
+        throw new AppError('Location is required', 400);
+      }
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      const character = await prisma.character.findFirst({
+        where: {
+          id: req.params.id,
+          userId: userId,
+        },
+      });
+
+      if (!character) {
+        throw new AppError('Character not found', 404);
+      }
+
+      if (!character.primaryImageUrl) {
+        throw new AppError(
+          'Primary image must be generated first',
+          400
+        );
+      }
+
+      // Change background using I2I
+      const result = await bytePlusI2I.changeBackground({
+        sourceImageUrl: character.primaryImageUrl,
+        location,
+        timeOfDay,
+        weather,
+        customPrompt,
+      });
+
+      // Update background URLs in character (use expressionUrls for now)
+      const backgroundUrls =
+        (character.expressionUrls as Record<string, any>) || {};
+
+      // Store in expressionUrls with background prefix
+      let key = location;
+      if (timeOfDay) key += `-${timeOfDay}`;
+      if (weather) key += `-${weather}`;
+
+      backgroundUrls[`background:${key}`] = result.imageUrl;
+
+      await prisma.character.update({
+        where: { id: character.id },
+        data: {
+          expressionUrls: backgroundUrls,
+        },
+      });
+
+      res.json({
+        location,
+        timeOfDay,
+        weather,
+        imageUrl: result.imageUrl,
+        message: 'Background changed successfully',
       });
     } catch (error) {
       next(error);

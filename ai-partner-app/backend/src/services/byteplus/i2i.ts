@@ -245,6 +245,122 @@ export class BytePlusI2I {
       watermark: false,
     });
   }
+
+  /**
+   * キャラクターの髪型を変更（最適化されたプロンプト）
+   */
+  async changeHairstyle(params: {
+    sourceImageUrl: string;
+    hairstyle: string;
+    hairColor?: string; // オプション：髪の色も変更
+    customPrompt?: string;
+  }): Promise<I2IResponse> {
+    const { sourceImageUrl, hairstyle, hairColor, customPrompt } = params;
+
+    // 最適化された髪型変更プロンプト
+    const hairstylePrompts: Record<string, string> = {
+      'long-straight': 'Transform the hairstyle to long, straight hair flowing down to the shoulders or back. Smooth, sleek texture with natural shine. Keep face and other features identical.',
+      'short-bob': 'Change the hairstyle to a short bob cut, chin-length with clean lines. Modern and stylish appearance. Maintain facial features and expression.',
+      'curly': 'Transform the hair to have beautiful curls and waves. Natural, bouncy curls with volume and texture. Keep the same facial features.',
+      'ponytail': 'Style the hair into a high or mid ponytail. Gathered hair with some strands framing the face naturally. Preserve facial identity.',
+      'twin-tails': 'Transform into twin-tails hairstyle with two side ponytails. Cute and youthful appearance. Keep face identical.',
+      'pixie-cut': 'Change to a pixie cut hairstyle, very short and chic. Modern and edgy appearance. Maintain facial features.',
+      'wavy-medium': 'Transform to medium-length wavy hair. Soft, natural waves with movement and texture. Keep face the same.',
+      'bun': 'Style the hair into an elegant bun. Hair gathered up, neat and sophisticated. Preserve facial features.',
+      'braided': 'Create a braided hairstyle, single braid or multiple braids. Intricate and detailed braiding. Keep face identical.',
+      'messy-short': 'Transform to short, messy, tousled hairstyle. Casual and trendy appearance with natural texture. Maintain facial identity.',
+    };
+
+    // 基本プロンプトを構築
+    let basePrompt = hairstylePrompts[hairstyle] ||
+      `Transform the hairstyle to: ${hairstyle}. Keep the face, facial features, and overall appearance identical. Only change the hair.`;
+
+    // 髪の色の指定があれば追加
+    if (hairColor) {
+      basePrompt += ` Change hair color to ${hairColor}.`;
+    }
+
+    // カスタムプロンプトを追加
+    const finalPrompt = customPrompt
+      ? `${basePrompt} ${customPrompt}`
+      : basePrompt;
+
+    return this.generate({
+      prompt: finalPrompt,
+      imageUrl: sourceImageUrl,
+      size: '1k', // seedream-4-0は1k, 2k, 4kのみサポート
+      strength: 0.6, // 顔を保持しつつ髪型を変更
+      watermark: false,
+    });
+  }
+
+  /**
+   * 背景/場所を変更（最適化されたプロンプト）
+   */
+  async changeBackground(params: {
+    sourceImageUrl: string;
+    location: string;
+    timeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night'; // 時間帯
+    weather?: 'sunny' | 'cloudy' | 'rainy' | 'snowy'; // 天気
+    customPrompt?: string;
+  }): Promise<I2IResponse> {
+    const { sourceImageUrl, location, timeOfDay, weather, customPrompt } = params;
+
+    // 最適化された場所変更プロンプト
+    const locationPrompts: Record<string, string> = {
+      'beach': 'Place the character on a beautiful beach with sand, ocean waves, and blue sky. Natural lighting and coastal atmosphere.',
+      'forest': 'Place the character in a lush green forest with tall trees, natural foliage, and dappled sunlight filtering through leaves.',
+      'city-street': 'Place the character on a modern city street with buildings, urban environment, and bustling atmosphere.',
+      'cafe': 'Place the character in a cozy cafe interior with tables, chairs, warm lighting, and comfortable atmosphere.',
+      'park': 'Place the character in a peaceful park with grass, trees, flowers, and natural outdoor setting.',
+      'mountain': 'Place the character on a scenic mountain with peaks, valleys, and dramatic landscape in the background.',
+      'school': 'Place the character in a school setting with classroom elements, desks, windows, and educational atmosphere.',
+      'bedroom': 'Place the character in a comfortable bedroom interior with bed, furniture, and cozy domestic atmosphere.',
+      'library': 'Place the character in a quiet library with bookshelves, reading spaces, and scholarly atmosphere.',
+      'rooftop': 'Place the character on a rooftop with city skyline or scenic view in the background, open air setting.',
+      'japanese-garden': 'Place the character in a traditional Japanese garden with carefully arranged plants, stones, water features, and zen atmosphere.',
+      'station': 'Place the character at a train or subway station with platform, tracks, and transportation atmosphere.',
+    };
+
+    // 基本プロンプトを構築
+    let basePrompt = locationPrompts[location] ||
+      `Place the character in this location: ${location}. Keep the character's appearance, face, and features identical. Only change the background.`;
+
+    // 時間帯の指定があれば追加
+    if (timeOfDay) {
+      const timeDescriptions: Record<string, string> = {
+        morning: 'soft morning light, warm golden glow',
+        afternoon: 'bright afternoon sunlight, clear visibility',
+        evening: 'beautiful sunset colors, warm orange and pink tones',
+        night: 'nighttime atmosphere, soft artificial lighting or moonlight',
+      };
+      basePrompt += ` ${timeDescriptions[timeOfDay]}.`;
+    }
+
+    // 天気の指定があれば追加
+    if (weather) {
+      const weatherDescriptions: Record<string, string> = {
+        sunny: 'sunny weather, clear sky, bright atmosphere',
+        cloudy: 'cloudy sky, diffused lighting, overcast atmosphere',
+        rainy: 'rainy weather, wet surfaces, rain effects',
+        snowy: 'snowy weather, snow covering, winter atmosphere',
+      };
+      basePrompt += ` ${weatherDescriptions[weather]}.`;
+    }
+
+    // カスタムプロンプトを追加
+    const finalPrompt = customPrompt
+      ? `${basePrompt} ${customPrompt}`
+      : basePrompt;
+
+    return this.generate({
+      prompt: finalPrompt,
+      imageUrl: sourceImageUrl,
+      size: '1k', // seedream-4-0は1k, 2k, 4kのみサポート
+      strength: 0.5, // キャラクターを保持しつつ背景を変更
+      watermark: false,
+    });
+  }
 }
 
 // Singleton instance
