@@ -132,7 +132,15 @@ TypeScript版からの完全移植により、以下を実現：
 
 **クイックスタート（初心者向け）**:
 - `.claude/QUICK_START.md`: **3分で始めるMiyabi - Quick Start Guide** ⭐⭐⭐
+- `QUICKSTART-JA.md`: **5分で始めるMiyabi - クイックスタート（ローカルセットアップ＆トラブル対応）**
 - `.claude/TROUBLESHOOTING.md`: **トラブルシューティングガイド** ⭐⭐⭐
+- `MCP_AUTHENTICATION_GUIDE.md`: **GitHub/MCP認証完全ガイド（環境変数・gh CLI の使い分け）**
+
+### AI CLI統合ドキュメント
+- `.claude/docs/AI_CLI_COMPLETE_GUIDE.md`: **AI CLI完全ガイド** - Claude Code/Gemini CLI/OpenAI Codex
+- `.claude/docs/AI_CLI_COMPARISON.md`: **AI CLI比較ガイド** - 使い分けとベストプラクティス
+- `.claude/docs/CODEX_CLARIFICATION.md`: **Codex定義明確化** - 3つの異なるCodex
+- `.claude/templates/reporting-protocol.md`: **報告プロトコル** - 標準報告形式テンプレート
 
 **コアドキュメント（必読）**:
 - `docs/ENTITY_RELATION_MODEL.md`: **Entity-Relationモデル定義** ⭐⭐⭐
@@ -854,3 +862,7 @@ Claude Codeセッション中のタスク管理は、以下の構造化ルール
 ---
 
 **このファイルはClaude Codeが自動参照します。プロジェクトのコンテキストとして常に最新に保ってください。**
+
+### ユーティリティスクリプト
+- `miyabi.sh`: `.env` の `GITHUB_TOKEN` を自動読み込みし、未設定時は `gh auth token` にフォールバックして Miyabi CLI を実行するヘルパー
+- `miyabi-direct.sh`: 環境変数を直接指定して Miyabi CLI を呼び出したい場合の軽量スクリプト
