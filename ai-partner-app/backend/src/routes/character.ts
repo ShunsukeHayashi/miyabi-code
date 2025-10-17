@@ -1064,6 +1064,85 @@ router.post(
 );
 
 /**
+ * POST /api/characters/:id/change-outfit
+ * 服装変更（I2I）
+ * TODO: 本番環境では requireAuth を有効化すること
+ */
+router.post(
+  '/:id/change-outfit',
+  // requireAuth, // 開発中は一時的にコメントアウト
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { outfit, style, color, accessories, customPrompt } = req.body;
+
+      if (!outfit) {
+        throw new AppError('Outfit is required', 400);
+      }
+
+      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
+      const userId = req.user?.userId || 'dev-user-001';
+
+      const character = await prisma.character.findFirst({
+        where: {
+          id: req.params.id,
+          userId: userId,
+        },
+      });
+
+      if (!character) {
+        throw new AppError('Character not found', 404);
+      }
+
+      if (!character.primaryImageUrl) {
+        throw new AppError(
+          'Primary image must be generated first',
+          400
+        );
+      }
+
+      // Change outfit using I2I
+      const result = await bytePlusI2I.changeOutfit({
+        sourceImageUrl: character.primaryImageUrl,
+        outfit,
+        style,
+        color,
+        accessories,
+        customPrompt,
+      });
+
+      // Update outfit URLs in character (use expressionUrls for now)
+      const outfitUrls =
+        (character.expressionUrls as Record<string, any>) || {};
+
+      // Store in expressionUrls with outfit prefix
+      let key = outfit;
+      if (style) key += `-${style}`;
+      if (color) key += `-${color}`;
+
+      outfitUrls[`outfit:${key}`] = result.imageUrl;
+
+      await prisma.character.update({
+        where: { id: character.id },
+        data: {
+          expressionUrls: outfitUrls,
+        },
+      });
+
+      res.json({
+        outfit,
+        style,
+        color,
+        accessories,
+        imageUrl: result.imageUrl,
+        message: 'Outfit changed successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * DELETE /api/characters/:id
  * キャラクター削除
  */

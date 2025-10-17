@@ -361,6 +361,79 @@ export class BytePlusI2I {
       watermark: false,
     });
   }
+
+  /**
+   * キャラクターの服装を変更（最適化されたプロンプト）
+   */
+  async changeOutfit(params: {
+    sourceImageUrl: string;
+    outfit: string;
+    style?: 'casual' | 'formal' | 'sporty' | 'elegant' | 'cute' | 'cool'; // スタイル
+    color?: string; // 主要な色
+    accessories?: string; // アクセサリー追加
+    customPrompt?: string;
+  }): Promise<I2IResponse> {
+    const { sourceImageUrl, outfit, style, color, accessories, customPrompt } = params;
+
+    // 最適化された服装変更プロンプト
+    const outfitPrompts: Record<string, string> = {
+      'school-uniform': 'Change the outfit to a school uniform with blazer, shirt, and skirt or pants. Clean and neat appearance. Keep face and body identical.',
+      'business-suit': 'Transform the outfit to a professional business suit with jacket and formal attire. Sharp and sophisticated look. Preserve facial features.',
+      'casual-wear': 'Change to casual everyday wear with comfortable clothing like t-shirt and jeans or casual dress. Relaxed and natural style. Keep face the same.',
+      'dress': 'Transform into an elegant dress, flowing and graceful. Beautiful and refined appearance. Maintain facial identity.',
+      'sportswear': 'Change to athletic sportswear with appropriate sports clothing and shoes. Active and dynamic look. Keep face identical.',
+      'kimono': 'Transform into traditional Japanese kimono with beautiful patterns and obi belt. Elegant traditional appearance. Preserve facial features.',
+      'swimsuit': 'Change to a swimsuit appropriate for beach or pool. Summer beach wear. Keep face and body proportions the same.',
+      'pajamas': 'Transform into comfortable pajamas or sleepwear. Cozy and relaxed nighttime attire. Maintain facial features.',
+      'winter-coat': 'Change to warm winter clothing with coat, scarf, and winter accessories. Cold weather outfit. Keep face identical.',
+      'party-dress': 'Transform into glamorous party or evening dress. Fancy and festive appearance. Preserve facial identity.',
+      'hoodie': 'Change to comfortable hoodie and casual pants. Modern street style. Keep face the same.',
+      'maid-outfit': 'Transform into maid outfit with apron and accessories. Classic maid costume style. Maintain facial features.',
+      'nurse-uniform': 'Change to medical nurse uniform with white or colored scrubs. Professional healthcare attire. Keep face identical.',
+      'chef-uniform': 'Transform into chef uniform with white coat and hat. Professional culinary appearance. Preserve facial features.',
+      'wedding-dress': 'Change to beautiful wedding dress, white and elegant. Bridal gown appearance. Keep face the same.',
+    };
+
+    // 基本プロンプトを構築
+    let basePrompt = outfitPrompts[outfit] ||
+      `Change the character's outfit to: ${outfit}. Keep the face, facial features, hairstyle, and body proportions identical. Only change the clothing.`;
+
+    // スタイルの指定があれば追加
+    if (style) {
+      const styleDescriptions: Record<string, string> = {
+        casual: 'casual and relaxed style',
+        formal: 'formal and sophisticated style',
+        sporty: 'sporty and athletic style',
+        elegant: 'elegant and graceful style',
+        cute: 'cute and adorable style',
+        cool: 'cool and stylish style',
+      };
+      basePrompt += ` ${styleDescriptions[style]}.`;
+    }
+
+    // 色の指定があれば追加
+    if (color) {
+      basePrompt += ` Primary color: ${color}.`;
+    }
+
+    // アクセサリーの指定があれば追加
+    if (accessories) {
+      basePrompt += ` Add accessories: ${accessories}.`;
+    }
+
+    // カスタムプロンプトを追加
+    const finalPrompt = customPrompt
+      ? `${basePrompt} ${customPrompt}`
+      : basePrompt;
+
+    return this.generate({
+      prompt: finalPrompt,
+      imageUrl: sourceImageUrl,
+      size: '1k', // seedream-4-0は1k, 2k, 4kのみサポート
+      strength: 0.65, // 顔と体型を保持しつつ服装を変更
+      watermark: false,
+    });
+  }
 }
 
 // Singleton instance
