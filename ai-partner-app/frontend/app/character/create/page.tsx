@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 
-type CreateMode = 'quick' | 'detailed';
+type CreateMode = 'quick' | 'detailed' | 'image';
 type Step = 'profile' | 'appearance' | 'personality' | 'voice';
 
 interface FormData {
@@ -42,6 +42,14 @@ interface QuickFormData {
   name: string;
   age: number;
   description: string;
+}
+
+interface ImageFormData {
+  imageData: string; // Base64 encoded image
+  mimeType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  name?: string;
+  age?: number;
+  description?: string;
 }
 
 const initialFormData: FormData = {
@@ -87,8 +95,11 @@ export default function CreateCharacterPage() {
   const [currentStep, setCurrentStep] = useState<Step>('profile');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [quickFormData, setQuickFormData] = useState<QuickFormData>(initialQuickFormData);
+  const [imageFormData, setImageFormData] = useState<ImageFormData | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingDetails, setIsGeneratingDetails] = useState(false);
+  const [isGeneratingFromImage, setIsGeneratingFromImage] = useState(false);
   const [error, setError] = useState('');
 
   const steps: Step[] = ['profile', 'appearance', 'personality', 'voice'];
@@ -109,6 +120,81 @@ export default function CreateCharacterPage() {
     const prevIndex = stepIndex - 1;
     if (prevIndex >= 0) {
       setCurrentStep(steps[prevIndex]);
+    }
+  };
+
+  const handleQuickGenerate = async () => {
+    setIsGeneratingDetails(true);
+    setError('');
+
+    try {
+      const response = await apiClient.generateCharacterDetails({
+        name: quickFormData.name,
+        age: quickFormData.age,
+        description: quickFormData.description,
+      });
+
+      // Redirect to character detail page
+      router.push(`/character/${response.character.id}`);
+    } catch (err: any) {
+      setError(err.message || 'キャラクター生成に失敗しました');
+      setIsGeneratingDetails(false);
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('JPEG, PNG, GIF, WebPのいずれかのファイルを選択してください');
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('ファイルサイズは5MB以下にしてください');
+      return;
+    }
+
+    // Read file as base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      const base64Data = base64String.split(',')[1]; // Remove data:image/...;base64, prefix
+
+      setImageFormData({
+        imageData: base64Data,
+        mimeType: file.type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+      });
+      setImagePreview(base64String); // Keep full data URL for preview
+      setError('');
+    };
+    reader.onerror = () => {
+      setError('画像の読み込みに失敗しました');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageGenerate = async () => {
+    if (!imageFormData) {
+      setError('画像を選択してください');
+      return;
+    }
+
+    setIsGeneratingFromImage(true);
+    setError('');
+
+    try {
+      const response = await apiClient.generateCharacterFromImage(imageFormData);
+
+      // Redirect to character detail page
+      router.push(`/character/${response.character.id}`);
+    } catch (err: any) {
+      setError(err.message || 'キャラクター生成に失敗しました');
+      setIsGeneratingFromImage(false);
     }
   };
 
@@ -159,7 +245,7 @@ export default function CreateCharacterPage() {
             <span className="mr-2">🎯</span>
             作成モードを選択
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <button
               type="button"
               onClick={() => setCreateMode('quick')}
@@ -211,6 +297,33 @@ export default function CreateCharacterPage() {
               <div className="flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded-full">所要時間: 5-10分</span>
                 <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">完全カスタマイズ</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCreateMode('image')}
+              className={`p-6 rounded-lg border-2 text-left transition-all ${
+                createMode === 'image'
+                  ? 'border-pink-600 bg-pink-50 shadow-lg'
+                  : 'border-gray-300 bg-white hover:border-pink-300'
+              }`}
+            >
+              <div className="flex items-center mb-2">
+                <span className="text-2xl mr-2">📷</span>
+                <span className={`text-lg font-bold ${createMode === 'image' ? 'text-pink-700' : 'text-gray-900'}`}>
+                  画像から作成
+                </span>
+                {createMode === 'image' && (
+                  <span className="ml-auto text-pink-600">✓</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mb-2">
+                好みの画像をアップロードして自動生成
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">所要時間: 2分</span>
+                <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">AI画像解析</span>
               </div>
             </button>
           </div>
@@ -310,7 +423,7 @@ export default function CreateCharacterPage() {
               <div className="flex justify-end mt-8 pt-6 border-t">
                 <button
                   type="button"
-                  onClick={() => {/* TODO: Implement AI generation */}}
+                  onClick={handleQuickGenerate}
                   disabled={!quickFormData.name || !quickFormData.description || isGeneratingDetails}
                   className="px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
@@ -326,6 +439,120 @@ export default function CreateCharacterPage() {
                     <>
                       <span className="mr-2">✨</span>
                       AIで自動生成して作成
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Image Upload Mode */}
+          {createMode === 'image' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <span className="text-4xl mb-4 block">📷</span>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">画像から作成</h2>
+                <p className="text-gray-600">好みの画像をアップロードすれば、AIが外見を自動解析します</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">画像を選択 *</label>
+                <div className="flex items-center justify-center w-full">
+                  <label className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                    imagePreview
+                      ? 'border-pink-500 bg-pink-50'
+                      : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                  }`}>
+                    {imagePreview ? (
+                      <div className="relative w-full h-full p-4">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setImagePreview(null);
+                            setImageFormData(null);
+                          }}
+                          className="absolute top-6 right-6 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 shadow-lg"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">クリックして画像をアップロード</span>
+                        </p>
+                        <p className="text-xs text-gray-500">JPEG, PNG, GIF, WebP (最大5MB)</p>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  オプション: 名前や年齢を指定できます（指定しない場合はAIが推定します）
+                </p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">名前（オプション）</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="指定しない場合はAIが提案"
+                      value={imageFormData?.name || ''}
+                      onChange={(e) => setImageFormData(prev => prev ? ({ ...prev, name: e.target.value || undefined }) : null)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">年齢（オプション）</label>
+                    <input
+                      type="number"
+                      min="18"
+                      max="99"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="指定しない場合はAIが推定"
+                      value={imageFormData?.age || ''}
+                      onChange={(e) => setImageFormData(prev => prev ? ({ ...prev, age: e.target.value ? parseInt(e.target.value) : undefined }) : null)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-8 pt-6 border-t">
+                <button
+                  type="button"
+                  onClick={handleImageGenerate}
+                  disabled={!imageFormData || isGeneratingFromImage}
+                  className="px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {isGeneratingFromImage ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      AI解析中...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🔍</span>
+                      画像を解析して作成
                     </>
                   )}
                 </button>

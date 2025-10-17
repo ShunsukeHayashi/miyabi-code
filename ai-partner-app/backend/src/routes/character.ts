@@ -10,6 +10,8 @@ import { requireAuth } from '../middleware/auth.js';
 import { bytePlusT2I } from '../services/byteplus/t2i.js';
 import { bytePlusI2I } from '../services/byteplus/i2i.js';
 import { characterGeneratorService } from '../services/ai/character-generator.js';
+import { imageAnalyzerService } from '../services/ai/image-analyzer.js';
+import { saveImage } from '../utils/image-storage.js';
 
 const router = Router();
 
@@ -51,6 +53,14 @@ const generateCharacterDetailsSchema = z.object({
   name: z.string().min(1).max(50),
   age: z.number().min(18).max(100),
   description: z.string().min(10).max(500),
+});
+
+const generateFromImageSchema = z.object({
+  imageData: z.string().min(1), // Base64 encoded image
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']).optional().default('image/jpeg'),
+  name: z.string().min(1).max(50).optional(),
+  age: z.number().min(18).max(100).optional(),
+  description: z.string().max(500).optional(),
 });
 
 /**
@@ -131,6 +141,117 @@ router.post(
       res.status(201).json({
         character,
         generatedDetails: true,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new AppError('Invalid input', 400));
+      }
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/characters/generate-from-image
+ * 画像からキャラクター生成
+ */
+router.post(
+  '/generate-from-image',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = generateFromImageSchema.parse(req.body);
+
+      // Save image to local filesystem FIRST
+      const savedImage = await saveImage({
+        userId: req.user!.userId,
+        imageType: 'source',
+        base64Data: body.imageData,
+        mimeType: body.mimeType,
+      });
+
+      // Analyze image with Claude Vision
+      const { appearance, profile } = await imageAnalyzerService.generateCharacterFromImage(
+        body.imageData,
+        body.mimeType,
+        {
+          name: body.name,
+          age: body.age,
+          description: body.description,
+        }
+      );
+
+      // Use provided values or defaults from analysis
+      const finalName = body.name || appearance.suggestedName;
+      const finalAge = body.age || appearance.estimatedAge;
+
+      // Generate a random birthday for the age
+      const today = new Date();
+      const birthYear = today.getFullYear() - finalAge;
+      const birthMonth = Math.floor(Math.random() * 12);
+      const birthDay = Math.floor(Math.random() * 28) + 1;
+      const birthday = new Date(birthYear, birthMonth, birthDay);
+
+      // Create character with analyzed appearance and generated profile
+      const character = await prisma.character.create({
+        data: {
+          userId: req.user!.userId,
+          name: finalName,
+          age: finalAge,
+          birthday,
+          // Profile from AI generation
+          occupation: profile.occupation,
+          hobbies: profile.hobbies,
+          favoriteFood: profile.favoriteFood,
+          bio: profile.bio,
+          // Appearance from image analysis
+          appearanceStyle: appearance.appearanceStyle,
+          hairColor: appearance.hairColor,
+          hairStyle: appearance.hairStyle,
+          eyeColor: appearance.eyeColor,
+          skinTone: appearance.skinTone,
+          height: appearance.estimatedHeight,
+          bodyType: appearance.bodyType,
+          outfit: appearance.outfit,
+          accessories: appearance.accessories,
+          customPrompt: appearance.customPrompt,
+          // Personality from profile generation
+          personalityArchetype: profile.personalityArchetype,
+          traits: profile.traits,
+          speechStyle: profile.speechStyle,
+          emotionalTendency: profile.emotionalTendency,
+          interests: profile.interests,
+          values: profile.values,
+          // Voice settings from profile
+          voiceId: profile.voiceId,
+          voicePitch: profile.voicePitch,
+          voiceSpeed: profile.voiceSpeed,
+          voiceStyle: profile.voiceStyle,
+          // Saved image path
+          sourceImagePath: savedImage.relativePath,
+        },
+      });
+
+      // Create initial stage progress
+      await prisma.stageProgress.create({
+        data: {
+          characterId: character.id,
+          userId: req.user!.userId,
+          currentStage: 'first_meet',
+          affection: 0,
+          unlockedStages: 'first_meet',
+          completedEvents: '',
+        },
+      });
+
+      res.status(201).json({
+        character,
+        generatedFromImage: true,
+        savedImagePath: savedImage.relativePath,
+        analysis: {
+          appearance,
+          personality: appearance.estimatedPersonality,
+        },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {

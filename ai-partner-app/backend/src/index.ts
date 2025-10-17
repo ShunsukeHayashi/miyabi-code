@@ -12,7 +12,7 @@ import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import authRoutes from './routes/auth.js';
 import characterRoutes from './routes/character.js';
-import chatRoutes from './routes/chat.js';
+import conversationRoutes from './routes/conversation.js';
 import testRoutes from './routes/test.js';
 
 // Load environment variables
@@ -60,7 +60,7 @@ app.get('/api', (req, res) => {
 // Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/characters', characterRoutes);
-app.use('/api/conversations', chatRoutes);
+app.use('/api/conversations', conversationRoutes);
 app.use('/api/test', testRoutes);
 
 // Error handling

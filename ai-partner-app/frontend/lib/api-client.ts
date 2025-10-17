@@ -134,6 +134,29 @@ class APIClient {
     );
   }
 
+  async generateCharacterFromImage(data: {
+    imageData: string; // Base64 encoded image
+    mimeType?: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+    name?: string;
+    age?: number;
+    description?: string;
+  }) {
+    return this.request<{
+      character: any;
+      generatedFromImage: boolean;
+      analysis: {
+        appearance: any;
+        personality: string;
+      };
+    }>(
+      '/api/characters/generate-from-image',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
   async getCharacters() {
     return this.request<{ characters: any[] }>('/api/characters');
   }

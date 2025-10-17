@@ -65,6 +65,7 @@ model Character {
   voiceStyle    String @default("normal")
 
   // 画像
+  sourceImagePath String? // ユーザーがアップロードした元画像のローカルパス
   primaryImageUrl String?
   expressionUrls  Json?   // { neutral: "url", smile: "url", ... }
   imagesGenerated Boolean @default(false)
