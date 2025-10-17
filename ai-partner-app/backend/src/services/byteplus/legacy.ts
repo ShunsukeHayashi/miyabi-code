@@ -54,10 +54,11 @@ export const bytePlusT2I = {
       prompt: params.prompt,
       width,
       height,
+      watermark: params.watermark,
     });
 
     return {
-      imageUrl: response.data.images[0].url,
+      imageUrl: response.data[0].url,
     };
   },
 };
@@ -140,10 +141,11 @@ export const bytePlusI2I = {
       prompt,
       width: 1024,
       height: 1024,
+      imageUrl: params.sourceImageUrl,
     });
 
     return {
-      imageUrl: response.data.images[0].url,
+      imageUrl: response.data[0].url,
     };
   },
 
@@ -168,10 +170,11 @@ export const bytePlusI2I = {
       prompt,
       width: 1024,
       height: 1024,
+      imageUrl: params.sourceImageUrl,
     });
 
     return {
-      imageUrl: response.data.images[0].url,
+      imageUrl: response.data[0].url,
     };
   },
 
@@ -200,10 +203,11 @@ export const bytePlusI2I = {
       prompt,
       width: 1024,
       height: 1024,
+      imageUrl: params.sourceImageUrl,
     });
 
     return {
-      imageUrl: response.data.images[0].url,
+      imageUrl: response.data[0].url,
     };
   },
 
@@ -236,10 +240,11 @@ export const bytePlusI2I = {
       prompt,
       width: 1024,
       height: 1024,
+      imageUrl: params.sourceImageUrl,
     });
 
     return {
-      imageUrl: response.data.images[0].url,
+      imageUrl: response.data[0].url,
     };
   },
 };
