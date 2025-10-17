@@ -855,6 +855,10 @@ Claude Codeセッション中のタスク管理は、以下の構造化ルール
 
 ## 📋 報告プロトコル
 
+**目的**: 複数のClaude Codeセッション（特にWorktreeベースの並列実行環境）において、どのAgentがどの作業を担当したかを明確にするための標準化。
+
+**テンプレート**: [`.claude/templates/reporting-protocol.md`](.claude/templates/reporting-protocol.md) - 完全なテンプレート仕様（v1.0.0）
+
 ### Claude Codeからの報告形式
 
 **全ての作業報告は、以下の標準形式に従うこと:**
