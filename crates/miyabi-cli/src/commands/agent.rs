@@ -311,8 +311,12 @@ impl AgentCommand {
         println!("  Type: CoordinatorAgent with LLM (Task decomposition & DAG)");
         println!();
 
-        // Create agent with LLM integration
-        let agent = CoordinatorAgentWithLLM::new(config);
+        // Create agent with LLM integration and lifecycle hooks
+        let log_dir = config.log_directory.clone();
+        let mut agent = HookedAgent::new(CoordinatorAgentWithLLM::new(config));
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(log_dir));
 
         // Create task for coordinator
         let task = Task {
