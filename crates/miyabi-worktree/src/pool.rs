@@ -154,18 +154,21 @@ impl WorktreePool {
             task_count, self.config.max_concurrency
         );
 
-        // Use futures::stream to process tasks concurrently without tokio::spawn
-        use futures::stream::{FuturesUnordered, StreamExt};
+        // Use futures::stream with buffer_unordered to respect concurrency limit
+        use futures::stream::{self, StreamExt};
 
-        let mut futures = FuturesUnordered::new();
+        let manager = self.manager.clone();
+        let active_tasks = self.active_tasks.clone();
+        let timeout_seconds = self.config.timeout_seconds;
+        let max_concurrency = self.config.max_concurrency;
 
-        for task in tasks {
-            let manager = self.manager.clone();
-            let active_tasks = self.active_tasks.clone();
-            let executor = executor.clone();
-            let timeout_seconds = self.config.timeout_seconds;
+        let results: Vec<TaskResult> = stream::iter(tasks)
+            .map(|task| {
+                let manager = manager.clone();
+                let active_tasks = active_tasks.clone();
+                let executor = executor.clone();
 
-            let future = async move {
+                async move {
                 let task_start = std::time::Instant::now();
 
                 // Create worktree (semaphore is acquired inside)
@@ -261,16 +264,11 @@ impl WorktreePool {
                 }
 
                 task_result
-            };
-
-            futures.push(future);
-        }
-
-        // Wait for all tasks to complete
-        let mut results = Vec::new();
-        while let Some(result) = futures.next().await {
-            results.push(result);
-        }
+                }
+            })
+            .buffer_unordered(max_concurrency)
+            .collect()
+            .await;
 
         let total_duration = start_time.elapsed().as_millis() as u64;
 

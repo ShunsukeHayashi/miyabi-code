@@ -54,7 +54,6 @@ fn init_test_repo() -> (TempDir, PathBuf) {
 
 #[tokio::test]
 #[serial]
-#[ignore] // TODO: Fix concurrency control - currently allows 4 concurrent when limit is 2
 async fn test_pool_concurrency_limit() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
@@ -113,11 +112,10 @@ async fn test_pool_concurrency_limit() {
         .await;
 
     // Verify concurrency was respected
-    // Note: Allow some tolerance due to async scheduling timing
     let max = max_concurrent.load(Ordering::SeqCst);
     assert!(
-        max <= 3,
-        "Max concurrent executions {} significantly exceeded limit 2 (tolerance: 3)",
+        max <= 2,
+        "Max concurrent executions {} exceeded limit 2",
         max
     );
 
