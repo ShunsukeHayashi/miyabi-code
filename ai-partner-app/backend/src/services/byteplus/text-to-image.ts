@@ -18,18 +18,25 @@ export class TextToImageClient extends BytePlusClient {
    * Generate image from text prompt
    */
   async generate(request: TextToImageRequest): Promise<TextToImageResponse> {
+    // Map width/height to size parameter
+    let size = '1K'; // default
+    if (request.width === 2048 || request.height === 2048) {
+      size = '2K';
+    } else if (request.width && request.height) {
+      size = `${request.width}x${request.height}`;
+    }
+
     const payload = {
+      model: request.model || 'seedream-4-0-250828',
       prompt: request.prompt,
-      model: request.model || 'flux-schnell',
-      width: request.width || 1024,
-      height: request.height || 1024,
-      seed: request.seed || Math.floor(Math.random() * 1000000),
-      num_images: request.num_images || 1,
-      guidance_scale: request.guidance_scale || 7.5,
-      steps: request.steps || 20,
+      size,
+      sequential_image_generation: 'disabled',
+      response_format: 'url',
+      stream: false,
+      watermark: true,
     };
 
-    return this.post<TextToImageResponse>('/text-to-image', payload);
+    return this.post<TextToImageResponse>('/images/generations', payload);
   }
 
   /**

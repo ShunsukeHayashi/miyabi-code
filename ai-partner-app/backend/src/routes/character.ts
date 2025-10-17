@@ -168,13 +168,13 @@ router.post(
  */
 router.post(
   '/generate-from-image',
-  // requireAuth, // 開発中は一時的にコメントアウト
+  requireAuth, // 認証必須に変更
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = generateFromImageSchema.parse(req.body);
 
-      // TODO: 開発中は固定ユーザーID、本番環境では req.user!.userId を使用
-      const userId = req.user?.userId || 'dev-user-001';
+      // 認証済みユーザーIDを使用
+      const userId = req.user!.userId;
 
       // Save image to local filesystem FIRST
       const savedImage = await saveImage({

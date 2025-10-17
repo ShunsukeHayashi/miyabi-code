@@ -19,12 +19,11 @@ export interface TextToImageRequest {
 }
 
 export interface TextToImageResponse {
-  data: {
-    images: Array<{
-      url: string;
-      seed: number;
-    }>;
-  };
+  data: Array<{
+    index: number;
+    url: string;
+    seed?: number;
+  }>;
 }
 
 export interface ImageToVideoRequest {

@@ -101,9 +101,17 @@ export const bytePlusI2I = {
       height,
     });
 
+    // Debug: Log response structure
+    console.log('[bytePlusI2I.generate] API Response:', JSON.stringify(response, null, 2));
+
+    // Check if response has expected structure (new format: data is array directly)
+    if (!response || !response.data || !Array.isArray(response.data) || response.data.length === 0) {
+      throw new Error(`Invalid API response structure: ${JSON.stringify(response)}`);
+    }
+
     return {
-      imageUrl: response.data.images[0].url,
-      imageUrls: response.data.images.map(img => img.url),
+      imageUrl: response.data[0].url,
+      imageUrls: response.data.map(img => img.url),
     };
   },
 

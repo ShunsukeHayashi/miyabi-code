@@ -13,7 +13,7 @@ export class BytePlusClient {
     this.apiKey = config.apiKey;
 
     this.client = axios.create({
-      baseURL: config.baseUrl || 'https://api.byteplus.com/v1',
+      baseURL: config.baseUrl || 'https://ark.ap-southeast.bytepluses.com/api/v3',
       headers: {
         'Content-Type': 'application/json',
       },
