@@ -198,9 +198,24 @@ impl AuditLogHook {
         }
     }
 
-    async fn append(&self, entry: &str) -> Result<()> {
+    /// Append log entry to audit log file.
+    ///
+    /// If `worktree_id` is provided, creates a worktree-specific log file
+    /// to prevent concurrent write conflicts in parallel execution scenarios.
+    ///
+    /// File naming:
+    /// - Without worktree_id: `.ai/logs/{date}.md`
+    /// - With worktree_id: `.ai/logs/{date}-worktree-{id}.md`
+    async fn append(&self, entry: &str, worktree_id: Option<&str>) -> Result<()> {
         let date = Utc::now().format("%Y-%m-%d").to_string();
-        let path = self.log_dir.join(format!("{}.md", date));
+
+        let filename = if let Some(wt_id) = worktree_id {
+            format!("{}-worktree-{}.md", date, wt_id)
+        } else {
+            format!("{}.md", date)
+        };
+
+        let path = self.log_dir.join(filename);
 
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir).await.map_err(MiyabiError::Io)?;
@@ -218,18 +233,28 @@ impl AuditLogHook {
             .map_err(MiyabiError::Io)?;
         Ok(())
     }
+
+    /// Extract worktree_id from task metadata
+    fn extract_worktree_id(task: &Task) -> Option<String> {
+        task.metadata
+            .as_ref()
+            .and_then(|m| m.get("worktree_id"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+    }
 }
 
 #[async_trait]
 impl AgentHook for AuditLogHook {
     async fn on_pre_execute(&self, agent: AgentType, task: &Task) -> Result<()> {
+        let worktree_id = AuditLogHook::extract_worktree_id(task);
         let entry = format!(
             "\n### [{}] 🔄 Agent {:?} starting task {}\n",
             Utc::now().to_rfc3339(),
             agent,
             task.id
         );
-        self.append(&entry).await
+        self.append(&entry, worktree_id.as_deref()).await
     }
 
     async fn on_post_execute(
@@ -238,6 +263,7 @@ impl AgentHook for AuditLogHook {
         task: &Task,
         result: &AgentResult,
     ) -> Result<()> {
+        let worktree_id = AuditLogHook::extract_worktree_id(task);
         let entry = format!(
             "\n### [{}] ✅ Agent {:?} completed task {}\nStatus: {:?}\n",
             Utc::now().to_rfc3339(),
@@ -245,10 +271,11 @@ impl AgentHook for AuditLogHook {
             task.id,
             result.status
         );
-        self.append(&entry).await
+        self.append(&entry, worktree_id.as_deref()).await
     }
 
     async fn on_error(&self, agent: AgentType, task: &Task, error: &MiyabiError) -> Result<()> {
+        let worktree_id = AuditLogHook::extract_worktree_id(task);
         let entry = format!(
             "\n### [{}] ❌ Agent {:?} failed task {}\nError: {}\n",
             Utc::now().to_rfc3339(),
@@ -256,7 +283,7 @@ impl AgentHook for AuditLogHook {
             task.id,
             error
         );
-        self.append(&entry).await
+        self.append(&entry, worktree_id.as_deref()).await
     }
 }
 #[cfg(test)]
@@ -355,5 +382,177 @@ mod tests {
 
         let recorded = events.lock().unwrap();
         assert_eq!(recorded.as_slice(), &["pre", "post"]);
+    }
+
+    #[test]
+    fn test_extract_worktree_id_none() {
+        let task = Task {
+            id: "test".into(),
+            title: "Test".into(),
+            description: "Test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: None,
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        assert_eq!(AuditLogHook::extract_worktree_id(&task), None);
+    }
+
+    #[test]
+    fn test_extract_worktree_id_with_metadata() {
+        use std::collections::HashMap;
+
+        let mut metadata = HashMap::new();
+        metadata.insert(
+            "worktree_id".to_string(),
+            serde_json::json!("abc123-worktree-1"),
+        );
+
+        let task = Task {
+            id: "test".into(),
+            title: "Test".into(),
+            description: "Test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: None,
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(metadata),
+        };
+
+        assert_eq!(
+            AuditLogHook::extract_worktree_id(&task),
+            Some("abc123-worktree-1".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_worktree_id_missing_key() {
+        use std::collections::HashMap;
+
+        let mut metadata = HashMap::new();
+        metadata.insert("other_key".to_string(), serde_json::json!("value"));
+
+        let task = Task {
+            id: "test".into(),
+            title: "Test".into(),
+            description: "Test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: None,
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(metadata),
+        };
+
+        assert_eq!(AuditLogHook::extract_worktree_id(&task), None);
+    }
+
+    #[tokio::test]
+    async fn test_audit_log_hook_with_worktree_id() {
+        use std::collections::HashMap;
+        use tempfile::TempDir;
+        use tokio::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        let hook = AuditLogHook::new(log_dir.clone());
+
+        let mut metadata = HashMap::new();
+        metadata.insert("worktree_id".to_string(), serde_json::json!("test-wt-123"));
+
+        let task = Task {
+            id: "test-task".into(),
+            title: "Test Task".into(),
+            description: "Test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::CodeGenAgent),
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(metadata),
+        };
+
+        // Execute pre-execute hook
+        hook.on_pre_execute(AgentType::CodeGenAgent, &task)
+            .await
+            .unwrap();
+
+        // Verify worktree-specific log file was created
+        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        let expected_file = log_dir.join(format!("{}-worktree-test-wt-123.md", date));
+
+        assert!(expected_file.exists());
+
+        // Verify log content
+        let content = fs::read_to_string(&expected_file).await.unwrap();
+        assert!(content.contains("🔄 Agent CodeGenAgent starting task test-task"));
+    }
+
+    #[tokio::test]
+    async fn test_audit_log_hook_without_worktree_id() {
+        use tempfile::TempDir;
+        use tokio::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        let hook = AuditLogHook::new(log_dir.clone());
+
+        let task = Task {
+            id: "test-task".into(),
+            title: "Test Task".into(),
+            description: "Test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::CodeGenAgent),
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        // Execute pre-execute hook
+        hook.on_pre_execute(AgentType::CodeGenAgent, &task)
+            .await
+            .unwrap();
+
+        // Verify default log file was created (without worktree_id)
+        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        let expected_file = log_dir.join(format!("{}.md", date));
+
+        assert!(expected_file.exists());
+
+        // Verify log content
+        let content = fs::read_to_string(&expected_file).await.unwrap();
+        assert!(content.contains("🔄 Agent CodeGenAgent starting task test-task"));
     }
 }
