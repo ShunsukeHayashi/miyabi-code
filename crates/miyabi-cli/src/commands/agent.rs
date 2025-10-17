@@ -304,6 +304,24 @@ impl AgentCommand {
         )))
     }
 
+    /// Register standard lifecycle hooks for agents
+    ///
+    /// Registers three standard hooks:
+    /// - MetricsHook: Execution metrics collection
+    /// - EnvironmentCheckHook: GITHUB_TOKEN validation
+    /// - AuditLogHook: Execution logging to .ai/logs/{date}.md
+    ///
+    /// # Example
+    /// ```no_run
+    /// let mut agent = HookedAgent::new(CodeGenAgent::new(config.clone()));
+    /// self.register_standard_hooks(&mut agent, &config);
+    /// ```
+    fn register_standard_hooks<A: BaseAgent>(&self, agent: &mut HookedAgent<A>, config: &AgentConfig) {
+        agent.register_hook(MetricsHook::new());
+        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
+        agent.register_hook(AuditLogHook::new(config.log_directory.clone()));
+    }
+
     async fn run_coordinator_agent(&self, config: AgentConfig) -> Result<()> {
         let issue_number = self.issue.ok_or(CliError::MissingIssueNumber)?;
 
@@ -312,11 +330,8 @@ impl AgentCommand {
         println!();
 
         // Create agent with LLM integration and lifecycle hooks
-        let log_dir = config.log_directory.clone();
-        let mut agent = HookedAgent::new(CoordinatorAgentWithLLM::new(config));
-        agent.register_hook(MetricsHook::new());
-        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
-        agent.register_hook(AuditLogHook::new(log_dir));
+        let mut agent = HookedAgent::new(CoordinatorAgentWithLLM::new(config.clone()));
+        self.register_standard_hooks(&mut agent, &config);
 
         // Create task for coordinator
         let task = Task {
@@ -367,11 +382,8 @@ impl AgentCommand {
         println!();
 
         // Create agent with lifecycle hooks
-        let log_dir = config.log_directory.clone();
-        let mut agent = HookedAgent::new(CodeGenAgent::new(config));
-        agent.register_hook(MetricsHook::new());
-        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
-        agent.register_hook(AuditLogHook::new(log_dir));
+        let mut agent = HookedAgent::new(CodeGenAgent::new(config.clone()));
+        self.register_standard_hooks(&mut agent, &config);
 
         // Create task for codegen
         let task = Task {
@@ -423,11 +435,8 @@ impl AgentCommand {
         println!("  Type: ReviewAgent (Code quality review)");
         println!();
 
-        let log_dir = config.log_directory.clone();
-        let mut agent = HookedAgent::new(ReviewAgent::new(config));
-        agent.register_hook(MetricsHook::new());
-        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
-        agent.register_hook(AuditLogHook::new(log_dir));
+        let mut agent = HookedAgent::new(ReviewAgent::new(config.clone()));
+        self.register_standard_hooks(&mut agent, &config);
 
         let task = Task {
             id: format!("review-issue-{}", issue_number),
@@ -481,11 +490,8 @@ impl AgentCommand {
         println!();
 
         // Create agent with lifecycle hooks
-        let log_dir = config.log_directory.clone();
-        let mut agent = HookedAgent::new(IssueAgent::new(config));
-        agent.register_hook(MetricsHook::new());
-        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
-        agent.register_hook(AuditLogHook::new(log_dir));
+        let mut agent = HookedAgent::new(IssueAgent::new(config.clone()));
+        self.register_standard_hooks(&mut agent, &config);
 
         // Create task for issue analysis
         let task = Task {
@@ -562,11 +568,8 @@ impl AgentCommand {
             serde_json::json!(base_branch.clone()),
         );
 
-        let log_dir = config.log_directory.clone();
-        let mut agent = HookedAgent::new(PRAgent::new(config));
-        agent.register_hook(MetricsHook::new());
-        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
-        agent.register_hook(AuditLogHook::new(log_dir));
+        let mut agent = HookedAgent::new(PRAgent::new(config.clone()));
+        self.register_standard_hooks(&mut agent, &config);
 
         let task = Task {
             id: format!("pr-issue-{}", issue_number),
@@ -633,11 +636,8 @@ impl AgentCommand {
             metadata.insert("health_url".to_string(), serde_json::json!(url));
         }
 
-        let log_dir = config.log_directory.clone();
-        let mut agent = HookedAgent::new(DeploymentAgent::new(config));
-        agent.register_hook(MetricsHook::new());
-        agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
-        agent.register_hook(AuditLogHook::new(log_dir));
+        let mut agent = HookedAgent::new(DeploymentAgent::new(config.clone()));
+        self.register_standard_hooks(&mut agent, &config);
 
         let task = Task {
             id: format!("deployment-issue-{}", issue_number),
