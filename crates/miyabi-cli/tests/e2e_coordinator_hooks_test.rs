@@ -18,8 +18,7 @@ use miyabi_agents::BaseAgent;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskType};
-use miyabi_types::workflow::DAG;
-use miyabi_types::{AgentResult, Issue};
+use miyabi_types::AgentResult;
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
 use async_trait::async_trait;
 use serial_test::serial;
@@ -466,7 +465,7 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
 
     // Should have logs from coordinator + worktrees
     assert!(
-        log_files.len() >= 1,
+        !log_files.is_empty(),
         "Expected at least 1 log file, got {}",
         log_files.len()
     );
@@ -571,9 +570,6 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     println!("  Coordinator logs: {}", if coordinator_log_found { 1 } else { 0 });
     println!("  Worktree logs: {}", worktree_logs);
     println!("========================\n");
-
-    // All checks passed
-    assert!(true, "E2E test completed successfully");
 }
 
 // ============================================================================
