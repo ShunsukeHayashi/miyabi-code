@@ -92,14 +92,24 @@ export const bytePlusI2I = {
       }
     }
 
-    // For I2I, we still use text-to-image but with the prompt
-    // Note: The new API doesn't support imageUrl or imageData directly
-    // This is a simplified version that just generates from prompt
-    const response = await sdk.textToImage.generate({
+    // Prepare request with image data for I2I
+    const request: any = {
       prompt: params.prompt,
       width,
       height,
-    });
+      watermark: params.watermark !== undefined ? params.watermark : true,
+    };
+
+    // Add image parameter for I2I (Image-to-Image)
+    if (params.imageUrl) {
+      // If imageUrl is an array, use the first one
+      request.imageUrl = Array.isArray(params.imageUrl) ? params.imageUrl[0] : params.imageUrl;
+    } else if (params.imageData && params.mimeType) {
+      request.imageData = params.imageData;
+      request.mimeType = params.mimeType;
+    }
+
+    const response = await sdk.textToImage.generate(request);
 
     // Debug: Log response structure
     console.log('[bytePlusI2I.generate] API Response:', JSON.stringify(response, null, 2));

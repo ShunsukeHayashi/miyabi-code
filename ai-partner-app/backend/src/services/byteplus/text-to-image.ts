@@ -15,7 +15,7 @@ export class TextToImageClient extends BytePlusClient {
   }
 
   /**
-   * Generate image from text prompt
+   * Generate image from text prompt (with optional reference image for I2I)
    */
   async generate(request: TextToImageRequest): Promise<TextToImageResponse> {
     // Map width/height to size parameter
@@ -26,15 +26,23 @@ export class TextToImageClient extends BytePlusClient {
       size = `${request.width}x${request.height}`;
     }
 
-    const payload = {
+    const payload: any = {
       model: request.model || 'seedream-4-0-250828',
       prompt: request.prompt,
       size,
       sequential_image_generation: 'disabled',
       response_format: 'url',
       stream: false,
-      watermark: true,
+      watermark: request.watermark !== undefined ? request.watermark : true,
     };
+
+    // Add image parameter for I2I (Image-to-Image)
+    if (request.imageUrl) {
+      payload.image = request.imageUrl;
+    } else if (request.imageData && request.mimeType) {
+      // Convert base64 to data URI format
+      payload.image = `data:${request.mimeType};base64,${request.imageData}`;
+    }
 
     return this.post<TextToImageResponse>('/images/generations', payload);
   }

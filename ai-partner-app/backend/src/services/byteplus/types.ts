@@ -16,6 +16,11 @@ export interface TextToImageRequest {
   num_images?: number;
   guidance_scale?: number;
   steps?: number;
+  watermark?: boolean;
+  // I2I (Image-to-Image) parameters
+  imageUrl?: string; // Reference image URL
+  imageData?: string; // Reference image base64 data (without data URI prefix)
+  mimeType?: string; // MIME type for imageData (e.g., "image/jpeg")
 }
 
 export interface TextToImageResponse {
