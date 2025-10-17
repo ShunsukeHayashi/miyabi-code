@@ -127,6 +127,9 @@ claude-plugin/
 # Archive directory
 .archive/
 
+# Developer personal notes (not tracked)
+.shunsuke/
+
 # Work-in-progress/experimental code (not integrated)
 # Only exclude root-level directories, not packages/*/src/
 /src/
