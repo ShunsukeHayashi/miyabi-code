@@ -9,7 +9,7 @@ use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
 };
 use miyabi_types::error::{MiyabiError, Result};
-use miyabi_types::issue::{ImpactLevel, IssueAnalysis};
+use miyabi_types::{ImpactLevel, IssueAnalysis};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, Issue, Task};
 use std::collections::HashMap;

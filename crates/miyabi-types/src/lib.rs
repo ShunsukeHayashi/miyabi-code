@@ -11,9 +11,9 @@ pub mod task;
 pub mod workflow;
 
 // Re-export commonly used types
-pub use agent::{AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType};
+pub use agent::{AgentConfig, AgentMetrics, AgentResult, AgentStatus, AgentType, ImpactLevel};
 pub use error::{AgentError, CircularDependencyError, EscalationError, MiyabiError};
-pub use issue::{ImpactLevel, Issue, IssueAnalysis, IssueState, IssueTraceLog};
+pub use issue::{Issue, IssueAnalysis, IssueState, IssueTraceLog};
 pub use quality::{QualityIssue, QualityReport};
 pub use task::{Task, TaskDecomposition, TaskResult};
 pub use workflow::{ExecutionPlan, ExecutionReport, DAG};

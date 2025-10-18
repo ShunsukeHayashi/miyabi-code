@@ -7,7 +7,7 @@ use crate::base::BaseAgent;
 use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_github::GitHubClient;
-use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
+use miyabi_llm::{LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
@@ -37,27 +37,10 @@ impl CoordinatorAgentWithLLM {
         }
     }
 
-    /// Initialize LLM provider (try Mac mini first, then local Ollama)
+    /// Initialize LLM provider (disabled for testing fallback)
     fn initialize_llm_provider() -> Option<Box<dyn LLMProvider>> {
-        // Try Mac mini LAN first
-        if let Ok(provider) = GPTOSSProvider::new_mac_mini_lan() {
-            tracing::info!("Initialized Mac mini LAN LLM provider (192.168.3.27:11434)");
-            return Some(Box::new(provider));
-        }
-
-        // Try Mac mini Tailscale
-        if let Ok(provider) = GPTOSSProvider::new_mac_mini_tailscale() {
-            tracing::info!("Initialized Mac mini Tailscale LLM provider (100.88.201.67:11434)");
-            return Some(Box::new(provider));
-        }
-
-        // Try local Ollama
-        if let Ok(provider) = GPTOSSProvider::new_ollama() {
-            tracing::info!("Initialized local Ollama LLM provider (localhost:11434)");
-            return Some(Box::new(provider));
-        }
-
-        tracing::warn!("No LLM provider available - falling back to rule-based task decomposition");
+        // Temporarily disable LLM to test fallback behavior
+        tracing::info!("LLM provider disabled for testing - using rule-based task decomposition");
         None
     }
 
@@ -70,54 +53,67 @@ impl CoordinatorAgentWithLLM {
         );
 
         // If LLM is not available, fall back to base coordinator
-        let llm = match &self.llm_provider {
-            Some(llm) => llm,
+        let decomposition = match &self.llm_provider {
+            Some(llm) => {
+                // Create prompt for LLM
+                let prompt = self.create_task_decomposition_prompt(issue);
+
+                // Create LLM request with high reasoning effort
+                let request = LLMRequest::new(&prompt)
+                    .with_temperature(0.2) // Low temperature for structured output
+                    .with_max_tokens(4096)
+                    .with_reasoning_effort(ReasoningEffort::High);
+
+                // Generate task decomposition
+                let response = llm.generate(&request).await?;
+                
+                // Parse LLM response into tasks
+                let tasks = self.parse_llm_response(&response.text, issue)?;
+                
+                // Build DAG from task dependencies
+                let dag = self.base_coordinator.build_dag(&tasks)?;
+
+                // Validate DAG (no cycles)
+                let has_cycles = dag.has_cycles();
+                if has_cycles {
+                    return Err(MiyabiError::Validation(
+                        "Task DAG contains cycles - cannot execute".to_string(),
+                    ));
+                }
+
+                // Calculate total estimated duration
+                let estimated_total_duration = tasks.iter().filter_map(|t| t.estimated_duration).sum();
+
+                // Generate recommendations
+                let recommendations = self.generate_recommendations(&tasks, &dag);
+
+                TaskDecomposition {
+                    original_issue: issue.clone(),
+                    tasks,
+                    dag,
+                    estimated_total_duration,
+                    has_cycles,
+                    recommendations,
+                }
+            },
             None => {
                 tracing::info!("No LLM available - using rule-based decomposition");
-                return self.base_coordinator.decompose_issue(issue).await;
+                self.base_coordinator.decompose_issue(issue).await?
             }
         };
 
-        // Create prompt for LLM
-        let prompt = self.create_task_decomposition_prompt(issue);
-
-        // Create LLM request with high reasoning effort
-        let request = LLMRequest::new(&prompt)
-            .with_temperature(0.2) // Low temperature for structured output
-            .with_max_tokens(4096)
-            .with_reasoning_effort(ReasoningEffort::High);
-
-        // Generate task decomposition
-        let response = llm.generate(&request).await?;
-
-        // Parse LLM response into tasks
-        let tasks = self.parse_llm_response(&response.text, issue)?;
-
-        // Build DAG from task dependencies
-        let dag = self.base_coordinator.build_dag(&tasks)?;
-
-        // Validate DAG (no cycles)
-        let has_cycles = dag.has_cycles();
-        if has_cycles {
-            return Err(MiyabiError::Validation(
-                "Task DAG contains cycles - cannot execute".to_string(),
-            ));
+        // Generate Plans.md
+        let plans_md = self.base_coordinator.generate_plans_md(&decomposition);
+        tracing::info!("Generated Plans.md ({} characters)", plans_md.len());
+        
+        // Write Plans.md to current directory
+        if let Err(e) = std::fs::write("Plans.md", &plans_md) {
+            tracing::warn!("Failed to write Plans.md: {}", e);
+        } else {
+            tracing::info!("✅ Plans.md written successfully");
         }
 
-        // Calculate total estimated duration
-        let estimated_total_duration = tasks.iter().filter_map(|t| t.estimated_duration).sum();
-
-        // Generate recommendations
-        let recommendations = self.generate_recommendations(&tasks, &dag);
-
-        Ok(TaskDecomposition {
-            original_issue: issue.clone(),
-            tasks,
-            dag,
-            estimated_total_duration,
-            has_cycles,
-            recommendations,
-        })
+        Ok(decomposition)
     }
 
     /// Create task decomposition prompt for LLM

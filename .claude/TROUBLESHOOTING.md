@@ -380,6 +380,145 @@ cat .claude/mcp.json | jq '.mcpServers | keys'
 
 ---
 
+### ❌ Claude Code セッションが頻繁に切断される
+
+**症状**:
+```
+- セッションが数分で切断される
+- 短時間のセッションが大量にログに記録される
+- システムリソース（CPU/メモリ）が高い状態が続く
+```
+
+**根本原因**:
+
+1. **Codexプロセスの暴走** - 最も深刻
+   - `/opt/homebrew/lib/node_modules/@openai/codex/vendor/aarch64-apple-darwin/codex/codex`
+   - CPU 100%使用、数十日間連続実行
+
+2. **MCP設定の過負荷**
+   - 複数のMCPサーバーが同時起動
+   - `github-enhanced`, `project-context`, `ide-integration` が不必要に有効
+
+3. **複数Claudeセッションの競合**
+   - 4つ以上のClaudeプロセスが同時実行
+
+**診断手順**:
+
+1. プロセス確認:
+```bash
+# Codex暴走チェック
+ps aux | grep codex | grep -v grep
+
+# Claudeセッション数確認
+ps aux | grep claude | grep -v grep | wc -l
+```
+
+2. システムリソース確認:
+```bash
+top -l 1 | grep -E "CPU usage|PhysMem"
+```
+
+3. MCP設定確認:
+```bash
+cat .claude/mcp.json | jq '.mcpServers[] | select(.disabled == false) | keys'
+```
+
+**解決策**:
+
+**Step 1: Codex暴走プロセスを停止**
+```bash
+# プロセスIDを特定
+ps aux | grep codex
+
+# 強制終了
+kill -9 <PID>
+
+# 停止確認
+ps aux | grep codex | grep -v grep
+```
+
+**Step 2: MCP設定を最適化**
+
+`.claude/mcp.json` を編集:
+```json
+{
+  "mcpServers": {
+    "github-enhanced": {
+      "disabled": true  // 無効化
+    },
+    "project-context": {
+      "disabled": true  // 無効化
+    },
+    "ide-integration": {
+      "disabled": true  // 無効化
+    }
+  }
+}
+```
+
+必要最小限のMCPサーバーのみ有効化：
+- ✅ `filesystem` - ファイルシステムアクセス
+- ✅ `miyabi` - Miyabi CLI統合
+- ❌ `github-enhanced` - 無効化推奨
+- ❌ `project-context` - 無効化推奨
+- ❌ `ide-integration` - 無効化推奨
+
+**Step 3: 重複Claudeセッションをクリーンアップ**
+```bash
+# 不要なClaudeセッションを終了（現在のセッション以外）
+ps aux | grep claude | grep -v grep
+kill <PID1> <PID2> <PID3>
+```
+
+**検証**:
+
+修正後のシステムリソース目標値：
+- ✅ CPU使用率: 50%以下（目標: 15%以下）
+- ✅ メモリ空き: 500MB以上
+- ✅ セッション継続時間: 30分以上
+
+**結果例**:
+```
+修正前:
+  CPU: 23.14% (user+sys)
+  メモリ空き: 791MB
+
+修正後:
+  CPU: 13.31% (user+sys) ✅ -42%改善
+  メモリ空き: 912MB ✅ +15%改善
+```
+
+**予防策**:
+
+1. **定期的なプロセスチェック**（週1回）:
+```bash
+#!/bin/bash
+# .claude/scripts/health-check.sh
+
+echo "=== Codex Process Check ==="
+ps aux | grep codex | grep -v grep || echo "No codex process"
+
+echo -e "\n=== Claude Session Count ==="
+ps aux | grep claude | grep -v grep | wc -l
+
+echo -e "\n=== System Resources ==="
+top -l 1 | grep -E "CPU usage|PhysMem"
+```
+
+2. **MCPサーバーは必要な時のみ有効化**
+   - 開発中: `filesystem`, `miyabi` のみ
+   - デバッグ時: `ide-integration` を一時的に有効化
+   - GitHub操作時: `github-enhanced` を一時的に有効化
+
+3. **Claude Codeセッションの適切な終了**
+   - 長時間使わないセッションは手動で終了
+   - `Ctrl+C` で正常終了
+
+**参考Issue**:
+- #187: Claude Code セッション切断問題の調査と修正
+
+---
+
 ## ビルドの問題
 
 ### ❌ TypeScript compilation errors

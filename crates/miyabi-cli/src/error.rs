@@ -36,6 +36,9 @@ pub enum CliError {
 
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("Serialization error: {0}")]
+    Serialization(String),
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;

@@ -44,11 +44,66 @@ impl DAG {
 pub struct ExecutionPlan {
     pub session_id: String,
     pub device_identifier: String,
+    /// Concurrency level (1-100)
     pub concurrency: usize,
     pub tasks: Vec<Task>,
     pub dag: DAG,
     pub estimated_duration: u32,
     pub start_time: u64,
+}
+
+impl ExecutionPlan {
+    /// Minimum concurrency value
+    pub const MIN_CONCURRENCY: usize = 1;
+
+    /// Maximum concurrency value
+    pub const MAX_CONCURRENCY: usize = 100;
+
+    /// Validate concurrency value
+    pub fn validate_concurrency(concurrency: usize) -> Result<(), crate::error::MiyabiError> {
+        if !(Self::MIN_CONCURRENCY..=Self::MAX_CONCURRENCY).contains(&concurrency) {
+            return Err(crate::error::MiyabiError::Validation(format!(
+                "Concurrency must be {}-{}, got {}",
+                Self::MIN_CONCURRENCY,
+                Self::MAX_CONCURRENCY,
+                concurrency
+            )));
+        }
+        Ok(())
+    }
+
+    /// Create a new ExecutionPlan with validated concurrency
+    pub fn new(
+        session_id: String,
+        device_identifier: String,
+        concurrency: usize,
+        tasks: Vec<Task>,
+        dag: DAG,
+        estimated_duration: u32,
+    ) -> Result<Self, crate::error::MiyabiError> {
+        // Validate concurrency
+        Self::validate_concurrency(concurrency)?;
+
+        Ok(Self {
+            session_id,
+            device_identifier,
+            concurrency,
+            tasks,
+            dag,
+            estimated_duration,
+            start_time: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        })
+    }
+
+    /// Set concurrency with validation
+    pub fn set_concurrency(&mut self, concurrency: usize) -> Result<(), crate::error::MiyabiError> {
+        Self::validate_concurrency(concurrency)?;
+        self.concurrency = concurrency;
+        Ok(())
+    }
 }
 
 /// Execution report
@@ -565,4 +620,102 @@ mod tests {
         assert_eq!(options.dry_run, deserialized.dry_run);
         assert_eq!(options.timeout, deserialized.timeout);
     }
+
+    // ========================================================================
+    // ExecutionPlan Concurrency Validation Tests (Issue #202 - Priority 1.3)
+    // ========================================================================
+
+    #[test]
+    fn test_concurrency_validation() {
+        // Valid concurrency (1-100)
+        assert!(ExecutionPlan::validate_concurrency(1).is_ok());
+        assert!(ExecutionPlan::validate_concurrency(50).is_ok());
+        assert!(ExecutionPlan::validate_concurrency(100).is_ok());
+
+        // Invalid concurrency
+        assert!(ExecutionPlan::validate_concurrency(0).is_err());
+        assert!(ExecutionPlan::validate_concurrency(101).is_err());
+        assert!(ExecutionPlan::validate_concurrency(1000).is_err());
+    }
+
+    #[test]
+    fn test_execution_plan_new_with_valid_concurrency() {
+        let dag = DAG {
+            nodes: vec![],
+            edges: vec![],
+            levels: vec![],
+        };
+
+        let result = ExecutionPlan::new(
+            "session-1".to_string(),
+            "device-1".to_string(),
+            5,
+            vec![],
+            dag,
+            60,
+        );
+
+        assert!(result.is_ok());
+        let plan = result.unwrap();
+        assert_eq!(plan.concurrency, 5);
+    }
+
+    #[test]
+    fn test_execution_plan_new_with_invalid_concurrency() {
+        let dag = DAG {
+            nodes: vec![],
+            edges: vec![],
+            levels: vec![],
+        };
+
+        // Concurrency too low
+        let result = ExecutionPlan::new(
+            "session-1".to_string(),
+            "device-1".to_string(),
+            0,
+            vec![],
+            dag.clone(),
+            60,
+        );
+        assert!(result.is_err());
+
+        // Concurrency too high
+        let result = ExecutionPlan::new(
+            "session-1".to_string(),
+            "device-1".to_string(),
+            101,
+            vec![],
+            dag,
+            60,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_execution_plan_set_concurrency() {
+        let dag = DAG {
+            nodes: vec![],
+            edges: vec![],
+            levels: vec![],
+        };
+
+        let mut plan = ExecutionPlan::new(
+            "session-1".to_string(),
+            "device-1".to_string(),
+            5,
+            vec![],
+            dag,
+            60,
+        )
+        .unwrap();
+
+        // Valid concurrency change
+        assert!(plan.set_concurrency(10).is_ok());
+        assert_eq!(plan.concurrency, 10);
+
+        // Invalid concurrency change
+        assert!(plan.set_concurrency(0).is_err());
+        assert_eq!(plan.concurrency, 10); // Concurrency unchanged
+    }
 }
+

@@ -1,6 +1,6 @@
 //! Issue and trace logging types
 
-use crate::agent::{AgentResult, AgentStatus, AgentType, EscalationInfo};
+use crate::agent::{AgentResult, AgentStatus, AgentType, EscalationInfo, ImpactLevel};
 use crate::quality::QualityReport;
 use serde::{Deserialize, Serialize};
 
@@ -155,16 +155,6 @@ pub enum DeploymentStatus {
     Success,
     Failed,
     RolledBack,
-}
-
-/// Impact level for issues
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub enum ImpactLevel {
-    Critical,
-    High,
-    Medium,
-    Low,
 }
 
 /// Issue analysis result from IssueAgent

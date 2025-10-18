@@ -2,6 +2,7 @@
 
 mod commands;
 mod error;
+mod service;
 mod startup;
 
 use clap::{Parser, Subcommand};

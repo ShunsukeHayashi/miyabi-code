@@ -25,6 +25,7 @@ pub struct Task {
     pub description: String,
     #[serde(rename = "type")]
     pub task_type: TaskType,
+    /// Priority level (1-10, where 1 is highest)
     pub priority: u8,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub severity: Option<Severity>,
@@ -44,6 +45,63 @@ pub struct Task {
     pub end_time: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, serde_json::Value>>,
+}
+
+impl Task {
+    /// Minimum priority value (highest priority)
+    pub const MIN_PRIORITY: u8 = 1;
+
+    /// Maximum priority value (lowest priority)
+    pub const MAX_PRIORITY: u8 = 10;
+
+    /// Validate priority value
+    pub fn validate_priority(priority: u8) -> Result<(), crate::error::MiyabiError> {
+        if !(Self::MIN_PRIORITY..=Self::MAX_PRIORITY).contains(&priority) {
+            return Err(crate::error::MiyabiError::Validation(format!(
+                "Task priority must be {}-{}, got {}",
+                Self::MIN_PRIORITY,
+                Self::MAX_PRIORITY,
+                priority
+            )));
+        }
+        Ok(())
+    }
+
+    /// Create a new Task with validated priority
+    pub fn new(
+        id: String,
+        title: String,
+        description: String,
+        task_type: TaskType,
+        priority: u8,
+    ) -> Result<Self, crate::error::MiyabiError> {
+        // Validate priority
+        Self::validate_priority(priority)?;
+
+        Ok(Self {
+            id,
+            title,
+            description,
+            task_type,
+            priority,
+            severity: None,
+            impact: None,
+            assigned_agent: None,
+            dependencies: Vec::new(),
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        })
+    }
+
+    /// Set priority with validation
+    pub fn set_priority(&mut self, priority: u8) -> Result<(), crate::error::MiyabiError> {
+        Self::validate_priority(priority)?;
+        self.priority = priority;
+        Ok(())
+    }
 }
 
 /// Task decomposition result from CoordinatorAgent
@@ -930,4 +988,81 @@ mod tests {
         task.severity = Some(Severity::Low);
         assert!(task.urgency_score() < 0.01);
     }
+
+    // ========================================================================
+    // Task Priority Validation Tests (Issue #202 - Priority 1.2)
+    // ========================================================================
+
+    #[test]
+    fn test_task_priority_validation() {
+        // Valid priorities (1-10)
+        assert!(Task::validate_priority(1).is_ok());
+        assert!(Task::validate_priority(5).is_ok());
+        assert!(Task::validate_priority(10).is_ok());
+
+        // Invalid priorities
+        assert!(Task::validate_priority(0).is_err());
+        assert!(Task::validate_priority(11).is_err());
+        assert!(Task::validate_priority(255).is_err());
+    }
+
+    #[test]
+    fn test_task_new_with_valid_priority() {
+        let result = Task::new(
+            "task-1".to_string(),
+            "Test Task".to_string(),
+            "Description".to_string(),
+            TaskType::Feature,
+            5,
+        );
+
+        assert!(result.is_ok());
+        let task = result.unwrap();
+        assert_eq!(task.priority, 5);
+        assert_eq!(task.id, "task-1");
+    }
+
+    #[test]
+    fn test_task_new_with_invalid_priority() {
+        // Priority too low
+        let result = Task::new(
+            "task-1".to_string(),
+            "Test Task".to_string(),
+            "Description".to_string(),
+            TaskType::Feature,
+            0,
+        );
+        assert!(result.is_err());
+
+        // Priority too high
+        let result = Task::new(
+            "task-1".to_string(),
+            "Test Task".to_string(),
+            "Description".to_string(),
+            TaskType::Feature,
+            11,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_task_set_priority() {
+        let mut task = Task::new(
+            "task-1".to_string(),
+            "Test Task".to_string(),
+            "Description".to_string(),
+            TaskType::Feature,
+            5,
+        )
+        .unwrap();
+
+        // Valid priority change
+        assert!(task.set_priority(8).is_ok());
+        assert_eq!(task.priority, 8);
+
+        // Invalid priority change
+        assert!(task.set_priority(0).is_err());
+        assert_eq!(task.priority, 8); // Priority unchanged
+    }
 }
+

@@ -35,7 +35,7 @@
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",
         "REPOSITORY": "${REPOSITORY}"
       },
-      "disabled": false,
+      "disabled": true,
       "description": "Enhanced GitHub operations for Issue/PR management"
     },
 
@@ -44,7 +44,7 @@
       "args": [
         ".claude/mcp-servers/project-context.cjs"
       ],
-      "disabled": false,
+      "disabled": true,
       "description": "Project-specific context and dependency information"
     },
 
@@ -55,7 +55,7 @@
       "args": [
         ".claude/mcp-servers/ide-integration.cjs"
       ],
-      "disabled": false,
+      "disabled": true,
       "description": "VS Code diagnostics and Jupyter execution integration"
     },
 
