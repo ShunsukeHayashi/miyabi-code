@@ -1,0 +1,216 @@
+name: Discord Notification
+
+on:
+  issues:
+    types: [opened, closed, labeled, assigned]
+  pull_request:
+    types: [opened, closed, ready_for_review, merged]
+  workflow_run:
+    workflows: ["Autonomous Agent", "Integrated System CI", "Rust"]
+    types: [completed]
+  push:
+    branches:
+      - main
+
+permissions:
+  issues: read
+  pull-requests: read
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: github.repository == 'ShunsukeHayashi/miyabi-private'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send Discord Notification - Issue Event
+        if: github.event_name == 'issues'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          cat > /tmp/discord_payload.json << 'EOF'
+          {
+            "embeds": [{
+              "title": "📋 Issue ${{ github.event.action }}",
+              "description": "${{ github.event.issue.title }}",
+              "url": "${{ github.event.issue.html_url }}",
+              "color": ${{ github.event.action == 'opened' && '3447003' || github.event.action == 'closed' && '10181046' || '15844367' }},
+              "fields": [
+                {
+                  "name": "Issue",
+                  "value": "#${{ github.event.issue.number }}",
+                  "inline": true
+                },
+                {
+                  "name": "Action",
+                  "value": "${{ github.event.action }}",
+                  "inline": true
+                },
+                {
+                  "name": "Author",
+                  "value": "${{ github.event.issue.user.login }}",
+                  "inline": true
+                }
+              ],
+              "footer": {
+                "text": "🤖 Miyabi CI/CD"
+              },
+              "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")"
+            }]
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @/tmp/discord_payload.json \
+               "$DISCORD_WEBHOOK_URL"
+
+      - name: Send Discord Notification - PR Event
+        if: github.event_name == 'pull_request'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          cat > /tmp/discord_payload.json << 'EOF'
+          {
+            "embeds": [{
+              "title": "🔀 Pull Request ${{ github.event.action }}",
+              "description": "${{ github.event.pull_request.title }}",
+              "url": "${{ github.event.pull_request.html_url }}",
+              "color": ${{ github.event.action == 'opened' && '3066993' || github.event.action == 'closed' && '10181046' || '15844367' }},
+              "fields": [
+                {
+                  "name": "PR",
+                  "value": "#${{ github.event.pull_request.number }}",
+                  "inline": true
+                },
+                {
+                  "name": "Action",
+                  "value": "${{ github.event.action }}",
+                  "inline": true
+                },
+                {
+                  "name": "Author",
+                  "value": "${{ github.event.pull_request.user.login }}",
+                  "inline": true
+                },
+                {
+                  "name": "Changes",
+                  "value": "+${{ github.event.pull_request.additions }} / -${{ github.event.pull_request.deletions }}",
+                  "inline": true
+                }
+              ],
+              "footer": {
+                "text": "🤖 Miyabi CI/CD"
+              },
+              "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")"
+            }]
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @/tmp/discord_payload.json \
+               "$DISCORD_WEBHOOK_URL"
+
+      - name: Send Discord Notification - Workflow Completion
+        if: github.event_name == 'workflow_run'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ github.event.workflow_run.conclusion }}"
+          if [ "$STATUS" = "success" ]; then
+            COLOR="5763719"
+            EMOJI="✅"
+          else
+            COLOR="15158332"
+            EMOJI="❌"
+          fi
+
+          cat > /tmp/discord_payload.json << EOF
+          {
+            "embeds": [{
+              "title": "$EMOJI Workflow: ${{ github.event.workflow_run.name }}",
+              "description": "Status: **$STATUS**",
+              "url": "${{ github.event.workflow_run.html_url }}",
+              "color": $COLOR,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "${{ github.event.workflow_run.head_branch }}",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "${{ github.event.workflow_run.head_sha }}".substring(0, 7),
+                  "inline": true
+                },
+                {
+                  "name": "Triggered by",
+                  "value": "${{ github.event.workflow_run.triggering_actor.login }}",
+                  "inline": true
+                }
+              ],
+              "footer": {
+                "text": "🤖 Miyabi CI/CD"
+              },
+              "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")"
+            }]
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @/tmp/discord_payload.json \
+               "$DISCORD_WEBHOOK_URL"
+
+      - name: Send Discord Notification - Push to Main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          COMMIT_MSG=$(echo '${{ github.event.head_commit.message }}' | head -n 1)
+
+          cat > /tmp/discord_payload.json << EOF
+          {
+            "embeds": [{
+              "title": "📦 Push to main",
+              "description": "$COMMIT_MSG",
+              "url": "${{ github.event.head_commit.url }}",
+              "color": 5814783,
+              "fields": [
+                {
+                  "name": "Commit",
+                  "value": "\`$(echo '${{ github.sha }}' | cut -c1-7)\`",
+                  "inline": true
+                },
+                {
+                  "name": "Author",
+                  "value": "${{ github.event.head_commit.author.name }}",
+                  "inline": true
+                },
+                {
+                  "name": "Files Changed",
+                  "value": "${{ github.event.head_commit.added_count }} added, ${{ github.event.head_commit.modified_count }} modified, ${{ github.event.head_commit.removed_count }} removed",
+                  "inline": false
+                }
+              ],
+              "footer": {
+                "text": "🤖 Miyabi CI/CD"
+              },
+              "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")"
+            }]
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @/tmp/discord_payload.json \
+               "$DISCORD_WEBHOOK_URL"
