@@ -40,7 +40,7 @@ thiserror = "2.0"
 clap = { version = "4.5", features = ["derive", "cargo", "env"] }
 indicatif = "0.17"
 console = "0.15"
-dialoguer = "0.11"
+dialoguer = "0.12"
 colored = "2.1"
 
 # GitHub API
