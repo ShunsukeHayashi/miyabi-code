@@ -12,8 +12,8 @@ readme = "../README.md"
 
 [dependencies]
 # Core dependencies
-miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
-miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
 
 # Async runtime
 tokio = { workspace = true }

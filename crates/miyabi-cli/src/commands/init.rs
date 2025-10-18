@@ -106,9 +106,13 @@ impl InitCommand {
         // Create standard directories
         let dirs = vec![
             ".github/workflows",
-            ".claude/agents/specs",
-            ".claude/agents/prompts",
+            ".claude/agents/specs/coding",
+            ".claude/agents/specs/business",
+            ".claude/agents/prompts/coding",
+            ".claude/agents/prompts/business",
             ".claude/commands",
+            ".claude/prompts",
+            ".claude/templates",
             "docs",
             "scripts",
             "logs",
@@ -120,7 +124,167 @@ impl InitCommand {
             fs::create_dir_all(&dir_path)?;
         }
 
+        // Create CLAUDE.md (project context file)
+        self.create_claude_md(project_dir)?;
+
+        // Create essential .claude files
+        self.create_claude_files(project_dir)?;
+
         println!("  Created project structure");
+        Ok(())
+    }
+
+    fn create_claude_md(&self, project_dir: &Path) -> Result<()> {
+        let claude_md = format!(
+            r#"# Claude Code プロジェクト設定
+
+このファイルは、Claude Codeが自動的に参照するプロジェクトコンテキストファイルです。
+
+## プロジェクト概要
+
+**{}** - Miyabi自律型開発プロジェクト
+
+## アーキテクチャ
+
+### コアコンポーネント
+
+1. **Agent System** - 自律実行Agent（Miyabi Framework）
+2. **GitHub OS Integration** - GitHubをOSとして活用
+3. **Label System** - 53ラベル体系による状態管理
+
+### ディレクトリ構造
+
+```
+{}/
+├── .claude/                    # Claude Code設定
+│   ├── agents/                # Agent仕様・プロンプト
+│   ├── commands/              # カスタムコマンド
+│   └── prompts/               # 実行プロンプト
+├── .github/                   # GitHub設定
+│   └── workflows/             # GitHub Actions
+├── docs/                      # ドキュメント
+├── scripts/                   # 自動化スクリプト
+├── logs/                      # ログファイル
+└── reports/                   # レポート出力
+```
+
+## 開発ガイドライン
+
+### コミット規約
+- Conventional Commits準拠
+- `feat:`, `fix:`, `chore:`, `docs:`, etc.
+
+### セキュリティ
+- トークンは環境変数
+- `.miyabi.yml`は`.gitignore`に追加済み
+
+## 環境変数
+
+```bash
+GITHUB_TOKEN=ghp_xxx        # GitHubアクセストークン
+ANTHROPIC_API_KEY=sk-xxx    # Anthropic APIキー（Agent実行時）
+```
+
+## 実行例
+
+```bash
+# ステータス確認
+miyabi status
+
+# Agent実行
+miyabi agent coordinator --issue 1
+
+# テスト実行
+cargo test --all
+
+# Linter実行
+cargo clippy --all-targets
+```
+
+---
+
+**このファイルはClaude Codeが自動参照します。プロジェクトのコンテキストとして常に最新に保ってください。**
+"#,
+            self.name, self.name
+        );
+
+        fs::write(project_dir.join("CLAUDE.md"), claude_md)?;
+        Ok(())
+    }
+
+    fn create_claude_files(&self, project_dir: &Path) -> Result<()> {
+        // Create .claude/README.md
+        let claude_readme = r#"# .claude Directory
+
+Claude Code設定ディレクトリ - プロジェクト固有の設定とプロンプト
+
+## 構造
+
+- `agents/` - Agent仕様とプロンプト
+  - `specs/coding/` - コーディング系Agent仕様
+  - `specs/business/` - ビジネス系Agent仕様
+  - `prompts/coding/` - 実行プロンプト
+- `commands/` - カスタムスラッシュコマンド
+- `prompts/` - 汎用プロンプト
+- `templates/` - テンプレートファイル
+
+## カスタムコマンド
+
+`.claude/commands/` 配下に `*.md` ファイルを作成することで、
+カスタムスラッシュコマンドを定義できます。
+
+例: `.claude/commands/test.md` → `/test` コマンド
+
+## Agent仕様
+
+Agent仕様ファイル（`.claude/agents/specs/`）で、各Agentの役割・権限・エスカレーション条件を定義します。
+"#;
+        fs::write(project_dir.join(".claude/README.md"), claude_readme)?;
+
+        // Create .claude/QUICK_START.md
+        let quick_start = format!(
+            r#"# {} - Quick Start Guide
+
+## 🚀 3分で始めるMiyabi
+
+### 1. 環境変数設定
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+export ANTHROPIC_API_KEY=sk-xxx
+```
+
+### 2. ステータス確認
+
+```bash
+miyabi status
+```
+
+### 3. Issue作成
+
+GitHubでIssueを作成し、以下のラベルを付与：
+- `type:feature` または `type:bug`
+- `priority:P1-High`
+
+### 4. Agent実行
+
+```bash
+miyabi agent coordinator --issue 1
+```
+
+## 📚 詳細ドキュメント
+
+- [CLAUDE.md](../CLAUDE.md) - プロジェクトコンテキスト
+- [.claude/README.md](./README.md) - .claudeディレクトリ説明
+
+---
+
+**Miyabi** - Beauty in Autonomous Development 🌸
+"#,
+            self.name
+        );
+        fs::write(project_dir.join(".claude/QUICK_START.md"), quick_start)?;
+
         Ok(())
     }
 

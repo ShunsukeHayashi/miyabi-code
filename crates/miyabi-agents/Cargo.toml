@@ -11,13 +11,13 @@ categories = ["development-tools", "web-programming"]
 readme = "../README.md"
 
 [dependencies]
-miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
-miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
-miyabi-github = { version = "1.0.0", path = "../miyabi-github" }
-# miyabi-worktree = { version = "1.0.0", path = "../miyabi-worktree" } # Temporarily disabled due to Send issues
-miyabi-llm = { version = "1.0.0", path = "../miyabi-llm" }
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
+# miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" } # Temporarily disabled due to Send issues
+miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }
 futures = "0.3"
-miyabi-potpie = { version = "1.0.0", path = "../miyabi-potpie" }
+miyabi-potpie = { version = "0.1.0", path = "../miyabi-potpie" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

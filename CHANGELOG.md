@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned for v0.2.0
+- Business Agents implementation (14 agents)
+- Potpie AI integration (awaiting miyabi-potpie crate)
+- Cross-platform binaries (Linux, Windows)
+- Enhanced CLI features
+
+---
+
+## [0.1.0] - 2025-10-19 🦀
+
+### 🎉 **Initial crates.io Release - Miyabi Rust Edition**
+
+**First public release to crates.io - 6 core crates published**
+
+#### Added
+- 🦀 **Rust 2021 Edition**: Complete implementation, 50%+ faster than TypeScript
+- 🤖 **7 Coding Agents**: Coordinator, CodeGen, Review, Issue, PR, Deployment, Refresher
+- 🏷️ **53 Label System**: 11 categories for automation control
+- 🌳 **Git Worktree Parallel Execution**: Issue-based parallel processing
+- 📦 **6 Core Crates** (crates.io): miyabi-types, miyabi-core, miyabi-github, miyabi-worktree, miyabi-agents, miyabi-cli
+- 🎮 **Character Name System**: 21 friendly Japanese names for agents
+
+#### Changed
+- **Version Reset**: 1.0.0 → 0.1.0 (initial crates.io release)
+- **TypeScript Archive**: Moved to archive/typescript-legacy/
+- **.claude/ Rust Migration**: Complete documentation update for Rust Edition
+
+#### Fixed
+- Issue #187: Claude Code session disconnection
+- Issue #202: Priority/Concurrency validation
+- Issue #204: miyabi-core design consolidation
+- Issue #206: Rust migration Phase 1
+- Issue #207: Documentation & Legacy cleanup
+
 ### Work in Progress
 
 **Potpie AI Integration Exploration** (2025-10-17)

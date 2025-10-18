@@ -11,8 +11,8 @@ categories = ["development-tools", "web-programming"]
 readme = "../README.md"
 
 [dependencies]
-miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
-miyabi-core = { version = "1.0.0", path = "../miyabi-core" }
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

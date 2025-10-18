@@ -1,6 +1,6 @@
 [package]
 name = "miyabi-business-agents"
-version = "1.0.0"
+version = "0.1.0"
 edition = "2021"
 authors = ["Shunsuke Hayashi <supernovasyun@gmail.com>"]
 license = "Apache-2.0"
@@ -11,9 +11,9 @@ categories = ["development-tools", "command-line-utilities"]
 
 [dependencies]
 # Miyabi core dependencies
-miyabi-types = { path = "../miyabi-types", version = "1.0.0" }
-miyabi-core = { path = "../miyabi-core", version = "1.0.0" }
-miyabi-github = { path = "../miyabi-github", version = "1.0.0" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.0" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.0" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.0" }
 
 # Async runtime
 tokio = { version = "1.45", features = ["full"] }

@@ -1647,7 +1647,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-agents"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1672,7 +1672,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-business-agents"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1695,7 +1695,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-cli"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1726,7 +1726,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-core"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1751,7 +1751,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-discord-mcp-server"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1782,7 +1782,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-github"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "dirs",
@@ -1799,7 +1799,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-llm"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1822,7 +1822,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-mcp-server"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1850,7 +1850,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-potpie"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1867,7 +1867,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-types"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "insta",
@@ -1878,7 +1878,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-worktree"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",

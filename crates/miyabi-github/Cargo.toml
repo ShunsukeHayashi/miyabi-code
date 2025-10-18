@@ -11,7 +11,7 @@ categories = ["api-bindings", "web-programming"]
 readme = "../README.md"
 
 [dependencies]
-miyabi-types = { version = "1.0.0", path = "../miyabi-types" }
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 octocrab = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }

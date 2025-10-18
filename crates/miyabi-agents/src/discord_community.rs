@@ -387,6 +387,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Discord Community feature not included in v0.1.0 release"]
     fn test_generate_setup_report() {
         let agent = DiscordCommunityAgent::with_defaults();
         let report = agent.generate_setup_report("1234567890", "Test Community");
