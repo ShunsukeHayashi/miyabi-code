@@ -162,3 +162,5 @@ playwright-report/
 
 # Rust test artifacts
 target/nextest/
+.vercel
+public/
