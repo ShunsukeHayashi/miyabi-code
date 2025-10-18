@@ -176,7 +176,7 @@
             pointer-events: none;
         }
 
-        /* Hero Visual (prepared for future image asset) */
+        /* Hero Visual - Static background image */
         .hero-visual {
             position: absolute;
             top: 0;
@@ -184,17 +184,10 @@
             width: 100%;
             height: 100%;
             z-index: 0;
-            opacity: 0.4;
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .hero-visual video,
-        .hero-visual img {
-            width: 100%;
-            height: 100%;
+            opacity: 0.2;
             object-fit: cover;
             object-position: center;
-            transform: scale(1.05); /* Subtle zoom for parallax effect */
+            transform: scale(1.05);
         }
 
         .hero > * {
@@ -208,9 +201,11 @@
         }
 
         .hero .tagline {
-            font-size: 1.75rem;
+            font-size: 2rem;
+            font-weight: 300;
             color: #6E6E73;
-            margin-bottom: 40px;
+            margin-bottom: 56px;
+            letter-spacing: -0.015em;
             animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.15s backwards;
         }
 
@@ -258,7 +253,6 @@
         .social-proof:hover {
             background: rgba(0, 113, 227, 0.08);
             border-color: rgba(0, 113, 227, 0.2);
-            transform: translateY(-2px);
         }
 
         .social-proof::before {
@@ -288,13 +282,11 @@
 
         .command-box:hover {
             background: #E8E8ED;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08),
-                        0 0 0 1px rgba(0, 113, 227, 0.15);
-            transform: scale(1.02);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
         }
 
         .command-box:active {
-            transform: scale(0.98);
+            background: #DCDCE0;
             transition-duration: 0.1s;
         }
 
@@ -333,6 +325,18 @@
 
         .stat-item {
             text-align: center;
+        }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 16px;
+            opacity: 0.3;
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-item:hover .stat-icon {
+            opacity: 0.6;
         }
 
         .stat-number {
@@ -429,12 +433,10 @@
         .show-all-btn:hover {
             border-color: rgba(0, 113, 227, 0.5);
             background: rgba(0, 113, 227, 0.08);
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
         }
 
         .show-all-btn:active {
-            transform: scale(0.98);
+            background: rgba(0, 113, 227, 0.12);
             transition-duration: 0.1s;
         }
 
@@ -603,16 +605,7 @@
         }
 
         .comparison-item:hover .comparison-value {
-            transform: scale(1.08);
-        }
-
-        /* Add subtle glow effect on hover */
-        .comparison-before:hover .comparison-value {
-            filter: drop-shadow(0 0 12px rgba(255, 59, 48, 0.3));
-        }
-
-        .comparison-after:hover .comparison-value {
-            filter: drop-shadow(0 0 12px rgba(52, 199, 89, 0.3));
+            transform: scale(1.02);
         }
 
         .comparison-before .comparison-value {
@@ -772,13 +765,15 @@
             h1 { font-size: 2.75rem; }
             h2 { font-size: 1.75rem; }
             h3 { font-size: 1.25rem; }
-            .hero .tagline { font-size: 1.125rem; }
+            .hero .tagline { font-size: 1.25rem; }
             .stat-highlight { font-size: 3.5rem; }
             .stat-number { font-size: 2.5rem; }
             .comparison-arrow {
-                transform: rotate(90deg);
                 margin: 20px 0;
-                animation: arrowPulseMobile 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+                animation: arrowPulseMobileDown 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+            }
+            .comparison-arrow::before {
+                content: "↓";
             }
             .agent-grid { grid-template-columns: 1fr; }
             .core-agents-grid { grid-template-columns: 1fr; }
@@ -797,13 +792,13 @@
             .comparison-value { font-size: 2.5rem; }
         }
 
-        @keyframes arrowPulseMobile {
+        @keyframes arrowPulseMobileDown {
             0%, 100% {
-                transform: rotate(90deg) translateX(0);
+                transform: translateY(0);
                 opacity: 0.7;
             }
             50% {
-                transform: rotate(90deg) translateX(8px);
+                transform: translateY(8px);
                 opacity: 1;
             }
         }
@@ -826,12 +821,11 @@
 
         .cta-button:hover {
             background: #0077ED;
-            box-shadow: 0 8px 20px rgba(0, 113, 227, 0.3);
-            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 113, 227, 0.25);
         }
 
         .cta-button:active {
-            transform: translateY(0) scale(0.97);
+            background: #0066D6;
             box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
             transition-duration: 0.1s;
         }
@@ -970,15 +964,13 @@
 
     <!-- Hero Section -->
     <section class="hero" role="banner" aria-label="Hero section">
-        <!-- Hero Visual Video -->
-        <video class="hero-visual" autoplay loop muted playsinline>
-            <source src="assets/hero-video-brand-v2.mp4" type="video/mp4">
-            <!-- Fallback image -->
-            <img src="assets/hero-visual-brand-v2.jpeg"
-                 alt="Miyabi AI Team - Three elegant geometric shapes representing AI agents"
-                 width="2848"
-                 height="1600">
-        </video>
+        <!-- Hero Visual Image -->
+        <img class="hero-visual"
+             src="assets/hero-visual-brand-v2.jpeg"
+             alt="Miyabi AI Team - Three elegant geometric shapes representing AI agents"
+             width="2848"
+             height="1600"
+             loading="eager">
 
         <h1>Miyabi</h1>
         <div class="ive-divider"></div>
@@ -998,18 +990,39 @@
     <section id="main-content" class="stats" role="region" aria-label="Statistics">
         <div class="stats-container fade-in-up">
             <div class="stat-item">
+                <!-- Team Icon -->
+                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="8" r="3"/>
+                    <path d="M12 14c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z"/>
+                    <circle cx="6" cy="7" r="2"/>
+                    <circle cx="18" cy="7" r="2"/>
+                </svg>
                 <div class="stat-number" data-target="21" data-suffix="">21</div>
                 <div class="stat-label">AI Team Members</div>
             </div>
             <div class="stat-item">
+                <!-- Speed Icon -->
+                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+                </svg>
                 <div class="stat-number" data-target="72" data-suffix="%">72%</div>
                 <div class="stat-label">Faster</div>
             </div>
             <div class="stat-item">
+                <!-- Time Icon -->
+                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
                 <div class="stat-number" data-target="10" data-suffix="min">10min</div>
                 <div class="stat-label">Auto PR Creation</div>
             </div>
             <div class="stat-item">
+                <!-- Coverage Icon -->
+                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </svg>
                 <div class="stat-number" data-target="80" data-suffix="%+">80%+</div>
                 <div class="stat-label">Test Coverage</div>
             </div>
@@ -1021,7 +1034,7 @@
         <div class="section-header">
             <h2>Meet Your Team</h2>
             <div class="ive-divider" aria-hidden="true"></div>
-            <p>Three specialists. Working with you, 24/7.</p>
+            <p>Three specialists. Always on.</p>
         </div>
 
         <!-- Core 3 Agents -->
@@ -1051,17 +1064,9 @@
             </div>
         </div>
 
-        <!-- Show All Button -->
-        <button class="show-all-btn"
-                onclick="toggleFullTeam()"
-                aria-expanded="false"
-                aria-controls="full-team"
-                aria-label="View all 21 AI agents">
-            View All 21 Agents
-        </button>
-
-        <!-- Full Team - Hidden by default -->
-        <div class="full-team" id="full-team">
+        <!-- Full Team section removed for simplicity - Focus on core 3 agents -->
+        <!-- Hidden full agent list for future reference -->
+        <div class="full-team" id="full-team" style="display: none;">
             <div class="section-header" style="margin-top: 80px;">
                 <h3>Full Lineup</h3>
                 <p style="font-size: 1rem;">21 specialists covering development to business, every domain.</p>
@@ -1373,25 +1378,6 @@
                 }
             });
         });
-
-        // Parallax effect for hero visual
-        let ticking = false;
-        function updateParallax() {
-            const scrolled = window.pageYOffset;
-            const heroVisual = document.querySelector('.hero-visual');
-            if (heroVisual && scrolled < window.innerHeight) {
-                const parallaxSpeed = 0.3;
-                heroVisual.style.transform = `translateY(${scrolled * parallaxSpeed}px)`;
-            }
-            ticking = false;
-        }
-
-        window.addEventListener('scroll', function() {
-            if (!ticking) {
-                window.requestAnimationFrame(updateParallax);
-                ticking = true;
-            }
-        }, { passive: true });
 
         // Staggered animation for agent cards
         document.addEventListener('DOMContentLoaded', () => {
