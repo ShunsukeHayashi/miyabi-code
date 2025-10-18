@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cp -r docs public",
+  "buildCommand": "mkdir -p public && cp -r docs/* public/",
   "outputDirectory": "public",
-  "installCommand": "echo 'No installation required'",
+  "installCommand": "rm -f pnpm-lock.yaml package-lock.yaml yarn.lock && echo 'No installation required'",
   "rewrites": [
     {
       "source": "/",

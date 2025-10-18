@@ -1,0 +1,40 @@
+# Ignore all files except docs directory
+/*
+!/docs/
+!/vercel.json
+
+# Ignore build artifacts
+node_modules/
+.next/
+dist/
+target/
+
+# Ignore lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Ignore Rust artifacts
+Cargo.lock
+.cargo/
+
+# Ignore development files
+.env
+.env.local
+.vscode/
+.idea/
+
+# Ignore CI/CD files
+.github/
+.codex/
+.claude/
+
+# Ignore test files
+**/*.test.*
+**/*.spec.*
+**/tests/
+
+# Ignore Rust source (only deploy docs)
+crates/
+packages/
+src/
