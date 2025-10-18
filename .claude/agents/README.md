@@ -180,8 +180,8 @@ GitHub Issueの内容を解析し、Claude Sonnet 4 APIを使用して必要な�
 
 ## 責任範囲
 - Issue内容の理解と要件抽出
-- TypeScriptコード自動生成（Strict mode準拠）
-- ユニットテスト自動生成（Vitest）
+- Rustコード自動生成（2021 Edition準拠）
+- ユニットテスト自動生成（#[cfg(test)] mod tests）
 ...
 ```
 
@@ -191,8 +191,8 @@ GitHub Issueの内容を解析し、Claude Sonnet 4 APIを使用して必要な�
 
 - **Task情報のテンプレート**: `{{TASK_ID}}`, `{{ISSUE_NUMBER}}` などの変数
 - **実行手順**: ステップバイステップの作業手順
-- **実装例**: 具体的なTypeScriptコード例
-- **テスト作成手順**: Vitestテストの書き方
+- **実装例**: 具体的なRustコード例（2021 Edition）
+- **テスト作成手順**: Rust testモジュールの書き方（#[cfg(test)]）
 - **Success Criteria**: 完了条件のチェックリスト
 - **トラブルシューティング**: よくある問題と解決方法
 - **Output Format**: JSON形式の結果レポート
@@ -298,10 +298,12 @@ GitHub Issueの内容を解析し、Claude Sonnet 4 APIを使用して必要な�
 
 ```bash
 # 単一Issue実行
-npm run agents:parallel:exec -- --issues=270 --concurrency=2
+miyabi agent run coordinator --issues=270 --concurrency=2
+# または
+cargo run --bin miyabi -- agent run coordinator --issues=270 --concurrency=2
 
-# 複数Issue並行実行
-npm run agents:parallel:exec -- --issues=270,240,276 --concurrency=3
+# 複数Issue並行実行（Worktreeベース）
+miyabi agent run coordinator --issues=270,240,276 --concurrency=3
 
 # Worktree構成
 .worktrees/
@@ -314,13 +316,15 @@ npm run agents:parallel:exec -- --issues=270,240,276 --concurrency=3
 
 ```bash
 # AIアントレプレナーAgent実行
-npm run agents:entrepreneur -- --issue 2
+miyabi business-agent entrepreneur --issue 2
+# または
+cargo run --bin miyabi -- business-agent entrepreneur --issue 2
 
 # 特定フェーズのみ実行
-npm run agents:entrepreneur -- --issue 2 --phase market-analysis
+miyabi business-agent entrepreneur --issue 2 --phase market-analysis
 
 # 複数ビジネスAgent並行実行
-npm run agents:parallel:exec -- --issues=2,3,4 --concurrency=2 --agent-category=business
+miyabi agent run coordinator --issues=2,3,4 --concurrency=2 --agent-category=business
 ```
 
 ## Agent Verification（検証スクリプト）
@@ -331,44 +335,47 @@ npm run agents:parallel:exec -- --issues=2,3,4 --concurrency=2 --agent-category=
 
 ```bash
 # すべてのAgentを検証
-npm run agents:verify
+cargo test --all
+cargo clippy --all-targets
+cargo check --all
 
 # 詳細出力モード
-npm run agents:verify:verbose
+cargo test --all -- --nocapture
 
 # 最初のエラーで停止
-npm run agents:verify:bail
+cargo test --all -- --test-threads=1
 
 # 特定のAgentのみ検証
-npm run agents:verify -- --agent codegen
+cargo test -p miyabi-agents
+cargo clippy -p miyabi-agents
 ```
 
 ### 検証項目
 
 | 検証項目 | コマンド | 説明 |
 |---------|---------|------|
-| **ESLint** | `npx eslint agents/**/*.ts` | コードスタイル・ベストプラクティスチェック |
-| **TypeScript** | `npx tsc --noEmit` | 型安全性チェック |
-| **Tests** | `npx vitest run` | ユニットテスト実行 |
+| **Clippy** | `cargo clippy --all-targets` | コードスタイル・ベストプラクティスチェック |
+| **Cargo Check** | `cargo check --all` | 型安全性・コンパイルチェック |
+| **Tests** | `cargo test --all` | ユニットテスト・統合テスト実行 |
 
 ### 検証結果の見方
 
 ```
-📦 Verifying codegenAgent...
-  🔍 Running ESLint on codegen...
-  ✅ ESLint passed
-  🔍 Running TypeScript type check...
+📦 Verifying miyabi-agents crate...
+  🔍 Running Clippy on codegen...
+  ✅ Clippy passed
+  🔍 Running cargo check...
   ✅ Type check passed
   🔍 Running tests for codegen...
-  ✅ Tests passed
+  ✅ Tests passed (36/36)
 
 ============================================================
 📊 Agent Verification Summary
 
-✅ PASS codegen  ✓ lint | ✓ type | ✓ test
-✅ PASS review   ✓ lint | ✓ type | ✓ test
-❌ FAIL deploy   ✓ lint | ✗ type | ✓ test
-       └─ Type error: Property 'url' does not exist...
+✅ PASS codegen  ✓ clippy | ✓ check | ✓ test
+✅ PASS review   ✓ clippy | ✓ check | ✓ test
+❌ FAIL deploy   ✓ clippy | ✗ check | ✓ test
+       └─ Compile error: cannot find value `url` in this scope...
 
 ============================================================
 Total: 2 passed, 1 failed
@@ -393,7 +400,7 @@ Auto-Loopは、ReviewAgentと/reviewコマンドを組み合わせて、自動�
                ▼
 ┌─────────────────────────────────────────────────────────┐
 │ 2. ReviewAgent: 品質チェック（100点満点）                 │
-│    - ESLint + TypeScript + Security                      │
+│    - Clippy + cargo check + cargo audit                  │
 │    - スコア < 80点 → 不合格                               │
 └──────────────┬──────────────────────────────────────────┘
                │
@@ -443,27 +450,27 @@ Auto-Loopは、ReviewAgentと/reviewコマンドを組み合わせて、自動�
 
 #### 実装詳細
 
-- **ReviewAgent**: `agents/review/review-agent.ts:215-227`
-  - 並列実行（ESLint + TypeScript + Security）
+- **ReviewAgent**: `crates/miyabi-agents/src/review.rs`
+  - 並列実行（Clippy + cargo check + cargo audit）
   - 品質スコアリング（100点満点）
   - 80点以上で `quality:good` Label自動付与
 
-- **/review コマンド**: `.claude/commands/review.md:208-227`
+- **/review コマンド**: `.claude/commands/review.md`
   - インタラクティブUX（continue/pls fix/skip）
   - Auto-fix Safety Rules
   - ReviewAgent統合コード
 
-- **Snapshot Testing**: `tests/ReviewAgent.test.ts`
-  - JSON構造検証（Vitest Snapshot）
+- **Test Suite**: `crates/miyabi-agents/src/review.rs #[cfg(test)] mod tests`
+  - 構造検証（Rust serde_json）
   - 動的フィールド除外（timestamp, duration等）
   - Escalation Error Handling
 
 #### 成功条件
 
 ✅ **Agentがパスすべき基準:**
-- ESLint: 0 warnings, 0 errors
-- TypeScript: 型エラーなし
-- Tests: 全テストパス
+- Clippy: 0 warnings, 0 errors
+- Cargo check: コンパイルエラーなし
+- Tests: 全テストパス（cargo test --all）
 - Quality Score: 80点以上
 
 ❌ **エスカレーション条件:**
