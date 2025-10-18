@@ -2,7 +2,7 @@
 //!
 //! 実行メトリクス、ログ、トレースを管理します。
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use tracing::{debug, error, info, warn};
 
 /// Worktree実行イベント

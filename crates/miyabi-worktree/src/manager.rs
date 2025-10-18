@@ -2,12 +2,14 @@
 //!
 //! Manages Git worktrees for isolated parallel task execution
 
+use crate::telemetry::{TelemetryCollector, WorktreeEvent};
 use git2::{BranchType, Repository, RepositoryState};
 use miyabi_types::error::{MiyabiError, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Instant;
 use tokio::sync::{Mutex, Semaphore};
 use uuid::Uuid;
 
@@ -38,6 +40,7 @@ pub struct WorktreeManager {
     max_concurrency: usize,
     semaphore: Arc<Semaphore>,
     worktrees: Arc<Mutex<HashMap<String, WorktreeInfo>>>,
+    telemetry: Arc<Mutex<TelemetryCollector>>,
 }
 
 impl WorktreeManager {
@@ -163,6 +166,7 @@ impl WorktreeManager {
             max_concurrency,
             semaphore: Arc::new(Semaphore::new(max_concurrency)),
             worktrees: Arc::new(Mutex::new(HashMap::new())),
+            telemetry: Arc::new(Mutex::new(TelemetryCollector::new())),
         })
     }
 
@@ -182,6 +186,17 @@ impl WorktreeManager {
             self.worktree_base
                 .join(format!("issue-{}-{}", issue_number, &worktree_id[..8]));
         let branch_name = format!("feature/issue-{}", issue_number);
+
+        // Record telemetry: CreateStart
+        {
+            let mut telemetry = self.telemetry.lock().await;
+            telemetry.record(WorktreeEvent::CreateStart {
+                worktree_id: worktree_id.clone(),
+                branch_name: branch_name.clone(),
+            });
+        }
+
+        let start_time = Instant::now();
 
         tracing::info!(
             "Creating worktree for issue #{} at {:?}",
@@ -259,6 +274,15 @@ impl WorktreeManager {
             worktrees.insert(worktree_id.clone(), worktree_info.clone());
         }
 
+        // Record telemetry: CreateComplete
+        {
+            let mut telemetry = self.telemetry.lock().await;
+            telemetry.record(WorktreeEvent::CreateComplete {
+                worktree_id: worktree_id.clone(),
+                duration: start_time.elapsed(),
+            });
+        }
+
         tracing::info!("Worktree created successfully at {:?}", worktree_path);
 
         Ok(worktree_info)
@@ -272,6 +296,16 @@ impl WorktreeManager {
                 MiyabiError::Unknown(format!("Worktree {} not found", worktree_id))
             })?
         };
+
+        // Record telemetry: CleanupStart
+        {
+            let mut telemetry = self.telemetry.lock().await;
+            telemetry.record(WorktreeEvent::CleanupStart {
+                worktree_id: worktree_id.to_string(),
+            });
+        }
+
+        let start_time = Instant::now();
 
         tracing::info!("Removing worktree {:?}", worktree_info.path);
 
@@ -307,6 +341,15 @@ impl WorktreeManager {
         {
             let mut worktrees = self.worktrees.lock().await;
             worktrees.remove(worktree_id);
+        }
+
+        // Record telemetry: CleanupComplete
+        {
+            let mut telemetry = self.telemetry.lock().await;
+            telemetry.record(WorktreeEvent::CleanupComplete {
+                worktree_id: worktree_id.to_string(),
+                duration: start_time.elapsed(),
+            });
         }
 
         tracing::info!("Worktree removed successfully");
@@ -496,6 +539,18 @@ impl WorktreeManager {
     fn get_main_branch(&self, _repo: &Repository) -> Result<String> {
         // Use the miyabi-core git utility
         miyabi_core::get_main_branch(&self.repo_path)
+    }
+
+    /// Get telemetry report (human-readable)
+    pub async fn telemetry_report(&self) -> String {
+        let telemetry = self.telemetry.lock().await;
+        telemetry.generate_report()
+    }
+
+    /// Get telemetry statistics
+    pub async fn telemetry_stats(&self) -> crate::telemetry::TelemetryStats {
+        let telemetry = self.telemetry.lock().await;
+        telemetry.generate_stats()
     }
 }
 
