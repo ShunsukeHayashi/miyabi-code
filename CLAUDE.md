@@ -1754,3 +1754,393 @@ Wiki MCPはLark OpenAPI MCP Enhancedに依存し、同じレート制限が適�
 
 ---
 
+## Lark Agent - 識学理論ベース統合管理システム構築
+
+### 概要
+
+**Lark Agent**は、識学理論（組織設計原則）に基づいたLark Base統合管理システムを構築する専門Agentです。
+10コマンドスタック（C1-C10）による段階的な構築手法により、要件分析からデプロイまでの全プロセスを体系的に実行します。
+
+**Agent Directory**: `.claude/agents/lark/` ([README](.claude/agents/lark/README.md))
+**Agent Specification**: [.claude/agents/specs/lark/lark-agent.md](.claude/agents/specs/lark/lark-agent.md)
+**Execution Prompt**: [.claude/agents/prompts/lark/lark-agent-prompt.md](.claude/agents/prompts/lark/lark-agent-prompt.md)
+
+### 🏛️ 識学理論 5つの核心原則
+
+Lark Agentは、以下の識学理論5原則に完全準拠した設計を行います：
+
+**1. 責任と権限の明確化**
+```yaml
+フィールド設計:
+  👤作成者     - レコード作成責任
+  👥担当者     - 実行責任
+  👑承認者     - 承認責任
+  🎯最終責任者 - 結果責任
+```
+
+**2. 結果重視の評価**
+```yaml
+成果フィールド:
+  📈売上実績   - 数値ベース評価
+  🎯達成率     - 目標対比の客観的指標
+  📊完了件数   - 実績の定量化
+  💰受注金額   - 金額ベース成果
+```
+
+**3. 階層の明確化**
+```yaml
+ステータス設計:
+  00.申請中       → 🔵標準青（担当者レベル）
+  01.主任確認中   → 🔷淡い青（主任レベル）
+  02.課長審査中   → 🟡標準黄色（課長レベル）
+  03.部長承認中   → 🧡標準オレンジ（部長レベル）
+  04.承認完了     → 💚標準緑（完了）
+  99.却下         → ❤️標準赤（エラー）
+```
+
+**4. 誤解・錯覚の排除**
+- 曖昧な表現の禁止（「進捗」→「完了率%」）
+- 具体的な数値基準の設定
+- 明確な期限とマイルストーン
+
+**5. 感情的判断の排除**
+- データ駆動の意思決定
+- 客観的なKPI設定
+- 感情を排除した評価基準
+
+### 🚀 10コマンドスタック - 段階的構築フレームワーク
+
+**Phase 1: Preparation (3 days)**
+- **C1: システム分析** - 要件定義、ER図作成、テーブル設計
+
+**Phase 2: Foundation (2 weeks)**
+- **C2: フィールド実装** - 主キー設計、マスター/トランザクションフィールド、計算フィールド
+- **C3: リレーション設定** - 双方向リンク、Lookup/Rollup、可視性チェック
+
+**Phase 3: Automation (1 week)**
+- **C4: ワークフロー自動化** - アラート、承認、プロセスワークフロー
+- **C5: ボタン実装** - ワンクリック作成、外部連携、バッチ処理
+
+**Phase 4: Optimization (1 week)**
+- **C6: ビュー作成** - グリッド、かんばん、カレンダービュー
+- **C7: ダッシュボード構築** - KPIカード、グラフ、アクションテーブル
+
+**Phase 5: Operation (1 week)**
+- **C8: 権限設定** - ロール定義、テーブル/フィールド権限
+- **C9: テスト・検証** - 単体、統合、パフォーマンステスト
+- **C10: デプロイ** - データ移行、ユーザー設定、本番稼働
+
+### 📚 コアドキュメント
+
+**必読ドキュメント（⭐⭐⭐）**:
+1. **[設計思想](.claude/agents/lark/design-philosophy.md)** (347 lines) - 識学理論5原則の完全解説
+2. **[命名規則](.claude/agents/lark/naming-conventions.md)** (525 lines) - テーブル・フィールド・ステータス設計の統一ルール
+3. **[Base構築フレームワーク](.claude/agents/lark/base-construction-framework.md)** (920 lines) - 10コマンドスタック詳細ガイド
+
+**運用ドキュメント（⭐⭐）**:
+4. **[MCP操作マニュアル](.claude/agents/lark/mcp-operations.md)** - Critical Lessons、エラーパターン、ベストプラクティス
+5. **[システム構造](.claude/agents/lark/system-structure.md)** - 実環境マッピング、Wiki/Bitable階層構造
+
+**テンプレート**:
+- **[テーブル設計テンプレート](.claude/agents/lark/templates/table-template.md)** - マスター/トランザクションテーブル
+- **[フィールド設計テンプレート](.claude/agents/lark/templates/field-template.md)** - 全12種類のフィールドタイプ
+- **[ワークフロー設計テンプレート](.claude/agents/lark/templates/workflow-template.md)** - アラート/承認/プロセス
+
+### 🔧 MCP統合 - 2つのMCPツール連携
+
+Lark Agentは、既存の2つのMCPツールと完全統合されています：
+
+**1. Lark OpenAPI MCP Enhanced**
+- Document操作、Bitable管理、Genesis AI
+- ツールプリセット: `preset.doc.default`, `preset.base.default`, `preset.genesis.full`
+
+**2. Lark Wiki MCP Agents**
+- Wiki空間の完全コントロール（C1-C5コマンドシステム）
+- Wiki-Bitable統合、権限管理、自動化
+
+**Critical Token Mapping** (最重要):
+```typescript
+// CORRECT Pattern - obj_token IS the app_token
+const nodeInfo = await callMCPTool('wiki.v2.space.getNode', {
+  token: 'wiki_node_token'
+});
+const app_token = nodeInfo.obj_token; // これがBitable app_token!
+
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: app_token // obj_tokenを使用
+});
+```
+
+**Common Errors** (絶対に避けること):
+- ❌ WikiノードトークンをBitable app_tokenとして直接使用
+- ❌ フィールド名を推測で指定（APIで取得した完全名を使用）
+- ❌ リレーション設定後の可視性チェックをスキップ
+
+### 🎯 主な機能
+
+**1. 主キーフィールド設計（Critical）**
+- **最左端配置**: 主キーは常にテーブルの最左端
+- **識別性**: リレーション先で内容が識別可能
+- **可視性チェック**: リレーション設定直後に必ず確認
+
+```yaml
+# マスターテーブル - 直接入力型
+主キー: "👥会社名" (Text型、最左端、is_primary: true)
+
+# トランザクションテーブル - 数式生成型
+主キー: "📋案件ID" (Formula型、最左端、is_primary: true)
+数式: "CONCATENATE(YEAR(作成時間), '年', MONTH(作成時間), '月', DAY(作成時間), '日-', 担当者, '-', ステータス)"
+```
+
+**2. リレーション可視性チェック（T0タスク）**
+
+リレーション設定後、即座に以下を確認：
+1. リンク先テーブルで主キー内容が表示されているか
+2. 主キーだけで何のレコードか識別できるか
+3. 必要に応じてLookupフィールドを追加
+
+**3. ワークフロー自動化**
+
+```yaml
+# 階層的承認ワークフロー（識学理論準拠）
+trigger:
+  type: "フィールド更新時"
+  field: "ステータス"
+
+flow:
+  - step: 1
+    condition: "00.申請中"
+    action: "主任に通知"
+  - step: 2
+    condition: "01.主任確認中"
+    action: "課長に通知"
+  - step: 3
+    condition: "02.課長審査中"
+    action: "部長に通知"
+  - step: 4
+    condition: "04.承認完了"
+    actions:
+      - "承認日を自動入力"
+      - "申請者に完了通知"
+```
+
+**4. ダッシュボード構築**
+
+```yaml
+# KPIカード
+- 売上実績（今月）: SUM(受注金額) WHERE MONTH = THIS_MONTH
+- 達成率: 売上実績 / 売上目標 × 100
+- 案件数: COUNT(*) WHERE ステータス != '99.失注'
+
+# グラフ
+- 売上推移（折れ線グラフ）
+- 営業担当別実績（棒グラフ）
+- 案件ステータス分布（円グラフ）
+
+# アクションテーブル
+- 期限超過案件（フィルター: 期限 < TODAY()）
+- 承認待ち案件（フィルター: ステータス LIKE '%確認中'）
+```
+
+### 🎨 命名規則 - 統一された表記ルール
+
+**テーブル命名**:
+```
+# 推奨パターン
+👥顧客管理
+💼案件管理
+🔧作業履歴
+📊売上管理
+
+# 番号付き順序制御
+1.顧客情報
+2.案件管理
+3.作業履歴
+4.売上実績
+```
+
+**フィールド命名（絵文字 + 識学理論準拠）**:
+```yaml
+責任者フィールド:
+  - 👤作成者
+  - 👥担当者
+  - 👑承認者
+  - 🎯最終責任者
+
+成果フィールド:
+  - 📈売上実績
+  - 🎯達成率
+  - 📊完了件数
+  - 💰受注金額
+
+時間フィールド:
+  - 📅期限
+  - 📅完了日
+  - 📅契約開始日
+  - ⏱️処理時間
+
+ステータスフィールド（階層明示）:
+  - 00.申請中       (🔵標準青)
+  - 01.主任確認中   (🔷淡い青)
+  - 02.課長審査中   (🟡標準黄色)
+  - 03.部長承認中   (🧡標準オレンジ)
+  - 04.承認完了     (💚標準緑)
+  - 99.却下         (❤️標準赤)
+```
+
+**色分けルール（Lark Base 55色パレット）**:
+- **青系**: 開始・準備段階（🔵標準青、🔷淡い青）
+- **黄/橙系**: 進行中・審査中（🟡標準黄色、🧡標準オレンジ）
+- **緑系**: 完了・成功（💚標準緑、🟩明るい緑）
+- **赤系**: エラー・失注・却下（❤️標準赤、🔴濃い赤）
+- **灰系**: 無効・保留（⚫標準灰色）
+
+### 🚀 クイックスタート
+
+#### Step 1: Lark Agent実行プロンプトを使用
+
+```
+Claude: "以下のプロンプトに従ってLark Base統合管理システムを構築してください。
+
+業界: AI-BPO事業
+業務領域: 営業管理・プロジェクト管理・売上管理
+実行シナリオ: フェーズ別実装（Phase 1-4）
+
+[プロンプト全文は .claude/agents/prompts/lark/lark-agent-prompt.md を参照]
+"
+```
+
+#### Step 2: コマンドスタックを段階実行
+
+```
+# Phase 1 実行
+Claude: "C1コマンドを実行: システム分析と要件定義"
+→ 要件定義書、ER図、テーブル設計書が生成される
+
+# Phase 2 実行
+Claude: "C2、C3コマンドを実行: フィールド実装とリレーション設定"
+→ 全テーブル・フィールド作成、双方向リンク設定完了
+
+# Phase 3 実行
+Claude: "C4、C5コマンドを実行: ワークフロー自動化とボタン実装"
+→ 自動化ルール、ボタンアクション設定完了
+
+# Phase 4 実行
+Claude: "C6、C7、C8コマンドを実行: 最適化と運用準備"
+→ ビュー、ダッシュボード、権限設定完了
+
+# Phase 5 実行
+Claude: "C9、C10コマンドを実行: テスト・デプロイ"
+→ 本番稼働開始
+```
+
+#### Step 3: テンプレートを活用
+
+```
+# テーブル設計テンプレート
+.claude/agents/lark/templates/table-template.md
+
+# フィールド設計テンプレート
+.claude/agents/lark/templates/field-template.md
+
+# ワークフロー設計テンプレート
+.claude/agents/lark/templates/workflow-template.md
+```
+
+### 📊 実装チェックリスト
+
+**C1: システム分析**
+- [ ] 要件定義書が完成しているか
+- [ ] ER図が正確に作成されているか
+- [ ] テーブル間の関係が明確か
+- [ ] 主キー設計が適切か（識別性・可視性）
+
+**C2: フィールド実装**
+- [ ] 主キーフィールドが最左端に配置されているか
+- [ ] 主キーがリレーション先で識別可能か
+- [ ] フィールド名が識学理論に準拠しているか
+- [ ] 色分けルールが適用されているか
+
+**C3: リレーション設定**
+- [ ] リレーション設定直後に可視性チェックを実施したか
+- [ ] リレーション先で主キー内容が識別可能か
+- [ ] 双方向リンクが正常に機能しているか
+- [ ] Lookupで必要な情報が参照できているか
+
+**C4-C10: 自動化・最適化・運用**
+- [ ] ワークフローが正常に動作するか
+- [ ] ボタンが正確に機能するか
+- [ ] ビューが業務フローに沿っているか
+- [ ] ダッシュボードが実用的か
+- [ ] 権限設定が組織階層に沿っているか
+
+### 🎯 成功基準
+
+**設計品質**:
+- ✅ 識学理論5原則に完全準拠
+- ✅ 命名規則が統一されている
+- ✅ ER図が正確で関係性が明確
+
+**実装品質**:
+- ✅ 全リレーションが正常に動作
+- ✅ ワークフローが正確に実行
+- ✅ 権限設定が適切に機能
+
+**運用品質**:
+- ✅ ユーザーマニュアルが整備されている
+- ✅ サポート体制が確立されている
+- ✅ 監視体制が確立されている
+
+### ⚠️ Critical Lessons (最重要)
+
+**Error 1: app_token混同エラー**
+```typescript
+// ❌ 間違い
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: 'wiki_node_token' // これは間違い!
+});
+
+// ✅ 正しい
+const nodeInfo = await callMCPTool('wiki.v2.space.getNode', {
+  token: 'wiki_node_token'
+});
+const app_token = nodeInfo.obj_token; // obj_tokenを使用
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: app_token
+});
+```
+
+**Error 2: FieldNameNotFoundエラー**
+```typescript
+// ❌ 間違い: 推測でフィールド名を指定
+fields: { '会社名': '株式会社テスト' }
+
+// ✅ 正しい: APIで取得したfield_nameを完全コピー
+const fields = await callMCPTool('bitable.v1.appTableField.list', {...});
+const actualFieldName = fields.items.find(f => f.field_name.includes('会社名')).field_name;
+fields: { [actualFieldName]: '株式会社テスト' }
+```
+
+**Error 3: API順序エラー**
+```yaml
+# ✅ 正しい順序:
+1. wiki.v2.space.getNode → obj_token取得
+2. bitable.v1.appTable.list → テーブル一覧取得
+3. bitable.v1.appTableField.list → フィールド一覧取得
+4. bitable.v1.appTableRecord.* → レコード操作
+```
+
+### 🔗 関連リンク
+
+**Lark Agent ドキュメント**:
+- **[Lark Agent README](.claude/agents/lark/README.md)** - Agent概要とナビゲーション
+- **[Agent仕様](.claude/agents/specs/lark/lark-agent.md)** - 役割・能力・制約の完全定義
+- **[実行プロンプト](.claude/agents/prompts/lark/lark-agent-prompt.md)** - Agent実行用プロンプト
+
+**外部リソース**:
+- **識学理論公式サイト**: https://www.shikigaku.jp/
+- **Lark Open Platform**: https://open.larksuite.com/
+- **Lark Base API Documentation**: https://open.larksuite.com/document/server-docs/docs/bitable-v1/bitable-overview
+
+---
+
