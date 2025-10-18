@@ -22,6 +22,8 @@ use std::fmt::Debug;
 ///
 /// ```rust
 /// use miyabi_cli::service::CommandService;
+/// use miyabi_cli::error::Result;
+/// use async_trait::async_trait;
 /// use serde::Serialize;
 ///
 /// #[derive(Debug, Serialize)]

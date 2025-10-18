@@ -38,6 +38,9 @@ enum Commands {
         /// Make repository private
         #[arg(short, long)]
         private: bool,
+        /// Interactive mode (asks questions)
+        #[arg(short, long)]
+        interactive: bool,
     },
     /// Install Miyabi to existing project
     Install {
@@ -74,6 +77,12 @@ enum Commands {
         #[arg(long, default_value = "3")]
         concurrency: usize,
     },
+    /// Work on an issue (simplified alias for 'agent run coordinator')
+    #[command(name = "work-on")]
+    WorkOn {
+        /// Issue description or number
+        task: String,
+    },
 }
 
 #[tokio::main]
@@ -92,8 +101,12 @@ async fn main() -> Result<()> {
     startup::perform_startup_checks();
 
     let result = match cli.command {
-        Some(Commands::Init { name, private }) => {
-            let cmd = InitCommand::new(name, private);
+        Some(Commands::Init {
+            name,
+            private,
+            interactive,
+        }) => {
+            let cmd = InitCommand::with_interactive(name, private, interactive);
             cmd.execute().await
         }
         Some(Commands::Install { dry_run }) => {
@@ -118,6 +131,32 @@ async fn main() -> Result<()> {
         }) => {
             let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
+        }
+        Some(Commands::WorkOn { task }) => {
+            println!();
+            println!("{}", "🚀 Let's work on it!".cyan().bold());
+            println!();
+
+            // Try to parse as issue number
+            if let Ok(issue_num) = task.parse::<u64>() {
+                println!("  {} Issue #{}", "📋".green(), issue_num);
+                let cmd = AgentCommand::new("coordinator".to_string(), Some(issue_num));
+                cmd.execute().await
+            } else {
+                // Task description - suggest creating an issue
+                println!("  {} Task: {}", "✨".yellow(), task.bold());
+                println!();
+                println!("{}", "💡 Next steps:".cyan());
+                println!("  1. Create an issue on GitHub with this description");
+                println!("  2. Run: miyabi work-on <issue-number>");
+                println!();
+                println!("{}", "Or use GitHub CLI:".dimmed());
+                println!(
+                    "  {}",
+                    format!("gh issue create --title \"{}\" --label type:feature", task).yellow()
+                );
+                Ok(())
+            }
         }
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
