@@ -94,8 +94,9 @@ Specialist Layer
 プロジェクト全体のテストを実行します。
 
 ```bash
-npm run typecheck  # TypeScript型チェック
-npm test           # Vitestテストスイート
+cargo check        # Rust型チェック
+cargo test --all   # 全テストスイート実行
+cargo clippy       # Linterチェック
 ```
 
 ### /agent-run
@@ -103,13 +104,15 @@ Autonomous Agent を実行します。
 
 ```bash
 # 単一Issue処理
-npm run agents:parallel:exec -- --issue 123
+miyabi agent run coordinator --issue 123
+# または
+cargo run --bin miyabi -- agent run coordinator --issue 123
 
-# 複数Issue並行処理
-npm run agents:parallel:exec -- --issues 123,124,125 --concurrency 3
+# 複数Issue並行処理（Worktreeベース）
+miyabi agent run coordinator --issues 123,124,125 --concurrency 3
 
 # Dry run
-npm run agents:parallel:exec -- --issue 123 --dry-run
+miyabi agent run coordinator --issue 123 --dry-run
 ```
 
 ### /deploy
@@ -117,19 +120,22 @@ npm run agents:parallel:exec -- --issue 123 --dry-run
 
 ```bash
 # Staging環境へデプロイ
-npm run deploy:staging
+miyabi deploy staging
+# または
+cargo run --bin miyabi -- deploy staging
 
 # Production環境へデプロイ（CTOエスカレーション）
-npm run deploy:production
+miyabi deploy production
 ```
 
 ### /verify
 システム動作確認を実行します。
 
 ```bash
-npm run typecheck
-npm test
-npm run agents:parallel:exec -- --help
+cargo check        # 型チェック
+cargo test --all   # テスト実行
+cargo clippy       # Linterチェック
+miyabi --help      # CLIヘルプ表示
 ```
 
 ## 🔌 MCP Servers
@@ -198,14 +204,15 @@ uvicorn main:app --port 8888
 ## 🪝 Hooks設定
 
 ### auto-format.sh ✅
-コミット前に自動フォーマット実行（ESLint, Prettier）
-- ESLintによるコード検査と自動修正
-- Prettierによるコードフォーマット
+コミット前に自動フォーマット実行（Rust）
+- cargo fmtによるコードフォーマット
+- cargo clippyによるコード検査
 - Git pre-commitフックとして使用可能
 
-### validate-typescript.sh ✅
-TypeScript型チェック（strict mode準拠）
-- TypeScriptコンパイルエラー検出
+### validate-rust.sh ✅
+Rust型チェック（strictモード準拠）
+- cargo checkによる型チェック
+- コンパイルエラー検出
 - 型エラーがある場合はコミット中断
 - Git pre-commitフックとして使用可能
 
@@ -225,13 +232,13 @@ Agent実行イベントをMiyabi Dashboardに送信
 
 ### Review基準（80点以上合格）
 
-```typescript
-質スコア計算:
-  基準点: 100点
-  - ESLintエラー: -20点/件
-  - TypeScriptエラー: -30点/件
-  - Critical脆弱性: -40点/件
-  合格ライン: 80点以上
+```rust
+// 品質スコア計算
+// 基準点: 100点
+// - Clippyエラー: -20点/件
+// - コンパイルエラー: -30点/件
+// - Critical脆弱性: -40点/件
+// 合格ライン: 80点以上
 ```
 
 ### エスカレーション基準
@@ -276,14 +283,14 @@ chmod +x *.sh
 # Option 1: 自動フォーマットのみ
 ln -s ../../.claude/hooks/auto-format.sh .git/hooks/pre-commit
 
-# Option 2: TypeScript検証のみ
-ln -s ../../.claude/hooks/validate-typescript.sh .git/hooks/pre-commit
+# Option 2: Rust検証のみ
+ln -s ../../.claude/hooks/validate-rust.sh .git/hooks/pre-commit
 
 # Option 3: 両方実行（カスタムスクリプト作成）
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
 .claude/hooks/auto-format.sh
-.claude/hooks/validate-typescript.sh
+.claude/hooks/validate-rust.sh
 EOF
 chmod +x .git/hooks/pre-commit
 ```
@@ -325,11 +332,11 @@ chmod +x .git/hooks/pre-commit
 
 ```json
 {
-  "projectContext": "Autonomous Operations Platform",
-  "workingDirectory": "/Users/shunsuke/Dev/Autonomous-Operations",
+  "projectContext": "Miyabi - Autonomous Operations Platform",
+  "workingDirectory": "/Users/a003/dev/miyabi-private",
   "preferredStyle": {
-    "typescript": "strict",
-    "commitMessage": "conventional"
+    "rust": "2021-edition",
+    "commitMessage": "conventional-japanese"
   },
   "hooks": {
     "userPromptSubmit": ".claude/hooks/log-commands.sh"
