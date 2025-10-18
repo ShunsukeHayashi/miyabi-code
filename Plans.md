@@ -1,8 +1,8 @@
-# Plans for Issue #203
+# Plans for Issue #204
 
-**Title**: Unify Agent Pipeline
+**Title**: Modularize Worktree Infrastructure
 
-**URL**: https://github.com/ShunsukeHayashi/miyabi-private/issues/203
+**URL**: https://github.com/ShunsukeHayashi/miyabi-private/issues/204
 
 ---
 
@@ -15,9 +15,9 @@
 
 ## 📝 Task Breakdown
 
-### 1. Analyze requirements for #203
+### 1. Analyze requirements for #204
 
-- **ID**: `task-203-analysis`
+- **ID**: `task-204-analysis`
 - **Type**: Docs
 - **Assigned Agent**: IssueAgent
 - **Priority**: 0
@@ -25,55 +25,56 @@
 
 **Description**: Analyze issue requirements and create detailed specification
 
-### 2. Implement solution for #203
+### 2. Implement solution for #204
 
-- **ID**: `task-203-impl`
-- **Type**: Feature
+- **ID**: `task-204-impl`
+- **Type**: Deployment
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 1
 - **Estimated Duration**: 30 min
-- **Dependencies**: task-203-analysis
+- **Dependencies**: task-204-analysis
 
 **Description**: ## Summary
-Extract a shared orchestration layer so every agent follows the same lifecycle, metrics, retries, and fallback strategy, reducing duplication between the base and LLM-enabled coordinators.
+Split `WorktreeManager` responsibilities into focused modules (git, concurrency, telemetry) with lifecycle hooks and integration tests to improve reliability of worktree-based execution.
 
 ## Deliverables
-- Shared runtime/orchestration module
-- Refactored agents using the common pipeline
-- Regression tests covering success/failure paths
-- Updated agent documentation
+- Modular worktree architecture
+- Hooks for create/cleanup with telemetry
+- Integration test suite using mock git repos
+- Observability documentation
 
 ## Dependencies
+- Issue 201 (Baseline & Guardrails Setup)
 - Issue 202 (Harden Domain Models)
 
 ## Checklist
-- [ ] T3-current-state-audit — agents-team — document current lifecycle, metrics, errors
-- [ ] T3-orchestration-design — architecture — design shared orchestration contract
-- [ ] T3-shared-runtime — agents-team — implement lifecycle manager & metrics hooks
-- [ ] T3-agent-refactor — agents-team — migrate agents to shared runtime/fallback logic
-- [ ] T3-regression-tests — qa — add async tests for success/failure and metrics assertions
-- [ ] T3-doc-update — docs — sync agent specs/prompts with new pipeline
+- [ ] T4-behavior-map — infra-team — catalogue current responsibilities and pain points
+- [ ] T4-architecture-plan — architecture — design modular layout and public API
+- [ ] T4-module-split — infra-team — refactor code into dedicated modules
+- [ ] T4-lifecycle-hooks — infra-team — implement lifecycle hooks and structured telemetry
+- [ ] T4-integration-tests — qa — add mock-git integration tests and failure coverage
+- [ ] T4-observability-docs — docs — document telemetry, hooks, and troubleshooting
 
 
-### 3. Add tests for #203
+### 3. Add tests for #204
 
-- **ID**: `task-203-test`
+- **ID**: `task-204-test`
 - **Type**: Test
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 2
 - **Estimated Duration**: 15 min
-- **Dependencies**: task-203-impl
+- **Dependencies**: task-204-impl
 
 **Description**: Create comprehensive test coverage
 
-### 4. Review code quality for #203
+### 4. Review code quality for #204
 
-- **ID**: `task-203-review`
+- **ID**: `task-204-review`
 - **Type**: Refactor
 - **Assigned Agent**: ReviewAgent
 - **Priority**: 3
 - **Estimated Duration**: 10 min
-- **Dependencies**: task-203-test
+- **Dependencies**: task-204-test
 
 **Description**: Run quality checks and code review
 
@@ -83,31 +84,31 @@ Tasks can be executed in parallel within each level:
 
 ### Level 0 (Parallel Execution)
 
-- `task-203-analysis` - Analyze requirements for #203
+- `task-204-analysis` - Analyze requirements for #204
 
 ### Level 1 (Parallel Execution)
 
-- `task-203-impl` - Implement solution for #203
+- `task-204-impl` - Implement solution for #204
 
 ### Level 2 (Parallel Execution)
 
-- `task-203-test` - Add tests for #203
+- `task-204-test` - Add tests for #204
 
 ### Level 3 (Parallel Execution)
 
-- `task-203-review` - Review code quality for #203
+- `task-204-review` - Review code quality for #204
 
 ## 📊 Dependency Graph
 
 ```mermaid
 graph TD
-    task_203_analysis["Analyze requirements for #203"]
-    task_203_impl["Implement solution for #203"]
-    task_203_test["Add tests for #203"]
-    task_203_review["Review code quality for #203"]
-    task_203_analysis --> task_203_impl
-    task_203_impl --> task_203_test
-    task_203_test --> task_203_review
+    task_204_analysis["Analyze requirements for #204"]
+    task_204_impl["Implement solution for #204"]
+    task_204_test["Add tests for #204"]
+    task_204_review["Review code quality for #204"]
+    task_204_analysis --> task_204_impl
+    task_204_impl --> task_204_test
+    task_204_test --> task_204_review
 ```
 
 ## ⏱️ Timeline Estimation
@@ -118,4 +119,4 @@ graph TD
 
 ---
 
-*Generated by CoordinatorAgent on 2025-10-18 19:04:43 UTC*
+*Generated by CoordinatorAgent on 2025-10-18 19:21:04 UTC*
