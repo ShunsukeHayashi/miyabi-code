@@ -38,7 +38,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 hostname = { workspace = true }
 async-trait = "0.1"
-dirs = "5.0"
+dirs = "6.0"
 shellexpand = "3.1"
 
 [dev-dependencies]
