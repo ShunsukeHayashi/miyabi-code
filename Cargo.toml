@@ -48,7 +48,7 @@ octocrab = "0.47"
 reqwest = { version = "0.12", features = ["json"] }
 
 # Git operations
-git2 = "0.19"
+git2 = "0.20"
 
 # Anthropic API
 async-openai = { version = "0.24", default-features = false, features = ["rustls"] }
