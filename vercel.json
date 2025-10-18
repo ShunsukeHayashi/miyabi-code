@@ -1,13 +1,7 @@
 {
-  "version": 2,
-  "name": "miyabi-docs",
-  "buildCommand": "echo 'No build required - static files only'",
-  "outputDirectory": "docs",
-  "devCommand": "cd docs && python3 -m http.server 3000",
+  "buildCommand": "cp -r docs public",
+  "outputDirectory": "public",
   "installCommand": "echo 'No installation required'",
-  "framework": null,
-  "public": true,
-  "regions": ["hnd1"],
   "rewrites": [
     {
       "source": "/",
@@ -41,7 +35,7 @@
       ]
     },
     {
-      "source": "/(.*)\\.(html|css|js|svg|webp|png|jpg|jpeg)",
+      "source": "/(.*)\\.(html|css|js|svg|webp|png|jpg|jpeg|pdf|md)",
       "headers": [
         {
           "key": "Cache-Control",
