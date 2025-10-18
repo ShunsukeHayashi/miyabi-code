@@ -139,6 +139,18 @@ pub enum MeasurementFrequency {
     Yearly,
 }
 
+impl std::fmt::Display for MeasurementFrequency {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MeasurementFrequency::Daily => write!(f, "daily"),
+            MeasurementFrequency::Weekly => write!(f, "weekly"),
+            MeasurementFrequency::Monthly => write!(f, "monthly"),
+            MeasurementFrequency::Quarterly => write!(f, "quarterly"),
+            MeasurementFrequency::Yearly => write!(f, "yearly"),
+        }
+    }
+}
+
 /// Timeline with milestones
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Timeline {
