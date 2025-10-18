@@ -85,8 +85,45 @@
         .hero .subtitle {
             font-size: 1.125rem;
             color: #86868B;
-            margin-bottom: 60px;
+            margin-bottom: 30px;
             animation: fadeInUp 0.8s ease 0.4s backwards;
+        }
+
+        /* === Stat Highlight === */
+        .stat-highlight {
+            font-size: 4rem;
+            font-weight: 300;
+            color: #0071E3;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin: 30px 0 10px;
+            animation: fadeInUp 0.8s ease 0.5s backwards;
+        }
+
+        .stat-highlight-label {
+            font-size: 1rem;
+            color: #86868B;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease 0.55s backwards;
+        }
+
+        /* === Social Proof === */
+        .social-proof {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.875rem;
+            color: #6E6E73;
+            margin-bottom: 40px;
+            padding: 8px 20px;
+            background: #F5F5F7;
+            border-radius: 20px;
+            animation: fadeInUp 0.8s ease 0.6s backwards;
+        }
+
+        .social-proof::before {
+            content: "⭐";
+            font-size: 1rem;
         }
 
         /* === Command Box === */
@@ -110,9 +147,7 @@
 
         .command-box:hover {
             background: #E8E8ED;
-            box-shadow: 0 12px 32px rgba(0, 113, 227, 0.12),
-                        0 0 0 2px rgba(0, 113, 227, 0.2);
-            transform: translateY(-2px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
         }
 
         .copy-btn {
@@ -154,7 +189,7 @@
 
         .stat-number {
             font-size: 4rem;
-            font-weight: 700;
+            font-weight: 600;
             color: #1D1D1F;
             margin-bottom: 10px;
         }
@@ -260,7 +295,6 @@
         }
 
         .agent-card:hover {
-            transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
             border-color: #86868B;
         }
@@ -391,13 +425,19 @@
             h1 { font-size: 2.5rem; }
             h2 { font-size: 2rem; }
             .hero .tagline { font-size: 1.25rem; }
+            .stat-highlight { font-size: 3rem; }
             .stat-number { font-size: 3rem; }
-            .comparison-arrow { transform: rotate(90deg); margin: 20px 0; }
+            .comparison-arrow { margin: 20px 0; }
+            .comparison-arrow::before { content: "↓"; }
             .agent-grid { grid-template-columns: 1fr; }
             .core-agents-grid { grid-template-columns: 1fr; }
             .command-box {
                 padding: 24px 36px;
                 font-size: 1rem;
+            }
+            .social-proof {
+                font-size: 0.75rem;
+                padding: 6px 16px;
             }
         }
 
@@ -417,12 +457,11 @@
 
         .cta-button:hover {
             background: #0077ED;
-            transform: scale(1.02);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 16px rgba(0, 113, 227, 0.25);
         }
 
         .cta-button:active {
-            transform: scale(0.98);
+            background: #0066D6;
         }
 
         /* === Toast Notification === */
@@ -485,8 +524,16 @@
     <!-- Hero Section -->
     <section class="hero">
         <h1>Miyabi</h1>
-        <p class="tagline">3つのAIが、あなたの開発を<br>72%速くする</p>
+        <p class="tagline">3つのAIが、<br>あなたの開発を速くする</p>
+
+        <div class="stat-highlight">72%</div>
+        <p class="stat-highlight-label">効率改善</p>
+
         <p class="subtitle">1コマンドで起動。Issue作成からデプロイまで、すべて自動化。</p>
+
+        <div class="social-proof">
+            1.2K GitHub Stars · 50+ teams using daily
+        </div>
 
         <div class="command-container">
             <div class="command-box">
