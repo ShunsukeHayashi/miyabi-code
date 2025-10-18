@@ -18,7 +18,7 @@
     <meta property="og:url" content="https://shunsukehayashi.github.io/Miyabi/">
     <meta property="og:title" content="Miyabi - AI-Powered Development, 72% Faster">
     <meta property="og:description" content="21 AI specialists automate your entire development workflow. From issue creation to deployment, all in one command.">
-    <meta property="og:image" content="https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg">
+    <meta property="og:image" content="https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-brand-v2.jpeg">
     <meta property="og:image:width" content="2848">
     <meta property="og:image:height" content="1600">
     <meta property="og:locale" content="en_US">
@@ -29,7 +29,7 @@
     <meta name="twitter:url" content="https://shunsukehayashi.github.io/Miyabi/">
     <meta name="twitter:title" content="Miyabi - AI-Powered Development, 72% Faster">
     <meta name="twitter:description" content="21 AI specialists automate your entire development workflow. 72% faster development time.">
-    <meta name="twitter:image" content="https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg">
+    <meta name="twitter:image" content="https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-brand-v2.jpeg">
     <meta name="twitter:creator" content="@miyabi_ai">
 
     <!-- Additional Meta Tags -->
@@ -44,7 +44,8 @@
     <link rel="preconnect" href="https://github.com">
 
     <!-- Performance: Preload Critical Assets -->
-    <link rel="preload" href="assets/hero-visual-original.jpeg" as="image" type="image/jpeg" fetchpriority="high">
+    <link rel="preload" href="assets/hero-video-brand-v2.mp4" as="video" type="video/mp4" fetchpriority="high">
+    <link rel="preload" href="assets/hero-visual-brand-v2.jpeg" as="image" type="image/jpeg">
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
@@ -71,9 +72,9 @@
         "name": "Miyabi",
         "url": "https://shunsukehayashi.github.io/Miyabi/"
       },
-      "image": "https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg",
+      "image": "https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-brand-v2.jpeg",
       "softwareVersion": "2.0",
-      "screenshot": "https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg",
+      "screenshot": "https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-brand-v2.jpeg",
       "downloadUrl": "https://www.npmjs.com/package/miyabi",
       "installUrl": "https://www.npmjs.com/package/miyabi",
       "featureList": [
@@ -187,6 +188,7 @@
             transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        .hero-visual video,
         .hero-visual img {
             width: 100%;
             height: 100%;
@@ -221,9 +223,9 @@
 
         /* === Stat Highlight === */
         .stat-highlight {
-            font-size: 6rem;
-            font-weight: 700;
-            color: #1D1D1F;
+            font-size: 4rem;
+            font-weight: 300;
+            color: #0071E3;
             letter-spacing: -0.03em;
             line-height: 1;
             margin: 32px 0 8px;
@@ -335,13 +337,9 @@
 
         .stat-number {
             font-size: 4rem;
-            font-weight: 700;
+            font-weight: 600;
             color: #1D1D1F;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, #1D1D1F 0%, #0071E3 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .stat-label {
@@ -618,17 +616,11 @@
         }
 
         .comparison-before .comparison-value {
-            background: linear-gradient(135deg, #FF3B30 0%, #FF6B6B 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #FF3B30;
         }
 
         .comparison-after .comparison-value {
-            background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #34C759;
         }
 
         .comparison-arrow {
@@ -978,29 +970,19 @@
 
     <!-- Hero Section -->
     <section class="hero" role="banner" aria-label="Hero section">
-        <!-- Hero Visual -->
-        <picture class="hero-visual">
-            <img src="assets/hero-visual-original.jpeg"
+        <!-- Hero Visual Video -->
+        <video class="hero-visual" autoplay loop muted playsinline>
+            <source src="assets/hero-video-brand-v2.mp4" type="video/mp4">
+            <!-- Fallback image -->
+            <img src="assets/hero-visual-brand-v2.jpeg"
                  alt="Miyabi AI Team - Three elegant geometric shapes representing AI agents"
                  width="2848"
-                 height="1600"
-                 loading="eager"
-                 fetchpriority="high"
-                 decoding="async">
-        </picture>
+                 height="1600">
+        </video>
 
         <h1>Miyabi</h1>
         <div class="ive-divider"></div>
-        <p class="tagline">Development.<br>Dramatically faster.</p>
-
-        <div class="stat-highlight">72%</div>
-        <p class="stat-highlight-label">Faster</p>
-
-        <p class="subtitle">Complexity, eliminated. Beautifully.</p>
-
-        <div class="social-proof">
-            1.2K GitHub Stars · 50+ teams using daily
-        </div>
+        <p class="tagline">Development. 72% faster.</p>
 
         <div class="command-container">
             <div class="command-box" role="region" aria-label="Installation command" tabindex="0">
