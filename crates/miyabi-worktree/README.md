@@ -10,6 +10,7 @@ Git worktree management for parallel agent execution in Miyabi.
 - **Status Tracking**: Monitor worktree lifecycle (Active, Idle, Completed, Failed)
 - **Timeout Support**: Configurable task execution timeouts
 - **Auto-cleanup**: Automatic worktree removal after task completion
+- **Telemetry & Observability**: Built-in lifecycle event tracking with structured logging and metrics
 
 ## Architecture
 
@@ -138,6 +139,63 @@ println!("Available slots: {}/{}",
 // Get pool statistics
 let pool_stats = pool.stats().await;
 println!("Active tasks: {}", pool_stats.active_tasks);
+```
+
+## Telemetry & Observability
+
+The `WorktreeManager` includes built-in telemetry for lifecycle event tracking:
+
+### Event Recording
+
+Automatically records the following events:
+- **CreateStart** / **CreateComplete**: Worktree creation lifecycle
+- **CleanupStart** / **CleanupComplete**: Worktree cleanup lifecycle
+- **ExecuteStart** / **ExecuteComplete**: Agent execution (via hooks)
+- **Error**: Error events with context
+
+### Human-Readable Reports
+
+```rust
+// Generate telemetry report
+let report = manager.telemetry_report().await;
+println!("{}", report);
+
+// Output:
+// 📊 Worktree実行レポート
+// - 作成: 5回
+// - 実行: 5回（成功: 4, 失敗: 1）
+// - クリーンアップ: 5回
+// - エラー: 1回
+// - 平均実行時間: 12.34秒
+// - 成功率: 80.0%
+```
+
+### Structured Statistics
+
+```rust
+use miyabi_worktree::telemetry::TelemetryStats;
+
+let stats: TelemetryStats = manager.telemetry_stats().await;
+
+println!("Creates: {}", stats.creates);
+println!("Executions: {}", stats.executions);
+println!("Success rate: {:.1}%", stats.success_rate());
+println!("Average execution time: {:?}", stats.average_execution_time());
+```
+
+### Integration with Structured Logging
+
+All telemetry events are also logged with `tracing`:
+
+```rust
+use tracing_subscriber;
+
+// Initialize structured logging
+tracing_subscriber::fmt::init();
+
+// Telemetry events will be logged:
+// INFO Worktree作成開始 worktree_id="abc123" branch="feature/issue-100"
+// INFO Worktree作成完了 worktree_id="abc123" duration_ms=1234
 ```
 
 ## Task Results
