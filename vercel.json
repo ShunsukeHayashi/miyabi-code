@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "name": "miyabi-docs",
+  "buildCommand": "echo 'No build required - static files only'",
+  "outputDirectory": "docs",
+  "devCommand": "cd docs && python3 -m http.server 3000",
+  "installCommand": "echo 'No installation required'",
+  "framework": null,
+  "public": true,
+  "regions": ["hnd1"],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/landing-ive-design.html"
+    },
+    {
+      "source": "/pitch-deck",
+      "destination": "/pitch-deck/output/miyabi-pitch-deck-jony-v2.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(html|css|js|svg|webp|png|jpg|jpeg)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "trailingSlash": false,
+  "cleanUrls": true,
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "silent": false
+  }
+}
