@@ -4,65 +4,80 @@ description: プロジェクト全体のテストを実行
 
 # テスト実行
 
-プロジェクト全体のTypeScriptコンパイルとテストスイートを実行します。
+プロジェクト全体のRustコンパイル確認とテストスイートを実行します。
 
 ## 実行内容
 
-1. **TypeScript型チェック**
+1. **Rust型チェック・コンパイル確認**
    ```bash
-   npm run typecheck
+   cargo check --all
+   cargo clippy --all-targets
    ```
-   - Strict mode有効
-   - 全11ファイル検証
-   - エラー0件が目標
+   - Rust 2021 Edition準拠
+   - 全クレート検証（8クレート）
+   - エラー・警告0件が目標
 
-2. **Vitestテストスイート**
+2. **cargo testスイート**
    ```bash
-   npm test
+   cargo test --all
    ```
    - CoordinatorAgentテスト
    - DAG構築テスト
    - 循環依存検出テスト
+   - Worktree管理テスト
 
 ## 期待される結果
 
-✅ **TypeScript**: エラー0件
-✅ **Tests**: 6/6 passing
-✅ **Duration**: <1秒
+✅ **cargo check**: エラー0件
+✅ **cargo clippy**: 警告0件
+✅ **Tests**: 36/36 passing
+✅ **Duration**: <5秒
 
 ## テスト対象
 
-- `tests/coordinator.test.ts`
+- `crates/miyabi-agents/src/coordinator.rs #[cfg(test)] mod tests`
   - Task decomposition
   - DAG construction
   - Circular dependency detection
   - Agent assignment
   - Execution plan
 
+- `crates/miyabi-worktree/src/manager.rs #[cfg(test)] mod tests`
+  - Worktree creation
+  - Concurrency control
+  - Telemetry tracking
+
 ## カバレッジ確認
 
 ```bash
-npm run test:coverage
+# tarpaulinを使用（要インストール: cargo install cargo-tarpaulin）
+cargo tarpaulin --all
+
+# またはllvm-covを使用
+cargo llvm-cov
 ```
 
 ## 失敗時の対処
 
-### TypeScriptエラー
+### コンパイルエラー
 ```bash
 # エラー詳細確認
-npm run typecheck
+cargo check --all --verbose
 
 # 型定義確認
-cat agents/types/index.ts
+cat crates/miyabi-types/src/task.rs
 ```
 
 ### テスト失敗
 ```bash
 # 詳細モードで実行
-npm test -- --reporter=verbose
+cargo test --all -- --nocapture
+
+# 特定のクレートのみ
+cargo test -p miyabi-agents
 
 # 特定のテストのみ
-npm test -- tests/coordinator.test.ts
+cargo test -p miyabi-agents test_coordinator
 ```
 
 ## CI/CD統合
@@ -70,11 +85,14 @@ npm test -- tests/coordinator.test.ts
 GitHub Actionsで自動実行されます：
 
 ```yaml
-- name: Run TypeScript compilation check
-  run: npm run typecheck
+- name: Run Rust compilation check
+  run: cargo check --all
+
+- name: Run Clippy
+  run: cargo clippy --all-targets -- -D warnings
 
 - name: Run tests
-  run: npm test
+  run: cargo test --all
 ```
 
 ---
