@@ -312,7 +312,7 @@ impl AgentCommand {
     /// - AuditLogHook: Execution logging to .ai/logs/{date}.md
     ///
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// let mut agent = HookedAgent::new(CodeGenAgent::new(config.clone()));
     /// self.register_standard_hooks(&mut agent, &config);
     /// ```
