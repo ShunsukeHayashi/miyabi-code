@@ -1,43 +1,40 @@
 {
+  "$schema": "https://modelcontextprotocol.io/schemas/mcp-config.schema.json",
   "mcpServers": {
-    "miyabi-integration": {
+    "lark-mcp": {
       "command": "node",
-      "args": [".claude/mcp-servers/miyabi-integration.js"],
-      "description": "Miyabi project coordination and GitHub integration",
-      "env": {
-        "GITHUB_TOKEN": "${env:GITHUB_TOKEN}",
-        "REPOSITORY": "${env:REPOSITORY}"
-      }
-    },
-    "discord-community": {
-      "command": "node",
-      "args": [".claude/mcp-servers/discord-integration.js"],
-      "description": "Miyabi Discord community management - subproject for community operations",
-      "env": {
-        "DISCORD_BOT_TOKEN": "${env:DISCORD_BOT_TOKEN}",
-        "DISCORD_GUILD_ID": "${env:DISCORD_GUILD_ID}",
-        "DISCORD_ANNOUNCE_CHANNEL": "${env:DISCORD_ANNOUNCE_CHANNEL}",
-        "DISCORD_GITHUB_CHANNEL": "${env:DISCORD_GITHUB_CHANNEL}",
-        "DISCORD_SUPPORT_JP_CHANNEL": "${env:DISCORD_SUPPORT_JP_CHANNEL}",
-        "DISCORD_SUPPORT_EN_CHANNEL": "${env:DISCORD_SUPPORT_EN_CHANNEL}"
-      }
-    },
-    "github-enhanced": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "description": "Enhanced GitHub operations",
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
-      }
-    },
-    "filesystem": {
-      "command": "npx",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "${workspaceFolder}"
+        "./integrations/lark-mcp/dist/cli.js",
+        "mcp",
+        "--mode", "stdio",
+        "--app-id", "${LARK_APP_ID}",
+        "--app-secret", "${LARK_APP_SECRET}",
+        "--domain", "${LARK_DOMAIN:-https://open.feishu.cn}",
+        "--tools", "preset.doc.default,preset.base.default"
       ],
-      "description": "Filesystem access for the workspace"
+      "env": {
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      },
+      "description": "Feishu/Lark OpenAPI MCP Enhanced - Document operations, Bitable management, and collaboration features"
+    },
+    "lark-mcp-genesis": {
+      "command": "node",
+      "args": [
+        "./integrations/lark-mcp/dist/cli.js",
+        "mcp",
+        "--mode", "stdio",
+        "--app-id", "${LARK_APP_ID}",
+        "--app-secret", "${LARK_APP_SECRET}",
+        "--domain", "${LARK_DOMAIN:-https://open.feishu.cn}",
+        "--tools", "preset.genesis.full"
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info",
+        "GENESIS_ENABLED": "true"
+      },
+      "description": "Lark Genesis AI System - AI-powered Bitable application creation from natural language"
     }
   }
 }

@@ -1091,3 +1091,229 @@ Claude Code
 ---
 
 **このファイルはClaude Codeが自動参照します。プロジェクトのコンテキストとして常に最新に保ってください。**
+
+---
+
+## Lark OpenAPI MCP Enhanced 統合
+
+### 概要
+
+Feishu/Lark プラットフォームとの統合を提供する MCP (Model Context Protocol) サーバーです。
+ドキュメント操作、Bitable管理、メッセージング、カレンダー機能をClaude経由で利用できます。
+
+**Submodule Location**: `integrations/lark-mcp/`  
+**Documentation**: [integrations/lark-mcp/README.md](integrations/lark-mcp/README.md)
+
+### 主な機能
+
+**1. Document Operations**
+- Lark Docの作成・編集・取得
+- ファイルアップロード・ダウンロード
+- Wiki管理
+
+**2. Bitable Management**
+- Bitable (多維表格) の作成・管理
+- テーブル・フィールド操作
+- レコードのCRUD操作
+
+**3. Genesis AI System**
+- 自然言語からBitableアプリを自動生成
+- ERダイアグラム自動作成
+- データベース構造最適化提案
+
+**4. Collaboration Features**
+- メッセージ送信
+- チャット管理
+- カレンダーイベント作成
+
+### セットアップ
+
+#### 1. Lark App作成
+
+1. [Lark Developer Console](https://open.larksuite.com/) にアクセス
+2. 新しいアプリケーションを作成
+3. App ID と App Secret を取得
+4. 必要な権限を設定:
+   - ドキュメント: `docs:read`, `docs:write`
+   - Bitable: `bitable:app`, `bitable:table`, `bitable:record`
+   - メッセージ: `im:message`, `im:chat`
+
+#### 2. 環境変数設定
+
+```bash
+# .env ファイルを作成
+cp .env.example .env
+
+# Lark認証情報を設定
+vim .env
+```
+
+`.env` に以下を追加:
+
+```bash
+# Lark App Credentials
+LARK_APP_ID=cli_xxxxxxxxxx
+LARK_APP_SECRET=xxxxxxxxxxxxxxxx
+LARK_DOMAIN=https://open.feishu.cn
+LARK_LANGUAGE=en
+```
+
+#### 3. MCP Server ビルド
+
+```bash
+# Submoduleを初期化
+git submodule init
+git submodule update
+
+# Lark MCPをビルド
+cd integrations/lark-mcp
+npm install
+npm run build
+cd ../..
+```
+
+#### 4. Claude Desktop 設定
+
+`~/.claude/config.json` (または Claude Desktop設定) に追加:
+
+```json
+{
+  "mcpServers": {
+    "lark-mcp": {
+      "command": "node",
+      "args": [
+        "/path/to/miyabi-private/integrations/lark-mcp/dist/cli.js",
+        "mcp",
+        "--mode", "stdio",
+        "--app-id", "YOUR_LARK_APP_ID",
+        "--app-secret", "YOUR_LARK_APP_SECRET",
+        "--domain", "https://open.feishu.cn",
+        "--tools", "preset.doc.default,preset.base.default"
+      ]
+    }
+  }
+}
+```
+
+または、プロジェクト提供の設定テンプレートを使用:
+
+```bash
+# プロジェクトのMCP設定を参照
+cat .claude/mcp-config.json
+```
+
+### 使用例
+
+#### Document Creation
+
+```
+Claude: "Create a new Lark document titled 'Project Roadmap' with a heading 'Q1 Goals' and bullet points for feature milestones."
+```
+
+#### Bitable Management
+
+```
+Claude: "Create a Bitable named 'Task Tracker' with columns: Task Name (text), Status (single select: Todo/In Progress/Done), Due Date (date), and Assignee (text)."
+```
+
+#### Genesis AI (自然言語からBitable作成)
+
+```
+Claude: "I need a customer management system. Create a Bitable with tables for: Customers (name, email, phone, company), Orders (order ID, date, amount, customer reference), and Products (product name, price, stock quantity). Include relationships between tables."
+```
+
+The Genesis AI will:
+1. Analyze requirements
+2. Design optimal database structure
+3. Create tables with appropriate field types
+4. Set up relationships
+5. Generate ER diagram
+6. Provide optimization suggestions
+
+#### Message Sending
+
+```
+Claude: "Send a message to the 'Development Team' chat: 'Sprint planning meeting at 2 PM today.'"
+```
+
+### 利用可能なツールプリセット
+
+#### `preset.doc.default` - Document Operations
+- `docx.v1.document.create` - ドキュメント作成
+- `docx.v1.document.get` - ドキュメント取得
+- `drive.v1.file.upload` - ファイルアップロード
+- `wiki.v2.space.getNode` - Wiki ノード取得
+
+#### `preset.base.default` - Bitable Operations
+- `bitable.v1.app.list` - Bitableアプリ一覧
+- `bitable.v1.app.create` - Bitableアプリ作成
+- `bitable.v1.appTable.list` - テーブル一覧
+- `bitable.v1.appTableRecord.create` - レコード作成
+
+#### `preset.genesis.full` - Genesis AI System
+- `genesis.builtin.createApp` - AI駆動アプリ作成
+- `genesis.builtin.createTable` - AI駆動テーブル作成
+- `genesis.builtin.createWorkspace` - AI駆動ワークスペース作成
+- `genesis.builtin.analyzeRequirements` - 要件分析
+- `genesis.builtin.generateER` - ER図生成
+
+#### `preset.collab.default` - Collaboration Features
+- `im.v1.message.create` - メッセージ送信
+- `im.v1.chat.create` - チャット作成
+- `calendar.v4.calendar.event.create` - カレンダーイベント作成
+
+### トラブルシューティング
+
+#### "AuthHeader invalid" エラー
+
+**原因**: App ID または App Secret が正しくない
+
+**解決策**:
+1. Lark Developer Consoleで認証情報を確認
+2. `.env` ファイルの設定を確認
+3. 環境変数が正しく読み込まれているか確認
+
+#### "Permission denied" エラー
+
+**原因**: Lark Appに必要な権限が設定されていない
+
+**解決策**:
+1. Lark Developer Consoleで権限設定を確認
+2. 必要な権限を追加
+3. アプリを再公開 (社内使用の場合も)
+
+#### MCP Server が起動しない
+
+**原因**: Node.js バージョンまたは依存関係の問題
+
+**解決策**:
+```bash
+# Node.js バージョン確認 (16.20.0+ 必須)
+node --version
+
+# 依存関係を再インストール
+cd integrations/lark-mcp
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+### Rate Limiting
+
+Lark APIにはレート制限があります。大量の操作を行う場合は注意してください:
+
+- **標準API**: 200 requests/minute
+- **書き込み操作**: 20 requests/minute
+- **管理操作**: 5 requests/minute
+
+プロジェクトのMCP設定には自動レート制限が組み込まれています。
+
+### 関連リンク
+
+- **Lark MCP Repository**: https://github.com/ShunsukeHayashi/lark-openapi-mcp-enhanced
+- **Lark Open Platform**: https://open.larksuite.com/
+- **Lark API Documentation**: https://open.larksuite.com/document/
+- **MCP Specification**: https://modelcontextprotocol.io/
+
+---
+

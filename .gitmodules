@@ -1,3 +1,6 @@
 [submodule "external/context-engineering-mcp"]
 	path = external/context-engineering-mcp
 	url = https://github.com/ShunsukeHayashi/context_engineering_MCP.git
+[submodule "integrations/lark-mcp"]
+	path = integrations/lark-mcp
+	url = https://github.com/ShunsukeHayashi/lark-openapi-mcp-enhanced.git
