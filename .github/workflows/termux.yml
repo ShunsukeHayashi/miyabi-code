@@ -8,8 +8,8 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/termux.yml'
-  pull_request:
-    branches: [ main, develop ]
+  # pull_request:  # Disabled temporarily
+  #   branches: [ main, develop ]
   workflow_dispatch:
 
 env:
