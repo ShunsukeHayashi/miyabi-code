@@ -35,8 +35,25 @@ export interface BoxOptions {
   align?: 'left' | 'center' | 'right';
 }
 
+type OutputMode = 'rich' | 'compact' | 'plain';
+
 export class RichLogger {
   private indentLevel: number = 0;
+  private mode: OutputMode;
+
+  constructor(mode?: OutputMode) {
+    // Detect mode from environment / TTY
+    const envMode = (process.env.CODEX_HIL_STYLE || process.env.MIYABI_OUTPUT || '').toLowerCase();
+    const detected: OutputMode | undefined =
+      envMode === 'compact' ? 'compact' : envMode === 'plain' ? 'plain' : envMode === 'rich' ? 'rich' : undefined;
+
+    // Default: compact on CI or non-TTY; otherwise rich
+    this.mode = mode || detected || (!process.stdout.isTTY || process.env.CI ? 'compact' : 'rich');
+  }
+
+  setMode(mode: OutputMode) {
+    this.mode = mode;
+  }
 
   /**
    * Output raw text (no styling)
@@ -49,6 +66,14 @@ export class RichLogger {
    * Main header (large, gradient)
    */
   header(text: string, useGradient: boolean = true): void {
+    const compact = this.mode !== 'rich';
+    if (compact) {
+      // Minimal header
+      const t = this.mode === 'plain' ? text : chalk.bold(text);
+      console.log(t);
+      console.log(this.mode === 'plain' ? '===='.padEnd(Math.min(60, text.length + 4), '=') : theme.dividers.heavy);
+      return;
+    }
     console.log('');
     if (useGradient) {
       const gradientText = gradient(...theme.colors.gradient)(text);
@@ -64,6 +89,13 @@ export class RichLogger {
    * Sub-header (medium, colored)
    */
   subheader(text: string): void {
+    const compact = this.mode !== 'rich';
+    if (compact) {
+      const t = this.mode === 'plain' ? text : chalk.bold(text);
+      console.log(t);
+      console.log(this.mode === 'plain' ? '-'.repeat(Math.min(60, text.length)) : theme.dividers.light);
+      return;
+    }
     console.log('');
     console.log(chalk.hex(theme.colors.primary).bold(text));
     console.log(theme.dividers.light);
@@ -73,6 +105,12 @@ export class RichLogger {
    * Section header (small, with emoji)
    */
   section(emoji: string, text: string): void {
+    const compact = this.mode !== 'rich';
+    if (compact) {
+      const label = this.mode === 'plain' ? text : chalk.hex(theme.colors.primary).bold(text);
+      console.log(label);
+      return;
+    }
     console.log('');
     console.log(`${emoji} ${chalk.hex(theme.colors.primary).bold(text)}`);
   }
@@ -81,8 +119,8 @@ export class RichLogger {
    * Success message
    */
   success(message: string, options: LogOptions = {}): void {
-    const symbol = logSymbols.success;
-    const styled = chalk.hex(theme.colors.success)(message);
+    const symbol = this.mode === 'plain' ? 'OK' : logSymbols.success;
+    const styled = this.mode === 'plain' ? message : chalk.hex(theme.colors.success)(message);
     this.log(`${symbol} ${styled}`, options);
   }
 
@@ -90,17 +128,19 @@ export class RichLogger {
    * Error message
    */
   error(message: string, error?: Error, options: LogOptions = {}): void {
-    const symbol = logSymbols.error;
-    const styled = chalk.hex(theme.colors.error)(message);
+    const symbol = this.mode === 'plain' ? 'ERR' : logSymbols.error;
+    const styled = this.mode === 'plain' ? message : chalk.hex(theme.colors.error)(message);
     this.log(`${symbol} ${styled}`, options);
 
     if (error) {
       const indent = '  ';
-      console.log(chalk.hex(theme.colors.muted)(`${indent}${error.message}`));
+      const detail = `${indent}${error.message}`;
+      console.log(this.mode === 'plain' ? detail : chalk.hex(theme.colors.muted)(detail));
       if (error.stack) {
         const stackLines = error.stack.split('\n').slice(1, 4); // First 3 lines
         stackLines.forEach((line) => {
-          console.log(chalk.hex(theme.colors.muted)(`${indent}${line.trim()}`));
+          const l = `${indent}${line.trim()}`;
+          console.log(this.mode === 'plain' ? l : chalk.hex(theme.colors.muted)(l));
         });
       }
     }
@@ -110,8 +150,8 @@ export class RichLogger {
    * Warning message
    */
   warning(message: string, options: LogOptions = {}): void {
-    const symbol = logSymbols.warning;
-    const styled = chalk.hex(theme.colors.warning)(message);
+    const symbol = this.mode === 'plain' ? 'WARN' : logSymbols.warning;
+    const styled = this.mode === 'plain' ? message : chalk.hex(theme.colors.warning)(message);
     this.log(`${symbol} ${styled}`, options);
   }
 
@@ -126,8 +166,8 @@ export class RichLogger {
    * Info message
    */
   info(message: string, options: LogOptions = {}): void {
-    const symbol = logSymbols.info;
-    const styled = chalk.hex(theme.colors.info)(message);
+    const symbol = this.mode === 'plain' ? 'INFO' : logSymbols.info;
+    const styled = this.mode === 'plain' ? message : chalk.hex(theme.colors.info)(message);
     this.log(`${symbol} ${styled}`, options);
   }
 
@@ -136,26 +176,26 @@ export class RichLogger {
    */
   agent(agentName: AgentName, message: string, options: LogOptions = {}): void {
     const color = agentColors[agentName] || theme.colors.agent;
-    const emoji = theme.symbols.robot;
-    const agentLabel = chalk.hex(color).bold(agentName);
-    const styled = chalk.white(message);
-    this.log(`${emoji} ${agentLabel}: ${styled}`, options);
+    const label = this.mode === 'plain' ? agentName : chalk.hex(color).bold(agentName);
+    const styled = this.mode === 'plain' ? message : chalk.white(message);
+    const prefix = this.mode === 'rich' ? `${theme.symbols.robot} ` : '';
+    this.log(`${prefix}${label}: ${styled}`, options);
   }
 
   /**
    * Human/Guardian message
    */
   human(message: string, options: LogOptions = {}): void {
-    const emoji = theme.symbols.human;
-    const styled = chalk.hex(theme.colors.human)(message);
-    this.log(`${emoji} ${styled}`, options);
+    const styled = this.mode === 'plain' ? message : chalk.hex(theme.colors.human)(message);
+    const prefix = this.mode === 'rich' ? `${theme.symbols.human} ` : '';
+    this.log(`${prefix}${styled}`, options);
   }
 
   /**
    * Dimmed/muted message
    */
   muted(message: string, options: LogOptions = {}): void {
-    const styled = chalk.hex(theme.colors.muted)(message);
+    const styled = this.mode === 'plain' ? message : chalk.hex(theme.colors.muted)(message);
     this.log(styled, options);
   }
 
@@ -166,9 +206,7 @@ export class RichLogger {
     const indent = theme.spacing.indent.repeat(options.indent || this.indentLevel);
     const prefix = options.prefix ? `${options.prefix} ` : '';
     console.log(`${indent}${prefix}${message}`);
-    if (options.newline) {
-      console.log('');
-    }
+    if (options.newline) console.log('');
   }
 
   /**
@@ -184,6 +222,12 @@ export class RichLogger {
    * Create a box around content
    */
   box(content: string, options: BoxOptions = {}): void {
+    if (this.mode !== 'rich') {
+      const title = options.title ? `[${options.title}]` : '';
+      if (title) console.log(title);
+      console.log(content);
+      return;
+    }
     const boxedContent = boxen(content, {
       padding: options.padding ?? 1,
       margin: options.margin ?? 0,
@@ -200,10 +244,12 @@ export class RichLogger {
    * Start a spinner
    */
   startSpinner(text: string, spinnerType: string = 'dots'): Ora {
+    const isEnabled = this.mode === 'rich' && process.stdout.isTTY && !process.env.CI;
     return ora({
-      text: chalk.hex(theme.colors.info)(text),
+      text: this.mode === 'plain' ? text : chalk.hex(theme.colors.info)(text),
       spinner: spinnerType as any,
       color: 'cyan',
+      isEnabled,
     }).start();
   }
 

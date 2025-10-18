@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CodexMiyabiWorktreeList",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["name", "issue", "path"],
+    "properties": {
+      "name": { "type": "string" },
+      "issue": { "type": ["integer", "null"] },
+      "path": { "type": "string" }
+    },
+    "additionalProperties": true
+  }
+}
+

@@ -1,0 +1,21 @@
+[package]
+name = "codex-miyabi"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Thin CLI to exercise miyabi-integration for Codex × Miyabi Phase 1"
+
+[dependencies]
+clap = { workspace = true, features = ["derive", "cargo", "env"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+miyabi-integration = { path = "../miyabi-integration" }
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+insta = { workspace = true, features = ["json"] }

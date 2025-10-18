@@ -16,7 +16,7 @@
 [![Powered by Claude](https://img.shields.io/badge/Powered%20by-Claude%20AI-5865F2?style=for-the-badge&logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/miyabi)
 
-[🇯🇵 日本語](#日本語) • [🇺🇸 English](#english) • [📖 Docs](https://github.com/ShunsukeHayashi/Miyabi/wiki) • [💬 Discord](https://discord.gg/miyabi) • [🦀 Codex (Subproject)](https://github.com/ShunsukeHayashi/codex)
+[🇯🇵 日本語](#日本語) • [🇺🇸 English](#english) • [📖 Docs](https://github.com/ShunsukeHayashi/Miyabi/wiki) • [🤖 Agents Manual](docs/AGENTS.md) • [💬 Discord](https://discord.gg/miyabi) • [🦀 Codex (Subproject)](https://github.com/ShunsukeHayashi/codex)
 
 </div>
 
@@ -45,6 +45,44 @@ cargo install miyabi-cli  # Coming soon to crates.io
 ```
 
 **📚 Learn More**: [Release Notes](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0) | [Migration Guide](docs/RUST_MIGRATION_REQUIREMENTS.md)
+
+> 🦀 Codex × Miyabi (Phase 1)
+>
+> Minimal Rust CLI `codex-miyabi` is included to validate integration surfaces.
+> Quick smoke:
+>
+> ```bash
+> scripts/smoke-codex-miyabi.sh
+> ```
+>
+> Manual runs:
+>
+> ```bash
+> cargo run -q -p codex-miyabi -- status --json
+> cargo run -q -p codex-miyabi -- agent run --type coordinator --json || true
+> cargo run -q -p codex-miyabi -- worktree list --json
+> ```
+
+Schemas (JSON Schema Draft-07):
+
+- `docs/schemas/codex-miyabi-status.schema.json`
+- `docs/schemas/codex-miyabi-error.schema.json`
+- `docs/schemas/codex-miyabi-worktree-list.schema.json`
+- `docs/schemas/codex-miyabi-worktree-action.schema.json`
+
+Hosted (GitHub Pages, estimated):
+
+- Index: https://shunsukehayashi.github.io/miyabi-private/schemas/
+
+Tests:
+
+- Snapshot tests lock JSON I/F: `cargo test -p codex-miyabi`
+
+### Codex HIL Output Style
+
+- See: `docs/codex/HIL_OUTPUT_STYLE.md`
+  - `CODEX_HIL_STYLE=compact|plain|rich`
+  - Non-TTY/CI → compact, otherwise rich
 
 </div>
 

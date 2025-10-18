@@ -1,0 +1,52 @@
+name: Cargo Insta Review
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Cargo package to accept snapshots for
+        required: true
+        default: codex-miyabi
+      branch:
+        description: Base branch to create snapshot update PR from
+        required: true
+        default: main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-snapshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          toolchain: stable
+          cache-key-prefix: insta-review
+
+      - name: Accept snapshots
+        run: |
+          set -euxo pipefail
+          PKG="${{ github.event.inputs.package }}"
+          cargo insta test -p "$PKG" --accept || true
+          git status --porcelain
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "test(${{ github.event.inputs.package }}): accept updated insta snapshots"
+          title: "test(${{ github.event.inputs.package }}): accept updated insta snapshots"
+          body: |
+            This PR was created automatically to accept updated `insta` snapshots.
+            - Package: `${{ github.event.inputs.package }}`
+            - Triggered by: `${{ github.actor }}`
+          branch: chore/insta-accept-${{ github.event.inputs.package }}
+          delete-branch: true
+

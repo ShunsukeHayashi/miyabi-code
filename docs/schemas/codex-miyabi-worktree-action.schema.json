@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CodexMiyabiWorktreeAction",
+  "type": "object",
+  "required": ["ok", "message", "issue", "worktree"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "message": { "type": "string" },
+    "issue": { "type": ["integer", "null"] },
+    "worktree": {
+      "type": ["object", "null"],
+      "properties": {
+        "name": { "type": "string" },
+        "issue": { "type": ["integer", "null"] },
+        "path": { "type": "string" }
+      },
+      "required": ["name", "issue", "path"],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+

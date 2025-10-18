@@ -1,0 +1,107 @@
+name: Codex Miyabi Smoke
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'crates/codex-miyabi/**'
+      - 'crates/miyabi-integration/**'
+      - 'scripts/smoke-codex-miyabi.sh'
+      - 'docs/schemas/**'
+      - 'README.md'
+      - '.github/workflows/codex-miyabi-smoke.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'crates/codex-miyabi/**'
+      - 'crates/miyabi-integration/**'
+      - 'scripts/smoke-codex-miyabi.sh'
+      - 'docs/schemas/**'
+      - 'README.md'
+      - '.github/workflows/codex-miyabi-smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          toolchain: stable
+          cache-key-prefix: codex-miyabi-smoke
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+        with:
+          cache-key-prefix: codex-miyabi-smoke
+
+      - name: Install jq (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Install jq (macOS)
+        if: runner.os == 'macOS'
+        run: brew install jq
+
+      - name: Install jq (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: choco install jq -y
+
+      - name: Run smoke script (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          set -euxo pipefail
+          mkdir -p artifacts/codex-miyabi/${{ runner.os }}
+          chmod +x scripts/smoke-codex-miyabi.sh
+          # capture JSON outputs for artifact
+          cargo run -q -p codex-miyabi -- status --json | tee artifacts/codex-miyabi/${{ runner.os }}/status.json | jq -e '.ok == true' >/dev/null
+          out=$(cargo run -q -p codex-miyabi -- agent run --type coordinator --json || true)
+          echo "$out" | tee artifacts/codex-miyabi/${{ runner.os }}/agent_run.json | jq -e '.ok == false and (.error|ascii_downcase|contains("not implemented"))' >/dev/null
+          cargo run -q -p codex-miyabi -- worktree list --json | tee artifacts/codex-miyabi/${{ runner.os }}/worktree_list.json | jq -e 'type == "array"' >/dev/null
+          cargo run -q -p codex-miyabi -- worktree create --issue 270 --json | tee artifacts/codex-miyabi/${{ runner.os }}/worktree_create.json | jq -e '.ok == true and .issue == 270' >/dev/null
+          cargo run -q -p codex-miyabi -- worktree cleanup --issue 270 --json | tee artifacts/codex-miyabi/${{ runner.os }}/worktree_cleanup.json | jq -e '.ok == true and .issue == 270' >/dev/null
+          echo "[miyabi] smoke OK (${ { runner.os } })"
+
+      - name: Run smoke (Windows PowerShell)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path artifacts/codex-miyabi/${{ runner.os }} | Out-Null
+          Write-Host "[miyabi] status"
+          $status = cargo run -q -p codex-miyabi -- status --json
+          $status | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/status.json -Encoding utf8
+          $status | jq -e ".ok == true" | Out-Null
+          Write-Host "[miyabi] agent run (NotImplemented)"
+          $agent = cmd /c "cargo run -q -p codex-miyabi -- agent run --type coordinator --json || ver > nul"
+          $agent | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/agent_run.json -Encoding utf8
+          $agent | jq -e ".ok == false and (.error|ascii_downcase|contains(\"not implemented\"))" | Out-Null
+          Write-Host "[miyabi] worktree list/create/cleanup"
+          $wtlist = cargo run -q -p codex-miyabi -- worktree list --json
+          $wtlist | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/worktree_list.json -Encoding utf8
+          $wtlist | jq -e "type == \"array\"" | Out-Null
+          $wtcreate = cargo run -q -p codex-miyabi -- worktree create --issue 270 --json
+          $wtcreate | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/worktree_create.json -Encoding utf8
+          $wtcreate | jq -e ".ok == true and .issue == 270" | Out-Null
+          $wtcleanup = cargo run -q -p codex-miyabi -- worktree cleanup --issue 270 --json
+          $wtcleanup | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/worktree_cleanup.json -Encoding utf8
+          $wtcleanup | jq -e ".ok == true and .issue == 270" | Out-Null
+          Write-Host "[miyabi] smoke OK (Windows)"
+
+      - name: Upload JSON artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-miyabi-json-${{ matrix.os }}
+          path: artifacts/codex-miyabi/${{ runner.os }}
+
+      - name: Show sccache statistics
+        if: always()
+        uses: ./.github/actions/sccache-stats
