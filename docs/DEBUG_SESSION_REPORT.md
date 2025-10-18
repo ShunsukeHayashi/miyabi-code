@@ -398,3 +398,4 @@ let _worktree_info = retry_with_backoff(retry_config, || {
 **Author**: Claude Code (Sonnet 4.5) + Debugging Skill  
 **Next Review**: When worktree re-enabled (estimated 1 week)
 
+
