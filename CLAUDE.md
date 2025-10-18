@@ -1317,3 +1317,440 @@ Lark APIにはレート制限があります。大量の操作を行う場合は
 
 ---
 
+## Lark Wiki MCP Agents 統合
+
+### 概要
+
+Lark/Feishu Wiki空間の完全なコントロールを提供する高度なMCP Agentシステムです。
+5つのコマンドシステム（C1-C5）により、Wiki空間の初期化から権限管理、コンテンツ同期、自動化まで包括的に管理できます。
+
+**Submodule Location**: `integrations/lark-wiki-mcp/`
+**Documentation**: [integrations/lark-wiki-mcp/README.md](integrations/lark-wiki-mcp/README.md)
+
+### 🎯 5つのコアコマンドシステム
+
+**C1 - Wiki Space Controller**
+- Wiki空間の初期化と構造把握
+- 新規Wiki空間の作成
+- セキュリティ設定管理
+- 公開設定の影響分析
+
+**C2 - Node Operations Manager**
+- Wikiノードの作成・移動・コピー・削除
+- 階層構造の管理
+- ノード情報の取得
+- タイトル更新
+
+**C3 - Permission Orchestrator**
+- メンバー管理（追加・削除）
+- 権限の階層的管理
+- 「止めページ」による権限継承の制御
+- 外部ユーザーアクセス制限
+
+**C4 - Content Synchronizer**
+- Wiki内コンテンツ検索
+- ドキュメントの作成・更新
+- **Wiki-Bitable統合** (重要機能)
+- Wiki構造のエクスポート
+
+**C5 - Automation Engine**
+- バッチ操作の実行
+- 定期タスクの自動化
+- Genesis AI統合によるBase自動生成
+- タスク進捗監視
+
+### 主な機能
+
+**1. Wiki-Bitable統合 (Critical Feature)**
+
+WikiノードとBitableアプリケーションの完全統合:
+
+```typescript
+// Critical Token Mapping Pattern
+const nodeInfo = await agent.execute('C2.GET_NODE_INFO', {
+  node_token: 'wiki_node_token'
+});
+
+// obj_token IS the Bitable app_token!
+const app_token = nodeInfo.obj_token;
+
+// Use obj_token for all Bitable operations
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: app_token
+});
+```
+
+**2. セキュリティファースト設計**
+
+- 公開前の影響分析（全サブページを自動チェック）
+- 「止めページ」による権限継承の遮断
+- 外部ユーザーの構造変更権限制限
+- 削除前のバックアップ自動作成
+
+**3. 階層的権限管理**
+
+```
+公開ページ (Internet Public)
+  └─ 内部ページ (Space Members Only)
+       └─ 機密ページ (Admin Only) ← "止めページ"で継承遮断
+```
+
+**4. Genesis AI統合**
+
+自然言語からLark Base アプリケーションを自動生成:
+- 要件分析
+- ERダイアグラム設計
+- テーブル・フィールド自動作成
+- リレーションシップ設定
+
+### セットアップ
+
+#### 1. Wiki Space情報の取得
+
+1. Lark/Feishu Wikiにアクセス
+2. 対象のWiki空間を開く
+3. URLから`space_id`を取得:
+   ```
+   https://example.feishu.cn/wiki/{space_id}
+   ```
+4. ルートノードのURLから`root_node_token`を取得
+
+#### 2. 環境変数設定
+
+`.env` に以下を追加:
+
+```bash
+# Lark App Credentials (既存のLark MCPと共通)
+LARK_APP_ID=cli_xxxxxxxxxx
+LARK_APP_SECRET=xxxxxxxxxxxxxxxx
+
+# Wiki Space Configuration
+WIKI_SPACE_ID=7324483648537755682
+ROOT_NODE_TOKEN=K7xUwSKH0i3fPekyD9ojSsCLpna
+```
+
+#### 3. Wiki MCP ビルド
+
+```bash
+# Submoduleを初期化（未実施の場合）
+git submodule init
+git submodule update
+
+# Wiki MCPをビルド
+cd integrations/lark-wiki-mcp
+npm install
+npm run build
+cd ../..
+```
+
+#### 4. Claude Desktop 設定
+
+`~/.claude/config.json` に追加:
+
+```json
+{
+  "mcpServers": {
+    "lark-wiki-mcp": {
+      "command": "node",
+      "args": [
+        "/path/to/miyabi-private/integrations/lark-wiki-mcp/dist/cli.js",
+        "interactive",
+        "--type", "mcp"
+      ],
+      "env": {
+        "LARK_APP_ID": "YOUR_LARK_APP_ID",
+        "LARK_APP_SECRET": "YOUR_LARK_APP_SECRET",
+        "WIKI_SPACE_ID": "YOUR_WIKI_SPACE_ID",
+        "ROOT_NODE_TOKEN": "YOUR_ROOT_NODE_TOKEN"
+      }
+    }
+  }
+}
+```
+
+または、プロジェクト提供の設定を使用:
+
+```bash
+# プロジェクトのMCP設定を参照
+cat .claude/mcp-config.json
+```
+
+### 使用例
+
+#### C1: Wiki空間の初期化
+
+```
+Claude: "Initialize the Wiki space and show me the complete structure."
+
+Agent executes:
+- C1.INITIALIZE
+- Scans entire Wiki tree
+- Maps all nodes and permissions
+- Returns hierarchical structure
+```
+
+#### C2: Wikiノードの作成
+
+```
+Claude: "Create a new Wiki page titled 'Project Documentation' under the '2025' folder as a Lark Doc."
+
+Agent executes:
+- C2.CREATE_NODE with params:
+  - title: "Project Documentation"
+  - obj_type: "docx"
+  - parent_node_token: "IZoWwN1Esi7LaWkkbZXj9Kp1pid"
+```
+
+#### C3: 権限管理
+
+```
+Claude: "Add user john@company.com as an editor to the 'Internal Documents' page. Ensure all sub-pages inherit this permission."
+
+Agent executes:
+- C3.ADD_MEMBER
+- Validates hierarchical permission inheritance
+- Checks for "stopper pages" that break inheritance
+```
+
+#### C4: Wiki-Bitable統合
+
+```
+Claude: "Get the Bitable app linked to the '[MCP Demo] AI-BPO事業管理システム' Wiki node and list all tables."
+
+Agent executes:
+1. C2.GET_NODE_INFO to get node info
+2. Extract obj_token (this IS the app_token)
+3. Call bitable.v1.appTable.list with obj_token
+4. Return all tables and their structures
+```
+
+#### C5: バッチ操作と自動化
+
+```
+Claude: "Create 5 new Wiki pages for project phases under 'Project Documentation', with titles 'Phase 1' through 'Phase 5'."
+
+Agent executes:
+- C5.BATCH_OPERATIONS
+- Loops 5 times with C2.CREATE_NODE
+- Validates each creation
+- Returns summary of all created nodes
+```
+
+### コマンドリファレンス
+
+#### C1 Commands
+
+| Command | Description | Parameters |
+|---------|-------------|------------|
+| `C1.INITIALIZE` | Wiki空間の初期化と構造ロード | None |
+| `C1.CREATE_SPACE` | 新規Wiki空間作成 | `name`, `description`, `open_sharing` |
+| `C1.GET_SPACE_INFO` | 空間情報取得 | `space_id` (optional) |
+| `C1.LIST_SPACES` | アクセス可能な全空間リスト | `page_size`, `page_token` |
+| `C1.UPDATE_SETTINGS` | 空間設定更新 | `security_setting`, `comment_setting` |
+
+#### C2 Commands
+
+| Command | Description | Parameters |
+|---------|-------------|------------|
+| `C2.CREATE_NODE` | 新規Wikiノード作成 | `title`, `obj_type`, `parent_node_token` |
+| `C2.LIST_NODES` | 子ノード一覧取得 | `parent_node_token`, `page_size` |
+| `C2.MOVE_NODE` | ノード移動 | `node_token`, `target_parent_token` |
+| `C2.COPY_NODE` | ノードコピー | `node_token`, `target_parent_token`, `title` |
+| `C2.UPDATE_TITLE` | ノードタイトル更新 | `node_token`, `title` |
+| `C2.GET_NODE_INFO` | ノード情報取得 | `node_token`, `obj_type` |
+
+#### C3 Commands
+
+| Command | Description | Parameters |
+|---------|-------------|------------|
+| `C3.LIST_MEMBERS` | 空間メンバー一覧 | `space_id`, `page_size` |
+| `C3.ADD_MEMBER` | メンバー追加 | `member_type`, `member_id`, `member_role` |
+| `C3.REMOVE_MEMBER` | メンバー削除 | `member_type`, `member_id` |
+| `C3.UPDATE_PERMISSIONS` | 権限更新 | `node_token`, `member_id`, `permission` |
+
+#### C4 Commands
+
+| Command | Description | Parameters |
+|---------|-------------|------------|
+| `C4.SEARCH_WIKI` | Wikiコンテンツ検索 | `query`, `parent_node_token` |
+| `C4.GET_DOCUMENT_CONTENT` | ドキュメント内容取得 | `document_id` |
+| `C4.CREATE_DOCUMENT` | 新規ドキュメント作成 | `folder_token`, `title`, `content` |
+| `C4.UPDATE_DOCUMENT` | ドキュメント更新 | `document_id`, `block_id`, `content` |
+| `C4.WIKI_TO_BITABLE` | WikiからBitableへ変換 | `wiki_node_token` |
+
+#### C5 Commands
+
+| Command | Description | Parameters |
+|---------|-------------|------------|
+| `C5.CREATE_TASK` | 自動化タスク作成 | `node_token`, `task_type`, `task_params` |
+| `C5.GET_TASK` | タスクステータス取得 | `task_id`, `task_type` |
+| `C5.BATCH_OPERATIONS` | バッチ操作実行 | `operations` (array) |
+| `C5.GENESIS_CREATE` | Genesis AIで作成 | `requirements`, `app_token`, `template` |
+
+### Critical Implementation Details
+
+#### Wiki-Bitable Token Mapping (最重要)
+
+```typescript
+// CORRECT Pattern - Always use this
+const nodeInfo = await agent.execute('C2.GET_NODE_INFO', {
+  node_token: 'JkKnwgeSViU4QWkj7FPj3dUGpVh' // Wiki node
+});
+
+// obj_token IS the Bitable app_token
+const app_token = nodeInfo.obj_token; // N4p3bChGhajodqs96chj5UDXpRb
+
+// Now use app_token for Bitable operations
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: app_token // Use obj_token here
+});
+```
+
+**Common Error**: `NOTEXIST_error: app_token not found`
+- **Cause**: Using `wiki_node_token` directly as `app_token`
+- **Fix**: Always get `obj_token` from `wiki.v2.space.getNode` first
+
+#### Permission Inheritance & "Stopper Pages"
+
+```
+Root Node (Public)
+  ├─ Public Page 1
+  │    └─ Public Page 1-1 (inherits public)
+  └─ [Internal Only] 止めページ ← Breaks inheritance chain
+       └─ Confidential Page (members only, NOT public)
+```
+
+**Creating a Stopper Page**:
+```typescript
+await agent.execute('C2.CREATE_NODE', {
+  title: '[Internal Only] Permission Boundary',
+  parent_token: 'parent_node',
+  permissions: 'SPACE_MEMBERS_ONLY' // Breaks inheritance
+});
+```
+
+### Security Safeguards
+
+**NEVER** (自動で防止):
+- 機密データを承認なしで公開
+- 外部ユーザーに構造変更権限を付与
+- バックアップなしで削除
+- 影響分析なしでインターネット公開
+
+**ALWAYS** (自動で実施):
+- 全操作前に権限検証
+- セキュリティ関連操作のログ記録
+- シークレットウィンドウでの権限変更テスト
+- 公開範囲の影響分析（全サブページチェック）
+
+### Execution Control
+
+**Run All Commands**:
+```
+Claude: "RUN ALL"
+→ Executes C1 && C2 && C3 && C4 && C5 sequentially
+```
+
+**Run Specific Command**:
+```
+Claude: "Run C1"
+→ Executes all C1 commands
+```
+
+**Run Command Chain**:
+```
+Claude: "Run C1 C3"
+→ Executes C1 first, then C3
+```
+
+### トラブルシューティング
+
+#### "NOTEXIST: app_token not found" エラー
+
+**原因**: WikiノードトークンをBitableのapp_tokenとして直接使用
+
+**解決策**:
+```typescript
+// WRONG
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: 'JkKnwgeSViU4QWkj7FPj3dUGpVh' // This is wiki_node_token!
+});
+
+// CORRECT
+const nodeInfo = await agent.execute('C2.GET_NODE_INFO', {
+  node_token: 'JkKnwgeSViU4QWkj7FPj3dUGpVh'
+});
+const app_token = nodeInfo.obj_token;
+const tables = await callMCPTool('bitable.v1.appTable.list', {
+  app_token: app_token // Use obj_token
+});
+```
+
+#### "Permission Denied" エラー
+
+**原因**: Wiki空間またはノードへのアクセス権限不足
+
+**解決策**:
+1. Lark管理画面で権限を確認
+2. Wiki空間にメンバーとして追加されているか確認
+3. Lark Appに必要な権限が付与されているか確認:
+   - `wiki:read`
+   - `wiki:write`
+   - `bitable:app`
+
+#### "FieldNameNotFound" エラー
+
+**原因**: Bitableフィールド名が不正確（絵文字・スペース含む）
+
+**解決策**:
+```bash
+# フィールド一覧を取得し、正確な名前をコピー
+C2.GET_NODE_INFO → obj_token取得
+bitable.v1.appTableField.list → 完全なfield_nameをコピー
+```
+
+#### MCP Server 起動失敗
+
+**解決策**:
+```bash
+# Node.js バージョン確認 (16.20.0+ 必須)
+node --version
+
+# 依存関係を再インストール
+cd integrations/lark-wiki-mcp
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+
+# lark-openapi-mcp-enhancedも必要
+cd ../lark-mcp
+npm install
+npm run build
+```
+
+### Rate Limiting
+
+Wiki MCPはLark OpenAPI MCP Enhancedに依存し、同じレート制限が適用されます:
+
+- **標準API**: 200 requests/minute
+- **書き込み操作**: 20 requests/minute
+- **管理操作**: 5 requests/minute
+
+自動レート制限とリトライロジックが組み込まれています。
+
+### Known Limitations
+
+1. **Genesis System**: Lark Base の適切な権限が必要
+2. **External Users**: 外部ユーザーの権限管理に制限あり
+3. **Permission Scope**: 一部の操作は管理者権限が必要
+4. **Large Trees**: 1000+ ノードの大規模Wiki空間では初期化に時間がかかる
+
+### 関連リンク
+
+- **Lark Wiki MCP Repository**: https://github.com/ShunsukeHayashi/lark-wiki-mcp-agents
+- **Lark Open Platform**: https://open.larksuite.com/
+- **Wiki API Documentation**: https://open.larksuite.com/document/server-docs/docs/wiki-v2/wiki-overview
+- **Bitable API Documentation**: https://open.larksuite.com/document/server-docs/docs/bitable-v1/bitable-overview
+
+---
+

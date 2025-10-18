@@ -35,6 +35,23 @@
         "GENESIS_ENABLED": "true"
       },
       "description": "Lark Genesis AI System - AI-powered Bitable application creation from natural language"
+    },
+    "lark-wiki-mcp": {
+      "command": "node",
+      "args": [
+        "./integrations/lark-wiki-mcp/dist/cli.js",
+        "interactive",
+        "--type", "mcp"
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info",
+        "LARK_APP_ID": "${LARK_APP_ID}",
+        "LARK_APP_SECRET": "${LARK_APP_SECRET}",
+        "WIKI_SPACE_ID": "${WIKI_SPACE_ID}",
+        "ROOT_NODE_TOKEN": "${ROOT_NODE_TOKEN}"
+      },
+      "description": "Lark Wiki MCP Agents - 5 command systems (C1-C5) for comprehensive Wiki space control: initialize, manage nodes, permissions, content sync, and automation"
     }
   }
 }
