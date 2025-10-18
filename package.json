@@ -20,7 +20,8 @@
     "fmt:rust": "cargo fmt",
     "mcp:diagnose": "node scripts/test-mcp.sh diagnose",
     "mcp:test": "node scripts/test-mcp.sh all",
-    "mcp:monitor": "node scripts/test-mcp.sh monitor"
+    "mcp:monitor": "node scripts/test-mcp.sh monitor",
+    "test:discord-notifications": "tsx packages/coding-agents/hooks/examples/discord-notification-example.ts"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
