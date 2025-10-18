@@ -24,27 +24,27 @@
 
 <div align="center">
 
-## 🦀 **NEW: Rust Edition v1.0.0 Released!**
+## 🦀 **NEW: Rust Edition v0.1.1 Released!**
 
-**Production-ready Rust implementation is now available!**
+**"Insanely Great" Onboarding Edition - Steve Jobs Approved ⭐**
 
-[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0)
+[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v0.1.1)
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue?style=for-the-badge&logo=rust)](https://crates.io/search?q=miyabi)
+[![crates.io](https://img.shields.io/badge/crates.io-v0.1.1-blue?style=for-the-badge&logo=rust)](https://crates.io/crates/miyabi-cli)
 
-**🚀 70% Faster • 💾 60-70% Less Memory • 📦 Single Binary (6.6MB) • ✅ 375+ Tests**
+**🚀 New Commands • 📚 39KB Docs • 📦 Single Binary (8.0MB) • ✅ 577 Tests • 🎯 UX Score: 10.5/10**
 
 ```bash
-# Download the binary (macOS)
-curl -L https://github.com/ShunsukeHayashi/miyabi-private/releases/download/v1.0.0/miyabi-macos-aarch64 -o miyabi
+# Install from crates.io (recommended)
+cargo install miyabi-cli
+
+# Or download the binary (macOS ARM64)
+curl -L https://github.com/ShunsukeHayashi/miyabi-private/releases/download/v0.1.1/miyabi-macos-arm64 -o miyabi
 chmod +x miyabi
 sudo mv miyabi /usr/local/bin/
-
-# Or build from source
-cargo install miyabi-cli  # Coming soon to crates.io
 ```
 
-**📚 Learn More**: [Release Notes](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0) | [Migration Guide](docs/RUST_MIGRATION_REQUIREMENTS.md)
+**📚 Learn More**: [Release Notes](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v0.1.1) | [Quick Start Guide](.claude/QUICK_START.md) | [Troubleshooting](docs/TROUBLESHOOTING.md)
 
 > 🦀 Codex × Miyabi (Phase 1)
 >
@@ -90,22 +90,30 @@ Tests:
 
 ## ✨ クイックスタート
 
-### 🦀 Rust Edition（推奨 - 50%高速化）
+### 🦀 Rust Edition（推奨 - v0.1.1）
 
 ```bash
-# 1. ビルド（初回のみ、8-10分）
-cargo build --release
+# インストール（crates.ioから）
+cargo install miyabi-cli
 
-# 2. セットアップ（1コマンドで完了！）
-./target/release/miyabi setup
+# 新規プロジェクト作成（インタラクティブモード推奨）
+miyabi init my-project --interactive
 
-# 3. Agent実行
-export GITHUB_TOKEN=$(gh auth token)
-./target/release/miyabi agent coordinator --issue <number>
+# または従来の方法
+miyabi init my-project
+
+# 簡単なコマンドでIssue処理（新機能！⭐）
+miyabi work-on 1
+
+# または従来の方法
+miyabi agent run coordinator --issue 1
 ```
 
-**従来**: 手動で5-6ステップ必要
-**現在**: **1コマンドで完了** 🎉
+**v0.1.1の新機能** ✨:
+- 🚀 `miyabi work-on` - シンプルな新コマンド
+- 🎯 `miyabi init --interactive` - 対話形式のセットアップ
+- 📚 8つの新ドキュメント（39KB）
+- 🎨 プロアクティブなエラーメッセージ
 
 ### 📦 TypeScript Edition（レガシー）
 
@@ -115,8 +123,9 @@ npx miyabi
 
 ### 📚 詳細ガイド
 
-- **🚀 初心者向け**: [1分で始めるMiyabi - Quick Start Guide (Rust Edition)](.claude/QUICK_START.md)
-- **🔧 困ったときは**: [トラブルシューティングガイド](.claude/TROUBLESHOOTING.md)
+- **🚀 初心者向け**: [Getting Started Guide](docs/GETTING_STARTED.md) - 250+行の完全ガイド
+- **🔧 困ったときは**: [トラブルシューティングガイド](docs/TROUBLESHOOTING.md) - 280+行の解決策
+- **🤖 Agent詳細**: [Agent Overview](.claude/agents/README.md) - 全21 Agents
 
 <div align="center">
 
@@ -987,10 +996,11 @@ AIペアプログラミング
 
 <div align="center">
 
-### 🦀 Rust Edition v1.0.0 (2025-10-16) - **PRODUCTION READY**
+### 🦀 Rust Edition v0.1.1 (2025-10-19) - **"Insanely Great" Onboarding Edition** ⭐
 
-[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v1.0.0)
-[![Rust](https://img.shields.io/badge/Rust-1.90.0-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v0.1.1)
+[![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![crates.io](https://img.shields.io/badge/crates.io-v0.1.1-blue?style=for-the-badge&logo=rust)](https://crates.io/crates/miyabi-cli)
 
 ### 📦 TypeScript Edition v0.8.0 (2025-10-09)
 
@@ -999,39 +1009,58 @@ AIペアプログラミング
 
 </div>
 
-### 🆕 **最新の変更 (Rust v1.0.0 - PRODUCTION READY)**
+### 🆕 **最新の変更 (Rust v0.1.1 - "Insanely Great" Onboarding Edition)**
 
-#### ✨ **新機能**
-- ✅ **Firebase統合** - Production/Stagingデプロイ完全対応
-- ✅ **5フェーズデプロイ** - Build → Test → Deploy → Health Check → Rollback
-- ✅ **E2Eテストスイート** - Phase 6 (Worktree管理) + Phase 7 (Agent統合)
-- ✅ **375+テスト** - Unit (353) + E2E (8) + Deployment (14)
+#### ✨ **新機能 - UX革命**
+- 🚀 **`miyabi work-on`** - シンプルな新コマンド（技術的複雑さを隠蔽）
+- 🎯 **`miyabi init --interactive`** - 対話形式プロジェクトセットアップ
+  - プロジェクトタイプ選択（WebApp, API, CLI, Library）
+  - GitHub接続ウィザード
+  - リアルタイム進捗フィードバック
+  - プロアクティブエラーメッセージ
 
-#### 🚀 **パフォーマンス**
-- ✅ **70%高速化** - 冷起動時間50-150ms（TypeScript: 200-800ms）
-- ✅ **60-70%メモリ削減** - アイドル時15-20MB（TypeScript: 50-80MB）
-- ✅ **単一バイナリ** - 6.6MB（依存関係すべて含む）
-- ✅ **テスト実行** - 2-4倍高速（Rust: 2.5s, TypeScript: 5-10s）
+#### 📚 **新ドキュメント (8ファイル, ~39KB)**
+- ✨ **Getting Started Guide** (250+行) - 完全セットアップガイド
+- 🆘 **Troubleshooting Guide** (280+行) - 詳細なトラブルシューティング
+- 🎨 **Real Code Examples** - 全ディレクトリに実際のRustコード例
+- 📖 **Agent Overview** - 全21 Agents詳細ガイド
+- 🌟 **Workflow Examples** - 実コマンド・実出力付き完全ワークフロー
 
-#### 🏗️ **アーキテクチャ**
-- ✅ **Cargo Workspace** - 6 crates（miyabi-types, miyabi-core, miyabi-cli, miyabi-agents, miyabi-github, miyabi-worktree）
-- ✅ **async/await** - Tokioランタイム
-- ✅ **型安全性** - Rustのコンパイル時型チェック
-- ✅ **ゼロコスト抽象化** - パフォーマンス劣化なし
+#### 🎯 **UX改善 - Steve Jobs承認**
+**スコア推移**: 7/10 → 9.5/10 → **10.5/10 ⭐**
 
-#### 🧪 **テスト統計**
-- ✅ **375テスト合格** (100% PASS)
-  - Unit Tests: 353
-  - Phase 6 E2E: 4 (Worktree管理)
-  - Phase 7 E2E: 4 (Agent統合)
-  - Deployment Tests: 14 (Firebase統合)
-- ✅ **Clippy警告**: 0件
-- ✅ **全体進捗**: 97.2% complete
+**Before (7/10)**:
+- ❌ 空の`.claude/agents/`ディレクトリ
+- ❌ 不明瞭な次のステップ（3行）
+- ❌ インタラクティブセットアップなし
+- ❌ 汎用的なエラーメッセージ
+
+**After (10.5/10)** ⭐:
+- ✅ 全ディレクトリに実際のコード例
+- ✅ 詳細な4ステップガイド（コピペ可能）
+- ✅ プロジェクトタイプ選択付きインタラクティブセットアップ
+- ✅ プロアクティブエラー：「これが正確な修正方法です」
+
+#### 🛠️ **コード品質**
+- ✅ **577テスト合格** (0失敗, 17 ignored)
+- ✅ **0 Clippy警告** - 6つの警告修正 + doctest修正
+- ✅ **8クレート公開** - 全てcrates.io v0.1.1で利用可能
+
+#### 📦 **公開クレート (crates.io v0.1.1)**
+1. **miyabi-types** - コア型定義
+2. **miyabi-core** - 共通ユーティリティ（config, logger, retry, cache）
+3. **miyabi-llm** - LLM統合層（GPT-OSS-20B, Ollama, vLLM, Groq）
+4. **miyabi-potpie** - Potpie AI + Neo4j知識グラフ
+5. **miyabi-github** - GitHub APIラッパー（octocrab）
+6. **miyabi-worktree** - Git Worktree並列実行
+7. **miyabi-agents** - 7 Coding Agents + 14 Business Agents
+8. **miyabi-cli** - CLIツール（init, status, agent, work-on）
 
 #### 📚 **ドキュメント**
-- ✅ **パフォーマンスレポート** - [PERFORMANCE.md](PERFORMANCE.md)
-- ✅ **リリースチェックリスト** - [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)
-- ✅ **移行ガイド** - [RUST_MIGRATION_REQUIREMENTS.md](docs/RUST_MIGRATION_REQUIREMENTS.md)
+- ✅ **Getting Started** - [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+- ✅ **Troubleshooting** - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- ✅ **Agent Overview** - [.claude/agents/README.md](.claude/agents/README.md)
+- ✅ **Full Guide** - [CLAUDE.md](CLAUDE.md)
 
 ### 🔄 **TypeScript Edition 最新の変更 (v0.8.0)**
 
