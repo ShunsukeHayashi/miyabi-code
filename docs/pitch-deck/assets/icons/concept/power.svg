@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 64 64">
+  <!-- Energy/power represented by 3 radiating lines - minimal -->
+  <path stroke="#111827" stroke-linecap="round" stroke-width="1.5"
+        d="M32 18v8M32 38v8M22 28l6 4M42 36l-6-4M22 36l6-4M42 28l-6 4"/>
+  <!-- Central energy core -->
+  <circle cx="32" cy="32" r="6" stroke="#111827" stroke-width="1.5" fill="none"/>
+</svg>

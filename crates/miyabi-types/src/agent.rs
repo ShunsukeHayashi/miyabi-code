@@ -26,7 +26,7 @@ pub enum EscalationTarget {
     DevOps,
 }
 
-/// Agent types (9 coding agents + 14 business agents)
+/// Agent types (9 coding agents + 14 business agents + 1 community agent)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum AgentType {
     // Coding Agents (9)
@@ -55,6 +55,9 @@ pub enum AgentType {
     SalesAgent,
     CRMAgent,
     AnalyticsAgent,
+
+    // Community Agents (1)
+    DiscordCommunity,
 }
 
 impl AgentType {
@@ -87,6 +90,9 @@ impl AgentType {
             AgentType::SalesAgent => "sales",
             AgentType::CRMAgent => "crm",
             AgentType::AnalyticsAgent => "analytics",
+
+            // Community Agents
+            AgentType::DiscordCommunity => "discord-community",
         }
     }
 }

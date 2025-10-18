@@ -25,6 +25,11 @@
   - 色分けルール定義
   - 並列実行ルール
 
+- **[WORKFLOW_INDEX.md](WORKFLOW_INDEX.md)** - Agent-based workflow統合カタログ ⭐
+  - 再利用可能なワークフロー定義
+  - 複数Agent協調プロセス
+  - 使用方法とガイドライン
+
 ### 色分けルール
 
 | 色 | 意味 | キャラ数 | 並列実行 | 例 |
@@ -53,6 +58,8 @@
 
 ```
 .claude/agents/
+├── WORKFLOW_INDEX.md      # Agent-based workflow統合カタログ ⭐
+│
 ├── specs/                  # Agent仕様書（役割・権限・エスカレーション条件）
 │   ├── coding/            # コーディング・開発運用系Agent（7個）
 │   │   ├── README.md
@@ -69,6 +76,7 @@
 │       ├── ai-entrepreneur-agent.md
 │       ├── product-concept-agent.md
 │       ├── product-design-agent.md
+│       ├── jonathan-ive-design-agent.md
 │       ├── funnel-design-agent.md
 │       ├── persona-agent.md
 │       ├── self-analysis-agent.md

@@ -74,8 +74,6 @@ pub use client::ClaudeClient;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_crate_compiles() {
         // Basic compilation test

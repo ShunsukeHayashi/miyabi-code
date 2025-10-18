@@ -6,6 +6,7 @@ pub mod codegen;
 pub mod coordinator;
 pub mod coordinator_with_llm;
 pub mod deployment;
+pub mod discord_community;
 pub mod hooks;
 pub mod issue;
 pub mod parallel;
@@ -16,5 +17,6 @@ pub mod review;
 
 pub use base::BaseAgent;
 pub use coordinator_with_llm::CoordinatorAgentWithLLM;
+pub use discord_community::DiscordCommunityAgent;
 pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 pub use potpie_integration::PotpieIntegration;

@@ -15,6 +15,7 @@
 - **[ENTITY_RELATION_MODEL.md](docs/ENTITY_RELATION_MODEL.md)** - 12種類のEntity定義と27の関係性マップ ⭐⭐⭐
 - **[TEMPLATE_MASTER_INDEX.md](docs/TEMPLATE_MASTER_INDEX.md)** - 88ファイルの統合テンプレートインデックス ⭐⭐⭐
 - **[LABEL_SYSTEM_GUIDE.md](docs/LABEL_SYSTEM_GUIDE.md)** - 53ラベル体系完全ガイド ⭐⭐⭐
+- **[WORKFLOW_INDEX.md](.claude/agents/WORKFLOW_INDEX.md)** - Agent-based workflow統合カタログ ⭐⭐⭐
 
 ## アーキテクチャ
 
@@ -52,6 +53,7 @@ TypeScript版からの完全移植により、以下を実現：
    - `specs/business/` - ビジネス系Agent仕様（14個）
    - `prompts/coding/` - コーディング系実行プロンプト（6個）
    - `prompts/business/` - ビジネス系実行プロンプト（将来追加）
+   - [WORKFLOW_INDEX.md](.claude/agents/WORKFLOW_INDEX.md) - Agent-based workflow統合カタログ
 
    **Rust Crates**:
    - `miyabi-agents` - 全Agent実装（BaseAgent trait + 7 Coding Agents）
@@ -189,13 +191,126 @@ TypeScript版からの完全移植により、以下を実現：
 
 ```
 crates/
-├── miyabi-types/       # コア型定義（Agent, Task, Issue等）
-├── miyabi-core/        # 共通ユーティリティ（config, logger）
-├── miyabi-cli/         # CLIツール (bin)
-├── miyabi-agents/      # Agent実装（Coordinator, CodeGen等）
-├── miyabi-github/      # GitHub API統合
-└── miyabi-worktree/    # Git Worktree管理
+├── miyabi-types/             # コア型定義（Agent, Task, Issue等）
+├── miyabi-core/              # 共通ユーティリティ（config, logger）
+├── miyabi-cli/               # CLIツール (bin)
+├── miyabi-agents/            # Agent実装（Coordinator, CodeGen等）
+├── miyabi-business-agents/   # ビジネスAgent実装（14個）
+├── miyabi-github/            # GitHub API統合
+├── miyabi-worktree/          # Git Worktree管理
+├── miyabi-llm/               # LLM抽象化層（GPT-OSS-20B）
+├── miyabi-potpie/            # Neo4j知識グラフ統合
+└── miyabi-mcp-server/        # JSON-RPC 2.0 MCPサーバー
 ```
+
+#### miyabi-llm - LLM抽象化層
+
+**目的**: 複数のLLMプロバイダー（vLLM, Ollama, Groq）を統一インターフェースで利用
+
+**主な機能**:
+- **Provider abstraction**: 統一トレイト `LLMProvider` ですべてのプロバイダーをラップ
+- **GPT-OSS-20B support**: OpenAIの20Bパラメータモデルをネイティブサポート
+- **Multiple backends**:
+  - **Groq**: クラウドAPI（高速推論）
+  - **vLLM**: セルフホスト型（Mac miniで実行）
+  - **Ollama**: ローカル実行（開発環境）
+- **Reasoning levels**: `Low` / `Medium` / `High` の推論努力レベル
+- **Function calling**: 構造化された関数呼び出しサポート
+
+**使用例**:
+```rust
+use miyabi_llm::{GPTOSSProvider, LLMRequest, ReasoningEffort};
+
+let provider = GPTOSSProvider::new_groq("gsk_xxxxx")?;
+let request = LLMRequest {
+    prompt: "Write a Rust function to calculate factorial".to_string(),
+    temperature: 0.2,
+    max_tokens: 512,
+    reasoning_effort: ReasoningEffort::Medium,
+};
+let response = provider.generate(&request).await?;
+```
+
+#### miyabi-potpie - Neo4j知識グラフ統合
+
+**目的**: Potpie AIのNeo4j知識グラフとRAGエンジンを活用してAgent精度を向上
+
+**主な機能**:
+- **8 Tool APIs**: Potpieの全機能をカバー
+- **Semantic search**: コード構造の意味的検索
+- **Dependency tracking**: 依存関係の追跡と影響分析
+- **Change impact analysis**: 変更箇所の影響範囲を自動検出
+- **AST parsing**: 抽象構文木の解析と分析
+- **Automatic fallback**: Potpie利用不可時はGitにフォールバック
+
+**Agent統合**:
+- **CodeGenAgent**: 既存パターンの検索、依存関係追跡
+- **ReviewAgent**: 変更検出、影響分析、影響を受けるテスト検出
+- **CoordinatorAgent**: 依存関係を考慮したタスク分解
+
+**使用例**:
+```rust
+use miyabi_potpie::{PotpieClient, PotpieConfig};
+
+let config = PotpieConfig {
+    api_url: "http://localhost:8000".to_string(),
+    auth_token: Some("your-token".to_string()),
+    ..Default::default()
+};
+let client = PotpieClient::new(config)?;
+let results = client.semantic_search("authentication logic", Some(5)).await?;
+```
+
+#### miyabi-business-agents - ビジネスAgent実装
+
+**目的**: SaaS運営のための14個の専門ビジネスAgent
+
+**Agent構成**:
+- **戦略・企画系（6個）**: AIEntrepreneur, ProductConcept, ProductDesign, FunnelDesign, Persona, SelfAnalysis
+- **マーケティング系（5個）**: MarketResearch, Marketing, ContentCreation, SNSStrategy, YouTube
+- **営業・顧客管理系（3個）**: Sales, CRM, Analytics
+
+**共通トレイト**: `BusinessAgent`
+- `generate_business_plan()` - ビジネスプラン生成
+- `validate()` - 品質検証（100点満点スコアリング）
+- `execute_phase()` - フェーズ別実行
+
+**使用例**:
+```rust
+use miyabi_business_agents::strategy::AIEntrepreneurAgent;
+use miyabi_types::BusinessInput;
+
+let agent = AIEntrepreneurAgent::new();
+let input = BusinessInput {
+    industry: "SaaS".to_string(),
+    target_market: "SMB developers".to_string(),
+    budget: 50_000,
+};
+let plan = agent.generate_business_plan(&input).await?;
+```
+
+#### miyabi-mcp-server - JSON-RPC 2.0 MCPサーバー
+
+**目的**: Model Context Protocol（MCP）によるAgent実行機能の言語非依存統合
+
+**プロトコル**: JSON-RPC 2.0 over stdio/HTTP
+
+**サポートメソッド**:
+- **Agent実行**: `agent.coordinator.execute`, `agent.codegen.execute`, `agent.review.execute`, `agent.deploy.execute`, `agent.pr.execute`, `agent.issue.execute`
+- **GitHub操作**: `github.issue.get`, `github.issue.list`, `github.pr.create`
+- **Health & Status**: `server.health`, `server.version`
+
+**Transport modes**:
+- **stdio**: 標準入出力（CLI統合向け）
+- **HTTP**: HTTPサーバー（リモートアクセス向け）
+
+**使用例**:
+```bash
+# Codex CLI統合
+echo '{"jsonrpc":"2.0","id":1,"method":"agent.coordinator.execute","params":{"issue_number":270}}' | miyabi-mcp-server --mode stdio
+```
+
+---
 
 **レガシー TypeScript版** (参考):
 - `packages/`: NPMパッケージ（Rust移行中）

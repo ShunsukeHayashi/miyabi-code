@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 48 48">
+  <!-- Small stall/cart - 3 lines representation -->
+  <path stroke="#111827" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M12 18h24l-2 10H14zM16 28v8M32 28v8"/>
+</svg>
