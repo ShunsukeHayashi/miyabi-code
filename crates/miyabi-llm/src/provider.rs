@@ -57,7 +57,7 @@ impl GPTOSSProvider {
         }
 
         let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(300)) // 5 minutes timeout
+            .timeout(Duration::from_secs(120)) // 2 minutes timeout for LLM generation
             .build()
             .map_err(|e| LLMError::Unknown(format!("Failed to create HTTP client: {}", e)))?;
 
@@ -66,7 +66,7 @@ impl GPTOSSProvider {
             api_key,
             model: "openai/gpt-oss-20b".to_string(),
             client,
-            timeout: Duration::from_secs(300), // 5 minutes timeout
+            timeout: Duration::from_secs(120), // 2 minutes timeout for LLM generation
         })
     }
 

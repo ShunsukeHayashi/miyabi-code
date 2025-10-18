@@ -1,6 +1,6 @@
 use clap::Parser;
 use dotenv::dotenv;
-use miyabi_discord_mcp_server::{DiscordClient, rpc::RpcHandler};
+use miyabi_discord_mcp_server::{DiscordClient, rpc::RpcHandler, DiscordMcpError};
 use std::env;
 use std::sync::Arc;
 use tracing_subscriber;
@@ -42,8 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .token
         .or_else(|| env::var("DISCORD_BOT_TOKEN").ok())
         .ok_or_else(|| {
-            Box::<dyn std::error::Error>::from(
-                "DISCORD_BOT_TOKEN not found in environment or args",
+            DiscordMcpError::Internal(
+                "DISCORD_BOT_TOKEN not found in environment or args".to_string(),
             )
         })?;
 
@@ -59,12 +59,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(false) => tracing::warn!("⚠ Discord API connection failed"),
         Err(e) => {
             tracing::error!("✗ Discord API health check error: {}", e);
-            return Err(Box::new(e));
+            return Err(Box::new(e) as Box<dyn std::error::Error>);
         }
     }
 
     // JSON-RPC 2.0ハンドラー初期化
-    let rpc_handler = RpcHandler::new(Arc::clone(&discord_client));
+    let _rpc_handler = RpcHandler::new(Arc::clone(&discord_client));
 
     match args.mode.as_str() {
         "stdio" => {
@@ -86,9 +86,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         _ => {
             tracing::error!("Invalid mode: {}", args.mode);
-            return Err(Box::<dyn std::error::Error>::from(
-                "Invalid mode. Use 'stdio' or 'http'",
-            ));
+            return Err(Box::new(DiscordMcpError::InvalidParams(
+                "Invalid mode. Use 'stdio' or 'http'".to_string(),
+            )));
         }
     }
 
