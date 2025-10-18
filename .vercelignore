@@ -38,3 +38,8 @@ Cargo.lock
 crates/
 packages/
 src/
+
+# Ignore large files in pitch-deck (node_modules + PPTX)
+docs/pitch-deck/node_modules/
+docs/pitch-deck/**/*.pptx
+docs/pitch-deck/**/*.pdf

@@ -1,7 +1,7 @@
 {
-  "buildCommand": "mkdir -p public && cp -r docs/* public/",
+  "buildCommand": "mkdir -p public && cp docs/*.html docs/*.css public/ 2>/dev/null || true && mkdir -p public/assets && cp -r docs/assets/* public/assets/ 2>/dev/null || true && mkdir -p public/pitch-deck/output public/pitch-deck/themes && cp docs/pitch-deck/output/*.html public/pitch-deck/output/ 2>/dev/null || true && cp -r docs/pitch-deck/themes public/pitch-deck/ 2>/dev/null || true && cp -r docs/pitch-deck/assets public/pitch-deck/ 2>/dev/null || true",
   "outputDirectory": "public",
-  "installCommand": "rm -f pnpm-lock.yaml package-lock.yaml yarn.lock && echo 'No installation required'",
+  "installCommand": "rm -f pnpm-lock.yaml package-lock.json yarn.lock && echo 'No installation required'",
   "rewrites": [
     {
       "source": "/",
