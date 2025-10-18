@@ -140,7 +140,7 @@ export GITHUB_TOKEN=$(gh auth token)
 /verify
 ```
 
-TypeScript型チェック、テスト、Agent実行可能性をすべて確認します。
+Rust型チェック、テスト、Agent実行可能性をすべて確認します。
 
 ---
 
@@ -232,23 +232,25 @@ Miyabiには21個のAgentがいて、4つの役割に分かれています。
 
 ```bash
 # Claude Code内で
-"Issue #270のTask Aを実装して。TypeScript strict modeでお願い。"
+"Issue #270のTask Aを実装して。Rust 2021 Editionでお願い。"
 ```
 
 **つくるん** が以下を実行します：
 1. Task Aの要件を理解
-2. TypeScript strict mode準拠のコード生成
-3. ユニットテストの自動生成
-4. JSDocコメントの追加
-5. コミット（Conventional Commits準拠）
+2. Rust 2021 Edition準拠のコード生成
+3. ユニットテストの自動生成（#[cfg(test)] mod tests）
+4. Rustdocコメントの追加（///）
+5. コミット（Conventional Commits準拠、日本語）
 
 **生成されるファイル例**:
 ```
-src/
-├── types/foo.ts          # 型定義
-├── lib/foo-service.ts    # 実装
-tests/
-└── lib/foo-service.test.ts  # テスト
+crates/miyabi-foo/
+├── src/
+│   ├── lib.rs           # ライブラリエントリポイント
+│   ├── types.rs         # 型定義
+│   └── service.rs       # 実装（tests含む）
+├── Cargo.toml           # クレート定義
+└── README.md            # ドキュメント
 ```
 
 ---
@@ -263,16 +265,16 @@ tests/
 ```
 
 **めだまん** が以下をチェックします：
-1. ESLint - コーディング規約違反
-2. TypeScript - 型エラー
-3. セキュリティスキャン - 脆弱性検出
+1. Clippy - Rustコーディング規約違反
+2. cargo check - コンパイル・型エラー
+3. cargo audit - 脆弱性検出
 4. 品質スコアリング（100点満点）
 
 **評価基準**:
 ```
 基準点: 100点
-- ESLintエラー: -20点/件
-- TypeScriptエラー: -30点/件
+- Clippyエラー: -20点/件
+- コンパイルエラー: -30点/件
 - Critical脆弱性: -40点/件
 - High脆弱性: -20点/件
 
@@ -286,8 +288,8 @@ tests/
 🎯 Quality Score: 85/100 ✅
 
 📊 Issues Found:
-- ESLint: 1 warning (unused variable)
-- TypeScript: 0 errors
+- Clippy: 1 warning (unused variable)
+- Cargo check: 0 errors
 - Security: 0 vulnerabilities
 
 ✅ Review PASSED - Ready for merge
@@ -305,8 +307,8 @@ tests/
 ```
 
 **はこぶん** が以下を実行します：
-1. ビルド（`npm run build`）
-2. テスト実行（`npm test`）
+1. ビルド（`cargo build --release`）
+2. テスト実行（`cargo test --all`）
 3. Firebase/Vercelへデプロイ
 4. ヘルスチェック
 5. デプロイ成功/失敗の通知
@@ -334,8 +336,8 @@ Agentを複数同時に実行する際のルールです。
 
 **例**:
 ```bash
-# つくるん と かくちゃん を並列実行
-npm run agents:parallel:exec -- --issues=270,271 --concurrency=2
+# つくるん と かくちゃん を並列実行（Worktreeベース）
+miyabi agent run coordinator --issues=270,271 --concurrency=2
 ```
 
 ### ❌ 同時実行NG
@@ -357,7 +359,7 @@ npm run agents:parallel:exec -- --issues=270,271 --concurrency=2
 ### 1. Dry Runで事前確認
 
 ```bash
-npm run agents:parallel:exec -- --issues=270 --dry-run
+miyabi agent run coordinator --issues=270 --dry-run
 ```
 
 実際には実行せず、実行プランだけを確認できます。
@@ -365,7 +367,9 @@ npm run agents:parallel:exec -- --issues=270 --dry-run
 ### 2. Watch Modeでリアルタイム監視
 
 ```bash
-npx miyabi status --watch
+miyabi status --watch
+# または
+./target/release/miyabi status --watch
 ```
 
 5秒ごとにIssueの状態を自動更新して表示します。
@@ -373,7 +377,7 @@ npx miyabi status --watch
 ### 3. JSON出力でスクリプト化
 
 ```bash
-npx miyabi status --json > status.json
+miyabi status --json > status.json
 cat status.json | jq '.data.issues.byState'
 ```
 
