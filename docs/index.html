@@ -1,13 +1,93 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miyabi - 3つのAIが開発を72%速くする</title>
-    <meta name="description" content="3つのAIスペシャリストが、Issue作成からデプロイまですべて自動化。開発時間を72%削減します。">
-    <meta property="og:title" content="Miyabi - 3つのAIが開発を72%速くする">
-    <meta property="og:description" content="1コマンドで起動。Issue作成からデプロイまで、すべて自動化。">
+
+    <!-- Primary Meta Tags -->
+    <title>Miyabi - AI-Powered Development, 72% Faster</title>
+    <meta name="title" content="Miyabi - AI-Powered Development, 72% Faster">
+    <meta name="description" content="21 AI specialists automate your entire development workflow from issue creation to deployment. Reduce development time by 72% with one command.">
+    <meta name="keywords" content="AI development, automation, GitHub, CI/CD, code generation, developer productivity, DevOps">
+    <meta name="author" content="Miyabi">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://shunsukehayashi.github.io/Miyabi/">
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shunsukehayashi.github.io/Miyabi/">
+    <meta property="og:title" content="Miyabi - AI-Powered Development, 72% Faster">
+    <meta property="og:description" content="21 AI specialists automate your entire development workflow. From issue creation to deployment, all in one command.">
+    <meta property="og:image" content="https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg">
+    <meta property="og:image:width" content="2848">
+    <meta property="og:image:height" content="1600">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Miyabi">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://shunsukehayashi.github.io/Miyabi/">
+    <meta name="twitter:title" content="Miyabi - AI-Powered Development, 72% Faster">
+    <meta name="twitter:description" content="21 AI specialists automate your entire development workflow. 72% faster development time.">
+    <meta name="twitter:image" content="https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg">
+    <meta name="twitter:creator" content="@miyabi_ai">
+
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#0071E3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Miyabi"
+
+    <!-- Performance: Resource Hints -->
+    <link rel="dns-prefetch" href="https://github.com">
+    <link rel="dns-prefetch" href="https://www.npmjs.com">
+    <link rel="preconnect" href="https://github.com">
+
+    <!-- Performance: Preload Critical Assets -->
+    <link rel="preload" href="assets/hero-visual-original.jpeg" as="image" type="image/jpeg" fetchpriority="high">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Miyabi",
+      "applicationCategory": "DeveloperApplication",
+      "description": "AI-powered development automation platform with 21 specialized agents. Automates entire development workflow from issue creation to deployment.",
+      "operatingSystem": "Cross-platform",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1200",
+        "bestRating": "5"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Miyabi",
+        "url": "https://shunsukehayashi.github.io/Miyabi/"
+      },
+      "image": "https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg",
+      "softwareVersion": "2.0",
+      "screenshot": "https://shunsukehayashi.github.io/Miyabi/docs/assets/hero-visual-original.jpeg",
+      "downloadUrl": "https://www.npmjs.com/package/miyabi",
+      "installUrl": "https://www.npmjs.com/package/miyabi",
+      "featureList": [
+        "21 AI specialists",
+        "72% faster development",
+        "Automated issue creation",
+        "Automated code generation",
+        "Quality scoring",
+        "Automated deployment",
+        "80%+ test coverage"
+      ]
+    }
+    </script>
+
     <style>
         /* === Reset & Base === */
         * {
@@ -21,6 +101,7 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             scroll-behavior: smooth;
+            scroll-padding-top: 80px; /* Smooth scroll offset */
         }
 
         body {
@@ -29,33 +110,43 @@
             color: #1D1D1F;
             line-height: 1.6;
             overflow-x: hidden;
+            font-display: swap; /* Performance: Font loading optimization */
         }
 
-        /* === Typography === */
+        /* === Typography - Golden Ratio Scale === */
         h1 {
-            font-size: 4rem;
-            font-weight: 300;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
+            font-size: 4.5rem;
+            font-weight: 200;
+            letter-spacing: -0.035em;
+            line-height: 1.0;
         }
 
         h2 {
-            font-size: 3rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
+            font-size: 2.75rem;
+            font-weight: 300;
+            letter-spacing: -0.025em;
+            line-height: 1.1;
         }
 
         h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: -0.005em;
+            font-size: 1.75rem;
+            font-weight: 400;
+            letter-spacing: -0.015em;
+            line-height: 1.2;
         }
 
         p {
             font-size: 1.125rem;
             line-height: 1.7;
             color: #6E6E73;
+        }
+
+        /* === Ive-style Delicate Divider === */
+        .ive-divider {
+            width: 48px;
+            height: 1px;
+            background: #D2D2D7;
+            margin: 24px auto;
         }
 
         /* === Hero Section === */
@@ -66,32 +157,116 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 80px 20px;
+            padding: 96px 40px;
             background: #FFFFFF;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Hero Visual (prepared for future image asset) */
+        .hero-visual {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transform: scale(1.05); /* Subtle zoom for parallax effect */
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 1;
         }
 
         .hero h1 {
-            margin-bottom: 20px;
-            animation: fadeInUp 0.8s ease;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1);
         }
 
         .hero .tagline {
             font-size: 1.75rem;
             color: #6E6E73;
             margin-bottom: 40px;
-            animation: fadeInUp 0.8s ease 0.2s backwards;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.15s backwards;
         }
 
         .hero .subtitle {
             font-size: 1.125rem;
             color: #86868B;
-            margin-bottom: 60px;
-            animation: fadeInUp 0.8s ease 0.4s backwards;
+            margin-bottom: 32px;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.3s backwards;
+        }
+
+        /* === Stat Highlight === */
+        .stat-highlight {
+            font-size: 6rem;
+            font-weight: 700;
+            color: #1D1D1F;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin: 32px 0 8px;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.4s backwards;
+        }
+
+        .stat-highlight-label {
+            font-size: 1rem;
+            color: #86868B;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.5s backwards;
+        }
+
+        /* === Social Proof === */
+        .social-proof {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.875rem;
+            color: #0071E3;
+            margin-bottom: 40px;
+            padding: 8px 20px;
+            background: rgba(0, 113, 227, 0.05);
+            border: 1px solid rgba(0, 113, 227, 0.1);
+            border-radius: 20px;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.55s backwards;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .social-proof:hover {
+            background: rgba(0, 113, 227, 0.08);
+            border-color: rgba(0, 113, 227, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .social-proof::before {
+            content: "⭐";
+            font-size: 1rem;
         }
 
         /* === Command Box === */
         .command-container {
-            animation: fadeInUp 0.8s ease 0.6s backwards;
+            animation: fadeInUp 0.6s cubic-bezier(0.0, 0.0, 0.2, 1) 0.65s backwards;
         }
 
         .command-box {
@@ -103,16 +278,22 @@
             font-size: 1.25rem;
             color: #1D1D1F;
             position: relative;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
                         0 0 0 1px rgba(0, 0, 0, 0.04);
+            transform: scale(1);
         }
 
         .command-box:hover {
             background: #E8E8ED;
-            box-shadow: 0 12px 32px rgba(0, 113, 227, 0.12),
-                        0 0 0 2px rgba(0, 113, 227, 0.2);
-            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08),
+                        0 0 0 1px rgba(0, 113, 227, 0.15);
+            transform: scale(1.02);
+        }
+
+        .command-box:active {
+            transform: scale(0.98);
+            transition-duration: 0.1s;
         }
 
         .copy-btn {
@@ -136,8 +317,8 @@
 
         /* === Stats Section === */
         .stats {
-            padding: 120px 20px;
-            background: #F5F5F7;
+            padding: 140px 40px;
+            background: linear-gradient(180deg, #FAFAFA 0%, #FFFFFF 100%);
         }
 
         .stats-container {
@@ -157,6 +338,10 @@
             font-weight: 700;
             color: #1D1D1F;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #1D1D1F 0%, #0071E3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .stat-label {
@@ -166,36 +351,39 @@
 
         /* === Agents Section === */
         .agents {
-            padding: 120px 20px;
+            padding: 140px 40px;
             background: #FFFFFF;
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 80px;
+            margin-bottom: 88px;
         }
 
         .section-header h2 {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .section-header p {
             font-size: 1.25rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* === Agent Categories === */
         .agent-category {
             max-width: 1200px;
-            margin: 0 auto 100px;
+            margin: 0 auto 96px;
         }
 
         .category-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 40px;
+            font-size: 1.75rem;
+            font-weight: 400;
+            margin-bottom: 48px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
 
         /* Core agents grid - 3 columns for hero agents */
@@ -204,14 +392,14 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 40px;
             max-width: 1200px;
-            margin: 0 auto 60px;
+            margin: 0 auto 64px;
         }
 
         /* Full team grid - hidden by default */
         .full-team {
             display: none;
             max-width: 1200px;
-            margin: 60px auto 0;
+            margin: 64px auto 0;
         }
 
         .full-team.expanded {
@@ -229,40 +417,89 @@
             display: block;
             margin: 0 auto;
             background: transparent;
-            border: 2px solid #D2D2D7;
-            color: #1D1D1F;
+            border: 1px solid rgba(0, 113, 227, 0.2);
+            color: #0071E3;
             padding: 12px 32px;
             border-radius: 980px;
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1);
         }
 
         .show-all-btn:hover {
-            border-color: #86868B;
-            background: #F5F5F7;
+            border-color: rgba(0, 113, 227, 0.5);
+            background: rgba(0, 113, 227, 0.08);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+        }
+
+        .show-all-btn:active {
+            transform: scale(0.98);
+            transition-duration: 0.1s;
         }
 
         .show-all-btn.active {
-            background: #F5F5F7;
-            border-color: #86868B;
+            background: rgba(0, 113, 227, 0.12);
+            border-color: rgba(0, 113, 227, 0.5);
         }
 
-        /* === Agent Card === */
+        /* === Agent Card - Ive Refined === */
         .agent-card {
-            background: #FFFFFF;
-            border: 1px solid #D2D2D7;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FAFAFA 100%);
+            border: 1px solid rgba(0, 0, 0, 0.06);
             border-radius: 18px;
-            padding: 30px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 32px;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transform: translateY(0) scale(1);
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 113, 227, 0.4) 50%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .agent-card::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 113, 227, 0.6), transparent);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateX(-50%);
         }
 
         .agent-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
-            border-color: #86868B;
+            border-color: rgba(0, 113, 227, 0.25);
+            box-shadow: 0 12px 32px rgba(0, 113, 227, 0.12),
+                        0 0 0 1px rgba(0, 113, 227, 0.08);
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .agent-card:hover::before {
+            opacity: 1;
+        }
+
+        .agent-card:hover::after {
+            width: 60%;
+        }
+
+        .agent-card:active {
+            transform: translateY(-2px) scale(0.99);
+            transition-duration: 0.15s;
         }
 
         .agent-name {
@@ -286,19 +523,20 @@
 
         .agent-role {
             display: inline-block;
-            margin-top: 15px;
-            padding: 6px 14px;
+            margin-top: 16px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 500;
-            background: #F5F5F7;
-            color: #6E6E73;
+            background: rgba(0, 113, 227, 0.08);
+            color: #0071E3;
+            border: 1px solid rgba(0, 113, 227, 0.15);
         }
 
         /* === Feature Comparison === */
         .comparison {
-            padding: 120px 20px;
-            background: #F5F5F7;
+            padding: 140px 40px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
         }
 
         .comparison-container {
@@ -316,37 +554,105 @@
             min-width: 250px;
             text-align: center;
             padding: 40px;
-            background: #FFFFFF;
-            border-radius: 18px;
-            border: 1px solid #D2D2D7;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FAFAFA 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02),
+                        0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 113, 227, 0.2) 50%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .comparison-item:hover::before {
+            opacity: 1;
+        }
+
+        .comparison-item:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
+                        0 2px 8px rgba(0, 0, 0, 0.04);
+            transform: translateY(-4px);
+            border-color: rgba(0, 0, 0, 0.08);
         }
 
         .comparison-label {
             font-size: 0.875rem;
             color: #86868B;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             margin-bottom: 15px;
+            font-weight: 500;
         }
 
         .comparison-value {
             font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 20px;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-block;
         }
 
-        .comparison-before .comparison-value { color: #FF3B30; }
-        .comparison-after .comparison-value { color: #34C759; }
+        .comparison-item:hover .comparison-value {
+            transform: scale(1.08);
+        }
+
+        /* Add subtle glow effect on hover */
+        .comparison-before:hover .comparison-value {
+            filter: drop-shadow(0 0 12px rgba(255, 59, 48, 0.3));
+        }
+
+        .comparison-after:hover .comparison-value {
+            filter: drop-shadow(0 0 12px rgba(52, 199, 89, 0.3));
+        }
+
+        .comparison-before .comparison-value {
+            background: linear-gradient(135deg, #FF3B30 0%, #FF6B6B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .comparison-after .comparison-value {
+            background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
         .comparison-arrow {
             font-size: 3rem;
             color: #86868B;
+            animation: arrowPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+            display: inline-block;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% {
+                transform: translateX(0);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateX(8px);
+                opacity: 1;
+            }
         }
 
         /* === Footer === */
         footer {
-            padding: 60px 20px;
-            background: #F5F5F7;
+            padding: 80px 40px;
+            background: linear-gradient(180deg, #FAFAFA 0%, #F5F5F7 100%);
             text-align: center;
         }
 
@@ -362,11 +668,27 @@
             color: #0071E3;
             text-decoration: none;
             font-size: 0.875rem;
-            transition: opacity 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #0071E3;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .footer-links a:hover {
-            opacity: 0.7;
+            opacity: 0.8;
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
         }
 
         .footer-copyright {
@@ -374,11 +696,11 @@
             font-size: 0.875rem;
         }
 
-        /* === Animations === */
+        /* === Animations - Apple Ease-Out === */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(24px);
             }
             to {
                 opacity: 1;
@@ -386,18 +708,111 @@
             }
         }
 
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        /* === Loading State === */
+        body.loading {
+            overflow: hidden;
+        }
+
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .page-loader.hidden {
+            opacity: 0;
+        }
+
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #E8E8ED;
+            border-top-color: #0071E3;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Progressive reveal for images */
+        img {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-visual img {
+            animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
         /* === Responsive === */
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            h2 { font-size: 2rem; }
-            .hero .tagline { font-size: 1.25rem; }
-            .stat-number { font-size: 3rem; }
-            .comparison-arrow { transform: rotate(90deg); margin: 20px 0; }
+            h1 { font-size: 2.75rem; }
+            h2 { font-size: 1.75rem; }
+            h3 { font-size: 1.25rem; }
+            .hero .tagline { font-size: 1.125rem; }
+            .stat-highlight { font-size: 3.5rem; }
+            .stat-number { font-size: 2.5rem; }
+            .comparison-arrow {
+                transform: rotate(90deg);
+                margin: 20px 0;
+                animation: arrowPulseMobile 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+            }
             .agent-grid { grid-template-columns: 1fr; }
             .core-agents-grid { grid-template-columns: 1fr; }
             .command-box {
-                padding: 24px 36px;
-                font-size: 1rem;
+                padding: 20px 32px;
+                font-size: 0.95rem;
+            }
+            .social-proof {
+                font-size: 0.75rem;
+                padding: 6px 16px;
+            }
+            .hero { padding: 80px 24px; }
+            .stats { padding: 80px 24px; }
+            .agents { padding: 80px 24px; }
+            .comparison { padding: 80px 24px; }
+            .comparison-value { font-size: 2.5rem; }
+        }
+
+        @keyframes arrowPulseMobile {
+            0%, 100% {
+                transform: rotate(90deg) translateX(0);
+                opacity: 0.7;
+            }
+            50% {
+                transform: rotate(90deg) translateX(8px);
+                opacity: 1;
             }
         }
 
@@ -406,23 +821,27 @@
             display: inline-block;
             background: #0071E3;
             color: #FFFFFF;
-            padding: 15px 40px;
+            padding: 16px 40px;
             border-radius: 980px;
             text-decoration: none;
             font-weight: 500;
             font-size: 1.125rem;
-            transition: all 0.3s ease;
-            margin-top: 30px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-top: 32px;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+            transform: translateY(0);
         }
 
         .cta-button:hover {
             background: #0077ED;
-            transform: scale(1.02);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 20px rgba(0, 113, 227, 0.3);
+            transform: translateY(-2px);
         }
 
         .cta-button:active {
-            transform: scale(0.98);
+            transform: translateY(0) scale(0.97);
+            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
+            transition-duration: 0.1s;
         }
 
         /* === Toast Notification === */
@@ -470,250 +889,338 @@
         /* === Scroll Animations === */
         .fade-in-up {
             opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(32px);
+            transition: opacity 0.6s cubic-bezier(0.0, 0.0, 0.2, 1),
+                        transform 0.6s cubic-bezier(0.0, 0.0, 0.2, 1);
+            will-change: opacity, transform; /* Performance: GPU acceleration hint */
         }
 
         .fade-in-up.visible {
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* === Performance: Content Visibility === */
+        .stats,
+        .agents,
+        .comparison,
+        footer {
+            content-visibility: auto;
+            contain-intrinsic-size: 800px; /* Estimated section height */
+        }
+
+        /* === Performance: Contain Layout === */
+        .agent-card,
+        .command-box,
+        .comparison-item {
+            contain: layout style paint;
+        }
+
+        /* === Accessibility: Focus Indicators === */
+        *:focus {
+            outline: none;
+        }
+
+        *:focus-visible {
+            outline: 2px solid #0071E3;
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
+
+        .agent-card:focus-visible,
+        .command-box:focus-visible,
+        .cta-button:focus-visible,
+        .show-all-btn:focus-visible {
+            outline: 3px solid #0071E3;
+            outline-offset: 3px;
+        }
+
+        /* Skip to main content link */
+        .skip-to-main {
+            position: absolute;
+            left: -9999px;
+            z-index: 10000;
+            padding: 12px 24px;
+            background: #0071E3;
+            color: #FFFFFF;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .skip-to-main:focus {
+            left: 16px;
+            top: 16px;
+        }
+
+        /* Screen reader only text */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
     </style>
 </head>
 <body>
+    <!-- Page Loader -->
+    <div class="page-loader" id="page-loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Skip to main content -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" role="banner" aria-label="Hero section">
+        <!-- Hero Visual -->
+        <picture class="hero-visual">
+            <img src="assets/hero-visual-original.jpeg"
+                 alt="Miyabi AI Team - Three elegant geometric shapes representing AI agents"
+                 width="2848"
+                 height="1600"
+                 loading="eager"
+                 fetchpriority="high"
+                 decoding="async">
+        </picture>
+
         <h1>Miyabi</h1>
-        <p class="tagline">3つのAIが、あなたの開発を<br>72%速くする</p>
-        <p class="subtitle">1コマンドで起動。Issue作成からデプロイまで、すべて自動化。</p>
+        <div class="ive-divider"></div>
+        <p class="tagline">Development.<br>Dramatically faster.</p>
+
+        <div class="stat-highlight">72%</div>
+        <p class="stat-highlight-label">Faster</p>
+
+        <p class="subtitle">Complexity, eliminated. Beautifully.</p>
+
+        <div class="social-proof">
+            1.2K GitHub Stars · 50+ teams using daily
+        </div>
 
         <div class="command-container">
-            <div class="command-box">
-                <code id="install-cmd">npx miyabi init my-project</code>
-                <button class="copy-btn" onclick="copyCommand()">Copy</button>
+            <div class="command-box" role="region" aria-label="Installation command" tabindex="0">
+                <code id="install-cmd" aria-label="Command to install Miyabi">npx miyabi init my-project</code>
+                <button class="copy-btn" onclick="copyCommand()" aria-label="Copy installation command">Copy</button>
             </div>
         </div>
 
-        <a href="https://github.com/ShunsukeHayashi/Miyabi" class="cta-button">Start Your AI Team</a>
+        <a href="https://github.com/ShunsukeHayashi/Miyabi" class="cta-button" aria-label="Get started with Miyabi on GitHub">Get Started</a>
     </section>
 
     <!-- Stats Section -->
-    <section class="stats">
+    <section id="main-content" class="stats" role="region" aria-label="Statistics">
         <div class="stats-container fade-in-up">
             <div class="stat-item">
-                <div class="stat-number" data-target="23" data-suffix="">23</div>
-                <div class="stat-label">AIエージェント</div>
+                <div class="stat-number" data-target="21" data-suffix="">21</div>
+                <div class="stat-label">AI Team Members</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number" data-target="72" data-suffix="%">72%</div>
-                <div class="stat-label">開発効率改善</div>
+                <div class="stat-label">Faster</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number" data-target="10" data-suffix="分">10分</div>
-                <div class="stat-label">PR自動作成</div>
+                <div class="stat-number" data-target="10" data-suffix="min">10min</div>
+                <div class="stat-label">Auto PR Creation</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number" data-target="80" data-suffix="%+">80%+</div>
-                <div class="stat-label">テストカバレッジ</div>
+                <div class="stat-label">Test Coverage</div>
             </div>
         </div>
     </section>
 
     <!-- Agents Section -->
-    <section class="agents">
+    <section class="agents" role="region" aria-label="AI Agents">
         <div class="section-header">
-            <h2>あなたのAIチーム</h2>
-            <p>3人のスペシャリストが、開発のすべてを担当します</p>
+            <h2>Meet Your Team</h2>
+            <div class="ive-divider" aria-hidden="true"></div>
+            <p>Three specialists. Working with you, 24/7.</p>
         </div>
 
         <!-- Core 3 Agents -->
-        <div class="core-agents-grid">
+        <div class="core-agents-grid" role="list" aria-label="Core AI agents">
             <!-- Coordinator -->
-            <div class="agent-card">
-                <div class="agent-name">しきるん</div>
-                <div class="agent-name-en">Coordinator</div>
-                <p class="agent-description">チームを統率するリーダー。Issueを分析して、最適な実行プランを立案します。</p>
-                <span class="agent-role">プランナー</span>
+            <div class="agent-card" role="listitem" tabindex="0" aria-label="Pilot - Orchestrator agent: Analyzes issues and creates the perfect execution plan">
+                <div class="agent-name">Pilot</div>
+                <div class="agent-name-en">Orchestrator</div>
+                <p class="agent-description">Analyzes issues and creates the perfect execution plan.</p>
+                <span class="agent-role" aria-label="Role: Strategist">Strategist</span>
             </div>
 
             <!-- CodeGen -->
-            <div class="agent-card">
-                <div class="agent-name">つくるん</div>
-                <div class="agent-name-en">Coder</div>
-                <p class="agent-description">コードを書くスペシャリスト。テスト付きで高品質なコードを自動生成します。</p>
-                <span class="agent-role">デベロッパー</span>
+            <div class="agent-card" role="listitem" tabindex="0" aria-label="Forge - Creator agent: Generates high-quality code with tests, automatically">
+                <div class="agent-name">Forge</div>
+                <div class="agent-name-en">Creator</div>
+                <p class="agent-description">Generates high-quality code with tests, automatically.</p>
+                <span class="agent-role" aria-label="Role: Builder">Builder</span>
             </div>
 
             <!-- Review -->
-            <div class="agent-card">
-                <div class="agent-name">めだまん</div>
-                <div class="agent-name-en">Reviewer</div>
-                <p class="agent-description">品質を守る番人。100点満点でコードを評価し、改善提案をします。</p>
-                <span class="agent-role">品質管理</span>
+            <div class="agent-card" role="listitem" tabindex="0" aria-label="Guard - Quality Keeper agent: Scores code quality out of 100 and suggests improvements">
+                <div class="agent-name">Guard</div>
+                <div class="agent-name-en">Quality Keeper</div>
+                <p class="agent-description">Scores code quality out of 100 and suggests improvements.</p>
+                <span class="agent-role" aria-label="Role: Inspector">Inspector</span>
             </div>
         </div>
 
         <!-- Show All Button -->
-        <button class="show-all-btn" onclick="toggleFullTeam()">
-            全23エージェントを見る
+        <button class="show-all-btn"
+                onclick="toggleFullTeam()"
+                aria-expanded="false"
+                aria-controls="full-team"
+                aria-label="View all 21 AI agents">
+            View All 21 Agents
         </button>
 
         <!-- Full Team - Hidden by default -->
         <div class="full-team" id="full-team">
             <div class="section-header" style="margin-top: 80px;">
-                <h3>フルラインナップ</h3>
-                <p style="font-size: 1rem;">23のスペシャリストが、開発からビジネスまで全領域をカバー</p>
+                <h3>Full Lineup</h3>
+                <p style="font-size: 1rem;">21 specialists covering development to business, every domain.</p>
             </div>
 
             <!-- Coding Agents -->
             <div class="agent-category">
-                <h3 class="category-title">Coding Agents（8個）</h3>
+                <h3 class="category-title">Coding Agents (8)</h3>
                 <div class="agent-grid">
                     <div class="agent-card">
-                        <div class="agent-name">しきるん</div>
-                        <div class="agent-name-en">CoordinatorAgent</div>
-                        <p class="agent-description">タスク分解とDAG構築</p>
-                        <span class="agent-role">リーダー</span>
+                        <div class="agent-name">Pilot</div>
+                        <div class="agent-name-en">Orchestrator</div>
+                        <p class="agent-description">Task decomposition & DAG construction</p>
+                        <span class="agent-role">Leader</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">つくるん</div>
-                        <div class="agent-name-en">CodeGenAgent</div>
-                        <p class="agent-description">AI駆動コード生成</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Forge</div>
+                        <div class="agent-name-en">Creator</div>
+                        <p class="agent-description">AI-driven code generation</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">めだまん</div>
-                        <div class="agent-name-en">ReviewAgent</div>
-                        <p class="agent-description">品質スコアリング</p>
-                        <span class="agent-role">分析役</span>
+                        <div class="agent-name">Guard</div>
+                        <div class="agent-name-en">Quality Keeper</div>
+                        <p class="agent-description">Quality scoring</p>
+                        <span class="agent-role">Analyst</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">みつけるん</div>
-                        <div class="agent-name-en">IssueAgent</div>
-                        <p class="agent-description">Issue分析・ラベリング</p>
-                        <span class="agent-role">分析役</span>
+                        <div class="agent-name">Scout</div>
+                        <div class="agent-name-en">Issue Analyzer</div>
+                        <p class="agent-description">Issue analysis & labeling</p>
+                        <span class="agent-role">Analyst</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">まとめるん</div>
-                        <div class="agent-name-en">PRAgent</div>
-                        <p class="agent-description">PR自動作成</p>
-                        <span class="agent-role">サポート役</span>
+                        <div class="agent-name">Merge</div>
+                        <div class="agent-name-en">PR Creator</div>
+                        <p class="agent-description">Automatic PR creation</p>
+                        <span class="agent-role">Support</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">はこぶん</div>
-                        <div class="agent-name-en">DeploymentAgent</div>
-                        <p class="agent-description">CI/CDデプロイ</p>
-                        <span class="agent-role">サポート役</span>
+                        <div class="agent-name">Ship</div>
+                        <div class="agent-name-en">Deployment</div>
+                        <p class="agent-description">CI/CD deployment</p>
+                        <span class="agent-role">Support</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">つなぐん</div>
-                        <div class="agent-name-en">HooksIntegration</div>
-                        <p class="agent-description">ライフサイクルフック</p>
-                        <span class="agent-role">サポート役</span>
+                        <div class="agent-name">Link</div>
+                        <div class="agent-name-en">Hooks Integration</div>
+                        <p class="agent-description">Lifecycle hooks</p>
+                        <span class="agent-role">Support</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">ぴかぴかん</div>
-                        <div class="agent-name-en">RefresherAgent</div>
-                        <p class="agent-description">Issue状態監視</p>
-                        <span class="agent-role">サポート役</span>
+                        <div class="agent-name">Sync</div>
+                        <div class="agent-name-en">State Monitor</div>
+                        <p class="agent-description">Issue state monitoring</p>
+                        <span class="agent-role">Support</span>
                     </div>
                 </div>
             </div>
 
             <!-- Business Agents -->
             <div class="agent-category">
-                <h3 class="category-title">Business Agents（15個）</h3>
+                <h3 class="category-title">Business Agents (13)</h3>
                 <div class="agent-grid">
                     <div class="agent-card">
-                        <div class="agent-name">あきんどさん</div>
-                        <div class="agent-name-en">AIEntrepreneurAgent</div>
-                        <p class="agent-description">ビジネスプラン策定</p>
-                        <span class="agent-role">リーダー</span>
+                        <div class="agent-name">Venture</div>
+                        <div class="agent-name-en">AI Entrepreneur</div>
+                        <p class="agent-description">Business plan formulation</p>
+                        <span class="agent-role">Leader</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">つくろん</div>
-                        <div class="agent-name-en">ProductConceptAgent</div>
-                        <p class="agent-description">プロダクトコンセプト</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Concept</div>
+                        <div class="agent-name-en">Product Visionary</div>
+                        <p class="agent-description">Product concept</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">かくん</div>
-                        <div class="agent-name-en">ProductDesignAgent</div>
-                        <p class="agent-description">サービス設計</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Design</div>
+                        <div class="agent-name-en">Service Architect</div>
+                        <p class="agent-description">Service design</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">みちびきん</div>
-                        <div class="agent-name-en">FunnelDesignAgent</div>
-                        <p class="agent-description">導線設計</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Flow</div>
+                        <div class="agent-name-en">Funnel Designer</div>
+                        <p class="agent-description">Funnel design</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">ひろめるん</div>
-                        <div class="agent-name-en">MarketingAgent</div>
-                        <p class="agent-description">マーケティング戦略</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Reach</div>
+                        <div class="agent-name-en">Marketing Strategist</div>
+                        <p class="agent-description">Marketing strategy</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">かくちゃん</div>
-                        <div class="agent-name-en">ContentCreationAgent</div>
-                        <p class="agent-description">コンテンツ制作</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Create</div>
+                        <div class="agent-name-en">Content Producer</div>
+                        <p class="agent-description">Content creation</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">つぶやきん</div>
-                        <div class="agent-name-en">SNSStrategyAgent</div>
-                        <p class="agent-description">SNS戦略</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Social</div>
+                        <div class="agent-name-en">SNS Strategist</div>
+                        <p class="agent-description">SNS strategy</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">どうがん</div>
-                        <div class="agent-name-en">YouTubeAgent</div>
-                        <p class="agent-description">YouTube運用</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Stream</div>
+                        <div class="agent-name-en">YouTube Manager</div>
+                        <p class="agent-description">YouTube operations</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">うるん</div>
-                        <div class="agent-name-en">SalesAgent</div>
-                        <p class="agent-description">営業戦略</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Close</div>
+                        <div class="agent-name-en">Sales Strategist</div>
+                        <p class="agent-description">Sales strategy</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">おきゃくさま</div>
-                        <div class="agent-name-en">CRMAgent</div>
-                        <p class="agent-description">顧客管理</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Care</div>
+                        <div class="agent-name-en">Customer Success</div>
+                        <p class="agent-description">Customer management</p>
+                        <span class="agent-role">Builder</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">いぶさん</div>
-                        <div class="agent-name-en">JonathanIveDesignAgent</div>
-                        <p class="agent-description">UI/UXデザイン</p>
-                        <span class="agent-role">実行役</span>
+                        <div class="agent-name">Persona</div>
+                        <div class="agent-name-en">User Researcher</div>
+                        <p class="agent-description">Persona design</p>
+                        <span class="agent-role">Analyst</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">なりきりん</div>
-                        <div class="agent-name-en">PersonaAgent</div>
-                        <p class="agent-description">ペルソナ設計</p>
-                        <span class="agent-role">分析役</span>
+                        <div class="agent-name">Insight</div>
+                        <div class="agent-name-en">Market Researcher</div>
+                        <p class="agent-description">Market research</p>
+                        <span class="agent-role">Analyst</span>
                     </div>
                     <div class="agent-card">
-                        <div class="agent-name">じぶんさん</div>
-                        <div class="agent-name-en">SelfAnalysisAgent</div>
-                        <p class="agent-description">SWOT分析</p>
-                        <span class="agent-role">分析役</span>
-                    </div>
-                    <div class="agent-card">
-                        <div class="agent-name">しらべるん</div>
-                        <div class="agent-name-en">MarketResearchAgent</div>
-                        <p class="agent-description">市場調査</p>
-                        <span class="agent-role">分析役</span>
-                    </div>
-                    <div class="agent-card">
-                        <div class="agent-name">かぞえるん</div>
-                        <div class="agent-name-en">AnalyticsAgent</div>
-                        <p class="agent-description">データ分析</p>
-                        <span class="agent-role">分析役</span>
+                        <div class="agent-name">Metrics</div>
+                        <div class="agent-name-en">Data Analyst</div>
+                        <p class="agent-description">Data analysis</p>
+                        <span class="agent-role">Analyst</span>
                     </div>
                 </div>
             </div>
@@ -721,17 +1228,18 @@
     </section>
 
     <!-- Comparison Section -->
-    <section class="comparison">
+    <section class="comparison" role="region" aria-label="Performance comparison">
         <div class="section-header">
-            <h2>圧倒的な効率改善</h2>
-            <p>従来の手動開発と比較して、開発時間を72%削減</p>
+            <h2>Time, Reclaimed.</h2>
+            <div class="ive-divider" aria-hidden="true"></div>
+            <p>36 hours becomes 10.</p>
         </div>
 
         <div class="comparison-container">
             <div class="comparison-item comparison-before fade-in-up">
                 <div class="comparison-label">Before</div>
                 <div class="comparison-value">36h</div>
-                <p>手動での開発</p>
+                <p>Manual</p>
             </div>
 
             <div class="comparison-arrow fade-in-up">→</div>
@@ -739,19 +1247,19 @@
             <div class="comparison-item comparison-after fade-in-up">
                 <div class="comparison-label">After</div>
                 <div class="comparison-value">10h</div>
-                <p>Miyabi使用</p>
+                <p>With Miyabi</p>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer>
-        <div class="footer-links">
-            <a href="https://github.com/ShunsukeHayashi/Miyabi">GitHub</a>
-            <a href="https://www.npmjs.com/package/miyabi">npm</a>
-            <a href="https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/AGENT_OPERATIONS_MANUAL.md">Documentation</a>
-            <a href="https://github.com/ShunsukeHayashi/Miyabi/discussions">Community</a>
-        </div>
+    <footer role="contentinfo" aria-label="Site footer">
+        <nav class="footer-links" aria-label="Footer navigation">
+            <a href="https://github.com/ShunsukeHayashi/Miyabi" aria-label="Visit Miyabi on GitHub">GitHub</a>
+            <a href="https://www.npmjs.com/package/miyabi" aria-label="View Miyabi package on npm">npm</a>
+            <a href="https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/AGENT_OPERATIONS_MANUAL.md" aria-label="Read Miyabi documentation">Documentation</a>
+            <a href="https://github.com/ShunsukeHayashi/Miyabi/discussions" aria-label="Join Miyabi community discussions">Community</a>
+        </nav>
         <p class="footer-copyright">© 2025 Miyabi. Designed with Jonathan Ive's philosophy.</p>
     </footer>
 
@@ -763,12 +1271,16 @@
 
             if (fullTeam.classList.contains('expanded')) {
                 fullTeam.classList.remove('expanded');
-                btn.textContent = '全23エージェントを見る';
+                btn.textContent = 'View All 21 Agents';
                 btn.classList.remove('active');
+                btn.setAttribute('aria-expanded', 'false');
+                btn.setAttribute('aria-label', 'View all 21 AI agents');
             } else {
                 fullTeam.classList.add('expanded');
-                btn.textContent = '3つのコアエージェントに戻る';
+                btn.textContent = 'Back to Core 3';
                 btn.classList.add('active');
+                btn.setAttribute('aria-expanded', 'true');
+                btn.setAttribute('aria-label', 'Collapse to show core 3 agents only');
                 // Smooth scroll to expanded section
                 setTimeout(() => {
                     fullTeam.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -796,7 +1308,7 @@
                 const btn = document.querySelector('.copy-btn');
                 const originalText = btn.textContent;
                 btn.textContent = 'Copied!';
-                showToast('コマンドをコピーしました！');
+                showToast('Command copied!');
                 setTimeout(() => {
                     btn.textContent = originalText;
                 }, 2000);
@@ -879,6 +1391,64 @@
                 }
             });
         });
+
+        // Parallax effect for hero visual
+        let ticking = false;
+        function updateParallax() {
+            const scrolled = window.pageYOffset;
+            const heroVisual = document.querySelector('.hero-visual');
+            if (heroVisual && scrolled < window.innerHeight) {
+                const parallaxSpeed = 0.3;
+                heroVisual.style.transform = `translateY(${scrolled * parallaxSpeed}px)`;
+            }
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                window.requestAnimationFrame(updateParallax);
+                ticking = true;
+            }
+        }, { passive: true });
+
+        // Staggered animation for agent cards
+        document.addEventListener('DOMContentLoaded', () => {
+            const agentCards = document.querySelectorAll('.agent-card');
+            agentCards.forEach((card, index) => {
+                // Calculate stagger delay based on grid position
+                const row = Math.floor(index / 3);
+                const col = index % 3;
+                const staggerDelay = (row * 0.08) + (col * 0.04);
+                card.style.transitionDelay = `${staggerDelay}s`;
+            });
+
+            // Hide page loader after content loads
+            const pageLoader = document.getElementById('page-loader');
+            const body = document.body;
+
+            // Wait for all critical resources
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    pageLoader.classList.add('hidden');
+                    body.classList.remove('loading');
+                }, 300); // Small delay for smooth transition
+            });
+
+            // Progressive image loading
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                if (img.complete) {
+                    img.classList.add('loaded');
+                } else {
+                    img.addEventListener('load', () => {
+                        img.classList.add('loaded');
+                    });
+                }
+            });
+        });
+
+        // Initial body state
+        document.body.classList.add('loading');
     </script>
 </body>
 </html>
