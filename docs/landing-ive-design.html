@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miyabi - 23のAIエージェントで開発を自動化</title>
-    <meta name="description" content="23個のAIエージェントによる完全自動化開発フレームワーク">
-    <meta property="og:title" content="Miyabi - 23のAIエージェント">
-    <meta property="og:description" content="23のAIエージェントで開発を完全自動化">
+    <title>Miyabi - 3つのAIが開発を72%速くする</title>
+    <meta name="description" content="3つのAIスペシャリストが、Issue作成からデプロイまですべて自動化。開発時間を72%削減します。">
+    <meta property="og:title" content="Miyabi - 3つのAIが開発を72%速くする">
+    <meta property="og:description" content="1コマンドで起動。Issue作成からデプロイまで、すべて自動化。">
     <meta property="og:type" content="website">
     <style>
         /* === Reset & Base === */
@@ -97,17 +97,22 @@
         .command-box {
             display: inline-block;
             background: #F5F5F7;
-            padding: 28px 48px;
-            border-radius: 12px;
+            padding: 32px 56px;
+            border-radius: 16px;
             font-family: 'SF Mono', 'Monaco', monospace;
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             color: #1D1D1F;
             position: relative;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
+                        0 0 0 1px rgba(0, 0, 0, 0.04);
         }
 
         .command-box:hover {
             background: #E8E8ED;
+            box-shadow: 0 12px 32px rgba(0, 113, 227, 0.12),
+                        0 0 0 2px rgba(0, 113, 227, 0.2);
+            transform: translateY(-2px);
         }
 
         .copy-btn {
@@ -193,10 +198,55 @@
             gap: 15px;
         }
 
+        /* Core agents grid - 3 columns for hero agents */
+        .core-agents-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 60px;
+        }
+
+        /* Full team grid - hidden by default */
+        .full-team {
+            display: none;
+            max-width: 1200px;
+            margin: 60px auto 0;
+        }
+
+        .full-team.expanded {
+            display: block;
+        }
+
         .agent-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 40px;
+        }
+
+        /* Show All button */
+        .show-all-btn {
+            display: block;
+            margin: 0 auto;
+            background: transparent;
+            border: 2px solid #D2D2D7;
+            color: #1D1D1F;
+            padding: 12px 32px;
+            border-radius: 980px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .show-all-btn:hover {
+            border-color: #86868B;
+            background: #F5F5F7;
+        }
+
+        .show-all-btn.active {
+            background: #F5F5F7;
+            border-color: #86868B;
         }
 
         /* === Agent Card === */
@@ -344,6 +394,11 @@
             .stat-number { font-size: 3rem; }
             .comparison-arrow { transform: rotate(90deg); margin: 20px 0; }
             .agent-grid { grid-template-columns: 1fr; }
+            .core-agents-grid { grid-template-columns: 1fr; }
+            .command-box {
+                padding: 24px 36px;
+                font-size: 1rem;
+            }
         }
 
         /* === CTA Button === */
@@ -430,8 +485,8 @@
     <!-- Hero Section -->
     <section class="hero">
         <h1>Miyabi</h1>
-        <p class="tagline">23のAIエージェントで<br>開発を自動化</p>
-        <p class="subtitle">ジョナサン・アイブのデザイン哲学に基づく、ミニマリストな自律型開発フレームワーク</p>
+        <p class="tagline">3つのAIが、あなたの開発を<br>72%速くする</p>
+        <p class="subtitle">1コマンドで起動。Issue作成からデプロイまで、すべて自動化。</p>
 
         <div class="command-container">
             <div class="command-box">
@@ -440,7 +495,7 @@
             </div>
         </div>
 
-        <a href="https://github.com/ShunsukeHayashi/Miyabi" class="cta-button">Get Started</a>
+        <a href="https://github.com/ShunsukeHayashi/Miyabi" class="cta-button">Start Your AI Team</a>
     </section>
 
     <!-- Stats Section -->
@@ -468,192 +523,198 @@
     <!-- Agents Section -->
     <section class="agents">
         <div class="section-header">
-            <h2>23のエージェント</h2>
-            <p>4つの役割で自律的に協調動作</p>
+            <h2>あなたのAIチーム</h2>
+            <p>3人のスペシャリストが、開発のすべてを担当します</p>
         </div>
 
-        <!-- Coding Agents -->
-        <div class="agent-category">
-            <h3 class="category-title">
-                
-                Coding Agents（8キャラ）
-            </h3>
-            <div class="agent-grid">
-                <!-- Leader -->
-                <div class="agent-card">
-                    <div class="agent-name">しきるん</div>
-                    <div class="agent-name-en">Shikiroon / CoordinatorAgent</div>
-                    <p class="agent-description">チームのリーダー！みんなに仕事を分けて、順番を決めるよ</p>
-                    <span class="agent-role">リーダー</span>
-                </div>
+        <!-- Core 3 Agents -->
+        <div class="core-agents-grid">
+            <!-- Coordinator -->
+            <div class="agent-card">
+                <div class="agent-name">しきるん</div>
+                <div class="agent-name-en">Coordinator</div>
+                <p class="agent-description">チームを統率するリーダー。Issueを分析して、最適な実行プランを立案します。</p>
+                <span class="agent-role">プランナー</span>
+            </div>
 
-                <!-- Executors -->
-                <div class="agent-card">
-                    <div class="agent-name">つくるん</div>
-                    <div class="agent-name-en">Tsukuroon / CodeGenAgent</div>
-                    <p class="agent-description">プログラムを作る天才！AIの力でコードを自動生成するよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
+            <!-- CodeGen -->
+            <div class="agent-card">
+                <div class="agent-name">つくるん</div>
+                <div class="agent-name-en">Coder</div>
+                <p class="agent-description">コードを書くスペシャリスト。テスト付きで高品質なコードを自動生成します。</p>
+                <span class="agent-role">デベロッパー</span>
+            </div>
 
-                <!-- Analysts -->
-                <div class="agent-card">
-                    <div class="agent-name">めだまん</div>
-                    <div class="agent-name-en">Medaman / ReviewAgent</div>
-                    <p class="agent-description">コードの品質をチェックする目利き！100点満点で採点するよ</p>
-                    <span class="agent-role">分析役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">みつけるん</div>
-                    <div class="agent-name-en">Mitsukeroon / IssueAgent</div>
-                    <p class="agent-description">GitHub の Issue を分析する探偵！ラベルを自動で付けるよ</p>
-                    <span class="agent-role">分析役</span>
-                </div>
-
-                <!-- Support -->
-                <div class="agent-card">
-                    <div class="agent-name">まとめるん</div>
-                    <div class="agent-name-en">Matomeroon / PRAgent</div>
-                    <p class="agent-description">Pull Request を作るまとめ役！コードをキレイにまとめるよ</p>
-                    <span class="agent-role">サポート役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">はこぶん</div>
-                    <div class="agent-name-en">Hakoboon / DeploymentAgent</div>
-                    <p class="agent-description">完成したプログラムを配達する配達員！本番環境に届けるよ</p>
-                    <span class="agent-role">サポート役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">つなぐん</div>
-                    <div class="agent-name-en">Tsunagun / HooksIntegration</div>
-                    <p class="agent-description">みんなをつなぐ橋渡し役！イベントを監視するよ</p>
-                    <span class="agent-role">サポート役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">ぴかぴかん</div>
-                    <div class="agent-name-en">Pikapikan / RefresherAgent</div>
-                    <p class="agent-description">Issueの状態をピカピカに保つ監視役！ラベルを自動更新するよ</p>
-                    <span class="agent-role">サポート役</span>
-                </div>
+            <!-- Review -->
+            <div class="agent-card">
+                <div class="agent-name">めだまん</div>
+                <div class="agent-name-en">Reviewer</div>
+                <p class="agent-description">品質を守る番人。100点満点でコードを評価し、改善提案をします。</p>
+                <span class="agent-role">品質管理</span>
             </div>
         </div>
 
-        <!-- Business Agents -->
-        <div class="agent-category">
-            <h3 class="category-title">
-                
-                Business Agents（15キャラ）
-            </h3>
-            <div class="agent-grid">
-                <!-- Leader -->
-                <div class="agent-card">
-                    <div class="agent-name">あきんどさん</div>
-                    <div class="agent-name-en">Akindosan / AIEntrepreneurAgent</div>
-                    <p class="agent-description">ビジネス全体の社長さん！8つのステップでビジネスプランを作るよ</p>
-                    <span class="agent-role">リーダー</span>
-                </div>
+        <!-- Show All Button -->
+        <button class="show-all-btn" onclick="toggleFullTeam()">
+            全23エージェントを見る
+        </button>
 
-                <!-- Executors -->
-                <div class="agent-card">
-                    <div class="agent-name">つくろん</div>
-                    <div class="agent-name-en">Tsukuron / ProductConceptAgent</div>
-                    <p class="agent-description">商品のアイデアを考える発明家！MVPを設計するよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
+        <!-- Full Team - Hidden by default -->
+        <div class="full-team" id="full-team">
+            <div class="section-header" style="margin-top: 80px;">
+                <h3>フルラインナップ</h3>
+                <p style="font-size: 1rem;">23のスペシャリストが、開発からビジネスまで全領域をカバー</p>
+            </div>
 
-                <div class="agent-card">
-                    <div class="agent-name">かくん</div>
-                    <div class="agent-name-en">Kakun / ProductDesignAgent</div>
-                    <p class="agent-description">デザインを考える絵描きさん！使いやすい画面を作るよ</p>
-                    <span class="agent-role">実行役</span>
+            <!-- Coding Agents -->
+            <div class="agent-category">
+                <h3 class="category-title">Coding Agents（8個）</h3>
+                <div class="agent-grid">
+                    <div class="agent-card">
+                        <div class="agent-name">しきるん</div>
+                        <div class="agent-name-en">CoordinatorAgent</div>
+                        <p class="agent-description">タスク分解とDAG構築</p>
+                        <span class="agent-role">リーダー</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つくるん</div>
+                        <div class="agent-name-en">CodeGenAgent</div>
+                        <p class="agent-description">AI駆動コード生成</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">めだまん</div>
+                        <div class="agent-name-en">ReviewAgent</div>
+                        <p class="agent-description">品質スコアリング</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">みつけるん</div>
+                        <div class="agent-name-en">IssueAgent</div>
+                        <p class="agent-description">Issue分析・ラベリング</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">まとめるん</div>
+                        <div class="agent-name-en">PRAgent</div>
+                        <p class="agent-description">PR自動作成</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">はこぶん</div>
+                        <div class="agent-name-en">DeploymentAgent</div>
+                        <p class="agent-description">CI/CDデプロイ</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つなぐん</div>
+                        <div class="agent-name-en">HooksIntegration</div>
+                        <p class="agent-description">ライフサイクルフック</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">ぴかぴかん</div>
+                        <div class="agent-name-en">RefresherAgent</div>
+                        <p class="agent-description">Issue状態監視</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
                 </div>
+            </div>
 
-                <div class="agent-card">
-                    <div class="agent-name">みちびきん</div>
-                    <div class="agent-name-en">Michibikin / FunnelDesignAgent</div>
-                    <p class="agent-description">お客さんの旅を案内する道先案内人！カスタマージャーニーを作るよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">ひろめるん</div>
-                    <div class="agent-name-en">Hiromeroon / MarketingAgent</div>
-                    <p class="agent-description">マーケティング施策を考える宣伝マン！広告戦略を立てるよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">かくちゃん</div>
-                    <div class="agent-name-en">Kakuchan / ContentCreationAgent</div>
-                    <p class="agent-description">記事や動画を作るクリエイター！コンテンツ制作のプロだよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">つぶやきん</div>
-                    <div class="agent-name-en">Tsubuyakin / SNSStrategyAgent</div>
-                    <p class="agent-description">SNS 戦略を考える SNS マスター！投稿計画を立てるよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">どうがん</div>
-                    <div class="agent-name-en">Dougan / YouTubeAgent</div>
-                    <p class="agent-description">YouTube 動画を企画するプロデューサー！台本も書くよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">うるん</div>
-                    <div class="agent-name-en">Uroon / SalesAgent</div>
-                    <p class="agent-description">営業戦略を立てる営業マン！リードを管理するよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">おきゃくさま</div>
-                    <div class="agent-name-en">Okyakusama / CRMAgent</div>
-                    <p class="agent-description">お客さんのデータを管理する管理人！LTV を最大化するよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">いぶさん</div>
-                    <div class="agent-name-en">Ibusan / JonathanIveDesignAgent</div>
-                    <p class="agent-description">UI/UXを極限まで洗練させるデザイナー！ジョナサン・アイブの哲学でミニマリズムを実現するよ</p>
-                    <span class="agent-role">実行役</span>
-                </div>
-
-                <!-- Analysts -->
-                <div class="agent-card">
-                    <div class="agent-name">なりきりん</div>
-                    <div class="agent-name-en">Narikirin / PersonaAgent</div>
-                    <p class="agent-description">お客さんになりきる俳優さん！ペルソナを作るよ</p>
-                    <span class="agent-role">分析役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">じぶんさん</div>
-                    <div class="agent-name-en">Jibunsan / SelfAnalysisAgent</div>
-                    <p class="agent-description">自分のことを深く知る哲学者！SWOT分析をするよ</p>
-                    <span class="agent-role">分析役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">しらべるん</div>
-                    <div class="agent-name-en">Shiraberoon / MarketResearchAgent</div>
-                    <p class="agent-description">市場を調べる探偵！競合分析のプロだよ</p>
-                    <span class="agent-role">分析役</span>
-                </div>
-
-                <div class="agent-card">
-                    <div class="agent-name">かぞえるん</div>
-                    <div class="agent-name-en">Kazoeroon / AnalyticsAgent</div>
-                    <p class="agent-description">データを分析する数学者！レポートを作るよ</p>
-                    <span class="agent-role">分析役</span>
+            <!-- Business Agents -->
+            <div class="agent-category">
+                <h3 class="category-title">Business Agents（15個）</h3>
+                <div class="agent-grid">
+                    <div class="agent-card">
+                        <div class="agent-name">あきんどさん</div>
+                        <div class="agent-name-en">AIEntrepreneurAgent</div>
+                        <p class="agent-description">ビジネスプラン策定</p>
+                        <span class="agent-role">リーダー</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つくろん</div>
+                        <div class="agent-name-en">ProductConceptAgent</div>
+                        <p class="agent-description">プロダクトコンセプト</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">かくん</div>
+                        <div class="agent-name-en">ProductDesignAgent</div>
+                        <p class="agent-description">サービス設計</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">みちびきん</div>
+                        <div class="agent-name-en">FunnelDesignAgent</div>
+                        <p class="agent-description">導線設計</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">ひろめるん</div>
+                        <div class="agent-name-en">MarketingAgent</div>
+                        <p class="agent-description">マーケティング戦略</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">かくちゃん</div>
+                        <div class="agent-name-en">ContentCreationAgent</div>
+                        <p class="agent-description">コンテンツ制作</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つぶやきん</div>
+                        <div class="agent-name-en">SNSStrategyAgent</div>
+                        <p class="agent-description">SNS戦略</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">どうがん</div>
+                        <div class="agent-name-en">YouTubeAgent</div>
+                        <p class="agent-description">YouTube運用</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">うるん</div>
+                        <div class="agent-name-en">SalesAgent</div>
+                        <p class="agent-description">営業戦略</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">おきゃくさま</div>
+                        <div class="agent-name-en">CRMAgent</div>
+                        <p class="agent-description">顧客管理</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">いぶさん</div>
+                        <div class="agent-name-en">JonathanIveDesignAgent</div>
+                        <p class="agent-description">UI/UXデザイン</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">なりきりん</div>
+                        <div class="agent-name-en">PersonaAgent</div>
+                        <p class="agent-description">ペルソナ設計</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">じぶんさん</div>
+                        <div class="agent-name-en">SelfAnalysisAgent</div>
+                        <p class="agent-description">SWOT分析</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">しらべるん</div>
+                        <div class="agent-name-en">MarketResearchAgent</div>
+                        <p class="agent-description">市場調査</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">かぞえるん</div>
+                        <div class="agent-name-en">AnalyticsAgent</div>
+                        <p class="agent-description">データ分析</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -695,6 +756,26 @@
     </footer>
 
     <script>
+        // Toggle Full Team
+        function toggleFullTeam() {
+            const fullTeam = document.getElementById('full-team');
+            const btn = document.querySelector('.show-all-btn');
+
+            if (fullTeam.classList.contains('expanded')) {
+                fullTeam.classList.remove('expanded');
+                btn.textContent = '全23エージェントを見る';
+                btn.classList.remove('active');
+            } else {
+                fullTeam.classList.add('expanded');
+                btn.textContent = '3つのコアエージェントに戻る';
+                btn.classList.add('active');
+                // Smooth scroll to expanded section
+                setTimeout(() => {
+                    fullTeam.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
+        }
+
         // Toast Notification
         function showToast(message) {
             const toast = document.createElement('div');
