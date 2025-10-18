@@ -34,21 +34,21 @@
    - アーキテクチャパターンを理解
 
 2. **コード生成**
-   - TypeScript strict modeで実装
-   - BaseAgentパターンに従う（Agentの場合）
-   - 包括的な型定義を含める
-   - エラーハンドリングを実装
+   - Rust 2021 Editionで実装
+   - BaseAgent traitを実装（Agentの場合）
+   - 包括的な型定義を含める（struct, enum）
+   - Result型でエラーハンドリングを実装
 
 3. **テスト生成**
-   - Vitestを使用したユニットテスト
-   - すべてのpublicメソッドをテスト
+   - cargo testを使用したユニットテスト（#[cfg(test)] mod tests）
+   - すべてのpublic関数・メソッドをテスト
    - エッジケースをカバー
    - 80%以上のカバレッジを目指す
 
 4. **ドキュメント生成**
-   - JSDocコメント
+   - Rustdocコメント（///）
    - README更新（必要な場合）
-   - 使用例
+   - 使用例（doctest対応）
 
 ### DeploymentAgent
 このTaskが`DeploymentAgent`に割り当てられている場合：
@@ -72,9 +72,9 @@
 このTaskが`ReviewAgent`に割り当てられている場合：
 
 1. **コード品質チェック**
-   - ESLint実行
-   - TypeScript型チェック
-   - セキュリティスキャン
+   - cargo clippy実行（--all-targets）
+   - cargo check実行（型チェック・コンパイル確認）
+   - cargo audit実行（セキュリティスキャン）
 
 2. **品質スコアリング**
    - 100点満点でスコアリング
@@ -83,7 +83,7 @@
 
 3. **レビューコメント生成**
    - 改善ポイントの指摘
-   - ベストプラクティスの提案
+   - Rustベストプラクティスの提案
    - セキュリティ問題の警告
 
 ## Execution Steps
@@ -120,18 +120,19 @@
 ## Success Criteria
 
 - [ ] すべての要件が実装されている
-- [ ] テストが通る
-- [ ] TypeScriptコンパイルエラーがない
+- [ ] cargo test --allが通る
+- [ ] cargo check --allでコンパイルエラーがない
+- [ ] cargo clippyで警告がない
 - [ ] コードがコミットされている
 - [ ] ドキュメントが更新されている（必要な場合）
 
 ## Constraints
 
-- TypeScript strict mode必須
-- 既存のコードスタイルに従う
-- エラーハンドリングを含める
+- Rust 2021 Edition準拠必須
+- 既存のコードスタイルに従う（rustfmt適用）
+- Result型でエラーハンドリングを含める
 - テストカバレッジ80%以上
-- セキュリティベストプラクティスに従う
+- セキュリティベストプラクティスに従う（cargo audit）
 
 ## Output Format
 
@@ -142,9 +143,9 @@
   "status": "success" | "failed",
   "taskId": "{{TASK_ID}}",
   "agentType": "{{AGENT_TYPE}}",
-  "filesCreated": ["path/to/file1.ts", "path/to/file2.ts"],
-  "filesModified": ["path/to/existing.ts"],
-  "testsAdded": ["path/to/test.spec.ts"],
+  "filesCreated": ["crates/miyabi-foo/src/lib.rs", "crates/miyabi-foo/src/types.rs"],
+  "filesModified": ["crates/miyabi-agents/src/coordinator.rs"],
+  "testsAdded": ["crates/miyabi-foo/src/lib.rs #[cfg(test)] mod tests"],
   "testResults": {
     "passed": 10,
     "failed": 0,
