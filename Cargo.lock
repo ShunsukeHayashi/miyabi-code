@@ -1691,7 +1691,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
- "console 0.15.11",
+ "console 0.16.1",
  "dialoguer",
  "dirs",
  "futures",
