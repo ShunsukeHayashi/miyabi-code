@@ -23,7 +23,6 @@ build/
 **/.env.test
 
 # Configuration files with secrets
-.miyabi.yml
 .webhook-config.json
 
 # Claude Code local settings
@@ -164,3 +163,9 @@ playwright-report/
 target/nextest/
 .vercel
 public/
+
+# Miyabi
+.worktrees/
+logs/
+reports/
+*.log
