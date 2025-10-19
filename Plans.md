@@ -1,8 +1,8 @@
-# Plans for Issue #206
+# Plans for Issue #202
 
-**Title**: Consolidate Cross-Cutting Concerns
+**Title**: Harden Domain Models
 
-**URL**: https://github.com/ShunsukeHayashi/miyabi-private/issues/206
+**URL**: https://github.com/ShunsukeHayashi/miyabi-private/issues/202
 
 ---
 
@@ -15,9 +15,9 @@
 
 ## 📝 Task Breakdown
 
-### 1. Analyze requirements for #206
+### 1. Analyze requirements for #202
 
-- **ID**: `task-206-analysis`
+- **ID**: `task-202-analysis`
 - **Type**: Docs
 - **Assigned Agent**: IssueAgent
 - **Priority**: 0
@@ -25,58 +25,54 @@
 
 **Description**: Analyze issue requirements and create detailed specification
 
-### 2. Implement solution for #206
+### 2. Implement solution for #202
 
-- **ID**: `task-206-impl`
+- **ID**: `task-202-impl`
 - **Type**: Feature
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 1
 - **Estimated Duration**: 30 min
-- **Dependencies**: task-206-analysis
+- **Dependencies**: task-202-analysis
 
 **Description**: ## Summary
-Centralize logging, retry, and security helpers in `miyabi-core`, align error taxonomy, and add structured tracing so every crate reports consistent diagnostics and follows secure defaults.
+Normalize core types across crates, tighten invariants, and eliminate duplicated business rules so downstream agents and services rely on a single, well-documented schema.
 
 ## Deliverables
-- Shared core utilities for logging/retry/security
-- Migrated consumers using the shared APIs
-- Validated tracing/metrics coverage
-- Security review and contributor guidance
+- Canonical enums/constructors for key entities
+- Updated consumers compiling against the stricter API
+- Tests and docs covering invariants
 
 ## Dependencies
-- Issue 203 (Unify Agent Pipeline)
-- Issue 204 (Modularize Worktree Infrastructure)
-- Issue 205 (Refactor CLI Command Surface)
+- Issue 201 (Baseline & Guardrails Setup)
 
 ## Checklist
-- [ ] T6-infra-inventory — core-team — inventory current logging/retry/security usage
-- [ ] T6-shared-api-design — architecture — design unified APIs in `miyabi-core`
-- [ ] T6-implement-core-utils — core-team — implement structured tracing, retry, security guards
-- [ ] T6-adopt-in-crates — cross-team — migrate agents/worktree/CLI to new helpers
-- [ ] T6-tracing-validation — qa — verify tracing spans/metrics in representative flows
-- [ ] T6-security-review — security — review secrets handling and error exposure
-- [ ] T6-communication — docs — publish migration notes and update contributor docs
+- [ ] T2-schema-inventory — types-lead — catalogue current type usage and duplicates
+- [ ] T2-design-invariants — architecture — define canonical enums, validation rules, and RFC notes
+- [ ] T2-implement-types — types-lead — implement invariants in `agent.rs`, `task.rs`, `workflow.rs`
+- [ ] T2-update-consumers — agents-team — migrate crates to new types and resolve build breaks
+- [ ] T2-guard-tests — qa — add unit tests for invariants, serde round trips, rejection flows
+- [ ] T2-doc-sync — docs — refresh docs/prompts referencing domain models
 
 
-### 3. Add tests for #206
+### 3. Add tests for #202
 
-- **ID**: `task-206-test`
+- **ID**: `task-202-test`
 - **Type**: Test
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 2
 - **Estimated Duration**: 15 min
-- **Dependencies**: task-206-impl
+- **Dependencies**: task-202-impl
 
 **Description**: Create comprehensive test coverage
 
-### 4. Review code quality for #206
+### 4. Review code quality for #202
 
-- **ID**: `task-206-review`
+- **ID**: `task-202-review`
 - **Type**: Refactor
 - **Assigned Agent**: ReviewAgent
 - **Priority**: 3
 - **Estimated Duration**: 10 min
-- **Dependencies**: task-206-test
+- **Dependencies**: task-202-test
 
 **Description**: Run quality checks and code review
 
@@ -86,31 +82,31 @@ Tasks can be executed in parallel within each level:
 
 ### Level 0 (Parallel Execution)
 
-- `task-206-analysis` - Analyze requirements for #206
+- `task-202-analysis` - Analyze requirements for #202
 
 ### Level 1 (Parallel Execution)
 
-- `task-206-impl` - Implement solution for #206
+- `task-202-impl` - Implement solution for #202
 
 ### Level 2 (Parallel Execution)
 
-- `task-206-test` - Add tests for #206
+- `task-202-test` - Add tests for #202
 
 ### Level 3 (Parallel Execution)
 
-- `task-206-review` - Review code quality for #206
+- `task-202-review` - Review code quality for #202
 
 ## 📊 Dependency Graph
 
 ```mermaid
 graph TD
-    task_206_analysis["Analyze requirements for #206"]
-    task_206_impl["Implement solution for #206"]
-    task_206_test["Add tests for #206"]
-    task_206_review["Review code quality for #206"]
-    task_206_analysis --> task_206_impl
-    task_206_impl --> task_206_test
-    task_206_test --> task_206_review
+    task_202_analysis["Analyze requirements for #202"]
+    task_202_impl["Implement solution for #202"]
+    task_202_test["Add tests for #202"]
+    task_202_review["Review code quality for #202"]
+    task_202_analysis --> task_202_impl
+    task_202_impl --> task_202_test
+    task_202_test --> task_202_review
 ```
 
 ## ⏱️ Timeline Estimation
@@ -121,4 +117,4 @@ graph TD
 
 ---
 
-*Generated by CoordinatorAgent on 2025-10-19 05:54:52 UTC*
+*Generated by CoordinatorAgent on 2025-10-19 06:06:04 UTC*
