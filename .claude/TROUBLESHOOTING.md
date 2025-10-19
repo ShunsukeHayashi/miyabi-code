@@ -258,6 +258,170 @@ git worktree prune
 
 ---
 
+### ❌ Interactive rebase が中断されてセッションが不安定
+
+**症状**:
+```
+- Claude Codeセッションが数秒〜数分で頻繁に切断される
+- git status で "UU" (unmerged) ファイルが表示される
+- "interactive rebase in progress" メッセージが表示される
+- Git操作がブロックされる
+- 古いWorktreeが複数残存している
+```
+
+**根本原因**:
+
+**Interactive rebase が中途半端な状態で停止**している：
+- Rebase中にマージコンフリクトが発生
+- コンフリクトが未解決のまま放置
+- Git状態が不安定（detached HEAD等）
+- これにより**すべてのGit操作がブロック**され、Claude Codeセッションが正常に動作できない
+
+**診断手順**:
+
+1. Git状態を確認:
+```bash
+git status
+```
+
+以下が表示される場合、この問題に該当：
+```
+interactive rebase in progress; onto a63c99e
+You are currently rebasing branch 'feature/xxx' on 'a63c99e'.
+  (fix conflicts and then run "git rebase --continue")
+```
+
+2. Unmergedファイルを確認:
+```bash
+git diff --name-status --diff-filter=U
+```
+
+3. Worktree残存を確認:
+```bash
+git worktree list
+```
+
+4. ログで頻繁なセッション再起動を確認:
+```bash
+tail -100 .ai/logs/$(date +%Y-%m-%d).md | grep "Session:"
+```
+
+**解決策**:
+
+**Step 1: Interactive rebaseを中断**
+
+最も安全な方法は、rebaseを完全に中断してクリーンな状態に戻すこと：
+
+```bash
+# Rebaseを中断
+git rebase --abort
+
+# 状態確認
+git status
+```
+
+成功すると：
+```
+On branch feature/xxx
+Your branch is up to date with 'origin/feature/xxx'.
+
+nothing to commit, working tree clean
+```
+
+**Step 2: mainブランチに切り替え**
+
+```bash
+# mainブランチに戻る
+git checkout main
+
+# 最新状態を取得
+git pull origin main
+
+# 状態確認
+git status
+```
+
+**Step 3: 古いWorktreeをクリーンアップ**
+
+```bash
+# Worktree一覧を確認
+git worktree list
+
+# すべての古いWorktreeを強制削除
+git worktree remove .worktrees/test/issue-1-38fa0e26 --force
+git worktree remove .worktrees/test/issue-1-80cea6d1 --force
+git worktree remove .worktrees/test/issue-1-ea45dd53 --force
+
+# Worktree参照をクリーンアップ
+git worktree prune
+
+# 確認（mainブランチのみ表示されるべき）
+git worktree list
+```
+
+**Step 4: 動作確認**
+
+```bash
+# Git状態が完全にクリーンであることを確認
+git status
+
+# ビルドが正常に動作することを確認
+cargo build --bin miyabi
+
+# バイナリが正常に動作することを確認
+./target/debug/miyabi --version
+```
+
+**検証**:
+
+修正後の状態：
+- ✅ `git status` → "nothing to commit, working tree clean"
+- ✅ `git worktree list` → mainブランチのみ
+- ✅ `cargo build` → エラーなし
+- ✅ Claude Codeセッション → 30分以上安定継続
+
+**予防策**:
+
+1. **Rebaseは慎重に実行**:
+   - Interactive rebaseは複雑な操作なので、必要な時のみ実行
+   - コンフリクトが発生したら、すぐに解決するか中断する
+   - 長時間放置しない
+
+2. **定期的なWorktreeクリーンアップ**（週1回）:
+```bash
+#!/bin/bash
+# .claude/scripts/cleanup-worktrees.sh
+
+echo "=== Worktree Cleanup ==="
+git worktree list
+
+echo -e "\n=== Pruning stale worktrees ==="
+git worktree prune
+
+echo -e "\n=== Current worktrees ==="
+git worktree list
+```
+
+3. **Git状態の定期確認**:
+```bash
+# Rebase中でないことを確認
+git status | grep -q "rebase in progress" && echo "⚠️ Rebase in progress!" || echo "✅ Clean"
+
+# Unmergedファイルがないことを確認
+git ls-files -u | wc -l
+```
+
+4. **Claude Codeセッションの適切な終了**:
+   - 長時間使わないセッションは手動で終了
+   - Git操作中にセッションを切断しない
+   - `Ctrl+C` で正常終了
+
+**参考**:
+- Git公式ドキュメント: https://git-scm.com/docs/git-rebase
+- Git Worktree: https://git-scm.com/docs/git-worktree
+
+---
+
 ## Webhookの問題
 
 ### ❌ Webhook connection failed
