@@ -1,8 +1,8 @@
-# Plans for Issue #204
+# Plans for Issue #206
 
-**Title**: Modularize Worktree Infrastructure
+**Title**: Consolidate Cross-Cutting Concerns
 
-**URL**: https://github.com/ShunsukeHayashi/miyabi-private/issues/204
+**URL**: https://github.com/ShunsukeHayashi/miyabi-private/issues/206
 
 ---
 
@@ -15,9 +15,9 @@
 
 ## 📝 Task Breakdown
 
-### 1. Analyze requirements for #204
+### 1. Analyze requirements for #206
 
-- **ID**: `task-204-analysis`
+- **ID**: `task-206-analysis`
 - **Type**: Docs
 - **Assigned Agent**: IssueAgent
 - **Priority**: 0
@@ -25,56 +25,58 @@
 
 **Description**: Analyze issue requirements and create detailed specification
 
-### 2. Implement solution for #204
+### 2. Implement solution for #206
 
-- **ID**: `task-204-impl`
-- **Type**: Deployment
+- **ID**: `task-206-impl`
+- **Type**: Feature
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 1
 - **Estimated Duration**: 30 min
-- **Dependencies**: task-204-analysis
+- **Dependencies**: task-206-analysis
 
 **Description**: ## Summary
-Split `WorktreeManager` responsibilities into focused modules (git, concurrency, telemetry) with lifecycle hooks and integration tests to improve reliability of worktree-based execution.
+Centralize logging, retry, and security helpers in `miyabi-core`, align error taxonomy, and add structured tracing so every crate reports consistent diagnostics and follows secure defaults.
 
 ## Deliverables
-- Modular worktree architecture
-- Hooks for create/cleanup with telemetry
-- Integration test suite using mock git repos
-- Observability documentation
+- Shared core utilities for logging/retry/security
+- Migrated consumers using the shared APIs
+- Validated tracing/metrics coverage
+- Security review and contributor guidance
 
 ## Dependencies
-- Issue 201 (Baseline & Guardrails Setup)
-- Issue 202 (Harden Domain Models)
+- Issue 203 (Unify Agent Pipeline)
+- Issue 204 (Modularize Worktree Infrastructure)
+- Issue 205 (Refactor CLI Command Surface)
 
 ## Checklist
-- [ ] T4-behavior-map — infra-team — catalogue current responsibilities and pain points
-- [ ] T4-architecture-plan — architecture — design modular layout and public API
-- [ ] T4-module-split — infra-team — refactor code into dedicated modules
-- [ ] T4-lifecycle-hooks — infra-team — implement lifecycle hooks and structured telemetry
-- [ ] T4-integration-tests — qa — add mock-git integration tests and failure coverage
-- [ ] T4-observability-docs — docs — document telemetry, hooks, and troubleshooting
+- [ ] T6-infra-inventory — core-team — inventory current logging/retry/security usage
+- [ ] T6-shared-api-design — architecture — design unified APIs in `miyabi-core`
+- [ ] T6-implement-core-utils — core-team — implement structured tracing, retry, security guards
+- [ ] T6-adopt-in-crates — cross-team — migrate agents/worktree/CLI to new helpers
+- [ ] T6-tracing-validation — qa — verify tracing spans/metrics in representative flows
+- [ ] T6-security-review — security — review secrets handling and error exposure
+- [ ] T6-communication — docs — publish migration notes and update contributor docs
 
 
-### 3. Add tests for #204
+### 3. Add tests for #206
 
-- **ID**: `task-204-test`
+- **ID**: `task-206-test`
 - **Type**: Test
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 2
 - **Estimated Duration**: 15 min
-- **Dependencies**: task-204-impl
+- **Dependencies**: task-206-impl
 
 **Description**: Create comprehensive test coverage
 
-### 4. Review code quality for #204
+### 4. Review code quality for #206
 
-- **ID**: `task-204-review`
+- **ID**: `task-206-review`
 - **Type**: Refactor
 - **Assigned Agent**: ReviewAgent
 - **Priority**: 3
 - **Estimated Duration**: 10 min
-- **Dependencies**: task-204-test
+- **Dependencies**: task-206-test
 
 **Description**: Run quality checks and code review
 
@@ -84,31 +86,31 @@ Tasks can be executed in parallel within each level:
 
 ### Level 0 (Parallel Execution)
 
-- `task-204-analysis` - Analyze requirements for #204
+- `task-206-analysis` - Analyze requirements for #206
 
 ### Level 1 (Parallel Execution)
 
-- `task-204-impl` - Implement solution for #204
+- `task-206-impl` - Implement solution for #206
 
 ### Level 2 (Parallel Execution)
 
-- `task-204-test` - Add tests for #204
+- `task-206-test` - Add tests for #206
 
 ### Level 3 (Parallel Execution)
 
-- `task-204-review` - Review code quality for #204
+- `task-206-review` - Review code quality for #206
 
 ## 📊 Dependency Graph
 
 ```mermaid
 graph TD
-    task_204_analysis["Analyze requirements for #204"]
-    task_204_impl["Implement solution for #204"]
-    task_204_test["Add tests for #204"]
-    task_204_review["Review code quality for #204"]
-    task_204_analysis --> task_204_impl
-    task_204_impl --> task_204_test
-    task_204_test --> task_204_review
+    task_206_analysis["Analyze requirements for #206"]
+    task_206_impl["Implement solution for #206"]
+    task_206_test["Add tests for #206"]
+    task_206_review["Review code quality for #206"]
+    task_206_analysis --> task_206_impl
+    task_206_impl --> task_206_test
+    task_206_test --> task_206_review
 ```
 
 ## ⏱️ Timeline Estimation
@@ -119,4 +121,4 @@ graph TD
 
 ---
 
-*Generated by CoordinatorAgent on 2025-10-18 19:21:04 UTC*
+*Generated by CoordinatorAgent on 2025-10-19 05:54:52 UTC*
