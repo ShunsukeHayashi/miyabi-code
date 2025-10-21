@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  swebench-pro:
+    image: scaleai/swebench-pro:latest
+    container_name: miyabi-swebench-pro
+
+    volumes:
+      # データセットとパッチファイルをマウント
+      - ../data:/workspace/data
+      - ../results:/workspace/results
+      - ../scripts:/workspace/scripts
+
+    environment:
+      # Modal認証情報（環境変数から取得）
+      - MODAL_TOKEN_ID=${MODAL_TOKEN_ID}
+      - MODAL_TOKEN_SECRET=${MODAL_TOKEN_SECRET}
+
+      # Python環境設定
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/workspace
+
+    working_dir: /workspace
+
+    # メモリ制限（16GB推奨）
+    mem_limit: 16g
+
+    # CPUリソース
+    cpus: 4.0
+
+    command: /bin/bash
+
+    stdin_open: true
+    tty: true
+
+  # オプション: データセット準備用コンテナ
+  dataset-loader:
+    image: python:3.11-slim
+    container_name: miyabi-dataset-loader
+
+    volumes:
+      - ../data:/workspace/data
+      - ../scripts:/workspace/scripts
+
+    working_dir: /workspace
+
+    command: >
+      bash -c "
+        pip install --no-cache-dir datasets huggingface_hub &&
+        python scripts/download_dataset.py
+      "
+
+networks:
+  default:
+    name: miyabi-swebench-network

@@ -1,0 +1,36 @@
+# SWE-bench Pro 環境 - Git除外設定
+
+# 機密情報
+.env
+*.toml
+
+# データセット（大容量）
+data/*.json
+data/*.csv
+data/*.parquet
+!data/.gitkeep
+
+# 評価結果（大容量）
+results/
+!results/.gitkeep
+
+# 外部リポジトリ
+external/
+
+# Docker関連
+*.log
+docker-compose.override.yml
+
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+venv-*/
+.venv/
+*.egg-info/
+
+# 一時ファイル
+*.tmp
+*.bak
+*.swp
+.DS_Store
