@@ -1,0 +1,137 @@
+1
+00:00:00,000 --> 00:00:05,000
+Hello developers!
+
+2
+00:00:05,000 --> 00:00:10,000
+Today, I'll introduce "Miyabi" -
+a framework that automates everything
+
+3
+00:00:10,000 --> 00:00:15,000
+from Issue creation to PR completion.
+
+4
+00:00:15,000 --> 00:00:20,000
+Miyabi has 21 specialized AI Agents
+working together
+
+5
+00:00:20,000 --> 00:00:25,000
+to write code, run tests, and create
+Pull Requests while you sleep.
+
+6
+00:00:30,000 --> 00:00:35,000
+It's simple to use.
+Just two commands to start Miyabi.
+
+7
+00:00:35,000 --> 00:00:40,000
+First, set your GitHub token
+as an environment variable.
+
+8
+00:00:40,000 --> 00:00:45,000
+Then, run "miyabi work-on"
+with an issue number.
+
+9
+00:00:45,000 --> 00:00:50,000
+The Coordinator automatically
+breaks down tasks
+
+10
+00:00:50,000 --> 00:00:55,000
+and assigns them to specialist agents.
+
+11
+00:01:00,000 --> 00:01:05,000
+Let's see it in action.
+
+12
+00:01:05,000 --> 00:01:10,000
+Issue #270 is
+"Enable TypeScript strict mode".
+
+13
+00:01:10,000 --> 00:01:15,000
+First, Coordinator analyzes the issue.
+
+14
+00:01:15,000 --> 00:01:20,000
+Next, CodeGen generates the code.
+
+15
+00:01:20,000 --> 00:01:25,000
+Reviewer checks the quality.
+
+16
+00:01:25,000 --> 00:01:30,000
+Finally, PR Agent creates
+a Pull Request.
+
+17
+00:01:30,000 --> 00:01:35,000
+You don't need to do anything.
+
+18
+00:01:35,000 --> 00:01:40,000
+All agents work together automatically.
+
+19
+00:02:00,000 --> 00:02:05,000
+Miyabi has 21 specialized agents.
+
+20
+00:02:05,000 --> 00:02:10,000
+7 Coding Agents:
+Coordinator, CodeGen, Reviewer, PR Maker,
+
+21
+00:02:10,000 --> 00:02:15,000
+Issue Analyzer, Deployer, Hook Manager.
+
+22
+00:02:15,000 --> 00:02:20,000
+14 Business Agents:
+Entrepreneur, Marketer, Sales, CRM,
+
+23
+00:02:20,000 --> 00:02:25,000
+Analytics, Content Creator,
+SNS Strategist, YouTuber, and more.
+
+24
+00:02:25,000 --> 00:02:30,000
+They all work together
+to support your development.
+
+25
+00:02:30,000 --> 00:02:35,000
+Miyabi is fully open source.
+
+26
+00:02:35,000 --> 00:02:40,000
+Star it on GitHub now and
+try it in your projects.
+
+27
+00:02:40,000 --> 00:02:45,000
+Detailed documentation,
+Quick Start guide,
+
+28
+00:02:45,000 --> 00:02:50,000
+and all 21 agent specifications
+are available.
+
+29
+00:02:50,000 --> 00:02:55,000
+Let's enter a new era of
+development with AI.
+
+30
+00:02:55,000 --> 00:03:00,000
+Make development more fun and faster
+with Miyabi. Thank you for watching!
