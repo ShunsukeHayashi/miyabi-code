@@ -287,7 +287,7 @@ pub fn create_parallel_executor_with_config(config: ParallelConfig) -> ParallelE
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::business::MarketingAgent;
+    use miyabi_agent_business::MarketingAgent;
     use miyabi_types::{agent::ResultStatus, task::TaskType};
     use std::collections::HashMap;
 

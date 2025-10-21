@@ -5,33 +5,22 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Miyabi Agents - Autonomous AI agents"
+description = "Miyabi Agents - Autonomous AI agents (DEPRECATED: Use miyabi-agent-* crates)"
 keywords = ["agents", "ai", "automation", "github", "cicd"]
 categories = ["development-tools", "web-programming"]
 readme = "../README.md"
 
 [dependencies]
-miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
-miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+# Core agent infrastructure
 miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
-miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
-# miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" } # Temporarily disabled due to Send issues
-miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }
-futures = "0.3"
-miyabi-potpie = { version = "0.1.0", path = "../miyabi-potpie" }
 
-tokio = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-chrono = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = "0.3"
-anyhow = "1.0"
-async-trait = "0.1"
-regex = "1.10"
-reqwest = { version = "0.12", features = ["json"] }
-octocrab = "0.47"
+# Specialized agent crates (re-exported for backward compatibility)
+miyabi-agent-coordinator = { version = "0.1.0", path = "../miyabi-agent-coordinator" }
+miyabi-agent-codegen = { version = "0.1.0", path = "../miyabi-agent-codegen" }
+miyabi-agent-review = { version = "0.1.0", path = "../miyabi-agent-review" }
+miyabi-agent-workflow = { version = "0.1.0", path = "../miyabi-agent-workflow" }
+miyabi-agent-business = { version = "0.1.0", path = "../miyabi-agent-business" }
+miyabi-agent-integrations = { version = "0.1.0", path = "../miyabi-agent-integrations" }
 
 [dev-dependencies]
 tempfile = "3.13"

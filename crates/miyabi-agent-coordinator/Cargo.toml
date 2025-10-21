@@ -26,4 +26,5 @@ async-trait = "0.1"
 futures = "0.3"
 
 [dev-dependencies]
+miyabi-agent-business = { version = "0.1.0", path = "../miyabi-agent-business" }
 tempfile = "3.13"

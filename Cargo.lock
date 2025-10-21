@@ -1813,6 +1813,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "futures",
+ "miyabi-agent-business",
  "miyabi-agent-core",
  "miyabi-core",
  "miyabi-github",
@@ -1905,26 +1906,14 @@ dependencies = [
 name = "miyabi-agents"
 version = "0.1.1"
 dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "futures",
+ "miyabi-agent-business",
+ "miyabi-agent-codegen",
+ "miyabi-agent-coordinator",
  "miyabi-agent-core",
- "miyabi-core",
- "miyabi-github",
- "miyabi-llm",
- "miyabi-potpie",
- "miyabi-types",
- "octocrab 0.47.0",
- "regex",
- "reqwest 0.12.24",
- "serde",
- "serde_json",
+ "miyabi-agent-integrations",
+ "miyabi-agent-review",
+ "miyabi-agent-workflow",
  "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use miyabi_agents::coordinator::CoordinatorAgent;
+use miyabi_agents::CoordinatorAgent;
 use miyabi_github::GitHubClient;
 use miyabi_types::{AgentConfig, Issue};
 use octocrab::params::State;
