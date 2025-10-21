@@ -168,7 +168,10 @@ Focus on content that drives organic traffic, generates leads, and establishes t
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Content Strategy & Production Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Content Strategy & Production Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -250,8 +253,10 @@ impl BusinessAgent for ContentCreationAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("ContentCreationAgent: Developing content strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "ContentCreationAgent: Developing content strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -266,8 +271,12 @@ impl BusinessAgent for ContentCreationAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated content strategy with {} initiatives, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated content strategy with {} initiatives, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -283,9 +292,14 @@ impl BusinessAgent for ContentCreationAgent {
             errors.push("No content initiatives defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 3 {
-            warnings.push("Few content initiatives (expected 5-8 covering various formats)".to_string());
+            warnings.push(
+                "Few content initiatives (expected 5-8 covering various formats)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
-            suggestions.push("Add diverse content types: blog, whitepaper, case study, video, infographic".to_string());
+            suggestions.push(
+                "Add diverse content types: blog, whitepaper, case study, video, infographic"
+                    .to_string(),
+            );
         }
 
         // Validate content KPIs
@@ -293,16 +307,20 @@ impl BusinessAgent for ContentCreationAgent {
             errors.push("No content metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 3 {
-            warnings.push("Few content KPIs (expected 5-8 covering traffic, engagement, leads)".to_string());
+            warnings.push(
+                "Few content KPIs (expected 5-8 covering traffic, engagement, leads)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add metrics for traffic, engagement, SEO, lead generation".to_string());
+            suggestions
+                .push("Add metrics for traffic, engagement, SEO, lead generation".to_string());
         }
 
         // Validate content calendar (timeline)
         if plan.timeline.milestones.is_empty() {
             warnings.push("No content production milestones defined".to_string());
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add content production sprints and publishing milestones".to_string());
+            suggestions
+                .push("Add content production sprints and publishing milestones".to_string());
         }
 
         // Validate content risks

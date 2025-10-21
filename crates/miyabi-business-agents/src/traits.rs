@@ -2,8 +2,8 @@
 //!
 //! Defines the core trait that all business agents must implement.
 
-use async_trait::async_trait;
 use crate::types::{BusinessInput, BusinessPlan, ValidationResult};
+use async_trait::async_trait;
 use miyabi_types::MiyabiError;
 
 /// Business Agent trait - extends BaseAgent with business-specific methods
@@ -85,7 +85,10 @@ mod tests {
             Ok(BusinessPlan::default())
         }
 
-        async fn validate_output(&self, _plan: &BusinessPlan) -> Result<ValidationResult, MiyabiError> {
+        async fn validate_output(
+            &self,
+            _plan: &BusinessPlan,
+        ) -> Result<ValidationResult, MiyabiError> {
             Ok(ValidationResult::default())
         }
     }

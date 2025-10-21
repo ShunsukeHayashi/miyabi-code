@@ -168,7 +168,10 @@ Focus on data-driven insights and actionable recommendations."#,
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Market Research & Competitive Analysis").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Market Research & Competitive Analysis")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -250,8 +253,10 @@ impl BusinessAgent for MarketResearchAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("MarketResearchAgent: Analyzing market for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "MarketResearchAgent: Analyzing market for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -266,8 +271,12 @@ impl BusinessAgent for MarketResearchAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated market research with {} insights, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated market research with {} insights, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -283,7 +292,10 @@ impl BusinessAgent for MarketResearchAgent {
             errors.push("No market insights provided".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 5 {
-            warnings.push("Few market insights (expected 7-12 covering TAM/SAM/SOM, competitors, trends)".to_string());
+            warnings.push(
+                "Few market insights (expected 7-12 covering TAM/SAM/SOM, competitors, trends)"
+                    .to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
             suggestions.push("Add more detailed competitive and trend analysis".to_string());
         }
@@ -293,7 +305,9 @@ impl BusinessAgent for MarketResearchAgent {
             errors.push("No market metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 3 {
-            warnings.push("Few market KPIs (expected 5-8 covering market size, share, growth)".to_string());
+            warnings.push(
+                "Few market KPIs (expected 5-8 covering market size, share, growth)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
             suggestions.push("Add TAM/SAM/SOM metrics and market share targets".to_string());
         }
@@ -310,7 +324,10 @@ impl BusinessAgent for MarketResearchAgent {
             errors.push("No market risks identified".to_string());
             quality_score = quality_score.saturating_sub(20);
         } else if plan.risks.len() < 3 {
-            warnings.push("Few market risks (expected 5-10 covering competition, regulation, market changes)".to_string());
+            warnings.push(
+                "Few market risks (expected 5-10 covering competition, regulation, market changes)"
+                    .to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
         }
 
@@ -423,28 +440,22 @@ mod tests {
             },
         ];
 
-        plan.kpis = vec![
-            KPI {
-                name: "Market Share".to_string(),
-                baseline: 0.0,
-                target: 5.0,
-                unit: "percent".to_string(),
-                frequency: MeasurementFrequency::Quarterly,
-            },
-        ];
+        plan.kpis = vec![KPI {
+            name: "Market Share".to_string(),
+            baseline: 0.0,
+            target: 5.0,
+            unit: "percent".to_string(),
+            frequency: MeasurementFrequency::Quarterly,
+        }];
 
-        plan.risks = vec![
-            Risk {
-                description: "Intense competition".to_string(),
-                severity: 4,
-                probability: 0.6,
-                mitigation: vec!["Differentiation strategy".to_string()],
-            },
-        ];
+        plan.risks = vec![Risk {
+            description: "Intense competition".to_string(),
+            severity: 4,
+            probability: 0.6,
+            mitigation: vec!["Differentiation strategy".to_string()],
+        }];
 
-        plan.next_steps = vec![
-            "Conduct detailed competitor analysis".to_string(),
-        ];
+        plan.next_steps = vec!["Conduct detailed competitor analysis".to_string()];
 
         let result = agent.validate_output(&plan).await.unwrap();
         assert!(result.is_valid);

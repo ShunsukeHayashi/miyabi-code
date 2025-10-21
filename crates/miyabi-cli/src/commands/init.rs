@@ -64,12 +64,7 @@ impl InitCommand {
 
         let project_type_selection = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("What are you building?")
-            .items(
-                project_types
-                    .iter()
-                    .map(|t| t.as_str())
-                    .collect::<Vec<_>>(),
-            )
+            .items(project_types.iter().map(|t| t.as_str()).collect::<Vec<_>>())
             .default(0)
             .interact()
             .map_err(|e| CliError::InvalidProjectName(e.to_string()))?;
@@ -95,7 +90,10 @@ impl InitCommand {
         if connect_github {
             println!("  {} Will set up GitHub integration", "🔗".green());
         } else {
-            println!("  {} Skipping GitHub (you can set it up later)", "⏭️".yellow());
+            println!(
+                "  {} Skipping GitHub (you can set it up later)",
+                "⏭️".yellow()
+            );
         }
         println!();
 
@@ -113,7 +111,10 @@ impl InitCommand {
         println!("{}", "🎉 You're all set!".green().bold());
         println!();
         println!("Your first AI-powered task:");
-        println!("  {}", "miyabi work-on \"Setup project structure\"".yellow());
+        println!(
+            "  {}",
+            "miyabi work-on \"Setup project structure\"".yellow()
+        );
         println!();
         println!("Or try the traditional way:");
         println!("  {}", "miyabi agent run coordinator --issue 1".cyan());
@@ -157,7 +158,10 @@ impl InitCommand {
         println!("  {} Check installation:", "3.".yellow().bold());
         println!("     miyabi status");
         println!();
-        println!("  {} Create your first issue on GitHub, then:", "4.".yellow().bold());
+        println!(
+            "  {} Create your first issue on GitHub, then:",
+            "4.".yellow().bold()
+        );
         println!("     miyabi agent run coordinator --issue 1");
         println!();
         println!("{}", "📖 Documentation:".cyan().bold());

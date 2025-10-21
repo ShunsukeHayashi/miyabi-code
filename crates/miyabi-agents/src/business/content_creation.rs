@@ -5,7 +5,7 @@
 //! SEO最適化、ブランドトーン、ターゲットオーディエンスに合わせた
 //! 高品質なコンテンツを生成します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

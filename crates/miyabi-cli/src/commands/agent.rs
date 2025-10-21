@@ -182,7 +182,7 @@ impl AgentCommand {
             repo_name: Some(repo_name),
             use_task_tool: false,
             use_worktree: true,
-            worktree_base_path: Some(".worktrees".to_string()),
+            worktree_base_path: Some(PathBuf::from(".worktrees")),
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
             tech_lead_github_username: None,
@@ -316,7 +316,11 @@ impl AgentCommand {
     /// let mut agent = HookedAgent::new(CodeGenAgent::new(config.clone()));
     /// self.register_standard_hooks(&mut agent, &config);
     /// ```
-    fn register_standard_hooks<A: BaseAgent>(&self, agent: &mut HookedAgent<A>, config: &AgentConfig) {
+    fn register_standard_hooks<A: BaseAgent>(
+        &self,
+        agent: &mut HookedAgent<A>,
+        config: &AgentConfig,
+    ) {
         agent.register_hook(MetricsHook::new());
         agent.register_hook(EnvironmentCheckHook::new(["GITHUB_TOKEN"]));
         agent.register_hook(AuditLogHook::new(config.log_directory.clone()));

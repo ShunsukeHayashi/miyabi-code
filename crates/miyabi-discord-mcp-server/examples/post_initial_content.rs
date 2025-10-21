@@ -12,7 +12,10 @@ use std::collections::HashMap;
 use std::env;
 use twilight_http::Client;
 use twilight_model::channel::message::embed::{Embed, EmbedAuthor, EmbedFooter};
-use twilight_model::id::{marker::{ChannelMarker, GuildMarker}, Id};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 use twilight_model::util::Timestamp;
 
 #[derive(Parser)]
@@ -95,7 +98,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 💬 <#general> - 一般チャット\n\
                 🙋 <#introductions> - 自己紹介\n\n\
                 質問があれば <#help-general> でお気軽にどうぞ！\n\n\
-                みんなで楽しいコミュニティを作っていこうね！✨".to_string()
+                みんなで楽しいコミュニティを作っていこうね！✨"
+                    .to_string(),
             ),
             fields: vec![],
             footer: Some(EmbedFooter {
@@ -136,7 +140,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 - 2回目: 一時的なミュート\n\
                 - 3回目: サーバーからのキック\n\
                 - 重大な違反: 即座にBAN\n\n\
-                質問や報告は <#mod-chat> へ（モデレーターのみ閲覧可能）".to_string()
+                質問や報告は <#mod-chat> へ（モデレーターのみ閲覧可能）"
+                    .to_string(),
             ),
             fields: vec![],
             footer: Some(EmbedFooter {

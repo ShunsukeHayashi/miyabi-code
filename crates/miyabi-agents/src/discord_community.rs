@@ -4,7 +4,7 @@
 //! **性格**: フレンドリー、親しみやすい、コミュニティを大切にする
 //! **口調**: 「だよ」「だね」などの柔らかい口調
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_types::agent::ResultStatus;
 use miyabi_types::error::{AgentError, MiyabiError, Result};
@@ -151,17 +151,20 @@ impl DiscordCommunityAgent {
 
         // 1. ヘルスチェック
         info!("Discord MCP Server に接続中...");
-        self.call_mcp_server("discord.health", serde_json::json!({})).await?;
+        self.call_mcp_server("discord.health", serde_json::json!({}))
+            .await?;
         info!("✅ 接続成功！");
 
         // 2. サーバー情報取得
         info!("サーバー情報を取得中...");
-        let guild_info = self.call_mcp_server(
-            "discord.guild.get",
-            serde_json::json!({
-                "guild_id": guild_id
-            }),
-        ).await?;
+        let guild_info = self
+            .call_mcp_server(
+                "discord.guild.get",
+                serde_json::json!({
+                    "guild_id": guild_id
+                }),
+            )
+            .await?;
 
         let guild_name = guild_info
             .get("name")

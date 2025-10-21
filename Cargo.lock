@@ -607,6 +607,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
+name = "dunce"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
+
+[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1635,6 +1641,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-a2a"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "chrono",
+ "miyabi-types",
+ "octocrab 0.47.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-agent-core"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tracing",
+]
+
+[[package]]
 name = "miyabi-agents"
 version = "0.1.1"
 dependencies = [
@@ -1642,6 +1683,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "futures",
+ "miyabi-agent-core",
  "miyabi-core",
  "miyabi-github",
  "miyabi-llm",
@@ -1867,11 +1909,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-webhook"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "hex",
+ "hmac",
+ "serde",
+ "sha2",
+ "subtle",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
 name = "miyabi-worktree"
 version = "0.1.1"
 dependencies = [
  "async-trait",
  "chrono",
+ "dunce",
  "futures",
  "git2",
  "miyabi-agents",

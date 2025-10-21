@@ -8,12 +8,8 @@
 //! 5. PRAgent creates PR (mocked GitHub API)
 
 use miyabi_agents::{
-    coordinator::CoordinatorAgent,
-    codegen::CodeGenAgent,
-    issue::IssueAgent,
-    pr::PRAgent,
-    review::ReviewAgent,
-    base::BaseAgent,
+    base::BaseAgent, codegen::CodeGenAgent, coordinator::CoordinatorAgent, issue::IssueAgent,
+    pr::PRAgent, review::ReviewAgent,
 };
 use miyabi_types::{
     agent::AgentConfig,
@@ -21,6 +17,7 @@ use miyabi_types::{
     task::{Task, TaskType},
 };
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 /// Helper to create test configuration
 fn create_test_config() -> AgentConfig {
@@ -31,7 +28,7 @@ fn create_test_config() -> AgentConfig {
         repo_name: Some("test-repo".to_string()),
         use_task_tool: false,
         use_worktree: true,
-        worktree_base_path: Some(".worktrees-test-e2e".to_string()),
+        worktree_base_path: Some(PathBuf::from(".worktrees-test-e2e")),
         log_directory: "./logs".to_string(),
         report_directory: "./reports".to_string(),
         tech_lead_github_username: Some("tech-lead".to_string()),
@@ -85,7 +82,10 @@ async fn test_phase7_issue_to_coordinator_flow() {
     println!("  Severity: {:?}", analysis.severity);
     println!("  Impact: {:?}", analysis.impact);
     println!("  Assigned Agent: {:?}", analysis.assigned_agent);
-    println!("  Estimated Duration: {} minutes", analysis.estimated_duration);
+    println!(
+        "  Estimated Duration: {} minutes",
+        analysis.estimated_duration
+    );
     println!("  Dependencies: {:?}", analysis.dependencies);
     println!("  Labels: {:?}", analysis.labels);
 
@@ -102,7 +102,10 @@ async fn test_phase7_issue_to_coordinator_flow() {
         .expect("Failed to decompose issue");
 
     println!("  Tasks Created: {}", decomposition.tasks.len());
-    println!("  Total Duration: {} minutes", decomposition.estimated_total_duration);
+    println!(
+        "  Total Duration: {} minutes",
+        decomposition.estimated_total_duration
+    );
     println!("  Has Cycles: {}", decomposition.has_cycles);
 
     for (i, task) in decomposition.tasks.iter().enumerate() {
@@ -172,10 +175,7 @@ async fn test_phase7_codegen_review_flow() {
     // For E2E test, we verify the agent can be created and configured
     println!("  ✅ CodeGenAgent initialized");
     println!("  Agent Type: {:?}", codegen.agent_type());
-    assert_eq!(
-        codegen.agent_type(),
-        miyabi_types::AgentType::CodeGenAgent
-    );
+    assert_eq!(codegen.agent_type(), miyabi_types::AgentType::CodeGenAgent);
 
     // Step 2: ReviewAgent analyzes code quality
     println!("\n📝 Step 2: ReviewAgent - Code Quality Analysis");
@@ -331,15 +331,16 @@ async fn test_phase7_full_orchestration() {
 
     // Phase 4: Agent Assignment Verification
     println!("🤖 Phase 4: Agent Assignment Verification");
-    let agent_counts = decomposition
-        .tasks
-        .iter()
-        .fold(std::collections::HashMap::new(), |mut acc, task| {
-            if let Some(agent) = &task.assigned_agent {
-                *acc.entry(format!("{:?}", agent)).or_insert(0) += 1;
-            }
-            acc
-        });
+    let agent_counts =
+        decomposition
+            .tasks
+            .iter()
+            .fold(std::collections::HashMap::new(), |mut acc, task| {
+                if let Some(agent) = &task.assigned_agent {
+                    *acc.entry(format!("{:?}", agent)).or_insert(0) += 1;
+                }
+                acc
+            });
 
     for (agent, count) in agent_counts.iter() {
         println!("  ✅ {}: {} tasks", agent, count);
@@ -366,8 +367,14 @@ async fn test_phase7_full_orchestration() {
 
     // Summary
     println!("📊 Orchestration Summary:");
-    println!("  ✅ Issue analyzed: {} labels applied", analysis.labels.len());
-    println!("  ✅ Tasks decomposed: {} tasks created", decomposition.tasks.len());
+    println!(
+        "  ✅ Issue analyzed: {} labels applied",
+        analysis.labels.len()
+    );
+    println!(
+        "  ✅ Tasks decomposed: {} tasks created",
+        decomposition.tasks.len()
+    );
     println!("  ✅ Plans generated: {} bytes", plans_md.len());
     println!("  ✅ Agents ready: 5 agents initialized");
     println!();

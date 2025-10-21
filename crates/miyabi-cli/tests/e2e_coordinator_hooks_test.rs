@@ -13,6 +13,7 @@
 //! NOTE: Marked with #[ignore] as it requires significant setup.
 //! Run with: cargo test --package miyabi-cli -- e2e_coordinator --ignored
 
+use async_trait::async_trait;
 use miyabi_agents::hooks::{AgentHook, AuditLogHook, HookedAgent, MetricsHook};
 use miyabi_agents::BaseAgent;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
@@ -20,7 +21,6 @@ use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskType};
 use miyabi_types::AgentResult;
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
-use async_trait::async_trait;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -484,12 +484,7 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     // Verify worktree-specific logs
     let worktree_logs = log_files
         .iter()
-        .filter(|e| {
-            e.file_name()
-                .to_str()
-                .unwrap()
-                .contains("-worktree-")
-        })
+        .filter(|e| e.file_name().to_str().unwrap().contains("-worktree-"))
         .count();
     assert!(
         worktree_logs >= 1,
@@ -567,7 +562,10 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     println!("  Total events: {}", events.len());
     println!("\nLog Files:");
     println!("  Total: {}", log_files.len());
-    println!("  Coordinator logs: {}", if coordinator_log_found { 1 } else { 0 });
+    println!(
+        "  Coordinator logs: {}",
+        if coordinator_log_found { 1 } else { 0 }
+    );
     println!("  Worktree logs: {}", worktree_logs);
     println!("========================\n");
 }

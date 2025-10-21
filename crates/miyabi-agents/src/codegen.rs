@@ -3,7 +3,7 @@
 //! Responsible for generating code based on Task requirements.
 //! Integrates with GitHub for repository context and Claude Code for implementation.
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use crate::potpie_integration::PotpieIntegration;
 use async_trait::async_trait;
 use miyabi_core::documentation::{
@@ -17,7 +17,7 @@ use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 // use miyabi_worktree::{WorktreeInfo, WorktreeManager}; // Temporarily disabled due to Send issues
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct CodeGenAgent {
     #[allow(dead_code)] // Reserved for future Agent configuration
@@ -426,7 +426,7 @@ impl CodeGenAgent {
             .config
             .worktree_base_path
             .clone()
-            .unwrap_or_else(|| ".worktrees".to_string());
+            .unwrap_or_else(|| PathBuf::from(".worktrees"));
 
         // Retry with conservative config (git operations can be slow)
         let retry_config = RetryConfig::conservative();
@@ -516,7 +516,7 @@ impl CodeGenAgent {
             .config
             .worktree_base_path
             .clone()
-            .unwrap_or_else(|| ".worktrees".to_string());
+            .unwrap_or_else(|| PathBuf::from(".worktrees"));
 
         // Retry with aggressive config (cleanup is less critical, faster retries OK)
         let retry_config = RetryConfig::aggressive();
@@ -921,7 +921,7 @@ mod tests {
     async fn test_setup_worktree() {
         let mut config = create_test_config();
         config.use_worktree = true;
-        config.worktree_base_path = Some(".worktrees/test".to_string());
+        config.worktree_base_path = Some(PathBuf::from(".worktrees/test"));
 
         let agent = CodeGenAgent::new(config);
         let task = create_test_task();
@@ -948,7 +948,7 @@ mod tests {
     async fn test_cleanup_worktree() {
         let mut config = create_test_config();
         config.use_worktree = true;
-        config.worktree_base_path = Some(".worktrees/test".to_string());
+        config.worktree_base_path = Some(PathBuf::from(".worktrees/test"));
 
         let agent = CodeGenAgent::new(config);
         let task = create_test_task();
@@ -973,7 +973,7 @@ mod tests {
     async fn test_execute_with_worktree() {
         let mut config = create_test_config();
         config.use_worktree = true;
-        config.worktree_base_path = Some(".worktrees/test".to_string());
+        config.worktree_base_path = Some(PathBuf::from(".worktrees/test"));
 
         let agent = CodeGenAgent::new(config);
         let task = create_test_task();

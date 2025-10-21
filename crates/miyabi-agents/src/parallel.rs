@@ -2,7 +2,7 @@
 //!
 //! Provides concurrent execution capabilities for multiple Business Agents
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use miyabi_types::{AgentConfig, AgentResult, Task};
 use std::sync::Arc;
 use tokio::sync::Semaphore;

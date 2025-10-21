@@ -64,9 +64,8 @@ async fn generate_image(
         } else {
             "disabled".to_string()
         },
-        sequential_image_generation_options: max_images.map(|max| SequentialOptions {
-            max_images: max,
-        }),
+        sequential_image_generation_options: max_images
+            .map(|max| SequentialOptions { max_images: max }),
         response_format: "url".to_string(),
         size: "2K".to_string(),
         stream: false,
@@ -312,11 +311,23 @@ Equal spacing, centered, clean presentation.";
     println!("{}", "▓".repeat(70));
 
     println!("\n✅ Generated Assets:");
-    println!("   1. 🌸 Miyabiちゃん Premium Mascot: {} image(s)", miyabi_urls.len());
-    println!("   2. 📐 Design System Guide: {} image(s)", design_urls.len());
-    println!("   3. 🎨 Premium Community Banner: {} image(s)", banner_urls.len());
+    println!(
+        "   1. 🌸 Miyabiちゃん Premium Mascot: {} image(s)",
+        miyabi_urls.len()
+    );
+    println!(
+        "   2. 📐 Design System Guide: {} image(s)",
+        design_urls.len()
+    );
+    println!(
+        "   3. 🎨 Premium Community Banner: {} image(s)",
+        banner_urls.len()
+    );
     println!("   4. 🤖 Agent Icon Set: {} image(s)", agent_urls.len());
-    println!("   Total: {} images\n", miyabi_urls.len() + design_urls.len() + banner_urls.len() + agent_urls.len());
+    println!(
+        "   Total: {} images\n",
+        miyabi_urls.len() + design_urls.len() + banner_urls.len() + agent_urls.len()
+    );
 
     println!("📝 Asset Usage Guide:");
     println!("   • Miyabiちゃん → Discord server icon (Server Settings → Server Overview)");

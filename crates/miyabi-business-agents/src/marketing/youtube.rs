@@ -189,7 +189,10 @@ Focus on building a sustainable YouTube presence that drives brand awareness and
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("YouTube Strategy & Video Content Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("YouTube Strategy & Video Content Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -271,8 +274,10 @@ impl BusinessAgent for YouTubeAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("YouTubeAgent: Developing YouTube strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "YouTubeAgent: Developing YouTube strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -287,8 +292,12 @@ impl BusinessAgent for YouTubeAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated YouTube strategy with {} video initiatives, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated YouTube strategy with {} video initiatives, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -304,9 +313,14 @@ impl BusinessAgent for YouTubeAgent {
             errors.push("No YouTube initiatives defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 2 {
-            warnings.push("Few YouTube initiatives (expected 3-5 covering various video types)".to_string());
+            warnings.push(
+                "Few YouTube initiatives (expected 3-5 covering various video types)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
-            suggestions.push("Add diverse video types: tutorials, product demos, case studies, live streams".to_string());
+            suggestions.push(
+                "Add diverse video types: tutorials, product demos, case studies, live streams"
+                    .to_string(),
+            );
         }
 
         // Validate YouTube KPIs
@@ -316,7 +330,9 @@ impl BusinessAgent for YouTubeAgent {
         } else if plan.kpis.len() < 3 {
             warnings.push("Few YouTube KPIs (expected 5-7 covering subscribers, views, watch time, engagement)".to_string());
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add metrics for subscribers, views, watch time, CTR, retention rate".to_string());
+            suggestions.push(
+                "Add metrics for subscribers, views, watch time, CTR, retention rate".to_string(),
+            );
         }
 
         // Validate YouTube timeline
@@ -400,7 +416,9 @@ mod tests {
         plan.recommendations = vec![
             Recommendation {
                 title: "DevOps Tutorial Series (10 episodes)".to_string(),
-                description: "Weekly 8-12 min tutorials on GitHub automation and DevOps best practices".to_string(),
+                description:
+                    "Weekly 8-12 min tutorials on GitHub automation and DevOps best practices"
+                        .to_string(),
                 priority: 1,
                 estimated_cost: Some(2000),
                 expected_roi: Some(9.0),

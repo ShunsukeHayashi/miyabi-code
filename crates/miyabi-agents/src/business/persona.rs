@@ -5,7 +5,7 @@
 //! 行動パターン、ニーズ、ペインポイント、購買行動まで包括的な
 //! 顧客理解を提供します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

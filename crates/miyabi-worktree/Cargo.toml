@@ -22,6 +22,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
 uuid = { version = "1.6", features = ["v4", "serde"] }
+dunce = { workspace = true }
 
 [dev-dependencies]
 miyabi-agents = { version = "0.1.0", path = "../miyabi-agents" }

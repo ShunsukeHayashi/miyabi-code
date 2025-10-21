@@ -67,9 +67,8 @@ async fn generate_image(
         } else {
             "disabled".to_string()
         },
-        sequential_image_generation_options: max_images.map(|max| SequentialOptions {
-            max_images: max,
-        }),
+        sequential_image_generation_options: max_images
+            .map(|max| SequentialOptions { max_images: max }),
         response_format: "url".to_string(),
         size: "2K".to_string(),
         stream: false,
@@ -121,7 +120,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. Miyabiちゃん - Main mascot character
     println!("\n🌸 Generating Miyabiちゃん (Main Mascot)...");
-    let miyabi_prompt = "A cute Japanese anime-style AI assistant mascot character named 'Miyabi-chan'. \
+    let miyabi_prompt =
+        "A cute Japanese anime-style AI assistant mascot character named 'Miyabi-chan'. \
         She has a friendly, intelligent, and helpful appearance. \
         Wearing a modern tech-inspired outfit with purple and blue gradient colors. \
         Has short bob-cut hair with digital circuit patterns. \

@@ -171,7 +171,10 @@ Focus on actionable insights that inform product, marketing, and sales strategie
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Customer Persona Analysis").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Customer Persona Analysis")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -253,8 +256,10 @@ impl BusinessAgent for PersonaAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("PersonaAgent: Generating customer personas for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "PersonaAgent: Generating customer personas for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -269,8 +274,12 @@ impl BusinessAgent for PersonaAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated {} personas, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated {} personas, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }

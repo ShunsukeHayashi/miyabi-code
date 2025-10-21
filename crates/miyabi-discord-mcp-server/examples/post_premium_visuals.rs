@@ -11,7 +11,10 @@ use clap::Parser;
 use std::env;
 use twilight_http::Client;
 use twilight_model::channel::message::embed::{Embed, EmbedField, EmbedFooter};
-use twilight_model::id::{marker::{ChannelMarker, GuildMarker}, Id};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 #[derive(Parser)]
 struct Args {
@@ -84,7 +87,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[header_embed])?.await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[header_embed])?
+        .await?;
     println!("  ✅ Header embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -102,7 +108,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              • WCAG AA contrast compliant\n\
              • Gender-neutral appeal\n\n\
              **用途**: Discord サーバーアイコン\n\n\
-             📥 **画像URL**:\n{}", miyabi_premium_url
+             📥 **画像URL**:\n{}",
+            miyabi_premium_url
         )),
         fields: vec![],
         footer: Some(EmbedFooter {
@@ -120,7 +127,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[miyabi_embed])?.await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[miyabi_embed])?
+        .await?;
     println!("  ✅ Miyabiちゃん embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -139,7 +149,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              • Card components\n\
              • 8pt grid spacing system\n\n\
              **用途**: 今後のデザイン作業のリファレンス\n\n\
-             📥 **画像URL**:\n{}", design_system_url
+             📥 **画像URL**:\n{}",
+            design_system_url
         )),
         fields: vec![],
         footer: Some(EmbedFooter {
@@ -157,7 +168,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[design_embed])?.await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[design_embed])?
+        .await?;
     println!("  ✅ Design System embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -176,7 +190,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              • Modern tech aesthetic\n\
              • Balanced composition (rule of thirds)\n\n\
              **用途**: Discord サーバーバナー\n\n\
-             📥 **画像URL**:\n{}", premium_banner_url
+             📥 **画像URL**:\n{}",
+            premium_banner_url
         )),
         fields: vec![],
         footer: Some(EmbedFooter {
@@ -194,7 +209,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[banner_embed])?.await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[banner_embed])?
+        .await?;
     println!("  ✅ Banner embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -218,7 +236,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              • Color-blind friendly palette\n\
              • Distinct at 64x64px\n\n\
              **用途**: チャンネルアイコン（個別に分割して使用）\n\n\
-             📥 **画像URL**:\n{}", agent_icon_set_url
+             📥 **画像URL**:\n{}",
+            agent_icon_set_url
         )),
         fields: vec![],
         footer: Some(EmbedFooter {
@@ -236,7 +255,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[agent_embed])?.await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[agent_embed])?
+        .await?;
     println!("  ✅ Agent Icon Set embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
@@ -253,7 +275,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              5. 🤖 Agent Icon Set → 個別に分割して各チャンネルアイコンに設定\n\n\
              **設定場所**: サーバー設定 → サーバー概要\n\n\
              🎉 Miyabiちゃん: プレミアムビジュアルで、\n\
-             もっと素敵なコミュニティにしていこうね！✨".to_string()
+             もっと素敵なコミュニティにしていこうね！✨"
+                .to_string(),
         ),
         fields: vec![],
         footer: Some(EmbedFooter {
@@ -271,7 +294,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[next_steps_embed])?.await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[next_steps_embed])?
+        .await?;
     println!("  ✅ Next Steps embed posted");
 
     println!("\n🎊 Miyabiちゃん: Premium UI/UXビジュアルの投稿が完了したよ！");

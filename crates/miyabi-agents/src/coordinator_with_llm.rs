@@ -3,7 +3,7 @@
 //! This module extends the base CoordinatorAgent with LLM-powered issue analysis
 //! and intelligent task decomposition.
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_github::GitHubClient;
@@ -66,10 +66,10 @@ impl CoordinatorAgentWithLLM {
 
                 // Generate task decomposition
                 let response = llm.generate(&request).await?;
-                
+
                 // Parse LLM response into tasks
                 let tasks = self.parse_llm_response(&response.text, issue)?;
-                
+
                 // Build DAG from task dependencies
                 let dag = self.base_coordinator.build_dag(&tasks)?;
 
@@ -82,7 +82,8 @@ impl CoordinatorAgentWithLLM {
                 }
 
                 // Calculate total estimated duration
-                let estimated_total_duration = tasks.iter().filter_map(|t| t.estimated_duration).sum();
+                let estimated_total_duration =
+                    tasks.iter().filter_map(|t| t.estimated_duration).sum();
 
                 // Generate recommendations
                 let recommendations = self.generate_recommendations(&tasks, &dag);
@@ -95,7 +96,7 @@ impl CoordinatorAgentWithLLM {
                     has_cycles,
                     recommendations,
                 }
-            },
+            }
             None => {
                 tracing::info!("No LLM available - using rule-based decomposition");
                 self.base_coordinator.decompose_issue(issue).await?
@@ -105,7 +106,7 @@ impl CoordinatorAgentWithLLM {
         // Generate Plans.md
         let plans_md = self.base_coordinator.generate_plans_md(&decomposition);
         tracing::info!("Generated Plans.md ({} characters)", plans_md.len());
-        
+
         // Write Plans.md to current directory
         if let Err(e) = std::fs::write("Plans.md", &plans_md) {
             tracing::warn!("Failed to write Plans.md: {}", e);

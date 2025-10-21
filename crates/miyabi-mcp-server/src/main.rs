@@ -3,8 +3,8 @@
 use clap::Parser;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
-use miyabi_mcp_server::{McpServer, ServerConfig};
 use miyabi_mcp_server::config::ServerArgs;
+use miyabi_mcp_server::{McpServer, ServerConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

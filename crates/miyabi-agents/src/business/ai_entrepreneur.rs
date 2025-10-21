@@ -3,7 +3,7 @@
 //! スタートアップのビジネスプラン作成から事業戦略立案まで、起業家の意思決定を包括的にサポートします。
 //! 8つのプロンプトチェーンで市場分析から資金調達計画まで一貫した戦略を構築します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

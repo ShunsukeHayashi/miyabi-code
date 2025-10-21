@@ -1,7 +1,7 @@
 use crate::discord::DiscordClient;
 use crate::error::{DiscordMcpError, Result};
-use crate::models::{CreateGuildRequest, CreateGuildResponse, GetGuildRequest, GetGuildResponse};
 use crate::models::{ChannelInfo, RoleInfo};
+use crate::models::{CreateGuildRequest, CreateGuildResponse, GetGuildRequest, GetGuildResponse};
 use twilight_model::id::{marker::GuildMarker, Id};
 
 impl DiscordClient {

@@ -38,11 +38,11 @@
 //! # }
 //! ```
 
-pub mod signer;
 pub mod error;
+pub mod signer;
 
+pub use error::{Result, WebhookError};
 pub use signer::WebhookSigner;
-pub use error::{WebhookError, Result};
 
 /// Default replay protection window (5 minutes)
 pub const DEFAULT_TIMESTAMP_TOLERANCE_SECS: i64 = 300;

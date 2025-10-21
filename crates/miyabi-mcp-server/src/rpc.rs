@@ -1,6 +1,7 @@
 //! JSON-RPC types and method handlers
 
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use miyabi_agents::coordinator::CoordinatorAgent;
@@ -133,12 +134,9 @@ pub struct RpcContext {
 impl RpcContext {
     /// Create new RPC context
     pub fn new(config: ServerConfig) -> Result<Self> {
-        let github_client = GitHubClient::new(
-            &config.github_token,
-            &config.repo_owner,
-            &config.repo_name,
-        )
-        .map_err(|e| ServerError::GitHub(e.to_string()))?;
+        let github_client =
+            GitHubClient::new(&config.github_token, &config.repo_owner, &config.repo_name)
+                .map_err(|e| ServerError::GitHub(e.to_string()))?;
 
         Ok(Self {
             config: Arc::new(config),
@@ -148,10 +146,16 @@ impl RpcContext {
     }
 
     /// Execute Coordinator Agent
-    pub async fn execute_coordinator(&self, params: AgentExecuteParams) -> Result<AgentExecuteResult> {
+    pub async fn execute_coordinator(
+        &self,
+        params: AgentExecuteParams,
+    ) -> Result<AgentExecuteResult> {
         let start = std::time::Instant::now();
 
-        tracing::info!("Executing Coordinator Agent on Issue #{}", params.issue_number);
+        tracing::info!(
+            "Executing Coordinator Agent on Issue #{}",
+            params.issue_number
+        );
 
         // Fetch issue
         let issue = self
@@ -172,9 +176,19 @@ impl RpcContext {
             repo_name: Some(self.config.repo_name.clone()),
             use_task_tool: false,
             use_worktree: true,
-            worktree_base_path: Some(".worktrees".to_string()),
-            log_directory: self.config.working_dir.join("logs").to_string_lossy().to_string(),
-            report_directory: self.config.working_dir.join("reports").to_string_lossy().to_string(),
+            worktree_base_path: Some(PathBuf::from(".worktrees")),
+            log_directory: self
+                .config
+                .working_dir
+                .join("logs")
+                .to_string_lossy()
+                .to_string(),
+            report_directory: self
+                .config
+                .working_dir
+                .join("reports")
+                .to_string_lossy()
+                .to_string(),
             tech_lead_github_username: None,
             ciso_github_username: None,
             po_github_username: None,
@@ -247,11 +261,7 @@ impl RpcContext {
     /// Health check
     pub async fn health_check(&self) -> Result<HealthCheckResult> {
         // Test GitHub connection by trying to get an issue
-        let github_connected = self
-            .github_client
-            .get_issue(1)
-            .await
-            .is_ok();
+        let github_connected = self.github_client.get_issue(1).await.is_ok();
 
         let uptime_seconds = self.start_time.elapsed().as_secs();
 

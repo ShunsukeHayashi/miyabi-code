@@ -26,7 +26,7 @@ async fn test_parallel_execution_basic() {
         auto_cleanup: true,
     };
 
-    let pool = match WorktreePool::new(config) {
+    let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
@@ -172,7 +172,7 @@ async fn test_parallel_execution_with_failures() {
         auto_cleanup: true,
     };
 
-    let pool = match WorktreePool::new(config) {
+    let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
@@ -247,7 +247,7 @@ async fn test_parallel_execution_with_timeout() {
         auto_cleanup: true,
     };
 
-    let pool = match WorktreePool::new(config) {
+    let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
@@ -314,7 +314,7 @@ async fn test_execute_simple() {
         auto_cleanup: true,
     };
 
-    let pool = match WorktreePool::new(config) {
+    let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
@@ -364,7 +364,7 @@ async fn test_pool_statistics() {
         auto_cleanup: false, // Don't cleanup to check stats
     };
 
-    let pool = match WorktreePool::new(config) {
+    let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
@@ -416,7 +416,7 @@ async fn test_parallel_execution_benchmark() {
 
     let max_concurrency = config.max_concurrency;
 
-    let pool = match WorktreePool::new(config) {
+    let pool = match WorktreePool::new(config, None) {
         Ok(p) => p,
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);

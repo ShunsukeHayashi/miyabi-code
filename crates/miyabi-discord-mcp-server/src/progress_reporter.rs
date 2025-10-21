@@ -33,7 +33,8 @@ impl ProgressReporter {
                  • `!miyabi help` - ヘルプ表示\n\
                  • `!miyabi agent list` - Agent一覧\n\
                  • `!miyabi status` - システム状態確認\n\n\
-                 🌸 Miyabiちゃん: みんな、よろしくね！".to_string()
+                 🌸 Miyabiちゃん: みんな、よろしくね！"
+                    .to_string(),
             ),
             fields: vec![],
             footer: Some(EmbedFooter {
@@ -67,7 +68,8 @@ impl ProgressReporter {
             description: Some(
                 "👋 **Miyabi Discord Bot がシャットダウンします**\n\n\
                  メンテナンス中か、再起動中かもしれないよ。\n\
-                 すぐに戻ってくるから待っててね！".to_string()
+                 すぐに戻ってくるから待っててね！"
+                    .to_string(),
             ),
             fields: vec![],
             footer: Some(EmbedFooter {

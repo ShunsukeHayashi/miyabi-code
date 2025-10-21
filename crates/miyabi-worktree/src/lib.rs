@@ -17,12 +17,14 @@
 pub mod concurrency;
 pub mod git;
 pub mod manager;
+pub mod paths;
 pub mod pool;
 pub mod telemetry;
 
 // 新モジュールのエクスポート
 pub use concurrency::{ConcurrencyController, ConcurrencyStats};
 pub use git::{GitError, GitWorktreeOps};
+pub use paths::{normalize_path, WorktreePaths};
 pub use telemetry::{TelemetryCollector, TelemetryStats, WorktreeEvent};
 
 // 既存モジュールのエクスポート

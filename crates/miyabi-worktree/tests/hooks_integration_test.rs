@@ -5,6 +5,7 @@
 //! - Scenario 2: fail_fast trigger with on_error hook calls
 //! - Scenario 3: Statistics methods vs Hook Metrics consistency
 
+use async_trait::async_trait;
 use miyabi_agents::hooks::{AgentHook, AuditLogHook, HookedAgent, MetricsHook};
 use miyabi_agents::BaseAgent;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
@@ -12,7 +13,6 @@ use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentResult, Task};
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
-use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tempfile::TempDir;
@@ -309,10 +309,7 @@ async fn test_scenario_1_parallel_execution_with_hooks() {
     assert_eq!(recording_hook.count_by_type("error"), 0);
 
     // Verify worktree_id was captured in events
-    let events_with_worktree_id = events
-        .iter()
-        .filter(|e| e.worktree_id.is_some())
-        .count();
+    let events_with_worktree_id = events.iter().filter(|e| e.worktree_id.is_some()).count();
     assert_eq!(events_with_worktree_id, 6);
 
     // Verify audit log files were created (one per worktree)
@@ -492,10 +489,7 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
     assert!(error_count >= 1, "Expected at least 1 error event");
 
     // Verify that on_error was called for the failed task
-    let error_events: Vec<_> = events
-        .iter()
-        .filter(|e| e.event_type == "error")
-        .collect();
+    let error_events: Vec<_> = events.iter().filter(|e| e.event_type == "error").collect();
     assert!(!error_events.is_empty());
 
     // Verify worktree_id was captured in error events

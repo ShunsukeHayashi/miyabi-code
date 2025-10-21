@@ -1,24 +1,23 @@
 //! Miyabi Agents - Autonomous AI agents
 
-pub mod base;
+// Re-export from miyabi-agent-core
+pub use miyabi_agent_core::{
+    AgentHook, BaseAgent, HookedAgent, OrchestrationEngine, Orchestrated,
+};
+
 pub mod business;
 pub mod codegen;
 pub mod coordinator;
 pub mod coordinator_with_llm;
 pub mod deployment;
 pub mod discord_community;
-pub mod hooks;
 pub mod issue;
-pub mod orchestration;
 pub mod parallel;
 pub mod potpie_integration;
 pub mod pr;
 pub mod refresher;
 pub mod review;
 
-pub use base::BaseAgent;
 pub use coordinator_with_llm::CoordinatorAgentWithLLM;
 pub use discord_community::DiscordCommunityAgent;
-pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
-pub use orchestration::{ExecutionMetrics, Orchestrated, OrchestrationConfig, OrchestrationEngine};
 pub use potpie_integration::PotpieIntegration;

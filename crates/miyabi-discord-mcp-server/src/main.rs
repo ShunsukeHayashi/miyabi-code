@@ -1,6 +1,6 @@
 use clap::Parser;
 use dotenv::dotenv;
-use miyabi_discord_mcp_server::{DiscordClient, rpc::RpcHandler, DiscordMcpError};
+use miyabi_discord_mcp_server::{rpc::RpcHandler, DiscordClient, DiscordMcpError};
 use std::env;
 use std::sync::Arc;
 

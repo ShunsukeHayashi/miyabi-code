@@ -5,7 +5,7 @@
 //! AARRRメトリクス（Acquisition, Activation, Retention, Referral, Revenue）に
 //! 基づいた包括的なファネル設計を提供します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

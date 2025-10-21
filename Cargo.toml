@@ -4,6 +4,7 @@ members = [
     "crates/miyabi-core",
     "crates/miyabi-types",
     "crates/miyabi-cli",
+    "crates/miyabi-agent-core",
     "crates/miyabi-agents",
     "crates/miyabi-github",
     "crates/miyabi-worktree",
@@ -59,6 +60,7 @@ async-openai = { version = "0.24", default-features = false, features = ["rustls
 walkdir = "2.5"
 ignore = "0.4"
 tempfile = "3.13"
+dunce = "1.0"
 
 # Logging
 tracing = "0.1"

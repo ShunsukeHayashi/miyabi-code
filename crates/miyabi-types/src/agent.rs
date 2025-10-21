@@ -4,6 +4,39 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::PathBuf;
+
+mod serde_path {
+    use serde::{Deserialize, Deserializer, Serializer};
+    use std::path::PathBuf;
+
+    pub fn serialize_option<S>(
+        value: &Option<PathBuf>,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(path) => serializer.serialize_some(&path_to_string(path)),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize_option<'de, D>(
+        deserializer: D,
+    ) -> std::result::Result<Option<PathBuf>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let option = Option::<String>::deserialize(deserializer)?;
+        Ok(option.map(PathBuf::from))
+    }
+
+    fn path_to_string(path: &PathBuf) -> String {
+        path.to_string_lossy().into_owned()
+    }
+}
 
 /// Agent execution status
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -184,8 +217,13 @@ pub struct AgentConfig {
     pub repo_name: Option<String>,
     pub use_task_tool: bool,
     pub use_worktree: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub worktree_base_path: Option<String>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serde_path::serialize_option",
+        deserialize_with = "serde_path::deserialize_option"
+    )]
+    pub worktree_base_path: Option<PathBuf>,
     pub log_directory: String,
     pub report_directory: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -214,11 +252,9 @@ impl AgentConfig {
     pub fn validate(&self) -> Result<(), String> {
         // Validate device_identifier
         if self.device_identifier.is_empty() {
-            return Err(
-                "Device identifier cannot be empty. \
+            return Err("Device identifier cannot be empty. \
                 Hint: Use a descriptive name like 'MacBook-Pro' or 'GitHub-Actions'"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         if self.device_identifier.len() > 50 {
@@ -231,11 +267,9 @@ impl AgentConfig {
 
         // Validate github_token (basic format check)
         if self.github_token.is_empty() {
-            return Err(
-                "GitHub token cannot be empty. \
+            return Err("GitHub token cannot be empty. \
                 Hint: Set GITHUB_TOKEN environment variable or provide token in config"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         if self.github_token.len() < 20 {
@@ -249,38 +283,30 @@ impl AgentConfig {
         // Validate repo_owner and repo_name consistency
         match (&self.repo_owner, &self.repo_name) {
             (Some(_), None) => {
-                return Err(
-                    "Repository name is required when owner is specified. \
+                return Err("Repository name is required when owner is specified. \
                     Hint: Set both repo_owner and repo_name, or omit both"
-                        .to_string(),
-                );
+                    .to_string());
             }
             (None, Some(_)) => {
-                return Err(
-                    "Repository owner is required when name is specified. \
+                return Err("Repository owner is required when name is specified. \
                     Hint: Set both repo_owner and repo_name, or omit both"
-                        .to_string(),
-                );
+                    .to_string());
             }
             _ => {}
         }
 
         // Validate log_directory
         if self.log_directory.is_empty() {
-            return Err(
-                "Log directory cannot be empty. \
+            return Err("Log directory cannot be empty. \
                 Hint: Use './logs' or '/var/log/miyabi'"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         // Validate report_directory
         if self.report_directory.is_empty() {
-            return Err(
-                "Report directory cannot be empty. \
+            return Err("Report directory cannot be empty. \
                 Hint: Use './reports' or '/var/reports/miyabi'"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         // Validate worktree_base_path if use_worktree is enabled
@@ -856,7 +882,7 @@ mod tests {
             repo_name: Some("test-repo".to_string()),
             use_task_tool: true,
             use_worktree: true,
-            worktree_base_path: Some("/tmp/worktrees".to_string()),
+            worktree_base_path: Some(PathBuf::from("/tmp/worktrees")),
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
             tech_lead_github_username: Some("tech-lead".to_string()),
@@ -915,7 +941,7 @@ mod tests {
             repo_name: Some("repo".to_string()),
             use_task_tool: true,
             use_worktree: true,
-            worktree_base_path: Some("/var/worktrees".to_string()),
+            worktree_base_path: Some(PathBuf::from("/var/worktrees")),
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
             tech_lead_github_username: Some("lead".to_string()),

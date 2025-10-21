@@ -3,9 +3,11 @@
 //! Provides high-level abstractions for executing multiple tasks in parallel worktrees
 
 use crate::manager::{WorktreeInfo, WorktreeManager, WorktreeStatus};
+use crate::paths::normalize_path;
 use miyabi_types::error::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -85,21 +87,20 @@ impl WorktreePool {
     ///
     /// # Arguments
     /// * `config` - Pool configuration
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use miyabi_worktree::{WorktreePool, PoolConfig};
-    ///
-    /// # async fn example() -> miyabi_types::error::Result<()> {
-    /// let config = PoolConfig::default();
-    /// let pool = WorktreePool::new(config)?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn new(config: PoolConfig) -> Result<Self> {
-        let manager = Arc::new(WorktreeManager::new_with_discovery(
-            Some(".worktrees"),
+    /// * `worktree_base` - Optional override for worktree base directory
+    pub fn new(config: PoolConfig, worktree_base: Option<PathBuf>) -> Result<Self> {
+        let repo_path = miyabi_core::find_git_root(None)?;
+        let base = worktree_base.unwrap_or_else(default_worktree_base);
+        let resolved_base = if base.is_absolute() {
+            base
+        } else {
+            repo_path.join(base)
+        };
+        let resolved_base = normalize_path(resolved_base);
+
+        let manager = Arc::new(WorktreeManager::new(
+            &repo_path,
+            &resolved_base,
             config.max_concurrency,
         )?);
 
@@ -180,131 +181,131 @@ impl WorktreePool {
                 let cancel_rx = cancel_rx.clone();
 
                 async move {
-                // Check if we should cancel (fail-fast mode)
-                if *cancel_rx.borrow() {
-                    warn!(
-                        "Task for issue #{} cancelled due to fail-fast",
-                        task.issue_number
-                    );
-                    return TaskResult {
-                        issue_number: task.issue_number,
-                        worktree_id: String::new(),
-                        status: TaskStatus::Cancelled,
-                        duration_ms: 0,
-                        error: Some("Cancelled due to fail-fast".to_string()),
-                        output: None,
-                    };
-                }
-
-                let task_start = std::time::Instant::now();
-
-                // Create worktree (semaphore is acquired inside)
-                let worktree_info = match manager.create_worktree(task.issue_number).await {
-                    Ok(info) => {
-                        // Track active task
-                        {
-                            let mut tasks = active_tasks.lock().await;
-                            tasks.insert(info.id.clone(), task.clone());
-                        }
-                        info
-                    }
-                    Err(e) => {
-                        error!(
-                            "Failed to create worktree for issue #{}: {}",
-                            task.issue_number, e
+                    // Check if we should cancel (fail-fast mode)
+                    if *cancel_rx.borrow() {
+                        warn!(
+                            "Task for issue #{} cancelled due to fail-fast",
+                            task.issue_number
                         );
                         return TaskResult {
                             issue_number: task.issue_number,
                             worktree_id: String::new(),
-                            status: TaskStatus::Failed,
-                            duration_ms: task_start.elapsed().as_millis() as u64,
-                            error: Some(e.to_string()),
+                            status: TaskStatus::Cancelled,
+                            duration_ms: 0,
+                            error: Some("Cancelled due to fail-fast".to_string()),
                             output: None,
                         };
                     }
-                };
 
-                // Execute task with timeout
-                let execution_result = tokio::time::timeout(
-                    std::time::Duration::from_secs(timeout_seconds),
-                    executor(worktree_info.clone(), task.clone()),
-                )
-                .await;
+                    let task_start = std::time::Instant::now();
 
-                // Process result
-                let task_result = match execution_result {
-                    Ok(Ok(output)) => {
-                        info!(
-                            "Task for issue #{} completed successfully",
-                            task.issue_number
-                        );
-                        // Update worktree status
-                        let _ = manager
-                            .update_status(&worktree_info.id, WorktreeStatus::Completed)
-                            .await;
-                        TaskResult {
-                            issue_number: task.issue_number,
-                            worktree_id: worktree_info.id.clone(),
-                            status: TaskStatus::Success,
-                            duration_ms: task_start.elapsed().as_millis() as u64,
-                            error: None,
-                            output: Some(output),
+                    // Create worktree (semaphore is acquired inside)
+                    let worktree_info = match manager.create_worktree(task.issue_number).await {
+                        Ok(info) => {
+                            // Track active task
+                            {
+                                let mut tasks = active_tasks.lock().await;
+                                tasks.insert(info.id.clone(), task.clone());
+                            }
+                            info
                         }
+                        Err(e) => {
+                            error!(
+                                "Failed to create worktree for issue #{}: {}",
+                                task.issue_number, e
+                            );
+                            return TaskResult {
+                                issue_number: task.issue_number,
+                                worktree_id: String::new(),
+                                status: TaskStatus::Failed,
+                                duration_ms: task_start.elapsed().as_millis() as u64,
+                                error: Some(e.to_string()),
+                                output: None,
+                            };
+                        }
+                    };
+
+                    // Execute task with timeout
+                    let execution_result = tokio::time::timeout(
+                        std::time::Duration::from_secs(timeout_seconds),
+                        executor(worktree_info.clone(), task.clone()),
+                    )
+                    .await;
+
+                    // Process result
+                    let task_result = match execution_result {
+                        Ok(Ok(output)) => {
+                            info!(
+                                "Task for issue #{} completed successfully",
+                                task.issue_number
+                            );
+                            // Update worktree status
+                            let _ = manager
+                                .update_status(&worktree_info.id, WorktreeStatus::Completed)
+                                .await;
+                            TaskResult {
+                                issue_number: task.issue_number,
+                                worktree_id: worktree_info.id.clone(),
+                                status: TaskStatus::Success,
+                                duration_ms: task_start.elapsed().as_millis() as u64,
+                                error: None,
+                                output: Some(output),
+                            }
+                        }
+                        Ok(Err(e)) => {
+                            error!("Task for issue #{} failed: {}", task.issue_number, e);
+                            let _ = manager
+                                .update_status(&worktree_info.id, WorktreeStatus::Failed)
+                                .await;
+
+                            // Trigger cancellation if fail_fast is enabled
+                            if fail_fast {
+                                warn!("Triggering fail-fast cancellation due to task failure");
+                                let _ = cancel_tx.send(true);
+                            }
+
+                            TaskResult {
+                                issue_number: task.issue_number,
+                                worktree_id: worktree_info.id.clone(),
+                                status: TaskStatus::Failed,
+                                duration_ms: task_start.elapsed().as_millis() as u64,
+                                error: Some(e.to_string()),
+                                output: None,
+                            }
+                        }
+                        Err(_) => {
+                            warn!(
+                                "Task for issue #{} timed out after {} seconds",
+                                task.issue_number, timeout_seconds
+                            );
+                            let _ = manager
+                                .update_status(&worktree_info.id, WorktreeStatus::Failed)
+                                .await;
+
+                            // Trigger cancellation if fail_fast is enabled
+                            if fail_fast {
+                                warn!("Triggering fail-fast cancellation due to task timeout");
+                                let _ = cancel_tx.send(true);
+                            }
+
+                            TaskResult {
+                                issue_number: task.issue_number,
+                                worktree_id: worktree_info.id.clone(),
+                                status: TaskStatus::Timeout,
+                                duration_ms: task_start.elapsed().as_millis() as u64,
+                                error: Some(format!("Timeout after {} seconds", timeout_seconds)),
+                                output: None,
+                            }
+                        }
+                    };
+
+                    // Remove from active tasks
+                    {
+                        let mut tasks = active_tasks.lock().await;
+                        tasks.remove(&worktree_info.id);
                     }
-                    Ok(Err(e)) => {
-                        error!("Task for issue #{} failed: {}", task.issue_number, e);
-                        let _ = manager
-                            .update_status(&worktree_info.id, WorktreeStatus::Failed)
-                            .await;
 
-                        // Trigger cancellation if fail_fast is enabled
-                        if fail_fast {
-                            warn!("Triggering fail-fast cancellation due to task failure");
-                            let _ = cancel_tx.send(true);
-                        }
-
-                        TaskResult {
-                            issue_number: task.issue_number,
-                            worktree_id: worktree_info.id.clone(),
-                            status: TaskStatus::Failed,
-                            duration_ms: task_start.elapsed().as_millis() as u64,
-                            error: Some(e.to_string()),
-                            output: None,
-                        }
-                    }
-                    Err(_) => {
-                        warn!(
-                            "Task for issue #{} timed out after {} seconds",
-                            task.issue_number, timeout_seconds
-                        );
-                        let _ = manager
-                            .update_status(&worktree_info.id, WorktreeStatus::Failed)
-                            .await;
-
-                        // Trigger cancellation if fail_fast is enabled
-                        if fail_fast {
-                            warn!("Triggering fail-fast cancellation due to task timeout");
-                            let _ = cancel_tx.send(true);
-                        }
-
-                        TaskResult {
-                            issue_number: task.issue_number,
-                            worktree_id: worktree_info.id.clone(),
-                            status: TaskStatus::Timeout,
-                            duration_ms: task_start.elapsed().as_millis() as u64,
-                            error: Some(format!("Timeout after {} seconds", timeout_seconds)),
-                            output: None,
-                        }
-                    }
-                };
-
-                // Remove from active tasks
-                {
-                    let mut tasks = active_tasks.lock().await;
-                    tasks.remove(&worktree_info.id);
-                }
-
-                task_result
+                    task_result
                 }
             })
             .buffer_unordered(max_concurrency)
@@ -412,6 +413,17 @@ impl WorktreePool {
     }
 }
 
+fn default_worktree_base() -> PathBuf {
+    if cfg!(windows) {
+        match env::var("LOCALAPPDATA") {
+            Ok(dir) => PathBuf::from(dir).join("Miyabi").join("wt"),
+            Err(_) => PathBuf::from(".worktrees"),
+        }
+    } else {
+        PathBuf::from(".worktrees")
+    }
+}
+
 /// Result of pool execution
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PoolExecutionResult {
@@ -477,12 +489,20 @@ impl PoolExecutionResult {
 
     /// Get minimum task duration in milliseconds
     pub fn min_duration_ms(&self) -> u64 {
-        self.results.iter().map(|r| r.duration_ms).min().unwrap_or(0)
+        self.results
+            .iter()
+            .map(|r| r.duration_ms)
+            .min()
+            .unwrap_or(0)
     }
 
     /// Get maximum task duration in milliseconds
     pub fn max_duration_ms(&self) -> u64 {
-        self.results.iter().map(|r| r.duration_ms).max().unwrap_or(0)
+        self.results
+            .iter()
+            .map(|r| r.duration_ms)
+            .max()
+            .unwrap_or(0)
     }
 
     /// Get throughput (tasks per second)

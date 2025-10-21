@@ -50,7 +50,6 @@ pub enum TransportMode {
     Http,
 }
 
-
 /// CLI arguments for MCP server
 #[derive(Debug, Parser)]
 #[command(name = "miyabi-mcp-server")]
@@ -119,7 +118,9 @@ impl ServerConfig {
         };
 
         let github_token = args.github_token.ok_or_else(|| {
-            ServerError::Config("GITHUB_TOKEN is required (via --github-token or env var)".to_string())
+            ServerError::Config(
+                "GITHUB_TOKEN is required (via --github-token or env var)".to_string(),
+            )
         })?;
 
         let repo_owner = args.repo_owner.ok_or_else(|| {

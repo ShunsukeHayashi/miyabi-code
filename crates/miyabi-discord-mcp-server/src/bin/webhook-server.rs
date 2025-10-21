@@ -74,19 +74,15 @@ struct PullRequest {
 }
 
 /// Verify GitHub webhook signature
-fn verify_signature(
-    secret: &str,
-    signature_header: &str,
-    payload: &[u8],
-) -> Result<(), String> {
+fn verify_signature(secret: &str, signature_header: &str, payload: &[u8]) -> Result<(), String> {
     // Parse signature header
     if !signature_header.starts_with("sha256=") {
         return Err("Invalid signature format".to_string());
     }
 
     let signature_hex = &signature_header[7..];
-    let expected_signature = hex::decode(signature_hex)
-        .map_err(|e| format!("Failed to decode signature: {}", e))?;
+    let expected_signature =
+        hex::decode(signature_hex).map_err(|e| format!("Failed to decode signature: {}", e))?;
 
     // Compute HMAC
     let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
@@ -117,7 +113,10 @@ async fn handle_github_webhook(
     info!("Event type: {}", event_type);
 
     // Verify signature
-    if let Some(signature) = headers.get("x-hub-signature-256").and_then(|v| v.to_str().ok()) {
+    if let Some(signature) = headers
+        .get("x-hub-signature-256")
+        .and_then(|v| v.to_str().ok())
+    {
         if let Err(e) = verify_signature(&state.webhook_secret, signature, body.as_bytes()) {
             error!("Signature verification failed: {}", e);
             return (StatusCode::UNAUTHORIZED, "Invalid signature").into_response();
@@ -223,11 +222,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("PROGRESS_CHANNEL_ID not found")
         .parse()
         .expect("Invalid PROGRESS_CHANNEL_ID");
-    let webhook_secret = env::var("GITHUB_WEBHOOK_SECRET")
-        .unwrap_or_else(|_| {
-            warn!("GITHUB_WEBHOOK_SECRET not set, using default (INSECURE!)");
-            "default_secret".to_string()
-        });
+    let webhook_secret = env::var("GITHUB_WEBHOOK_SECRET").unwrap_or_else(|_| {
+        warn!("GITHUB_WEBHOOK_SECRET not set, using default (INSECURE!)");
+        "default_secret".to_string()
+    });
 
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
@@ -256,7 +254,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start server
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("🚀 GitHub Webhook Server starting on {}", addr);
-    info!("📡 Webhook endpoint: http://{}:{}/webhook/github", addr.ip(), port);
+    info!(
+        "📡 Webhook endpoint: http://{}:{}/webhook/github",
+        addr.ip(),
+        port
+    );
     info!("❤️  Health check: http://{}:{}/health", addr.ip(), port);
 
     axum::Server::bind(&addr)

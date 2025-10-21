@@ -13,7 +13,10 @@ use std::env;
 use twilight_http::Client;
 use twilight_model::channel::ChannelType;
 use twilight_model::guild::Permissions;
-use twilight_model::id::{marker::{ChannelMarker, GuildMarker, RoleMarker}, Id};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker, RoleMarker},
+    Id,
+};
 
 #[derive(Parser)]
 struct Args {

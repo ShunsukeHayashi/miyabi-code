@@ -7,10 +7,7 @@ use tokio::sync::RwLock;
 
 use crate::config::{ServerConfig, TransportMode};
 use crate::error::{Result, ServerError};
-use crate::rpc::{
-    AgentExecuteParams, IssueFetchParams,
-    IssueListParams, RpcContext,
-};
+use crate::rpc::{AgentExecuteParams, IssueFetchParams, IssueListParams, RpcContext};
 
 /// MCP Server
 pub struct McpServer {
@@ -139,8 +136,7 @@ impl McpServer {
 
     /// Run stdio server
     async fn run_stdio(self, io: IoHandler) -> Result<()> {
-        let server = StdioServerBuilder::new(io)
-            .build();
+        let server = StdioServerBuilder::new(io).build();
 
         tracing::info!("MCP server ready on stdio");
 

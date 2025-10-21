@@ -163,7 +163,10 @@ Focus on measurable metrics and data-driven optimization strategies."#,
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("AARRR Funnel Design").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("AARRR Funnel Design")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -245,8 +248,10 @@ impl BusinessAgent for FunnelDesignAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("FunnelDesignAgent: Generating AARRR funnel for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "FunnelDesignAgent: Generating AARRR funnel for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -261,8 +266,12 @@ impl BusinessAgent for FunnelDesignAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated funnel design with {} strategies, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated funnel design with {} strategies, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }

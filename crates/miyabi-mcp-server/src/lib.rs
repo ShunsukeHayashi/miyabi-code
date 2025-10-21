@@ -66,12 +66,12 @@ pub mod error;
 pub mod rpc;
 pub mod server;
 
-pub use config::{ServerConfig, ServerArgs, TransportMode};
+pub use config::{ServerArgs, ServerConfig, TransportMode};
 pub use error::{Result, ServerError};
 pub use server::McpServer;
 
 // Re-export RPC types for convenience
 pub use rpc::{
-    AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams,
-    IssueListParams, IssueResponse,
+    AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams, IssueListParams,
+    IssueResponse,
 };

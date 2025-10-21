@@ -197,11 +197,9 @@ impl Task {
     pub fn validate(&self) -> Result<(), String> {
         // Validate ID
         if self.id.is_empty() {
-            return Err(
-                "Task ID cannot be empty. \
+            return Err("Task ID cannot be empty. \
                 Hint: Use format 'task-{number}' or '{feature}-{number}'"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         if self.id.len() > 100 {
@@ -214,11 +212,9 @@ impl Task {
 
         // Validate title
         if self.title.is_empty() {
-            return Err(
-                "Task title cannot be empty. \
+            return Err("Task title cannot be empty. \
                 Hint: Provide a clear, concise title describing the task"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         if self.title.len() > 200 {
@@ -231,11 +227,9 @@ impl Task {
 
         // Validate description
         if self.description.is_empty() {
-            return Err(
-                "Task description cannot be empty. \
+            return Err("Task description cannot be empty. \
                 Hint: Provide context, requirements, and acceptance criteria"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         // Validate priority range (0-3)
@@ -250,11 +244,9 @@ impl Task {
         // Validate estimated_duration if present
         if let Some(duration) = self.estimated_duration {
             if duration == 0 {
-                return Err(
-                    "Estimated duration cannot be 0. \
+                return Err("Estimated duration cannot be 0. \
                     Hint: Provide realistic estimate in minutes, or omit if unknown"
-                        .to_string(),
-                );
+                    .to_string());
             }
 
             if duration > 10080 {
@@ -794,7 +786,9 @@ mod tests {
         task.description = "".to_string();
         let result = task.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Task description cannot be empty"));
+        assert!(result
+            .unwrap_err()
+            .contains("Task description cannot be empty"));
     }
 
     #[test]
@@ -1065,4 +1059,3 @@ mod tests {
         assert_eq!(task.priority, 8); // Priority unchanged
     }
 }
-

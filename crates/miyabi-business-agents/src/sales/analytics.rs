@@ -177,7 +177,10 @@ Focus on building a data-driven organization with accessible insights and predic
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Data Analytics & Business Intelligence Strategy").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Data Analytics & Business Intelligence Strategy")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -259,8 +262,10 @@ impl BusinessAgent for AnalyticsAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("AnalyticsAgent: Developing analytics strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "AnalyticsAgent: Developing analytics strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -275,8 +280,12 @@ impl BusinessAgent for AnalyticsAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated analytics strategy with {} initiatives, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated analytics strategy with {} initiatives, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -294,7 +303,9 @@ impl BusinessAgent for AnalyticsAgent {
         } else if plan.recommendations.len() < 3 {
             warnings.push("Few analytics initiatives (expected 4-6 covering architecture, dashboards, ML, experimentation)".to_string());
             quality_score = quality_score.saturating_sub(15);
-            suggestions.push("Add initiatives for data warehouse, BI dashboards, predictive models".to_string());
+            suggestions.push(
+                "Add initiatives for data warehouse, BI dashboards, predictive models".to_string(),
+            );
         }
 
         // Validate analytics KPIs
@@ -302,9 +313,15 @@ impl BusinessAgent for AnalyticsAgent {
             errors.push("No analytics metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 3 {
-            warnings.push("Few analytics KPIs (expected 6-8 covering adoption, accuracy, freshness)".to_string());
+            warnings.push(
+                "Few analytics KPIs (expected 6-8 covering adoption, accuracy, freshness)"
+                    .to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add metrics for dashboard adoption, data freshness, experiment velocity".to_string());
+            suggestions.push(
+                "Add metrics for dashboard adoption, data freshness, experiment velocity"
+                    .to_string(),
+            );
         }
 
         // Validate analytics timeline
@@ -388,7 +405,9 @@ mod tests {
         plan.recommendations = vec![
             Recommendation {
                 title: "Data Warehouse Migration to Snowflake".to_string(),
-                description: "ETL pipelines with Fivetran, dbt transformations, centralized analytics".to_string(),
+                description:
+                    "ETL pipelines with Fivetran, dbt transformations, centralized analytics"
+                        .to_string(),
                 priority: 1,
                 estimated_cost: Some(40000),
                 expected_roi: Some(12.0),
@@ -404,7 +423,8 @@ mod tests {
             },
             Recommendation {
                 title: "Churn Prediction ML Model".to_string(),
-                description: "Random forest model predicting 60-day churn risk with 85% accuracy".to_string(),
+                description: "Random forest model predicting 60-day churn risk with 85% accuracy"
+                    .to_string(),
                 priority: 2,
                 estimated_cost: Some(25000),
                 expected_roi: Some(10.0),

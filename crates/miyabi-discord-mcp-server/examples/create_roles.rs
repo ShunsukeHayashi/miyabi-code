@@ -11,7 +11,10 @@ use clap::Parser;
 use std::env;
 use twilight_http::Client;
 use twilight_model::guild::Permissions;
-use twilight_model::id::{marker::{ChannelMarker, GuildMarker}, Id};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 #[derive(Parser)]
 struct Args {
@@ -62,48 +65,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Define roles
     let roles = vec![
         ("Admin", 16711680, Permissions::ADMINISTRATOR),
-        ("Moderator", 16744448,
+        (
+            "Moderator",
+            16744448,
             Permissions::MANAGE_CHANNELS
-            | Permissions::MANAGE_MESSAGES
-            | Permissions::KICK_MEMBERS
-            | Permissions::BAN_MEMBERS
-            | Permissions::MANAGE_NICKNAMES
-            | Permissions::MODERATE_MEMBERS
+                | Permissions::MANAGE_MESSAGES
+                | Permissions::KICK_MEMBERS
+                | Permissions::BAN_MEMBERS
+                | Permissions::MANAGE_NICKNAMES
+                | Permissions::MODERATE_MEMBERS,
         ),
-        ("Core Contributor", 10181046,
+        (
+            "Core Contributor",
+            10181046,
             Permissions::SEND_MESSAGES
-            | Permissions::EMBED_LINKS
-            | Permissions::ATTACH_FILES
-            | Permissions::READ_MESSAGE_HISTORY
-            | Permissions::ADD_REACTIONS
-            | Permissions::USE_EXTERNAL_EMOJIS
-            | Permissions::CREATE_PUBLIC_THREADS
-            | Permissions::CREATE_PRIVATE_THREADS
-            | Permissions::SEND_MESSAGES_IN_THREADS
+                | Permissions::EMBED_LINKS
+                | Permissions::ATTACH_FILES
+                | Permissions::READ_MESSAGE_HISTORY
+                | Permissions::ADD_REACTIONS
+                | Permissions::USE_EXTERNAL_EMOJIS
+                | Permissions::CREATE_PUBLIC_THREADS
+                | Permissions::CREATE_PRIVATE_THREADS
+                | Permissions::SEND_MESSAGES_IN_THREADS,
         ),
-        ("Contributor", 3447003,
+        (
+            "Contributor",
+            3447003,
             Permissions::SEND_MESSAGES
-            | Permissions::EMBED_LINKS
-            | Permissions::ATTACH_FILES
-            | Permissions::READ_MESSAGE_HISTORY
-            | Permissions::ADD_REACTIONS
-            | Permissions::CREATE_PUBLIC_THREADS
-            | Permissions::SEND_MESSAGES_IN_THREADS
+                | Permissions::EMBED_LINKS
+                | Permissions::ATTACH_FILES
+                | Permissions::READ_MESSAGE_HISTORY
+                | Permissions::ADD_REACTIONS
+                | Permissions::CREATE_PUBLIC_THREADS
+                | Permissions::SEND_MESSAGES_IN_THREADS,
         ),
-        ("Active Member", 3066993,
+        (
+            "Active Member",
+            3066993,
             Permissions::SEND_MESSAGES
-            | Permissions::EMBED_LINKS
-            | Permissions::READ_MESSAGE_HISTORY
-            | Permissions::ADD_REACTIONS
+                | Permissions::EMBED_LINKS
+                | Permissions::READ_MESSAGE_HISTORY
+                | Permissions::ADD_REACTIONS,
         ),
-        ("Member", 16777215,
+        (
+            "Member",
+            16777215,
             Permissions::SEND_MESSAGES
-            | Permissions::READ_MESSAGE_HISTORY
-            | Permissions::ADD_REACTIONS
+                | Permissions::READ_MESSAGE_HISTORY
+                | Permissions::ADD_REACTIONS,
         ),
-        ("New Member", 16776960,
-            Permissions::SEND_MESSAGES
-            | Permissions::READ_MESSAGE_HISTORY
+        (
+            "New Member",
+            16776960,
+            Permissions::SEND_MESSAGES | Permissions::READ_MESSAGE_HISTORY,
         ),
     ];
 

@@ -174,7 +174,10 @@ Focus on building a repeatable, scalable sales engine with clear metrics and acc
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Sales Strategy & Process Optimization Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Sales Strategy & Process Optimization Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -256,8 +259,10 @@ impl BusinessAgent for SalesStrategyAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("SalesStrategyAgent: Developing sales strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "SalesStrategyAgent: Developing sales strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -272,8 +277,12 @@ impl BusinessAgent for SalesStrategyAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated sales strategy with {} initiatives, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated sales strategy with {} initiatives, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -289,7 +298,10 @@ impl BusinessAgent for SalesStrategyAgent {
             errors.push("No sales initiatives defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 3 {
-            warnings.push("Few sales initiatives (expected 4-6 covering funnel, team, automation)".to_string());
+            warnings.push(
+                "Few sales initiatives (expected 4-6 covering funnel, team, automation)"
+                    .to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
             suggestions.push("Add initiatives for inbound, outbound, partner channels".to_string());
         }
@@ -299,9 +311,13 @@ impl BusinessAgent for SalesStrategyAgent {
             errors.push("No sales metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 4 {
-            warnings.push("Few sales KPIs (expected 6-10 covering MRR, ARR, pipeline, CAC, LTV)".to_string());
+            warnings.push(
+                "Few sales KPIs (expected 6-10 covering MRR, ARR, pipeline, CAC, LTV)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add metrics for MRR, ARR, pipeline value, win rate, sales cycle".to_string());
+            suggestions.push(
+                "Add metrics for MRR, ARR, pipeline value, win rate, sales cycle".to_string(),
+            );
         }
 
         // Validate sales timeline
@@ -385,7 +401,8 @@ mod tests {
         plan.recommendations = vec![
             Recommendation {
                 title: "Outbound SDR Program Launch".to_string(),
-                description: "Hire 1 SDR, setup cold email sequences, 100 outbound touches/week".to_string(),
+                description: "Hire 1 SDR, setup cold email sequences, 100 outbound touches/week"
+                    .to_string(),
                 priority: 1,
                 estimated_cost: Some(80000),
                 expected_roi: Some(6.0),
@@ -393,7 +410,8 @@ mod tests {
             },
             Recommendation {
                 title: "Inbound Lead Conversion Optimization".to_string(),
-                description: "Optimize website CTAs, demo booking flow, email nurture sequences".to_string(),
+                description: "Optimize website CTAs, demo booking flow, email nurture sequences"
+                    .to_string(),
                 priority: 1,
                 estimated_cost: Some(15000),
                 expected_roi: Some(8.0),
@@ -401,7 +419,8 @@ mod tests {
             },
             Recommendation {
                 title: "Partner Channel Program".to_string(),
-                description: "Recruit 5 SI partners, 20% referral commission, co-selling playbook".to_string(),
+                description: "Recruit 5 SI partners, 20% referral commission, co-selling playbook"
+                    .to_string(),
                 priority: 2,
                 estimated_cost: Some(25000),
                 expected_roi: Some(4.0),

@@ -718,4 +718,3 @@ mod tests {
         assert_eq!(plan.concurrency, 10); // Concurrency unchanged
     }
 }
-

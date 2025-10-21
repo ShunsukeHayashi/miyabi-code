@@ -147,7 +147,9 @@ impl TelemetryCollector {
         for event in &self.events {
             match event {
                 WorktreeEvent::CreateComplete { .. } => stats.creates += 1,
-                WorktreeEvent::ExecuteComplete { success, duration, .. } => {
+                WorktreeEvent::ExecuteComplete {
+                    success, duration, ..
+                } => {
                     stats.executions += 1;
                     if *success {
                         stats.successful_executions += 1;

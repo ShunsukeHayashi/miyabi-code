@@ -179,7 +179,10 @@ Focus on building genuine community and driving measurable business outcomes (si
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Social Media Strategy & Operations Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Social Media Strategy & Operations Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -261,8 +264,10 @@ impl BusinessAgent for SNSStrategyAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("SNSStrategyAgent: Developing SNS strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "SNSStrategyAgent: Developing SNS strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -277,8 +282,12 @@ impl BusinessAgent for SNSStrategyAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated SNS strategy with {} platform initiatives, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated SNS strategy with {} platform initiatives, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -294,7 +303,8 @@ impl BusinessAgent for SNSStrategyAgent {
             errors.push("No SNS initiatives defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 2 {
-            warnings.push("Few SNS initiatives (expected 3-6 covering multiple platforms)".to_string());
+            warnings
+                .push("Few SNS initiatives (expected 3-6 covering multiple platforms)".to_string());
             quality_score = quality_score.saturating_sub(15);
             suggestions.push("Add initiatives for Twitter, LinkedIn, GitHub, Reddit".to_string());
         }
@@ -304,9 +314,14 @@ impl BusinessAgent for SNSStrategyAgent {
             errors.push("No SNS metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 3 {
-            warnings.push("Few SNS KPIs (expected 5-8 covering growth, engagement, conversion)".to_string());
+            warnings.push(
+                "Few SNS KPIs (expected 5-8 covering growth, engagement, conversion)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add metrics for followers, engagement rate, click-through rate, conversions".to_string());
+            suggestions.push(
+                "Add metrics for followers, engagement rate, click-through rate, conversions"
+                    .to_string(),
+            );
         }
 
         // Validate SNS timeline
@@ -390,7 +405,8 @@ mod tests {
         plan.recommendations = vec![
             Recommendation {
                 title: "Twitter Developer Community Growth".to_string(),
-                description: "Daily tech threads, engage with developers, Product Hunt launch".to_string(),
+                description: "Daily tech threads, engage with developers, Product Hunt launch"
+                    .to_string(),
                 priority: 1,
                 estimated_cost: Some(3000),
                 expected_roi: Some(7.0),

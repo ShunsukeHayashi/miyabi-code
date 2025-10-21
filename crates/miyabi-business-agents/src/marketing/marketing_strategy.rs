@@ -171,7 +171,10 @@ Focus on actionable campaigns with clear ROI targets and measurement plans."#,
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("Marketing Strategy & Campaign Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Marketing Strategy & Campaign Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -253,8 +256,10 @@ impl BusinessAgent for MarketingStrategyAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("MarketingStrategyAgent: Developing marketing strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "MarketingStrategyAgent: Developing marketing strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -269,8 +274,12 @@ impl BusinessAgent for MarketingStrategyAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated marketing strategy with {} campaigns, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated marketing strategy with {} campaigns, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -286,9 +295,13 @@ impl BusinessAgent for MarketingStrategyAgent {
             errors.push("No marketing campaigns defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 4 {
-            warnings.push("Few marketing campaigns (expected 5-10 covering 4Ps and channels)".to_string());
+            warnings.push(
+                "Few marketing campaigns (expected 5-10 covering 4Ps and channels)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
-            suggestions.push("Add campaigns for each marketing channel (SEO, SEM, social, content)".to_string());
+            suggestions.push(
+                "Add campaigns for each marketing channel (SEO, SEM, social, content)".to_string(),
+            );
         }
 
         // Validate marketing KPIs
@@ -296,7 +309,10 @@ impl BusinessAgent for MarketingStrategyAgent {
             errors.push("No marketing metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 4 {
-            warnings.push("Few marketing KPIs (expected 6-10 covering CAC, LTV, conversion rates)".to_string());
+            warnings.push(
+                "Few marketing KPIs (expected 6-10 covering CAC, LTV, conversion rates)"
+                    .to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
             suggestions.push("Add metrics for each funnel stage (awareness, consideration, conversion, retention)".to_string());
         }
@@ -305,7 +321,8 @@ impl BusinessAgent for MarketingStrategyAgent {
         if plan.timeline.milestones.is_empty() {
             warnings.push("No campaign milestones defined".to_string());
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add campaign launch, optimization, and scaling milestones".to_string());
+            suggestions
+                .push("Add campaign launch, optimization, and scaling milestones".to_string());
         }
 
         // Validate marketing risks
@@ -431,9 +448,7 @@ mod tests {
             },
         ];
 
-        plan.next_steps = vec![
-            "Launch SEO campaign".to_string(),
-        ];
+        plan.next_steps = vec!["Launch SEO campaign".to_string()];
 
         let result = agent.validate_output(&plan).await.unwrap();
         assert!(result.is_valid);

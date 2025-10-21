@@ -42,8 +42,13 @@ pub struct Config {
     pub report_directory: String,
 
     /// Worktree base path (optional)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub worktree_base_path: Option<String>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serde_path::serialize_option",
+        deserialize_with = "serde_path::deserialize_option"
+    )]
+    pub worktree_base_path: Option<PathBuf>,
 
     /// Tech lead GitHub username (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,6 +61,38 @@ pub struct Config {
     /// PO GitHub username (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub po_github_username: Option<String>,
+}
+
+mod serde_path {
+    use serde::{Deserialize, Deserializer, Serializer};
+    use std::path::PathBuf;
+
+    pub fn serialize_option<S>(
+        value: &Option<PathBuf>,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(path) => serializer.serialize_some(&path_to_string(path)),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize_option<'de, D>(
+        deserializer: D,
+    ) -> std::result::Result<Option<PathBuf>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let option = Option::<String>::deserialize(deserializer)?;
+        Ok(option.map(PathBuf::from))
+    }
+
+    fn path_to_string(path: &PathBuf) -> String {
+        path.to_string_lossy().into_owned()
+    }
 }
 
 // Default value functions
@@ -148,7 +185,9 @@ impl Config {
                 .unwrap_or_else(|_| default_log_directory()),
             report_directory: std::env::var("MIYABI_REPORT_DIRECTORY")
                 .unwrap_or_else(|_| default_report_directory()),
-            worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE_PATH").ok(),
+            worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE_PATH")
+                .ok()
+                .map(PathBuf::from),
             tech_lead_github_username: std::env::var("TECH_LEAD_GITHUB_USERNAME").ok(),
             ciso_github_username: std::env::var("CISO_GITHUB_USERNAME").ok(),
             po_github_username: std::env::var("PO_GITHUB_USERNAME").ok(),
@@ -476,7 +515,7 @@ report_directory = "./toml-reports"
             max_concurrency: 7,
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
-            worktree_base_path: Some("/tmp/worktrees".to_string()),
+            worktree_base_path: Some(PathBuf::from("/tmp/worktrees")),
             tech_lead_github_username: Some("tech-lead".to_string()),
             ciso_github_username: None,
             po_github_username: Some("po".to_string()),

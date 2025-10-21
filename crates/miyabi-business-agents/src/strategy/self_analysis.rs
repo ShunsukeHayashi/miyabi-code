@@ -163,7 +163,10 @@ Focus on honest self-assessment and actionable strategic guidance."#,
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("SWOT Analysis & Business Strategy").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("SWOT Analysis & Business Strategy")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -245,8 +248,10 @@ impl BusinessAgent for SelfAnalysisAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("SelfAnalysisAgent: Conducting SWOT analysis for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "SelfAnalysisAgent: Conducting SWOT analysis for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -261,8 +266,12 @@ impl BusinessAgent for SelfAnalysisAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated SWOT analysis with {} strategies, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated SWOT analysis with {} strategies, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -278,7 +287,9 @@ impl BusinessAgent for SelfAnalysisAgent {
             errors.push("No SWOT analysis strategies defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 4 {
-            warnings.push("Incomplete SWOT (expected at least 4 strategies covering S/W/O/T)".to_string());
+            warnings.push(
+                "Incomplete SWOT (expected at least 4 strategies covering S/W/O/T)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
             suggestions.push("Add strategies for each SWOT quadrant".to_string());
         }
@@ -410,14 +421,12 @@ mod tests {
             },
         ];
 
-        plan.risks = vec![
-            Risk {
-                description: "Financial constraints".to_string(),
-                severity: 3,
-                probability: 0.5,
-                mitigation: vec!["Bootstrap approach".to_string()],
-            },
-        ];
+        plan.risks = vec![Risk {
+            description: "Financial constraints".to_string(),
+            severity: 3,
+            probability: 0.5,
+            mitigation: vec!["Bootstrap approach".to_string()],
+        }];
 
         plan.next_steps = vec![
             "Conduct skill gap analysis".to_string(),

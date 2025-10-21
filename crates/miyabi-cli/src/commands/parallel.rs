@@ -7,6 +7,7 @@ use miyabi_agents::CoordinatorAgentWithLLM;
 use miyabi_types::{AgentConfig, AgentType, Task};
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 pub struct ParallelCommand {
     pub issues: Vec<u64>,
@@ -62,7 +63,7 @@ impl ParallelCommand {
         println!("    Auto cleanup: {}", pool_config.auto_cleanup);
         println!();
 
-        let pool = WorktreePool::new(pool_config).map_err(|e| {
+        let pool = WorktreePool::new(pool_config, config.worktree_base_path.clone()).map_err(|e| {
             CliError::ExecutionError(format!("Failed to create worktree pool: {}", e))
         })?;
 
@@ -278,7 +279,7 @@ impl ParallelCommand {
             repo_name: Some(repo_name),
             use_task_tool: false,
             use_worktree: true,
-            worktree_base_path: Some(".worktrees".to_string()),
+            worktree_base_path: Some(PathBuf::from(".worktrees")),
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
             tech_lead_github_username: None,

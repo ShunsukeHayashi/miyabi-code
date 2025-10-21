@@ -34,7 +34,7 @@ pub trait BaseAgent: Send + Sync {
 /// これにより、既存のAgentコードを変更することなく、
 /// OrchestrationEngineでオーケストレーション機能が利用可能になります。
 #[async_trait]
-impl<T: BaseAgent> crate::orchestration::Orchestrated for T {
+impl<T: BaseAgent> miyabi_agent_core::Orchestrated for T {
     async fn execute_internal(&self, task: &Task) -> Result<AgentResult> {
         self.execute(task).await
     }
@@ -62,11 +62,7 @@ impl<T: BaseAgent> crate::orchestration::Orchestrated for T {
         Ok(())
     }
 
-    async fn fallback(
-        &self,
-        task: &Task,
-        error: &MiyabiError,
-    ) -> Option<AgentResult> {
+    async fn fallback(&self, task: &Task, error: &MiyabiError) -> Option<AgentResult> {
         tracing::warn!(
             agent_type = ?self.agent_type(),
             task_id = %task.id,

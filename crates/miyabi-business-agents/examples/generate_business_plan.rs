@@ -13,9 +13,7 @@ use std::fs;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter("info")
-        .init();
+    tracing_subscriber::fmt().with_env_filter("info").init();
 
     println!("🚀 Miyabi Business Plan Generator");
     println!("================================\n");
@@ -30,8 +28,8 @@ async fn main() -> anyhow::Result<()> {
 
     // Create AIEntrepreneurAgent
     println!("📊 Initializing AIEntrepreneurAgent...");
-    let agent = AIEntrepreneurAgent::new()
-        .map_err(|e| anyhow::anyhow!("Failed to create agent: {}", e))?;
+    let agent =
+        AIEntrepreneurAgent::new().map_err(|e| anyhow::anyhow!("Failed to create agent: {}", e))?;
 
     println!("✓ Agent initialized: {}", agent.description());
     println!();
@@ -39,7 +37,8 @@ async fn main() -> anyhow::Result<()> {
     // Prepare business input for Miyabi
     let input = BusinessInput {
         industry: "SaaS / AI Automation Platform".to_string(),
-        target_market: "Enterprise DevOps teams, Software development agencies, Tech startups".to_string(),
+        target_market: "Enterprise DevOps teams, Software development agencies, Tech startups"
+            .to_string(),
         budget: 500_000, // $500K seed funding
         geography: Some("Global (Japan, North America, Europe)".to_string()),
         timeframe_months: Some(24), // 2-year plan
@@ -63,15 +62,21 @@ async fn main() -> anyhow::Result<()> {
 
     // Validate input
     use validator::Validate;
-    input.validate()
+    input
+        .validate()
         .map_err(|e| anyhow::anyhow!("Invalid business input: {}", e))?;
 
     // Generate business plan
     println!("🤖 Generating 8-phase business plan with Claude...");
-    println!("⏱️  Estimated duration: {} seconds", agent.estimated_duration());
+    println!(
+        "⏱️  Estimated duration: {} seconds",
+        agent.estimated_duration()
+    );
     println!();
 
-    let plan = agent.generate_plan(&input).await
+    let plan = agent
+        .generate_plan(&input)
+        .await
         .map_err(|e| anyhow::anyhow!("Failed to generate plan: {}", e))?;
 
     println!("✓ Business plan generated successfully!");
@@ -79,7 +84,9 @@ async fn main() -> anyhow::Result<()> {
 
     // Validate output
     println!("🔍 Validating business plan quality...");
-    let validation = agent.validate_output(&plan).await
+    let validation = agent
+        .validate_output(&plan)
+        .await
         .map_err(|e| anyhow::anyhow!("Failed to validate plan: {}", e))?;
 
     println!("  Quality Score: {}/100", validation.quality_score);
@@ -142,7 +149,10 @@ fn generate_markdown_report(plan: &miyabi_business_agents::types::BusinessPlan) 
     let mut md = String::new();
 
     md.push_str(&format!("# {}\n\n", plan.title));
-    md.push_str(&format!("**Generated**: {}\n\n", plan.generated_at.format("%Y-%m-%d %H:%M:%S UTC")));
+    md.push_str(&format!(
+        "**Generated**: {}\n\n",
+        plan.generated_at.format("%Y-%m-%d %H:%M:%S UTC")
+    ));
 
     md.push_str("---\n\n");
 
@@ -154,7 +164,12 @@ fn generate_markdown_report(plan: &miyabi_business_agents::types::BusinessPlan) 
     // Recommendations
     md.push_str("## Strategic Recommendations\n\n");
     for (i, rec) in plan.recommendations.iter().enumerate() {
-        md.push_str(&format!("### {}. {} (Priority: {})\n\n", i + 1, rec.title, rec.priority));
+        md.push_str(&format!(
+            "### {}. {} (Priority: {})\n\n",
+            i + 1,
+            rec.title,
+            rec.priority
+        ));
         md.push_str(&format!("{}\n\n", rec.description));
         if let Some(cost) = rec.estimated_cost {
             md.push_str(&format!("- **Estimated Cost**: ${}\n", cost));
@@ -163,7 +178,10 @@ fn generate_markdown_report(plan: &miyabi_business_agents::types::BusinessPlan) 
             md.push_str(&format!("- **Expected ROI**: {}x\n", roi));
         }
         if !rec.dependencies.is_empty() {
-            md.push_str(&format!("- **Dependencies**: {}\n", rec.dependencies.join(", ")));
+            md.push_str(&format!(
+                "- **Dependencies**: {}\n",
+                rec.dependencies.join(", ")
+            ));
         }
         md.push_str("\n");
     }
@@ -184,7 +202,10 @@ fn generate_markdown_report(plan: &miyabi_business_agents::types::BusinessPlan) 
     md.push_str("## Implementation Timeline\n\n");
     for (i, milestone) in plan.timeline.milestones.iter().enumerate() {
         md.push_str(&format!("### Milestone {}: {}\n\n", i + 1, milestone.name));
-        md.push_str(&format!("**Target Date**: {}\n\n", milestone.target_date.format("%Y-%m-%d")));
+        md.push_str(&format!(
+            "**Target Date**: {}\n\n",
+            milestone.target_date.format("%Y-%m-%d")
+        ));
 
         md.push_str("**Deliverables**:\n");
         for deliverable in &milestone.deliverables {

@@ -11,7 +11,10 @@ use clap::Parser;
 use std::env;
 use twilight_http::Client;
 use twilight_model::channel::ChannelType;
-use twilight_model::id::{marker::{ChannelMarker, GuildMarker}, Id};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 #[derive(Parser)]
 struct Args {
@@ -75,63 +78,87 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Define channels for each category
     let channel_definitions = vec![
         // WELCOME & RULES
-        ("📢 WELCOME & RULES", vec![
-            ("welcome", ChannelType::GuildText),
-            ("rules", ChannelType::GuildText),
-            ("faq", ChannelType::GuildForum),
-            ("announcements", ChannelType::GuildText),
-        ]),
+        (
+            "📢 WELCOME & RULES",
+            vec![
+                ("welcome", ChannelType::GuildText),
+                ("rules", ChannelType::GuildText),
+                ("faq", ChannelType::GuildForum),
+                ("announcements", ChannelType::GuildText),
+            ],
+        ),
         // GENERAL
-        ("💬 GENERAL", vec![
-            ("general", ChannelType::GuildText),
-            ("introductions", ChannelType::GuildText),
-            ("off-topic", ChannelType::GuildText),
-            ("links-resources", ChannelType::GuildText),
-        ]),
+        (
+            "💬 GENERAL",
+            vec![
+                ("general", ChannelType::GuildText),
+                ("introductions", ChannelType::GuildText),
+                ("off-topic", ChannelType::GuildText),
+                ("links-resources", ChannelType::GuildText),
+            ],
+        ),
         // CODING AGENTS
-        ("🔧 CODING AGENTS", vec![
-            ("しきるん-coordinator", ChannelType::GuildText),
-            ("つくるん-codegen", ChannelType::GuildText),
-            ("めだまん-review", ChannelType::GuildText),
-            ("はこぶん-deployment", ChannelType::GuildText),
-            ("つなぐん-pr-agent", ChannelType::GuildText),
-            ("みつけるん-issue-agent", ChannelType::GuildText),
-            ("worktree-parallel", ChannelType::GuildText),
-        ]),
+        (
+            "🔧 CODING AGENTS",
+            vec![
+                ("しきるん-coordinator", ChannelType::GuildText),
+                ("つくるん-codegen", ChannelType::GuildText),
+                ("めだまん-review", ChannelType::GuildText),
+                ("はこぶん-deployment", ChannelType::GuildText),
+                ("つなぐん-pr-agent", ChannelType::GuildText),
+                ("みつけるん-issue-agent", ChannelType::GuildText),
+                ("worktree-parallel", ChannelType::GuildText),
+            ],
+        ),
         // BUSINESS AGENTS (simplified)
-        ("💼 BUSINESS AGENTS", vec![
-            ("business-agents-strategy", ChannelType::GuildText),
-            ("business-agents-marketing", ChannelType::GuildText),
-            ("business-agents-sales-crm", ChannelType::GuildText),
-        ]),
+        (
+            "💼 BUSINESS AGENTS",
+            vec![
+                ("business-agents-strategy", ChannelType::GuildText),
+                ("business-agents-marketing", ChannelType::GuildText),
+                ("business-agents-sales-crm", ChannelType::GuildText),
+            ],
+        ),
         // SUPPORT
-        ("🆘 SUPPORT", vec![
-            ("help-general", ChannelType::GuildText),
-            ("help-installation", ChannelType::GuildText),
-            ("help-troubleshooting", ChannelType::GuildForum),
-            ("help-worktree", ChannelType::GuildText),
-        ]),
+        (
+            "🆘 SUPPORT",
+            vec![
+                ("help-general", ChannelType::GuildText),
+                ("help-installation", ChannelType::GuildText),
+                ("help-troubleshooting", ChannelType::GuildForum),
+                ("help-worktree", ChannelType::GuildText),
+            ],
+        ),
         // SHOWCASE
-        ("🎨 SHOWCASE", vec![
-            ("showcase-projects", ChannelType::GuildText),
-            ("showcase-use-cases", ChannelType::GuildForum),
-            ("showcase-tips", ChannelType::GuildText),
-            ("showcase-videos", ChannelType::GuildText),
-        ]),
+        (
+            "🎨 SHOWCASE",
+            vec![
+                ("showcase-projects", ChannelType::GuildText),
+                ("showcase-use-cases", ChannelType::GuildForum),
+                ("showcase-tips", ChannelType::GuildText),
+                ("showcase-videos", ChannelType::GuildText),
+            ],
+        ),
         // DEVELOPMENT
-        ("🛠️ DEVELOPMENT", vec![
-            ("bug-reports", ChannelType::GuildForum),
-            ("feature-requests", ChannelType::GuildForum),
-            ("contributions", ChannelType::GuildText),
-            ("pull-requests", ChannelType::GuildText),
-            ("roadmap", ChannelType::GuildText),
-        ]),
+        (
+            "🛠️ DEVELOPMENT",
+            vec![
+                ("bug-reports", ChannelType::GuildForum),
+                ("feature-requests", ChannelType::GuildForum),
+                ("contributions", ChannelType::GuildText),
+                ("pull-requests", ChannelType::GuildText),
+                ("roadmap", ChannelType::GuildText),
+            ],
+        ),
         // COMMUNITY
-        ("🎉 COMMUNITY", vec![
-            ("events", ChannelType::GuildText),
-            ("feedback", ChannelType::GuildText),
-            ("mod-chat", ChannelType::GuildText),
-        ]),
+        (
+            "🎉 COMMUNITY",
+            vec![
+                ("events", ChannelType::GuildText),
+                ("feedback", ChannelType::GuildText),
+                ("mod-chat", ChannelType::GuildText),
+            ],
+        ),
     ];
 
     let mut total_created = 0;
@@ -159,7 +186,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             post_progress(
                                 &client,
                                 progress_channel,
-                                &format!("  ✅ {}/{} チャンネル作成完了", total_created, total_channels),
+                                &format!(
+                                    "  ✅ {}/{} チャンネル作成完了",
+                                    total_created, total_channels
+                                ),
                             )
                             .await?;
                         }
@@ -180,7 +210,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     post_progress(
         &client,
         progress_channel,
-        &format!("✅ チャンネル作成完了！ ({}/{}個)", total_created, total_channels),
+        &format!(
+            "✅ チャンネル作成完了！ ({}/{}個)",
+            total_created, total_channels
+        ),
     )
     .await?;
 

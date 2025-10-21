@@ -102,8 +102,8 @@ impl WebhookSigner {
     /// assert!(sig.starts_with("sha256="));
     /// ```
     pub fn sign(&self, payload: &[u8], timestamp: i64) -> String {
-        let mut mac = HmacSha256::new_from_slice(&self.secret_key)
-            .expect("HMAC can take key of any size");
+        let mut mac =
+            HmacSha256::new_from_slice(&self.secret_key).expect("HMAC can take key of any size");
 
         // Sign: payload + timestamp
         mac.update(payload);
@@ -169,8 +169,8 @@ impl WebhookSigner {
         let expected_bytes = hex::decode(signature)?;
 
         // 3. Compute expected signature
-        let mut mac = HmacSha256::new_from_slice(&self.secret_key)
-            .expect("HMAC can take key of any size");
+        let mut mac =
+            HmacSha256::new_from_slice(&self.secret_key).expect("HMAC can take key of any size");
         mac.update(payload);
         mac.update(&timestamp.to_le_bytes());
 
@@ -220,10 +220,17 @@ mod tests {
         let payload = b"test payload";
         let timestamp = Utc::now().timestamp();
 
-        let result = signer.verify(payload, timestamp, "sha256=0000000000000000000000000000000000000000000000000000000000000000");
+        let result = signer.verify(
+            payload,
+            timestamp,
+            "sha256=0000000000000000000000000000000000000000000000000000000000000000",
+        );
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), WebhookError::VerificationFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            WebhookError::VerificationFailed
+        ));
     }
 
     #[test]
@@ -236,7 +243,10 @@ mod tests {
         let result = signer.verify(payload, old_timestamp, &signature);
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), WebhookError::TimestampOutOfRange(_, _)));
+        assert!(matches!(
+            result.unwrap_err(),
+            WebhookError::TimestampOutOfRange(_, _)
+        ));
     }
 
     #[test]
@@ -248,7 +258,10 @@ mod tests {
         let result = signer.verify(payload, timestamp, "invalid-format");
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), WebhookError::InvalidFormat(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            WebhookError::InvalidFormat(_)
+        ));
     }
 
     #[test]

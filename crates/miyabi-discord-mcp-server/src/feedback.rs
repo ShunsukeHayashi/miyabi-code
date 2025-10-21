@@ -83,7 +83,8 @@ impl FeedbackEntry {
             || content_lower.contains("エラー")
             || content_lower.contains("error")
             || content_lower.contains("動かない")
-            || content_lower.contains("doesn't work") {
+            || content_lower.contains("doesn't work")
+        {
             FeedbackType::Bug
         } else if content_lower.contains("機能")
             || content_lower.contains("feature")
@@ -92,14 +93,16 @@ impl FeedbackEntry {
             || content_lower.contains("追加")
             || content_lower.contains("add")
             || content_lower.contains("できたら")
-            || content_lower.contains("would be nice") {
+            || content_lower.contains("would be nice")
+        {
             FeedbackType::Feature
         } else if content_lower.contains("質問")
             || content_lower.contains("question")
             || content_lower.contains("どうやって")
             || content_lower.contains("how to")
             || content_lower.contains("教えて")
-            || content_lower.contains("help") {
+            || content_lower.contains("help")
+        {
             FeedbackType::Question
         } else {
             FeedbackType::General

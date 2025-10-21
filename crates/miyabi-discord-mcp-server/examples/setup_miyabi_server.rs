@@ -11,7 +11,10 @@ use clap::Parser;
 use std::env;
 use twilight_http::Client;
 use twilight_model::channel::ChannelType;
-use twilight_model::id::{marker::{ChannelMarker, GuildMarker}, Id};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 #[derive(Parser)]
 struct Args {
@@ -71,7 +74,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     // Step 1: Create categories
-    post_progress(&client, progress_channel, "\n📂 **フェーズ 1/3**: カテゴリ作成中...").await?;
+    post_progress(
+        &client,
+        progress_channel,
+        "\n📂 **フェーズ 1/3**: カテゴリ作成中...",
+    )
+    .await?;
 
     let categories = vec![
         "📢 WELCOME & RULES",
@@ -94,7 +102,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         {
             Ok(response) => {
                 let channel = response.model().await?;
-                println!("✅ Created category: {} (ID: {})", category_name, channel.id);
+                println!(
+                    "✅ Created category: {} (ID: {})",
+                    category_name, channel.id
+                );
 
                 if (i + 1) % 3 == 0 {
                     post_progress(
@@ -123,7 +134,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     post_progress(
         &client,
         progress_channel,
-        &format!("✅ カテゴリ作成完了！ ({}/{}個)", categories.len(), categories.len()),
+        &format!(
+            "✅ カテゴリ作成完了！ ({}/{}個)",
+            categories.len(),
+            categories.len()
+        ),
     )
     .await?;
 

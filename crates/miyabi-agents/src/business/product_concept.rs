@@ -4,7 +4,7 @@
 //! プロダクト戦略立案を支援します。ビジネスモデルキャンバスからMVP機能定義まで
 //! 一貫したプロダクトコンセプトを構築します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

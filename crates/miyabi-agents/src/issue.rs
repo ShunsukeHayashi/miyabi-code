@@ -3,15 +3,15 @@
 //! Responsible for analyzing GitHub Issues, determining issue types, severity,
 //! impact, and automatically applying labels from the 57-label system.
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
 };
 use miyabi_types::error::{MiyabiError, Result};
-use miyabi_types::{ImpactLevel, IssueAnalysis};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, Issue, Task};
+use miyabi_types::{ImpactLevel, IssueAnalysis};
 use std::collections::HashMap;
 
 pub struct IssueAgent {

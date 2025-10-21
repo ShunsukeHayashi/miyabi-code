@@ -30,26 +30,26 @@
 //! }
 //! ```
 
+pub mod client;
 pub mod traits;
 pub mod types;
-pub mod client;
 
 // Strategy & Planning Agents (6)
 pub mod strategy {
     //! Strategy and planning agents for business foundations
 
     pub mod ai_entrepreneur;
-    pub mod product_concept;
-    pub mod product_design;
     pub mod funnel_design;
     pub mod persona;
+    pub mod product_concept;
+    pub mod product_design;
     pub mod self_analysis;
 
     pub use ai_entrepreneur::AIEntrepreneurAgent;
-    pub use product_concept::ProductConceptAgent;
-    pub use product_design::ProductDesignAgent;
     pub use funnel_design::FunnelDesignAgent;
     pub use persona::PersonaAgent;
+    pub use product_concept::ProductConceptAgent;
+    pub use product_design::ProductDesignAgent;
     pub use self_analysis::SelfAnalysisAgent;
 }
 
@@ -57,15 +57,15 @@ pub mod strategy {
 pub mod marketing {
     //! Marketing and promotional agents for customer acquisition
 
+    pub mod content_creation;
     pub mod market_research;
     pub mod marketing_strategy;
-    pub mod content_creation;
     pub mod sns_strategy;
     pub mod youtube;
 
+    pub use content_creation::ContentCreationAgent;
     pub use market_research::MarketResearchAgent;
     pub use marketing_strategy::MarketingStrategyAgent;
-    pub use content_creation::ContentCreationAgent;
     pub use sns_strategy::SNSStrategyAgent;
     pub use youtube::YouTubeAgent;
 }
@@ -74,19 +74,19 @@ pub mod marketing {
 pub mod sales {
     //! Sales and analytics agents for revenue operations
 
-    pub mod sales_strategy;
-    pub mod crm;
     pub mod analytics;
+    pub mod crm;
+    pub mod sales_strategy;
 
-    pub use sales_strategy::SalesStrategyAgent;
-    pub use crm::CRMAgent;
     pub use analytics::AnalyticsAgent;
+    pub use crm::CRMAgent;
+    pub use sales_strategy::SalesStrategyAgent;
 }
 
 // Re-exports for convenience
+pub use client::ClaudeClient;
 pub use traits::BusinessAgent;
 pub use types::*;
-pub use client::ClaudeClient;
 
 #[cfg(test)]
 mod tests {

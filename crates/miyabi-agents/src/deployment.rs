@@ -3,7 +3,7 @@
 //! Responsible for build execution, testing, deployment, health checks, and rollback.
 //! Supports Staging (auto-deploy) and Production (approval-required) environments.
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
@@ -234,14 +234,12 @@ impl DeploymentAgent {
             Environment::Staging => &self.config.firebase_staging_project,
         };
 
-        let project_id = firebase_project
-            .as_ref()
-            .ok_or_else(|| {
-                MiyabiError::Config(format!(
-                    "Firebase project not configured for {:?}",
-                    environment
-                ))
-            })?;
+        let project_id = firebase_project.as_ref().ok_or_else(|| {
+            MiyabiError::Config(format!(
+                "Firebase project not configured for {:?}",
+                environment
+            ))
+        })?;
 
         tracing::info!("Deploying to Firebase project: {}", project_id);
 
@@ -708,7 +706,9 @@ mod tests {
         // Should fail due to missing Firebase configuration
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(error.to_string().contains("Firebase project not configured"));
+        assert!(error
+            .to_string()
+            .contains("Firebase project not configured"));
     }
 
     #[test]

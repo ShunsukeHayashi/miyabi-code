@@ -41,9 +41,17 @@
       {
         "command": "echo \"🚀 Miyabi Project Session Started\" && echo \"📍 Working directory: $CLAUDE_PROJECT_DIR\" && git status --short",
         "description": "Display project status on session start"
+      },
+      {
+        "command": ".claude/hooks/session-keepalive.sh start",
+        "description": "Start session keep-alive mechanism to prevent timeout"
       }
     ],
     "SessionEnd": [
+      {
+        "command": ".claude/hooks/session-keepalive.sh stop",
+        "description": "Stop session keep-alive mechanism"
+      },
       {
         "command": "echo \"📊 Session Statistics:\" && echo \"Duration: $(date)\" && git status --short",
         "description": "Display session summary on exit"
@@ -63,10 +71,22 @@
     ]
   },
   "timeout": {
-    "default": 60000,
+    "default": 1800000,
     "perCommand": {
-      ".claude/hooks/auto-format.sh": 120000,
-      ".claude/hooks/validate-typescript.sh": 180000
+      ".claude/hooks/auto-format.sh": 300000,
+      ".claude/hooks/validate-typescript.sh": 600000
+    },
+    "mcp": {
+      "connectionTimeout": 300000,
+      "requestTimeout": 1800000,
+      "idleTimeout": 7200000
+    },
+    "session": {
+      "inactivityTimeout": 14400000,
+      "maxSessionDuration": 28800000,
+      "keepAliveInterval": 60000,
+      "reconnectAttempts": 10,
+      "reconnectDelay": 5000
     }
   },
   "security": {
@@ -89,6 +109,37 @@
     ]
   },
   "plugins": [],
+  "allow": [
+    "Read(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Write(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Edit(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Glob(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Grep(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Bash(git *)",
+    "Bash(cargo *)",
+    "Bash(rustc *)",
+    "Bash(npm *)",
+    "Bash(gh *)",
+    "Bash(echo *)",
+    "Bash(cat *)",
+    "Bash(ls *)",
+    "Bash(mkdir *)",
+    "Bash(rm *)",
+    "Bash(mv *)",
+    "Bash(cp *)",
+    "Bash(.claude/hooks/*.sh *)",
+    "Task(*)",
+    "SlashCommand(*)",
+    "Skill(*)",
+    "NotebookEdit(/Users/shunsuke/Dev/miyabi-private/**)",
+    "WebFetch(*)",
+    "WebSearch(*)"
+  ],
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "enableAllProjectMcpServers": true,
   "mcpServers": {
     "github-enhanced": {
       "command": "node",

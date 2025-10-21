@@ -4,7 +4,7 @@
 //! 顧客ニーズ調査を実施します。定量的・定性的データに基づいた
 //! 市場機会の特定と競合優位性の構築を支援します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

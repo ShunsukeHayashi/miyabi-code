@@ -4,7 +4,7 @@
 //! 実施し、個人のキャリアと事業目標の整合性を評価します。
 //! 創業者の背景に基づいた最適な事業戦略と実行計画を提案します。
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};

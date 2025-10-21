@@ -4,6 +4,7 @@ use miyabi_core::{init_logger, Config, LogLevel};
 use serial_test::serial;
 use std::env;
 use std::fs;
+use std::path::PathBuf;
 use tempfile::TempDir;
 
 #[test]
@@ -35,7 +36,7 @@ worktree_base_path: ".worktrees"
     let config = Config::from_file(config_path.to_str().unwrap()).unwrap();
 
     assert_eq!(config.log_directory, "./logs");
-    assert_eq!(config.worktree_base_path, Some(".worktrees".to_string()));
+    assert_eq!(config.worktree_base_path, Some(PathBuf::from(".worktrees")));
 
     env::remove_var("GITHUB_TOKEN");
     env::remove_var("DEVICE_IDENTIFIER");

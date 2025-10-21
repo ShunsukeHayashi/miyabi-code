@@ -178,7 +178,10 @@ Focus on actionable recommendations with specific timelines, costs, and success 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
         // Extract fields with defaults
-        let title = parsed["title"].as_str().unwrap_or("Business Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("Business Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         // Parse recommendations
@@ -265,8 +268,10 @@ impl BusinessAgent for AIEntrepreneurAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("AIEntrepreneurAgent: Generating business plan for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "AIEntrepreneurAgent: Generating business plan for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -281,8 +286,12 @@ impl BusinessAgent for AIEntrepreneurAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated business plan with {} recommendations, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated business plan with {} recommendations, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -404,16 +413,14 @@ mod tests {
         let agent = agent.unwrap();
 
         let mut plan = BusinessPlan::default();
-        plan.recommendations = vec![
-            Recommendation {
-                title: "Test".to_string(),
-                description: "Test recommendation".to_string(),
-                priority: 1,
-                estimated_cost: Some(10000),
-                expected_roi: Some(2.0),
-                dependencies: vec![],
-            }
-        ];
+        plan.recommendations = vec![Recommendation {
+            title: "Test".to_string(),
+            description: "Test recommendation".to_string(),
+            priority: 1,
+            estimated_cost: Some(10000),
+            expected_roi: Some(2.0),
+            dependencies: vec![],
+        }];
 
         let result = agent.validate_output(&plan).await.unwrap();
         assert!(result.quality_score > 0);

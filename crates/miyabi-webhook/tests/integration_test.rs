@@ -114,7 +114,10 @@ fn test_payload_tampering_detection() {
     // Try to verify tampered payload with original signature
     let result = signer.verify(tampered_payload, timestamp, &signature);
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebhookError::VerificationFailed));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebhookError::VerificationFailed
+    ));
 }
 
 /// Test empty payload handling
@@ -155,7 +158,10 @@ fn test_signature_format_validation() {
     // Missing "sha256=" prefix
     let result = signer.verify(payload, timestamp, "abcd1234");
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), WebhookError::InvalidFormat(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        WebhookError::InvalidFormat(_)
+    ));
 
     // Invalid hex characters
     let result = signer.verify(payload, timestamp, "sha256=ZZZZ");

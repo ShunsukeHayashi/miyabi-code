@@ -17,8 +17,8 @@
 //! ```
 
 use miyabi_business_agents::strategy::AIEntrepreneurAgent;
-use miyabi_business_agents::types::BusinessInput;
 use miyabi_business_agents::traits::BusinessAgent;
+use miyabi_business_agents::types::BusinessInput;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -36,7 +36,10 @@ async fn main() -> anyhow::Result<()> {
 
     println!("   Agent Type: {}", agent.agent_type());
     println!("   Description: {}", agent.description());
-    println!("   Estimated Duration: {} seconds", agent.estimated_duration());
+    println!(
+        "   Estimated Duration: {} seconds",
+        agent.estimated_duration()
+    );
 
     // Prepare business input
     println!("\n📋 Preparing Business Input...");
@@ -49,15 +52,22 @@ async fn main() -> anyhow::Result<()> {
         context: Some(
             "GitHub統合型の完全自律開発プラットフォーム。\
              Issue作成からPR作成、デプロイまでを自動化。\
-             競合: GitHub Copilot, Cursor, Replit".to_string()
+             競合: GitHub Copilot, Cursor, Replit"
+                .to_string(),
         ),
     };
 
     println!("   Industry: {}", input.industry);
     println!("   Target Market: {}", input.target_market);
     println!("   Budget: ${}", input.budget);
-    println!("   Geography: {}", input.geography.as_deref().unwrap_or("Global"));
-    println!("   Timeframe: {} months", input.timeframe_months.unwrap_or(12));
+    println!(
+        "   Geography: {}",
+        input.geography.as_deref().unwrap_or("Global")
+    );
+    println!(
+        "   Timeframe: {} months",
+        input.timeframe_months.unwrap_or(12)
+    );
     println!("   Context: {}", input.context.as_deref().unwrap_or("None"));
 
     // Generate business plan
@@ -104,10 +114,16 @@ async fn main() -> anyhow::Result<()> {
     }
 
     println!("{}", "=".repeat(60));
-    println!("\n## Timeline Milestones ({})\n", plan.timeline.milestones.len());
+    println!(
+        "\n## Timeline Milestones ({})\n",
+        plan.timeline.milestones.len()
+    );
     for (i, milestone) in plan.timeline.milestones.iter().enumerate() {
         println!("{}. **{}**", i + 1, milestone.name);
-        println!("   Target Date: {}", milestone.target_date.format("%Y-%m-%d"));
+        println!(
+            "   Target Date: {}",
+            milestone.target_date.format("%Y-%m-%d")
+        );
         println!("   Deliverables:");
         for deliverable in &milestone.deliverables {
             println!("     - {}", deliverable);
@@ -145,7 +161,14 @@ async fn main() -> anyhow::Result<()> {
     let validation = agent.validate_output(&plan).await?;
 
     println!("Quality Score: {}/100", validation.quality_score);
-    println!("Valid: {}", if validation.is_valid { "✅ Yes" } else { "❌ No" });
+    println!(
+        "Valid: {}",
+        if validation.is_valid {
+            "✅ Yes"
+        } else {
+            "❌ No"
+        }
+    );
 
     if !validation.errors.is_empty() {
         println!("\n❌ Errors:");
@@ -170,8 +193,14 @@ async fn main() -> anyhow::Result<()> {
 
     println!("\n{}", "=".repeat(60));
     println!("\n🎉 Demo Complete!");
-    println!("\nGenerated at: {}", plan.generated_at.format("%Y-%m-%d %H:%M:%S UTC"));
-    println!("Validated at: {}", validation.validated_at.format("%Y-%m-%d %H:%M:%S UTC"));
+    println!(
+        "\nGenerated at: {}",
+        plan.generated_at.format("%Y-%m-%d %H:%M:%S UTC")
+    );
+    println!(
+        "Validated at: {}",
+        validation.validated_at.format("%Y-%m-%d %H:%M:%S UTC")
+    );
 
     Ok(())
 }

@@ -27,7 +27,11 @@ impl DiscordClient {
 
     /// メッセージをピン留め
     pub async fn pin_message(&self, request: PinMessageRequest) -> Result<()> {
-        tracing::info!("Pinning message {} in channel {}", request.message_id, request.channel_id);
+        tracing::info!(
+            "Pinning message {} in channel {}",
+            request.message_id,
+            request.channel_id
+        );
 
         // TODO: 実装
         // self.http.pin_message(channel_id, message_id).await?
@@ -37,7 +41,11 @@ impl DiscordClient {
 
     /// メンバーをキック
     pub async fn kick_member(&self, request: KickMemberRequest) -> Result<()> {
-        tracing::info!("Kicking member {} from guild {}", request.user_id, request.guild_id);
+        tracing::info!(
+            "Kicking member {} from guild {}",
+            request.user_id,
+            request.guild_id
+        );
 
         // TODO: 実装
         // self.http.remove_guild_member(guild_id, user_id).await?
@@ -47,7 +55,11 @@ impl DiscordClient {
 
     /// メンバーをBAN
     pub async fn ban_member(&self, request: BanMemberRequest) -> Result<()> {
-        tracing::info!("Banning member {} from guild {}", request.user_id, request.guild_id);
+        tracing::info!(
+            "Banning member {} from guild {}",
+            request.user_id,
+            request.guild_id
+        );
 
         // TODO: 実装
         // self.http.create_ban(guild_id, user_id)?
@@ -60,8 +72,12 @@ impl DiscordClient {
 
     /// メンバーをタイムアウト
     pub async fn timeout_member(&self, request: TimeoutMemberRequest) -> Result<()> {
-        tracing::info!("Timing out member {} in guild {} for {} seconds",
-            request.user_id, request.guild_id, request.duration_seconds);
+        tracing::info!(
+            "Timing out member {} in guild {} for {} seconds",
+            request.user_id,
+            request.guild_id,
+            request.duration_seconds
+        );
 
         // TODO: 実装
         todo!("Implement timeout_member")

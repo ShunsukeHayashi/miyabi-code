@@ -2,7 +2,10 @@
 //!
 //! Manages Git worktrees for isolated parallel task execution
 
-use crate::telemetry::{TelemetryCollector, WorktreeEvent};
+use crate::{
+    paths::{normalize_path, WorktreePaths},
+    telemetry::{TelemetryCollector, WorktreeEvent},
+};
 use git2::{BranchType, Repository, RepositoryState};
 use miyabi_types::error::{MiyabiError, Result};
 use serde::{Deserialize, Serialize};
@@ -36,7 +39,7 @@ pub enum WorktreeStatus {
 #[derive(Clone)]
 pub struct WorktreeManager {
     repo_path: PathBuf,
-    worktree_base: PathBuf,
+    worktree_paths: WorktreePaths,
     max_concurrency: usize,
     semaphore: Arc<Semaphore>,
     worktrees: Arc<Mutex<HashMap<String, WorktreeInfo>>>,
@@ -74,7 +77,10 @@ impl WorktreeManager {
         tracing::info!("Discovered Git repository root at: {:?}", repo_path);
 
         // Create worktree base directory relative to repo root
-        let worktree_base = repo_path.join(worktree_base_name.unwrap_or(".worktrees"));
+        let base_component = worktree_base_name
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from(".worktrees"));
+        let worktree_base = repo_path.join(base_component);
 
         Self::new(repo_path, worktree_base, max_concurrency)
     }
@@ -95,7 +101,8 @@ impl WorktreeManager {
         max_concurrency: usize,
     ) -> Result<Self> {
         let repo_path = repo_path.as_ref().to_path_buf();
-        let worktree_base = worktree_base.as_ref().to_path_buf();
+        let worktree_base = normalize_path(worktree_base.as_ref());
+        let worktree_paths = WorktreePaths::new(&worktree_base);
 
         // Check if repo_path exists
         if !repo_path.exists() {
@@ -142,13 +149,14 @@ impl WorktreeManager {
         }
 
         // Create worktree base directory if it doesn't exist
-        std::fs::create_dir_all(&worktree_base).map_err(|e| {
+        std::fs::create_dir_all(worktree_paths.base()).map_err(|e| {
             MiyabiError::Io(std::io::Error::new(
                 e.kind(),
                 format!(
                     "Failed to create worktree base directory at {:?}: {}\n\
                      Hint: Check file permissions and available disk space.",
-                    worktree_base, e
+                    worktree_paths.base(),
+                    e
                 ),
             ))
         })?;
@@ -156,13 +164,13 @@ impl WorktreeManager {
         tracing::info!(
             "WorktreeManager initialized: repo={:?}, worktree_base={:?}, max_concurrency={}",
             repo_path,
-            worktree_base,
+            worktree_paths.base(),
             max_concurrency
         );
 
         Ok(Self {
             repo_path,
-            worktree_base,
+            worktree_paths,
             max_concurrency,
             semaphore: Arc::new(Semaphore::new(max_concurrency)),
             worktrees: Arc::new(Mutex::new(HashMap::new())),
@@ -183,7 +191,7 @@ impl WorktreeManager {
 
         let worktree_id = Uuid::new_v4().to_string();
         let worktree_path =
-            self.worktree_base
+            self.worktree_paths
                 .join(format!("issue-{}-{}", issue_number, &worktree_id[..8]));
         let branch_name = format!("feature/issue-{}", issue_number);
 

@@ -12,6 +12,7 @@ use miyabi_types::task::{GroupingConfig, Task, TaskType};
 use miyabi_types::workflow::{
     Edge, ExecutionOptions, ExecutionReport, ExecutionSummary, ProgressStatus, DAG,
 };
+use std::path::PathBuf;
 
 // ============================================================================
 // Agent Types Roundtrip Tests
@@ -63,7 +64,7 @@ fn test_agent_config_roundtrip() {
         repo_name: Some("test-repo".to_string()),
         use_task_tool: true,
         use_worktree: true,
-        worktree_base_path: Some("/tmp/worktrees".to_string()),
+        worktree_base_path: Some(PathBuf::from("/tmp/worktrees")),
         log_directory: "./logs".to_string(),
         report_directory: "./reports".to_string(),
         tech_lead_github_username: Some("tech-lead".to_string()),
@@ -81,6 +82,7 @@ fn test_agent_config_roundtrip() {
     assert_eq!(config.repo_owner, deserialized.repo_owner);
     assert_eq!(config.repo_name, deserialized.repo_name);
     assert_eq!(config.use_task_tool, deserialized.use_task_tool);
+    assert_eq!(config.worktree_base_path, deserialized.worktree_base_path);
 }
 
 #[test]

@@ -2,7 +2,7 @@
 //!
 //! Conventional Commits準拠のPRタイトル生成、説明文生成、Label付与、レビュワー割り当てを実行
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use miyabi_github::GitHubClient;
 use miyabi_types::{

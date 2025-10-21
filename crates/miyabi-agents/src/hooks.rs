@@ -3,7 +3,7 @@
 //! Provides reusable hook traits and a wrapper that executes hooks around
 //! agent lifecycle operations (pre-execute, post-execute, error handling).
 
-use crate::base::BaseAgent;
+use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use chrono::Utc;
 use miyabi_types::agent::AgentType;

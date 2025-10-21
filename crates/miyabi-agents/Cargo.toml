@@ -13,6 +13,7 @@ readme = "../README.md"
 [dependencies]
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
 miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
 # miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" } # Temporarily disabled due to Send issues
 miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }

@@ -370,15 +370,16 @@ impl TaskStorage for GitHubTaskStorage {
         }
 
         // Generate cursors
-        let next_cursor = if has_more && !tasks.is_empty() {
-            let last = tasks.last().unwrap();
-            let cursor = PaginationCursor::forward(last.id, last.updated_at);
-            Some(cursor.encode().map_err(|e| {
-                StorageError::Other(format!("Failed to encode next cursor: {}", e))
-            })?)
-        } else {
-            None
-        };
+        let next_cursor =
+            if has_more && !tasks.is_empty() {
+                let last = tasks.last().unwrap();
+                let cursor = PaginationCursor::forward(last.id, last.updated_at);
+                Some(cursor.encode().map_err(|e| {
+                    StorageError::Other(format!("Failed to encode next cursor: {}", e))
+                })?)
+            } else {
+                None
+            };
 
         let previous_cursor = if !tasks.is_empty() && cursor.is_some() {
             let first = tasks.first().unwrap();

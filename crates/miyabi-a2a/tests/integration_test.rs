@@ -189,7 +189,11 @@ async fn test_cursor_pagination() {
         .await
         .expect("Failed to get page 1");
 
-    println!("Page 1: {} items, has_more: {}", page1.items.len(), page1.has_more);
+    println!(
+        "Page 1: {} items, has_more: {}",
+        page1.items.len(),
+        page1.has_more
+    );
     assert!(page1.items.len() <= 2);
 
     // Navigate to page 2 if there are more items
@@ -206,7 +210,11 @@ async fn test_cursor_pagination() {
             .await
             .expect("Failed to get page 2");
 
-        println!("Page 2: {} items, has_more: {}", page2.items.len(), page2.has_more);
+        println!(
+            "Page 2: {} items, has_more: {}",
+            page2.items.len(),
+            page2.has_more
+        );
         assert!(page2.items.len() <= 2);
 
         // Test backward pagination

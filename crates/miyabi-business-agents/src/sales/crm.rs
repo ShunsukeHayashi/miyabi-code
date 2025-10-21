@@ -173,7 +173,10 @@ Focus on building a data-driven CRM system that maximizes customer retention and
 
         let parsed: serde_json::Value = serde_json::from_str(json_str)?;
 
-        let title = parsed["title"].as_str().unwrap_or("CRM Strategy & Customer Management Plan").to_string();
+        let title = parsed["title"]
+            .as_str()
+            .unwrap_or("CRM Strategy & Customer Management Plan")
+            .to_string();
         let summary = parsed["summary"].as_str().unwrap_or("").to_string();
 
         let recommendations = parsed["recommendations"]
@@ -255,8 +258,10 @@ impl BusinessAgent for CRMAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("CRMAgent: Developing CRM strategy for {} in {}",
-              input.target_market, input.industry);
+        info!(
+            "CRMAgent: Developing CRM strategy for {} in {}",
+            input.target_market, input.industry
+        );
 
         let system_prompt = self.create_system_prompt();
         let user_prompt = self.create_user_prompt(input);
@@ -271,8 +276,12 @@ impl BusinessAgent for CRMAgent {
 
         let plan = self.parse_response(&response)?;
 
-        info!("Generated CRM strategy with {} initiatives, {} KPIs, {} risks",
-              plan.recommendations.len(), plan.kpis.len(), plan.risks.len());
+        info!(
+            "Generated CRM strategy with {} initiatives, {} KPIs, {} risks",
+            plan.recommendations.len(),
+            plan.kpis.len(),
+            plan.risks.len()
+        );
 
         Ok(plan)
     }
@@ -288,9 +297,14 @@ impl BusinessAgent for CRMAgent {
             errors.push("No CRM initiatives defined".to_string());
             quality_score = quality_score.saturating_sub(30);
         } else if plan.recommendations.len() < 3 {
-            warnings.push("Few CRM initiatives (expected 4-6 covering segmentation, retention, success)".to_string());
+            warnings.push(
+                "Few CRM initiatives (expected 4-6 covering segmentation, retention, success)"
+                    .to_string(),
+            );
             quality_score = quality_score.saturating_sub(15);
-            suggestions.push("Add initiatives for health scoring, lifecycle campaigns, data quality".to_string());
+            suggestions.push(
+                "Add initiatives for health scoring, lifecycle campaigns, data quality".to_string(),
+            );
         }
 
         // Validate CRM KPIs
@@ -298,16 +312,22 @@ impl BusinessAgent for CRMAgent {
             errors.push("No CRM metrics defined".to_string());
             quality_score = quality_score.saturating_sub(25);
         } else if plan.kpis.len() < 3 {
-            warnings.push("Few CRM KPIs (expected 6-8 covering churn, NRR, LTV, health score)".to_string());
+            warnings.push(
+                "Few CRM KPIs (expected 6-8 covering churn, NRR, LTV, health score)".to_string(),
+            );
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add metrics for churn rate, Net Revenue Retention, Customer Lifetime Value".to_string());
+            suggestions.push(
+                "Add metrics for churn rate, Net Revenue Retention, Customer Lifetime Value"
+                    .to_string(),
+            );
         }
 
         // Validate CRM timeline
         if plan.timeline.milestones.is_empty() {
             warnings.push("No CRM milestones defined".to_string());
             quality_score = quality_score.saturating_sub(10);
-            suggestions.push("Add implementation, training, and optimization milestones".to_string());
+            suggestions
+                .push("Add implementation, training, and optimization milestones".to_string());
         }
 
         // Validate CRM risks
