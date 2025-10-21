@@ -3,7 +3,7 @@
 //! This module provides the evaluator that runs Miyabi against SWE-bench Pro instances.
 
 use anyhow::{anyhow, Context, Result};
-use miyabi_types::benchmark::{EvaluationResult, PatchOutput, SWEBenchInstance};
+use miyabi_types::benchmark::{PatchOutput, SWEBenchInstance};
 use miyabi_worktree::WorktreeManager;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -79,32 +79,38 @@ impl SWEBenchProEvaluator {
         })
     }
 
-    /// Evaluates a single instance
+    /// Generates a patch for a single instance (OFFICIAL PROTOCOL COMPLIANT)
+    ///
+    /// **CRITICAL**: This method ONLY generates patches. Testing is delegated to the
+    /// official SWE-bench harness as per the official protocol.
     ///
     /// # Arguments
     ///
-    /// * `instance` - The SWE-bench Pro instance to evaluate
+    /// * `instance` - The SWE-bench Pro instance to generate patch for
     ///
     /// # Returns
     ///
-    /// `Result<(PatchOutput, EvaluationResult)>` - Generated patch and evaluation result
-    pub async fn evaluate_instance(
+    /// `Result<PatchOutput>` - Generated patch in official format
+    pub async fn generate_patch_for_instance(
         &self,
         instance: &SWEBenchInstance,
-    ) -> Result<(PatchOutput, EvaluationResult)> {
+    ) -> Result<PatchOutput> {
         let start_time = Instant::now();
 
-        info!("Starting evaluation for instance: {}", instance.instance_id);
+        info!(
+            "Generating patch for instance: {}",
+            instance.instance_id
+        );
 
         // 1. Create worktree and checkout base commit
-        let worktree_name = format!("swebench-{}", instance.instance_id.replace("/", "-"));
+        let worktree_name = format!("swebench-{}", instance.instance_id.replace('/', "-"));
         let worktree_path = self
             .create_worktree(instance, &worktree_name)
             .context("Failed to create worktree")?;
 
-        // Wrap evaluation in timeout
+        // Wrap patch generation in timeout
         let timeout_duration = Duration::from_secs(self.config.timeout);
-        let eval_result = timeout(timeout_duration, async {
+        let patch_result = timeout(timeout_duration, async {
             // 2. Write execution context
             self.write_execution_context(&worktree_path, instance)
                 .context("Failed to write execution context")?;
@@ -121,27 +127,7 @@ impl SWEBenchProEvaluator {
                 .generate_patch(&worktree_path, &instance.base_commit)
                 .context("Failed to generate patch")?;
 
-            // 5. Apply test patch to enable test execution
-            self.apply_patch(&worktree_path, &instance.test_patch, "test_patch")
-                .context("Failed to apply test patch")?;
-
-            // 6. Run fail_to_pass tests (should pass after fix)
-            let fail_to_pass_results = if !instance.fail_to_pass.is_empty() {
-                self.run_tests(&worktree_path, &instance.fail_to_pass, instance)
-                    .context("Failed to run fail_to_pass tests")?
-            } else {
-                Vec::new()
-            };
-
-            // 7. Run pass_to_pass tests (should still pass)
-            let pass_to_pass_results = if !instance.pass_to_pass.is_empty() {
-                self.run_tests(&worktree_path, &instance.pass_to_pass, instance)
-                    .context("Failed to run pass_to_pass tests")?
-            } else {
-                Vec::new()
-            };
-
-            Ok::<_, anyhow::Error>((patch, fail_to_pass_results, pass_to_pass_results))
+            Ok::<String, anyhow::Error>(patch)
         })
         .await;
 
@@ -152,100 +138,45 @@ impl SWEBenchProEvaluator {
 
         let execution_time = start_time.elapsed().as_secs_f64();
 
-        match eval_result {
-            Ok(Ok((patch, fail_to_pass_results, pass_to_pass_results))) => {
-                // Calculate actual pass counts
-                let fail_to_pass_count = fail_to_pass_results.iter().filter(|&&p| p).count();
-                let pass_to_pass_count = pass_to_pass_results.iter().filter(|&&p| p).count();
+        // Handle patch generation result (testing delegated to official harness)
+        match patch_result {
+            Ok(Ok(patch)) => {
+                info!(
+                    "Patch generated for instance {} in {:.2}s",
+                    instance.instance_id, execution_time
+                );
 
-                let patch_output = PatchOutput {
+                Ok(PatchOutput {
                     instance_id: instance.instance_id.clone(),
                     model_patch: patch,
                     model_name_or_path: self.config.model_name.clone(),
-                };
-
-                // Check if instance is resolved:
-                // - All fail_to_pass tests must pass (100%)
-                // - All pass_to_pass tests must still pass (100%)
-                let resolved = fail_to_pass_count == instance.fail_to_pass.len()
-                    && pass_to_pass_count == instance.pass_to_pass.len();
-
-                info!(
-                    "Instance {} evaluation completed in {:.2}s - Resolved: {} (fail_to_pass: {}/{}, pass_to_pass: {}/{})",
-                    instance.instance_id,
-                    execution_time,
-                    resolved,
-                    fail_to_pass_count,
-                    instance.fail_to_pass.len(),
-                    pass_to_pass_count,
-                    instance.pass_to_pass.len()
-                );
-
-                let result = if resolved {
-                    EvaluationResult::success(
-                        instance.instance_id.clone(),
-                        fail_to_pass_count,
-                        instance.fail_to_pass.len(),
-                        pass_to_pass_count,
-                        instance.pass_to_pass.len(),
-                        execution_time,
-                    )
-                } else {
-                    EvaluationResult::failure(
-                        instance.instance_id.clone(),
-                        format!(
-                            "Tests did not meet resolution criteria: fail_to_pass={}/{}, pass_to_pass={}/{}",
-                            fail_to_pass_count,
-                            instance.fail_to_pass.len(),
-                            pass_to_pass_count,
-                            instance.pass_to_pass.len()
-                        ),
-                        execution_time,
-                    )
-                };
-
-                Ok((patch_output, result))
+                })
             }
             Ok(Err(e)) => {
                 error!(
-                    "Evaluation failed for instance {}: {}",
+                    "Patch generation failed for instance {}: {}",
                     instance.instance_id, e
                 );
 
-                let result = EvaluationResult::failure(
-                    instance.instance_id.clone(),
-                    format!("{:#}", e),
-                    execution_time,
-                );
-
-                // Return empty patch on error
-                let patch_output = PatchOutput {
+                // Return empty patch on error (official harness will mark as failed)
+                Ok(PatchOutput {
                     instance_id: instance.instance_id.clone(),
                     model_patch: String::new(),
                     model_name_or_path: self.config.model_name.clone(),
-                };
-
-                Ok((patch_output, result))
+                })
             }
             Err(_) => {
                 error!(
-                    "Evaluation timed out for instance: {} after {}s",
+                    "Patch generation timed out for instance: {} after {}s",
                     instance.instance_id, self.config.timeout
                 );
 
-                let result = EvaluationResult::failure(
-                    instance.instance_id.clone(),
-                    format!("Timeout after {}s", self.config.timeout),
-                    execution_time,
-                );
-
-                let patch_output = PatchOutput {
+                // Return empty patch on timeout (official harness will mark as failed)
+                Ok(PatchOutput {
                     instance_id: instance.instance_id.clone(),
                     model_patch: String::new(),
                     model_name_or_path: self.config.model_name.clone(),
-                };
-
-                Ok((patch_output, result))
+                })
             }
         }
     }
@@ -378,93 +309,6 @@ impl SWEBenchProEvaluator {
         Ok(patch)
     }
 
-    /// Applies a patch to the worktree
-    fn apply_patch(
-        &self,
-        worktree_path: &Path,
-        patch_content: &str,
-        patch_name: &str,
-    ) -> Result<()> {
-        debug!("Applying {} to worktree: {:?}", patch_name, worktree_path);
-
-        // Write patch to temporary file
-        let patch_file = worktree_path.join(format!(".{}.patch", patch_name));
-        std::fs::write(&patch_file, patch_content).context("Failed to write patch file")?;
-
-        // Apply patch using git apply
-        let output = Command::new("git")
-            .args(["apply", "--verbose", patch_file.to_str().unwrap()])
-            .current_dir(worktree_path)
-            .output()
-            .context("Failed to apply patch")?;
-
-        // Clean up patch file
-        let _ = std::fs::remove_file(&patch_file);
-
-        if !output.status.success() {
-            return Err(anyhow!(
-                "Git apply {} failed: {}",
-                patch_name,
-                String::from_utf8_lossy(&output.stderr)
-            ));
-        }
-
-        debug!("{} applied successfully", patch_name);
-        Ok(())
-    }
-
-    /// Runs specified tests and returns pass/fail results
-    fn run_tests(
-        &self,
-        worktree_path: &Path,
-        test_identifiers: &[String],
-        instance: &SWEBenchInstance,
-    ) -> Result<Vec<bool>> {
-        debug!(
-            "Running {} tests for instance {}",
-            test_identifiers.len(),
-            instance.instance_id
-        );
-
-        let mut results = Vec::new();
-
-        // Determine test command based on repository language
-        let test_command = match instance.repo_language.as_deref() {
-            Some("Python") | Some("python") => "pytest",
-            Some("Go") | Some("go") => "go test",
-            Some("JavaScript") | Some("javascript") => "npm test",
-            Some("TypeScript") | Some("typescript") => "npm test",
-            _ => {
-                warn!(
-                    "Unknown language: {:?}, defaulting to pytest",
-                    instance.repo_language
-                );
-                "pytest"
-            }
-        };
-
-        for test_id in test_identifiers {
-            debug!("Running test: {}", test_id);
-
-            let output = Command::new("sh")
-                .args(["-c", &format!("{} {}", test_command, test_id)])
-                .current_dir(worktree_path)
-                .output()
-                .context(format!("Failed to run test: {}", test_id))?;
-
-            let passed = output.status.success();
-            results.push(passed);
-
-            debug!(
-                "Test {} result: {}",
-                test_id,
-                if passed { "PASS" } else { "FAIL" }
-            );
-        }
-
-        Ok(results)
-    }
-
     /// Cleans up a worktree
     fn cleanup_worktree(&self, worktree_name: &str) -> Result<()> {
         debug!("Cleaning up worktree: {}", worktree_name);
@@ -493,19 +337,22 @@ impl SWEBenchProEvaluator {
         Ok(())
     }
 
-    /// Evaluates multiple instances with controlled concurrency
+    /// Generates patches for multiple instances with controlled concurrency
+    ///
+    /// **CRITICAL**: This method ONLY generates patches. All testing is delegated
+    /// to the official SWE-bench harness as per the official protocol.
     ///
     /// # Arguments
     ///
-    /// * `instances` - The instances to evaluate
+    /// * `instances` - The instances to generate patches for
     ///
     /// # Returns
     ///
-    /// `Result<Vec<(PatchOutput, EvaluationResult)>>` - Generated patches and evaluation results
+    /// `Result<Vec<PatchOutput>>` - Generated patches in official format
     pub async fn evaluate_instances(
         &self,
         instances: &[SWEBenchInstance],
-    ) -> Result<Vec<(PatchOutput, EvaluationResult)>> {
+    ) -> Result<Vec<PatchOutput>> {
         info!(
             "Starting parallel evaluation of {} instances with concurrency={}",
             instances.len(),
@@ -528,7 +375,7 @@ impl SWEBenchProEvaluator {
                 // Acquire semaphore permit
                 let _permit = semaphore.acquire().await.unwrap();
 
-                info!("Starting evaluation: {}", instance.instance_id);
+                info!("Starting patch generation: {}", instance.instance_id);
 
                 // Create temporary evaluator for this task
                 let evaluator = SWEBenchProEvaluator {
@@ -536,8 +383,8 @@ impl SWEBenchProEvaluator {
                     worktree_manager,
                 };
 
-                // Execute evaluation
-                evaluator.evaluate_instance(&instance).await
+                // Generate patch (testing delegated to official harness)
+                evaluator.generate_patch_for_instance(&instance).await
             });
 
             tasks.push(task);
@@ -547,17 +394,17 @@ impl SWEBenchProEvaluator {
         let mut results = Vec::new();
         for (index, task) in tasks.into_iter().enumerate() {
             match task.await {
-                Ok(Ok(result)) => {
+                Ok(Ok(patch)) => {
                     info!(
-                        "Evaluation {}/{} completed successfully: {}",
+                        "Patch generation {}/{} completed successfully: {}",
                         index + 1,
                         instances.len(),
-                        result.1.instance_id
+                        patch.instance_id
                     );
-                    results.push(result);
+                    results.push(patch);
                 }
                 Ok(Err(e)) => {
-                    error!("Evaluation {}/{} failed: {}", index + 1, instances.len(), e);
+                    error!("Patch generation {}/{} failed: {}", index + 1, instances.len(), e);
                     return Err(e);
                 }
                 Err(e) => {
@@ -568,7 +415,7 @@ impl SWEBenchProEvaluator {
         }
 
         info!(
-            "Parallel evaluation completed: {}/{} instances succeeded",
+            "Parallel patch generation completed: {}/{} instances succeeded",
             results.len(),
             instances.len()
         );
@@ -724,8 +571,7 @@ impl SWEBenchProEvaluator {
 
         // 1. Generate patches (using Miyabi)
         info!("Step 1/3: Generating patches with Miyabi...");
-        let results = self.evaluate_instances(instances).await?;
-        let patches: Vec<PatchOutput> = results.into_iter().map(|(patch, _)| patch).collect();
+        let patches = self.evaluate_instances(instances).await?;
 
         // 2. Create Predictions JSONL
         info!("Step 2/3: Creating Predictions JSONL...");
