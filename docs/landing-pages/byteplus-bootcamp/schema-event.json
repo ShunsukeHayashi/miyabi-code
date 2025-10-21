@@ -1,0 +1,115 @@
+{
+  "@context": "https://schema.org",
+  "@type": "EducationEvent",
+  "name": "BytePlus Video API Bootcamp - 1日集中マスター講座",
+  "description": "BytePlus Video APIの完全攻略ブートキャンプ。実践的なハンズオンで動画生成APIの実装を1日でマスターします。初心者からエンジニアまで、実務で使えるスキルを習得できる集中講座です。",
+  "image": [
+    "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/images/og-image.png",
+    "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/images/hero-demo.png"
+  ],
+  "startDate": "2025-11-15T10:00:00+09:00",
+  "endDate": "2025-11-15T18:00:00+09:00",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/MixedEventAttendanceMode",
+  "location": [
+    {
+      "@type": "VirtualLocation",
+      "url": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/"
+    },
+    {
+      "@type": "Place",
+      "name": "BytePlus東京オフィス",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "渋谷区道玄坂1-2-3",
+        "addressLocality": "渋谷区",
+        "addressRegion": "東京都",
+        "postalCode": "150-0043",
+        "addressCountry": "JP"
+      }
+    }
+  ],
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "オンライン受講",
+      "price": "29800",
+      "priceCurrency": "JPY",
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2025-10-21T00:00:00+09:00",
+      "url": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/#application",
+      "category": "Online"
+    },
+    {
+      "@type": "Offer",
+      "name": "会場受講",
+      "price": "39800",
+      "priceCurrency": "JPY",
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2025-10-21T00:00:00+09:00",
+      "url": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/#application",
+      "category": "Offline"
+    }
+  ],
+  "performer": {
+    "@type": "Person",
+    "name": "山田太郎",
+    "jobTitle": "BytePlus 認定エキスパート",
+    "description": "10年以上の動画API開発経験を持つエキスパート。大手企業での導入実績多数。",
+    "url": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/#instructor"
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "BytePlus",
+    "url": "https://www.byteplus.com",
+    "logo": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/images/byteplus-partner-logo.svg"
+  },
+  "inLanguage": "ja-JP",
+  "typicalAgeRange": "18-",
+  "educationalLevel": "Intermediate",
+  "audience": {
+    "@type": "EducationalAudience",
+    "audienceType": "Software Engineers, Product Managers, Technical Leads",
+    "educationalRole": "professional"
+  },
+  "teaches": [
+    "BytePlus Video API基礎",
+    "動画生成実装",
+    "API認証とセキュリティ",
+    "パフォーマンス最適化",
+    "本番環境デプロイ"
+  ],
+  "coursePrerequisites": "基本的なプログラミング知識（JavaScript、Python、またはGoの経験が望ましい）",
+  "about": [
+    {
+      "@type": "Thing",
+      "name": "BytePlus Video API",
+      "description": "BytePlus社が提供する動画生成・処理API"
+    },
+    {
+      "@type": "Thing",
+      "name": "API Integration",
+      "description": "APIの統合と実装手法"
+    }
+  ],
+  "maximumAttendeeCapacity": 50,
+  "remainingAttendeeCapacity": 42,
+  "isAccessibleForFree": false,
+  "keywords": [
+    "BytePlus",
+    "Video API",
+    "動画生成",
+    "ブートキャンプ",
+    "ハンズオン",
+    "API実装",
+    "エンジニア研修",
+    "技術セミナー"
+  ],
+  "url": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/",
+  "duration": "PT8H",
+  "workFeatured": {
+    "@type": "CreativeWork",
+    "name": "BytePlus Video API Documentation",
+    "url": "https://www.byteplus.com/docs/video-api"
+  }
+}

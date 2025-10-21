@@ -1,0 +1,70 @@
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "参加条件はありますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "基本的なプログラミング知識があれば参加可能です。JavaScript、Python、Goのいずれかの経験があると理解がスムーズですが、必須ではありません。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "オンラインと会場受講の違いは何ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "内容は同じですが、会場受講では直接講師に質問でき、参加者同士のネットワーキングも可能です。オンラインはZoomで参加し、チャットで質問できます。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "事前準備は必要ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ノートPCと開発環境（Node.js、Python、またはGo）のセットアップが必要です。詳細な環境構築手順は、申し込み後にメールでお送りします。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "録画やアーカイブ視聴は可能ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい、参加者には3ヶ月間のアーカイブ視聴権が付与されます。当日参加できない場合も、後から視聴可能です。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "API利用料金は別途必要ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "いいえ、参加者全員に¥30,000分の無料APIクレジットを提供します。ブートキャンプ中および終了後3ヶ月間利用可能です。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "キャンセルポリシーは？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "開催7日前までのキャンセルは全額返金、3日前までは50%返金となります。それ以降は返金不可ですが、アーカイブ視聴は可能です。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "法人での複数名参加は可能ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい、5名以上の場合は団体割引（20% OFF）が適用されます。法人向けプランについては、個別にご相談ください。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "修了証は発行されますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい、全カリキュラムを修了した方にはByteP lus認定の修了証をデジタル形式で発行します。LinkedInプロフィールに追加可能です。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "BytePlus",
+  "alternateName": "BytePlus Technology",
+  "url": "https://www.byteplus.com",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://shunsukehayashi.github.io/miyabi-private/landing-pages/byteplus-bootcamp/images/byteplus-partner-logo.svg",
+    "width": "200",
+    "height": "40"
+  },
+  "description": "BytePlus provides cutting-edge technology solutions including video APIs, machine learning services, and cloud infrastructure.",
+  "sameAs": [
+    "https://www.linkedin.com/company/byteplus",
+    "https://twitter.com/byteplus",
+    "https://www.facebook.com/byteplus"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+81-3-1234-5678",
+    "contactType": "customer service",
+    "email": "bootcamp@byteplus.com",
+    "areaServed": "JP",
+    "availableLanguage": ["Japanese", "English"]
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "渋谷区道玄坂1-2-3",
+    "addressLocality": "渋谷区",
+    "addressRegion": "東京都",
+    "postalCode": "150-0043",
+    "addressCountry": "JP"
+  }
+}
