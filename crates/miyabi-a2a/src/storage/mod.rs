@@ -5,7 +5,10 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub mod cursor;
 pub mod github;
+
+pub use cursor::PaginatedResult;
 
 /// Task storage backend trait
 ///
@@ -34,6 +37,42 @@ pub trait TaskStorage: Send + Sync {
     /// # Returns
     /// List of tasks matching the filter
     async fn list_tasks(&self, filter: TaskFilter) -> Result<Vec<A2ATask>, StorageError>;
+
+    /// List tasks with cursor-based pagination
+    ///
+    /// This method provides efficient pagination for large task lists using
+    /// opaque cursors. Cursors are stable across requests.
+    ///
+    /// # Arguments
+    /// * `filter` - Optional filtering criteria (including cursor)
+    ///
+    /// # Returns
+    /// Paginated result with items, next_cursor, previous_cursor, and has_more flag
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use miyabi_a2a::{GitHubTaskStorage, TaskStorage, TaskFilter};
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let storage = GitHubTaskStorage::new("token".into(), "owner".into(), "repo".into())?;
+    ///
+    /// // First page
+    /// let filter = TaskFilter { limit: Some(50), ..Default::default() };
+    /// let page1 = storage.list_tasks_paginated(filter).await?;
+    ///
+    /// // Next page
+    /// if let Some(cursor) = page1.next_cursor {
+    ///     let filter = TaskFilter { cursor: Some(cursor), ..Default::default() };
+    ///     let page2 = storage.list_tasks_paginated(filter).await?;
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    async fn list_tasks_paginated(
+        &self,
+        filter: TaskFilter,
+    ) -> Result<PaginatedResult<A2ATask>, StorageError>;
 
     /// Update an existing task
     ///

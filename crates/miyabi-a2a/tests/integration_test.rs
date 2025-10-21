@@ -25,7 +25,8 @@ async fn test_task_lifecycle() {
     let task = A2ATask {
         id: 0, // Will be assigned by GitHub
         title: "[TEST] A2A Integration Test Task".to_string(),
-        description: "This is a test task created by integration tests. Safe to delete.".to_string(),
+        description: "This is a test task created by integration tests. Safe to delete."
+            .to_string(),
         status: TaskStatus::Pending,
         task_type: TaskType::Testing,
         agent: Some("TestAgent".to_string()),
@@ -37,10 +38,7 @@ async fn test_task_lifecycle() {
     };
 
     // Save task
-    let task_id = storage
-        .save_task(task)
-        .await
-        .expect("Failed to save task");
+    let task_id = storage.save_task(task).await.expect("Failed to save task");
     println!("Created task with ID: {}", task_id);
 
     // Retrieve task

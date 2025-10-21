@@ -1,6 +1,9 @@
 //! GitHub Issues-based task storage
 
-use super::{StorageError, TaskFilter, TaskStorage, TaskUpdate};
+use super::{
+    cursor::{PaginatedResult, PaginationCursor},
+    StorageError, TaskFilter, TaskStorage, TaskUpdate,
+};
 use crate::task::{A2ATask, TaskStatus, TaskType};
 use async_trait::async_trait;
 use octocrab::{models::issues::Issue, Octocrab};
@@ -124,10 +127,7 @@ impl TaskStorage for GitHubTaskStorage {
     /// # Returns
     /// GitHub Issue number (task ID)
     async fn save_task(&self, task: A2ATask) -> Result<u64, StorageError> {
-        info!(
-            "Creating GitHub Issue for task: {}",
-            task.title
-        );
+        info!("Creating GitHub Issue for task: {}", task.title);
 
         let issue = self
             .client
@@ -138,10 +138,7 @@ impl TaskStorage for GitHubTaskStorage {
             .send()
             .await?;
 
-        debug!(
-            "Created GitHub Issue #{}: {}",
-            issue.number, issue.html_url
-        );
+        debug!("Created GitHub Issue #{}: {}", issue.number, issue.html_url);
 
         Ok(issue.number)
     }
@@ -210,11 +207,7 @@ impl TaskStorage for GitHubTaskStorage {
                 .send()
                 .await?
         } else {
-            issues
-                .list()
-                .per_page(per_page)
-                .send()
-                .await?
+            issues.list().per_page(per_page).send().await?
         };
 
         // Convert GitHub Issues to A2ATasks
@@ -242,6 +235,167 @@ impl TaskStorage for GitHubTaskStorage {
         }
 
         Ok(tasks)
+    }
+
+    /// List tasks with cursor-based pagination
+    ///
+    /// Implements cursor-based pagination for efficient navigation through large task lists.
+    /// Cursors encode the (id, updated_at) of the last item, ensuring stable pagination.
+    ///
+    /// # Arguments
+    /// * `filter` - Filter criteria including optional cursor
+    ///
+    /// # Returns
+    /// PaginatedResult with items, next_cursor, previous_cursor, and has_more flag
+    ///
+    /// # Pagination Strategy
+    /// - **Forward**: Fetch limit+1 items after cursor to determine if has_more
+    /// - **Backward**: Fetch limit+1 items before cursor
+    /// - **First page**: No cursor provided, start from beginning
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use miyabi_a2a::{GitHubTaskStorage, TaskStorage, TaskFilter};
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let storage = GitHubTaskStorage::new("token".into(), "owner".into(), "repo".into())?;
+    ///
+    /// // First page (50 items)
+    /// let filter = TaskFilter { limit: Some(50), ..Default::default() };
+    /// let page1 = storage.list_tasks_paginated(filter).await?;
+    ///
+    /// // Navigate to next page
+    /// if let Some(cursor) = page1.next_cursor {
+    ///     let filter = TaskFilter { cursor: Some(cursor), limit: Some(50), ..Default::default() };
+    ///     let page2 = storage.list_tasks_paginated(filter).await?;
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    async fn list_tasks_paginated(
+        &self,
+        filter: TaskFilter,
+    ) -> Result<PaginatedResult<A2ATask>, StorageError> {
+        debug!("Listing tasks with pagination: {:?}", filter);
+
+        // Default limit: 50, max: 100
+        let limit = filter.limit.unwrap_or(50).min(100);
+
+        // Decode cursor if provided
+        let cursor = filter
+            .cursor
+            .as_ref()
+            .map(|c| PaginationCursor::decode(c))
+            .transpose()
+            .map_err(|e| StorageError::Other(format!("Invalid cursor: {}", e)))?;
+
+        // Build GitHub API query
+        let issues = self.client.issues(&self.repo_owner, &self.repo_name);
+
+        // Fetch limit+1 items to determine has_more
+        let fetch_count = (limit + 1) as u8;
+
+        // Apply status filter at API level
+        let page = if let Some(status) = filter.status {
+            let label = status.to_label();
+            let labels = vec![label.clone()];
+            debug!("Applying API-level status filter: {}", label);
+
+            issues
+                .list()
+                .labels(&labels)
+                .per_page(fetch_count)
+                .send()
+                .await?
+        } else {
+            issues.list().per_page(fetch_count).send().await?
+        };
+
+        // Convert to tasks
+        let all_tasks: Result<Vec<A2ATask>, StorageError> = page
+            .items
+            .into_iter()
+            .map(|issue| self.issue_to_task(issue))
+            .collect();
+
+        let mut tasks = all_tasks?;
+
+        // Apply cursor filtering if present
+        if let Some(ref c) = cursor {
+            match c.direction {
+                super::cursor::Direction::Forward => {
+                    // Forward: Keep tasks with (updated_at, id) > cursor
+                    tasks.retain(|t| {
+                        t.updated_at > c.last_updated
+                            || (t.updated_at == c.last_updated && t.id > c.last_id)
+                    });
+                }
+                super::cursor::Direction::Backward => {
+                    // Backward: Keep tasks with (updated_at, id) < cursor
+                    tasks.retain(|t| {
+                        t.updated_at < c.last_updated
+                            || (t.updated_at == c.last_updated && t.id < c.last_id)
+                    });
+                    // Reverse order for backward pagination
+                    tasks.reverse();
+                }
+            }
+        }
+
+        // Apply remaining filters in memory
+        if let Some(ref context_id) = filter.context_id {
+            tasks.retain(|t| t.context_id.as_ref() == Some(context_id));
+        }
+
+        if let Some(ref agent) = filter.agent {
+            tasks.retain(|t| t.agent.as_ref() == Some(agent));
+        }
+
+        if let Some(after) = filter.last_updated_after {
+            tasks.retain(|t| t.updated_at > after);
+        }
+
+        // Sort by (updated_at DESC, id DESC) for stable ordering
+        tasks.sort_by(|a, b| {
+            b.updated_at
+                .cmp(&a.updated_at)
+                .then_with(|| b.id.cmp(&a.id))
+        });
+
+        // Determine has_more and trim to limit
+        let has_more = tasks.len() > limit;
+        if has_more {
+            tasks.truncate(limit);
+        }
+
+        // Generate cursors
+        let next_cursor = if has_more && !tasks.is_empty() {
+            let last = tasks.last().unwrap();
+            let cursor = PaginationCursor::forward(last.id, last.updated_at);
+            Some(cursor.encode().map_err(|e| {
+                StorageError::Other(format!("Failed to encode next cursor: {}", e))
+            })?)
+        } else {
+            None
+        };
+
+        let previous_cursor = if !tasks.is_empty() && cursor.is_some() {
+            let first = tasks.first().unwrap();
+            let cursor = PaginationCursor::backward(first.id, first.updated_at);
+            Some(cursor.encode().map_err(|e| {
+                StorageError::Other(format!("Failed to encode previous cursor: {}", e))
+            })?)
+        } else {
+            None
+        };
+
+        Ok(PaginatedResult::new(
+            tasks,
+            next_cursor,
+            previous_cursor,
+            has_more,
+        ))
     }
 
     /// Update an existing task
@@ -329,7 +483,10 @@ impl TaskStorage for GitHubTaskStorage {
     /// # Returns
     /// Ok(()) on success
     async fn delete_task(&self, id: u64) -> Result<(), StorageError> {
-        info!("Closing task #{} (GitHub Issues don't support deletion)", id);
+        info!(
+            "Closing task #{} (GitHub Issues don't support deletion)",
+            id
+        );
 
         // GitHub Issues can't be deleted, only closed
         use octocrab::models::IssueState;
@@ -350,6 +507,8 @@ impl TaskStorage for GitHubTaskStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::storage::cursor::{Direction, PaginationCursor};
+    use chrono::Utc;
 
     #[tokio::test]
     async fn test_github_storage_construction() {
@@ -361,5 +520,63 @@ mod tests {
             "repo".to_string(),
         );
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_cursor_encode_decode_roundtrip() {
+        let timestamp = Utc::now();
+        let cursor = PaginationCursor::forward(123, timestamp);
+
+        let encoded = cursor.encode().unwrap();
+        let decoded = PaginationCursor::decode(&encoded).unwrap();
+
+        assert_eq!(cursor.last_id, decoded.last_id);
+        assert_eq!(cursor.last_updated, decoded.last_updated);
+        assert_eq!(cursor.direction, decoded.direction);
+    }
+
+    #[test]
+    fn test_forward_cursor_creation() {
+        let timestamp = Utc::now();
+        let cursor = PaginationCursor::forward(456, timestamp);
+
+        assert_eq!(cursor.last_id, 456);
+        assert_eq!(cursor.last_updated, timestamp);
+        assert_eq!(cursor.direction, Direction::Forward);
+    }
+
+    #[test]
+    fn test_backward_cursor_creation() {
+        let timestamp = Utc::now();
+        let cursor = PaginationCursor::backward(789, timestamp);
+
+        assert_eq!(cursor.last_id, 789);
+        assert_eq!(cursor.last_updated, timestamp);
+        assert_eq!(cursor.direction, Direction::Backward);
+    }
+
+    #[test]
+    fn test_paginated_result_structure() {
+        let result = PaginatedResult::new(
+            vec![1, 2, 3],
+            Some("next_cursor".to_string()),
+            Some("prev_cursor".to_string()),
+            true,
+        );
+
+        assert_eq!(result.items.len(), 3);
+        assert!(result.next_cursor.is_some());
+        assert!(result.previous_cursor.is_some());
+        assert!(result.has_more);
+    }
+
+    #[test]
+    fn test_paginated_result_last_page() {
+        let result: PaginatedResult<i32> = PaginatedResult::new(vec![1, 2], None, None, false);
+
+        assert_eq!(result.items.len(), 2);
+        assert!(result.next_cursor.is_none());
+        assert!(result.previous_cursor.is_none());
+        assert!(!result.has_more);
     }
 }

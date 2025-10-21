@@ -62,6 +62,8 @@ pub mod task;
 
 // Re-export main types
 pub use storage::{
-    github::GitHubTaskStorage, StorageError, TaskFilter, TaskStorage, TaskUpdate,
+    cursor::{CursorError, Direction, PaginatedResult, PaginationCursor},
+    github::GitHubTaskStorage,
+    StorageError, TaskFilter, TaskStorage, TaskUpdate,
 };
 pub use task::{A2ATask, TaskStatus, TaskType};
