@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi A2A - Live API Testing Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #475569;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            color: var(--text);
+            background: var(--surface);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--surface-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--error);
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .response-container {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .response-container pre {
+            margin: 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-submitted {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-working {
+            background: var(--primary);
+            color: white;
+        }
+
+        .status-completed {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-failed, .status-cancelled {
+            background: var(--error);
+            color: white;
+        }
+
+        .task-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .task-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-id {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        .task-prompt {
+            margin: 0.5rem 0;
+            color: var(--text);
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .agent-card-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .agent-card-item:hover {
+            border-color: var(--primary);
+        }
+
+        .agent-name {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .agent-description {
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+        }
+
+        .skills-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .skill-tag {
+            background: var(--bg);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .settings-panel {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .settings-panel input {
+            flex: 1;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: var(--error);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .success-message {
+            background: var(--success);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Miyabi A2A - Live API Testing</h1>
+            <p class="subtitle">Interactive interface for Agent-to-Agent Protocol v0.3.0</p>
+        </header>
+
+        <div class="settings-panel">
+            <div style="flex: 1;">
+                <label>API Base URL</label>
+                <input type="text" id="apiUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+            </div>
+            <div style="flex: 1;">
+                <label>API Key (Optional)</label>
+                <input type="text" id="apiKey" placeholder="your-api-key">
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('messages')">📨 Messages</button>
+            <button class="tab" onclick="switchTab('tasks')">📋 Tasks</button>
+            <button class="tab" onclick="switchTab('agents')">🤖 Agent Cards</button>
+        </div>
+
+        <!-- Messages Tab -->
+        <div id="messages" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">Send Message (Create Task)</h2>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="messageRole">
+                        <option value="user">User</option>
+                        <option value="agent">Agent</option>
+                        <option value="system">System</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea id="messageContent" rows="5" placeholder="Enter your message content...">Implement a new feature for user authentication</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Context ID (Optional)</label>
+                    <input type="text" id="contextId" placeholder="ctx-123">
+                </div>
+                <button onclick="sendMessage()">Send Message</button>
+                <div id="messageResponse" class="response-container" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 class="card-title" style="margin: 0;">Task Management</h2>
+                    <button onclick="refreshTasks()">🔄 Refresh</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Filter by Status</label>
+                    <select id="taskStatus" onchange="refreshTasks()">
+                        <option value="">All Statuses</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="working">Working</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div id="tasksList"></div>
+            </div>
+
+            <div class="card" id="taskDetails" style="display: none;">
+                <h2 class="card-title">Task Details</h2>
+                <div id="taskDetailsContent"></div>
+            </div>
+        </div>
+
+        <!-- Agent Cards Tab -->
+        <div id="agents" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 class="card-title" style="margin: 0;">Agent Cards</h2>
+                    <button onclick="loadAgentCards()">🔄 Refresh</button>
+                </div>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    Available agents from <code>.well-known/</code> directory
+                </p>
+                <div id="agentCardsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentApiUrl = 'http://localhost:8080';
+        let currentApiKey = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            refreshTasks();
+            loadAgentCards();
+        });
+
+        function loadSettings() {
+            const urlInput = document.getElementById('apiUrl');
+            const keyInput = document.getElementById('apiKey');
+
+            urlInput.addEventListener('change', (e) => {
+                currentApiUrl = e.target.value;
+                localStorage.setItem('apiUrl', currentApiUrl);
+            });
+
+            keyInput.addEventListener('change', (e) => {
+                currentApiKey = e.target.value;
+                localStorage.setItem('apiKey', currentApiKey);
+            });
+
+            // Load from localStorage
+            const savedUrl = localStorage.getItem('apiUrl');
+            const savedKey = localStorage.getItem('apiKey');
+
+            if (savedUrl) {
+                currentApiUrl = savedUrl;
+                urlInput.value = savedUrl;
+            }
+
+            if (savedKey) {
+                currentApiKey = savedKey;
+                keyInput.value = savedKey;
+            }
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        async function apiRequest(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            if (currentApiKey) {
+                headers['X-API-Key'] = currentApiKey;
+            }
+
+            try {
+                const response = await fetch(`${currentApiUrl}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function sendMessage() {
+            const role = document.getElementById('messageRole').value;
+            const content = document.getElementById('messageContent').value;
+            const contextId = document.getElementById('contextId').value;
+
+            const responseDiv = document.getElementById('messageResponse');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '<div class="loading"></div> Sending message...';
+
+            try {
+                const payload = { role, content };
+                if (contextId) {
+                    payload.context_id = contextId;
+                }
+
+                const data = await apiRequest('/v1/message:send', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                responseDiv.innerHTML = `
+                    <div class="success-message">
+                        ✅ Task created successfully!<br>
+                        Task ID: <strong>${data.task_id}</strong>
+                    </div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+                // Switch to tasks tab and refresh
+                setTimeout(() => {
+                    switchTab('tasks');
+                    refreshTasks();
+                }, 1500);
+
+            } catch (error) {
+                responseDiv.innerHTML = `
+                    <div class="error-message">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function refreshTasks() {
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '<div class="loading"></div> Loading tasks...';
+
+            try {
+                const status = document.getElementById('taskStatus').value;
+                const params = new URLSearchParams();
+                if (status) params.append('status', status);
+
+                const data = await apiRequest(`/v1/tasks?${params}`);
+
+                if (data.tasks.length === 0) {
+                    tasksList.innerHTML = '<p style="color: var(--text-dim);">No tasks found</p>';
+                    return;
+                }
+
+                tasksList.innerHTML = data.tasks.map(task => `
+                    <div class="task-card" onclick="viewTaskDetails('${task.id}')">
+                        <div class="task-header">
+                            <span class="task-id">${task.id}</span>
+                            <span class="status-badge status-${task.status}">${task.status}</span>
+                        </div>
+                        <div class="task-prompt">${task.prompt}</div>
+                        <div class="task-meta">
+                            <span>Created: ${new Date(task.created_at).toLocaleString()}</span>
+                            ${task.context_id ? `<span>Context: ${task.context_id}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                tasksList.innerHTML = `
+                    <div class="error-message">
+                        ❌ Error loading tasks: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function viewTaskDetails(taskId) {
+            const detailsCard = document.getElementById('taskDetails');
+            const detailsContent = document.getElementById('taskDetailsContent');
+
+            detailsCard.style.display = 'block';
+            detailsContent.innerHTML = '<div class="loading"></div> Loading task details...';
+
+            try {
+                const data = await apiRequest(`/v1/tasks/${taskId}`);
+                const task = data.task;
+
+                detailsContent.innerHTML = `
+                    <div class="form-group">
+                        <label>Task ID</label>
+                        <input type="text" value="${task.id}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <span class="status-badge status-${task.status}">${task.status}</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Prompt</label>
+                        <textarea rows="3" readonly>${task.prompt}</textarea>
+                    </div>
+                    ${task.context_id ? `
+                        <div class="form-group">
+                            <label>Context ID</label>
+                            <input type="text" value="${task.context_id}" readonly>
+                        </div>
+                    ` : ''}
+                    <div class="form-group">
+                        <label>Created At</label>
+                        <input type="text" value="${new Date(task.created_at).toLocaleString()}" readonly>
+                    </div>
+                    ${task.updated_at ? `
+                        <div class="form-group">
+                            <label>Updated At</label>
+                            <input type="text" value="${new Date(task.updated_at).toLocaleString()}" readonly>
+                        </div>
+                    ` : ''}
+                    ${task.status !== 'completed' && task.status !== 'failed' && task.status !== 'cancelled' ? `
+                        <button class="btn-danger" onclick="cancelTask('${task.id}')">Cancel Task</button>
+                    ` : ''}
+                `;
+
+            } catch (error) {
+                detailsContent.innerHTML = `
+                    <div class="error-message">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function cancelTask(taskId) {
+            if (!confirm('Are you sure you want to cancel this task?')) {
+                return;
+            }
+
+            try {
+                await apiRequest(`/v1/tasks/${taskId}/cancel`, { method: 'POST' });
+                alert('Task cancelled successfully');
+                await viewTaskDetails(taskId);
+                refreshTasks();
+            } catch (error) {
+                alert(`Error cancelling task: ${error.message}`);
+            }
+        }
+
+        async function loadAgentCards() {
+            const agentsList = document.getElementById('agentCardsList');
+            agentsList.innerHTML = '<div class="loading"></div> Loading agent cards...';
+
+            // Known agent types from the project
+            const knownAgents = [
+                'coordinator-agent',
+                'codegen-agent',
+                'review-agent',
+                'issue-agent',
+                'pr-agent',
+                'deployment-agent',
+                'ai-entrepreneur-agent'
+            ];
+
+            try {
+                const cards = await Promise.allSettled(
+                    knownAgents.map(async (agentType) => {
+                        const filename = `agent-card-${agentType}.json`;
+                        const data = await apiRequest(`/.well-known/${filename}`);
+                        return { agentType, data };
+                    })
+                );
+
+                const successfulCards = cards
+                    .filter(result => result.status === 'fulfilled')
+                    .map(result => result.value);
+
+                if (successfulCards.length === 0) {
+                    agentsList.innerHTML = '<p style="color: var(--text-dim);">No agent cards found</p>';
+                    return;
+                }
+
+                agentsList.innerHTML = successfulCards.map(({ agentType, data }) => `
+                    <div class="agent-card-item">
+                        <div class="agent-name">${data.name}</div>
+                        <div class="agent-description">${data.description}</div>
+                        <div class="form-group">
+                            <label>Version</label>
+                            <span>${data.version}</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Protocol Version</label>
+                            <span>${data.protocolVersion}</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Transport</label>
+                            <span>${data.preferredTransport}</span>
+                        </div>
+                        <div class="form-group">
+                            <label>URL</label>
+                            <code>${data.url}</code>
+                        </div>
+                        ${data.skills && data.skills.length > 0 ? `
+                            <div class="form-group">
+                                <label>Skills (${data.skills.length})</label>
+                                <div class="skills-list">
+                                    ${data.skills.map(skill => `
+                                        <div class="skill-tag">
+                                            <strong>${skill.name}</strong>
+                                            ${skill.description ? `<br><small>${skill.description}</small>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        <button class="btn-secondary" onclick="viewAgentCardJson('${agentType}', ${JSON.stringify(data).replace(/'/g, '&#39;')})">
+                            View JSON
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                agentsList.innerHTML = `
+                    <div class="error-message">
+                        ❌ Error loading agent cards: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function viewAgentCardJson(agentType, data) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                padding: 2rem;
+            `;
+
+            modal.innerHTML = `
+                <div style="background: var(--surface); border-radius: 12px; max-width: 800px; width: 100%; max-height: 80vh; overflow: auto; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="margin: 0;">${agentType}</h2>
+                        <button onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+                    </div>
+                    <div class="response-container">
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>

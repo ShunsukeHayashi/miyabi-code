@@ -1,0 +1,327 @@
+// A2A (Agent-to-Agent) Protocol v0.3.0
+// gRPC Protocol Buffers Definition
+//
+// This file defines the Protocol Buffers schema for A2A Protocol gRPC transport.
+// It mirrors the types defined in crates/miyabi-a2a/src/types/ and implements
+// all A2A RPC methods as defined in the A2A Protocol specification.
+
+syntax = "proto3";
+
+package miyabi.a2a.v1;
+
+// ==============================================================================
+// Core Service Definition
+// ==============================================================================
+
+// A2A Protocol Service
+//
+// Implements all A2A RPC methods for agent-to-agent communication.
+service A2AService {
+  // Send a message and create a task (required)
+  rpc MessageSend(MessageSendRequest) returns (MessageSendResponse);
+
+  // Get task status (required)
+  rpc TasksGet(TasksGetRequest) returns (TasksGetResponse);
+
+  // Cancel a running task (required)
+  rpc TasksCancel(TasksCancelRequest) returns (TasksCancelResponse);
+
+  // List tasks with filtering (optional)
+  rpc TasksList(TasksListRequest) returns (TasksListResponse);
+
+  // Get authenticated extended agent card (optional)
+  rpc AgentGetAuthenticatedExtendedCard(GetAuthenticatedExtendedCardRequest) returns (GetAuthenticatedExtendedCardResponse);
+
+  // Server-side streaming for task updates (optional)
+  rpc TasksStream(TasksStreamRequest) returns (stream TaskStreamEvent);
+
+  // Send a message with streaming response (optional)
+  rpc MessageStream(MessageSendRequest) returns (stream MessageStreamEvent);
+}
+
+// ==============================================================================
+// RPC Request/Response Types
+// ==============================================================================
+
+// message/send request
+message MessageSendRequest {
+  Role role = 1;
+  repeated Part parts = 2;
+  optional string context_id = 3;
+}
+
+// message/send response
+message MessageSendResponse {
+  string task_id = 1;
+  TaskStatus status = 2;
+}
+
+// tasks/get request
+message TasksGetRequest {
+  string task_id = 1;
+}
+
+// tasks/get response
+message TasksGetResponse {
+  Task task = 1;
+}
+
+// tasks/cancel request
+message TasksCancelRequest {
+  string task_id = 1;
+}
+
+// tasks/cancel response
+message TasksCancelResponse {
+  TaskStatus status = 1;
+  string message = 2;
+}
+
+// tasks/list request
+message TasksListRequest {
+  optional TaskStatus status = 1;
+  uint32 limit = 2;  // default: 50
+  uint32 offset = 3; // default: 0
+  optional string context_id = 4;
+}
+
+// tasks/list response
+message TasksListResponse {
+  repeated Task tasks = 1;
+  uint32 total = 2;
+}
+
+// agent/getAuthenticatedExtendedCard request
+message GetAuthenticatedExtendedCardRequest {
+  string token = 1;  // JWT token
+}
+
+// agent/getAuthenticatedExtendedCard response
+message GetAuthenticatedExtendedCardResponse {
+  AgentCard card = 1;
+  optional string extended_metadata = 2;  // JSON string
+}
+
+// tasks/stream request
+message TasksStreamRequest {
+  string task_id = 1;
+}
+
+// Task stream event
+message TaskStreamEvent {
+  string task_id = 1;
+  TaskStatus status = 2;
+  string timestamp = 3;  // RFC3339 format
+  optional string event_type = 4;  // "status_change", "progress_update"
+  optional string event_data = 5;  // JSON string
+}
+
+// Message stream event
+message MessageStreamEvent {
+  string task_id = 1;
+  oneof event {
+    Part part = 2;
+    Artifact artifact = 3;
+    TaskStatus status_update = 4;
+  }
+}
+
+// ==============================================================================
+// Core A2A Types
+// ==============================================================================
+
+// Task - Represents a unit of work
+message Task {
+  string id = 1;
+  TaskStatus status = 2;
+  TaskInput input = 3;
+  TaskOutput output = 4;
+  optional string context_id = 5;
+  string created_at = 6;  // RFC3339 timestamp
+  string updated_at = 7;  // RFC3339 timestamp
+  optional string error = 8;
+}
+
+// Task status enumeration
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_SUBMITTED = 1;
+  TASK_STATUS_WORKING = 2;
+  TASK_STATUS_INPUT_REQUIRED = 3;
+  TASK_STATUS_COMPLETED = 4;
+  TASK_STATUS_FAILED = 5;
+  TASK_STATUS_CANCELLED = 6;
+}
+
+// Task input
+message TaskInput {
+  string prompt = 1;
+  repeated Part parts = 2;
+  repeated Artifact artifacts = 3;
+}
+
+// Task output
+message TaskOutput {
+  repeated Message messages = 1;
+  repeated Artifact artifacts = 2;
+}
+
+// Message - A message in a conversation
+message Message {
+  string id = 1;
+  Role role = 2;
+  repeated Part parts = 3;
+  optional string timestamp = 4;  // RFC3339 format
+}
+
+// Role enumeration
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_AGENT = 2;
+  ROLE_SYSTEM = 3;
+}
+
+// Part - A content part of a message
+message Part {
+  oneof part_type {
+    TextPart text = 1;
+    ImagePart image = 2;
+    AudioPart audio = 3;
+    VideoPart video = 4;
+    FilePart file = 5;
+  }
+}
+
+// Text part
+message TextPart {
+  string content = 1;
+}
+
+// Image part
+message ImagePart {
+  string url = 1;
+  optional string mime_type = 2;
+  optional bytes data = 3;  // Base64-encoded image data
+}
+
+// Audio part
+message AudioPart {
+  string url = 1;
+  optional string mime_type = 2;
+  optional bytes data = 3;
+}
+
+// Video part
+message VideoPart {
+  string url = 1;
+  optional string mime_type = 2;
+}
+
+// File part
+message FilePart {
+  string name = 1;
+  string mime_type = 2;
+  optional string url = 3;
+  optional bytes data = 4;  // Base64-encoded file data
+}
+
+// Artifact - A file or data artifact
+message Artifact {
+  string id = 1;
+  string name = 2;
+  ArtifactType type = 3;
+  optional string mime_type = 4;
+  optional string url = 5;
+  optional bytes data = 6;  // Base64-encoded data
+  optional uint64 size = 7;
+  optional string created_at = 8;  // RFC3339 timestamp
+}
+
+// Artifact type enumeration
+enum ArtifactType {
+  ARTIFACT_TYPE_UNSPECIFIED = 0;
+  ARTIFACT_TYPE_CODE = 1;
+  ARTIFACT_TYPE_DOCUMENT = 2;
+  ARTIFACT_TYPE_IMAGE = 3;
+  ARTIFACT_TYPE_AUDIO = 4;
+  ARTIFACT_TYPE_VIDEO = 5;
+  ARTIFACT_TYPE_ARCHIVE = 6;
+  ARTIFACT_TYPE_OTHER = 7;
+}
+
+// ==============================================================================
+// Agent Card Types
+// ==============================================================================
+
+// Agent Card - Describes an agent's capabilities
+message AgentCard {
+  string protocol_version = 1;
+  string name = 2;
+  string description = 3;
+  string url = 4;
+  string preferred_transport = 5;
+  repeated TransportInterface additional_interfaces = 6;
+  string version = 7;
+  Capabilities capabilities = 8;
+  map<string, SecurityScheme> security_schemes = 9;
+  repeated SecurityRequirement security = 10;
+  repeated string default_input_modes = 11;
+  repeated string default_output_modes = 12;
+  repeated AgentSkill skills = 13;
+}
+
+// Transport interface
+message TransportInterface {
+  string url = 1;
+  string transport = 2;
+}
+
+// Agent capabilities
+message Capabilities {
+  optional bool streaming = 1;
+  optional bool push_notifications = 2;
+  repeated uint64 context_windows = 3;
+  repeated string modalities = 4;
+  optional bool file_attachments = 5;
+}
+
+// Security scheme
+message SecurityScheme {
+  string type = 1;
+  optional string scheme = 2;
+  optional string bearer_format = 3;
+}
+
+// Security requirement (key: scheme name, value: scopes)
+message SecurityRequirement {
+  map<string, StringList> requirements = 1;
+}
+
+// String list helper
+message StringList {
+  repeated string values = 1;
+}
+
+// Agent skill
+message AgentSkill {
+  optional string id = 1;
+  string name = 2;
+  optional string description = 3;
+  repeated string tags = 4;
+  repeated string examples = 5;
+  optional string context_requirements = 6;
+  repeated string input_modes = 7;
+  repeated string output_modes = 8;
+}
+
+// ==============================================================================
+// Error Types
+// ==============================================================================
+
+// Error response
+message ErrorResponse {
+  int32 code = 1;
+  string message = 2;
+  optional string details = 3;
+}
