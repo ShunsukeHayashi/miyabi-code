@@ -78,8 +78,7 @@ temp/
 firebase-debug.log
 firestore-debug.log
 
-# Git worktrees
-worktrees/
+# Git worktrees (pattern already covered by Miyabi section below)
 
 # OS
 .DS_Store
@@ -134,7 +133,6 @@ claude-plugin/
 /src/
 /__tests__/
 /commands/
-.worktrees/
 data/
 .ai/
 reports/
@@ -165,7 +163,7 @@ target/nextest/
 public/
 
 # Miyabi
-.worktrees/
+.worktrees*/
 logs/
 reports/
 *.log
