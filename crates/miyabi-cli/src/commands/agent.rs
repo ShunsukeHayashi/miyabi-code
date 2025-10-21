@@ -17,7 +17,7 @@ use miyabi_agents::pr::PRAgent;
 use miyabi_agents::review::ReviewAgent;
 use miyabi_agents::BaseAgent;
 use miyabi_agents::CoordinatorAgentWithLLM;
-use miyabi_agents::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
+use miyabi_agents::{AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 use miyabi_core::git::{find_git_root, get_current_branch};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentType, Task};

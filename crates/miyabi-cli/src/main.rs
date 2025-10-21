@@ -4,6 +4,7 @@ mod commands;
 mod error;
 mod service;
 mod startup;
+mod worktree;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
