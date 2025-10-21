@@ -58,10 +58,8 @@ impl SWEBenchProEvaluator {
         let config = EvaluatorConfig::default();
 
         // Discover git repository root automatically
-        let worktree_manager = WorktreeManager::new_with_discovery(
-            Some(&config.worktree_base),
-            config.concurrency,
-        )?;
+        let worktree_manager =
+            WorktreeManager::new_with_discovery(Some(&config.worktree_base), config.concurrency)?;
 
         Ok(Self {
             config,
@@ -72,10 +70,8 @@ impl SWEBenchProEvaluator {
     /// Creates a new evaluator with custom configuration
     pub fn with_config(config: EvaluatorConfig) -> Result<Self> {
         // Discover git repository root automatically
-        let worktree_manager = WorktreeManager::new_with_discovery(
-            Some(&config.worktree_base),
-            config.concurrency,
-        )?;
+        let worktree_manager =
+            WorktreeManager::new_with_discovery(Some(&config.worktree_base), config.concurrency)?;
 
         Ok(Self {
             config,
@@ -98,14 +94,12 @@ impl SWEBenchProEvaluator {
     ) -> Result<(PatchOutput, EvaluationResult)> {
         let start_time = Instant::now();
 
-        info!(
-            "Starting evaluation for instance: {}",
-            instance.instance_id
-        );
+        info!("Starting evaluation for instance: {}", instance.instance_id);
 
         // 1. Create worktree and checkout base commit
         let worktree_name = format!("swebench-{}", instance.instance_id.replace("/", "-"));
-        let worktree_path = self.create_worktree(instance, &worktree_name)
+        let worktree_path = self
+            .create_worktree(instance, &worktree_name)
             .context("Failed to create worktree")?;
 
         // Wrap evaluation in timeout
@@ -123,10 +117,31 @@ impl SWEBenchProEvaluator {
                 .context("Failed to execute agent")?;
 
             // 4. Generate patch in unified diff format
-            let patch = self.generate_patch(&worktree_path, &instance.base_commit)
+            let patch = self
+                .generate_patch(&worktree_path, &instance.base_commit)
                 .context("Failed to generate patch")?;
 
-            Ok::<_, anyhow::Error>(patch)
+            // 5. Apply test patch to enable test execution
+            self.apply_patch(&worktree_path, &instance.test_patch, "test_patch")
+                .context("Failed to apply test patch")?;
+
+            // 6. Run fail_to_pass tests (should pass after fix)
+            let fail_to_pass_results = if !instance.fail_to_pass.is_empty() {
+                self.run_tests(&worktree_path, &instance.fail_to_pass, instance)
+                    .context("Failed to run fail_to_pass tests")?
+            } else {
+                Vec::new()
+            };
+
+            // 7. Run pass_to_pass tests (should still pass)
+            let pass_to_pass_results = if !instance.pass_to_pass.is_empty() {
+                self.run_tests(&worktree_path, &instance.pass_to_pass, instance)
+                    .context("Failed to run pass_to_pass tests")?
+            } else {
+                Vec::new()
+            };
+
+            Ok::<_, anyhow::Error>((patch, fail_to_pass_results, pass_to_pass_results))
         })
         .await;
 
@@ -138,11 +153,10 @@ impl SWEBenchProEvaluator {
         let execution_time = start_time.elapsed().as_secs_f64();
 
         match eval_result {
-            Ok(Ok(patch)) => {
-                info!(
-                    "Successfully evaluated instance: {} in {:.2}s",
-                    instance.instance_id, execution_time
-                );
+            Ok(Ok((patch, fail_to_pass_results, pass_to_pass_results))) => {
+                // Calculate actual pass counts
+                let fail_to_pass_count = fail_to_pass_results.iter().filter(|&&p| p).count();
+                let pass_to_pass_count = pass_to_pass_results.iter().filter(|&&p| p).count();
 
                 let patch_output = PatchOutput {
                     instance_id: instance.instance_id.clone(),
@@ -150,16 +164,45 @@ impl SWEBenchProEvaluator {
                     model_name_or_path: self.config.model_name.clone(),
                 };
 
-                // TODO: Actual test execution and result calculation
-                // For now, return placeholder values
-                let result = EvaluationResult::success(
-                    instance.instance_id.clone(),
-                    0, // TODO: Calculate actual fail_to_pass
-                    instance.fail_to_pass.len(),
-                    0, // TODO: Calculate actual pass_to_pass
-                    instance.pass_to_pass.len(),
+                // Check if instance is resolved:
+                // - All fail_to_pass tests must pass (100%)
+                // - All pass_to_pass tests must still pass (100%)
+                let resolved = fail_to_pass_count == instance.fail_to_pass.len()
+                    && pass_to_pass_count == instance.pass_to_pass.len();
+
+                info!(
+                    "Instance {} evaluation completed in {:.2}s - Resolved: {} (fail_to_pass: {}/{}, pass_to_pass: {}/{})",
+                    instance.instance_id,
                     execution_time,
+                    resolved,
+                    fail_to_pass_count,
+                    instance.fail_to_pass.len(),
+                    pass_to_pass_count,
+                    instance.pass_to_pass.len()
                 );
+
+                let result = if resolved {
+                    EvaluationResult::success(
+                        instance.instance_id.clone(),
+                        fail_to_pass_count,
+                        instance.fail_to_pass.len(),
+                        pass_to_pass_count,
+                        instance.pass_to_pass.len(),
+                        execution_time,
+                    )
+                } else {
+                    EvaluationResult::failure(
+                        instance.instance_id.clone(),
+                        format!(
+                            "Tests did not meet resolution criteria: fail_to_pass={}/{}, pass_to_pass={}/{}",
+                            fail_to_pass_count,
+                            instance.fail_to_pass.len(),
+                            pass_to_pass_count,
+                            instance.pass_to_pass.len()
+                        ),
+                        execution_time,
+                    )
+                };
 
                 Ok((patch_output, result))
             }
@@ -208,11 +251,7 @@ impl SWEBenchProEvaluator {
     }
 
     /// Creates a worktree for the given instance
-    fn create_worktree(
-        &self,
-        instance: &SWEBenchInstance,
-        worktree_name: &str,
-    ) -> Result<PathBuf> {
+    fn create_worktree(&self, instance: &SWEBenchInstance, worktree_name: &str) -> Result<PathBuf> {
         debug!("Creating worktree: {}", worktree_name);
 
         // Clone repository if not exists
@@ -222,7 +261,7 @@ impl SWEBenchProEvaluator {
         let worktree_path = PathBuf::from(&self.config.worktree_base).join(worktree_name);
 
         let output = Command::new("git")
-            .args(&[
+            .args([
                 "worktree",
                 "add",
                 worktree_path.to_str().unwrap(),
@@ -256,7 +295,7 @@ impl SWEBenchProEvaluator {
 
             let repo_url = format!("https://github.com/{}.git", repo);
             let output = Command::new("git")
-                .args(&["clone", &repo_url, repo_path.to_str().unwrap()])
+                .args(["clone", &repo_url, repo_path.to_str().unwrap()])
                 .current_dir(&repos_dir)
                 .output()
                 .context("Failed to clone repository")?;
@@ -297,7 +336,11 @@ impl SWEBenchProEvaluator {
     }
 
     /// Executes agent via Claude Code (placeholder)
-    async fn execute_agent(&self, _worktree_path: &Path, _instance: &SWEBenchInstance) -> Result<()> {
+    async fn execute_agent(
+        &self,
+        _worktree_path: &Path,
+        _instance: &SWEBenchInstance,
+    ) -> Result<()> {
         // TODO: Implement Claude Code integration
         // This should invoke Claude Code in the worktree with the execution context
         //
@@ -317,7 +360,7 @@ impl SWEBenchProEvaluator {
         debug!("Generating patch from worktree: {:?}", worktree_path);
 
         let output = Command::new("git")
-            .args(&["diff", "--unified=3", base_commit, "HEAD"])
+            .args(["diff", "--unified=3", base_commit, "HEAD"])
             .current_dir(worktree_path)
             .output()
             .context("Failed to generate patch")?;
@@ -329,11 +372,97 @@ impl SWEBenchProEvaluator {
             ));
         }
 
-        let patch = String::from_utf8(output.stdout)
-            .context("Patch is not valid UTF-8")?;
+        let patch = String::from_utf8(output.stdout).context("Patch is not valid UTF-8")?;
 
         debug!("Patch generated ({} bytes)", patch.len());
         Ok(patch)
+    }
+
+    /// Applies a patch to the worktree
+    fn apply_patch(
+        &self,
+        worktree_path: &Path,
+        patch_content: &str,
+        patch_name: &str,
+    ) -> Result<()> {
+        debug!("Applying {} to worktree: {:?}", patch_name, worktree_path);
+
+        // Write patch to temporary file
+        let patch_file = worktree_path.join(format!(".{}.patch", patch_name));
+        std::fs::write(&patch_file, patch_content).context("Failed to write patch file")?;
+
+        // Apply patch using git apply
+        let output = Command::new("git")
+            .args(["apply", "--verbose", patch_file.to_str().unwrap()])
+            .current_dir(worktree_path)
+            .output()
+            .context("Failed to apply patch")?;
+
+        // Clean up patch file
+        let _ = std::fs::remove_file(&patch_file);
+
+        if !output.status.success() {
+            return Err(anyhow!(
+                "Git apply {} failed: {}",
+                patch_name,
+                String::from_utf8_lossy(&output.stderr)
+            ));
+        }
+
+        debug!("{} applied successfully", patch_name);
+        Ok(())
+    }
+
+    /// Runs specified tests and returns pass/fail results
+    fn run_tests(
+        &self,
+        worktree_path: &Path,
+        test_identifiers: &[String],
+        instance: &SWEBenchInstance,
+    ) -> Result<Vec<bool>> {
+        debug!(
+            "Running {} tests for instance {}",
+            test_identifiers.len(),
+            instance.instance_id
+        );
+
+        let mut results = Vec::new();
+
+        // Determine test command based on repository language
+        let test_command = match instance.repo_language.as_deref() {
+            Some("Python") | Some("python") => "pytest",
+            Some("Go") | Some("go") => "go test",
+            Some("JavaScript") | Some("javascript") => "npm test",
+            Some("TypeScript") | Some("typescript") => "npm test",
+            _ => {
+                warn!(
+                    "Unknown language: {:?}, defaulting to pytest",
+                    instance.repo_language
+                );
+                "pytest"
+            }
+        };
+
+        for test_id in test_identifiers {
+            debug!("Running test: {}", test_id);
+
+            let output = Command::new("sh")
+                .args(["-c", &format!("{} {}", test_command, test_id)])
+                .current_dir(worktree_path)
+                .output()
+                .context(format!("Failed to run test: {}", test_id))?;
+
+            let passed = output.status.success();
+            results.push(passed);
+
+            debug!(
+                "Test {} result: {}",
+                test_id,
+                if passed { "PASS" } else { "FAIL" }
+            );
+        }
+
+        Ok(results)
     }
 
     /// Cleans up a worktree
@@ -344,7 +473,12 @@ impl SWEBenchProEvaluator {
 
         if worktree_path.exists() {
             let output = Command::new("git")
-                .args(&["worktree", "remove", "--force", worktree_path.to_str().unwrap()])
+                .args([
+                    "worktree",
+                    "remove",
+                    "--force",
+                    worktree_path.to_str().unwrap(),
+                ])
                 .output()
                 .context("Failed to remove worktree")?;
 
@@ -469,7 +603,8 @@ mod tests {
             model_name: "miyabi-v2.0.0".to_string(),
         };
 
-        let evaluator = SWEBenchProEvaluator::with_config(config).expect("Failed to create evaluator");
+        let evaluator =
+            SWEBenchProEvaluator::with_config(config).expect("Failed to create evaluator");
         assert_eq!(evaluator.config.timeout, 3600);
         assert_eq!(evaluator.config.concurrency, 10);
     }

@@ -132,7 +132,7 @@ impl SWEBenchInstance {
     ///
     /// Example: `django/django` -> `django`
     pub fn repo_short_name(&self) -> &str {
-        self.repo.split('/').last().unwrap_or(&self.repo)
+        self.repo.split('/').next_back().unwrap_or(&self.repo)
     }
 
     /// Returns the repository owner

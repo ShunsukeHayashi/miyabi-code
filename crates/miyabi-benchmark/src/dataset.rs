@@ -41,11 +41,10 @@ impl SWEBenchDataset {
     ///
     /// `Result<SWEBenchDataset>` - Loaded dataset or error
     pub fn load_from_json<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let content = fs::read_to_string(path.as_ref())
-            .context("Failed to read dataset file")?;
+        let content = fs::read_to_string(path.as_ref()).context("Failed to read dataset file")?;
 
-        let instances: Vec<SWEBenchInstance> = serde_json::from_str(&content)
-            .context("Failed to parse JSON dataset")?;
+        let instances: Vec<SWEBenchInstance> =
+            serde_json::from_str(&content).context("Failed to parse JSON dataset")?;
 
         Ok(Self { instances })
     }
@@ -79,7 +78,9 @@ impl SWEBenchDataset {
             .cloned()
             .collect();
 
-        Self { instances: filtered }
+        Self {
+            instances: filtered,
+        }
     }
 
     /// Filters instances by programming language
@@ -91,7 +92,9 @@ impl SWEBenchDataset {
             .cloned()
             .collect();
 
-        Self { instances: filtered }
+        Self {
+            instances: filtered,
+        }
     }
 
     /// Filters instances by repository
@@ -103,17 +106,14 @@ impl SWEBenchDataset {
             .cloned()
             .collect();
 
-        Self { instances: filtered }
+        Self {
+            instances: filtered,
+        }
     }
 
     /// Returns a sample of n instances
     pub fn sample(&self, n: usize) -> Self {
-        let sampled: Vec<SWEBenchInstance> = self
-            .instances
-            .iter()
-            .take(n)
-            .cloned()
-            .collect();
+        let sampled: Vec<SWEBenchInstance> = self.instances.iter().take(n).cloned().collect();
 
         Self { instances: sampled }
     }
@@ -123,8 +123,8 @@ impl SWEBenchDataset {
 mod tests {
     use super::*;
     use miyabi_types::benchmark::SWEBenchInstance;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     fn create_test_instance(id: &str, repo: &str, lang: Option<&str>) -> SWEBenchInstance {
         SWEBenchInstance {
