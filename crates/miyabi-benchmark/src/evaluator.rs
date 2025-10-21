@@ -7,11 +7,24 @@ use miyabi_types::benchmark::{PatchOutput, SWEBenchInstance};
 use miyabi_worktree::WorktreeManager;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Semaphore;
 use tokio::time::timeout;
 use tracing::{debug, error, info, warn};
+
+/// Evaluation statistics
+#[derive(Debug, Clone, Default)]
+struct EvaluationStats {
+    total_instances: usize,
+    successful: usize,
+    failed: usize,
+    #[allow(dead_code)]
+    timed_out: usize, // Reserved for future use
+    total_duration_secs: f64,
+    min_duration_secs: Option<f64>,
+    max_duration_secs: Option<f64>,
+}
 
 /// Configuration for SWE-bench Pro evaluation
 #[derive(Debug, Clone)]
@@ -183,13 +196,25 @@ impl SWEBenchProEvaluator {
 
     /// Creates a worktree for the given instance
     fn create_worktree(&self, instance: &SWEBenchInstance, worktree_name: &str) -> Result<PathBuf> {
-        debug!("Creating worktree: {}", worktree_name);
+        let worktree_start = Instant::now();
+
+        info!(
+            "🌳 Creating worktree: {} (repo: {}, commit: {})",
+            worktree_name,
+            instance.repo,
+            &instance.base_commit[..8]
+        );
 
         // Clone repository if not exists
         let repo_path = self.ensure_repository(&instance.repo)?;
 
         // Create worktree from base commit
         let worktree_path = PathBuf::from(&self.config.worktree_base).join(worktree_name);
+
+        debug!(
+            "🔧 git worktree add {:?} {}",
+            worktree_path, instance.base_commit
+        );
 
         let output = Command::new("git")
             .args([
@@ -203,13 +228,21 @@ impl SWEBenchProEvaluator {
             .context("Failed to create git worktree")?;
 
         if !output.status.success() {
-            return Err(anyhow!(
-                "Git worktree creation failed: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ));
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            error!(
+                "❌ Git worktree creation failed for {}: {}",
+                worktree_name, stderr
+            );
+            return Err(anyhow!("Git worktree creation failed: {}", stderr));
         }
 
-        debug!("Worktree created at: {:?}", worktree_path);
+        let worktree_duration = worktree_start.elapsed();
+        info!(
+            "✅ Worktree created: {:?} ({:.2}s)",
+            worktree_path,
+            worktree_duration.as_secs_f64()
+        );
+
         Ok(worktree_path)
     }
 
@@ -222,23 +255,38 @@ impl SWEBenchProEvaluator {
         let repo_path = repos_dir.join(&repo_name);
 
         if !repo_path.exists() {
-            info!("Cloning repository: {}", repo);
+            let clone_start = Instant::now();
+            info!("📦 Cloning repository: {} -> {:?}", repo, repo_path);
 
             let repo_url = format!("https://github.com/{}.git", repo);
+            debug!("🔗 Clone URL: {}", repo_url);
+
             let output = Command::new("git")
                 .args(["clone", &repo_url, repo_path.to_str().unwrap()])
                 .current_dir(&repos_dir)
                 .output()
                 .context("Failed to clone repository")?;
 
+            let clone_duration = clone_start.elapsed();
+
             if !output.status.success() {
-                return Err(anyhow!(
-                    "Git clone failed: {}",
-                    String::from_utf8_lossy(&output.stderr)
-                ));
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                error!(
+                    "❌ Git clone failed for {}: {} ({:.2}s)",
+                    repo,
+                    stderr,
+                    clone_duration.as_secs_f64()
+                );
+                return Err(anyhow!("Git clone failed: {}", stderr));
             }
 
-            info!("Repository cloned successfully: {}", repo);
+            info!(
+                "✅ Repository cloned: {} ({:.2}s)",
+                repo,
+                clone_duration.as_secs_f64()
+            );
+        } else {
+            debug!("📁 Repository already exists: {:?}", repo_path);
         }
 
         Ok(repo_path)
@@ -308,6 +356,13 @@ impl SWEBenchProEvaluator {
     ) -> Result<()> {
         use std::env;
 
+        let api_start = Instant::now();
+
+        debug!(
+            "🤖 Preparing Claude API request for instance: {}",
+            instance.instance_id
+        );
+
         // Check for API key
         let api_key = env::var("ANTHROPIC_API_KEY")
             .context("ANTHROPIC_API_KEY environment variable not set")?;
@@ -325,8 +380,20 @@ impl SWEBenchProEvaluator {
             instance.base_commit
         );
 
+        let prompt_chars = prompt.len();
+        debug!(
+            "📝 Claude API prompt prepared: {} characters, {} lines",
+            prompt_chars,
+            prompt.lines().count()
+        );
+
         // Call Claude API
         let client = reqwest::Client::new();
+        info!(
+            "🌐 Calling Claude API for instance: {} (model: claude-3-5-sonnet-20241022, max_tokens: 4096)",
+            instance.instance_id
+        );
+
         let response = client
             .post("https://api.anthropic.com/v1/messages")
             .header("x-api-key", api_key)
@@ -344,9 +411,17 @@ impl SWEBenchProEvaluator {
             .await
             .context("Failed to call Claude API")?;
 
+        let api_duration = api_start.elapsed();
+
         if !response.status().is_success() {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
+            error!(
+                "❌ Claude API error {}: {} (duration: {:.2}s)",
+                status,
+                error_text,
+                api_duration.as_secs_f64()
+            );
             return Err(anyhow!(
                 "Claude API returned error {}: {}",
                 status,
@@ -359,18 +434,42 @@ impl SWEBenchProEvaluator {
             .await
             .context("Failed to parse Claude API response")?;
 
+        // Extract usage statistics if available
+        if let Some(usage) = response_json.get("usage") {
+            debug!(
+                "📊 Claude API usage: input_tokens={}, output_tokens={}",
+                usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
+                usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0)
+            );
+        }
+
         // Extract generated fix
         let fix_content = response_json["content"][0]["text"]
             .as_str()
             .ok_or_else(|| anyhow!("Failed to extract text from Claude response"))?;
+
+        let response_chars = fix_content.len();
+        info!(
+            "✅ Claude API response received: {} characters, {} lines ({:.2}s)",
+            response_chars,
+            fix_content.lines().count(),
+            api_duration.as_secs_f64()
+        );
 
         // Write fix to file
         let fix_path = worktree_path.join("CLAUDE_FIX.md");
         std::fs::write(&fix_path, fix_content)
             .context("Failed to write Claude-generated fix")?;
 
+        debug!("💾 Claude-generated fix written to: {:?}", fix_path);
+
         // Commit the fix
         self.commit_fix(worktree_path, &format!("Fix: {} (Claude-generated)", instance.instance_id))?;
+
+        info!(
+            "✅ Claude-generated fix committed for instance: {}",
+            instance.instance_id
+        );
 
         Ok(())
     }
@@ -456,11 +555,15 @@ impl SWEBenchProEvaluator {
 
     /// Cleans up a worktree
     fn cleanup_worktree(&self, worktree_name: &str) -> Result<()> {
-        debug!("Cleaning up worktree: {}", worktree_name);
+        let cleanup_start = Instant::now();
+
+        debug!("🧹 Cleaning up worktree: {}", worktree_name);
 
         let worktree_path = PathBuf::from(&self.config.worktree_base).join(worktree_name);
 
         if worktree_path.exists() {
+            debug!("🔧 git worktree remove --force {:?}", worktree_path);
+
             let output = Command::new("git")
                 .args([
                     "worktree",
@@ -471,12 +574,25 @@ impl SWEBenchProEvaluator {
                 .output()
                 .context("Failed to remove worktree")?;
 
+            let cleanup_duration = cleanup_start.elapsed();
+
             if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
                 warn!(
-                    "Git worktree remove failed: {}",
-                    String::from_utf8_lossy(&output.stderr)
+                    "⚠️  Git worktree remove failed for {}: {} ({:.2}s)",
+                    worktree_name,
+                    stderr,
+                    cleanup_duration.as_secs_f64()
+                );
+            } else {
+                debug!(
+                    "✅ Worktree cleaned up: {} ({:.2}s)",
+                    worktree_name,
+                    cleanup_duration.as_secs_f64()
                 );
             }
+        } else {
+            debug!("⏭️  Worktree does not exist, skipping cleanup: {}", worktree_name);
         }
 
         Ok(())
@@ -498,19 +614,32 @@ impl SWEBenchProEvaluator {
         &self,
         instances: &[SWEBenchInstance],
     ) -> Result<Vec<PatchOutput>> {
-        info!(
-            "Starting parallel evaluation of {} instances with concurrency={}",
-            instances.len(),
-            self.config.concurrency
-        );
+        let evaluation_start = Instant::now();
+
+        info!("════════════════════════════════════════════════════════════");
+        info!("🚀 Starting SWE-bench Pro Evaluation");
+        info!("════════════════════════════════════════════════════════════");
+        info!("  Total instances: {}", instances.len());
+        info!("  Concurrency: {}", self.config.concurrency);
+        info!("  Timeout per instance: {}s", self.config.timeout);
+        info!("  Model: {}", self.config.model_name);
+        info!("════════════════════════════════════════════════════════════");
+
+        // Initialize statistics
+        let stats = Arc::new(Mutex::new(EvaluationStats {
+            total_instances: instances.len(),
+            ..Default::default()
+        }));
 
         // Create semaphore to control concurrency
         let semaphore = Arc::new(Semaphore::new(self.config.concurrency));
         let mut tasks = Vec::new();
+        let total_instances = instances.len(); // Capture length to avoid borrowing issues
 
-        for instance in instances {
+        for (idx, instance) in instances.iter().enumerate() {
             let instance = instance.clone();
             let semaphore = Arc::clone(&semaphore);
+            let stats = Arc::clone(&stats);
 
             // Clone self fields needed for async execution
             let config = self.config.clone();
@@ -520,7 +649,15 @@ impl SWEBenchProEvaluator {
                 // Acquire semaphore permit
                 let _permit = semaphore.acquire().await.unwrap();
 
-                info!("Starting patch generation: {}", instance.instance_id);
+                let instance_start = Instant::now();
+                info!(
+                    "📝 [{}/{}] Starting instance: {} (repo: {}, commit: {})",
+                    idx + 1,
+                    total_instances,
+                    instance.instance_id,
+                    instance.repo,
+                    &instance.base_commit[..8]
+                );
 
                 // Create temporary evaluator for this task
                 let evaluator = SWEBenchProEvaluator {
@@ -529,7 +666,28 @@ impl SWEBenchProEvaluator {
                 };
 
                 // Generate patch (testing delegated to official harness)
-                evaluator.generate_patch_for_instance(&instance).await
+                let result = evaluator.generate_patch_for_instance(&instance).await;
+                let duration = instance_start.elapsed().as_secs_f64();
+
+                // Update statistics
+                {
+                    let mut stats = stats.lock().unwrap();
+                    stats.total_duration_secs += duration;
+                    stats.min_duration_secs = Some(
+                        stats
+                            .min_duration_secs
+                            .map(|m| m.min(duration))
+                            .unwrap_or(duration),
+                    );
+                    stats.max_duration_secs = Some(
+                        stats
+                            .max_duration_secs
+                            .map(|m| m.max(duration))
+                            .unwrap_or(duration),
+                    );
+                }
+
+                (idx, instance.instance_id.clone(), result, duration)
             });
 
             tasks.push(task);
@@ -537,33 +695,77 @@ impl SWEBenchProEvaluator {
 
         // Wait for all tasks to complete
         let mut results = Vec::new();
-        for (index, task) in tasks.into_iter().enumerate() {
+        for task in tasks {
             match task.await {
-                Ok(Ok(patch)) => {
-                    info!(
-                        "Patch generation {}/{} completed successfully: {}",
-                        index + 1,
-                        instances.len(),
-                        patch.instance_id
-                    );
+                Ok((idx, instance_id, Ok(patch), duration)) => {
+                    let has_patch = !patch.model_patch.is_empty();
+                    if has_patch {
+                        info!(
+                            "✅ [{}/{}] Success: {} ({:.2}s, patch: {} bytes)",
+                            idx + 1,
+                            total_instances,
+                            instance_id,
+                            duration,
+                            patch.model_patch.len()
+                        );
+                        stats.lock().unwrap().successful += 1;
+                    } else {
+                        warn!(
+                            "⚠️  [{}/{}] No patch generated: {} ({:.2}s)",
+                            idx + 1, total_instances, instance_id, duration
+                        );
+                        stats.lock().unwrap().failed += 1;
+                    }
                     results.push(patch);
                 }
-                Ok(Err(e)) => {
-                    error!("Patch generation {}/{} failed: {}", index + 1, instances.len(), e);
+                Ok((idx, instance_id, Err(e), duration)) => {
+                    error!(
+                        "❌ [{}/{}] Failed: {} ({:.2}s) - Error: {}",
+                        idx + 1,
+                        total_instances,
+                        instance_id,
+                        duration,
+                        e
+                    );
+                    stats.lock().unwrap().failed += 1;
                     return Err(e);
                 }
                 Err(e) => {
-                    error!("Task {}/{} panicked: {}", index + 1, instances.len(), e);
+                    error!("💥 Task panicked: {}", e);
                     return Err(anyhow!("Task panicked: {}", e));
                 }
             }
         }
 
+        let evaluation_duration = evaluation_start.elapsed();
+        let stats = stats.lock().unwrap().clone();
+
+        // Print summary statistics
+        info!("════════════════════════════════════════════════════════════");
+        info!("📊 Evaluation Complete");
+        info!("════════════════════════════════════════════════════════════");
+        info!("  Total instances: {}", stats.total_instances);
+        info!("  ✅ Successful: {}", stats.successful);
+        info!("  ❌ Failed: {}", stats.failed);
         info!(
-            "Parallel patch generation completed: {}/{} instances succeeded",
-            results.len(),
-            instances.len()
+            "  Success rate: {:.1}%",
+            (stats.successful as f64 / stats.total_instances as f64) * 100.0
         );
+        info!("  ⏱️  Total time: {:.2}s ({:.1}m)", evaluation_duration.as_secs_f64(), evaluation_duration.as_secs_f64() / 60.0);
+        if let Some(avg) = if stats.total_instances > 0 {
+            Some(stats.total_duration_secs / stats.total_instances as f64)
+        } else {
+            None
+        } {
+            info!("  📈 Average time per instance: {:.2}s", avg);
+        }
+        if let Some(min) = stats.min_duration_secs {
+            info!("  ⚡ Fastest instance: {:.2}s", min);
+        }
+        if let Some(max) = stats.max_duration_secs {
+            info!("  🐌 Slowest instance: {:.2}s", max);
+        }
+        info!("════════════════════════════════════════════════════════════");
 
         Ok(results)
     }
