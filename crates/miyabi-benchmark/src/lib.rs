@@ -27,6 +27,8 @@
 
 pub mod dataset;
 pub mod evaluator;
+pub mod reporter;
 
 pub use dataset::SWEBenchDataset;
 pub use evaluator::SWEBenchProEvaluator;
+pub use reporter::EvaluationReporter;
