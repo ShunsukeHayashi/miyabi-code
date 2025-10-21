@@ -144,6 +144,122 @@ cat evaluation_results/miyabi-test-run/results.json
 
 ---
 
+## 🔄 CI/CD統合（自動ベンチマーク実行）
+
+**✅ Issue #407完了**: GitHub Actionsで自動ベンチマーク実行が可能になりました。
+
+### GitHub Actions ワークフロー
+
+`.github/workflows/benchmark-swe-bench-pro.yml` - 公式ハーネスを使用した自動評価
+
+**トリガー**:
+1. **手動実行** (workflow_dispatch)
+   - インスタンス数、並列度、Run IDをカスタマイズ可能
+2. **スケジュール実行** (cron)
+   - 毎週日曜日 00:00 UTC に自動実行
+
+### 手動実行方法
+
+#### GitHub UI経由
+
+1. GitHubリポジトリの「Actions」タブを開く
+2. 左サイドバーから「SWE-bench Pro Benchmark」を選択
+3. 「Run workflow」をクリック
+4. パラメータを設定：
+   - **instance_limit**: 評価インスタンス数（デフォルト: 10）
+   - **run_id**: カスタムRun ID（オプション）
+   - **max_workers**: 並列Docker数（デフォルト: 2）
+5. 「Run workflow」実行
+
+#### gh CLI経由
+
+```bash
+# 10インスタンスで評価（デフォルト）
+gh workflow run benchmark-swe-bench-pro.yml
+
+# カスタムパラメータで実行
+gh workflow run benchmark-swe-bench-pro.yml \
+  -f instance_limit=50 \
+  -f max_workers=4 \
+  -f run_id=miyabi-production-v1.0.0
+
+# 実行状況確認
+gh run list --workflow=benchmark-swe-bench-pro.yml
+
+# ログ確認
+gh run view --log
+```
+
+### 生成されるアーティファクト
+
+ワークフロー実行後、以下のアーティファクトがダウンロード可能：
+
+1. **predictions-{run_id}** (90日保存)
+   - `predictions.jsonl` - Miyabi生成のPredictions
+
+2. **evaluation-results-{run_id}** (90日保存)
+   - `evaluation_results/` - 公式ハーネスの評価結果
+   - `evaluation.log` - 実行ログ
+
+3. **evaluation-logs-{run_id}** (30日保存)
+   - `logs/build_images/` - Dockerビルドログ
+   - `logs/run_evaluation/` - 評価実行ログ
+
+4. **benchmark-report** (90日保存)
+   - `BENCHMARK_REPORT.md` - Markdownレポート
+
+### ワークフロー詳細
+
+```yaml
+jobs:
+  benchmark:
+    # 1. 環境セットアップ
+    - Checkout code
+    - Free up disk space (120GB確保)
+    - Setup Rust + Python
+    - Install SWE-bench harness
+    - Setup Docker
+
+    # 2. データ準備
+    - Download SWE-bench Pro dataset
+    - Build Miyabi benchmark CLI
+
+    # 3. 評価実行
+    - Generate predictions (Miyabi)
+    - Run official harness
+    - Collect results
+
+    # 4. 結果保存
+    - Upload artifacts
+    - Generate summary report
+
+  report:
+    # Markdown レポート生成
+    - Download results
+    - Generate report
+    - Upload report artifact
+```
+
+### リソース要件
+
+- **実行時間**: 最大8時間（480分タイムアウト）
+- **ストレージ**: 120GB（SWE-bench Dockerイメージ）
+- **RAM**: 16GB以上推奨
+- **CPU**: 8コア推奨
+
+### 注意事項
+
+⚠️ **GitHub Actions無料枠**:
+- Public repository: 無制限
+- Private repository: 月2,000分まで
+- ストレージ: 500MB（アーティファクト）
+
+⚠️ **長時間実行**:
+- 8時間タイムアウト設定済み
+- 大規模評価（100+インスタンス）は複数回に分割推奨
+
+---
+
 ## 📚 ドキュメント
 
 詳細なセットアップ手順は以下を参照：
