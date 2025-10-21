@@ -3,7 +3,6 @@ use dotenv::dotenv;
 use miyabi_discord_mcp_server::{DiscordClient, rpc::RpcHandler, DiscordMcpError};
 use std::env;
 use std::sync::Arc;
-use tracing_subscriber;
 
 /// Miyabi Discord MCP Server - JSON-RPC 2.0 interface to Discord API
 #[derive(Parser, Debug)]

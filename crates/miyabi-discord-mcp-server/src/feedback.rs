@@ -108,7 +108,7 @@ impl FeedbackEntry {
 
     /// Calculate priority score based on reactions
     pub fn priority_score(&self) -> u32 {
-        self.reactions.upvotes * 1
+        self.reactions.upvotes
             + self.reactions.bug_reports * 3
             + self.reactions.feature_requests * 2
             + self.reactions.high_priority * 5

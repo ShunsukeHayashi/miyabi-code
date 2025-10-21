@@ -191,7 +191,7 @@ impl RpcContext {
         let result = coordinator
             .decompose_issue(&issue)
             .await
-            .map_err(|e| ServerError::Agent(e))?;
+            .map_err(ServerError::Agent)?;
 
         let execution_time_ms = start.elapsed().as_millis() as u64;
 

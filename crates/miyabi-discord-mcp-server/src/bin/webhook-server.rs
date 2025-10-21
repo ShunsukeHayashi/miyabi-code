@@ -21,10 +21,8 @@ use miyabi_discord_mcp_server::ProgressReporter;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::{env, net::SocketAddr, sync::Arc};
-use tokio;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
-use tracing_subscriber;
 use twilight_http::Client as HttpClient;
 use twilight_model::id::{marker::ChannelMarker, Id};
 
@@ -151,10 +149,10 @@ async fn handle_github_webhook(
                     error!("Failed to notify Discord: {}", e);
                 }
 
-                return (StatusCode::OK, "Issue event processed").into_response();
+                (StatusCode::OK, "Issue event processed").into_response()
             } else {
                 error!("Failed to parse issue payload");
-                return (StatusCode::BAD_REQUEST, "Invalid payload").into_response();
+                (StatusCode::BAD_REQUEST, "Invalid payload").into_response()
             }
         }
         "pull_request" => {
@@ -184,19 +182,19 @@ async fn handle_github_webhook(
                     error!("Failed to notify Discord: {}", e);
                 }
 
-                return (StatusCode::OK, "PR event processed").into_response();
+                (StatusCode::OK, "PR event processed").into_response()
             } else {
                 error!("Failed to parse PR payload");
-                return (StatusCode::BAD_REQUEST, "Invalid payload").into_response();
+                (StatusCode::BAD_REQUEST, "Invalid payload").into_response()
             }
         }
         "ping" => {
             info!("Ping event received");
-            return (StatusCode::OK, "pong").into_response();
+            (StatusCode::OK, "pong").into_response()
         }
         _ => {
             warn!("Unhandled event type: {}", event_type);
-            return (StatusCode::OK, "Event ignored").into_response();
+            (StatusCode::OK, "Event ignored").into_response()
         }
     }
 }

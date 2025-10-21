@@ -1724,6 +1724,7 @@ dependencies = [
  "git2",
  "hostname",
  "miyabi-types",
+ "once_cell",
  "serde",
  "serde_json",
  "serde_yaml",

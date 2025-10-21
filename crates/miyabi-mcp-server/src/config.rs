@@ -41,18 +41,15 @@ pub struct ServerConfig {
 /// Transport mode for MCP server
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum TransportMode {
     /// Standard input/output (default)
+    #[default]
     Stdio,
     /// HTTP server
     Http,
 }
 
-impl Default for TransportMode {
-    fn default() -> Self {
-        TransportMode::Stdio
-    }
-}
 
 /// CLI arguments for MCP server
 #[derive(Debug, Parser)]
