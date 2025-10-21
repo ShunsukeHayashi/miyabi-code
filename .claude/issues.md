@@ -13,7 +13,7 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 
 ## 🔥 P0 (Critical) - 最優先
 
-- [ ] #344: 🔴 デモ動画作成（YouTube "3分でわかるMiyabi"）
+- [ ] #344: 🔴 デモ動画作成（YouTube "3分でわかるMiyabi"）⚠️ Phase 1完了（AI）→ Phase 2-4人間実行待ち
 
 ## 🚀 P1 (High) - 高優先度
 
