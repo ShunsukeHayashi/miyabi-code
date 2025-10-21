@@ -27,12 +27,31 @@ pub trait TaskStorage: Send + Sync {
     async fn get_task(&self, id: u64) -> Result<Option<A2ATask>, StorageError>;
 
     /// List tasks with optional filters
+    ///
+    /// # Arguments
+    /// * `filter` - Optional filtering criteria
+    ///
+    /// # Returns
+    /// List of tasks matching the filter
     async fn list_tasks(&self, filter: TaskFilter) -> Result<Vec<A2ATask>, StorageError>;
 
     /// Update an existing task
+    ///
+    /// # Arguments
+    /// * `id` - Task ID to update
+    /// * `update` - Fields to update (only provided fields are updated)
+    ///
+    /// # Returns
+    /// Ok(()) on success
     async fn update_task(&self, id: u64, update: TaskUpdate) -> Result<(), StorageError>;
 
     /// Delete a task
+    ///
+    /// # Arguments
+    /// * `id` - Task ID to delete
+    ///
+    /// # Returns
+    /// Ok(()) on success
     async fn delete_task(&self, id: u64) -> Result<(), StorageError>;
 }
 

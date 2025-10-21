@@ -34,6 +34,18 @@ impl GitHubTaskStorage {
     }
 
     /// Convert GitHub Issue to A2ATask
+    ///
+    /// Extracts task information from GitHub Issue metadata:
+    /// - Status: From `a2a:pending`, `a2a:in-progress`, etc. labels
+    /// - Task Type: From `a2a:codegen`, `a2a:review`, etc. labels
+    /// - Agent: From Issue assignee
+    /// - Timestamps: From Issue created_at/updated_at
+    ///
+    /// # Arguments
+    /// * `issue` - GitHub Issue to convert
+    ///
+    /// # Returns
+    /// Converted A2ATask with metadata extracted from labels and fields
     fn issue_to_task(&self, issue: Issue) -> Result<A2ATask, StorageError> {
         // Extract status from labels
         let status = issue
@@ -99,6 +111,18 @@ impl GitHubTaskStorage {
 
 #[async_trait]
 impl TaskStorage for GitHubTaskStorage {
+    /// Save a new task by creating a GitHub Issue
+    ///
+    /// Creates a GitHub Issue with:
+    /// - Title and description from task
+    /// - Status label (e.g., `a2a:pending`)
+    /// - Task type label (e.g., `a2a:codegen`)
+    ///
+    /// # Arguments
+    /// * `task` - The task to save
+    ///
+    /// # Returns
+    /// GitHub Issue number (task ID)
     async fn save_task(&self, task: A2ATask) -> Result<u64, StorageError> {
         info!(
             "Creating GitHub Issue for task: {}",
@@ -122,6 +146,15 @@ impl TaskStorage for GitHubTaskStorage {
         Ok(issue.number)
     }
 
+    /// Get a task by ID (GitHub Issue number)
+    ///
+    /// # Arguments
+    /// * `id` - GitHub Issue number
+    ///
+    /// # Returns
+    /// - `Some(task)` if found
+    /// - `None` if not found (404)
+    /// - `Err` for other errors
     async fn get_task(&self, id: u64) -> Result<Option<A2ATask>, StorageError> {
         debug!("Fetching task #{} from GitHub", id);
 
@@ -143,6 +176,16 @@ impl TaskStorage for GitHubTaskStorage {
         }
     }
 
+    /// List tasks with optional filtering
+    ///
+    /// For MVP, fetches all Issues and applies filters in memory.
+    /// In production, should use GitHub API query parameters for efficiency.
+    ///
+    /// # Arguments
+    /// * `filter` - Filter criteria (status, context_id, agent, updated_after, limit)
+    ///
+    /// # Returns
+    /// List of tasks matching the filter
     async fn list_tasks(&self, filter: TaskFilter) -> Result<Vec<A2ATask>, StorageError> {
         debug!("Listing tasks with filter: {:?}", filter);
 
@@ -185,6 +228,24 @@ impl TaskStorage for GitHubTaskStorage {
         Ok(tasks)
     }
 
+    /// Update an existing task
+    ///
+    /// Updates task fields via GitHub Issue API:
+    /// - **Description**: Updates Issue body
+    /// - **Status**: Updates labels (removes old status label, adds new one)
+    ///
+    /// Status update process:
+    /// 1. Fetch current Issue to get existing labels
+    /// 2. Filter out old status labels (a2a:pending, a2a:in-progress, etc.)
+    /// 3. Add new status label
+    /// 4. Update Issue with new label set
+    ///
+    /// # Arguments
+    /// * `id` - GitHub Issue number
+    /// * `update` - Fields to update
+    ///
+    /// # Returns
+    /// Ok(()) on success
     async fn update_task(&self, id: u64, update: TaskUpdate) -> Result<(), StorageError> {
         info!("Updating task #{}", id);
 
@@ -240,6 +301,17 @@ impl TaskStorage for GitHubTaskStorage {
         Ok(())
     }
 
+    /// Delete a task (closes GitHub Issue)
+    ///
+    /// GitHub Issues cannot be permanently deleted, so this method
+    /// closes the Issue instead. Closed Issues remain in the repository
+    /// for audit trail purposes.
+    ///
+    /// # Arguments
+    /// * `id` - GitHub Issue number
+    ///
+    /// # Returns
+    /// Ok(()) on success
     async fn delete_task(&self, id: u64) -> Result<(), StorageError> {
         info!("Closing task #{} (GitHub Issues don't support deletion)", id);
 

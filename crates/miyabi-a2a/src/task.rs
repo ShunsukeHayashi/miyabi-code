@@ -62,6 +62,14 @@ pub enum TaskStatus {
 
 impl TaskStatus {
     /// Convert to GitHub label format
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_a2a::TaskStatus;
+    ///
+    /// assert_eq!(TaskStatus::Pending.to_label(), "a2a:pending");
+    /// assert_eq!(TaskStatus::InProgress.to_label(), "a2a:in-progress");
+    /// ```
     pub fn to_label(&self) -> String {
         format!("a2a:{}", self.to_string().to_lowercase())
     }
@@ -99,6 +107,14 @@ pub enum TaskType {
 
 impl TaskType {
     /// Convert to GitHub label format
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_a2a::TaskType;
+    ///
+    /// assert_eq!(TaskType::CodeGeneration.to_label(), "a2a:codegen");
+    /// assert_eq!(TaskType::CodeReview.to_label(), "a2a:review");
+    /// ```
     pub fn to_label(&self) -> String {
         format!("a2a:{}", self.to_string().to_lowercase())
     }
