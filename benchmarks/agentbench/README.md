@@ -41,41 +41,45 @@ benchmarks/agentbench/
 
 ---
 
-## 🚀 クイックスタート（TODO）
+## 🚀 クイックスタート
 
-**注意**: 本格的なセットアップはIssue #404で実施予定
+**自動セットアップスクリプト**: `setup-agentbench.sh`
 
-### Step 1: 必須Dockerイメージ準備
-
-```bash
-cd benchmarks/agentbench/AgentBench
-
-# DBBench用
-docker pull mysql:8
-
-# OS Interaction用（ビルド必要）
-docker build -t local-os/default -f ./data/os_interaction/res/dockerfiles/default data/os_interaction/res/dockerfiles
-docker build -t local-os/packages -f ./data/os_interaction/res/dockerfiles/packages data/os_interaction/res/dockerfiles
-docker build -t local-os/ubuntu -f ./data/os_interaction/res/dockerfiles/ubuntu data/os_interaction/res/dockerfiles
-```
-
-### Step 2: Freebaseデータ準備（KG環境用）
+### Option 1: 全自動セットアップ
 
 ```bash
-# Freebaseデータダウンロード（約XGB）
-# https://github.com/dki-lab/Freebase-Setup
-
-# データ配置
-# ./virtuoso_db/virtuoso.db に配置
+cd benchmarks/agentbench
+./setup-agentbench.sh all
 ```
 
-### Step 3: Docker Compose起動
+### Option 2: ステップ毎にセットアップ
 
 ```bash
-docker compose -f extra/docker-compose.yml up
+# Step 1: Python依存関係インストール
+./setup-agentbench.sh deps
+
+# Step 2: Dockerイメージビルド
+./setup-agentbench.sh docker
+
+# Step 3: Freebaseデータ準備（手動ステップあり）
+./setup-agentbench.sh freebase
+
+# Step 4: Docker Compose起動
+./setup-agentbench.sh compose
 ```
 
-**起動されるサービス**:
+### Option 3: ステータス確認
+
+```bash
+# 現在の環境状態をチェック
+./setup-agentbench.sh status
+
+# Docker Compose停止
+./setup-agentbench.sh stop
+```
+
+### 起動されるサービス
+
 - AgentRL Controller
 - alfworld task worker (x1)
 - dbbench task worker (x1)
@@ -133,11 +137,12 @@ AgentBench FC リーダーボード: https://docs.google.com/spreadsheets/d/e/2P
 ## 📝 ステータス
 
 - ✅ リポジトリクローン完了（2025-10-22）
-- ⏳ 環境セットアップ（Issue #404で実施予定）
-- ⏳ Miyabi統合（Issue #404で実施予定）
-- ⏳ 評価実行（Issue #404で実施予定）
+- ✅ セットアップスクリプト作成（2025-10-22, Issue #405）
+- ⏳ 環境セットアップ実行（マシン依存・手動実施）
+- ⏳ Miyabi統合（Issue #406で実施予定）
+- ⏳ 評価実行（Issue #406で実施予定）
 
 ---
 
 **最終更新**: 2025-10-22
-**関連Issue**: #397（親）, #404（本Issue）
+**関連Issue**: #397（親）, #404, #405（セットアップ）
