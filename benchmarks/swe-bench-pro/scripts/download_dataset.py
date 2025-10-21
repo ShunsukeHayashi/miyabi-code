@@ -10,7 +10,7 @@ from pathlib import Path
 from datasets import load_dataset
 from typing import Dict, List
 
-def download_swebench_pro(output_dir: Path = Path("/workspace/data")) -> None:
+def download_swebench_pro(output_dir: Path = Path("data")) -> None:
     """
     SWE-bench Proデータセットをダウンロード
 
