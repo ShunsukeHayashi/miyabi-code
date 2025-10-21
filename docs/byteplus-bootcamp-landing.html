@@ -264,16 +264,17 @@
             outline-offset: 2px;
         }
 
-        /* Hero Section */
+        /* Hero Section - Ive Style: Minimalism & Clarity */
         .hero {
-            background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-400) 100%);
+            background: var(--color-gray-900);
             color: white;
-            padding: var(--spacing-20) var(--spacing-5) var(--spacing-20);
+            padding: 120px var(--spacing-8) 120px;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
 
+        /* Subtle gradient overlay for depth */
         .hero::before {
             content: "";
             position: absolute;
@@ -281,92 +282,92 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
-            background-size: cover;
-            opacity: 0.3;
+            background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.08) 0%, transparent 70%);
+            opacity: 1;
         }
 
         .hero-content {
             position: relative;
             z-index: 1;
-            max-width: 1200px;
+            max-width: 980px;
             margin: 0 auto;
         }
 
         .hero h1 {
-            font-size: var(--font-size-5xl);
-            font-weight: var(--font-weight-bold);
-            margin-bottom: var(--spacing-5);
+            font-size: 4.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--spacing-8);
             animation: fadeInUp 1s ease;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: none;
+            line-height: 1.1;
         }
 
         .hero .subtitle {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-8);
-            opacity: 0.95;
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-normal);
+            margin-bottom: 60px;
+            opacity: 0.85;
             animation: fadeInUp 1s ease 0.2s backwards;
+            line-height: var(--line-height-relaxed);
+            letter-spacing: -0.01em;
         }
 
         .hero .event-info {
-            font-size: var(--font-size-xl);
-            margin-bottom: var(--spacing-10);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-normal);
+            margin-bottom: 60px;
             animation: fadeInUp 1s ease 0.4s backwards;
-            background: rgba(0, 0, 0, 0.2);
-            padding: var(--spacing-5);
-            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: var(--spacing-8);
+            border-radius: var(--radius-2xl);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             display: inline-block;
+            max-width: 600px;
         }
 
         .event-info p {
-            margin: var(--spacing-2) 0;
+            margin: var(--spacing-3) 0;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: var(--line-height-relaxed);
         }
 
+        .event-info strong {
+            color: white;
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* CTA Button - Ive Style: Minimal & Precise */
         .cta-button {
             display: inline-block;
-            background: white;
-            color: var(--color-primary-500);
-            padding: var(--spacing-4) var(--spacing-10);
-            min-height: 48px; /* Accessibility: minimum touch target size */
-            min-width: 48px;
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-bold);
-            border-radius: var(--radius-full);
+            background: var(--color-primary-500);
+            color: white;
+            padding: 18px 48px;
+            min-height: 48px;
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-medium);
+            letter-spacing: -0.01em;
+            border-radius: 980px;
             text-decoration: none;
             transition: all var(--transition-base);
             animation: fadeInUp 1s ease 0.6s backwards;
-            box-shadow: var(--shadow-xl);
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
             border: none;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
-        }
-
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 107, 0, 0.1);
-            transform: translate(-50%, -50%);
-            transition: width var(--transition-slow), height var(--transition-slow);
-        }
-
-        .cta-button:hover::before {
-            width: 300px;
-            height: 300px;
+            overflow: visible;
         }
 
         .cta-button:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: var(--shadow-2xl);
+            background: var(--color-primary-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.4);
         }
 
         .cta-button:active {
-            transform: translateY(-1px) scale(0.98);
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
             transition: all var(--transition-fast);
         }
 
@@ -381,38 +382,33 @@
             }
         }
 
-        /* Container */
+        /* Container - Ive Style: Generous Spacing */
         .container {
-            max-width: 1200px;
+            max-width: 1120px;
             margin: 0 auto;
-            padding: var(--spacing-20) var(--spacing-5);
+            padding: 100px var(--spacing-8) 100px;
         }
 
         /* Section */
         .section {
-            margin-bottom: var(--spacing-20);
+            margin-bottom: 120px;
         }
 
+        /* Section Title - Ive Style: Large, Clear, Minimal */
         .section-title {
-            font-size: var(--font-size-4xl);
-            font-weight: var(--font-weight-bold);
-            margin-bottom: var(--spacing-10);
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 80px;
             text-align: center;
-            color: var(--color-text-primary);
+            color: var(--color-gray-900);
             position: relative;
-            padding-bottom: var(--spacing-5);
+            padding-bottom: 0;
+            line-height: 1.1;
         }
 
         .section-title::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-400));
-            border-radius: var(--radius-sm);
+            display: none; /* Remove decorative underline */
         }
 
         /* Features Grid */
@@ -423,14 +419,14 @@
             margin-top: 50px;
         }
 
+        /* Feature Card - Ive Style: Clean, Flat, Subtle */
         .feature-card {
-            background: var(--color-background);
-            padding: var(--spacing-10) var(--spacing-8);
-            border-radius: var(--radius-2xl);
-            box-shadow: var(--shadow-lg);
-            transition: transform var(--transition-base),
-                        box-shadow var(--transition-base),
-                        background-color var(--transition-base);
+            background: white;
+            padding: 48px 40px;
+            border-radius: 24px;
+            border: 1px solid var(--color-gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
             text-align: center;
             cursor: pointer;
             position: relative;
@@ -438,57 +434,50 @@
         }
 
         .feature-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.05), transparent);
-            transition: left 0.5s;
-        }
-
-        .feature-card:hover::after {
-            left: 100%;
+            display: none; /* Remove shine effect */
         }
 
         .feature-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: var(--shadow-2xl);
-            background-color: var(--color-primary-50);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
         }
 
         .feature-icon {
-            font-size: var(--font-size-6xl);
-            margin-bottom: var(--spacing-5);
+            font-size: 3rem;
+            margin-bottom: var(--spacing-6);
             transition: transform var(--transition-base);
             display: inline-block;
+            opacity: 0.9;
         }
 
         .feature-card:hover .feature-icon {
-            transform: scale(1.1) rotate(5deg);
+            transform: scale(1.05);
+            opacity: 1;
         }
 
         .feature-card h3 {
-            font-size: var(--font-size-2xl);
-            font-weight: var(--font-weight-semibold);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            letter-spacing: -0.01em;
             margin-bottom: var(--spacing-4);
-            color: var(--color-primary-500);
+            color: var(--color-gray-900);
             transition: color var(--transition-base);
         }
 
         .feature-card:hover h3 {
-            color: var(--color-primary-400);
+            color: var(--color-gray-900);
         }
 
         .feature-card p {
-            color: var(--color-text-secondary);
-            line-height: var(--line-height-loose);
+            color: var(--color-gray-600);
+            line-height: var(--line-height-relaxed);
+            font-size: var(--font-size-sm);
             transition: color var(--transition-base);
         }
 
         .feature-card:hover p {
-            color: var(--color-text-primary);
+            color: var(--color-gray-700);
         }
 
         /* Agenda */
@@ -498,41 +487,43 @@
             margin: 0 auto;
         }
 
+        /* Agenda Item - Ive Style: Minimal Border, Subtle Hover */
         .agenda-item {
-            background: var(--color-background);
-            padding: var(--spacing-8);
-            margin-bottom: var(--spacing-5);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            border-left: 5px solid var(--color-primary-500);
-            transition: transform var(--transition-base),
-                        box-shadow var(--transition-base),
-                        border-left-width var(--transition-base);
+            background: white;
+            padding: 40px;
+            margin-bottom: var(--spacing-6);
+            border-radius: 20px;
+            border: 1px solid var(--color-gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
             cursor: pointer;
         }
 
         .agenda-item:hover {
-            transform: translateX(10px) scale(1.01);
-            box-shadow: var(--shadow-xl);
-            border-left-width: 8px;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
         }
 
         .agenda-item h3 {
-            color: var(--color-primary-500);
-            font-size: var(--font-size-2xl);
-            font-weight: var(--font-weight-semibold);
+            color: var(--color-gray-900);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            letter-spacing: -0.01em;
             margin-bottom: var(--spacing-3);
         }
 
         .agenda-item .time {
-            color: var(--color-text-tertiary);
+            color: var(--color-gray-500);
             font-size: var(--font-size-sm);
-            margin-bottom: var(--spacing-3);
+            margin-bottom: var(--spacing-4);
+            font-weight: var(--font-weight-medium);
         }
 
         .agenda-item .description {
-            color: var(--color-text-secondary);
-            line-height: var(--line-height-loose);
+            color: var(--color-gray-600);
+            line-height: var(--line-height-relaxed);
+            font-size: var(--font-size-sm);
         }
 
         /* Target Audience */
@@ -543,38 +534,50 @@
             margin-top: 40px;
         }
 
+        /* Audience Card - Ive Style: Subtle Gradient, Refined */
         .audience-card {
-            background: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-800) 100%);
-            color: white;
-            padding: var(--spacing-8);
-            border-radius: var(--radius-lg);
+            background: white;
+            color: var(--color-gray-900);
+            padding: 48px var(--spacing-8);
+            border-radius: 24px;
             text-align: center;
-            transition: transform var(--transition-base),
-                        box-shadow var(--transition-base);
+            border: 1px solid var(--color-gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         .audience-card:hover {
-            transform: scale(1.05) translateY(-5px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
         }
 
         .audience-card .icon {
-            font-size: var(--font-size-5xl);
-            margin-bottom: var(--spacing-4);
+            font-size: 3rem;
+            margin-bottom: var(--spacing-5);
             transition: transform var(--transition-base);
             display: inline-block;
+            opacity: 0.9;
         }
 
         .audience-card:hover .icon {
-            transform: scale(1.15) rotate(-5deg);
+            transform: scale(1.05);
+            opacity: 1;
         }
 
         .audience-card h3 {
             font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-semibold);
+            font-weight: 600;
+            letter-spacing: -0.01em;
             margin-bottom: var(--spacing-3);
+            color: var(--color-gray-900);
+        }
+
+        .audience-card p {
+            color: var(--color-gray-600);
+            line-height: var(--line-height-relaxed);
+            font-size: var(--font-size-sm);
         }
 
         /* Stats */
@@ -586,63 +589,74 @@
             text-align: center;
         }
 
+        /* Stat Item - Ive Style: Minimal, Elegant Numbers */
         .stat-item {
-            padding: var(--spacing-8);
-            background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-400) 100%);
-            color: white;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 5px 20px rgba(255,107,0,0.3);
-            transition: transform var(--transition-base),
-                        box-shadow var(--transition-base);
+            padding: 48px var(--spacing-8);
+            background: white;
+            border: 1px solid var(--color-gray-200);
+            border-radius: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
             cursor: pointer;
         }
 
         .stat-item:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 12px 30px rgba(255,107,0,0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
         }
 
         .stat-number {
-            font-size: var(--font-size-5xl);
-            font-weight: var(--font-weight-bold);
+            font-size: 4rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
             margin-bottom: var(--spacing-3);
+            color: var(--color-primary-500);
             transition: transform var(--transition-base);
             display: inline-block;
+            line-height: 1;
         }
 
         .stat-item:hover .stat-number {
-            transform: scale(1.1);
+            transform: scale(1.02);
         }
 
         .stat-label {
-            font-size: var(--font-size-lg);
-            opacity: 0.9;
-            transition: opacity var(--transition-base);
+            font-size: var(--font-size-base);
+            color: var(--color-gray-600);
+            font-weight: var(--font-weight-medium);
+            transition: color var(--transition-base);
         }
 
         .stat-item:hover .stat-label {
-            opacity: 1;
+            color: var(--color-gray-700);
         }
 
-        /* CTA Section */
+        /* CTA Section - Ive Style: Simple, Focused */
         .cta-section {
-            background: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-800) 100%);
-            color: white;
+            background: var(--color-gray-50);
+            color: var(--color-gray-900);
             text-align: center;
-            padding: var(--spacing-20) var(--spacing-5);
-            margin-top: var(--spacing-20);
+            padding: 120px var(--spacing-8);
+            margin-top: 0;
         }
 
         .cta-section h2 {
-            font-size: var(--font-size-4xl);
-            font-weight: var(--font-weight-bold);
-            margin-bottom: var(--spacing-8);
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--spacing-6);
+            line-height: 1.1;
         }
 
         .cta-section p {
-            font-size: var(--font-size-xl);
-            margin-bottom: var(--spacing-10);
-            opacity: 0.95;
+            font-size: var(--font-size-lg);
+            color: var(--color-gray-600);
+            margin-bottom: 48px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: var(--line-height-relaxed);
         }
 
         .cta-section .cta-button {
@@ -651,33 +665,34 @@
         }
 
         .cta-section .cta-button:hover {
-            background: var(--color-primary-400);
+            background: var(--color-primary-600);
         }
 
-        /* Footer */
+        /* Footer - Ive Style: Minimal, Elegant */
         .footer {
             background: var(--color-gray-900);
-            color: white;
+            color: rgba(255, 255, 255, 0.7);
             text-align: center;
-            padding: var(--spacing-10) var(--spacing-5);
+            padding: 60px var(--spacing-8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .footer p {
-            margin: var(--spacing-3) 0;
-            opacity: 0.8;
+            margin: var(--spacing-4) 0;
+            font-size: var(--font-size-sm);
+            line-height: var(--line-height-relaxed);
         }
 
         .footer a {
-            color: var(--color-primary-500);
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
-            transition: color var(--transition-base), transform var(--transition-base);
+            transition: color var(--transition-base);
             display: inline-block;
+            font-weight: var(--font-weight-medium);
         }
 
         .footer a:hover {
-            color: var(--color-primary-400);
-            text-decoration: underline;
-            transform: translateX(3px);
+            color: white;
         }
 
         /* Fixed CTA Button (Mobile) */
@@ -703,55 +718,76 @@
             animation: none;
         }
 
-        /* Responsive */
+        /* Responsive - Ive Style: Adaptive Typography */
         @media (max-width: 768px) {
             body {
-                font-size: 16px; /* Maintain minimum readable size */
+                font-size: 16px;
+            }
+
+            .hero {
+                padding: 80px var(--spacing-5);
             }
 
             .hero h1 {
-                font-size: 2rem; /* Improved mobile readability */
+                font-size: 2.5rem;
+                letter-spacing: -0.015em;
             }
 
             .hero .subtitle {
-                font-size: 1.2rem;
+                font-size: var(--font-size-lg);
             }
 
             .hero .event-info {
-                font-size: 1rem;
-                padding: 15px;
+                font-size: var(--font-size-sm);
+                padding: var(--spacing-6);
+            }
+
+            .container {
+                padding: 60px var(--spacing-5);
+            }
+
+            .section {
+                margin-bottom: 80px;
             }
 
             .section-title {
-                font-size: 1.8rem;
+                font-size: 2.25rem;
+                margin-bottom: 48px;
             }
 
             .features-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: var(--spacing-5);
             }
 
             .feature-card {
-                padding: 30px 20px;
-                min-height: 48px; /* Touch target */
+                padding: 32px 24px;
             }
 
             .stat-number {
-                font-size: 2.5rem;
+                font-size: 3rem;
             }
 
             .cta-button {
-                padding: 14px 32px;
-                font-size: 1.1rem;
-                min-height: 48px; /* Ensure touch target */
+                padding: 16px 40px;
+                font-size: var(--font-size-base);
+                min-height: 48px;
             }
 
             .agenda-item {
-                padding: 20px;
+                padding: 28px 24px;
             }
 
             .audience-card {
-                padding: 25px;
+                padding: 32px 24px;
+            }
+
+            .cta-section {
+                padding: 80px var(--spacing-5);
+            }
+
+            .cta-section h2 {
+                font-size: 2.25rem;
             }
 
             /* Show fixed CTA on mobile */
@@ -759,7 +795,6 @@
                 display: block;
             }
 
-            /* Add padding to body to prevent content hiding behind fixed CTA */
             body {
                 padding-bottom: 80px;
             }
@@ -774,17 +809,17 @@
     <!-- Hero Section -->
     <header class="hero" role="banner">
         <div class="hero-content">
-            <h1 id="page-title">🎥 BytePlus Video AI Bootcamp 2025</h1>
+            <h1 id="page-title">BytePlus Video AI Bootcamp 2025</h1>
             <p class="subtitle">3時間で習得する次世代動画生成API実装</p>
 
             <div class="event-info">
-                <p><strong>📅 日時:</strong> 2025年XX月XX日 10:00-13:30</p>
-                <p><strong>📍 場所:</strong> オンライン（Zoom）</p>
-                <p><strong>💰 参加費:</strong> 無料（先着50名）</p>
-                <p><strong>🎁 特典:</strong> 150ページスライド + コードサンプル30個</p>
+                <p><strong>日時</strong> 2025年XX月XX日 10:00-13:30</p>
+                <p><strong>場所</strong> オンライン（Zoom）</p>
+                <p><strong>参加費</strong> 無料（先着50名）</p>
+                <p><strong>特典</strong> 150ページスライド + コードサンプル30個</p>
             </div>
 
-            <a href="#register" class="cta-button" aria-label="今すぐ無料でByteePlus Bootcampに申し込む">今すぐ無料申し込み →</a>
+            <a href="#register" class="cta-button" aria-label="今すぐ無料でByteePlus Bootcampに申し込む">今すぐ無料申し込み</a>
         </div>
     </header>
 
@@ -816,7 +851,7 @@
     <!-- Features Section -->
     <div class="container">
         <section class="section" aria-labelledby="features-heading">
-            <h2 id="features-heading" class="section-title">🎯 このBootcampで得られるもの</h2>
+            <h2 id="features-heading" class="section-title">このBootcampで得られるもの</h2>
 
             <div class="features-grid">
                 <div class="feature-card">
@@ -859,7 +894,7 @@
 
         <!-- Agenda Section -->
         <section class="section" aria-labelledby="agenda-heading">
-            <h2 id="agenda-heading" class="section-title">📋 アジェンダ（全7パート）</h2>
+            <h2 id="agenda-heading" class="section-title">アジェンダ（全7パート）</h2>
 
             <ul class="agenda-list">
                 <li class="agenda-item">
@@ -912,7 +947,7 @@
 
         <!-- Target Audience Section -->
         <section class="section" aria-labelledby="audience-heading">
-            <h2 id="audience-heading" class="section-title">👥 対象者</h2>
+            <h2 id="audience-heading" class="section-title">対象者</h2>
 
             <div class="audience-grid">
                 <div class="audience-card">
@@ -947,14 +982,14 @@
 
     <!-- CTA Section -->
     <section class="cta-section" aria-labelledby="register-heading">
-        <h2 id="register-heading">🚀 今すぐ無料申し込み</h2>
-        <p>先着50名限定！ 150ページスライド + コードサンプル30個を無料プレゼント</p>
+        <h2 id="register-heading">今すぐ無料申し込み</h2>
+        <p>先着50名限定。150ページスライド + コードサンプル30個を無料プレゼント</p>
         <a href="https://forms.google.com/byteplus-bootcamp-2025" class="cta-button" target="_blank" aria-label="申し込みフォームへ移動（新しいタブで開く）">
-            申し込みフォームへ →
+            申し込みフォームへ
         </a>
-        <p style="margin-top: 30px; font-size: 1rem; opacity: 0.8;">
-            📧 お問い合わせ: info@byteplus-partner.com<br>
-            🌐 公式サイト: https://byteplus-bootcamp.com
+        <p style="margin-top: 48px; font-size: 0.875rem; color: var(--color-gray-600);">
+            お問い合わせ: info@byteplus-partner.com<br>
+            公式サイト: byteplus-bootcamp.com
         </p>
     </section>
 
@@ -1105,7 +1140,7 @@
     <!-- Mobile Fixed CTA -->
     <div class="mobile-cta-fixed">
         <a href="#register" class="cta-button" aria-label="無料申し込みへ移動">
-            今すぐ無料申し込み →
+            今すぐ無料申し込み
         </a>
     </div>
 
