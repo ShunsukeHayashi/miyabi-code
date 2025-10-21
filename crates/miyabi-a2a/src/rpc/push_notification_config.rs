@@ -314,14 +314,14 @@ mod tests {
     async fn test_memory_storage_validates_url() {
         let storage = MemoryConfigStorage::new();
 
-        // Try to set config with invalid URL
+        // Try to set config with invalid URL (no http/https scheme)
         let config = PushNotificationConfig::new("client-1", "invalid url");
         let result = storage.set_config(config).await;
 
         assert!(result.is_err());
         match result.unwrap_err() {
             A2AError::InvalidRequest(msg) => {
-                assert!(msg.contains("Invalid webhook URL"));
+                assert!(msg.contains("Webhook URL must start with"));
             }
             _ => panic!("Expected InvalidRequest error"),
         }

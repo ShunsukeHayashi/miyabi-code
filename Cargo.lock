@@ -1755,6 +1755,7 @@ dependencies = [
  "miyabi-types",
  "octocrab 0.47.0",
  "prost",
+ "reqwest 0.12.24",
  "serde",
  "serde_json",
  "sha2",
@@ -1765,6 +1766,7 @@ dependencies = [
  "tonic",
  "tonic-build",
  "tracing",
+ "url",
  "wiremock",
 ]
 

@@ -57,13 +57,23 @@
 //! }
 //! ```
 
+pub mod error;
 pub mod storage;
 pub mod task;
 
+// RPC modules for push notification configuration
+pub mod rpc;
+
 // Re-export main types
+pub use error::{A2AError, A2AResult};
 pub use storage::{
     cursor::{CursorError, Direction, PaginatedResult, PaginationCursor},
     github::GitHubTaskStorage,
     StorageError, TaskFilter, TaskStorage, TaskUpdate,
 };
 pub use task::{A2ATask, TaskStatus, TaskType};
+
+// Re-export RPC types
+pub use rpc::push_notification_config::{
+    ConfigStorage, MemoryConfigStorage, PushNotificationConfig,
+};
