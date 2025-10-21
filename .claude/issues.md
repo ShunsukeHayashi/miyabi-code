@@ -21,7 +21,7 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 
 ## 📌 P2 (Medium) - 中優先度
 
-- [ ] #202: Harden Domain Models - Normalize core types, tighten invariants
+（現在P2はありません）
 
 ## 📝 P3 (Low) - 低優先度
 
@@ -31,6 +31,7 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 
 ## ✅ 完了済み (Completed)
 
+- [x] #202: Harden Domain Models (2025-10-21完了 - Priority bug fix + 5 validation methods)
 - [x] #277: テストカバレッジ向上 (2025-10-21完了 - 4 crate修正 53テスト通過)
 - [x] #276: A2A Webhook Authentication実装 (2025-10-21完了 - HMAC-SHA256署名 + 9テスト)
 - [x] #275: Rust移行チェックリスト完了 (2025-10-21完了 - 26ファイル100%完了)
@@ -52,9 +53,9 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 |--------|---------|------|
 | P0     | 0       | 2    |
 | P1     | 0       | 2    |
-| P2     | 1       | 2    |
+| P2     | 0       | 3    |
 | P3     | 0       | 2    |
-| **合計** | **1** | **10** |
+| **合計** | **0** | **11** |
 
 ---
 
