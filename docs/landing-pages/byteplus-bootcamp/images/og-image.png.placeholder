@@ -1,0 +1,35 @@
+# OG Image Placeholder
+
+**Required Specifications:**
+- **Size**: 1200x630px (Facebook/Twitter OG standard)
+- **Format**: PNG or WebP (optimized)
+- **Content**: Social media share image with branding
+- **File Size**: < 300KB (optimized)
+
+**Design Notes:**
+- Include seminar title: "BytePlus Video API Bootcamp"
+- Include key value proposition: "3時間で習得 動画制作コスト70%削減"
+- Include BytePlus Partner branding
+- Use eye-catching colors (orange #FF6B00)
+- Include date: "2025年11月15日開催"
+
+**Layout Suggestion:**
+```
++------------------------------------------+
+|  [BytePlus Logo]          [Partner Badge]|
+|                                          |
+|     BytePlus Video API Bootcamp          |
+|                                          |
+|   3時間で習得 動画制作コスト70%削減        |
+|                                          |
+|          2025年11月15日開催               |
+|    オンライン￥29,800 / オフライン￥39,800  |
+|                                          |
+|        [CTA Button: 今すぐ申し込む]       |
++------------------------------------------+
+```
+
+**Optimization Command:**
+```bash
+convert og-image.png -quality 85 -strip og-image.png
+```

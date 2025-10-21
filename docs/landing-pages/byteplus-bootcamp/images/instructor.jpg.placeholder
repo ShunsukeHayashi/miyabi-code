@@ -1,0 +1,20 @@
+# Instructor Photo Placeholder
+
+**Required Specifications:**
+- **Size**: 400x400px (square)
+- **Format**: JPG or WebP (optimized)
+- **Content**: Professional headshot of the instructor
+- **File Size**: < 100KB (optimized)
+
+**Design Notes:**
+- Professional business casual attire
+- Neutral background
+- Good lighting
+- Smiling, approachable expression
+
+**Optimization Command:**
+```bash
+convert instructor.jpg -resize 400x400^ -gravity center -extent 400x400 -quality 85 -strip instructor.jpg
+# or WebP
+cwebp -q 85 instructor.jpg -o instructor.webp
+```

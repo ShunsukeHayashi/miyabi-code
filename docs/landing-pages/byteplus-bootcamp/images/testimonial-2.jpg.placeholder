@@ -1,0 +1,18 @@
+# Testimonial 2 Photo Placeholder
+
+**Required Specifications:**
+- **Size**: 200x200px (square)
+- **Format**: JPG or WebP (optimized)
+- **Content**: Professional headshot of participant 2 (佐藤 次郎)
+- **File Size**: < 50KB (optimized)
+
+**Design Notes:**
+- Professional attire
+- Neutral background
+- Good lighting
+- Professional expression
+
+**Optimization Command:**
+```bash
+convert testimonial-2.jpg -resize 200x200^ -gravity center -extent 200x200 -quality 85 -strip testimonial-2.jpg
+```

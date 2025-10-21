@@ -1,0 +1,20 @@
+# Hero Demo Image Placeholder
+
+**Required Specifications:**
+- **Size**: 1200x800px
+- **Format**: PNG or WebP (optimized)
+- **Content**: BytePlus Video API dashboard screenshot or demo video thumbnail
+- **File Size**: < 200KB (optimized)
+
+**Design Notes:**
+- Show the API interface in action
+- Include visual elements that demonstrate video generation
+- Use bright, modern UI design
+- Ensure high contrast for readability
+
+**Optimization Command:**
+```bash
+convert hero-demo.png -quality 85 -strip hero-demo.png
+# or WebP
+cwebp -q 85 hero-demo.png -o hero-demo.webp
+```

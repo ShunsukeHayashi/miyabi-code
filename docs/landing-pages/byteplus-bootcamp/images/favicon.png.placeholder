@@ -1,0 +1,24 @@
+# Favicon Placeholder
+
+**Required Specifications:**
+- **Size**: 32x32px (standard favicon size)
+- **Format**: PNG with transparency
+- **Content**: BytePlus "B" icon or simplified logo
+- **File Size**: < 10KB
+
+**Design Notes:**
+- Simple, recognizable icon
+- High contrast for visibility in browser tabs
+- Use BytePlus brand color (#FF6B00)
+- Transparent background
+
+**Optimization Command:**
+```bash
+convert favicon-large.png -resize 32x32 -quality 95 favicon.png
+```
+
+**Additional Sizes (Optional):**
+- 16x16px (favicon-16x16.png)
+- 180x180px (apple-touch-icon.png)
+- 192x192px (android-chrome-192x192.png)
+- 512x512px (android-chrome-512x512.png)
