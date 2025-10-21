@@ -30,6 +30,33 @@ TypeScript版からの完全移植により、以下を実現：
 
 **参考**: [RUST_MIGRATION_REQUIREMENTS.md](docs/RUST_MIGRATION_REQUIREMENTS.md)
 
+### 🪟 Windows Platform Support
+
+**サポート状況**: ✅ 部分的サポート（CI/CD完備、Path処理改善中）
+
+MiyabiはRustで実装されているため、Windows環境でも動作します。現在のサポート状況：
+
+#### 実装済み
+- ✅ **CI/CD**: GitHub Actions `windows-latest`でビルド・テスト実行（`.github/workflows/rust.yml`）
+- ✅ **リリースバイナリ**: `miyabi.exe`の自動生成とアーティファクトアップロード
+- ✅ **クロスプラットフォームテスト**: stable + beta Rustでのテスト（Ubuntu, macOS, Windows）
+
+#### 実装中（Issue #360）
+- 🔄 **Path Handling**: `std::path::PathBuf`への完全移行（現在は一部String使用）
+- 🔄 **Git Worktree**: Windows固有のパス制限（260文字）対策
+- 🔄 **Environment Variables**: `dirs` crate統合による環境変数処理の統一
+
+#### 既知の制約
+1. **パス区切り文字**: 一部のコードで`/`ハードコード（改善中）
+2. **UNC Path**: `\\?\C:\...`形式の長いパス未対応（`dunce` crate導入予定）
+3. **CRLF/LF**: Git設定に依存（core.autocrlf推奨）
+
+**関連Issue**:
+- Issue #360: Windows Platform Support（プライベート）
+- Public Issue #164: Windows Platform Support（公開リポジトリ）
+
+**テスト環境**: Windows 10/11, PowerShell 5.1+, Git 2.x
+
 ### コアコンポーネント
 
 1. **Agent System** - 全21個のAgent（Coding: 7個 | Business: 14個）
