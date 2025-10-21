@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BytePlus Video AI Bootcamp 2025 - 3時間で習得する次世代動画生成API実装</title>
+    <meta name="description" content="3時間で習得する次世代動画生成API実装。BytePlus Video APIを使った15パターンの実装例、ハンズオン、収益化戦略まで完全網羅。">
+    <meta property="og:title" content="BytePlus Video AI Bootcamp 2025">
+    <meta property="og:description" content="3時間で習得する次世代動画生成API実装">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shunsukehayashi.github.io/miyabi-private/byteplus-bootcamp-landing.html">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #FF6B00 0%, #FF8C42 100%);
+            color: white;
+            padding: 120px 20px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero .subtitle {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        .hero .event-info {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease 0.4s backwards;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .event-info p {
+            margin: 8px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #FF6B00;
+            padding: 18px 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s;
+            animation: fadeInUp 1s ease 0.6s backwards;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #1A1A2E;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #FF6B00, #FF8C42);
+            border-radius: 2px;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #FF6B00;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* Agenda */
+        .agenda-list {
+            list-style: none;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .agenda-item {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #FF6B00;
+            transition: transform 0.3s;
+        }
+
+        .agenda-item:hover {
+            transform: translateX(10px);
+        }
+
+        .agenda-item h3 {
+            color: #FF6B00;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .agenda-item .time {
+            color: #999;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+
+        .agenda-item .description {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* Target Audience */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .audience-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .audience-card:hover {
+            transform: scale(1.05);
+        }
+
+        .audience-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .audience-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 30px;
+            background: linear-gradient(135deg, #FF6B00 0%, #FF8C42 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(255,107,0,0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+            margin-top: 80px;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .cta-section p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cta-section .cta-button {
+            background: #FF6B00;
+            color: white;
+        }
+
+        .cta-section .cta-button:hover {
+            background: #FF8C42;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1A1A2E;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .footer p {
+            margin: 10px 0;
+            opacity: 0.8;
+        }
+
+        .footer a {
+            color: #FF6B00;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.3rem;
+            }
+
+            .hero .event-info {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>🎥 BytePlus Video AI Bootcamp 2025</h1>
+            <p class="subtitle">3時間で習得する次世代動画生成API実装</p>
+
+            <div class="event-info">
+                <p><strong>📅 日時:</strong> 2025年XX月XX日 10:00-13:30</p>
+                <p><strong>📍 場所:</strong> オンライン（Zoom）</p>
+                <p><strong>💰 参加費:</strong> 無料（先着50名）</p>
+                <p><strong>🎁 特典:</strong> 150ページスライド + コードサンプル30個</p>
+            </div>
+
+            <a href="#register" class="cta-button">今すぐ無料申し込み →</a>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">150</div>
+                <div class="stat-label">ページ</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">15</div>
+                <div class="stat-label">実装パターン</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">3.5</div>
+                <div class="stat-label">時間</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">30+</div>
+                <div class="stat-label">コードサンプル</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">🎯 このBootcampで得られるもの</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>市場理解</h3>
+                    <p>AI動画生成市場の全体像と成長予測。TAM/SAM/SOM分析、競合21社の詳細調査。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>技術理解</h3>
+                    <p>BytePlus APIの仕様と実装方法。REST API + GraphQL、5言語SDK対応。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>実装スキル</h3>
+                    <p>15パターンの実装方法を習得。基本5 + 応用5 + 実践5パターン。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎓</div>
+                    <h3>実践経験</h3>
+                    <p>ハンズオンで実際に動画生成を体験。5つの演習 + トラブルシューティング。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>収益化知識</h3>
+                    <p>4つの収益化パターンを理解。月商¥500K〜¥10Mのビジネスモデル。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>即戦力</h3>
+                    <p>セミナー終了後すぐに案件獲得可能。無料トライアル + サンプルコード付き。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agenda Section -->
+        <section class="section">
+            <h2 class="section-title">📋 アジェンダ（全7パート）</h2>
+
+            <ul class="agenda-list">
+                <li class="agenda-item">
+                    <h3>Part 1: イントロダクション</h3>
+                    <p class="time">⏱️ 30分 | 📄 10ページ</p>
+                    <p class="description">セミナー概要、講師紹介、BytePlusとは何か、セミナーのゴール設定</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 2: 市場動向分析</h3>
+                    <p class="time">⏱️ 20分 | 📄 20ページ</p>
+                    <p class="description">市場規模（TAM/SAM/SOM）、地域別シェア、競合分析21社、価格戦略、ターゲット業界</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 3: BytePlus API概要</h3>
+                    <p class="time">⏱️ 25分 | 📄 25ページ</p>
+                    <p class="description">API概要、3つのコア機能、技術仕様、5言語SDK、統合例、200+テンプレート</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 4: 実装15パターン</h3>
+                    <p class="time">⏱️ 90分 | 📄 60ページ</p>
+                    <p class="description">
+                        <strong>基本5パターン:</strong> Text-to-Video、Image-to-Video、字幕生成、短尺変換、多言語対応<br>
+                        <strong>応用5パターン:</strong> A/Bテスト、バッチ生成、リアルタイム、Webhook、エラーハンドリング<br>
+                        <strong>実践5パターン:</strong> WordPress、Shopify、AWS Lambda、カスタムテンプレート、分析統合
+                    </p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 5: ハンズオンワークショップ</h3>
+                    <p class="time">⏱️ 20分 | 📄 20ページ</p>
+                    <p class="description">5つの演習: 環境セットアップ、Text-to-Video、Image-to-Video、字幕追加、チャレンジ課題</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 6: 収益化戦略</h3>
+                    <p class="time">⏱️ 15分 | 📄 8ページ</p>
+                    <p class="description">4つの収益化パターン: 受託（月商¥500K）、SaaS（月商¥2M）、コンサル（月商¥3M）、プラットフォーム統合（月商¥5-10M）</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 7: まとめ & Q&A</h3>
+                    <p class="time">⏱️ 15分 | 📄 7ページ</p>
+                    <p class="description">全体振り返り、Key Takeaways、次のステップ、リソース紹介、質疑応答</p>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Target Audience Section -->
+        <section class="section">
+            <h2 class="section-title">👥 対象者</h2>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <div class="icon">👨‍💻</div>
+                    <h3>エンジニア</h3>
+                    <p>API統合経験者、新技術習得を目指すフロントエンド/バックエンドエンジニア</p>
+                </div>
+
+                <div class="audience-card">
+                    <div class="icon">👔</div>
+                    <h3>経営者</h3>
+                    <p>AI動画生成事業の立ち上げを検討中の経営者、事業責任者</p>
+                </div>
+
+                <div class="audience-card">
+                    <div class="icon">📈</div>
+                    <h3>マーケター</h3>
+                    <p>動画マーケティングの自動化を目指すマーケティング担当者</p>
+                </div>
+
+                <div class="audience-card">
+                    <div class="icon">🎨</div>
+                    <h3>クリエイター</h3>
+                    <p>制作効率を向上させたい動画クリエイター、ディレクター</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2 id="register">🚀 今すぐ無料申し込み</h2>
+        <p>先着50名限定！ 150ページスライド + コードサンプル30個を無料プレゼント</p>
+        <a href="https://forms.google.com/byteplus-bootcamp-2025" class="cta-button" target="_blank">
+            申し込みフォームへ →
+        </a>
+        <p style="margin-top: 30px; font-size: 1rem; opacity: 0.8;">
+            📧 お問い合わせ: info@byteplus-partner.com<br>
+            🌐 公式サイト: https://byteplus-bootcamp.com
+        </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 BytePlus公式パートナー. All Rights Reserved.</p>
+        <p>
+            <a href="https://docs.byteplus.com">ドキュメント</a> |
+            <a href="https://github.com/byteplus/video-api-examples">GitHub</a> |
+            <a href="https://discord.gg/byteplus">Discord</a>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
+            Powered by <a href="https://github.com/ShunsukeHayashi/Miyabi">Miyabi Framework</a>
+        </p>
+    </footer>
+
+</body>
+</html>
