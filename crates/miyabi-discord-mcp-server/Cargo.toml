@@ -41,7 +41,7 @@ dotenv = "0.15"
 clap = { version = "4.5", features = ["derive"] }
 
 # HTTP client (for ARK API)
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.12", features = ["json"] }
 
 # HTTP server (for GitHub Webhooks)
 axum = "0.6"
