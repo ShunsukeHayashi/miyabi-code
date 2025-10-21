@@ -23,6 +23,12 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 base64 = "0.22"
 
+# HMAC-SHA256 for webhook authentication (Issue #276)
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+
 [dev-dependencies]
 tokio-test = "0.4"
 tempfile = "3.8"
+wiremock = "0.6"
