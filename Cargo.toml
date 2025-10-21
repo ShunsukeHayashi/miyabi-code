@@ -12,6 +12,7 @@ members = [
     "crates/miyabi-business-agents",
     "crates/miyabi-mcp-server",
     "crates/miyabi-discord-mcp-server",
+    "crates/miyabi-a2a",
 ]
 
 [workspace.package]
