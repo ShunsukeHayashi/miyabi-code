@@ -148,6 +148,56 @@ let filter = TaskFilter {
 let tasks = storage.list_tasks(filter).await?;
 ```
 
+#### `list_tasks_paginated(filter: TaskFilter) -> Result<PaginatedResult<A2ATask>>`
+
+List tasks with cursor-based pagination for efficient navigation through large task lists.
+
+**Pagination Features**:
+- ✅ Stable cursors (Base64-encoded)
+- ✅ Forward/backward navigation
+- ✅ Configurable page size (default: 50, max: 100)
+- ✅ `has_more` flag for detecting last page
+- ✅ Compatible with all filters
+
+```rust
+use miyabi_a2a::TaskFilter;
+
+// First page (50 items by default)
+let filter = TaskFilter {
+    status: Some(TaskStatus::Pending),
+    limit: Some(50),
+    ..Default::default()
+};
+
+let page1 = storage.list_tasks_paginated(filter).await?;
+println!("Page 1: {} items, has_more: {}", page1.items.len(), page1.has_more);
+
+// Navigate to next page
+if let Some(cursor) = page1.next_cursor {
+    let filter = TaskFilter {
+        cursor: Some(cursor),
+        limit: Some(50),
+        ..Default::default()
+    };
+
+    let page2 = storage.list_tasks_paginated(filter).await?;
+    println!("Page 2: {} items", page2.items.len());
+
+    // Navigate back to previous page
+    if let Some(cursor) = page2.previous_cursor {
+        let filter = TaskFilter {
+            cursor: Some(cursor),
+            ..Default::default()
+        };
+        let page1_again = storage.list_tasks_paginated(filter).await?;
+    }
+}
+```
+
+**Cursor Format**: Opaque Base64-encoded JSON containing `{last_id, last_updated, direction}`. Cursors are stable across requests.
+
+**Performance**: Same as `list_tasks()` - uses API-level filtering for status, in-memory for other criteria.
+
 #### `update_task(id: u64, update: TaskUpdate) -> Result<()>`
 
 Update an existing task.
@@ -273,8 +323,9 @@ Network: 10 Issues | Time: ~50ms
 ### Roadmap
 
 **Cursor-based Pagination** (Issue #279):
-- ⏳ Paginate through large result sets
-- ⏳ Support for 1000+ tasks
+- ✅ Paginate through large result sets
+- ✅ Support for 1000+ tasks
+- ✅ Forward/backward navigation with stable cursors
 
 **GraphQL API** (Future):
 - ⏳ Full API-level filtering (context_id, agent, timestamps)

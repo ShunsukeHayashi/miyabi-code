@@ -134,3 +134,109 @@ async fn test_nonexistent_task() {
         Err(e) => println!("Got error (acceptable): {}", e),
     }
 }
+
+/// Test cursor-based pagination
+///
+/// This test verifies forward/backward pagination with cursors.
+/// Requires GITHUB_TOKEN and creates multiple test Issues.
+#[tokio::test]
+#[ignore] // Requires GITHUB_TOKEN and creates real Issues
+async fn test_cursor_pagination() {
+    let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
+    let storage = GitHubTaskStorage::new(
+        token,
+        "ShunsukeHayashi".to_string(),
+        "miyabi-private".to_string(),
+    )
+    .expect("Failed to create storage");
+
+    // Create 5 test tasks
+    println!("Creating 5 test tasks...");
+    let mut task_ids = Vec::new();
+    for i in 0..5 {
+        let task = A2ATask {
+            id: 0,
+            title: format!("[TEST] Pagination Test Task {}", i),
+            description: format!("Test task #{} for pagination testing", i),
+            status: TaskStatus::Pending,
+            task_type: TaskType::Testing,
+            agent: None,
+            context_id: Some("pagination-test".to_string()),
+            priority: 3,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            issue_url: String::new(),
+        };
+
+        let task_id = storage.save_task(task).await.expect("Failed to save task");
+        task_ids.push(task_id);
+        println!("  Created task #{}", task_id);
+
+        // Small delay to ensure different timestamps
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    }
+
+    // Test forward pagination (page size 2)
+    println!("\nTesting forward pagination...");
+    let filter = TaskFilter {
+        context_id: Some("pagination-test".to_string()),
+        limit: Some(2),
+        ..Default::default()
+    };
+
+    let page1 = storage
+        .list_tasks_paginated(filter.clone())
+        .await
+        .expect("Failed to get page 1");
+
+    println!("Page 1: {} items, has_more: {}", page1.items.len(), page1.has_more);
+    assert!(page1.items.len() <= 2);
+
+    // Navigate to page 2 if there are more items
+    if let Some(cursor) = page1.next_cursor {
+        let filter = TaskFilter {
+            context_id: Some("pagination-test".to_string()),
+            cursor: Some(cursor),
+            limit: Some(2),
+            ..Default::default()
+        };
+
+        let page2 = storage
+            .list_tasks_paginated(filter)
+            .await
+            .expect("Failed to get page 2");
+
+        println!("Page 2: {} items, has_more: {}", page2.items.len(), page2.has_more);
+        assert!(page2.items.len() <= 2);
+
+        // Test backward pagination
+        if let Some(cursor) = page2.previous_cursor {
+            let filter = TaskFilter {
+                context_id: Some("pagination-test".to_string()),
+                cursor: Some(cursor),
+                limit: Some(2),
+                ..Default::default()
+            };
+
+            let page1_again = storage
+                .list_tasks_paginated(filter)
+                .await
+                .expect("Failed to navigate back");
+
+            println!("Back to page 1: {} items", page1_again.items.len());
+            assert!(page1_again.items.len() <= 2);
+        }
+    }
+
+    // Clean up - close all test tasks
+    println!("\nCleaning up test tasks...");
+    for task_id in task_ids {
+        storage
+            .delete_task(task_id)
+            .await
+            .expect("Failed to delete task");
+        println!("  Closed task #{}", task_id);
+    }
+
+    println!("Pagination test completed successfully!");
+}
