@@ -2,8 +2,17 @@
 //!
 //! Provides structured logging with multiple output formats and destinations
 
+use once_cell::sync::OnceCell;
+use tracing_appender::non_blocking::WorkerGuard;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::{fmt, layer::SubscriberExt, prelude::*, EnvFilter};
+
+/// Global logger guard to prevent memory leaks
+///
+/// The WorkerGuard must live for the entire program lifetime to ensure
+/// all log messages are flushed to disk. Using OnceCell ensures proper
+/// lifetime management without requiring `mem::forget`.
+static LOGGER_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
@@ -128,7 +137,7 @@ pub fn init_logger_with_config(config: LoggerConfig) {
         // Console + File - Pretty format
         (LogFormat::Pretty, Some(dir)) => {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
-            let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+            let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
             let console_layer = fmt::layer()
                 .pretty()
@@ -142,13 +151,13 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             subscriber.with(console_layer).with(file_layer).init();
 
-            // Store guard to prevent dropping
-            std::mem::forget(_guard);
+            // Store guard globally to keep worker thread alive
+            let _ = LOGGER_GUARD.set(guard);
         }
         // Console + File - Compact format
         (LogFormat::Compact, Some(dir)) => {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
-            let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+            let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
             let console_layer = fmt::layer().compact().with_target(false);
 
@@ -159,12 +168,13 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             subscriber.with(console_layer).with(file_layer).init();
 
-            std::mem::forget(_guard);
+            // Store guard globally to keep worker thread alive
+            let _ = LOGGER_GUARD.set(guard);
         }
         // Console + File - JSON format
         (LogFormat::Json, Some(dir)) => {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
-            let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+            let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
             let console_layer = fmt::layer().json().with_current_span(true);
 
@@ -175,7 +185,8 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             subscriber.with(console_layer).with(file_layer).init();
 
-            std::mem::forget(_guard);
+            // Store guard globally to keep worker thread alive
+            let _ = LOGGER_GUARD.set(guard);
         }
     }
 }
