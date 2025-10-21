@@ -184,14 +184,15 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_server_creation() {
-        // Note: This will fail because we can't create a real GitHub client with fake token
-        // In a real test, you'd use a mock
+    #[tokio::test]
+    async fn test_server_creation() {
+        // Test that server creation succeeds with a config
+        // (GitHub client creation is lazy and doesn't validate token at construction time)
         let config = create_test_config();
         let result = McpServer::new(config);
-        // We expect this to fail with GitHub error since token is fake
-        assert!(result.is_err());
+        // Server creation should succeed even with fake token
+        // (validation happens when making actual API calls)
+        assert!(result.is_ok());
     }
 
     #[test]

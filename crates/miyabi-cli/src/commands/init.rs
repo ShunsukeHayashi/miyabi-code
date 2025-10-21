@@ -1553,19 +1553,19 @@ mod tests {
 
     #[test]
     fn test_validate_project_name() {
-        let valid_cmd = InitCommand::new("my-project".to_string(), false);
+        let valid_cmd = InitCommand::with_interactive("my-project".to_string(), false, false);
         assert!(valid_cmd.validate_project_name().is_ok());
 
-        let valid_cmd = InitCommand::new("my_project_123".to_string(), false);
+        let valid_cmd = InitCommand::with_interactive("my_project_123".to_string(), false, false);
         assert!(valid_cmd.validate_project_name().is_ok());
 
-        let invalid_cmd = InitCommand::new("".to_string(), false);
+        let invalid_cmd = InitCommand::with_interactive("".to_string(), false, false);
         assert!(invalid_cmd.validate_project_name().is_err());
 
-        let invalid_cmd = InitCommand::new("my project".to_string(), false);
+        let invalid_cmd = InitCommand::with_interactive("my project".to_string(), false, false);
         assert!(invalid_cmd.validate_project_name().is_err());
 
-        let invalid_cmd = InitCommand::new("my@project".to_string(), false);
+        let invalid_cmd = InitCommand::with_interactive("my@project".to_string(), false, false);
         assert!(invalid_cmd.validate_project_name().is_err());
     }
 }

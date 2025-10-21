@@ -277,6 +277,7 @@ impl GPTOSSProvider {
             tokens_used,
             finish_reason,
             function_call: None, // TODO: Parse function calls
+            tool_calls: None,
         })
     }
 
@@ -305,6 +306,7 @@ impl GPTOSSProvider {
             tokens_used,
             finish_reason: done_reason,
             function_call: None,
+            tool_calls: None,
         })
     }
 

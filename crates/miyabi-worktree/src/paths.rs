@@ -2,10 +2,33 @@ use std::path::{Path, PathBuf};
 
 /// Normalize a filesystem path to eliminate redundant components.
 ///
-/// This uses `dunce::simplified` so it remains Windows-friendly while behaving
-/// like `std::path::Path::canonicalize` without touching the filesystem.
+/// This manually resolves `.` and `..` components without touching the filesystem,
+/// making it Windows-friendly via `dunce::simplified`.
 pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
-    dunce::simplified(path.as_ref()).to_path_buf()
+    use std::path::Component;
+
+    let path = dunce::simplified(path.as_ref());
+    let mut components = Vec::new();
+
+    for component in path.components() {
+        match component {
+            Component::CurDir => {
+                // Skip current directory references
+            }
+            Component::ParentDir => {
+                // Pop the last component if possible (resolve ..)
+                if !components.is_empty() {
+                    components.pop();
+                }
+            }
+            comp => {
+                // Keep normal components, prefix, and root dir
+                components.push(comp);
+            }
+        }
+    }
+
+    components.iter().collect()
 }
 
 /// Utility for constructing and normalizing worktree-related paths.
@@ -48,10 +71,8 @@ mod tests {
     fn normalize_drops_redundant_components() {
         let path = normalize_path("./.worktrees/../.worktrees/issue-42");
         assert!(path.ends_with("issue-42"));
-        // Note: dunce::simplified() doesn't resolve .. components in relative paths
-        // for safety reasons (no filesystem access). The path will be:
-        // ./.worktrees/../.worktrees/issue-42 = 5 components
-        assert_eq!(path.components().count(), 5);
+        // After normalization: "./.worktrees/../.worktrees/issue-42" -> ".worktrees/issue-42"
+        assert_eq!(path.components().count(), 2);
     }
 
     #[test]

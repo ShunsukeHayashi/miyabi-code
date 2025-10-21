@@ -84,6 +84,8 @@ pub struct LLMResponse {
     pub finish_reason: String,
     /// Optional function call result
     pub function_call: Option<FunctionCall>,
+    /// Optional tool calls (for multi-tool calling)
+    pub tool_calls: Option<Vec<FunctionCall>>,
 }
 
 /// Chat message role

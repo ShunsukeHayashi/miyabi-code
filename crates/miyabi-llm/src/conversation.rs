@@ -361,6 +361,7 @@ mod tests {
                 tokens_used: 10,
                 finish_reason: "stop".to_string(),
                 function_call: None,
+                tool_calls: None,
             })
         }
 
