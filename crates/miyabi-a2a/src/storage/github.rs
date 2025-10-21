@@ -178,26 +178,44 @@ impl TaskStorage for GitHubTaskStorage {
 
     /// List tasks with optional filtering
     ///
-    /// For MVP, fetches all Issues and applies filters in memory.
-    /// In production, should use GitHub API query parameters for efficiency.
+    /// Uses GitHub API label filtering for status, combined with
+    /// in-memory filtering for other criteria.
     ///
     /// # Arguments
     /// * `filter` - Filter criteria (status, context_id, agent, updated_after, limit)
     ///
     /// # Returns
     /// List of tasks matching the filter
+    ///
+    /// # Performance
+    /// - Status filtering: API-level (reduces network transfer)
+    /// - Other filters: In-memory (applied after fetch)
     async fn list_tasks(&self, filter: TaskFilter) -> Result<Vec<A2ATask>, StorageError> {
         debug!("Listing tasks with filter: {:?}", filter);
 
-        // For MVP, we'll fetch all issues and filter in memory
-        // In production, this should use GitHub API filters
-        let page = self
-            .client
-            .issues(&self.repo_owner, &self.repo_name)
-            .list()
-            .per_page(filter.limit.unwrap_or(30) as u8)
-            .send()
-            .await?;
+        // Build GitHub API query with label filtering
+        let issues = self.client.issues(&self.repo_owner, &self.repo_name);
+        let per_page = filter.limit.unwrap_or(30) as u8;
+
+        // Apply status filter at API level via labels
+        let page = if let Some(status) = filter.status {
+            let label = status.to_label();
+            let labels = vec![label.clone()];
+            debug!("Applying API-level status filter: {}", label);
+
+            issues
+                .list()
+                .labels(&labels)
+                .per_page(per_page)
+                .send()
+                .await?
+        } else {
+            issues
+                .list()
+                .per_page(per_page)
+                .send()
+                .await?
+        };
 
         // Convert GitHub Issues to A2ATasks
         let all_tasks: Result<Vec<A2ATask>, StorageError> = page
@@ -208,10 +226,8 @@ impl TaskStorage for GitHubTaskStorage {
 
         let mut tasks = all_tasks?;
 
-        // Apply filters in memory (for MVP)
-        if let Some(status) = filter.status {
-            tasks.retain(|t| t.status == status);
-        }
+        // Apply remaining filters in memory
+        // (Status already filtered at API level)
 
         if let Some(ref context_id) = filter.context_id {
             tasks.retain(|t| t.context_id.as_ref() == Some(context_id));
