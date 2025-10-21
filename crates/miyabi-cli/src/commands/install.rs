@@ -1,6 +1,9 @@
 //! Install command - Install Miyabi to existing project
 
-use crate::error::{CliError, Result};
+use crate::{
+    error::{CliError, Result},
+    worktree::default_worktree_base_dir,
+};
 use colored::Colorize;
 use std::fs;
 use std::path::Path;
@@ -75,6 +78,7 @@ impl InstallCommand {
     }
 
     fn create_directory_structure(&self) -> Result<()> {
+        let worktree_base = default_worktree_base_dir();
         let dirs = vec![
             ".github/workflows",
             ".claude/agents/specs",
@@ -94,6 +98,16 @@ impl InstallCommand {
             }
         }
 
+        if self.dry_run {
+            println!(
+                "  [DRY RUN] Would create worktree base: {}",
+                worktree_base.to_string_lossy()
+            );
+        } else {
+            fs::create_dir_all(&worktree_base)?;
+            println!("  Created: {}", worktree_base.to_string_lossy());
+        }
+
         Ok(())
     }
 
@@ -101,6 +115,7 @@ impl InstallCommand {
         // Get project name from git remote or directory name
         let project_name = self.get_project_name()?;
 
+        let worktree_base = default_worktree_base_dir();
         let miyabi_config = format!(
             r#"# Miyabi Configuration
 project_name: {}
@@ -113,7 +128,7 @@ version: "0.1.0"
 agents:
   enabled: true
   use_worktree: true
-  worktree_base_path: ".worktrees"
+  worktree_base_path: "{}"
 
 # Logging
 logging:
@@ -124,7 +139,8 @@ logging:
 reporting:
   directory: "./reports"
 "#,
-            project_name
+            project_name,
+            worktree_base.to_string_lossy()
         );
 
         if self.dry_run {
@@ -138,14 +154,13 @@ reporting:
     }
 
     fn update_gitignore(&self) -> Result<()> {
-        let gitignore_entries = r#"
-# Miyabi
-.miyabi.yml
-.worktrees/
-logs/
-reports/
-*.log
-"#;
+        let worktree_base = default_worktree_base_dir();
+        let mut gitignore_entries =
+            String::from("\n# Miyabi\n.miyabi.yml\nlogs/\nreports/\n*.log\n");
+
+        if !worktree_base.is_absolute() {
+            gitignore_entries.push_str(&format!("{}/\n", worktree_base.to_string_lossy()));
+        }
 
         if self.dry_run {
             println!("  [DRY RUN] Would update: .gitignore");

@@ -426,6 +426,9 @@ Miyabi uses git worktrees for true parallel execution:
 └─────────┘ └─────────┘ └─────────┘
 ```
 
+> ℹ️ **Windows パスについて**  
+> 本ドキュメントでは例として `.worktrees/...` を使用していますが、Windows の既定値は `%LOCALAPPDATA%\Miyabi\wt` です。`miyabi setup` / `miyabi install` で生成される設定ファイルや `.env` に出力される `WORKTREE_BASE_DIR` を確認し、必要に応じてパスを読み替えてください。
+
 **Benefits**:
 - True parallel execution (no conflicts)
 - Isolated environments

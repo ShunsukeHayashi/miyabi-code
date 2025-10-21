@@ -3,9 +3,9 @@
 //! This module extends the base CoordinatorAgent with LLM-powered issue analysis
 //! and intelligent task decomposition.
 
-use miyabi_agent_core::BaseAgent;
 use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
 use miyabi_llm::{LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};

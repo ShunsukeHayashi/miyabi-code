@@ -5,8 +5,8 @@
 //! AARRRメトリクス（Acquisition, Activation, Retention, Referral, Revenue）に
 //! 基づいた包括的なファネル設計を提供します。
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};

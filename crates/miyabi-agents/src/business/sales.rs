@@ -4,8 +4,8 @@
 //! リードジェネレーション、クロージング戦略、営業KPI管理を立案します。
 //! 売上向上と営業効率化を目的とした包括的な営業戦略を提供します。
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};

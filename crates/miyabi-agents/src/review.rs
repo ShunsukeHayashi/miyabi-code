@@ -3,8 +3,8 @@
 //! Responsible for reviewing code quality using cargo clippy, rustc, and other tools.
 //! Generates quality reports with scores and recommendations.
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_core::security::{run_cargo_audit, Vulnerability, VulnerabilitySeverity};
 use miyabi_types::agent::{AgentMetrics, EscalationInfo, EscalationTarget, ResultStatus, Severity};
 use miyabi_types::error::{MiyabiError, Result};

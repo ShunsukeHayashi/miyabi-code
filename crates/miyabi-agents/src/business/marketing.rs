@@ -4,8 +4,8 @@
 //! チャネル戦略、メッセージング戦略を立案します。デジタルマーケティングから
 //! オフラインマーケティングまで包括的なマーケティング戦略を提供します。
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};

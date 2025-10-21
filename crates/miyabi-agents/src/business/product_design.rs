@@ -4,8 +4,8 @@
 //! システム設計、技術スタック選択に特化したプロダクト設計を支援します。
 //! アーキテクチャ設計から開発ロードマップまで一貫した技術仕様を構築します。
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};

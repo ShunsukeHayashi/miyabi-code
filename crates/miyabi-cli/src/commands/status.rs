@@ -1,8 +1,8 @@
 //! Status command - Check project status
 
-use crate::error::Result;
+use crate::{error::Result, worktree::default_worktree_base_dir};
 use colored::Colorize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct StatusCommand {
     pub watch: bool,
@@ -150,6 +150,11 @@ impl StatusCommand {
         use std::process::Command;
 
         println!("{}", "Worktrees:".bold());
+
+        let base = std::env::var("MIYABI_WORKTREE_BASE_PATH")
+            .map(PathBuf::from)
+            .unwrap_or_else(default_worktree_base_dir);
+        println!("  Base directory: {}", base.to_string_lossy());
 
         let output = Command::new("git").args(["worktree", "list"]).output();
 

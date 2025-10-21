@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="3時間で習得する次世代動画生成API実装完全マスター。BytePlus公式パートナーによる実装セミナー。50万トークン無料・15パターンコードサンプル・3ヶ月サポート付き。">
+    <meta name="keywords" content="BytePlus, 動画生成API, 実装セミナー, ハンズオン, AI動画, API実装">
+    <meta name="author" content="BytePlus 公式パートナー">
+
+    <!-- OGP設定 -->
+    <meta property="og:title" content="BytePlus動画生成API実装セミナー | 3時間完全マスター">
+    <meta property="og:description" content="実装→納品→収益化を1日で。50万トークン無料、15パターンコードサンプル、3ヶ月サポート付き。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shunsukehayashi.github.io/Miyabi/landing-pages/byteplus-bootcamp/">
+    <meta property="og:image" content="https://shunsukehayashi.github.io/Miyabi/landing-pages/byteplus-bootcamp/images/og-image.png">
+    <meta property="og:site_name" content="BytePlus Video API Bootcamp">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BytePlus動画生成API実装セミナー | 3時間完全マスター">
+    <meta name="twitter:description" content="実装→納品→収益化を1日で。50万トークン無料、15パターンコードサンプル、3ヶ月サポート付き。">
+    <meta name="twitter:image" content="https://shunsukehayashi.github.io/Miyabi/landing-pages/byteplus-bootcamp/images/og-image.png">
+
+    <title>BytePlus動画生成API実装セミナー | 3時間完全マスター</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="images/byteplus-partner-logo.svg" alt="BytePlus Official Partner" height="40">
+                </div>
+                <nav class="nav">
+                    <a href="#benefits" class="nav-link">特典</a>
+                    <a href="#agenda" class="nav-link">内容</a>
+                    <a href="#pricing" class="nav-link">料金</a>
+                    <a href="#faq" class="nav-link">FAQ</a>
+                    <a href="#registration" class="cta-button-nav">今すぐ申し込む</a>
+                </nav>
+                <button class="mobile-menu-toggle" aria-label="メニュー">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">BytePlus公式パートナー開催</div>
+                    <h1 class="hero-title">
+                        <span class="hero-title-small">3時間で習得</span>
+                        <span class="hero-title-large">次世代動画生成API<br>実装完全マスター</span>
+                    </h1>
+                    <p class="hero-subtitle">実装→納品→収益化を1日で</p>
+                    <div class="hero-features">
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">🎁</span>
+                            <span class="hero-feature-text">50万トークン無料</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">💻</span>
+                            <span class="hero-feature-text">15パターンコードサンプル</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">💬</span>
+                            <span class="hero-feature-text">3ヶ月サポート</span>
+                        </div>
+                    </div>
+                    <div class="hero-cta">
+                        <a href="#registration" class="cta-button cta-button-primary">今すぐ無料席を確保</a>
+                        <div class="hero-cta-note">
+                            <span class="seats-remaining">残り<strong>12席</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-image-wrapper">
+                        <img src="images/hero-demo.png" alt="動画生成APIデモ" class="hero-demo-image">
+                        <div class="hero-image-badge">
+                            <span class="badge-icon">⚡</span>
+                            <span class="badge-text">実装時間<br><strong>3時間</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Countdown Timer -->
+        <div class="countdown-bar">
+            <div class="container">
+                <div class="countdown-content">
+                    <span class="countdown-label">申込締切まで</span>
+                    <div class="countdown-timer">
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="days">00</span>
+                            <span class="countdown-unit">日</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="hours">00</span>
+                            <span class="countdown-unit">時間</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="minutes">00</span>
+                            <span class="countdown-unit">分</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="seconds">00</span>
+                            <span class="countdown-unit">秒</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pain Points Section -->
+    <section class="pain-points" id="pain-points">
+        <div class="container">
+            <h2 class="section-title">こんな悩みありませんか?</h2>
+            <div class="pain-points-grid">
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">💸</div>
+                    <h3 class="pain-point-title">動画制作に月100万円かかっている</h3>
+                    <p class="pain-point-description">外注費用が高く、予算を圧迫している</p>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">⏰</div>
+                    <h3 class="pain-point-title">納期が2週間以上かかる</h3>
+                    <p class="pain-point-description">スピードが遅く、機会損失が発生</p>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">❓</div>
+                    <h3 class="pain-point-title">どのAPI選べばいいかわからない</h3>
+                    <p class="pain-point-description">選択肢が多すぎて比較検討に時間がかかる</p>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">🔧</div>
+                    <h3 class="pain-point-title">実装方法がわからない</h3>
+                    <p class="pain-point-description">技術ドキュメントが複雑で理解が困難</p>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">💰</div>
+                    <h3 class="pain-point-title">予算がない</h3>
+                    <p class="pain-point-description">動画マーケティングを始めたいが初期コストが高い</p>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">🎯</div>
+                    <h3 class="pain-point-title">ROIが見えない</h3>
+                    <p class="pain-point-description">投資対効果が不明確で導入判断ができない</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits" id="benefits">
+        <div class="container">
+            <h2 class="section-title">セミナーで得られること</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">💻</div>
+                    <h3 class="benefit-title">15パターンの実装コード</h3>
+                    <p class="benefit-description">即座に使える実装コードを持ち帰れます。Text-to-Video、Image-to-Video、Video-to-Video等、15パターンの実装例を提供。</p>
+                    <ul class="benefit-list">
+                        <li>Text-to-Video実装</li>
+                        <li>Image-to-Video実装</li>
+                        <li>Video-to-Video実装</li>
+                        <li>バッチ処理実装</li>
+                        <li>エラーハンドリング</li>
+                    </ul>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🎁</div>
+                    <h3 class="benefit-title">50万トークン無料クーポン</h3>
+                    <p class="benefit-description">¥50,000相当の無料クーポンを全員に配布。セミナー後すぐにテスト・本番利用が可能。</p>
+                    <div class="benefit-highlight">
+                        <div class="benefit-highlight-value">¥50,000</div>
+                        <div class="benefit-highlight-label">相当の無料クーポン</div>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">💬</div>
+                    <h3 class="benefit-title">3ヶ月間のサポート</h3>
+                    <p class="benefit-description">メール・Slackでの技術サポートを3ヶ月間提供。実装時の疑問をすぐに解決できます。</p>
+                    <ul class="benefit-list">
+                        <li>メールサポート（24時間以内返信）</li>
+                        <li>Slackコミュニティアクセス</li>
+                        <li>月1回のオンライン質問会</li>
+                    </ul>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">📄</div>
+                    <h3 class="benefit-title">ビジネステンプレート</h3>
+                    <p class="benefit-description">すぐに使える提案書・契約書テンプレートとROI試算シートを提供。</p>
+                    <ul class="benefit-list">
+                        <li>提案書テンプレート（Word）</li>
+                        <li>契約書テンプレート（PDF）</li>
+                        <li>ROI試算シート（Excel）</li>
+                        <li>料金表テンプレート</li>
+                    </ul>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🎓</div>
+                    <h3 class="benefit-title">修了証の発行</h3>
+                    <p class="benefit-description">セミナー修了者には公式修了証を発行。スキルの証明として活用できます。</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🤝</div>
+                    <h3 class="benefit-title">ネットワーキング（オフラインのみ）</h3>
+                    <p class="benefit-description">同じ志を持つ参加者との交流機会。ビジネスチャンスの創出につながります。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agenda Section -->
+    <section class="agenda" id="agenda">
+        <div class="container">
+            <h2 class="section-title">セミナー内容（3時間構成）</h2>
+            <div class="agenda-timeline">
+                <div class="agenda-item">
+                    <div class="agenda-time">10:00-10:30</div>
+                    <div class="agenda-content">
+                        <h3 class="agenda-title">イントロダクション</h3>
+                        <p class="agenda-description">セミナー概要、自己紹介、環境確認</p>
+                        <ul class="agenda-topics">
+                            <li>動画生成API市場動向</li>
+                            <li>BytePlus API概要</li>
+                            <li>環境構築確認</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">10:30-11:30</div>
+                    <div class="agenda-content">
+                        <h3 class="agenda-title">API概要と基礎実装</h3>
+                        <p class="agenda-description">BytePlus Video APIの基本仕様と認証・基礎実装</p>
+                        <ul class="agenda-topics">
+                            <li>API認証の仕組み</li>
+                            <li>Text-to-Video基本実装</li>
+                            <li>Image-to-Video基本実装</li>
+                            <li>エラーハンドリング</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">11:30-13:00</div>
+                    <div class="agenda-content">
+                        <h3 class="agenda-title">実装ハンズオン（15パターン）</h3>
+                        <p class="agenda-description">実践的な実装パターンをライブコーディング</p>
+                        <ul class="agenda-topics">
+                            <li>Video-to-Video実装</li>
+                            <li>バッチ処理実装</li>
+                            <li>Webhook連携</li>
+                            <li>品質最適化</li>
+                            <li>コスト最適化</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">13:00-13:30</div>
+                    <div class="agenda-content">
+                        <h3 class="agenda-title">収益化戦略とQ&A</h3>
+                        <p class="agenda-description">ビジネス展開とマネタイズ戦略</p>
+                        <ul class="agenda-topics">
+                            <li>料金設計の考え方</li>
+                            <li>ROI試算方法</li>
+                            <li>営業・提案のコツ</li>
+                            <li>質疑応答</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instructor Section -->
+    <section class="instructor" id="instructor">
+        <div class="container">
+            <h2 class="section-title">講師紹介</h2>
+            <div class="instructor-card">
+                <div class="instructor-image">
+                    <img src="images/instructor.jpg" alt="講師写真">
+                </div>
+                <div class="instructor-content">
+                    <h3 class="instructor-name">山田 太郎</h3>
+                    <p class="instructor-title">BytePlus公式パートナー / API統合スペシャリスト</p>
+                    <p class="instructor-bio">
+                        大手IT企業でAPI設計・実装を10年以上経験。BytePlus Video APIの導入支援実績100社以上。
+                        動画生成APIを活用した収益化コンサルティングも提供。
+                    </p>
+                    <div class="instructor-achievements">
+                        <div class="achievement-item">
+                            <div class="achievement-number">100+</div>
+                            <div class="achievement-label">導入支援実績</div>
+                        </div>
+                        <div class="achievement-item">
+                            <div class="achievement-number">¥500M+</div>
+                            <div class="achievement-label">クライアント総収益</div>
+                        </div>
+                        <div class="achievement-item">
+                            <div class="achievement-number">5.0</div>
+                            <div class="achievement-label">平均評価</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <h2 class="section-title">参加者の声</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">
+                        「3時間で本当に実装できました！コードサンプルが豊富で、すぐにプロジェクトに適用できました。
+                        50万トークンの無料クーポンのおかげで、テスト環境をすぐに構築できたのも良かったです。」
+                    </p>
+                    <div class="testimonial-author">
+                        <img src="images/testimonial-1.jpg" alt="田中様" class="testimonial-avatar">
+                        <div class="testimonial-info">
+                            <div class="testimonial-name">田中 花子様</div>
+                            <div class="testimonial-company">株式会社〇〇 / エンジニア</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">
+                        「非エンジニアでも理解できる丁寧な説明でした。ROI試算シートが特に役立ち、
+                        上司への提案がスムーズに通りました。今では月次で動画制作コストが70%削減できています。」
+                    </p>
+                    <div class="testimonial-author">
+                        <img src="images/testimonial-2.jpg" alt="佐藤様" class="testimonial-avatar">
+                        <div class="testimonial-info">
+                            <div class="testimonial-name">佐藤 一郎様</div>
+                            <div class="testimonial-company">〇〇マーケティング / マネージャー</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">
+                        「Slackサポートが素晴らしい！実装時の細かい疑問にも迅速に対応してくれました。
+                        おかげで2週間後には最初のクライアント案件を受注できました。投資回収が早かったです。」
+                    </p>
+                    <div class="testimonial-author">
+                        <img src="images/testimonial-3.jpg" alt="鈴木様" class="testimonial-avatar">
+                        <div class="testimonial-info">
+                            <div class="testimonial-name">鈴木 次郎様</div>
+                            <div class="testimonial-company">フリーランスエンジニア</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">料金プラン</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-plan">オンライン参加</h3>
+                        <div class="pricing-price">
+                            <span class="pricing-currency">¥</span>
+                            <span class="pricing-amount">29,800</span>
+                            <span class="pricing-period">/1名</span>
+                        </div>
+                    </div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">Zoom参加</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">15パターンコードサンプル</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">50万トークン無料クーポン</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">3ヶ月サポート</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">ビジネステンプレート</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">修了証発行</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">録画配信（2週間限定）</span>
+                        </div>
+                    </div>
+                    <div class="pricing-capacity">定員：<strong>50名</strong></div>
+                    <a href="#registration" class="cta-button cta-button-secondary">オンラインで申し込む</a>
+                </div>
+
+                <div class="pricing-card pricing-card-popular">
+                    <div class="pricing-badge">人気</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-plan">オフライン参加</h3>
+                        <div class="pricing-price">
+                            <span class="pricing-currency">¥</span>
+                            <span class="pricing-amount">39,800</span>
+                            <span class="pricing-period">/1名</span>
+                        </div>
+                    </div>
+                    <div class="pricing-features">
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">会場参加（東京）</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">15パターンコードサンプル</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">50万トークン無料クーポン</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">3ヶ月サポート</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">ビジネステンプレート</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">修了証発行</span>
+                        </div>
+                        <div class="pricing-feature">
+                            <span class="pricing-feature-icon">✅</span>
+                            <span class="pricing-feature-text">録画配信（2週間限定）</span>
+                        </div>
+                        <div class="pricing-feature pricing-feature-highlight">
+                            <span class="pricing-feature-icon">⭐</span>
+                            <span class="pricing-feature-text">ネットワーキングタイム</span>
+                        </div>
+                        <div class="pricing-feature pricing-feature-highlight">
+                            <span class="pricing-feature-icon">⭐</span>
+                            <span class="pricing-feature-text">ランチ・お茶菓子付き</span>
+                        </div>
+                        <div class="pricing-feature pricing-feature-highlight">
+                            <span class="pricing-feature-icon">⭐</span>
+                            <span class="pricing-feature-text">個別相談（30分）</span>
+                        </div>
+                    </div>
+                    <div class="pricing-capacity">定員：<strong>20名</strong>（残り12席）</div>
+                    <a href="#registration" class="cta-button cta-button-primary">オフラインで申し込む</a>
+                </div>
+            </div>
+
+            <div class="pricing-notes">
+                <h4 class="pricing-notes-title">料金に含まれるもの</h4>
+                <ul class="pricing-notes-list">
+                    <li>すべての教材（コードサンプル、スライド、テンプレート）</li>
+                    <li>50万トークン無料クーポン（¥50,000相当）</li>
+                    <li>3ヶ月間のメール・Slackサポート</li>
+                    <li>月1回のオンライン質問会（3回分）</li>
+                    <li>修了証（PDF版・オンライン認証付き）</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">よくある質問</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>プログラミング初心者でも大丈夫ですか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            基本的なプログラミング知識（変数、関数、API呼び出しの概念）があれば問題ありません。
+                            セミナーでは丁寧に解説し、コードサンプルもすぐに使える形で提供します。
+                            不安な方は事前に環境構築ガイドをお送りしますので、ご安心ください。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>環境構築は必要ですか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            ハンズオンに参加される場合は、以下の環境が必要です：<br>
+                            - Node.js 18以上 または Python 3.8以上<br>
+                            - テキストエディタ（VS Code推奨）<br>
+                            - ターミナル/コマンドプロンプト<br>
+                            事前セットアップガイドを申込後にお送りします。環境構築に不安がある方は、
+                            事前サポートもご利用いただけます。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>録画配信はありますか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            はい、オンライン・オフライン参加者ともに、セミナー録画を2週間限定で視聴できます。
+                            復習や欠席時の補講としてご活用ください。ただし、録画配信のみの参加はできません。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>キャンセルポリシーは？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            キャンセル料は以下の通りです：<br>
+                            - 開催7日前まで：無料（全額返金）<br>
+                            - 開催6日前～3日前：50%<br>
+                            - 開催2日前～当日：100%（返金なし）<br>
+                            天災や講師都合による中止の場合は、全額返金または次回開催への振替を選択いただけます。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>法人申込は可能ですか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            はい、可能です。3名以上の団体申込の場合、10%割引を適用します。
+                            また、5名以上の場合は社内限定のプライベートセミナー開催も可能です。
+                            詳細はお問い合わせください。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>領収書は発行できますか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            はい、PDF形式の領収書を電子発行いたします。
+                            決済完了後、マイページからダウンロードできます。
+                            宛名や但し書きの変更も可能ですので、必要に応じてご指定ください。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>サポート期間中はどのようなサポートが受けられますか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            3ヶ月間、以下のサポートを提供します：<br>
+                            - メールサポート（24時間以内返信保証）<br>
+                            - Slackコミュニティへのアクセス<br>
+                            - 月1回のオンライン質問会（1時間）<br>
+                            - コードレビュー（月1回まで）<br>
+                            実装時の技術的な疑問から、ビジネス展開の相談まで幅広く対応します。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>50万トークンの無料クーポンはどのように使えますか？</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>
+                            セミナー修了後、BytePlus APIアカウントに自動適用されます。
+                            有効期限は発行から6ヶ月間です。テスト環境でのトライアルから、
+                            本番環境での初期運用まで幅広くご利用いただけます。
+                            使用方法の詳細はセミナー内で解説します。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Section -->
+    <section class="registration" id="registration">
+        <div class="container">
+            <h2 class="section-title">今すぐ申し込む</h2>
+            <div class="registration-content">
+                <div class="registration-info">
+                    <h3 class="registration-info-title">セミナー詳細</h3>
+                    <dl class="registration-details">
+                        <dt>開催日時</dt>
+                        <dd>2025年11月15日（土）10:00-13:30（受付9:45～）</dd>
+
+                        <dt>オンライン会場</dt>
+                        <dd>Zoom（URLは申込後にメール送付）</dd>
+
+                        <dt>オフライン会場</dt>
+                        <dd>東京都渋谷区〇〇 〇〇ビル 5F セミナールーム<br>（JR渋谷駅より徒歩5分）</dd>
+
+                        <dt>定員</dt>
+                        <dd>オンライン：50名 / オフライン：20名</dd>
+
+                        <dt>持ち物</dt>
+                        <dd>
+                            - ノートPC（ハンズオン参加の場合）<br>
+                            - 筆記用具<br>
+                            - 名刺（オフライン参加の場合）
+                        </dd>
+                    </dl>
+
+                    <div class="registration-trust">
+                        <div class="trust-item">
+                            <img src="images/byteplus-partner-badge.svg" alt="BytePlus Official Partner" class="trust-logo">
+                        </div>
+                        <div class="trust-item">
+                            <div class="trust-icon">🔒</div>
+                            <div class="trust-text">SSL暗号化通信</div>
+                        </div>
+                        <div class="trust-item">
+                            <div class="trust-icon">💳</div>
+                            <div class="trust-text">安全な決済</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="registration-form-wrapper">
+                    <form class="registration-form" id="registrationForm">
+                        <div class="form-group">
+                            <label for="plan" class="form-label">参加プラン<span class="form-required">必須</span></label>
+                            <select id="plan" name="plan" class="form-control" required>
+                                <option value="">選択してください</option>
+                                <option value="online">オンライン参加（¥29,800）</option>
+                                <option value="offline">オフライン参加（¥39,800）</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name" class="form-label">お名前<span class="form-required">必須</span></label>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="山田 太郎" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">メールアドレス<span class="form-required">必須</span></label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="example@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="company" class="form-label">会社名<span class="form-required">必須</span></label>
+                            <input type="text" id="company" name="company" class="form-control" placeholder="株式会社〇〇" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="position" class="form-label">職種<span class="form-required">必須</span></label>
+                            <select id="position" name="position" class="form-control" required>
+                                <option value="">選択してください</option>
+                                <option value="engineer">エンジニア</option>
+                                <option value="designer">デザイナー</option>
+                                <option value="manager">マネージャー</option>
+                                <option value="marketing">マーケティング</option>
+                                <option value="sales">営業</option>
+                                <option value="executive">経営者</option>
+                                <option value="other">その他</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="motivation" class="form-label">参加動機（任意）</label>
+                            <textarea id="motivation" name="motivation" class="form-control" rows="4" placeholder="セミナー参加の動機やご期待いただいていることをお聞かせください"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="terms" required>
+                                <span><a href="#terms" target="_blank">利用規約</a>と<a href="#privacy" target="_blank">プライバシーポリシー</a>に同意する</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="cta-button cta-button-primary form-submit">申し込む</button>
+
+                        <p class="form-note">
+                            ※お申し込み後、決済ページに遷移します。<br>
+                            ※クレジットカード決済（Stripe）に対応しています。
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Section -->
+    <section class="trust" id="trust">
+        <div class="container">
+            <h2 class="section-title">安心してご参加いただけます</h2>
+            <div class="trust-grid">
+                <div class="trust-card">
+                    <img src="images/byteplus-partner-logo.svg" alt="BytePlus Official Partner" class="trust-logo">
+                    <h3 class="trust-title">BytePlus公式パートナー</h3>
+                    <p class="trust-description">
+                        BytePlus公式認定パートナーとして、正確な技術情報と最新のAPI仕様をお届けします。
+                    </p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-icon-large">🏆</div>
+                    <h3 class="trust-title">導入支援実績100社以上</h3>
+                    <p class="trust-description">
+                        大手企業からスタートアップまで、100社以上のAPI導入を支援してきた実績があります。
+                    </p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-icon-large">🔒</div>
+                    <h3 class="trust-title">セキュリティ・プライバシー保護</h3>
+                    <p class="trust-description">
+                        個人情報は厳重に管理し、第三者への提供は一切行いません。SSL暗号化通信で安全に決済できます。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 class="final-cta-title">今すぐ席を確保しましょう</h2>
+            <p class="final-cta-subtitle">残り席数わずか。この機会をお見逃しなく。</p>
+            <a href="#registration" class="cta-button cta-button-primary cta-button-large">今すぐ申し込む</a>
+            <p class="final-cta-note">※申込締切: 2025年11月10日（金）23:59</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4 class="footer-title">BytePlus Video API Bootcamp</h4>
+                    <p class="footer-description">
+                        3時間で習得する次世代動画生成API実装完全マスター
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">リンク</h4>
+                    <ul class="footer-links">
+                        <li><a href="#benefits">特典</a></li>
+                        <li><a href="#agenda">セミナー内容</a></li>
+                        <li><a href="#pricing">料金</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">法的情報</h4>
+                    <ul class="footer-links">
+                        <li><a href="#terms">特定商取引法</a></li>
+                        <li><a href="#privacy">プライバシーポリシー</a></li>
+                        <li><a href="#company">運営会社情報</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">お問い合わせ</h4>
+                    <p class="footer-contact">
+                        Email: info@example.com<br>
+                        Tel: 03-XXXX-XXXX<br>
+                        受付時間: 平日10:00-18:00
+                    </p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 BytePlus Video API Bootcamp. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+
+    <!-- Facebook Pixel -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', 'YOUR_PIXEL_ID');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+
+    <!-- LinkedIn Insight Tag -->
+    <script type="text/javascript">
+        _linkedin_partner_id = "YOUR_PARTNER_ID";
+        window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+        window._linkedin_data_partner_ids.push(_linkedin_partner_id);
+    </script>
+    <script type="text/javascript">
+        (function(l) {
+        if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};
+        window.lintrk.q=[]}
+        var s = document.getElementsByTagName("script")[0];
+        var b = document.createElement("script");
+        b.type = "text/javascript";b.async = true;
+        b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+        s.parentNode.insertBefore(b, s);})(window.lintrk);
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=YOUR_PARTNER_ID&fmt=gif" />
+    </noscript>
+</body>
+</html>

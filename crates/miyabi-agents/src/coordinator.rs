@@ -3,8 +3,8 @@
 //! Responsible for breaking down Issues into executable Tasks and creating
 //! a Directed Acyclic Graph (DAG) for dependency management.
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};

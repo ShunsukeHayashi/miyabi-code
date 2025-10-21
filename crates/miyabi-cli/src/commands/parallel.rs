@@ -1,13 +1,15 @@
 //! Parallel command - Execute agents in parallel worktrees
 
-use crate::error::{CliError, Result};
+use crate::{
+    error::{CliError, Result},
+    worktree::default_worktree_base_dir,
+};
 use colored::Colorize;
-use miyabi_agents::base::BaseAgent;
+use miyabi_agents::BaseAgent;
 use miyabi_agents::CoordinatorAgentWithLLM;
 use miyabi_types::{AgentConfig, AgentType, Task};
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 pub struct ParallelCommand {
     pub issues: Vec<u64>,
@@ -63,9 +65,10 @@ impl ParallelCommand {
         println!("    Auto cleanup: {}", pool_config.auto_cleanup);
         println!();
 
-        let pool = WorktreePool::new(pool_config, config.worktree_base_path.clone()).map_err(|e| {
-            CliError::ExecutionError(format!("Failed to create worktree pool: {}", e))
-        })?;
+        let pool =
+            WorktreePool::new(pool_config, config.worktree_base_path.clone()).map_err(|e| {
+                CliError::ExecutionError(format!("Failed to create worktree pool: {}", e))
+            })?;
 
         // Create tasks for each issue
         let tasks: Vec<WorktreeTask> = self
@@ -279,7 +282,7 @@ impl ParallelCommand {
             repo_name: Some(repo_name),
             use_task_tool: false,
             use_worktree: true,
-            worktree_base_path: Some(PathBuf::from(".worktrees")),
+            worktree_base_path: Some(default_worktree_base_dir()),
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
             tech_lead_github_username: None,

@@ -4,8 +4,8 @@
 //! **性格**: フレンドリー、親しみやすい、コミュニティを大切にする
 //! **口調**: 「だよ」「だね」などの柔らかい口調
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_types::agent::ResultStatus;
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentResult, AgentType, Task};

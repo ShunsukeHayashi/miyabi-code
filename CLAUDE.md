@@ -50,6 +50,7 @@ MiyabiはRustで実装されているため、Windows環境でも動作します
 1. **パス区切り文字**: 一部のコードで`/`ハードコード（改善中）
 2. **UNC Path**: `\\?\C:\...`形式の長いパス未対応（`dunce` crate導入予定）
 3. **CRLF/LF**: Git設定に依存（core.autocrlf推奨）
+4. **既定のWorktreeベース**: Windowsでは `%LOCALAPPDATA%\Miyabi\wt` が既定。シェル例では従来どおり `.worktrees/…` を記載しているが、Windowsでは環境変数を利用するか `use_worktree` 設定で上記ディレクトリを参照する。
 
 **関連Issue**:
 - Issue #360: Windows Platform Support（プライベート）

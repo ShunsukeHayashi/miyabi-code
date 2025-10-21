@@ -3,8 +3,8 @@
 //! Responsible for build execution, testing, deployment, health checks, and rollback.
 //! Supports Staging (auto-deploy) and Production (approval-required) environments.
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
 };

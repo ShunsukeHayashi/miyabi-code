@@ -51,6 +51,9 @@ const worktreeInfo = await worktreeManager.createWorktree(issue, {
 // - Agent status: 'idle'
 ```
 
+> **Windows Note**  
+> 例では `.worktrees/...` を使用していますが、Windows の既定のワークツリーベースは `%LOCALAPPDATA%\Miyabi\wt` です。CLI で生成される `worktree_base_path` の値を確認し、パスを読み替えてください。
+
 ### 1.3 Git Operations
 
 ```bash

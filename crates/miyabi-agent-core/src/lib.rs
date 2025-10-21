@@ -8,5 +8,5 @@ pub mod hooks;
 pub mod orchestration;
 
 pub use base::BaseAgent;
-pub use hooks::{AgentHook, HookedAgent};
-pub use orchestration::{OrchestrationEngine, Orchestrated};
+pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
+pub use orchestration::{Orchestrated, OrchestrationEngine};

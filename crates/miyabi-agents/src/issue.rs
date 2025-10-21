@@ -3,8 +3,8 @@
 //! Responsible for analyzing GitHub Issues, determining issue types, severity,
 //! impact, and automatically applying labels from the 57-label system.
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
 };

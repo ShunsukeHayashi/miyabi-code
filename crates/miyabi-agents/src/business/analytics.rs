@@ -4,8 +4,8 @@
 //! 予測分析、レポート自動化を立案します。データドリブンな意思決定支援と
 //! ビジネス成長の可視化を目的とした包括的な分析戦略を提供します。
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};

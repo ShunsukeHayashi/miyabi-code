@@ -5,6 +5,7 @@
 pub mod commands;
 pub mod error;
 pub mod service;
+pub mod worktree;
 
 pub use commands::{AgentCommand, InitCommand, InstallCommand, StatusCommand};
 pub use error::{CliError, Result};

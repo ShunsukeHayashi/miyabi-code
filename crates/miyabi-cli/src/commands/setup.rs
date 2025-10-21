@@ -1,10 +1,13 @@
 //! Setup command - Interactive onboarding wizard
 
-use crate::error::{CliError, Result};
+use crate::{
+    error::{CliError, Result},
+    worktree::default_worktree_base_dir,
+};
 use colored::Colorize;
 use dialoguer::Confirm;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub struct SetupCommand {
@@ -180,6 +183,7 @@ impl SetupCommand {
 
     fn create_env_file(&self, owner: &str, repo: &str) -> Result<()> {
         let env_path = Path::new(".env");
+        let worktree_base = default_worktree_base_dir();
 
         if env_path.exists() && !self.skip_prompts {
             let overwrite = Confirm::new()
@@ -241,14 +245,15 @@ DEFAULT_CONCURRENCY=2
 # -----------------------------------------------------------------------------
 
 USE_WORKTREE=true
-WORKTREE_BASE_DIR=.worktrees
+WORKTREE_BASE_DIR={}
 "#,
             chrono::Local::now().format("%Y-%m-%d"),
             std::env::consts::OS,
             owner,
             repo,
             owner,
-            hostname::get().unwrap().to_string_lossy()
+            hostname::get().unwrap().to_string_lossy(),
+            worktree_base.to_string_lossy()
         );
 
         fs::write(env_path, content)
@@ -303,12 +308,18 @@ cli:
     }
 
     fn create_directories(&self) -> Result<()> {
-        let dirs = vec![".ai/logs", ".ai/parallel-reports", ".worktrees"];
+        let worktree_base = default_worktree_base_dir();
+        let dirs = vec![
+            PathBuf::from(".ai/logs"),
+            PathBuf::from(".ai/parallel-reports"),
+            worktree_base.clone(),
+        ];
 
         for dir in dirs {
-            fs::create_dir_all(dir)
-                .map_err(|e| CliError::GitConfig(format!("Failed to create {}: {}", dir, e)))?;
-            println!("  ✅ Created {}", dir);
+            fs::create_dir_all(&dir).map_err(|e| {
+                CliError::GitConfig(format!("Failed to create {}: {}", dir.to_string_lossy(), e))
+            })?;
+            println!("  ✅ Created {}", dir.to_string_lossy());
         }
 
         Ok(())
@@ -317,7 +328,12 @@ cli:
     fn verify_setup(&self) -> Result<()> {
         // Check if files exist
         let required_files = vec![".env", ".miyabi.yml"];
-        let required_dirs = vec![".ai/logs", ".ai/parallel-reports", ".worktrees"];
+        let worktree_base = default_worktree_base_dir();
+        let required_dirs = vec![
+            PathBuf::from(".ai/logs"),
+            PathBuf::from(".ai/parallel-reports"),
+            worktree_base,
+        ];
 
         for file in required_files {
             if !Path::new(file).exists() {
@@ -326,8 +342,11 @@ cli:
         }
 
         for dir in required_dirs {
-            if !Path::new(dir).exists() {
-                return Err(CliError::GitConfig(format!("Missing directory: {}", dir)));
+            if !dir.exists() {
+                return Err(CliError::GitConfig(format!(
+                    "Missing directory: {}",
+                    dir.to_string_lossy()
+                )));
             }
         }
 

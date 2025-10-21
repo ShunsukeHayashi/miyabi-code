@@ -1,6 +1,9 @@
 //! Init command - Initialize new Miyabi project
 
-use crate::error::{CliError, Result};
+use crate::{
+    error::{CliError, Result},
+    worktree::default_worktree_base_dir,
+};
 use colored::Colorize;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use std::fs;
@@ -912,6 +915,7 @@ cat .claude/agents/README.md
 
     fn create_config_files(&self, project_dir: &Path) -> Result<()> {
         // Create .miyabi.yml
+        let worktree_base = default_worktree_base_dir();
         let miyabi_config = format!(
             r#"# Miyabi Configuration
 project_name: {}
@@ -924,7 +928,7 @@ version: "0.1.0"
 agents:
   enabled: true
   use_worktree: true
-  worktree_base_path: ".worktrees"
+  worktree_base_path: "{}"
 
 # Logging
 logging:
@@ -935,16 +939,17 @@ logging:
 reporting:
   directory: "./reports"
 "#,
-            self.name
+            self.name,
+            worktree_base.to_string_lossy()
         );
 
         fs::write(project_dir.join(".miyabi.yml"), miyabi_config)?;
 
         // Create .gitignore
-        let gitignore = r#"# Miyabi
+        let gitignore = format!(
+            r#"# Miyabi
 .miyabi.yml
-.worktrees/
-logs/
+{worktree_entry}logs/
 reports/
 *.log
 
@@ -961,7 +966,13 @@ target/
 .idea/
 *.swp
 *.swo
-"#;
+"#,
+            worktree_entry = if worktree_base.is_absolute() {
+                String::new()
+            } else {
+                format!("{}/\n", worktree_base.to_string_lossy())
+            }
+        );
 
         fs::write(project_dir.join(".gitignore"), gitignore)?;
 

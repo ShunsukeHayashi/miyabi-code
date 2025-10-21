@@ -3,8 +3,8 @@
 //! Responsible for monitoring GitHub Issues, checking implementation status,
 //! and automatically updating state labels to match reality.
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
+use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,

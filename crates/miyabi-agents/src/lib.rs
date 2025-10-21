@@ -2,7 +2,8 @@
 
 // Re-export from miyabi-agent-core
 pub use miyabi_agent_core::{
-    AgentHook, BaseAgent, HookedAgent, OrchestrationEngine, Orchestrated,
+    AgentHook, AuditLogHook, BaseAgent, EnvironmentCheckHook, HookedAgent, MetricsHook,
+    Orchestrated, OrchestrationEngine,
 };
 
 pub mod business;

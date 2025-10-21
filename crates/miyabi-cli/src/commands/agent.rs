@@ -1,6 +1,9 @@
 //! Agent command - Run agents
 
-use crate::error::{CliError, Result};
+use crate::{
+    error::{CliError, Result},
+    worktree::default_worktree_base_dir,
+};
 use colored::Colorize;
 use miyabi_agents::business::{
     AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
@@ -9,12 +12,12 @@ use miyabi_agents::business::{
 };
 use miyabi_agents::codegen::CodeGenAgent;
 use miyabi_agents::deployment::DeploymentAgent;
-use miyabi_agents::hooks::{AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 use miyabi_agents::issue::IssueAgent;
 use miyabi_agents::pr::PRAgent;
 use miyabi_agents::review::ReviewAgent;
 use miyabi_agents::BaseAgent;
 use miyabi_agents::CoordinatorAgentWithLLM;
+use miyabi_agents::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 use miyabi_core::git::{find_git_root, get_current_branch};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentType, Task};
@@ -182,7 +185,7 @@ impl AgentCommand {
             repo_name: Some(repo_name),
             use_task_tool: false,
             use_worktree: true,
-            worktree_base_path: Some(PathBuf::from(".worktrees")),
+            worktree_base_path: Some(default_worktree_base_dir()),
             log_directory: "./logs".to_string(),
             report_directory: "./reports".to_string(),
             tech_lead_github_username: None,
