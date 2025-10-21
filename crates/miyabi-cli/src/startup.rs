@@ -91,7 +91,11 @@ fn check_version_conflicts() {
     if let Ok(output) = output {
         if output.status.success() {
             let paths_str = String::from_utf8_lossy(&output.stdout);
-            let paths: Vec<&str> = paths_str.lines().collect();
+            let mut paths: Vec<&str> = paths_str.lines().collect();
+
+            // Remove duplicates (which -a sometimes returns the same path multiple times)
+            paths.sort();
+            paths.dedup();
 
             if paths.len() > 1 {
                 eprintln!(

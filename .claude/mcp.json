@@ -35,7 +35,7 @@
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",
         "REPOSITORY": "${REPOSITORY}"
       },
-      "disabled": true,
+      "disabled": false,
       "description": "Enhanced GitHub operations for Issue/PR management"
     },
 
@@ -44,7 +44,7 @@
       "args": [
         ".claude/mcp-servers/project-context.cjs"
       ],
-      "disabled": true,
+      "disabled": false,
       "description": "Project-specific context and dependency information"
     },
 
@@ -55,7 +55,7 @@
       "args": [
         ".claude/mcp-servers/ide-integration.cjs"
       ],
-      "disabled": true,
+      "disabled": false,
       "description": "VS Code diagnostics and Jupyter execution integration"
     },
 
@@ -69,7 +69,7 @@
       "env": {
         "AI_GUIDES_API_URL": "http://localhost:8888"
       },
-      "disabled": true,
+      "disabled": false,
       "description": "Context Engineering - AI-powered context analysis (requires external API)"
     },
 
@@ -81,7 +81,7 @@
       "env": {
         "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
       },
-      "disabled": true,
+      "disabled": false,
       "description": "Gemini 2.5 Flash Image - テキストから画像生成（note.com記事用）"
     },
 
@@ -98,7 +98,7 @@
         "DISCORD_SUPPORT_JP_CHANNEL": "${DISCORD_SUPPORT_JP_CHANNEL}",
         "DISCORD_SUPPORT_EN_CHANNEL": "${DISCORD_SUPPORT_EN_CHANNEL}"
       },
-      "disabled": true,
+      "disabled": false,
       "description": "Miyabi Discord community management - subproject for community operations"
     }
   }
