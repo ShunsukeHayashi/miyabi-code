@@ -153,7 +153,7 @@ impl StatusCommand {
 
         let base = std::env::var("MIYABI_WORKTREE_BASE_PATH")
             .map(PathBuf::from)
-            .unwrap_or_else(default_worktree_base_dir);
+            .unwrap_or_else(|_| default_worktree_base_dir());
         println!("  Base directory: {}", base.to_string_lossy());
 
         let output = Command::new("git").args(["worktree", "list"]).output();
