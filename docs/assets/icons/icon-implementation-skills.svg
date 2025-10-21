@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <circle cx="128" cy="128" r="120" fill="#FFF5ED" stroke="#FF6B00" stroke-width="4"/>
+  <!-- Laptop screen -->
+  <rect x="50" y="70" width="156" height="100" fill="#667eea" rx="8"/>
+  <rect x="60" y="80" width="136" height="80" fill="#1A1A2E" rx="4"/>
+  <!-- Code -->
+  <text x="75" y="105" fill="#4ADE80" font-family="monospace" font-size="14">&lt;code&gt;</text>
+  <text x="85" y="125" fill="#60A5FA" font-family="monospace" font-size="14">API()</text>
+  <text x="75" y="145" fill="#4ADE80" font-family="monospace" font-size="14">&lt;/code&gt;</text>
+  <!-- Laptop base -->
+  <path d="M 40 170 L 216 170 L 206 185 L 50 185 Z" fill="#FF8C42"/>
+</svg>
