@@ -213,6 +213,52 @@ cargo test --package miyabi-a2a
 GITHUB_TOKEN=ghp_xxx cargo test --package miyabi-a2a -- --ignored
 ```
 
+## Performance & Optimization
+
+### Current Implementation (MVP)
+
+**In-memory Filtering**: The current implementation fetches all Issues from GitHub and filters in memory. This is simple but has limitations:
+
+```rust
+// Current approach (MVP)
+let all_tasks = storage.list_tasks(TaskFilter::default()).await?;
+let pending = all_tasks.into_iter()
+    .filter(|t| t.status == TaskStatus::Pending)
+    .collect();
+```
+
+**Limitations**:
+- Fetches all Issues (max 100 per request)
+- Filters applied after network transfer
+- No support for large-scale deployments
+
+### Future Optimization (Roadmap)
+
+**API-level Filtering**: Use GitHub's native label-based filtering:
+
+```rust
+// Future approach (optimized)
+let filter = TaskFilter {
+    status: Some(TaskStatus::Pending),
+    limit: Some(30),
+    cursor: Some("Y3Vyc29yOnYyOpK5..."),
+    ..Default::default()
+};
+let tasks = storage.list_tasks(filter).await?;
+```
+
+**Benefits**:
+- ✅ Reduced network traffic
+- ✅ Cursor-based pagination support
+- ✅ Scalable to thousands of tasks
+
+**Implementation Status**:
+- ⏳ API design complete (`TaskFilter` with `cursor` field)
+- ⏳ GitHub API label queries (pending)
+- ⏳ Cursor-based pagination (pending)
+
+See [Issue #279](https://github.com/ShunsukeHayashi/miyabi-private/issues/279) for cursor pagination implementation.
+
 ## Examples
 
 See the [examples](../../examples/) directory for complete usage examples:
