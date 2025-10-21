@@ -15,12 +15,22 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon-32x32.svg">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="assets/favicon-16x16.svg">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="assets/favicon-32x32.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180x180.svg">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="assets/favicon-192x192.svg">
+
     <!-- Open Graph -->
     <meta property="og:title" content="BytePlus Video AI Bootcamp 2025">
     <meta property="og:description" content="3時間で習得する次世代動画生成API実装">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://shunsukehayashi.github.io/miyabi-private/byteplus-bootcamp-landing.html">
     <meta property="og:image" content="https://shunsukehayashi.github.io/miyabi-private/assets/byteplus-bootcamp-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -266,12 +276,23 @@
 
         /* Hero Section - Ive Style: Minimalism & Clarity */
         .hero {
-            background: var(--color-gray-900);
+            background-color: var(--color-gray-900);
+            background-image: url('assets/byteplus-bootcamp-hero-bg.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             color: white;
             padding: 120px var(--spacing-8) 120px;
             text-align: center;
             position: relative;
             overflow: hidden;
+        }
+
+        /* JPG Fallback for older browsers */
+        @supports not (background-image: url('*.webp')) {
+            .hero {
+                background-image: url('assets/byteplus-bootcamp-hero-bg.jpg');
+            }
         }
 
         /* Subtle gradient overlay for depth */
