@@ -1,0 +1,19 @@
+# Configuration files with real IDs/keys (contains sensitive information)
+tracking-config.js
+stripe-config.js
+
+# Local development
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.bak

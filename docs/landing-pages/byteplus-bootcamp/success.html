@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>お申し込みありがとうございます | BytePlus Video API Bootcamp</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #0A1929 0%, #1A3A52 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .success-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #00B4D8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            animation: scaleIn 0.5s ease 0.3s both;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon svg {
+            width: 48px;
+            height: 48px;
+            stroke: white;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .checkmark {
+            animation: drawCheck 0.5s ease 0.5s both;
+        }
+
+        @keyframes drawCheck {
+            from {
+                stroke-dasharray: 100;
+                stroke-dashoffset: 100;
+            }
+            to {
+                stroke-dasharray: 100;
+                stroke-dashoffset: 0;
+            }
+        }
+
+        h1 {
+            font-family: 'Poppins', 'Noto Sans JP', sans-serif;
+            font-size: 2rem;
+            color: #1A1A1A;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            font-size: 1.125rem;
+            color: #4A4A4A;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .info-box {
+            background: #F8F9FA;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            font-size: 1rem;
+            color: #1A1A1A;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-box h3::before {
+            content: '📧';
+            font-size: 1.25rem;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #4A4A4A;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .info-box li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00B4D8;
+            font-weight: bold;
+        }
+
+        .next-steps {
+            background: #FFF9E6;
+            border-left: 4px solid #FFBE0B;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .next-steps h3 {
+            font-size: 1rem;
+            color: #1A1A1A;
+            margin-bottom: 1rem;
+        }
+
+        .next-steps ol {
+            padding-left: 1.5rem;
+            color: #4A4A4A;
+            font-size: 0.875rem;
+            line-height: 1.8;
+        }
+
+        .next-steps li {
+            margin-bottom: 0.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #00B4D8, #0096C7);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 180, 216, 0.4);
+        }
+
+        .footer-note {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #999;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .success-message {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <svg viewBox="0 0 52 52">
+                <polyline class="checkmark" points="14,27 22,35 38,17" />
+            </svg>
+        </div>
+
+        <h1>お申し込みありがとうございます！</h1>
+
+        <p class="success-message">
+            BytePlus Video API Bootcampへのお申し込みが完了しました。<br>
+            決済が正常に処理されました。
+        </p>
+
+        <div class="info-box">
+            <h3>確認メールを送信しました</h3>
+            <ul>
+                <li>ご登録いただいたメールアドレスに確認メールを送信しました</li>
+                <li>受講案内、Zoomリンク（オンライン受講の場合）、当日のスケジュールなどが記載されています</li>
+                <li>メールが届かない場合は、迷惑メールフォルダをご確認ください</li>
+                <li>10分以内に届かない場合は、下記の連絡先までお問い合わせください</li>
+            </ul>
+        </div>
+
+        <div class="next-steps">
+            <h3>🚀 次のステップ</h3>
+            <ol>
+                <li>確認メールに記載されているリンクから、事前アンケートにご回答ください</li>
+                <li>開発環境のセットアップガイドをご確認ください（メールに添付）</li>
+                <li>当日の質問事項があれば、事前に共有フォームからお送りください</li>
+                <li>開催3日前に、最終リマインダーメールをお送りします</li>
+            </ol>
+        </div>
+
+        <a href="index.html" class="btn">トップページに戻る</a>
+
+        <p class="footer-note">
+            お問い合わせ: bootcamp@byteplus.com | 電話: 03-1234-5678（平日10:00-18:00）<br>
+            © 2025 BytePlus. All rights reserved.
+        </p>
+    </div>
+
+    <!-- Analytics tracking for conversion -->
+    <script>
+        // Get session ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        // Track conversion event
+        if (window.gtag) {
+            gtag('event', 'purchase', {
+                transaction_id: sessionId,
+                value: 29800, // Will be updated based on actual course type
+                currency: 'JPY',
+                items: [{
+                    item_name: 'BytePlus Video API Bootcamp',
+                    item_category: 'Education',
+                    quantity: 1
+                }]
+            });
+        }
+
+        if (window.fbq) {
+            fbq('track', 'Purchase', {
+                value: 29800,
+                currency: 'JPY',
+                content_name: 'BytePlus Bootcamp',
+                content_type: 'product'
+            });
+        }
+
+        if (window.lintrk) {
+            lintrk('track', { conversion_id: 12345678 });
+        }
+
+        console.log('Payment successful. Session ID:', sessionId);
+    </script>
+</body>
+</html>
