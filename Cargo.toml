@@ -20,7 +20,7 @@ members = [
     "crates/miyabi-mcp-server",
     "crates/miyabi-discord-mcp-server",
     "crates/miyabi-a2a",
-    "crates/miyabi-webhook",
+    "crates/miyabi-webhook", "crates/miyabi-benchmark",
 ]
 
 [workspace.package]
