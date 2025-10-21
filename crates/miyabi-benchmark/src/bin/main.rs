@@ -7,7 +7,6 @@ use clap::{Parser, Subcommand};
 use miyabi_benchmark::{SWEBenchDataset, SWEBenchProEvaluator};
 use std::path::PathBuf;
 use tracing::{info, Level};
-use tracing_subscriber;
 
 #[derive(Parser)]
 #[command(name = "miyabi-benchmark")]

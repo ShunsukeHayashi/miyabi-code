@@ -7,6 +7,7 @@ import { NotificationHistory } from "./notification-history";
 import { useNotifications } from "../contexts/notification-context";
 import { useTheme } from "../contexts/theme-context";
 import { useRefresh, RefreshInterval } from "../contexts/refresh-context";
+import { useWebSocketContext } from "../contexts/websocket-context";
 
 interface HeaderProps {
   systemStatus?: SystemStatus;
@@ -19,6 +20,10 @@ export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
   const { notifications } = useNotifications();
   const { theme, toggleTheme } = useTheme();
   const { interval, setInterval } = useRefresh();
+  const { isConnected } = useWebSocketContext();
+
+  // Get API URL for display
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
   const intervalLabels: Record<RefreshInterval, string> = {
     off: "Off",
@@ -36,13 +41,21 @@ export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
             <Icon icon="lucide:layers" className="h-6 w-6 text-miyabi-primary" />
             <h1 className="text-xl font-semibold">Miyabi A2A</h1>
           </div>
-          <Chip 
+          <Chip
             color={isHealthy ? "success" : "danger"}
             variant="flat"
             size="sm"
             className="ml-2"
           >
             {isHealthy ? "System Healthy" : "System Issues"}
+          </Chip>
+          <Chip
+            color={isConnected ? "success" : "danger"}
+            variant="dot"
+            size="sm"
+            startContent={<Icon icon={isConnected ? "lucide:wifi" : "lucide:wifi-off"} className="h-4 w-4" />}
+          >
+            {apiUrl}
           </Chip>
         </div>
         

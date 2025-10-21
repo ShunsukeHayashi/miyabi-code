@@ -1,6 +1,7 @@
 import React from "react";
 import { Tabs, Tab, Divider, Spinner } from "@heroui/react";
 import { LiveDashboard } from "./components/live-dashboard";
+import { DashboardRealtime } from "./components/dashboard-realtime";
 import { EventTimeline } from "./components/event-timeline";
 import { DagVisualizer } from "./components/dag-visualizer";
 import { ErrorDashboard } from "./components/error-dashboard";
@@ -10,9 +11,10 @@ import { useMiyabiData } from "./hooks/use-miyabi-data";
 import { NotificationProvider } from "./contexts/notification-context";
 import { ThemeProvider } from "./contexts/theme-context";
 import { RefreshProvider } from "./contexts/refresh-context";
+import { WebSocketProvider } from "./contexts/websocket-context";
 
 const AppContent: React.FC = () => {
-  const [selected, setSelected] = React.useState("dashboard");
+  const [selected, setSelected] = React.useState("production");
   const { isLoading, systemStatus } = useMiyabiData();
 
   if (isLoading) {
@@ -40,6 +42,9 @@ const AppContent: React.FC = () => {
           variant="underlined"
           className="mb-6"
         >
+          <Tab key="production" title="🚀 Production (Rust API)">
+            <DashboardRealtime />
+          </Tab>
           <Tab key="dashboard" title="Live Dashboard">
             <LiveDashboard />
           </Tab>
@@ -65,9 +70,11 @@ export default function App() {
   return (
     <ThemeProvider>
       <RefreshProvider>
-        <NotificationProvider maxNotifications={5}>
-          <AppContent />
-        </NotificationProvider>
+        <WebSocketProvider>
+          <NotificationProvider maxNotifications={5}>
+            <AppContent />
+          </NotificationProvider>
+        </WebSocketProvider>
       </RefreshProvider>
     </ThemeProvider>
   );
