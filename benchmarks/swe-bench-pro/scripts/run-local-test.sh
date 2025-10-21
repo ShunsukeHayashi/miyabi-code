@@ -155,30 +155,60 @@ echo "  ✅ Miyabi ビルド完了"
 echo ""
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Phase 5: Predictions 生成（プレースホルダー）
+# Phase 5: Predictions 生成（Rust CLI with Claude API）
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-echo "🤖 Phase 5: Predictions 生成"
+echo "🤖 Phase 5: Predictions 生成 (Claude API)"
 echo ""
 
 OUTPUT_DIR="${PROJECT_ROOT}/output"
 mkdir -p "${OUTPUT_DIR}"
 PREDICTIONS_FILE="${OUTPUT_DIR}/predictions.jsonl"
 
-echo "  ⚠️  注意: 現在はプレースホルダーのPredictionsを生成します"
-echo "  ℹ️  実際のパッチ生成は未実装のため、空のパッチで動作確認します"
+# データセットパスを確認
+DATASET_PATH="${PROJECT_ROOT}/data/swebench_pro_test.json"
+if [ ! -f "${DATASET_PATH}" ]; then
+    # Fallback to alternative paths
+    if [ -f "${PROJECT_ROOT}/data/swebench_pro.json" ]; then
+        DATASET_PATH="${PROJECT_ROOT}/data/swebench_pro.json"
+    else
+        echo "❌ データセットが見つかりません"
+        exit 1
+    fi
+fi
+
+echo "  📊 データセット: ${DATASET_PATH}"
+echo "  📄 出力: ${PREDICTIONS_FILE}"
+echo "  🔢 インスタンス数: ${INSTANCE_LIMIT}"
+echo "  🧵 並列度: ${MAX_WORKERS}"
 echo ""
 
-# プレースホルダー Predictions 生成
-cat > "${PREDICTIONS_FILE}" << 'EOF'
-{"instance_id":"django__django-11039","model_name_or_path":"miyabi-v1.0.0","model_patch":""}
-{"instance_id":"django__django-11815","model_name_or_path":"miyabi-v1.0.0","model_patch":""}
-{"instance_id":"django__django-12453","model_name_or_path":"miyabi-v1.0.0","model_patch":""}
-{"instance_id":"matplotlib__matplotlib-23964","model_name_or_path":"miyabi-v1.0.0","model_patch":""}
-{"instance_id":"pytest-dev__pytest-5221","model_name_or_path":"miyabi-v1.0.0","model_patch":""}
-EOF
+# Miyabi Benchmark CLI実行
+BENCHMARK_BIN="${PROJECT_ROOT}/../../target/release/miyabi-benchmark"
 
-PREDICTIONS_COUNT=$(wc -l < "${PREDICTIONS_FILE}")
+if [ ! -f "${BENCHMARK_BIN}" ]; then
+    echo "❌ Miyabi Benchmarkバイナリが見つかりません: ${BENCHMARK_BIN}"
+    echo "  以下のコマンドでビルドしてください:"
+    echo "  cd ${PROJECT_ROOT}/../.. && cargo build --release --package miyabi-benchmark --features cli"
+    exit 1
+fi
+
+echo "  🚀 Miyabi Benchmark CLI実行中..."
+"${BENCHMARK_BIN}" evaluate \
+    --dataset "${DATASET_PATH}" \
+    --output "${PREDICTIONS_FILE}" \
+    --limit "${INSTANCE_LIMIT}" \
+    --concurrency "${MAX_WORKERS}" \
+    --timeout 1800 \
+    --worktree-base "${PROJECT_ROOT}/.worktrees" \
+    --model-name "miyabi-v1.0.0"
+
+if [ $? -ne 0 ]; then
+    echo "❌ Predictions生成に失敗しました"
+    exit 1
+fi
+
+PREDICTIONS_COUNT=$(wc -l < "${PREDICTIONS_FILE}" | tr -d ' ')
 echo "  ✅ Predictions 生成完了: ${PREDICTIONS_COUNT} 件"
 echo "  📄 ファイル: ${PREDICTIONS_FILE}"
 echo ""
