@@ -6,8 +6,7 @@
 //! - Scenario 3: Statistics methods vs Hook Metrics consistency
 
 use async_trait::async_trait;
-use miyabi_agents::hooks::{AgentHook, AuditLogHook, HookedAgent, MetricsHook};
-use miyabi_agents::BaseAgent;
+use miyabi_agents::{AgentHook, AuditLogHook, BaseAgent, HookedAgent, MetricsHook};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::TaskType;
