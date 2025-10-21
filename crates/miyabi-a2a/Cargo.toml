@@ -10,6 +10,10 @@ keywords = ["a2a", "task-storage", "github-issues", "agent", "coordination"]
 categories = ["development-tools", "api-bindings"]
 readme = "README.md"
 
+[features]
+default = []
+grpc = ["dep:tonic", "dep:prost"]
+
 [dependencies]
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 octocrab = { workspace = true }
@@ -28,7 +32,15 @@ hmac = "0.12"
 sha2 = "0.10"
 hex = "0.4"
 
+# gRPC support (optional, v2.0 planned feature)
+tonic = { version = "0.12", optional = true }
+prost = { version = "0.13", optional = true }
+
 [dev-dependencies]
 tokio-test = "0.4"
 tempfile = "3.8"
 wiremock = "0.6"
+
+[build-dependencies]
+# tonic-build is needed to compile .proto files when grpc feature is enabled
+tonic-build = "0.12"

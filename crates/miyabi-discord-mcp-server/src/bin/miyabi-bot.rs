@@ -40,7 +40,8 @@ struct MiyabiBot {
     cache: InMemoryCache,
     command_prefix: String,
     progress_reporter: Option<Arc<ProgressReporter>>,
-    guild_id: Id<GuildMarker>,
+    /// Guild ID for this bot instance (currently unused, reserved for multi-guild support)
+    _guild_id: Id<GuildMarker>,
     introductions_channel_id: Option<Id<ChannelMarker>>,
     /// Rate limit tracking: UserId -> RateLimitEntry
     rate_limits: Arc<Mutex<HashMap<Id<UserMarker>, RateLimitEntry>>>,
@@ -85,7 +86,7 @@ impl MiyabiBot {
             cache,
             command_prefix: "!miyabi".to_string(),
             progress_reporter,
-            guild_id,
+            _guild_id: guild_id,
             introductions_channel_id,
             rate_limits: Arc::new(Mutex::new(HashMap::new())),
             profanity_words,
