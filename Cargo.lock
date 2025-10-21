@@ -1773,8 +1773,10 @@ name = "miyabi-agent-business"
 version = "0.1.1"
 dependencies = [
  "async-trait",
+ "chrono",
  "miyabi-agent-core",
  "miyabi-core",
+ "miyabi-llm",
  "miyabi-types",
  "serde",
  "serde_json",
@@ -1789,7 +1791,9 @@ name = "miyabi-agent-codegen"
 version = "0.1.1"
 dependencies = [
  "async-trait",
+ "chrono",
  "miyabi-agent-core",
+ "miyabi-agent-integrations",
  "miyabi-core",
  "miyabi-llm",
  "miyabi-potpie",
@@ -1807,6 +1811,7 @@ name = "miyabi-agent-coordinator"
 version = "0.1.1"
 dependencies = [
  "async-trait",
+ "chrono",
  "futures",
  "miyabi-agent-core",
  "miyabi-core",
@@ -1842,10 +1847,13 @@ name = "miyabi-agent-integrations"
 version = "0.1.1"
 dependencies = [
  "async-trait",
+ "chrono",
  "miyabi-agent-core",
  "miyabi-core",
+ "miyabi-github",
  "miyabi-potpie",
  "miyabi-types",
+ "octocrab 0.47.0",
  "serde",
  "serde_json",
  "tempfile",
@@ -1859,6 +1867,7 @@ name = "miyabi-agent-review"
 version = "0.1.1"
 dependencies = [
  "async-trait",
+ "chrono",
  "miyabi-agent-core",
  "miyabi-core",
  "miyabi-types",
@@ -1876,12 +1885,14 @@ name = "miyabi-agent-workflow"
 version = "0.1.1"
 dependencies = [
  "async-trait",
+ "chrono",
  "miyabi-agent-core",
  "miyabi-core",
  "miyabi-github",
  "miyabi-types",
  "octocrab 0.47.0",
  "regex",
+ "reqwest 0.12.24",
  "serde",
  "serde_json",
  "tempfile",

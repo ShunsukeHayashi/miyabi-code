@@ -32,8 +32,6 @@
 //! # }
 //! ```
 
-// Placeholder modules - will be populated during Phase 2
-// pub mod review;
+pub mod review;
 
-// Re-exports will be added during Phase 2
-// pub use review::ReviewAgent;
+pub use review::ReviewAgent;

@@ -13,10 +13,12 @@ categories = ["development-tools", "web-programming"]
 miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }
 
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 async-trait = "0.1"

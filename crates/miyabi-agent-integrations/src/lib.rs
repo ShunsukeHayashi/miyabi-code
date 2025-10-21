@@ -28,12 +28,10 @@
 //! # }
 //! ```
 
-// Placeholder modules - will be populated during Phase 2
-// pub mod discord_community;
-// pub mod potpie_integration;
-// pub mod refresher;
+pub mod discord_community;
+pub mod potpie_integration;
+pub mod refresher;
 
-// Re-exports will be added during Phase 2
-// pub use discord_community::DiscordCommunityAgent;
-// pub use potpie_integration::PotpieIntegration;
-// pub use refresher::RefresherAgent;
+pub use discord_community::DiscordCommunityAgent;
+pub use potpie_integration::PotpieIntegration;
+pub use refresher::RefresherAgent;

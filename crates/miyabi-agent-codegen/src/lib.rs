@@ -32,8 +32,6 @@
 //! # }
 //! ```
 
-// Placeholder modules - will be populated during Phase 2
-// pub mod codegen;
+pub mod codegen;
 
-// Re-exports will be added during Phase 2
-// pub use codegen::CodeGenAgent;
+pub use codegen::CodeGenAgent;

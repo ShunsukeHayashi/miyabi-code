@@ -28,12 +28,10 @@
 //! # }
 //! ```
 
-// Placeholder modules - will be populated during Phase 2
-// pub mod pr;
-// pub mod issue;
-// pub mod deployment;
+pub mod pr;
+pub mod issue;
+pub mod deployment;
 
-// Re-exports will be added during Phase 2
-// pub use pr::PRAgent;
-// pub use issue::IssueAgent;
-// pub use deployment::DeploymentAgent;
+pub use pr::PRAgent;
+pub use issue::IssueAgent;
+pub use deployment::DeploymentAgent;

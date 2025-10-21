@@ -26,12 +26,13 @@
 //! # }
 //! ```
 
-// Placeholder modules - will be populated during Phase 2
-// pub mod coordinator;
-// pub mod coordinator_with_llm;
-// pub mod parallel;
+pub mod coordinator;
+pub mod coordinator_with_llm;
+pub mod parallel;
 
-// Re-exports will be added during Phase 2
-// pub use coordinator::{CoordinatorAgent, TaskDecomposition};
-// pub use coordinator_with_llm::CoordinatorAgentWithLLM;
-// pub use parallel::ParallelExecutor;
+pub use coordinator::CoordinatorAgent;
+pub use coordinator_with_llm::CoordinatorAgentWithLLM;
+pub use parallel::ParallelExecutor;
+
+// Re-export TaskDecomposition from miyabi-types for convenience
+pub use miyabi_types::task::TaskDecomposition;
