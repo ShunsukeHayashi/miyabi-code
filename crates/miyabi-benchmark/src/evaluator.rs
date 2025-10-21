@@ -4,6 +4,8 @@
 
 use anyhow::{anyhow, Context, Result};
 use miyabi_types::benchmark::{PatchOutput, SWEBenchInstance};
+use miyabi_types::task::Task;
+use miyabi_types::AgentConfig;
 use miyabi_worktree::WorktreeManager;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -269,21 +271,122 @@ impl SWEBenchProEvaluator {
     /// Executes agent via Claude Code (placeholder)
     async fn execute_agent(
         &self,
-        _worktree_path: &Path,
-        _instance: &SWEBenchInstance,
+        worktree_path: &Path,
+        instance: &SWEBenchInstance,
     ) -> Result<()> {
-        // TODO: Implement Claude Code integration
-        // This should invoke Claude Code in the worktree with the execution context
+        info!(
+            "Executing agent for instance: {} in worktree: {:?}",
+            instance.instance_id, worktree_path
+        );
+
+        // Strategy: Try multiple execution approaches in order of preference
         //
-        // Possible approaches:
-        // 1. Shell out to `claude` CLI (if available)
-        // 2. Use MCP protocol to communicate with Claude Code
-        // 3. Manual intervention prompt (for MVP)
+        // 1. Claude Code CLI (interactive, highest quality)
+        // 2. Miyabi CodeGenAgent with LLM (automated, good quality)
+        // 3. Bash script fallback (custom logic)
+        //
+        // For now, we'll implement approach #2 (CodeGenAgent) as it's fully automated
 
-        warn!("Agent execution not implemented yet - placeholder");
+        // Convert SWEBenchInstance to Task format
+        let task = self.instance_to_task(instance)?;
 
-        // For now, return success to allow testing the rest of the pipeline
-        Ok(())
+        // Execute CodeGenAgent
+        match self.execute_codegen_agent(&task, worktree_path).await {
+            Ok(_) => {
+                info!(
+                    "Successfully executed agent for instance: {}",
+                    instance.instance_id
+                );
+                Ok(())
+            }
+            Err(e) => {
+                warn!(
+                    "Agent execution failed for instance {}: {}",
+                    instance.instance_id, e
+                );
+                // Don't fail the entire evaluation - continue with empty patch
+                Ok(())
+            }
+        }
+    }
+
+    /// Convert SWEBenchInstance to Task for CodeGenAgent
+    fn instance_to_task(&self, instance: &SWEBenchInstance) -> Result<Task> {
+        use miyabi_types::task::{Task, TaskType};
+        use miyabi_types::agent::AgentType;
+
+        Ok(Task {
+            id: format!("swebench-{}", instance.instance_id),
+            title: format!("Fix issue: {}", instance.instance_id),
+            description: format!(
+                "Repository: {}\nBase commit: {}\n\nProblem Statement:\n{}",
+                instance.repo,
+                instance.base_commit,
+                instance.problem_statement
+            ),
+            task_type: TaskType::Feature, // Most SWE-bench issues are bug fixes or features
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::CodeGenAgent),
+            dependencies: vec![],
+            estimated_duration: Some(30), // 30 minutes timeout per instance
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(std::collections::HashMap::from([
+                ("instance_id".to_string(), serde_json::json!(instance.instance_id)),
+                ("repo".to_string(), serde_json::json!(instance.repo)),
+                ("base_commit".to_string(), serde_json::json!(instance.base_commit)),
+            ])),
+        })
+    }
+
+    /// Execute CodeGenAgent in the worktree
+    async fn execute_codegen_agent(&self, task: &Task, worktree_path: &Path) -> Result<()> {
+        use miyabi_agent_codegen::CodeGenAgent;
+        use miyabi_agent_core::BaseAgent;
+        use std::env;
+
+        // Create minimal AgentConfig for benchmark execution
+        let config = AgentConfig {
+            device_identifier: env::var("DEVICE_IDENTIFIER")
+                .unwrap_or_else(|_| "swebench-evaluator".to_string()),
+            github_token: env::var("GITHUB_TOKEN").unwrap_or_default(),
+            repo_owner: None,
+            repo_name: None,
+            use_task_tool: false,
+            use_worktree: true,
+            worktree_base_path: Some(worktree_path.to_path_buf()),
+            log_directory: "/tmp/miyabi-benchmark/logs".to_string(),
+            report_directory: "/tmp/miyabi-benchmark/reports".to_string(),
+            tech_lead_github_username: None,
+            ciso_github_username: None,
+            po_github_username: None,
+            firebase_production_project: None,
+            firebase_staging_project: None,
+            production_url: None,
+            staging_url: None,
+        };
+
+        let agent = CodeGenAgent::new(config);
+
+        // Execute the agent
+        let result = agent.execute(task).await?;
+
+        // Log result
+        info!(
+            "CodeGenAgent result for task {}: status={:?}",
+            task.id, result.status
+        );
+
+        match result.status {
+            miyabi_types::agent::ResultStatus::Success => Ok(()),
+            _ => Err(anyhow::anyhow!(
+                "CodeGenAgent failed with status: {:?}",
+                result.status
+            )),
+        }
     }
 
     /// Generates a patch in unified diff format
