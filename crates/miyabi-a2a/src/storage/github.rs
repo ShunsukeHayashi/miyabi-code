@@ -4,7 +4,7 @@ use super::{StorageError, TaskFilter, TaskStorage, TaskUpdate};
 use crate::task::{A2ATask, TaskStatus, TaskType};
 use async_trait::async_trait;
 use octocrab::{models::issues::Issue, Octocrab};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// GitHub Issues task storage implementation
 pub struct GitHubTaskStorage {
@@ -188,8 +188,7 @@ impl TaskStorage for GitHubTaskStorage {
     async fn update_task(&self, id: u64, update: TaskUpdate) -> Result<(), StorageError> {
         info!("Updating task #{}", id);
 
-        // For now, only support description updates
-        // Status updates require more complex label management
+        // Update description if provided
         if let Some(description) = update.description {
             self.client
                 .issues(&self.repo_owner, &self.repo_name)
@@ -201,11 +200,41 @@ impl TaskStorage for GitHubTaskStorage {
             debug!("Updated task #{} description", id);
         }
 
-        // Update status (via labels)
-        if let Some(_status) = update.status {
-            // Note: Label updates require fetching current labels, removing old status labels,
-            // and adding new ones. This will be implemented in Phase 2.
-            warn!("Status update via labels not yet implemented - use GitHub UI for now");
+        // Update status via labels
+        if let Some(new_status) = update.status {
+            // Fetch current issue to get existing labels
+            let issue = self
+                .client
+                .issues(&self.repo_owner, &self.repo_name)
+                .get(id)
+                .await?;
+
+            // Filter out old status labels (a2a:pending, a2a:in-progress, etc.)
+            let mut new_labels: Vec<String> = issue
+                .labels
+                .iter()
+                .filter(|label| {
+                    !label.name.starts_with("a2a:pending")
+                        && !label.name.starts_with("a2a:in-progress")
+                        && !label.name.starts_with("a2a:completed")
+                        && !label.name.starts_with("a2a:failed")
+                        && !label.name.starts_with("a2a:blocked")
+                })
+                .map(|label| label.name.clone())
+                .collect();
+
+            // Add new status label
+            new_labels.push(new_status.to_label());
+
+            // Update issue labels
+            self.client
+                .issues(&self.repo_owner, &self.repo_name)
+                .update(id)
+                .labels(&new_labels)
+                .send()
+                .await?;
+
+            debug!("Updated task #{} status to {:?}", id, new_status);
         }
 
         Ok(())
