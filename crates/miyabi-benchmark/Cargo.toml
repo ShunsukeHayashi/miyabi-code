@@ -16,8 +16,6 @@ categories = ["development-tools"]
 miyabi-types = { path = "../miyabi-types" }
 miyabi-core = { path = "../miyabi-core" }
 miyabi-agents = { path = "../miyabi-agents" }
-miyabi-agent-core = { path = "../miyabi-agent-core" }
-miyabi-agent-codegen = { path = "../miyabi-agent-codegen" }
 miyabi-worktree = { path = "../miyabi-worktree" }
 
 # Async runtime
