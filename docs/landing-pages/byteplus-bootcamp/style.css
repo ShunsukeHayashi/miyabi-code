@@ -1417,3 +1417,32 @@ textarea.form-control {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* ================================================
+   A/B Testing - CTA Button Color Variants
+   ================================================ */
+
+/* Variant B: Green */
+.cta-button-primary[data-ab-color="green"],
+.cta-button-nav[data-ab-color="green"] {
+    background-color: #10B981; /* Emerald Green */
+}
+
+.cta-button-primary[data-ab-color="green"]:hover,
+.cta-button-nav[data-ab-color="green"]:hover {
+    background-color: #059669; /* Darker Green */
+}
+
+/* Variant C: Blue */
+.cta-button-primary[data-ab-color="blue"],
+.cta-button-nav[data-ab-color="blue"] {
+    background-color: #3B82F6; /* Blue */
+}
+
+.cta-button-primary[data-ab-color="blue"]:hover,
+.cta-button-nav[data-ab-color="blue"]:hover {
+    background-color: #2563EB; /* Darker Blue */
+}
+
+/* Control: Orange (default, no attribute needed) */
+/* Uses existing var(--color-primary) = #FF6B00 */
