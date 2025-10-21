@@ -22,8 +22,49 @@
 //! };
 //! ```
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
+
+/// Custom deserializer for fail_to_pass and pass_to_pass fields
+///
+/// These fields can be either:
+/// 1. A JSON array: `["test1", "test2"]`
+/// 2. A JSON string containing an escaped array: `"[\"test1\", \"test2\"]"`
+///
+/// This deserializer handles both cases.
+fn deserialize_string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+    use serde_json::Value;
+
+    let value = Value::deserialize(deserializer)?;
+
+    match value {
+        // Case 1: Already an array
+        Value::Array(arr) => {
+            arr.into_iter()
+                .map(|v| match v {
+                    Value::String(s) => Ok(s),
+                    _ => Err(D::Error::custom("Expected string in array")),
+                })
+                .collect()
+        }
+        // Case 2: String containing a JSON array
+        Value::String(s) => {
+            // Try to parse the string as JSON
+            match serde_json::from_str::<Vec<String>>(&s) {
+                Ok(vec) => Ok(vec),
+                Err(_) => {
+                    // If parsing fails, treat as a single-element array
+                    Ok(vec![s])
+                }
+            }
+        }
+        _ => Err(D::Error::custom("Expected array or string")),
+    }
+}
 
 /// SWE-bench Pro instance
 ///
@@ -86,7 +127,7 @@ pub struct SWEBenchInstance {
     /// List of test identifiers that were failing before the fix
     /// and should pass after the fix is applied.
     /// Example: `["tests.auth.test_login", "tests.auth.test_logout"]`
-    #[serde(rename = "fail_to_pass")]
+    #[serde(rename = "fail_to_pass", deserialize_with = "deserialize_string_or_vec")]
     pub fail_to_pass: Vec<String>,
 
     /// Tests that should continue to pass
@@ -94,7 +135,7 @@ pub struct SWEBenchInstance {
     /// List of test identifiers that were passing before the fix
     /// and should continue to pass after the fix is applied.
     /// Used to detect regressions.
-    #[serde(rename = "pass_to_pass")]
+    #[serde(rename = "pass_to_pass", deserialize_with = "deserialize_string_or_vec")]
     pub pass_to_pass: Vec<String>,
 
     /// Programming language

@@ -230,6 +230,7 @@ START_TIME=$(date +%s)
 
 # 公式ハーネス実行
 python3.11 -m swebench.harness.run_evaluation \
+    --dataset_name "${DATASET_PATH}" \
     --predictions_path "${PREDICTIONS_FILE}" \
     --max_workers "${MAX_WORKERS}" \
     --run_id "${RUN_ID}" \
