@@ -1148,6 +1148,8 @@ ul, ol {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 textarea.form-control {
@@ -1325,7 +1327,23 @@ textarea.form-control {
    Responsive Design
    ================================================ */
 
+/* Tablet Landscape Optimization (1024px-1200px) */
+@media (min-width: 1024px) and (max-width: 1200px) {
+    .pricing-grid {
+        gap: 20px;
+    }
+
+    .pricing-card {
+        padding: var(--spacing-lg);
+    }
+}
+
 @media (max-width: 768px) {
+    /* Mobile padding adjustment (16px → 20px) */
+    .container {
+        padding: 0 20px;
+    }
+
     .nav {
         display: none;
     }
