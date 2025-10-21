@@ -37,6 +37,101 @@ impl DAG {
             .cloned()
             .unwrap_or_default()
     }
+
+    /// Validate DAG structure
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(MiyabiError)` with detailed error if validation fails
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_types::workflow::{DAG, Edge};
+    /// use miyabi_types::task::{Task, TaskType};
+    ///
+    /// let task = Task::new(
+    ///     "task-1".to_string(),
+    ///     "Test task".to_string(),
+    ///     "Description".to_string(),
+    ///     TaskType::Feature,
+    ///     1,
+    /// ).unwrap();
+    ///
+    /// let dag = DAG {
+    ///     nodes: vec![task],
+    ///     edges: vec![],
+    ///     levels: vec![vec!["task-1".to_string()]],
+    /// };
+    ///
+    /// assert!(dag.validate().is_ok());
+    /// ```
+    pub fn validate(&self) -> Result<(), crate::error::MiyabiError> {
+        use std::collections::HashSet;
+
+        // Empty DAG check
+        if self.nodes.is_empty() {
+            return Err(crate::error::MiyabiError::Validation(
+                "DAG cannot have zero nodes. \
+                Hint: Ensure at least one task is in the DAG"
+                    .to_string(),
+            ));
+        }
+
+        // Cycle detection
+        if self.has_cycles() {
+            return Err(crate::error::MiyabiError::CircularDependency(
+                crate::error::CircularDependencyError::new(vec![
+                    "Cycle detected in task dependencies".to_string()
+                ]),
+            ));
+        }
+
+        // Build node ID set for validation
+        let node_ids: HashSet<_> = self.nodes.iter().map(|n| &n.id).collect();
+
+        // Edge validation: from/to nodes must exist
+        for edge in &self.edges {
+            if !node_ids.contains(&edge.from) {
+                return Err(crate::error::MiyabiError::Validation(format!(
+                    "Edge references non-existent 'from' node: '{}'. \
+                    Hint: Ensure all edge references point to existing task IDs",
+                    edge.from
+                )));
+            }
+            if !node_ids.contains(&edge.to) {
+                return Err(crate::error::MiyabiError::Validation(format!(
+                    "Edge references non-existent 'to' node: '{}'. \
+                    Hint: Ensure all edge references point to existing task IDs",
+                    edge.to
+                )));
+            }
+        }
+
+        // Levels validation: all nodes must be assigned to levels
+        let nodes_in_levels: HashSet<_> = self.levels.iter().flatten().collect();
+
+        for node in &self.nodes {
+            if !nodes_in_levels.contains(&node.id) {
+                return Err(crate::error::MiyabiError::Validation(format!(
+                    "Node '{}' not assigned to any level. \
+                    Hint: Ensure DAG topological sort assigns all nodes to levels",
+                    node.id
+                )));
+            }
+        }
+
+        // No duplicate nodes in levels
+        let total_in_levels: usize = self.levels.iter().map(|l| l.len()).sum();
+        if total_in_levels != nodes_in_levels.len() {
+            return Err(crate::error::MiyabiError::Validation(
+                "Duplicate nodes found in DAG levels. \
+                Hint: Each node should appear exactly once across all levels"
+                    .to_string(),
+            ));
+        }
+
+        Ok(())
+    }
 }
 
 /// Execution plan from CoordinatorAgent

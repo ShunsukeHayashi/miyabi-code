@@ -48,17 +48,17 @@ pub struct Task {
 }
 
 impl Task {
-    /// Minimum priority value (highest priority)
-    pub const MIN_PRIORITY: u8 = 1;
+    /// Minimum priority value (highest priority) - P0 Critical
+    pub const MIN_PRIORITY: u8 = 0;
 
-    /// Maximum priority value (lowest priority)
-    pub const MAX_PRIORITY: u8 = 10;
+    /// Maximum priority value (lowest priority) - P3 Low
+    pub const MAX_PRIORITY: u8 = 3;
 
-    /// Validate priority value
+    /// Validate priority value (0-3: P0=Critical, P1=High, P2=Medium, P3=Low)
     pub fn validate_priority(priority: u8) -> Result<(), crate::error::MiyabiError> {
         if !(Self::MIN_PRIORITY..=Self::MAX_PRIORITY).contains(&priority) {
             return Err(crate::error::MiyabiError::Validation(format!(
-                "Task priority must be {}-{}, got {}",
+                "Task priority must be {}-{} (P0=Critical, P1=High, P2=Medium, P3=Low), got {}",
                 Self::MIN_PRIORITY,
                 Self::MAX_PRIORITY,
                 priority
@@ -989,14 +989,15 @@ mod tests {
 
     #[test]
     fn test_task_priority_validation() {
-        // Valid priorities (1-10)
-        assert!(Task::validate_priority(1).is_ok());
-        assert!(Task::validate_priority(5).is_ok());
-        assert!(Task::validate_priority(10).is_ok());
+        // Valid priorities (0-3: P0=Critical, P1=High, P2=Medium, P3=Low)
+        assert!(Task::validate_priority(0).is_ok()); // P0 - Critical
+        assert!(Task::validate_priority(1).is_ok()); // P1 - High
+        assert!(Task::validate_priority(2).is_ok()); // P2 - Medium
+        assert!(Task::validate_priority(3).is_ok()); // P3 - Low
 
         // Invalid priorities
-        assert!(Task::validate_priority(0).is_err());
-        assert!(Task::validate_priority(11).is_err());
+        assert!(Task::validate_priority(4).is_err());
+        assert!(Task::validate_priority(10).is_err());
         assert!(Task::validate_priority(255).is_err());
     }
 
@@ -1007,28 +1008,28 @@ mod tests {
             "Test Task".to_string(),
             "Description".to_string(),
             TaskType::Feature,
-            5,
+            2, // P2 - Medium
         );
 
         assert!(result.is_ok());
         let task = result.unwrap();
-        assert_eq!(task.priority, 5);
+        assert_eq!(task.priority, 2);
         assert_eq!(task.id, "task-1");
     }
 
     #[test]
     fn test_task_new_with_invalid_priority() {
-        // Priority too low
+        // Priority too high (4 > MAX_PRIORITY)
         let result = Task::new(
             "task-1".to_string(),
             "Test Task".to_string(),
             "Description".to_string(),
             TaskType::Feature,
-            0,
+            4,
         );
         assert!(result.is_err());
 
-        // Priority too high
+        // Priority way too high
         let result = Task::new(
             "task-1".to_string(),
             "Test Task".to_string(),
@@ -1046,16 +1047,16 @@ mod tests {
             "Test Task".to_string(),
             "Description".to_string(),
             TaskType::Feature,
-            5,
+            1, // P1 - High
         )
         .unwrap();
 
-        // Valid priority change
-        assert!(task.set_priority(8).is_ok());
-        assert_eq!(task.priority, 8);
+        // Valid priority change (P1 → P3)
+        assert!(task.set_priority(3).is_ok());
+        assert_eq!(task.priority, 3);
 
-        // Invalid priority change
-        assert!(task.set_priority(0).is_err());
-        assert_eq!(task.priority, 8); // Priority unchanged
+        // Invalid priority change (4 > MAX_PRIORITY)
+        assert!(task.set_priority(4).is_err());
+        assert_eq!(task.priority, 3); // Priority unchanged
     }
 }

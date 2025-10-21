@@ -19,6 +19,85 @@ pub struct Issue {
     pub url: String,
 }
 
+impl Issue {
+    /// Validate issue fields
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    ///
+    /// # Examples
+    /// ```
+    /// use miyabi_types::issue::{Issue, IssueStateGithub};
+    ///
+    /// let issue = Issue {
+    ///     number: 123,
+    ///     title: "Valid issue".to_string(),
+    ///     body: "Description".to_string(),
+    ///     state: IssueStateGithub::Open,
+    ///     labels: vec![],
+    ///     assignee: None,
+    ///     created_at: chrono::Utc::now(),
+    ///     updated_at: chrono::Utc::now(),
+    ///     url: "https://github.com/owner/repo/issues/123".to_string(),
+    /// };
+    ///
+    /// assert!(issue.validate().is_ok());
+    /// ```
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate number
+        if self.number == 0 {
+            return Err("Issue number must be > 0. \
+                Hint: GitHub issue numbers start at 1"
+                .to_string());
+        }
+
+        // Validate title
+        if self.title.is_empty() {
+            return Err("Issue title cannot be empty. \
+                Hint: Provide a clear, descriptive title"
+                .to_string());
+        }
+
+        if self.title.len() > 256 {
+            return Err(format!(
+                "Issue title too long ({} characters). Maximum 256 characters allowed. \
+                Hint: Keep titles concise and move details to body",
+                self.title.len()
+            ));
+        }
+
+        // Validate URL format
+        if !self.url.starts_with("https://github.com/") {
+            return Err(format!(
+                "Invalid GitHub URL format: '{}'. \
+                Hint: URL must start with 'https://github.com/'",
+                self.url
+            ));
+        }
+
+        // Validate URL contains issue number
+        if !self.url.contains(&format!("/issues/{}", self.number)) {
+            return Err(format!(
+                "URL {} does not match issue number {}. \
+                Hint: URL should contain '/issues/{}'",
+                self.url, self.number, self.number
+            ));
+        }
+
+        // Validate timestamps
+        if self.updated_at < self.created_at {
+            return Err(format!(
+                "Invalid timestamps: updated_at ({}) < created_at ({}). \
+                Hint: Ensure updated_at is after created_at",
+                self.updated_at, self.created_at
+            ));
+        }
+
+        Ok(())
+    }
+}
+
 /// GitHub issue state (open/closed)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -216,6 +295,72 @@ pub struct IssueTraceLog {
 
     // Metadata
     pub metadata: IssueMetadata,
+}
+
+impl IssueTraceLog {
+    /// Validate issue trace log fields
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate issue number
+        if self.issue_number == 0 {
+            return Err("Issue number must be > 0. \
+                Hint: GitHub issue numbers start at 1"
+                .to_string());
+        }
+
+        // Validate title
+        if self.issue_title.is_empty() {
+            return Err("Issue title cannot be empty. \
+                Hint: Provide a clear, descriptive title"
+                .to_string());
+        }
+
+        // Validate URL format
+        if !self.issue_url.starts_with("https://github.com/") {
+            return Err(format!(
+                "Invalid GitHub URL format: '{}'. \
+                Hint: URL must start with 'https://github.com/'",
+                self.issue_url
+            ));
+        }
+
+        // Validate timestamps
+        if let Some(closed_at) = self.closed_at {
+            if closed_at < self.created_at {
+                return Err(format!(
+                    "Invalid timestamps: closed_at ({}) < created_at ({}). \
+                    Hint: Ensure closed_at is after created_at",
+                    closed_at, self.created_at
+                ));
+            }
+        }
+
+        // Validate task counts consistency
+        let sum = self.completed_tasks + self.failed_tasks;
+        if sum > self.total_tasks {
+            return Err(format!(
+                "Task count inconsistency: completed({}) + failed({}) > total({}). \
+                Hint: Sum of completed and failed tasks cannot exceed total",
+                self.completed_tasks, self.failed_tasks, self.total_tasks
+            ));
+        }
+
+        // Validate final quality score range
+        if let Some(score) = self.final_quality_score {
+            if score > 100 {
+                return Err(format!(
+                    "Final quality score out of range: {}. Must be 0-100. \
+                    Hint: Quality scores represent percentage (0-100)",
+                    score
+                ));
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

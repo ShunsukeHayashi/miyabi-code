@@ -36,6 +36,47 @@ impl QualityBreakdown {
             + self.test_coverage_score as u16)
             / 4) as u8
     }
+
+    /// Validate breakdown scores
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate clippy_score
+        if self.clippy_score > 100 {
+            return Err(format!(
+                "clippy_score out of range: {}. Must be 0-100",
+                self.clippy_score
+            ));
+        }
+
+        // Validate rustc_score
+        if self.rustc_score > 100 {
+            return Err(format!(
+                "rustc_score out of range: {}. Must be 0-100",
+                self.rustc_score
+            ));
+        }
+
+        // Validate security_score
+        if self.security_score > 100 {
+            return Err(format!(
+                "security_score out of range: {}. Must be 0-100",
+                self.security_score
+            ));
+        }
+
+        // Validate test_coverage_score
+        if self.test_coverage_score > 100 {
+            return Err(format!(
+                "test_coverage_score out of range: {}. Must be 0-100",
+                self.test_coverage_score
+            ));
+        }
+
+        Ok(())
+    }
 }
 
 /// Quality issue
@@ -117,6 +158,37 @@ impl QualityReport {
             60..=79 => "⚠️ quality:needs-improvement",
             _ => "❌ quality:poor",
         }
+    }
+
+    /// Validate quality report fields
+    ///
+    /// # Returns
+    /// * `Ok(())` if all validations pass
+    /// * `Err(String)` with detailed error message if validation fails
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate score range (0-100)
+        if self.score > 100 {
+            return Err(format!(
+                "Quality score out of range: {}. Must be 0-100. \
+                Hint: Scores represent percentage (0-100)",
+                self.score
+            ));
+        }
+
+        // Validate passed flag consistency
+        let expected_passed = self.score >= 80;
+        if self.passed != expected_passed {
+            return Err(format!(
+                "Inconsistent passed flag: score={}, passed={}. \
+                Hint: passed should be true when score >= 80",
+                self.score, self.passed
+            ));
+        }
+
+        // Validate breakdown
+        self.breakdown.validate()?;
+
+        Ok(())
     }
 }
 
