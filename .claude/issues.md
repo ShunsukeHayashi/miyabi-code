@@ -23,7 +23,6 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 - [ ] #365: 💳 Phase 4: Stripe決済統合
 - [ ] #364: 📊 Phase 3: トラッキング設定 - GA4/Facebook Pixel/LinkedIn統合
 - [ ] #363: 🖼️ Phase 2: 画像素材準備 - BytePlus Landing Page用画像8種類作成
-- [ ] #362: 🚀 Phase 1: GitHub Pages デプロイ - BytePlus Landing Page公開
 - [ ] #361: 📄 BytePlus Video API Bootcamp - Landing Page デプロイとメンテナンス計画
 - [ ] #360: 🪟🍎 macOS + Windows Platform Support
 
@@ -44,6 +43,7 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 
 ## ✅ 完了済み (Completed)
 
+- [x] #362: 🚀 Phase 1: GitHub Pages デプロイ - BytePlus Landing Page公開 (2025-10-22完了 - Landing Page確認 + デプロイステータスドキュメント作成)
 - [x] #395: 最終統合: 全Partマージと品質チェック (2025-10-22完了 - 完全版150ページ + README + 品質保証)
 - [x] #394: Part 6-7: 収益化・まとめ（15ページ） (2025-10-22完了 - 4収益化パターン + ROI試算 + まとめ)
 - [x] #393: Part 5: ハンズオン（20ページ） (2025-10-22完了 - 5演習 + トラブルシューティング)
@@ -73,10 +73,10 @@ GitHub APIに依存せず、ローカルでIssue状況を管理できます。
 | 優先度 | オープン | 完了 |
 |--------|---------|------|
 | P0     | 1       | 3    |
-| P1     | 9       | 9    |
+| P1     | 8       | 10   |
 | P2     | 4       | 3    |
 | P3     | 3       | 2    |
-| **合計** | **17** | **19** |
+| **合計** | **16** | **20** |
 
 ---
 
