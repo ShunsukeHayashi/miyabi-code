@@ -65,7 +65,7 @@ pub struct Config {
 
 mod serde_path {
     use serde::{Deserialize, Deserializer, Serializer};
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     pub fn serialize_option<S>(
         value: &Option<PathBuf>,
@@ -90,7 +90,7 @@ mod serde_path {
         Ok(option.map(PathBuf::from))
     }
 
-    fn path_to_string(path: &PathBuf) -> String {
+    fn path_to_string(path: &Path) -> String {
         path.to_string_lossy().into_owned()
     }
 }

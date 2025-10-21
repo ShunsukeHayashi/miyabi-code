@@ -382,7 +382,7 @@ pub async fn send_push_notification(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wiremock::{matchers::{header, method, path}, Mock, MockServer, ResponseTemplate};
+    use wiremock::{matchers::{header, header_exists, method, path}, Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
     async fn test_send_push_notification_success() {
@@ -441,19 +441,25 @@ mod tests {
     async fn test_send_push_notification_retry_on_failure() {
         let mock_server = MockServer::start().await;
 
-        // First 2 attempts fail, 3rd succeeds
-        Mock::given(method("POST"))
-            .and(path("/webhook"))
-            .respond_with(ResponseTemplate::new(500))
-            .expect(2)
-            .mount(&mock_server)
-            .await;
+        // Mock will accept 4 requests total: first 2 fail with 500, 3rd succeeds with 200
+        // We use a counter to track which request this is
+        use std::sync::atomic::{AtomicU32, Ordering};
+        use std::sync::Arc as StdArc;
+
+        let counter = StdArc::new(AtomicU32::new(0));
+        let counter_clone = counter.clone();
 
         Mock::given(method("POST"))
             .and(path("/webhook"))
-            .respond_with(ResponseTemplate::new(200))
-            .expect(1)
-            .up_to_n_times(1)
+            .respond_with(move |_req: &wiremock::Request| {
+                let count = counter_clone.fetch_add(1, Ordering::SeqCst);
+                if count < 2 {
+                    ResponseTemplate::new(500)
+                } else {
+                    ResponseTemplate::new(200)
+                }
+            })
+            .expect(3) // 2 failures + 1 success
             .mount(&mock_server)
             .await;
 

@@ -56,8 +56,8 @@ impl GitHubTaskStorage {
             .iter()
             .find_map(|label| {
                 let name = label.name.as_str();
-                if name.starts_with("a2a:") {
-                    match &name[4..] {
+                name.strip_prefix("a2a:").and_then(|status| {
+                    match status {
                         "pending" => Some(TaskStatus::Pending),
                         "in-progress" => Some(TaskStatus::InProgress),
                         "completed" => Some(TaskStatus::Completed),
@@ -65,9 +65,7 @@ impl GitHubTaskStorage {
                         "blocked" => Some(TaskStatus::Blocked),
                         _ => None,
                     }
-                } else {
-                    None
-                }
+                })
             })
             .unwrap_or(TaskStatus::Pending);
 
@@ -77,8 +75,8 @@ impl GitHubTaskStorage {
             .iter()
             .find_map(|label| {
                 let name = label.name.as_str();
-                if name.starts_with("a2a:") {
-                    match &name[4..] {
+                name.strip_prefix("a2a:").and_then(|task_type| {
+                    match task_type {
                         "codegen" => Some(TaskType::CodeGeneration),
                         "review" => Some(TaskType::CodeReview),
                         "testing" => Some(TaskType::Testing),
@@ -87,9 +85,7 @@ impl GitHubTaskStorage {
                         "analysis" => Some(TaskType::Analysis),
                         _ => None,
                     }
-                } else {
-                    None
-                }
+                })
             })
             .unwrap_or(TaskType::Analysis);
 

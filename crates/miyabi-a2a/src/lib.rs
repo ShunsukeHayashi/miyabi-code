@@ -73,7 +73,11 @@ pub use storage::{
 };
 pub use task::{A2ATask, TaskStatus, TaskType};
 
-// Re-export RPC types
+// Re-export RPC types (Issue #274, #276, #277)
 pub use rpc::push_notification_config::{
     ConfigStorage, MemoryConfigStorage, PushNotificationConfig,
+};
+pub use rpc::push_notification::{
+    generate_webhook_signature, send_push_notification,
+    PushNotificationPayload, WebhookConfig,
 };
