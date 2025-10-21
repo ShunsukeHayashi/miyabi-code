@@ -26,6 +26,7 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 base64 = "0.22"
+uuid = { version = "1.11", features = ["v4", "serde"] }
 
 # HMAC-SHA256 for webhook authentication (Issue #276)
 hmac = "0.12"
@@ -36,6 +37,12 @@ hex = "0.4"
 reqwest = { version = "0.12", features = ["json"] }
 url = "2.5"
 
+# JWT authentication (Issue #276) - moved from dev-dependencies
+jsonwebtoken = "9.3"
+
+# Async stream utilities
+futures = "0.3"
+
 # gRPC support (optional, v2.0 planned feature)
 tonic = { version = "0.12", optional = true }
 prost = { version = "0.13", optional = true }
@@ -44,7 +51,7 @@ prost = { version = "0.13", optional = true }
 tokio-test = "0.4"
 tempfile = "3.8"
 wiremock = "0.6"
-futures = "0.3"
+tokio-stream = { version = "0.1", features = ["net"] }
 
 [build-dependencies]
 # tonic-build is needed to compile .proto files when grpc feature is enabled

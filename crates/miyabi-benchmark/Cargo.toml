@@ -1,0 +1,55 @@
+[package]
+name = "miyabi-benchmark"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Benchmark evaluation for Miyabi - SWE-bench Pro, AgentBench, HAL, Galileo"
+keywords = ["benchmark", "evaluation", "swe-bench", "agentbench"]
+categories = ["development-tools"]
+
+[dependencies]
+# Core dependencies
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
+miyabi-agents = { path = "../miyabi-agents" }
+miyabi-worktree = { path = "../miyabi-worktree" }
+
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# HTTP client (for HuggingFace API)
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+
+# CLI (for binary)
+clap = { workspace = true, optional = true }
+indicatif = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile = "3.8"
+pretty_assertions = "1.4"
+
+[features]
+default = []
+cli = ["clap", "indicatif"]
+
+[[bin]]
+name = "miyabi-benchmark"
+path = "src/bin/main.rs"
+required-features = ["cli"]

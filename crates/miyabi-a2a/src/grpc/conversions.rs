@@ -479,7 +479,7 @@ pub fn agent_card_to_proto(card: types::AgentCard) -> Result<proto::AgentCard, S
     Ok(proto::AgentCard {
         protocol_version: "0.3.0".to_string(), // Default A2A protocol version
         name: card.name,
-        description: card.description,
+        description: card.description.unwrap_or_default(),
         url: card.url,
         preferred_transport: "http".to_string(), // Default transport
         additional_interfaces: vec![],

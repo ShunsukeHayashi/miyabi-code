@@ -44,20 +44,20 @@ pub struct A2ATask {
     pub issue_url: String,
 }
 
-/// Task status lifecycle
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+/// Task status lifecycle (aligned with A2A Protocol)
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum TaskStatus {
-    /// Task created, awaiting processing
-    Pending,
+    /// Task submitted, awaiting processing
+    Submitted,
     /// Task currently being worked on
-    InProgress,
+    Working,
     /// Task successfully completed
     Completed,
     /// Task failed with errors
     Failed,
-    /// Task blocked by dependencies
-    Blocked,
+    /// Task cancelled by user
+    Cancelled,
 }
 
 impl TaskStatus {
@@ -67,8 +67,8 @@ impl TaskStatus {
     /// ```
     /// use miyabi_a2a::TaskStatus;
     ///
-    /// assert_eq!(TaskStatus::Pending.to_label(), "a2a:pending");
-    /// assert_eq!(TaskStatus::InProgress.to_label(), "a2a:in-progress");
+    /// assert_eq!(TaskStatus::Submitted.to_label(), "a2a:submitted");
+    /// assert_eq!(TaskStatus::Working.to_label(), "a2a:working");
     /// ```
     pub fn to_label(&self) -> String {
         format!("a2a:{}", self.to_string().to_lowercase())
@@ -78,11 +78,11 @@ impl TaskStatus {
 impl std::fmt::Display for TaskStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TaskStatus::Pending => write!(f, "pending"),
-            TaskStatus::InProgress => write!(f, "in-progress"),
+            TaskStatus::Submitted => write!(f, "submitted"),
+            TaskStatus::Working => write!(f, "working"),
             TaskStatus::Completed => write!(f, "completed"),
             TaskStatus::Failed => write!(f, "failed"),
-            TaskStatus::Blocked => write!(f, "blocked"),
+            TaskStatus::Cancelled => write!(f, "cancelled"),
         }
     }
 }

@@ -58,16 +58,19 @@ impl GitHubTaskStorage {
                 let name = label.name.as_str();
                 name.strip_prefix("a2a:").and_then(|status| {
                     match status {
-                        "pending" => Some(TaskStatus::Pending),
-                        "in-progress" => Some(TaskStatus::InProgress),
+                        "submitted" => Some(TaskStatus::Submitted),
+                        "working" => Some(TaskStatus::Working),
                         "completed" => Some(TaskStatus::Completed),
                         "failed" => Some(TaskStatus::Failed),
-                        "blocked" => Some(TaskStatus::Blocked),
+                        "cancelled" => Some(TaskStatus::Cancelled),
+                        // Legacy label compatibility
+                        "pending" => Some(TaskStatus::Submitted),
+                        "in-progress" => Some(TaskStatus::Working),
                         _ => None,
                     }
                 })
             })
-            .unwrap_or(TaskStatus::Pending);
+            .unwrap_or(TaskStatus::Submitted);
 
         // Extract task type from labels
         let task_type = issue

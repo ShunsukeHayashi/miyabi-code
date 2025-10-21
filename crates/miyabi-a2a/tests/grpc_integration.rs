@@ -21,8 +21,7 @@ use miyabi_a2a::{
         A2AServiceImpl,
     },
     rpc::{A2ARpcHandler, AgentCardRpcHandler, TaskStorage},
-    types::{AgentCard, Task, TaskStatus, Part as InternalPart, TaskInput, TaskOutput, Role},
-    auth::jwt::JwtValidator,
+    types::{AgentCard, Task, TaskStatus},
 };
 use async_trait::async_trait;
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
@@ -51,12 +50,9 @@ impl TaskStorage for MemoryTaskStorage {
         Ok(())
     }
 
-    async fn get_task(&self, task_id: &str) -> Result<Task, A2AError> {
+    async fn get_task(&self, task_id: &str) -> Result<Option<Task>, A2AError> {
         let tasks = self.tasks.read().await;
-        tasks
-            .get(task_id)
-            .cloned()
-            .ok_or_else(|| A2AError::TaskNotFound(task_id.to_string()))
+        Ok(tasks.get(task_id).cloned())
     }
 
     async fn update_task(&self, task: Task) -> Result<(), A2AError> {
@@ -70,10 +66,9 @@ impl TaskStorage for MemoryTaskStorage {
 
     async fn list_tasks(
         &self,
-        status: Option<TaskStatus>,
         context_id: Option<&str>,
+        status: Option<TaskStatus>,
         limit: usize,
-        offset: usize,
     ) -> Result<Vec<Task>, A2AError> {
         let tasks = self.tasks.read().await;
         let mut filtered: Vec<_> = tasks
@@ -95,31 +90,17 @@ impl TaskStorage for MemoryTaskStorage {
             .collect();
 
         filtered.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-        Ok(filtered.into_iter().skip(offset).take(limit).collect())
+        Ok(filtered.into_iter().take(limit).collect())
     }
 
-    async fn count_tasks(
-        &self,
-        status: Option<TaskStatus>,
-        context_id: Option<&str>,
-    ) -> Result<usize, A2AError> {
-        let tasks = self.tasks.read().await;
-        Ok(tasks
-            .values()
-            .filter(|task| {
-                if let Some(s) = status {
-                    if task.status != s {
-                        return false;
-                    }
-                }
-                if let Some(ctx) = context_id {
-                    if task.context_id.as_deref() != Some(ctx) {
-                        return false;
-                    }
-                }
-                true
-            })
-            .count())
+    async fn cancel_task(&self, task_id: &str) -> Result<(), A2AError> {
+        let mut tasks = self.tasks.write().await;
+        if let Some(task) = tasks.get_mut(task_id) {
+            task.status = TaskStatus::Cancelled;
+            Ok(())
+        } else {
+            Err(A2AError::TaskNotFound(task_id.to_string()))
+        }
     }
 }
 
@@ -128,26 +109,17 @@ async fn start_test_server() -> (SocketAddr, tokio::task::JoinHandle<()>) {
     let storage = MemoryTaskStorage::new();
     let rpc_handler = Arc::new(A2ARpcHandler::new(storage));
 
-    // Create a test JWT validator
-    let validator = JwtValidator::new_hs256("test-secret-key-12345".to_string());
-
     // Create a test agent card
     let agent_card = AgentCard {
-        protocol_version: "0.3.0".to_string(),
         name: "Test Agent".to_string(),
         description: Some("A test agent for integration tests".to_string()),
-        url: "https://test.example.com".to_string(),
-        preferred_transport: "grpc".to_string(),
         version: "1.0.0".to_string(),
-        default_input_modes: vec!["text".to_string()],
-        default_output_modes: vec!["text".to_string()],
+        capabilities: vec!["text-generation".to_string()],
+        auth_methods: vec!["jwt".to_string()],
+        url: "https://test.example.com".to_string(),
     };
 
-    let agent_card_handler = Arc::new(AgentCardRpcHandler::new(
-        Arc::new(validator),
-        agent_card,
-        None,
-    ));
+    let agent_card_handler = Arc::new(AgentCardRpcHandler::new(agent_card));
 
     let service = A2AServiceImpl::new(rpc_handler, Some(agent_card_handler));
 
@@ -343,8 +315,8 @@ async fn test_tasks_list_success() {
     // List tasks
     let list_request = TasksListRequest {
         status: None,
-        limit: Some(10),
-        offset: Some(0),
+        limit: 10,
+        offset: 0,
         context_id: Some("list-test".to_string()),
     };
 
@@ -377,8 +349,8 @@ async fn test_tasks_list_with_pagination() {
     // List first page (2 items)
     let list_request = TasksListRequest {
         status: None,
-        limit: Some(2),
-        offset: Some(0),
+        limit: 2,
+        offset: 0,
         context_id: None,
     };
 
@@ -723,8 +695,6 @@ async fn test_benchmark_grpc_parallel_throughput() {
     let request_count = 100;
     let concurrency = 10;
     let start = std::time::Instant::now();
-
-    let mut handles = vec![];
 
     for batch in 0..(request_count / concurrency) {
         let mut batch_handles = vec![];

@@ -36,6 +36,14 @@ pub enum A2AError {
     #[error("Authentication failed: {0}")]
     AuthenticationFailed(String),
 
+    /// Unauthorized access
+    #[error("Unauthorized")]
+    Unauthorized,
+
+    /// Task already in terminal state
+    #[error("Task already in terminal state")]
+    TaskAlreadyTerminal,
+
     /// Webhook delivery failure
     #[error("Webhook delivery failed: {0}")]
     WebhookDeliveryFailed(String),

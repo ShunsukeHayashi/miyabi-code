@@ -6,6 +6,9 @@
 pub mod push_notification_config;
 pub mod push_notification;
 
+// RPC handlers for gRPC integration (Phase 3)
+pub mod handlers;
+
 // Re-export push notification config types
 pub use push_notification_config::{
     ConfigStorage, MemoryConfigStorage, PushNotificationConfig,
@@ -17,5 +20,12 @@ pub use push_notification::{
     PushNotificationPayload, WebhookConfig,
 };
 
-// Note: handlers.rs is a work in progress and not yet exported
-// It depends on types that need to be properly defined or imported from miyabi-types
+// Re-export RPC handlers
+pub use handlers::{
+    A2ARpcHandler, AgentCardRpcHandler, TaskStorage,
+    MessageSendParams, MessageSendResponse,
+    TasksGetParams, TasksGetResponse,
+    TasksCancelParams, TasksCancelResponse,
+    TasksListParams, TasksListResponse,
+    GetAuthenticatedExtendedCardParams, GetAuthenticatedExtendedCardResponse,
+};

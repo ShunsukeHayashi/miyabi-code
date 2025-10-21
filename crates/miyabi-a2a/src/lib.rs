@@ -60,9 +60,16 @@
 pub mod error;
 pub mod storage;
 pub mod task;
+pub mod types;
 
 // RPC modules for push notification configuration
 pub mod rpc;
+
+// gRPC server and protocol buffers (Phase 3)
+pub mod grpc;
+
+// Authentication and authorization (Phase 3)
+pub mod auth;
 
 // Re-export main types
 pub use error::{A2AError, A2AResult};
