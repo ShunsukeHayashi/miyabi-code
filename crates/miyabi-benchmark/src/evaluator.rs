@@ -575,6 +575,178 @@ impl SWEBenchProEvaluator {
 
         Ok(results)
     }
+
+    /// Generates Predictions JSONL file for official SWE-bench harness
+    ///
+    /// Creates a JSONL file where each line contains:
+    /// ```json
+    /// {
+    ///   "instance_id": "repo__name-issue_number",
+    ///   "model_name_or_path": "miyabi-v1.0.0",
+    ///   "model_patch": "diff --git a/..."
+    /// }
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// * `patches` - Vector of PatchOutput to serialize
+    /// * `output_path` - Path to save the JSONL file
+    ///
+    /// # Returns
+    ///
+    /// `Result<()>` - Success or error
+    pub fn generate_predictions_jsonl(
+        &self,
+        patches: &[PatchOutput],
+        output_path: &Path,
+    ) -> Result<()> {
+        info!(
+            "Generating Predictions JSONL: {} patches -> {:?}",
+            patches.len(),
+            output_path
+        );
+
+        let mut lines = Vec::with_capacity(patches.len());
+
+        for patch in patches {
+            let json = serde_json::to_string(&patch)
+                .context(format!("Failed to serialize patch: {}", patch.instance_id))?;
+            lines.push(json);
+        }
+
+        let content = lines.join("\n") + "\n";
+        std::fs::write(output_path, content)
+            .context(format!("Failed to write JSONL to {:?}", output_path))?;
+
+        info!(
+            "Predictions JSONL generated successfully: {} lines",
+            patches.len()
+        );
+
+        Ok(())
+    }
+
+    /// Runs the official SWE-bench evaluation harness (swe-bench-pro compatible)
+    ///
+    /// **OFFICIAL HARNESS INTEGRATION**
+    /// Executes: `python -m swebench.harness.run_evaluation`
+    /// Docker: Automatically pulls and runs princeton-nlp/swebench (docker) containers
+    ///
+    /// # Arguments
+    ///
+    /// * `predictions_path` - Path to Predictions JSONL file
+    /// * `run_id` - Unique identifier for this evaluation run
+    /// * `max_workers` - Number of parallel Docker containers
+    /// * `instance_ids` - Optional list of specific instances to evaluate
+    ///
+    /// # Returns
+    ///
+    /// `Result<PathBuf>` - Path to evaluation results directory
+    pub async fn run_official_harness(
+        &self,
+        predictions_path: &Path,
+        run_id: &str,
+        max_workers: usize,
+        instance_ids: Option<Vec<String>>,
+    ) -> Result<PathBuf> {
+        info!(
+            "Running official SWE-bench harness: run_id={}, workers={}",
+            run_id, max_workers
+        );
+
+        if !predictions_path.exists() {
+            return Err(anyhow!("Predictions file not found: {:?}", predictions_path));
+        }
+
+        // Build command - swe-bench-pro official harness
+        let mut cmd = Command::new("python");
+        cmd.arg("-m")
+            .arg("swebench.harness.run_evaluation") // Official swe-bench-pro evaluation harness
+            .arg("--predictions_path")
+            .arg(predictions_path)
+            .arg("--max_workers")
+            .arg(max_workers.to_string())
+            .arg("--run_id")
+            .arg(run_id);
+
+        // Add instance_ids if specified
+        if let Some(ids) = instance_ids {
+            cmd.arg("--instance_ids");
+            cmd.arg(ids.join(","));
+        }
+
+        info!("Executing command: {:?}", cmd);
+
+        // Execute command (requires docker for swe-bench-pro containers)
+        let output = cmd
+            .output()
+            .context("Failed to execute swebench.harness.run_evaluation")?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            error!("Official harness execution failed: {}", stderr);
+            return Err(anyhow!(
+                "Official harness execution failed with status {}: {}",
+                output.status,
+                stderr
+            ));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        info!("Official harness output:\n{}", stdout);
+
+        // Return path to evaluation_results directory
+        let results_dir = PathBuf::from("evaluation_results").join(run_id);
+        Ok(results_dir)
+    }
+
+    /// High-level method: Generate patches, create JSONL, and run official harness
+    ///
+    /// This is the recommended way to use the evaluator with the official SWE-bench protocol.
+    ///
+    /// # Arguments
+    ///
+    /// * `instances` - Instances to evaluate
+    /// * `output_dir` - Directory to save predictions and results
+    ///
+    /// # Returns
+    ///
+    /// `Result<PathBuf>` - Path to evaluation results
+    pub async fn evaluate_with_official_harness(
+        &self,
+        instances: &[SWEBenchInstance],
+        output_dir: &Path,
+    ) -> Result<PathBuf> {
+        info!(
+            "Starting evaluation with official harness: {} instances",
+            instances.len()
+        );
+
+        // 1. Generate patches (using Miyabi)
+        info!("Step 1/3: Generating patches with Miyabi...");
+        let results = self.evaluate_instances(instances).await?;
+        let patches: Vec<PatchOutput> = results.into_iter().map(|(patch, _)| patch).collect();
+
+        // 2. Create Predictions JSONL
+        info!("Step 2/3: Creating Predictions JSONL...");
+        std::fs::create_dir_all(output_dir).context("Failed to create output directory")?;
+        let predictions_path = output_dir.join("predictions.jsonl");
+        self.generate_predictions_jsonl(&patches, &predictions_path)?;
+
+        // 3. Run official harness
+        info!("Step 3/3: Running official SWE-bench harness...");
+        let run_id = format!(
+            "{}-{}",
+            self.config.model_name,
+            chrono::Local::now().format("%Y%m%d-%H%M%S")
+        );
+        let results_dir = self
+            .run_official_harness(&predictions_path, &run_id, self.config.concurrency, None)
+            .await?;
+
+        info!("Evaluation with official harness completed successfully");
+        Ok(results_dir)
+    }
 }
 
 impl Default for SWEBenchProEvaluator {

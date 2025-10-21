@@ -49,6 +49,101 @@ docker exec -it miyabi-swebench-pro bash
 
 ---
 
+## 🎯 公式ハーネス統合（推奨）
+
+**✅ Issue #400完了**: Miyabiは公式SWE-bench評価ハーネスと完全統合されました。
+
+### 使用方法
+
+#### 1. 公式ハーネスのインストール
+
+```bash
+# SWE-bench公式リポジトリをクローン
+git clone https://github.com/princeton-nlp/SWE-bench.git
+cd SWE-bench
+
+# 依存関係インストール
+pip install -e .
+
+# Docker要件確認
+# - ストレージ: 120GB以上
+# - RAM: 16GB以上
+# - CPU: 8コア以上
+```
+
+#### 2. Rustから公式ハーネスを使用
+
+```rust
+use miyabi_benchmark::evaluator::SWEBenchProEvaluator;
+use miyabi_benchmark::dataset::SWEBenchDataset;
+use std::path::Path;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // 1. データセット読み込み
+    let dataset = SWEBenchDataset::from_json(Path::new("data/swebench_pro.json"))?;
+    let instances = dataset.sample(10); // 10インスタンスでテスト
+
+    // 2. Evaluator作成
+    let evaluator = SWEBenchProEvaluator::new()?;
+
+    // 3. 公式ハーネスで評価（推奨）
+    let results_dir = evaluator
+        .evaluate_with_official_harness(&instances, Path::new("output"))
+        .await?;
+
+    println!("Results saved to: {:?}", results_dir);
+    Ok(())
+}
+```
+
+#### 3. 生成されるファイル
+
+```
+output/
+├── predictions.jsonl        # Predictions JSONL（公式形式）
+evaluation_results/
+└── miyabi-v1.0.0-20251022-143000/
+    ├── results.json         # 評価結果
+    ├── logs/
+    │   ├── build_images/    # Dockerビルドログ
+    │   └── run_evaluation/  # 評価実行ログ
+    └── test_output/         # テスト出力
+```
+
+### Predictions JSONL形式
+
+各行が以下のJSON形式：
+
+```json
+{
+  "instance_id": "django__django-12345",
+  "model_name_or_path": "miyabi-v1.0.0",
+  "model_patch": "diff --git a/django/auth.py b/django/auth.py\nindex abc123..def456 100644\n--- a/django/auth.py\n+++ b/django/auth.py\n@@ -10,6 +10,7 @@\n class User:\n+    # Fix authentication bug\n     pass"
+}
+```
+
+### コマンドライン使用
+
+```bash
+# Predictions JSONL生成のみ
+cargo run --bin miyabi-benchmark -- generate-predictions \
+    --dataset data/swebench_pro.json \
+    --output predictions.jsonl \
+    --limit 10
+
+# 公式ハーネスで評価
+python -m swebench.harness.run_evaluation \
+    --predictions_path predictions.jsonl \
+    --max_workers 4 \
+    --run_id miyabi-test-run
+
+# 結果確認
+cat evaluation_results/miyabi-test-run/results.json
+```
+
+---
+
 ## 📚 ドキュメント
 
 詳細なセットアップ手順は以下を参照：
