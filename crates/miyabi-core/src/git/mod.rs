@@ -4,6 +4,9 @@
 //! - Repository root discovery from any subdirectory
 //! - Repository validation
 //! - Branch detection
+//!
+//! This module consolidates all git-related functionality that was previously
+//! split between `git.rs` and `git_utils.rs`.
 
 use miyabi_types::error::{MiyabiError, Result};
 use std::path::{Path, PathBuf};
@@ -80,6 +83,19 @@ pub fn is_valid_repository(path: impl AsRef<Path>) -> bool {
         Ok(repo) => repo.workdir().is_some(),
         Err(_) => false,
     }
+}
+
+/// Check if a path is within a Git repository
+///
+/// This is an alias for checking if repository discovery succeeds.
+///
+/// # Arguments
+/// * `path` - Path to check
+///
+/// # Returns
+/// `true` if the path is within a Git repository
+pub fn is_in_git_repo(path: impl AsRef<Path>) -> bool {
+    git2::Repository::discover(path.as_ref()).is_ok()
 }
 
 /// Get the current branch name of a repository
@@ -223,6 +239,16 @@ mod tests {
 
         let temp_dir = TempDir::new().unwrap();
         assert!(!is_valid_repository(temp_dir.path()));
+    }
+
+    #[test]
+    fn test_is_in_git_repo() {
+        let (_temp, repo_path) = setup_test_repo();
+
+        assert!(is_in_git_repo(&repo_path));
+
+        let temp_dir = TempDir::new().unwrap();
+        assert!(!is_in_git_repo(temp_dir.path()));
     }
 
     #[test]

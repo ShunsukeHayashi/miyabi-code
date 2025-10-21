@@ -13,7 +13,6 @@ pub mod cache;
 pub mod config;
 pub mod documentation;
 pub mod git;
-pub mod git_utils;
 pub mod logger;
 pub mod retry;
 pub mod security;
@@ -23,13 +22,11 @@ pub use documentation::{
     generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, DocumentationResult,
     ReadmeTemplate, ValidationResult,
 };
-// Re-export primary git utilities from git module (more comprehensive)
+// Re-export all git utilities from consolidated git module
 pub use git::{
     find_git_root, get_current_branch, get_main_branch, has_uncommitted_changes,
-    is_valid_repository,
+    is_in_git_repo, is_valid_repository,
 };
-// Also re-export from git_utils for backward compatibility
-pub use git_utils::is_in_git_repo;
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
 pub use security::{run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity};
