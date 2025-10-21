@@ -1769,6 +1769,59 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-agent-business"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-agent-codegen"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-llm",
+ "miyabi-potpie",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-agent-coordinator"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "futures",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-github",
+ "miyabi-llm",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "miyabi-agent-core"
 version = "0.1.1"
 dependencies = [
@@ -1781,6 +1834,59 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-test",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-agent-integrations"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-potpie",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-agent-review"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-types",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-agent-workflow"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-github",
+ "miyabi-types",
+ "octocrab 0.47.0",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
  "tracing",
 ]
 

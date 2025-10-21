@@ -1,0 +1,26 @@
+[package]
+name = "miyabi-agent-review"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Miyabi Review Agent - Code review, quality scoring, and security scanning"
+keywords = ["agents", "ai", "review", "quality", "security"]
+categories = ["development-tools", "web-programming"]
+
+[dependencies]
+miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"
+regex = "1.10"
+
+[dev-dependencies]
+tempfile = "3.13"
