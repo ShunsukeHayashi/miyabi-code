@@ -1,0 +1,29 @@
+# Jekyll Configuration for GitHub Pages
+# This prevents Jekyll from processing files that contain template literals
+
+# Exclude files from Jekyll processing
+exclude:
+  - AGENT_VISUALIZATION_DASHBOARD.md
+  - node_modules/
+  - vendor/
+  - .git/
+  - .gitignore
+
+# Theme and plugins
+theme: jekyll-theme-primer
+plugins:
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+  - jekyll-default-layout
+  - jekyll-relative-links
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Relative links
+relative_links:
+  enabled: true
+  collections: false
