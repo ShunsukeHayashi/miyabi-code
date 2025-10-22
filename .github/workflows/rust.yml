@@ -1,6 +1,7 @@
 name: Rust CI/CD (2 Runners)
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, develop ]
     paths:
