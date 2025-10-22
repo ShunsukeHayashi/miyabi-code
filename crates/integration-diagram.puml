@@ -1,0 +1,204 @@
+@startuml Miyabi Crates Integration
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+
+title Miyabi Crates Integration Architecture (23 Crates)
+
+' Layer 1: Foundation
+package "Layer 1: Foundation" #LightBlue {
+    [miyabi-types] as types
+    [miyabi-core] as core
+
+    note right of types
+        • Agent, Task, Issue
+        • Workflow, Error
+        • 0 dependencies
+    end note
+
+    note right of core
+        • Config, Logger
+        • Retry, Validator
+        • Git Utils
+    end note
+}
+
+' Layer 2: Integration
+package "Layer 2: Integration" #LightGreen {
+    [miyabi-github] as github
+    [miyabi-worktree] as worktree
+    [miyabi-llm] as llm
+    [miyabi-potpie] as potpie
+
+    note right of github
+        • octocrab wrapper
+        • Issues, PRs, Labels
+    end note
+
+    note right of worktree
+        • git2 wrapper
+        • Parallel execution
+    end note
+
+    note right of llm
+        • GPT-OSS-20B
+        • Groq, vLLM, Ollama
+    end note
+}
+
+' Layer 3: Agent Core
+package "Layer 3: Agent Core" #LightYellow {
+    [miyabi-agent-core] as agent_core
+    [miyabi-agent-integrations] as agent_integrations
+
+    note right of agent_core
+        • BaseAgent trait
+        • AgentContext
+        • AgentResult
+    end note
+
+    note right of agent_integrations
+        • Firebase
+        • Vercel, AWS
+    end note
+}
+
+' Layer 4: Agent Implementations
+package "Layer 4: Agent Implementations" #LightCoral {
+    [miyabi-agent-coordinator] as coordinator
+    [miyabi-agent-codegen] as codegen
+    [miyabi-agent-review] as review
+    [miyabi-agent-workflow] as workflow
+    [miyabi-agent-business] as agent_business
+    [miyabi-business-agents] as business_agents
+    [miyabi-agents] as agents_legacy
+
+    note right of coordinator
+        • Task分解
+        • DAG構築
+        • Worktree管理
+    end note
+
+    note right of codegen
+        • Code生成
+        • LLM統合
+        • Potpie RAG
+    end note
+
+    note bottom of agents_legacy
+        Legacy implementation
+        (Migration in progress)
+    end note
+}
+
+' Layer 5: Application
+package "Layer 5: Application" #Lavender {
+    [miyabi-cli] as cli
+    [miyabi-mcp-server] as mcp
+    [miyabi-discord-mcp-server] as discord_mcp
+    [miyabi-a2a] as a2a
+    [miyabi-webhook] as webhook
+
+    note right of cli
+        • init, status
+        • agent run
+        • clap CLI
+    end note
+
+    note right of mcp
+        • JSON-RPC 2.0
+        • stdio, HTTP
+        • Codex統合
+    end note
+
+    note right of a2a
+        • React UI
+        • WebSocket
+        • Axum API
+    end note
+}
+
+' Layer 6: Benchmarking
+package "Layer 6: Benchmarking" #LightPink {
+    [miyabi-benchmark] as benchmark
+
+    note right of benchmark
+        • SWE-bench Pro
+        • Docker Harness
+        • Claude API
+    end note
+}
+
+' Dependencies: Layer 1 -> Layer 2
+core --> types
+github --> types
+worktree --> types
+worktree --> core
+llm --> types
+llm --> core
+potpie --> types
+
+' Dependencies: Layer 2 -> Layer 3
+agent_core --> types
+agent_integrations --> types
+
+' Dependencies: Layer 3 -> Layer 4
+coordinator --> agent_core
+coordinator --> llm
+coordinator --> github
+coordinator --> worktree
+
+codegen --> agent_core
+codegen --> llm
+codegen --> potpie
+codegen --> agent_integrations
+
+review --> agent_core
+review --> core
+
+workflow --> agent_core
+workflow --> github
+
+agent_business --> agent_core
+agent_business --> llm
+
+business_agents --> agent_business
+business_agents --> llm
+
+agents_legacy --> types
+agents_legacy --> core
+agents_legacy --> github
+
+' Dependencies: Layer 4 -> Layer 5
+cli --> agents_legacy
+cli --> github
+cli --> worktree
+
+mcp --> agents_legacy
+mcp --> types
+
+discord_mcp --> mcp
+
+a2a --> github
+a2a --> types
+
+webhook --> types
+webhook --> github
+
+' Dependencies: Layer 5 -> Layer 6
+benchmark --> types
+benchmark --> core
+benchmark --> agents_legacy
+
+' Legends
+legend right
+    |= Layer |= Description |
+    | Layer 1 | Foundation (types, core) |
+    | Layer 2 | Integration (github, worktree, llm) |
+    | Layer 3 | Agent Core (base traits) |
+    | Layer 4 | Agent Implementations |
+    | Layer 5 | Application (CLI, MCP, UI) |
+    | Layer 6 | Benchmarking |
+endlegend
+
+@enduml
