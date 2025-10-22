@@ -1,0 +1,37 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+
+title Miyabi Agent Family - 新メンバー追加！
+
+rectangle "既存Agent（19個）" #E3F2FD {
+  component "しきるん\n(Coordinator)" as coordinator #BBDEFB
+  component "つくるん\n(CodeGen)" as codegen #90CAF9
+  component "めだまん\n(Review)" as review #64B5F6
+  component "その他16個..." as others #42A5F5
+}
+
+rectangle "新メンバー（2個）" #FFEBEE {
+  component "かきこちゃん\n(NoteAgent)" as note #EF9A9A
+  component "えがくん\n(ImageGen)" as image #E57373
+}
+
+coordinator --> codegen : "コード生成依頼"
+codegen --> review : "レビュー依頼"
+coordinator --> note : "記事執筆依頼"
+note --> image : "画像生成依頼"
+
+note right of note
+  ✍️ note.com記事執筆
+  📝 6,000文字自動生成
+  🔗 Amazon アソシエイト
+end note
+
+note right of image
+  🎨 PlantUML図生成
+  🖼️ DALL-E 3プロンプト
+  🔄 自動置換
+end note
+
+@enduml

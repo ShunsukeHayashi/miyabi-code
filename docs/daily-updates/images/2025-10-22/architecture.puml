@@ -1,0 +1,41 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+
+title Self-hosted Runners アーキテクチャ
+
+cloud "GitHub Actions" as github {
+  component "Workflow" as workflow
+}
+
+node "Mac mini 1\n192.168.3.27" as mac1 {
+  component "Runner 1" as runner1
+  database "Cache" as cache1
+}
+
+node "Mac mini 2\n192.168.3.26" as mac2 {
+  component "Runner 2" as runner2
+  database "Cache" as cache2
+}
+
+package "Miyabi Repository" as repo {
+  component "CI/CD Pipeline" as pipeline
+  component "Rust Build" as build
+  component "Tests" as tests
+}
+
+github --> mac1 : "Job dispatch"
+github --> mac2 : "Job dispatch"
+mac1 --> repo : "Execute"
+mac2 --> repo : "Execute"
+pipeline --> build
+pipeline --> tests
+
+note right of mac1
+  **コスト削減**
+  月額数千〜数万円削減
+  初期投資ROI: 3-6ヶ月
+end note
+
+@enduml

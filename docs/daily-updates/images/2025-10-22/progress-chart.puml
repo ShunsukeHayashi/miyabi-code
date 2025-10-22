@@ -1,0 +1,26 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+
+title 【2025-10-22】Miyabi 開発進捗統計
+
+rectangle "今日の統計" #E3F2FD {
+  card "コミット数\n**85件** 🔥" #BBDEFB
+  card "ファイル変更\n**227件**" #90CAF9
+  card "追加行数\n**+55,392行**" #64B5F6
+  card "削除行数\n**-2,281行**" #42A5F5
+}
+
+rectangle "Issue処理" #FFF3E0 {
+  card "処理済\n**22件**" #FFE0B2
+  card "PR作成\n**6件**" #FFCC80
+}
+
+rectangle "主要成果" #E8F5E9 {
+  card "Self-hosted\nRunners導入" #C8E6C9
+  card "NoteAgent\n爆誕" #A5D6A7
+  card "SWE-bench Pro\n統合" #81C784
+}
+
+@enduml

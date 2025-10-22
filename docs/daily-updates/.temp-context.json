@@ -1,0 +1,70 @@
+{
+  "date": "2025-10-22",
+  "summary": {
+    "commits": 85,
+    "filesChanged": 227,
+    "additions": 55392,
+    "deletions": 2281,
+    "issues": [
+      {"number": 274, "title": "Push notification config RPC methods"},
+      {"number": 277, "title": "Webhook integration tests"},
+      {"number": 344, "title": "Video production Phase 1"},
+      {"number": 356, "title": "Split God Crate - Agent refactoring"},
+      {"number": 362, "title": "GitHub Pages deployment preparation"},
+      {"number": 364, "title": "Issue completion"},
+      {"number": 367, "title": "BytePlus Bootcamp slides (150 pages)"},
+      {"number": 370, "title": "Dependency: octocrab upgrade"},
+      {"number": 371, "title": "Dependency: reqwest upgrade"},
+      {"number": 374, "title": "Dependency: clap upgrade"},
+      {"number": 380, "title": "REST API specification"},
+      {"number": 381, "title": "Worktree parallel execution guide"},
+      {"number": 388, "title": "Dependency: twilight-model upgrade"},
+      {"number": 390, "title": "BytePlus Bootcamp Part 6-7"},
+      {"number": 395, "title": "BytePlus Bootcamp compilation"},
+      {"number": 400, "title": "SWE-bench Claude API integration"},
+      {"number": 401, "title": "Benchmark test execution"},
+      {"number": 402, "title": "Code quality fixes"},
+      {"number": 405, "title": "AgentBench FC setup"},
+      {"number": 406, "title": "EvaluationReporter implementation"},
+      {"number": 407, "title": "SWE-bench Pro CI workflow"},
+      {"number": 420, "title": "小学生でもわかるMiyabi説明資料"}
+    ],
+    "prs": [
+      {"number": 414, "title": "chore(deps): Bump indicatif from 0.18.0 to 0.18.1"},
+      {"number": 413, "title": "chore(deps): Bump tonic from 0.12.3 to 0.14.2"},
+      {"number": 412, "title": "chore(deps): Bump twilight-gateway from 0.15.4 to 0.16.0"},
+      {"number": 411, "title": "chore(deps): Bump jsonwebtoken from 9.3.1 to 10.1.0"},
+      {"number": 410, "title": "chore(deps): Bump prost from 0.13.5 to 0.14.1"},
+      {"number": 409, "title": "chore(deps): Bump tonic-build from 0.12.3 to 0.14.2"}
+    ]
+  },
+  "highlights": [
+    "🚀 CI/CD大規模移行 - Self-hosted Runners導入（Mac mini 2台体制）でコスト最適化",
+    "🎓 BytePlus Video AI Bootcamp 2025 完成 - 150ページのセミナースライド + ランディングページ",
+    "📚 初心者向けドキュメント整備 - 小学生でもわかるMiyabi説明資料（Issue #420）",
+    "🤖 NoteAgent（かきこちゃん）& ImageGenAgent（えがくん）追加 - note.com記事自動執筆",
+    "📊 SWE-bench Pro統合 - 公式ハーネス導入 + Claude API連携（Issue #400, #407）",
+    "🔧 Agent Crate分割完了 - 6つの新クレート作成で保守性向上（Issue #356）",
+    "📖 チュートリアル充実 - 01-04シリーズ + Worktree並列実行ガイド（Issue #381）",
+    "🔐 依存関係更新 - Dependabot 6件のPR（tonic, octocrab, reqwest等）",
+    "🧪 テストカバレッジ向上 - Webhook統合テスト追加（Issue #277）",
+    "📱 PWA実装 - Progressive Web App + オフラインサポート"
+  ],
+  "nextSteps": [
+    "🪟 Windows完全サポート（Issue #360）- Path処理統一",
+    "📊 Knowledge Management System統合（Issue #421-424）",
+    "🔄 AgentBench FC完全実装（Issue #405）",
+    "🎥 動画制作Phase 2開始（Issue #344）",
+    "🚀 Product Hunt ローンチ準備"
+  ],
+  "technicalLearnings": [
+    "Self-hosted Runners導入により GitHub Actions コスト削減成功",
+    "PlantUML + DALL-E 3連携で高品質な記事画像生成ワークフロー確立",
+    "SWE-bench公式ハーネス統合により標準規格準拠を実現",
+    "Agent Crateの分割により循環依存を解消し、コンパイル時間短縮",
+    "Worktreeベース並列実行でIssue処理スループット向上"
+  ],
+  "dayOfWeek": "火曜日",
+  "season": "秋",
+  "weather": "晴れ（開発日和！）"
+}
