@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   ai-label:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
 
     steps:
       - name: Checkout repository

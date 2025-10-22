@@ -21,7 +21,7 @@ jobs:
   # ==========================================================================
 
   initial-triage:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: github.event_name == 'issues' && github.event.action == 'opened'
     name: Initial Triage
 
@@ -80,7 +80,7 @@ jobs:
   # ==========================================================================
 
   coordinator-assignment:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: |
       github.event_name == 'issues' &&
       github.event.action == 'labeled' &&
@@ -116,7 +116,7 @@ jobs:
   # ==========================================================================
 
   specialist-assignment:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: |
       github.event_name == 'issues' &&
       github.event.action == 'labeled' &&
@@ -154,7 +154,7 @@ jobs:
   # ==========================================================================
 
   pr-created:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: github.event_name == 'pull_request' && github.event.action == 'opened'
     name: PR Created - Start Review
 
@@ -212,7 +212,7 @@ jobs:
   # ==========================================================================
 
   pr-merged:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: |
       github.event_name == 'pull_request' &&
       github.event.action == 'closed' &&
@@ -262,7 +262,7 @@ jobs:
   # ==========================================================================
 
   blocked-escalation:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: |
       github.event_name == 'issues' &&
       github.event.action == 'labeled' &&

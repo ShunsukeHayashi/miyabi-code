@@ -19,7 +19,7 @@ jobs:
   # Job 1: Check if agent should execute
   check-trigger:
     name: Check Agent Trigger
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     outputs:
       should_execute: ${{ steps.check.outputs.should_execute }}
       issue_number: ${{ steps.check.outputs.issue_number }}
@@ -63,7 +63,7 @@ jobs:
   # Job 2: Execute Autonomous Agents
   execute-agents:
     name: Execute Autonomous Agents
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-heavy]
     needs: check-trigger
     if: needs.check-trigger.outputs.should_execute == 'true'
 

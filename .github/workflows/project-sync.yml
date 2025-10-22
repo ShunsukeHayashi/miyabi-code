@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   add-to-project:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     name: Add to Agentic OS Project
 
     steps:
@@ -42,7 +42,7 @@ jobs:
           echo "   Title: ${{ github.event.issue.title || github.event.pull_request.title }}"
 
   set-initial-fields:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     needs: add-to-project
     name: Set Project Custom Fields
     if: github.event_name == 'issues' && github.event.action == 'opened'
