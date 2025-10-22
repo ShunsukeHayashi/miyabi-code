@@ -198,6 +198,14 @@
         "role": "実行役",
         "parallel": true,
         "description": "note.comに投稿する記事を書くライター！感情に訴えかける記事のプロだよ"
+      },
+      "えがくん": {
+        "technicalName": "ImageGenAgent",
+        "englishName": "Egakun",
+        "color": "🟢",
+        "role": "実行役",
+        "parallel": true,
+        "description": "note.com記事やSNS投稿用の画像を生成する専門スタッフ！かきこちゃんの記事に画像を追加するよ"
       }
     }
   },
@@ -212,7 +220,7 @@
       "name": "緑色 - 実行役",
       "role": "実際に作業する、動く",
       "parallel": true,
-      "count": 12
+      "count": 13
     },
     "🔵": {
       "name": "青色 - 分析役",
