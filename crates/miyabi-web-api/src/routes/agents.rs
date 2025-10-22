@@ -1,12 +1,13 @@
 //! Agent execution route handlers
 
 use crate::{
-    error::Result,
+    error::{AppError, Result},
+    middleware::AuthenticatedUser,
     models::{AgentExecution, ExecuteAgentRequest},
     AppState,
 };
 use axum::{
-    extract::{Path, State},
+    extract::{Extension, Path, State},
     http::StatusCode,
     Json,
 };
@@ -28,23 +29,56 @@ use uuid::Uuid;
     )
 )]
 pub async fn execute_agent(
-    State(_state): State<AppState>,
-    Json(_request): Json<ExecuteAgentRequest>,
+    Extension(auth_user): Extension<AuthenticatedUser>,
+    State(state): State<AppState>,
+    Json(request): Json<ExecuteAgentRequest>,
 ) -> Result<(StatusCode, Json<AgentExecution>)> {
-    // TODO: Implement agent execution
-    // 1. Validate user has access to repository
-    // 2. Create execution record
-    // 3. Trigger agent execution (background task)
-    // 4. Return execution ID
+    // Verify user has access to repository
+    let _repository = sqlx::query(
+        r#"
+        SELECT id FROM repositories
+        WHERE id = $1 AND user_id = $2
+        "#
+    )
+    .bind(request.repository_id)
+    .bind(auth_user.user_id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("Repository not found".to_string()))?;
 
-    Err(crate::error::AppError::Internal(
-        "Not implemented".to_string(),
-    ))
+    // Create execution record
+    let agent_type_str = request.agent_type.to_string();
+    let execution = sqlx::query_as::<_, AgentExecution>(
+        r#"
+        INSERT INTO agent_executions (repository_id, issue_number, agent_type, status)
+        VALUES ($1, $2, $3, 'pending')
+        RETURNING id, repository_id, issue_number, agent_type, status, started_at, completed_at,
+                  result_summary, quality_score, pr_number, created_at, updated_at
+        "#
+    )
+    .bind(request.repository_id)
+    .bind(request.issue_number)
+    .bind(agent_type_str)
+    .fetch_one(&state.db)
+    .await?;
+
+    // TODO: Trigger agent execution in background
+    // For now, we just create the record
+
+    tracing::info!(
+        "Agent execution started: id={}, repository={}, issue={}, agent={}",
+        execution.id,
+        request.repository_id,
+        request.issue_number,
+        request.agent_type
+    );
+
+    Ok((StatusCode::CREATED, Json(execution)))
 }
 
 /// List agent executions
 ///
-/// Returns execution history for a repository
+/// Returns execution history for user's repositories
 #[utoipa::path(
     get,
     path = "/api/v1/agents/executions",
@@ -56,13 +90,27 @@ pub async fn execute_agent(
     )
 )]
 pub async fn list_executions(
-    State(_state): State<AppState>,
+    Extension(auth_user): Extension<AuthenticatedUser>,
+    State(state): State<AppState>,
 ) -> Result<Json<Vec<AgentExecution>>> {
-    // TODO: Implement execution listing
-    // 1. Get user repositories
-    // 2. Query executions from database
+    // Query executions for user's repositories
+    let executions = sqlx::query_as::<_, AgentExecution>(
+        r#"
+        SELECT ae.id, ae.repository_id, ae.issue_number, ae.agent_type, ae.status,
+               ae.started_at, ae.completed_at, ae.result_summary, ae.quality_score,
+               ae.pr_number, ae.created_at, ae.updated_at
+        FROM agent_executions ae
+        INNER JOIN repositories r ON ae.repository_id = r.id
+        WHERE r.user_id = $1
+        ORDER BY ae.created_at DESC
+        LIMIT 100
+        "#
+    )
+    .bind(auth_user.user_id)
+    .fetch_all(&state.db)
+    .await?;
 
-    Ok(Json(vec![]))
+    Ok(Json(executions))
 }
 
 /// Get agent execution by ID
@@ -83,14 +131,26 @@ pub async fn list_executions(
     )
 )]
 pub async fn get_execution(
-    State(_state): State<AppState>,
-    Path(_id): Path<Uuid>,
+    Extension(auth_user): Extension<AuthenticatedUser>,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<AgentExecution>> {
-    // TODO: Implement execution retrieval
-    // 1. Query execution from database
-    // 2. Verify user has access
+    // Query execution with user verification
+    let execution = sqlx::query_as::<_, AgentExecution>(
+        r#"
+        SELECT ae.id, ae.repository_id, ae.issue_number, ae.agent_type, ae.status,
+               ae.started_at, ae.completed_at, ae.result_summary, ae.quality_score,
+               ae.pr_number, ae.created_at, ae.updated_at
+        FROM agent_executions ae
+        INNER JOIN repositories r ON ae.repository_id = r.id
+        WHERE ae.id = $1 AND r.user_id = $2
+        "#
+    )
+    .bind(id)
+    .bind(auth_user.user_id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("Execution not found".to_string()))?;
 
-    Err(crate::error::AppError::NotFound(
-        "Execution not found".to_string(),
-    ))
+    Ok(Json(execution))
 }

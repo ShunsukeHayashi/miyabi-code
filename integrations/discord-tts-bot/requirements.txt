@@ -1,0 +1,17 @@
+# Discord Bot with VOICEVOX TTS Integration
+# Python 3.9+
+
+# Discord.py - Discord Bot Framework
+discord.py[voice]>=2.3.2
+
+# HTTP Requests - For VOICEVOX API
+requests>=2.31.0
+
+# Audio Processing - For Discord Voice
+PyNaCl>=1.5.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Async HTTP Client (optional, for better performance)
+aiohttp>=3.9.0
