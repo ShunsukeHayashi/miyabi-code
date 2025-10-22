@@ -1,13 +1,37 @@
 //! Authentication route handlers
 
-use crate::{error::Result, AppState};
+use crate::{
+    auth::JwtManager,
+    error::{AppError, Result},
+    models::User,
+    AppState,
+};
 use axum::{extract::State, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// GitHub OAuth callback query parameters
 #[derive(Deserialize)]
 pub struct GitHubCallbackQuery {
     code: String,
+}
+
+/// GitHub access token response
+#[derive(Deserialize)]
+struct GitHubAccessTokenResponse {
+    access_token: String,
+    token_type: String,
+    scope: String,
+}
+
+/// GitHub user response
+#[derive(Deserialize)]
+struct GitHubUser {
+    id: i64,
+    login: String,
+    email: Option<String>,
+    name: Option<String>,
+    avatar_url: Option<String>,
 }
 
 /// Token response
@@ -16,6 +40,17 @@ pub struct TokenResponse {
     access_token: String,
     refresh_token: String,
     expires_in: i64,
+    user: UserResponse,
+}
+
+/// User response
+#[derive(Serialize)]
+pub struct UserResponse {
+    id: String,
+    github_id: i64,
+    email: String,
+    name: Option<String>,
+    avatar_url: Option<String>,
 }
 
 /// GitHub OAuth callback handler
@@ -35,23 +70,161 @@ pub struct TokenResponse {
     )
 )]
 pub async fn github_oauth_callback(
-    State(_state): State<AppState>,
-    axum::extract::Query(_query): axum::extract::Query<GitHubCallbackQuery>,
+    State(state): State<AppState>,
+    axum::extract::Query(query): axum::extract::Query<GitHubCallbackQuery>,
 ) -> Result<(StatusCode, Json<TokenResponse>)> {
-    // TODO: Implement GitHub OAuth flow
     // 1. Exchange code for GitHub access token
+    let client = reqwest::Client::new();
+    let token_response = client
+        .post("https://github.com/login/oauth/access_token")
+        .header("Accept", "application/json")
+        .json(&serde_json::json!({
+            "client_id": state.config.github_client_id,
+            "client_secret": state.config.github_client_secret,
+            "code": query.code,
+        }))
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to exchange code: {}", e)))?
+        .json::<GitHubAccessTokenResponse>()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to parse token response: {}", e)))?;
+
     // 2. Fetch GitHub user info
+    let github_user = client
+        .get("https://api.github.com/user")
+        .header("User-Agent", "Miyabi-Web-API")
+        .header("Authorization", format!("Bearer {}", token_response.access_token))
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to fetch user: {}", e)))?
+        .json::<GitHubUser>()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to parse user response: {}", e)))?;
+
+    // Fetch user email if not provided in user profile
+    let email = if let Some(email) = github_user.email {
+        email
+    } else {
+        // Fetch primary email from GitHub
+        #[derive(Deserialize)]
+        struct GitHubEmail {
+            email: String,
+            primary: bool,
+        }
+
+        let emails = client
+            .get("https://api.github.com/user/emails")
+            .header("User-Agent", "Miyabi-Web-API")
+            .header("Authorization", format!("Bearer {}", token_response.access_token))
+            .send()
+            .await
+            .map_err(|e| AppError::ExternalApi(format!("Failed to fetch emails: {}", e)))?
+            .json::<Vec<GitHubEmail>>()
+            .await
+            .map_err(|e| AppError::ExternalApi(format!("Failed to parse emails: {}", e)))?;
+
+        emails
+            .into_iter()
+            .find(|e| e.primary)
+            .map(|e| e.email)
+            .ok_or_else(|| AppError::Authentication("No primary email found".to_string()))?
+    };
+
     // 3. Create or update user in database
+    let user = create_or_update_user(
+        &state.db,
+        github_user.id,
+        &email,
+        github_user.name.as_deref(),
+        github_user.avatar_url.as_deref(),
+        &token_response.access_token,
+    )
+    .await?;
+
     // 4. Generate JWT tokens
+    let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+    let access_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
+
+    // For now, use the same token as refresh token (TODO: implement proper refresh token)
+    let refresh_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
 
     Ok((
         StatusCode::OK,
         Json(TokenResponse {
-            access_token: "TODO".to_string(),
-            refresh_token: "TODO".to_string(),
-            expires_in: 3600,
+            access_token,
+            refresh_token,
+            expires_in: state.config.jwt_expiration,
+            user: UserResponse {
+                id: user.id.to_string(),
+                github_id: user.github_id,
+                email: user.email,
+                name: user.name,
+                avatar_url: user.avatar_url,
+            },
         }),
     ))
+}
+
+/// Creates or updates a user in the database
+async fn create_or_update_user(
+    db: &sqlx::PgPool,
+    github_id: i64,
+    email: &str,
+    name: Option<&str>,
+    avatar_url: Option<&str>,
+    access_token: &str,
+) -> Result<User> {
+    // Check if user exists
+    let existing_user: Option<User> = sqlx::query_as::<_, User>(
+        r#"
+        SELECT id, github_id, email, name, avatar_url, access_token, created_at, updated_at
+        FROM users
+        WHERE github_id = $1
+        "#
+    )
+    .bind(github_id)
+    .fetch_optional(db)
+    .await?;
+
+    if let Some(user) = existing_user {
+        // Update existing user
+        let updated_user = sqlx::query_as::<_, User>(
+            r#"
+            UPDATE users
+            SET email = $2, name = $3, avatar_url = $4, access_token = $5, updated_at = NOW()
+            WHERE github_id = $1
+            RETURNING id, github_id, email, name, avatar_url, access_token, created_at, updated_at
+            "#
+        )
+        .bind(github_id)
+        .bind(email)
+        .bind(name)
+        .bind(avatar_url)
+        .bind(access_token)
+        .fetch_one(db)
+        .await?;
+
+        Ok(updated_user)
+    } else {
+        // Create new user
+        let new_user = sqlx::query_as::<_, User>(
+            r#"
+            INSERT INTO users (github_id, email, name, avatar_url, access_token)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, github_id, email, name, avatar_url, access_token, created_at, updated_at
+            "#
+        )
+        .bind(github_id)
+        .bind(email)
+        .bind(name)
+        .bind(avatar_url)
+        .bind(access_token)
+        .fetch_one(db)
+        .await?;
+
+        Ok(new_user)
+    }
 }
 
 /// Refresh token request
@@ -75,19 +248,46 @@ pub struct RefreshTokenRequest {
     )
 )]
 pub async fn refresh_token(
-    State(_state): State<AppState>,
-    Json(_request): Json<RefreshTokenRequest>,
+    State(state): State<AppState>,
+    Json(request): Json<RefreshTokenRequest>,
 ) -> Result<(StatusCode, Json<TokenResponse>)> {
-    // TODO: Implement token refresh
     // 1. Validate refresh token
-    // 2. Generate new access token
+    let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+    let claims = jwt_manager.validate_token(&request.refresh_token)?;
+
+    // 2. Fetch user from database
+    let user_id = Uuid::parse_str(&claims.sub)
+        .map_err(|e| AppError::Authentication(format!("Invalid user ID: {}", e)))?;
+
+    let user = sqlx::query_as::<_, User>(
+        r#"
+        SELECT id, github_id, email, name, avatar_url, access_token, created_at, updated_at
+        FROM users
+        WHERE id = $1
+        "#
+    )
+    .bind(user_id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::Authentication("User not found".to_string()))?;
+
+    // 3. Generate new tokens
+    let access_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
+    let new_refresh_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
 
     Ok((
         StatusCode::OK,
         Json(TokenResponse {
-            access_token: "TODO".to_string(),
-            refresh_token: "TODO".to_string(),
-            expires_in: 3600,
+            access_token,
+            refresh_token: new_refresh_token,
+            expires_in: state.config.jwt_expiration,
+            user: UserResponse {
+                id: user.id.to_string(),
+                github_id: user.github_id,
+                email: user.email,
+                name: user.name,
+                avatar_url: user.avatar_url,
+            },
         }),
     ))
 }
@@ -105,8 +305,28 @@ pub async fn refresh_token(
     )
 )]
 pub async fn logout(State(_state): State<AppState>) -> Result<StatusCode> {
-    // TODO: Implement logout
-    // 1. Invalidate tokens (add to blacklist or remove from session store)
+    // TODO: Implement token blacklist or session store
+    // For now, we rely on client-side token removal
 
     Ok(StatusCode::OK)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_user_response_serialization() {
+        let response = UserResponse {
+            id: "123e4567-e89b-12d3-a456-426614174000".to_string(),
+            github_id: 12345,
+            email: "test@example.com".to_string(),
+            name: Some("Test User".to_string()),
+            avatar_url: Some("https://example.com/avatar.jpg".to_string()),
+        };
+
+        let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("github_id"));
+        assert!(json.contains("12345"));
+    }
 }
