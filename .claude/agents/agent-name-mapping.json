@@ -190,6 +190,14 @@
         "role": "実行役",
         "parallel": true,
         "description": "UI/UXを極限まで洗練させるデザイナー！ジョナサン・アイブの哲学でミニマリズムを実現するよ"
+      },
+      "かきこちゃん": {
+        "technicalName": "NoteAgent",
+        "englishName": "Kakikochan",
+        "color": "🟢",
+        "role": "実行役",
+        "parallel": true,
+        "description": "note.comに投稿する記事を書くライター！感情に訴えかける記事のプロだよ"
       }
     }
   },
@@ -204,7 +212,7 @@
       "name": "緑色 - 実行役",
       "role": "実際に作業する、動く",
       "parallel": true,
-      "count": 11
+      "count": 12
     },
     "🔵": {
       "name": "青色 - 分析役",
