@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
-
 :root {
   --text-xs: 0.75rem;   /* 12px - メタ情報 */
   --text-sm: 0.875rem;  /* 14px - 補足テキスト */

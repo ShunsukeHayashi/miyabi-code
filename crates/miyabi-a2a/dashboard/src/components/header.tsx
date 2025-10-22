@@ -34,18 +34,20 @@ export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
 
   return (
     <>
-    <header className="bg-content1 border-b border-divider py-3 px-4 shadow-sm">
+    <header className="bg-content1 border-b border-divider py-3 px-4 shadow-lg backdrop-blur-md animate-in slide-in-from-top duration-500">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Icon icon="lucide:layers" className="h-6 w-6 text-miyabi-primary" />
-            <h1 className="text-xl font-semibold">Miyabi A2A</h1>
+            <Icon icon="lucide:layers" className="h-6 w-6 text-miyabi-primary animate-pulse" />
+            <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary-600 bg-clip-text text-transparent">
+              Miyabi A2A
+            </h1>
           </div>
           <Chip
             color={isHealthy ? "success" : "danger"}
             variant="flat"
             size="sm"
-            className="ml-2"
+            className="ml-2 animate-pulse"
           >
             {isHealthy ? "System Healthy" : "System Issues"}
           </Chip>
@@ -53,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
             color={isConnected ? "success" : "danger"}
             variant="dot"
             size="sm"
+            className="animate-pulse"
             startContent={<Icon icon={isConnected ? "lucide:wifi" : "lucide:wifi-off"} className="h-4 w-4" />}
           >
             {apiUrl}

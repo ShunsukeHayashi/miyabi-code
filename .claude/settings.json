@@ -29,6 +29,11 @@
         "matcher": "Bash",
         "command": ".claude/hooks/agent-event.sh progress $AGENT_ID $ISSUE_NUMBER 50 \"Command executed: $TOOL_INPUT\"",
         "description": "Send agent progress event after bash execution"
+      },
+      {
+        "matcher": "Read|Write|Edit|Bash|Grep|Glob",
+        "command": ".claude/hooks/on_tool_use.sh",
+        "description": "🎤 ずんだもん実況：ツール使用"
       }
     ],
     "Stop": [
@@ -45,6 +50,10 @@
       {
         "command": ".claude/hooks/session-keepalive.sh start",
         "description": "Start session keep-alive mechanism to prevent timeout"
+      },
+      {
+        "command": ".claude/hooks/on_session_start.sh",
+        "description": "🎤 ずんだもん実況：セッション開始"
       }
     ],
     "SessionEnd": [
@@ -128,6 +137,7 @@
     "Bash(mv *)",
     "Bash(cp *)",
     "Bash(.claude/hooks/*.sh *)",
+    "Bash(/Users/a003/dev/miyabi-private/integrations/discord-tts-bot/say.sh *)",
     "Task(*)",
     "SlashCommand(*)",
     "Skill(*)",

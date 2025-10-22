@@ -47,15 +47,22 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 class TTSQueue:
     """Queue for TTS requests"""
     def __init__(self):
-        self.queue = asyncio.Queue()
+        self.queue = None
         self.is_playing = False
+
+    def _ensure_queue(self):
+        """Ensure queue is initialized in the correct event loop"""
+        if self.queue is None:
+            self.queue = asyncio.Queue()
 
     async def add(self, text: str, voice_client: discord.VoiceClient):
         """Add TTS request to queue"""
+        self._ensure_queue()
         await self.queue.put((text, voice_client))
 
     async def process(self):
         """Process TTS queue"""
+        self._ensure_queue()
         while True:
             try:
                 text, voice_client = await self.queue.get()
@@ -96,14 +103,33 @@ class TTSQueue:
                 temp_path = temp_file.name
 
             # Play audio in Discord
-            audio_source = discord.FFmpegPCMAudio(temp_path)
+            logger.info(f"Playing audio file: {temp_path}")
+
+            # Check if already playing
+            if voice_client.is_playing():
+                logger.warning("Voice client is already playing. Stopping current playback.")
+                voice_client.stop()
+                await asyncio.sleep(0.5)
+
+            audio_source = discord.FFmpegPCMAudio(
+                temp_path,
+                executable='/opt/homebrew/bin/ffmpeg'
+            )
+
             voice_client.play(audio_source, after=lambda e: self._cleanup(temp_path, e))
+            logger.info("Playback started, waiting for completion...")
 
-            # Wait for playback to finish
-            while voice_client.is_playing():
+            # Wait for playback to finish (with timeout)
+            timeout_counter = 0
+            while voice_client.is_playing() and timeout_counter < 300:  # 30 second timeout
                 await asyncio.sleep(0.1)
+                timeout_counter += 1
 
-            logger.info("TTS playback completed")
+            if timeout_counter >= 300:
+                logger.error("Playback timeout after 30 seconds")
+                voice_client.stop()
+            else:
+                logger.info("TTS playback completed successfully")
 
         except requests.exceptions.RequestException as e:
             logger.error(f"VOICEVOX API error: {e}")
@@ -145,7 +171,7 @@ async def on_ready():
             logger.error(f'Failed to auto-join voice channel: {e}')
 
     # Start TTS queue processor
-    bot.loop.create_task(tts_queue.process())
+    asyncio.create_task(tts_queue.process())
 
     logger.info('Bot is ready! 🎤')
 
@@ -153,12 +179,16 @@ async def on_ready():
 @bot.event
 async def on_message(message: discord.Message):
     """Message event handler"""
+    # Debug logging
+    logger.info(f"Message received - Channel: {message.channel.id}, Webhook: {message.webhook_id}, Author: {message.author}")
+
     # Ignore bot's own messages
     if message.author == bot.user:
         return
 
     # Check if message is from target channel (if configured)
     if TARGET_CHANNEL_ID and str(message.channel.id) != TARGET_CHANNEL_ID:
+        logger.info(f"Channel mismatch: {message.channel.id} != {TARGET_CHANNEL_ID}")
         return
 
     # Check if message is from webhook (Claude Code notifications)

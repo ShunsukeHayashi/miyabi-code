@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { Tabs, Tab, Divider, Spinner } from "@heroui/react";
+import { AdminOverview } from "./components/admin-overview";
 import { LiveDashboard } from "./components/live-dashboard";
 import { DashboardRealtime } from "./components/dashboard-realtime";
 import { Header } from "./components/header";
@@ -17,7 +18,7 @@ const ErrorDashboard = React.lazy(() => import("./components/error-dashboard").t
 const PerformanceAnalytics = React.lazy(() => import("./components/performance-analytics").then(module => ({ default: module.PerformanceAnalytics })));
 
 const AppContent: React.FC = () => {
-  const [selected, setSelected] = React.useState("production");
+  const [selected, setSelected] = React.useState("admin");
   const { isLoading, systemStatus } = useMiyabiData();
 
   if (isLoading) {
@@ -45,6 +46,9 @@ const AppContent: React.FC = () => {
           variant="underlined"
           className="mb-6"
         >
+          <Tab key="admin" title="📊 Admin Overview">
+            <AdminOverview />
+          </Tab>
           <Tab key="production" title="🚀 Production (Rust API)">
             <DashboardRealtime />
           </Tab>
