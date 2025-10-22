@@ -1,0 +1,59 @@
+[package]
+name = "miyabi-web-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Miyabi Web UI REST API Server"
+keywords = ["miyabi", "web", "api", "rest"]
+categories = ["web-programming"]
+
+[[bin]]
+name = "miyabi-web-api"
+path = "src/main.rs"
+
+[dependencies]
+# Web framework
+axum = { version = "0.7", features = ["ws", "macros"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
+
+# Database
+sqlx = { version = "0.7", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "json"] }
+
+# Authentication
+jsonwebtoken = "9.2"
+reqwest = { version = "0.12", features = ["json"] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+async-trait = { workspace = true }
+futures = "0.3"
+
+# WebSocket
+tokio-tungstenite = "0.21"
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+
+# Utilities
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { workspace = true }
+
+# Environment variables
+dotenvy = "0.15"
+
+[dev-dependencies]
+tokio-test = "0.4"

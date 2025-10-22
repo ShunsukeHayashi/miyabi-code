@@ -17,7 +17,7 @@ pub async fn create_pool(database_url: &str) -> Result<PgPool> {
         .max_connections(10)
         .connect(database_url)
         .await
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
     tracing::info!("Database connection pool created");
 

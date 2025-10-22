@@ -1,12 +1,12 @@
 //! Business Automation Agents for Miyabi
 //!
-//! This crate provides 14 specialized business agents for SaaS operations,
+//! This crate provides 15 specialized business agents for SaaS operations,
 //! including strategy, marketing, sales, and analytics automation.
 //!
 //! # Agent Categories
 //!
 //! - **Strategy & Planning** (6 agents): AIEntrepreneur, ProductConcept, ProductDesign, FunnelDesign, Persona, SelfAnalysis
-//! - **Marketing** (5 agents): MarketResearch, Marketing, ContentCreation, SNSStrategy, YouTube
+//! - **Marketing** (6 agents): MarketResearch, Marketing, ContentCreation, SNSStrategy, YouTube, Honoka
 //! - **Sales & Analytics** (3 agents): Sales, CRM, Analytics
 //!
 //! # Example
@@ -53,17 +53,19 @@ pub mod strategy {
     pub use self_analysis::SelfAnalysisAgent;
 }
 
-// Marketing Agents (5)
+// Marketing Agents (6)
 pub mod marketing {
     //! Marketing and promotional agents for customer acquisition
 
     pub mod content_creation;
+    pub mod honoka;
     pub mod market_research;
     pub mod marketing_strategy;
     pub mod sns_strategy;
     pub mod youtube;
 
     pub use content_creation::ContentCreationAgent;
+    pub use honoka::HonokaAgent;
     pub use market_research::MarketResearchAgent;
     pub use marketing_strategy::MarketingStrategyAgent;
     pub use sns_strategy::SNSStrategyAgent;

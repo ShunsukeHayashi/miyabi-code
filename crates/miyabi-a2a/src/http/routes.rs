@@ -224,6 +224,13 @@ pub struct DagNode {
     pub agent: String,
     #[serde(rename = "agentType")]
     pub agent_type: String,
+    // 🆕 Extended fields for full parameter mapping
+    pub priority: String, // "P0" | "P1" | "P2" | "P3"
+    #[serde(rename = "estimatedMinutes")]
+    pub estimated_minutes: u32, // Estimated task duration
+    pub description: String, // Task description (from issue body)
+    pub module: String, // Module name (e.g., "Miyabi Agents", "Miyabi Core")
+    pub layer: String, // Layer: "ui" | "logic" | "data" | "infra"
 }
 
 /// DAG edge structure for frontend

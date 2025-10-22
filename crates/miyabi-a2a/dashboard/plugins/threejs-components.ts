@@ -216,6 +216,7 @@ export const threeJsComponents = new Set([
   "cylinderGeometry",
   "directionalLight",
   "extrudeGeometry",
+  "group",
   "hemisphereLight",
   "latheGeometry",
   "lineBasicMaterial",

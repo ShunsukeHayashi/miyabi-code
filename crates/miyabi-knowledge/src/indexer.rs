@@ -126,8 +126,10 @@ impl KnowledgeIndexer for QdrantIndexer {
         info!("Indexing batch of {} entries", entries.len());
         let start = std::time::Instant::now();
 
-        let mut stats = IndexStats::default();
-        stats.total = entries.len();
+        let mut stats = IndexStats {
+            total: entries.len(),
+            ..Default::default()
+        };
 
         // バッチサイズごとに処理
         let batch_size = self.config.collection.batch_size;

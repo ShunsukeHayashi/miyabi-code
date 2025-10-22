@@ -43,7 +43,7 @@ impl JwtManager {
         };
 
         encode(&Header::default(), &claims, &self.encoding_key)
-            .map_err(|e| AppError::Jwt(e))
+            .map_err(AppError::Jwt)
     }
 
     /// Validates a JWT token and returns the claims
@@ -58,7 +58,7 @@ impl JwtManager {
     pub fn validate_token(&self, token: &str) -> Result<Claims> {
         decode::<Claims>(token, &self.decoding_key, &Validation::default())
             .map(|data| data.claims)
-            .map_err(|e| AppError::Jwt(e))
+            .map_err(AppError::Jwt)
     }
 }
 

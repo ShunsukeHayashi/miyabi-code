@@ -3,6 +3,7 @@ import { Tabs, Tab, Divider, Spinner } from "@heroui/react";
 import { AdminOverview } from "./components/admin-overview";
 import { LiveDashboard } from "./components/live-dashboard";
 import { DashboardRealtime } from "./components/dashboard-realtime";
+import { DashboardRealtimeEnhanced } from "./components/dashboard-realtime-enhanced";
 import { Header } from "./components/header";
 import { TabLoadingFallback } from "./components/loading-fallback";
 import { useMiyabiData } from "./hooks/use-miyabi-data";
@@ -10,6 +11,9 @@ import { NotificationProvider } from "./contexts/notification-context";
 import { ThemeProvider } from "./contexts/theme-context";
 import { RefreshProvider } from "./contexts/refresh-context";
 import { WebSocketProvider } from "./contexts/websocket-context";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/query-client";
+import { VoiceCommand } from "./components/voice-command";
 
 // Code-split heavy components with React.lazy
 const EventTimeline = React.lazy(() => import("./components/event-timeline").then(module => ({ default: module.EventTimeline })));
@@ -37,6 +41,14 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header systemStatus={systemStatus} />
+
+      {/* ✅ Voice Command - 音声アシスタント */}
+      <VoiceCommand
+        onCommandExecuted={(command, transcript) => {
+          console.log(`Voice command executed: ${command} (${transcript})`);
+        }}
+      />
+
       <main className="container mx-auto p-4">
         <Tabs
           aria-label="Miyabi A2A Dashboard Tabs"
@@ -50,7 +62,7 @@ const AppContent: React.FC = () => {
             <AdminOverview />
           </Tab>
           <Tab key="production" title="🚀 Production (Rust API)">
-            <DashboardRealtime />
+            <DashboardRealtimeEnhanced />
           </Tab>
           <Tab key="dashboard" title="Live Dashboard">
             <LiveDashboard />
@@ -83,14 +95,16 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <RefreshProvider>
-        <WebSocketProvider>
-          <NotificationProvider maxNotifications={5}>
-            <AppContent />
-          </NotificationProvider>
-        </WebSocketProvider>
-      </RefreshProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <RefreshProvider>
+          <WebSocketProvider>
+            <NotificationProvider maxNotifications={5}>
+              <AppContent />
+            </NotificationProvider>
+          </WebSocketProvider>
+        </RefreshProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

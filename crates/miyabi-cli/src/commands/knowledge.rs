@@ -143,6 +143,7 @@ impl KnowledgeCommand {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn search_knowledge(
     query: &str,
     workspace: Option<String>,
@@ -525,27 +526,25 @@ async fn clear_cache(
             "workspace": workspace,
         });
         println!("{}", serde_json::to_string_pretty(&json)?);
-    } else {
-        if deleted_count > 0 {
-            let workspace_desc = workspace
-                .as_ref()
-                .map(|w| format!("for workspace '{}'", w))
-                .unwrap_or_else(|| "for all workspaces".to_string());
+    } else if deleted_count > 0 {
+        let workspace_desc = workspace
+            .as_ref()
+            .map(|w| format!("for workspace '{}'", w))
+            .unwrap_or_else(|| "for all workspaces".to_string());
 
-            println!(
-                "{} Deleted {} cache file{} {}",
-                "✅".green(),
-                deleted_count,
-                if deleted_count == 1 { "" } else { "s" },
-                workspace_desc
-            );
-            println!(
-                "{} Next indexing will be a full rebuild (slower)",
-                "ℹ️".cyan()
-            );
-        } else {
-            println!("{} No cache files found", "ℹ️".cyan());
-        }
+        println!(
+            "{} Deleted {} cache file{} {}",
+            "✅".green(),
+            deleted_count,
+            if deleted_count == 1 { "" } else { "s" },
+            workspace_desc
+        );
+        println!(
+            "{} Next indexing will be a full rebuild (slower)",
+            "ℹ️".cyan()
+        );
+    } else {
+        println!("{} No cache files found", "ℹ️".cyan());
     }
 
     Ok(())

@@ -104,6 +104,12 @@ pub struct WsState {
     pub tx: broadcast::Sender<DashboardUpdate>,
 }
 
+impl Default for WsState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WsState {
     pub fn new() -> Self {
         let (tx, _rx) = broadcast::channel(100);
@@ -199,7 +205,7 @@ where
     match agents_future.await {
         Ok(Ok(agents)) => {
             info!("📊 Sending {} agents data", agents.len());
-            if agents.len() > 0 {
+            if !agents.is_empty() {
                 info!("📊 First agent: {:?}", agents[0]);
                 let task_counts: Vec<_> = agents
                     .iter()

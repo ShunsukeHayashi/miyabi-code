@@ -20,7 +20,7 @@ pub async fn websocket_handler(
 
     let user_id = Uuid::new_v4(); // Placeholder
 
-    ws.on_upgrade(move |socket| async move {
+    ws.on_upgrade(move |_socket| async move {
         // TODO: Use WebSocketManager from state to handle connection
         tracing::info!("WebSocket connection established for user {}", user_id);
 

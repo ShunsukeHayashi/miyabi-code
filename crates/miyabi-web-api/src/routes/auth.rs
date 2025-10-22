@@ -18,6 +18,7 @@ pub struct GitHubCallbackQuery {
 
 /// GitHub access token response
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct GitHubAccessTokenResponse {
     access_token: String,
     token_type: String,
@@ -26,6 +27,7 @@ struct GitHubAccessTokenResponse {
 
 /// GitHub user response
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct GitHubUser {
     id: i64,
     login: String,
@@ -187,7 +189,7 @@ async fn create_or_update_user(
     .fetch_optional(db)
     .await?;
 
-    if let Some(user) = existing_user {
+    if let Some(_user) = existing_user {
         // Update existing user
         let updated_user = sqlx::query_as::<_, User>(
             r#"

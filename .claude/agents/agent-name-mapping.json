@@ -206,6 +206,14 @@
         "role": "実行役",
         "parallel": true,
         "description": "note.com記事やSNS投稿用の画像を生成する専門スタッフ！かきこちゃんの記事に画像を追加するよ"
+      },
+      "ほのかちゃん": {
+        "technicalName": "HonokaAgent",
+        "englishName": "Honokachan",
+        "color": "🟢",
+        "role": "実行役",
+        "parallel": true,
+        "description": "オンラインコースを作る先生！13 ステップの Udemy コース設計のプロだよ"
       }
     }
   },

@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 /// ナレッジ管理システムの設定
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct KnowledgeConfig {
     /// ベクトルDB設定
     pub vector_db: VectorDbConfig,
@@ -27,18 +28,6 @@ pub struct KnowledgeConfig {
     pub auto_index: AutoIndexConfig,
 }
 
-impl Default for KnowledgeConfig {
-    fn default() -> Self {
-        Self {
-            vector_db: VectorDbConfig::default(),
-            embeddings: EmbeddingsConfig::default(),
-            workspace: WorkspaceConfig::default(),
-            collection: CollectionConfig::default(),
-            search: SearchConfig::default(),
-            auto_index: AutoIndexConfig::default(),
-        }
-    }
-}
 
 impl KnowledgeConfig {
     /// ファイルから設定をロード

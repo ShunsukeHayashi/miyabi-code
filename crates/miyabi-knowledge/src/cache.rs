@@ -98,7 +98,7 @@ impl IndexCache {
     pub fn is_indexed(&self, path: &Path, hash: &str) -> bool {
         self.indexed_files
             .get(path)
-            .map_or(false, |cached_hash| cached_hash == hash)
+            .is_some_and(|cached_hash| cached_hash == hash)
     }
 
     /// ファイルをインデックス済みとしてマーク

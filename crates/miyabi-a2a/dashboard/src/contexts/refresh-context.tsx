@@ -22,7 +22,7 @@ const intervalMap: Record<RefreshInterval, number> = {
 export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Initialize from localStorage or default to 5s
+  // Initialize from localStorage or default to off (WebSocket only)
   const [interval, setIntervalState] = useState<RefreshInterval>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (
@@ -33,7 +33,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({
     ) {
       return stored;
     }
-    return "5s";
+    return "off";
   });
 
   const setInterval = useCallback((newInterval: RefreshInterval) => {

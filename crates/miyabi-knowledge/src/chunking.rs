@@ -38,7 +38,7 @@ impl TextChunker {
     }
 
     /// デフォルト設定でTextChunkerを作成
-    pub fn default() -> Self {
+    pub fn with_default_config() -> Self {
         Self::new(ChunkConfig::default())
     }
 
@@ -166,7 +166,7 @@ impl TextChunker {
 
         // 簡易的な文分割（. ? ! で分割）
         let sentences: Vec<&str> = text
-            .split(|c: char| matches!(c, '.' | '?' | '!' | '。' | '！' | '？'))
+            .split(['.', '?', '!', '。', '！', '？'])
             .filter(|s| !s.trim().is_empty())
             .collect();
 
@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn test_chunking_small_text() {
-        let chunker = TextChunker::default();
+        let chunker = TextChunker::with_default_config();
         let text = "This is a small text.";
         let chunks = chunker.chunk(text).unwrap();
         assert_eq!(chunks.len(), 1);
@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_utf8_char_boundary() {
-        let chunker = TextChunker::default();
+        let chunker = TextChunker::with_default_config();
         let text = "こんにちは世界！Hello World!";
         let chunks = chunker.chunk(text).unwrap();
 

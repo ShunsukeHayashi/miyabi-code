@@ -118,7 +118,7 @@ where
 
 /// Get the global cache instance
 fn get_cache() -> Arc<Mutex<DataCache>> {
-    GLOBAL_CACHE.get_or_init(|| DataCache::new()).clone()
+    GLOBAL_CACHE.get_or_init(DataCache::new).clone()
 }
 
 /// Fetch real agents data from GitHub Issues (with caching and retry)
@@ -683,6 +683,98 @@ async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
     Ok(events)
 }
 
+// ===== 🧬 DAG Parameter Mapping Helper Functions =====
+
+/// Extract priority from issue labels (e.g., "🔥 priority:P0-Critical" → "P0")
+fn extract_priority_from_labels(labels: &[String]) -> String {
+    labels
+        .iter()
+        .find(|l| l.contains("priority:"))
+        .and_then(|l| l.split(':').nth(1))
+        .and_then(|p| p.split('-').next())
+        .unwrap_or("P2") // Default to P2 (medium priority)
+        .to_string()
+}
+
+/// Estimate task duration from agent type (in minutes)
+fn estimate_minutes_from_agent(agent_type: &str) -> u32 {
+    match agent_type {
+        "coordinator" => 60,   // 1 hour for coordination/planning
+        "codegen" => 45,       // 45 min for code generation
+        "review" => 30,        // 30 min for code review
+        "deploy" | "deployment" => 40, // 40 min for deployment
+        "pr" => 15,            // 15 min for PR creation
+        "issue" => 20,         // 20 min for issue analysis
+        _ => 30,               // Default: 30 min
+    }
+}
+
+/// Extract description from issue body (first paragraph, max 200 chars)
+fn extract_description_from_body(body: &str) -> String {
+    // Take first paragraph (up to first double newline)
+    let first_para = body
+        .split("\n\n")
+        .next()
+        .unwrap_or(body)
+        .trim();
+
+    // Remove markdown formatting
+    let cleaned = first_para
+        .replace("**", "")
+        .replace("*", "")
+        .replace("#", "")
+        .trim()
+        .to_string();
+
+    // Return truncated string or default
+    if cleaned.is_empty() {
+        "No description available".to_string()
+    } else if cleaned.len() > 200 {
+        format!("{}...", &cleaned[..200])
+    } else {
+        cleaned
+    }
+}
+
+/// Map agent type to module name
+fn map_agent_to_module(agent_name: &str, agent_type: &str) -> String {
+    match agent_type {
+        "coordinator" => "Miyabi Coordinator",
+        "codegen" => "Miyabi CodeGen",
+        "review" => "Miyabi Review",
+        "deploy" | "deployment" => "Miyabi Deployment",
+        "pr" => "Miyabi PR",
+        "issue" => "Miyabi Issue",
+        _ => agent_name, // Fallback to Japanese agent name
+    }
+    .to_string()
+}
+
+/// Infer layer from agent type and issue labels
+fn infer_layer_from_agent(agent_type: &str, labels: &[String]) -> String {
+    // Check type labels first
+    for label in labels {
+        if label.contains("type:") {
+            if label.contains("ui") || label.contains("frontend") {
+                return "ui".to_string();
+            } else if label.contains("infra") || label.contains("deploy") {
+                return "infra".to_string();
+            } else if label.contains("data") || label.contains("database") {
+                return "data".to_string();
+            }
+        }
+    }
+
+    // Infer from agent type
+    match agent_type {
+        "deploy" | "deployment" => "infra",
+        "review" | "issue" => "logic",
+        "codegen" | "coordinator" | "pr" => "logic",
+        _ => "logic", // Default to logic layer
+    }
+    .to_string()
+}
+
 /// Fetch real workflow DAG from GitHub Issues (with caching and retry)
 pub async fn fetch_real_workflow_dag() -> Result<DagData> {
     const _CACHE_TTL: Duration = Duration::from_secs(60);
@@ -758,12 +850,24 @@ async fn fetch_real_workflow_dag_impl() -> Result<DagData> {
                 "pending"
             };
 
+            // 🧬 Apply full parameter mapping using helper functions
+            let priority = extract_priority_from_labels(&issue.labels);
+            let estimated_minutes = estimate_minutes_from_agent(&agent_key);
+            let description = extract_description_from_body(&issue.body);
+            let module = map_agent_to_module(&japanese_name, &agent_key);
+            let layer = infer_layer_from_agent(&agent_key, &issue.labels);
+
             nodes.push(DagNode {
                 id: format!("task-{}", issue.number),
                 label: issue.title.clone(),
                 status: status.to_string(),
                 agent: japanese_name,
                 agent_type: agent_name.to_lowercase(),
+                priority,
+                estimated_minutes,
+                description,
+                module,
+                layer,
             });
         }
     }
@@ -818,6 +922,11 @@ pub fn create_sample_dag_public() -> DagData {
                 status: "completed".to_string(),
                 agent: "しきるん".to_string(),
                 agent_type: "coordinator".to_string(),
+                priority: "P0".to_string(),
+                estimated_minutes: 60,
+                description: "Parse specification documents and extract requirements".to_string(),
+                module: "Miyabi Coordinator".to_string(),
+                layer: "logic".to_string(),
             },
             DagNode {
                 id: "task-b".to_string(),
@@ -825,6 +934,11 @@ pub fn create_sample_dag_public() -> DagData {
                 status: "completed".to_string(),
                 agent: "しきるん".to_string(),
                 agent_type: "coordinator".to_string(),
+                priority: "P0".to_string(),
+                estimated_minutes: 60,
+                description: "Extract data from database for processing".to_string(),
+                module: "Miyabi Coordinator".to_string(),
+                layer: "data".to_string(),
             },
             DagNode {
                 id: "task-c".to_string(),
@@ -832,6 +946,11 @@ pub fn create_sample_dag_public() -> DagData {
                 status: "working".to_string(),
                 agent: "つくるん".to_string(),
                 agent_type: "codegen".to_string(),
+                priority: "P1".to_string(),
+                estimated_minutes: 45,
+                description: "Generate Rust code from specifications using AI".to_string(),
+                module: "Miyabi CodeGen".to_string(),
+                layer: "logic".to_string(),
             },
             DagNode {
                 id: "task-d".to_string(),
@@ -839,6 +958,11 @@ pub fn create_sample_dag_public() -> DagData {
                 status: "pending".to_string(),
                 agent: "めだまん".to_string(),
                 agent_type: "review".to_string(),
+                priority: "P1".to_string(),
+                estimated_minutes: 30,
+                description: "Run automated tests and quality checks".to_string(),
+                module: "Miyabi Review".to_string(),
+                layer: "logic".to_string(),
             },
             DagNode {
                 id: "task-e".to_string(),
@@ -846,6 +970,11 @@ pub fn create_sample_dag_public() -> DagData {
                 status: "pending".to_string(),
                 agent: "はこぶん".to_string(),
                 agent_type: "deploy".to_string(),
+                priority: "P2".to_string(),
+                estimated_minutes: 40,
+                description: "Deploy application to production environment".to_string(),
+                module: "Miyabi Deployment".to_string(),
+                layer: "infra".to_string(),
             },
         ],
         edges: vec![

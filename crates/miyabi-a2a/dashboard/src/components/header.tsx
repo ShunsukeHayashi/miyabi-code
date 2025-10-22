@@ -5,9 +5,9 @@ import { SystemStatus } from "../types/miyabi-types";
 import { ControlPanel } from "./control-panel";
 import { NotificationHistory } from "./notification-history";
 import { useNotifications } from "../contexts/notification-context";
-import { useTheme } from "../contexts/theme-context";
 import { useRefresh, RefreshInterval } from "../contexts/refresh-context";
 import { useWebSocketContext } from "../contexts/websocket-context";
+import { ThemeToggle } from "./theme-toggle";
 
 interface HeaderProps {
   systemStatus?: SystemStatus;
@@ -18,7 +18,6 @@ export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
   const [isControlPanelOpen, setIsControlPanelOpen] = React.useState(false);
   const [isNotificationHistoryOpen, setIsNotificationHistoryOpen] = React.useState(false);
   const { notifications } = useNotifications();
-  const { theme, toggleTheme } = useTheme();
   const { interval, setInterval } = useRefresh();
   const { isConnected } = useWebSocketContext();
 
@@ -106,19 +105,8 @@ export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
             </Button>
           </Badge>
 
-          {/* Theme Toggle */}
-          <Button
-            isIconOnly
-            variant="flat"
-            color="default"
-            onPress={toggleTheme}
-            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-          >
-            <Icon
-              icon={theme === "light" ? "lucide:moon" : "lucide:sun"}
-              className="h-5 w-5"
-            />
-          </Button>
+          {/* Theme Toggle - Framer Motion強化版 */}
+          <ThemeToggle />
 
           <Button
             color="primary"
