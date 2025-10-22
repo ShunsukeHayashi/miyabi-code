@@ -281,6 +281,47 @@ Miyabiは **Claude AI** を使用して自動的にコードを生成します�
 
 ---
 
+### 🧠 **ナレッジ管理システム（NEW - v0.1.1）**
+
+<div align="center">
+
+![Knowledge Management](https://img.shields.io/badge/Knowledge-Vector%20Search-7C3AED?style=for-the-badge&logo=databricks)
+
+</div>
+
+Agent実行ログを自動的にベクトル化し、検索可能なナレッジベースとして蓄積：
+
+- 🔍 **ベクトル類似性検索** - 意味的な類似度で過去のログを検索
+- 🏷️ **メタデータフィルタリング** - Agent、Issue番号、Task種別、実行結果で絞り込み
+- 📊 **統計分析** - Workspace単位での実行傾向を可視化
+- 🤖 **3つのアクセス方法**:
+  - **Rust API**: プログラムから直接アクセス
+  - **CLI**: `miyabi knowledge search/stats/index`
+  - **MCP Server**: Claude Codeから自動参照
+
+**技術スタック**:
+- Vector DB: Qdrant（384/1536次元ベクトル）
+- Embeddings: Ollama（all-MiniLM-L6-v2）+ OpenAI
+- Text Processing: Markdown parsing + chunking（512文字）
+
+```bash
+# ワークスペースをインデックス化
+miyabi knowledge index miyabi-private
+
+# 過去のエラー対応を検索
+miyabi knowledge search "deployment error handling" --agent DeploymentAgent
+
+# 統計情報を表示
+miyabi knowledge stats --json
+```
+
+**詳細ドキュメント**:
+- [User Guide](crates/miyabi-knowledge/USER_GUIDE.md)
+- [API Reference](crates/miyabi-knowledge/API_REFERENCE.md)
+- [拡張計画](https://github.com/ShunsukeHayashi/miyabi-private/issues/421) - 自動インデックス化、Web UI、統合テスト
+
+---
+
 ## 📦 インストール
 
 ### 方法1: npx（推奨）

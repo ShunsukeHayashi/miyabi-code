@@ -14,6 +14,20 @@
 
 ---
 
+## 📊 Integration Status
+
+**📈 統合状態の可視化**:
+- **[INTEGRATION_VISUALIZATION.md](./INTEGRATION_VISUALIZATION.md)** ⭐⭐⭐ - 25,000文字の詳細解説
+- **[INTEGRATION_SUMMARY.md](./INTEGRATION_SUMMARY.md)** ⭐⭐ - 9,000文字のサマリー版
+- **[integration-diagram.puml](./integration-diagram.puml)** - PlantUML形式のアーキテクチャ図
+- **Miyabi Crates Integration.png** - 286KB PNG図（6層アーキテクチャ）
+
+**統合メトリクス**:
+- ✅ **総クレート数**: 23 crates
+- ✅ **アーキテクチャ層**: 6層（Foundation → Application）
+- ✅ **循環依存**: なし
+- ✅ **ビルド時間**: ~8分（M1 Max, 32GB RAM）
+
 ## 📦 Crates Overview
 
 | Crate | Description | Version | crates.io | Lines | Tests | Status |
@@ -24,8 +38,16 @@
 | **miyabi-github** | GitHub API integration (octocrab) | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-github) | 950 | 15 | ✅ 100% |
 | **miyabi-agents** | 7 autonomous AI agents | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-agents) | 5,477 | 110 | ✅ 100% |
 | **miyabi-cli** | Command-line interface | 1.0.0 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-cli) | 1,700 | 13 | ✅ 100% |
+| **miyabi-knowledge** | Vector knowledge management | 0.1.1 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-knowledge) | 2,500 | 45 | ✅ 100% |
 
-**Total**: **~10,912 lines**, **347 tests** (100% passing) ✅
+**Additional Crates** (17個):
+- Layer 2: `miyabi-llm`, `miyabi-potpie`
+- Layer 3: `miyabi-agent-core`, `miyabi-agent-integrations`
+- Layer 4: `miyabi-agent-coordinator`, `miyabi-agent-codegen`, `miyabi-agent-review`, `miyabi-agent-workflow`, `miyabi-agent-business`, `miyabi-business-agents`
+- Layer 5: `miyabi-mcp-server`, `miyabi-discord-mcp-server`, `miyabi-a2a`, `miyabi-webhook`
+- Layer 6: `miyabi-benchmark`
+
+**Total**: **24 crates**, **~13,412 lines**, **392 tests** (100% passing) ✅
 
 ## Architecture
 
@@ -56,6 +78,13 @@ miyabi-cli (Binary)
     │   ├── Retry (exponential backoff)
     │   ├── Logger (tracing-based)
     │   └── Documentation (rustdoc + README generation)
+    │
+    ├── miyabi-knowledge (Knowledge Management)
+    │   ├── Vector DB (Qdrant integration)
+    │   ├── Embeddings (Ollama + OpenAI)
+    │   ├── Log Collection (.ai/logs/ Markdown parsing)
+    │   ├── Search (Vector similarity + metadata filters)
+    │   └── CLI (search, stats, index commands)
     │
     └── miyabi-types (Type Definitions)
         ├── Agent types (AgentType, AgentResult, Metrics)
@@ -101,6 +130,11 @@ miyabi status
 
 # Run agent (autonomous execution)
 miyabi agent run coordinator --issue 270
+
+# Knowledge management (vector search)
+miyabi knowledge index miyabi-private        # Index workspace logs
+miyabi knowledge search "error handling"     # Search knowledge base
+miyabi knowledge stats                       # Show statistics
 ```
 
 ## Agents

@@ -37,6 +37,49 @@
   - `requirements.txt`, `package.json`, `Cargo.toml`
   - Python version, Node version, Rust version
   - システム要件: RAM, Storage, CPU
+  - **⚠️ 外部コードの取り込み**: Context7使用必須（コピー&ペースト禁止）
+
+#### 🔍 Context7の使用（外部依存の取り込み）⭐NEW
+
+**Context7とは**: Model Context Protocol (MCP) サーバー - 20,000以上のライブラリの最新ドキュメントを動的取得
+
+**適用ケース（必須）**:
+- ✅ 公式ベンチマークハーネスのコード参照
+- ✅ 評価スクリプトの実装パターン確認
+- ✅ Docker設定ファイルの標準パターン取得
+- ✅ データセット形式の最新仕様確認
+- ✅ 外部ライブラリのAPI仕様確認
+
+**使用方法**:
+```bash
+# Claude Codeでの指示例
+Use context7 to get the latest SWE-bench Pro evaluation harness code
+
+Use context7 to get the latest AgentBench Docker setup
+
+Use context7 to get the latest HAL dataset format specification
+
+Use context7 to get the latest Galileo benchmark protocol
+```
+
+**禁止事項**:
+- ❌ Context7なしで外部コードを再実装（古いAPIリスク）
+- ❌ 公式ハーネスのコードを直接コピー&ペースト（ライセンス違反リスク）
+- ❌ 手動でStack Overflowから古いコードを検索（再現性欠如リスク）
+
+**セットアップ（初回のみ）**:
+```bash
+# MCPサーバー追加
+claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
+
+# API Key取得: https://context7.com/ でアカウント作成（無料）
+```
+
+**トラブルシューティング**:
+- Context7が見つからない: `claude mcp list` で確認、再インストール
+- API Keyエラー: `~/.config/claude/claude_desktop_config.json` を確認
+
+**詳細**: [CLAUDE.md](../../CLAUDE.md) の「## 📚 外部依存関係の取り扱い - Context7の使用」セクションを参照
 
 ### Phase 2: ユーザー確認（必須）
 
