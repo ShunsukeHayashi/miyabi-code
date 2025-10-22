@@ -12,7 +12,7 @@ set -e
 
 RUNNER_NAME="${1:-macmini}"
 REGISTRATION_TOKEN="${2}"
-ORG_URL="https://github.com/customer-cloud"
+REPO_URL="https://github.com/customer-cloud/miyabi-private"
 RUNNER_VERSION="2.321.0"
 RUNNER_ARCH="osx-arm64"
 
@@ -90,7 +90,7 @@ rm "$RUNNER_FILE"
 # Runner 設定
 echo_info "Runner を設定中..."
 ./config.sh \
-    --url "$ORG_URL" \
+    --url "$REPO_URL" \
     --token "$REGISTRATION_TOKEN" \
     --name "$RUNNER_NAME" \
     --labels "self-hosted,macOS,arm64,rust,docker" \
