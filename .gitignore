@@ -173,3 +173,7 @@ reports/
 
 # Generated LP (separate repository)
 generated-lp/
+
+# Benchmarks - external repositories
+benchmarks/agentbench/AgentBench/
+benchmarks/swe-bench-pro/
