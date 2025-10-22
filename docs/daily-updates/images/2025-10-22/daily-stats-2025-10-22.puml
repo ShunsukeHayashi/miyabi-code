@@ -1,0 +1,49 @@
+@startuml
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName "Hiragino Sans"
+
+title 2025-10-22 開発統計
+
+package "📊 今日の成果" {
+  rectangle "コミット数\n77件" #LightGreen {
+  }
+
+  rectangle "ファイル変更\n199件" #LightYellow {
+  }
+
+  rectangle "追加行数\n+51,096行" #LightBlue {
+  }
+
+  rectangle "Issue処理\n22件" #LightPink {
+  }
+
+  rectangle "PR作成\n6件" #LightCyan {
+  }
+}
+
+package "🎯 主要機能追加" {
+  [かきこちゃん\n(NoteAgent)] #PaleGreen
+  [えがくん\n(ImageGenAgent)] #PaleGreen
+  [/daily-update\nコマンド] #Gold
+}
+
+package "🌍 ベンチマーク統合" {
+  [SWE-bench Pro\n公式ハーネス] #LightSalmon
+  [Claude API\n統合] #LightSalmon
+  [評価フレームワーク] #LightSalmon
+}
+
+package "📚 ドキュメント整備" {
+  [BytePlus\n150ページ] #Lavender
+  [初心者向け説明] #Lavender
+  [API仕様書] #Lavender
+}
+
+note right of [かきこちゃん\n(NoteAgent)]
+  23 Agents 完成！
+  コンテンツマーケティング
+  自動化実現
+end note
+
+@enduml
