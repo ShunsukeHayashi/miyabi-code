@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   sync-labels:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: Sync Labels
 
     steps:

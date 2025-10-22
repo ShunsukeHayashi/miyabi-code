@@ -87,7 +87,7 @@ jobs:
 
   test-image:
     name: Test Docker Image
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-and-push
     if: github.event_name != 'pull_request'
     permissions:
@@ -140,7 +140,7 @@ jobs:
 
   security-scan:
     name: Security Scan (Trivy)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-and-push
     if: github.event_name != 'pull_request'
     permissions:

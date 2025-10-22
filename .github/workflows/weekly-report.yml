@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   generate-report:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: Generate Weekly Agent Report
 
     steps:

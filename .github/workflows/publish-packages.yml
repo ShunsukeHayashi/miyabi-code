@@ -22,7 +22,7 @@ on:
 jobs:
   publish-agent-sdk:
     name: Publish Agent SDK
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: |
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/@miyabi/agent-sdk@')) ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.package == '@miyabi/agent-sdk' || github.event.inputs.package == 'all'))
@@ -89,7 +89,7 @@ jobs:
 
   publish-all:
     name: Publish All Packages
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: |
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.package == 'all')

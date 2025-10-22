@@ -253,7 +253,7 @@ jobs:
     name: Generate Markdown Report
     needs: benchmark
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code

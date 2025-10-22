@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   process-discussion:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event.discussion.state == 'open'
 
     steps:
@@ -47,7 +47,7 @@ jobs:
 
   # Idea to Issue conversion (manual trigger)
   convert-idea-to-issue:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: |
       github.event_name == 'discussion_comment' &&
       github.event.comment.body contains '/convert-to-issue' &&
@@ -111,7 +111,7 @@ This idea has been converted to a trackable Issue for implementation.
 
   # Auto-convert high-reaction ideas (scheduled check)
   auto-convert-popular-ideas:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
 
     steps:

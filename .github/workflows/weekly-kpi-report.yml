@@ -8,7 +8,7 @@ on:
 
 jobs:
   generate-and-post-report:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: Generate and post weekly KPI report
     steps:
       - name: Checkout

@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   update-project-fields:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: Update Custom Fields
 
     steps:

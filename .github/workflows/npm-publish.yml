@@ -30,7 +30,7 @@ permissions:
 jobs:
   publish:
     name: Publish to npm
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -119,7 +119,7 @@ jobs:
 
   notify:
     name: Notify on failure
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: publish
     if: failure()
 

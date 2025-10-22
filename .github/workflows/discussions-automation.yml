@@ -13,7 +13,7 @@ permissions:
 jobs:
   idea-to-issue:
     name: Convert Idea to Issue
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event.discussion.category.slug == 'ideas' && contains(github.event.discussion.labels.*.name, 'promote-to-issue')
     steps:
       - name: Checkout code
@@ -87,7 +87,7 @@ jobs:
 
   auto-label-discussions:
     name: Auto-Label Discussions
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event.action == 'created'
     steps:
       - name: Auto-label based on content
@@ -135,7 +135,7 @@ jobs:
 
   answered-notification:
     name: Mark Discussion as Answered
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event.action == 'answered'
     steps:
       - name: Add answered label
@@ -155,7 +155,7 @@ jobs:
 
   discussion-stats:
     name: Generate Discussion Statistics
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
