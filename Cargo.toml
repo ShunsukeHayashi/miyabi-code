@@ -16,6 +16,7 @@ members = [
     "crates/miyabi-worktree",
     "crates/miyabi-llm",
     "crates/miyabi-potpie",
+    "crates/miyabi-knowledge",
     "crates/miyabi-business-agents",
     "crates/miyabi-mcp-server",
     "crates/miyabi-discord-mcp-server",

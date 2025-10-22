@@ -1,0 +1,58 @@
+[package]
+name = "miyabi-knowledge"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Knowledge management system for Miyabi - Vector database, embeddings, and search"
+keywords = ["knowledge", "vector-db", "embeddings", "search", "ai"]
+categories = ["development-tools", "database"]
+readme = "README.md"
+
+[dependencies]
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }
+
+# Vector DB
+qdrant-client = "1.9"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# 非同期
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = "0.3"
+
+# シリアライゼーション
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# エラーハンドリング
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# ロギング
+tracing = { workspace = true }
+
+# 日時
+chrono = { workspace = true }
+
+# UUID
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# パス操作
+walkdir = "2.4"
+
+# Markdown パース
+pulldown-cmark = "0.9"
+
+# 正規表現
+regex = "1.10"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+mockito = "1.5"
+tempfile = "3.8"

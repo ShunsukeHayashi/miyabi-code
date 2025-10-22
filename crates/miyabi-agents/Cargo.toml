@@ -22,5 +22,21 @@ miyabi-agent-workflow = { version = "0.1.0", path = "../miyabi-agent-workflow" }
 miyabi-agent-business = { version = "0.1.0", path = "../miyabi-agent-business" }
 miyabi-agent-integrations = { version = "0.1.0", path = "../miyabi-agent-integrations" }
 
+# Core types
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+
+# Optional: Knowledge base integration
+miyabi-knowledge = { version = "0.1.0", path = "../miyabi-knowledge", optional = true }
+
+# Async runtime & utilities
+tokio = { version = "1.43", features = ["full"] }
+async-trait = "0.1"
+chrono = "0.4"
+tracing = "0.1"
+
+[features]
+default = []
+knowledge-integration = ["miyabi-knowledge"]
+
 [dev-dependencies]
 tempfile = "3.13"
