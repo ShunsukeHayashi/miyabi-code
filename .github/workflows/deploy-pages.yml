@@ -25,7 +25,8 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # Self-hosted runner on Mac mini #1 (macOS arm64)
+    runs-on: [self-hosted, macOS, arm64]
     name: Deploy to GitHub Pages
     environment:
       name: github-pages

@@ -15,7 +15,8 @@ env:
 jobs:
   build-and-push:
     name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+    # Self-hosted runner on Mac mini #2 (macOS arm64) with Docker support
+    runs-on: [self-hosted, macOS, arm64, docker]
     permissions:
       contents: read
       packages: write

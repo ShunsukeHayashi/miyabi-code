@@ -22,7 +22,8 @@ permissions:
 jobs:
   refresh-issue-status:
     name: Refresh All Issue Status
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    # Self-hosted runner on Mac mini #1 (macOS arm64)
+    runs-on: [self-hosted, macOS, arm64]
     timeout-minutes: 10
 
     steps:

@@ -25,14 +25,16 @@ env:
 
 jobs:
   benchmark:
-    name: Run SWE-bench Pro Evaluation
-    runs-on: ubuntu-latest
+    name: Run SWE-bench Pro Evaluation (GPU-Accelerated)
+    # Self-hosted runner on Windows PC with RTX 4070/4060 GPU
+    runs-on: [self-hosted, Windows, X64, gpu]
     timeout-minutes: 480  # 8 hours max
 
-    # Resource requirements
+    # Resource requirements (Windows GPU PC)
     # - Storage: 120GB (SWE-bench Docker images)
     # - RAM: 16GB minimum
     # - CPU: 8 cores recommended
+    # - GPU: NVIDIA RTX 4070/4060 (CUDA acceleration)
 
     steps:
       - name: Checkout code
