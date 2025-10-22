@@ -167,3 +167,9 @@ public/
 logs/
 reports/
 *.log
+
+# Workflow backups (temporary)
+.github/workflows/.backup-*/
+
+# Generated LP (separate repository)
+generated-lp/
