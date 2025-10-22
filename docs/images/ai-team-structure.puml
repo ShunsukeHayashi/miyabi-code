@@ -1,0 +1,45 @@
+@startuml
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName "Hiragino Sans"
+
+title Miyabi - 23人のAIチーム構成
+
+package "🔴 リーダー (2人)" {
+  [しきるん\nCoordinator]
+  [あきんどさん\nAIEntrepreneur]
+}
+
+package "🟢 実行役 (13人)" {
+  [つくるん\nCodeGen]
+  [かくん\nProductDesign]
+  [かきこちゃん\nNoteAgent] #LightGreen
+  [えがくん\nImageGen] #LightGreen
+  [他9人...]
+}
+
+package "🔵 分析役 (5人)" {
+  [めだまん\nReview]
+  [みつけるん\nIssue]
+  [しらべるん\nMarketResearch]
+  [他2人...]
+}
+
+package "🟡 サポート役 (3人)" {
+  [まとめるん\nPR]
+  [はこぶん\nDeployment]
+  [つなぐん\nHooks]
+}
+
+[しきるん\nCoordinator] --> [つくるん\nCodeGen]
+[しきるん\nCoordinator] --> [めだまん\nReview]
+[つくるん\nCodeGen] --> [まとめるん\nPR]
+[まとめるん\nPR] --> [はこぶん\nDeployment]
+[かきこちゃん\nNoteAgent] --> [えがくん\nImageGen]
+
+note right of [かきこちゃん\nNoteAgent]
+  NEW!
+  2025-10-22追加
+end note
+
+@enduml

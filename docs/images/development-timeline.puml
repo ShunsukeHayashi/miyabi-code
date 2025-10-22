@@ -1,0 +1,36 @@
+@startuml
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName "Hiragino Sans"
+
+title Miyabi開発タイムライン
+
+rectangle "2025年9月" {
+  [TypeScript版] #LightGray
+}
+
+rectangle "2025年10月初旬" {
+  [Rust移行開始] #LightYellow
+  [実行時間50%削減] #LightGreen
+  [メモリ30%削減] #LightGreen
+}
+
+rectangle "2025年10月20日" {
+  [かきこちゃん追加] #LightPink
+  [NoteAgent実装] #LightBlue
+}
+
+rectangle "2025年10月22日" {
+  [えがくん追加] #LightPink
+  [ImageGenAgent実装] #LightBlue
+  [23 Agents完成] #Gold
+}
+
+[TypeScript版] -down-> [Rust移行開始]
+[Rust移行開始] -down-> [実行時間50%削減]
+[実行時間50%削減] -down-> [メモリ30%削減]
+[メモリ30%削減] -down-> [かきこちゃん追加]
+[かきこちゃん追加] -down-> [えがくん追加]
+[えがくん追加] -down-> [23 Agents完成]
+
+@enduml

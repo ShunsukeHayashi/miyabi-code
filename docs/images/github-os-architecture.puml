@@ -1,0 +1,35 @@
+@startuml
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName "Hiragino Sans"
+
+title GitHub OS 統合アーキテクチャ
+
+package "GitHub" {
+  database "Projects V2" as PV2
+  queue "Webhooks" as WH
+  component "Actions" as ACT
+  queue "Discussions" as DISC
+  storage "Pages" as PG
+}
+
+package "Miyabi" {
+  component "23 Agents" as AG
+  component "Worktree Manager" as WM
+  component "Label System\n(53 labels)" as LBL
+}
+
+PV2 -down-> AG : データ永続化
+WH -down-> AG : イベント通知
+AG -up-> ACT : 実行トリガー
+AG -right-> DISC : メッセージング
+AG -up-> PG : ドキュメント配信
+AG -left-> WM : 並列実行制御
+AG -down-> LBL : 状態管理
+
+note right of PV2
+  特別なインフラ不要
+  GitHub上で完結
+end note
+
+@enduml
