@@ -124,6 +124,11 @@ GitHubは、プログラムを保存する**図書館**のようなものです�
 
 #### 図解: Miyabiの動き方
 
+![Miyabiの動き方](diagrams/miyabi-flow.png)
+
+<details>
+<summary>📊 Mermaid版の図（クリックして表示）</summary>
+
 ```mermaid
 flowchart TD
     A[あなた: Issueを作る] --> B[しきるん: タスクに分ける]
@@ -150,6 +155,8 @@ flowchart TD
     style J fill:#ffe1e1
 ```
 
+</details>
+
 **ポイント**:
 - しきるんが1つのIssueを3つのタスクに分ける
 - つくるん、めだまん、まとめるんが同時に作業する（並列実行）
@@ -164,6 +171,11 @@ Miyabiにはたくさんの仲間がいます（全部で21人以上！）。4�
 ここでは、**主な20人の仲間**を紹介します。
 
 ### 図解: 4つのグループ
+
+![4つのグループ](diagrams/agent-groups.png)
+
+<details>
+<summary>📊 Mermaid版の図（クリックして表示）</summary>
 
 ```mermaid
 mindmap
@@ -193,6 +205,8 @@ mindmap
       まとめるん
       はこぶん
 ```
+
+</details>
 
 ### 🔴 リーダー（2人）- 指示を出す
 
@@ -276,6 +290,11 @@ mindmap
 
 #### 図解: 並列実行のイメージ
 
+![並列実行のイメージ](diagrams/parallel-execution.png)
+
+<details>
+<summary>📊 Mermaid版の図（クリックして表示）</summary>
+
 ```mermaid
 gantt
     title 並列実行のイメージ（全体で2.5時間）
@@ -289,6 +308,8 @@ gantt
     section かくちゃん
     Task C（ドキュメント）   :crit, task_c, 01:00, 1.5h
 ```
+
+</details>
 
 **ポイント**:
 - つくるんがTask AとBを同時に実行（0:00 - 1:00）

@@ -1,0 +1,50 @@
+@startuml agent-groups
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName "Hiragino Sans"
+
+title Miyabi - 4つのグループ
+
+' パッケージのスタイル定義
+skinparam package {
+  BackgroundColor<<leader>> #ffe1e1
+  BackgroundColor<<executor>> #e1ffe1
+  BackgroundColor<<analyzer>> #e1e1ff
+  BackgroundColor<<supporter>> #ffe1ff
+  BorderColor Black
+  FontSize 14
+}
+
+package "🔴 リーダー（2人）\n指示を出す" <<leader>> {
+  [しきるん\nCoordinatorAgent]
+  [あきんどさん\nAIEntrepreneurAgent]
+}
+
+package "🟢 実行役（11人）\n実際に作業する" <<executor>> {
+  [つくるん\nCodeGenAgent]
+  [かくちゃん\nContentCreationAgent]
+  [しらべるん\nMarketResearchAgent]
+  [せっけいくん\nProductConceptAgent]
+  [くわしくん\nProductDesignAgent]
+  [じぶんちゃん\nSelfAnalysisAgent]
+  [ぺるそなちゃん\nPersonaAgent]
+  [ひろめるん\nMarketingAgent]
+  [SNSくん\nSNSStrategyAgent]
+  [どうがちゃん\nYouTubeAgent]
+  [うるん\nSalesAgent]
+}
+
+package "🔵 分析役（4人）\n調べる、考える" <<analyzer>> {
+  [みつけるん\nIssueAgent]
+  [めだまん\nReviewAgent]
+  [かぞえるん\nAnalyticsAgent]
+  [おきゃくちゃん\nCRMAgent]
+}
+
+package "🟡 サポート役（3人）\n手伝う、つなぐ" <<supporter>> {
+  [まとめるん\nPRAgent]
+  [はこぶん\nDeploymentAgent]
+  [つなぐん\nFunnelDesignAgent]
+}
+
+@enduml

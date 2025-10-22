@@ -1,0 +1,47 @@
+@startuml miyabi-flow
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName "Hiragino Sans"
+
+title Miyabiの動き方
+
+' ノードのスタイル定義
+skinparam activity {
+  BackgroundColor<<user>> #e1f5ff
+  BackgroundColor<<coordinator>> #ffe1e1
+  BackgroundColor<<codegen>> #e1ffe1
+  BackgroundColor<<review>> #e1e1ff
+  BackgroundColor<<doc>> #fff4e1
+  BackgroundColor<<deploy>> #ffe1ff
+  BackgroundColor<<complete>> #ffe1e1
+  BorderColor Black
+  FontSize 14
+}
+
+start
+
+:あなた: Issueを作る<<user>>;
+
+:しきるん: タスクに分ける<<coordinator>>;
+
+fork
+  :Task A
+  型定義作成|
+  :つくるん: コード作成<<codegen>>;
+fork again
+  :Task B
+  テスト作成|
+  :めだまん: 品質チェック<<review>>;
+fork again
+  :Task C
+  ドキュメント|
+  :まとめるん: ドキュメント作成<<doc>>;
+end fork
+
+:はこぶん: 配達<<deploy>>;
+
+:完成！🎉<<complete>>;
+
+stop
+
+@enduml
