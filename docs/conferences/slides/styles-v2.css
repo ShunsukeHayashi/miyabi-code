@@ -1,0 +1,507 @@
+/* ===================================
+   Miyabi Presentation - V2.0 (Steve Jobs Approved)
+   Complete Design Overhaul Based on Review
+   =================================== */
+
+/* ===== Import Display Font ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 400;
+    color: #ffffff;
+}
+
+/* Override Reveal.js defaults */
+.reveal {
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    text-transform: none;
+}
+
+.reveal code {
+    font-family: 'Fira Code', monospace;
+}
+
+/* ===== Enhanced Design System ===== */
+:root {
+    /* Primary Gradients */
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-glow: rgba(102, 126, 234, 0.5);
+
+    /* Secondary Gradients */
+    --secondary-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+
+    /* Accent Colors */
+    --accent-cyan: #00d4ff;
+    --accent-magenta: #ff00e5;
+
+    /* Neutrals */
+    --white: #ffffff;
+    --gray-100: #f7fafc;
+    --gray-200: #edf2f7;
+    --gray-300: #e2e8f0;
+    --gray-900: #1a202c;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.25);
+    --shadow-xl: 0 12px 60px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 0 40px var(--primary-glow);
+
+    /* Typography Scale */
+    --font-size-display: 7rem;
+    --font-size-h1: 4rem;
+    --font-size-h2: 3rem;
+    --font-size-h3: 2rem;
+    --font-size-body: 1.25rem;
+    --font-size-caption: 1rem;
+
+    /* Spacing (8px grid) */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-6: 48px;
+    --space-8: 64px;
+    --space-12: 96px;
+}
+
+/* ===== Slide 1: Title Slide (Dramatically Enhanced) ===== */
+.title-slide {
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    /* Multi-layer gradient for depth */
+    background:
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.8) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(118, 75, 162, 0.8) 0%, transparent 50%),
+        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Noise texture overlay for depth */
+.title-slide::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
+    opacity: 0.05;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.title-content {
+    position: relative;
+    z-index: 10;
+    animation: fadeIn 1.5s ease-out;
+}
+
+/* Custom Miyabi Logo SVG */
+.miyabi-logo {
+    margin-bottom: 3rem;
+    animation: logoEntrance 1.5s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.miyabi-logo-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: block;
+    filter: drop-shadow(0 8px 40px rgba(102, 126, 234, 0.6));
+    animation: logoFloat 4s ease-in-out infinite;
+}
+
+/* Enhanced Main Title */
+.main-title {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    font-size: 7rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 4px 30px rgba(255, 255, 255, 0.5));
+    animation: titleFadeIn 1.8s ease-out 0.3s both;
+}
+
+/* Enhanced Session Title */
+.session-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 3rem 0;
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    animation: titleFadeIn 1.8s ease-out 0.6s both;
+}
+
+/* Enhanced Subtitle */
+.subtitle {
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 2rem 0;
+    line-height: 1.5;
+    font-weight: 400;
+    animation: titleFadeIn 1.8s ease-out 0.9s both;
+}
+
+/* Dramatically Enhanced Speaker Info Card */
+.speaker-info {
+    margin-top: 4rem;
+    padding: 3rem 4rem;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(30px) brightness(1.15);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 24px;
+    box-shadow:
+        0 12px 60px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: cardFadeIn 2s ease-out 1.2s both;
+    transition: all 0.4s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.speaker-info:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow:
+        0 16px 80px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 50px var(--primary-glow);
+}
+
+.speaker-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.event-name {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.event-date {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes logoEntrance {
+    from {
+        opacity: 0;
+        transform: scale(0.5) translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-15px) rotate(2deg);
+    }
+}
+
+@keyframes titleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== Agent Icons Background ===== */
+.agent-icons-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.agent-icons-bg img.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.15;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 80%;
+    opacity: 0.08;
+}
+
+.icon-grid i {
+    font-size: 3rem;
+    color: #ffffff;
+    opacity: 0.4;
+    animation: iconFloat 6s ease-in-out infinite;
+}
+
+.icon-grid i:nth-child(even) {
+    animation-delay: 1s;
+    animation-direction: reverse;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+/* ===== Slide 2: Self Introduction (Enhanced) ===== */
+.intro-slide {
+    padding: 4rem;
+}
+
+.intro-slide h2 {
+    font-size: 3.5rem;
+    margin-bottom: 3rem;
+    text-align: center;
+    font-weight: 700;
+}
+
+.intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.intro-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.profile-photo,
+.github-contributions {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-photo:hover,
+.github-contributions:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 16px 80px rgba(0, 0, 0, 0.4);
+}
+
+.profile-photo img,
+.github-contributions img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.intro-right {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.intro-list {
+    list-style: none;
+    font-size: 1.3rem;
+    line-height: 2;
+}
+
+.intro-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.intro-list strong {
+    color: #f59e0b;
+    font-weight: 700;
+}
+
+.intro-list a {
+    color: #60a5fa;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.intro-list a:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.tech-badge {
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+.tech-badge:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.tech-badge.rust {
+    background: linear-gradient(135deg, #ce422b 0%, #d94823 100%);
+}
+
+.tech-badge.typescript {
+    background: linear-gradient(135deg, #3178c6 0%, #2d5fa8 100%);
+}
+
+.tech-badge.react {
+    background: linear-gradient(135deg, #61dafb 0%, #4fc3f7 100%);
+}
+
+.tech-badge.aws {
+    background: linear-gradient(135deg, #ff9900 0%, #ec7211 100%);
+}
+
+/* ===== Improved Contact Section (Slide 40) ===== */
+.contact-details {
+    margin: 3rem 0;
+    font-size: 1.5rem;
+    line-height: 2;
+}
+
+.contact-details p {
+    margin: 0.8rem 0;
+    font-weight: 500;
+}
+
+.qr-code img {
+    width: 350px;
+    height: 350px;
+    margin: 3rem auto;
+    display: block;
+    padding: 25px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow-xl);
+    transition: all 0.3s ease;
+}
+
+.qr-code img:hover {
+    transform: scale(1.05) rotate(2deg);
+    box-shadow: 0 20px 100px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+    .main-title {
+        font-size: 5rem;
+    }
+
+    .session-title {
+        font-size: 2.5rem;
+    }
+
+    .subtitle {
+        font-size: 1.5rem;
+    }
+
+    .speaker-info {
+        padding: 2rem 3rem;
+    }
+
+    .intro-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 3.5rem;
+    }
+
+    .session-title {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+    }
+
+    .speaker-info {
+        padding: 1.5rem 2rem;
+    }
+
+    .qr-code img {
+        width: 250px;
+        height: 250px;
+    }
+}

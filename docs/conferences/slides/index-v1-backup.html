@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue作成からデプロイまで完全自律化 - Miyabi Presentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- Slide 1: Title -->
+            <section class="title-slide" data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <div class="title-content">
+                    <div class="miyabi-logo">
+                        <i class="fas fa-robot"></i>
+                        <h1 class="main-title">Miyabi</h1>
+                    </div>
+                    <h2 class="session-title">Issue作成からデプロイまで<br>完全自律化</h2>
+                    <p class="subtitle">21個のAIエージェントが創る<br>次世代開発体験</p>
+                    <div class="speaker-info">
+                        <p class="speaker-name">ハヤシ シュンスケ</p>
+                        <p class="event-name">AI駆動開発カンファレンス 2025秋</p>
+                        <p class="event-date">2025年10月30-31日</p>
+                    </div>
+                    <!-- T2I Placeholder: 21 agent icons in background -->
+                    <div class="agent-icons-bg">
+                        <div class="icon-grid">
+                            <i class="fas fa-code"></i>
+                            <i class="fas fa-tasks"></i>
+                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-search"></i>
+                            <i class="fas fa-rocket"></i>
+                            <i class="fas fa-shield-alt"></i>
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 2: Self Introduction -->
+            <section class="intro-slide">
+                <h2><i class="fas fa-user-circle"></i> 自己紹介</h2>
+                <div class="intro-grid">
+                    <div class="intro-left">
+                        <!-- T2I Placeholder: Professional photo -->
+                        <div class="profile-photo">
+                            <i class="fas fa-user-tie"></i>
+                            <p class="placeholder-text">プロフィール写真</p>
+                        </div>
+                        <!-- T2I Placeholder: GitHub contributions -->
+                        <div class="github-contributions">
+                            <i class="fab fa-github"></i>
+                            <p class="placeholder-text">GitHub Contributions</p>
+                        </div>
+                    </div>
+                    <div class="intro-right">
+                        <ul class="intro-list">
+                            <li><strong>名前:</strong> ハヤシ シュンスケ</li>
+                            <li><strong>職業:</strong> フリーランスエンジニア（AI開発・自動化）</li>
+                            <li><strong>経歴:</strong> 10年以上のソフトウェア開発経験</li>
+                            <li><strong>専門:</strong> Rust, TypeScript, AI統合システム</li>
+                            <li><strong>GitHub:</strong> <a href="https://github.com/ShunsukeHayashi" target="_blank">@ShunsukeHayashi</a></li>
+                            <li><strong>プロジェクト:</strong> Miyabi開発者</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tech-badge rust"><i class="fas fa-gear"></i> Rust</span>
+                            <span class="tech-badge typescript"><i class="fab fa-js"></i> TypeScript</span>
+                            <span class="tech-badge react"><i class="fab fa-react"></i> React</span>
+                            <span class="tech-badge aws"><i class="fab fa-aws"></i> AWS</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 3: Today's Goal -->
+            <section>
+                <h2><i class="fas fa-bullseye"></i> 今日のゴール</h2>
+                <div class="goals-grid">
+                    <div class="goal-card" data-aos="fade-up" data-aos-delay="0">
+                        <i class="fas fa-brain goal-icon"></i>
+                        <h3>新しいパラダイム</h3>
+                        <p>AI駆動開発の新しいパラダイム</p>
+                    </div>
+                    <div class="goal-card" data-aos="fade-up" data-aos-delay="200">
+                        <i class="fas fa-robot goal-icon"></i>
+                        <h3>21個のエージェント</h3>
+                        <p>完全自律化の仕組み</p>
+                    </div>
+                    <div class="goal-card" data-aos="fade-up" data-aos-delay="400">
+                        <i class="fas fa-play-circle goal-icon"></i>
+                        <h3>ライブデモ</h3>
+                        <p>実際の動作確認</p>
+                    </div>
+                    <div class="goal-card" data-aos="fade-up" data-aos-delay="600">
+                        <i class="fas fa-briefcase goal-icon"></i>
+                        <h3>ビジネス自動化</h3>
+                        <p>応用可能性の探求</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Current Challenges -->
+            <section data-background-color="#ef4444">
+                <h2><i class="fas fa-exclamation-triangle"></i> 現在の開発現場の課題</h2>
+                <div class="challenges-list">
+                    <div class="challenge-item" data-aos="fade-right">
+                        <i class="fas fa-times-circle"></i>
+                        <div>
+                            <h3>課題1: コーディングアシスト止まり</h3>
+                            <p>Copilot, Cursor は「コードを書く」だけ</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item" data-aos="fade-right" data-aos-delay="200">
+                        <i class="fas fa-times-circle"></i>
+                        <div>
+                            <h3>課題2: Issue→PRの手動作業が残る</h3>
+                            <p>Issue管理、PRレビュー、マージは人間任せ</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item" data-aos="fade-right" data-aos-delay="400">
+                        <i class="fas fa-times-circle"></i>
+                        <div>
+                            <h3>課題3: レビュー・デプロイは人間任せ</h3>
+                            <p>品質チェック、デプロイ、監視は手動</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item" data-aos="fade-right" data-aos-delay="600">
+                        <i class="fas fa-times-circle"></i>
+                        <div>
+                            <h3>課題4: ビジネス戦略は完全に人間依存</h3>
+                            <p>市場調査、戦略立案、マーケティングは自動化されていない</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- T2I Placeholder: Copilot/Cursor logos with "ここまで" arrow -->
+                <div class="tool-comparison">
+                    <p class="comparison-text">既存ツールはここまで ↓</p>
+                </div>
+            </section>
+
+            <!-- Slide 5: Miyabi Solutions -->
+            <section data-background-color="#10b981">
+                <h2><i class="fas fa-check-circle"></i> Miyabiが解決する問題</h2>
+                <div class="solutions-grid">
+                    <div class="solution-card" data-aos="zoom-in" data-aos-delay="0">
+                        <i class="fas fa-cogs solution-icon"></i>
+                        <h3>解決1</h3>
+                        <p>Issue作成→コード→PR→デプロイまで<br><strong>完全自動</strong></p>
+                    </div>
+                    <div class="solution-card" data-aos="zoom-in" data-aos-delay="200">
+                        <i class="fas fa-star solution-icon"></i>
+                        <h3>解決2</h3>
+                        <p>品質レビューも自動<br><strong>100点満点スコアリング</strong></p>
+                    </div>
+                    <div class="solution-card" data-aos="zoom-in" data-aos-delay="400">
+                        <i class="fas fa-bolt solution-icon"></i>
+                        <h3>解決3</h3>
+                        <p>並列実行で高速化<br><strong>Git Worktree活用</strong></p>
+                    </div>
+                    <div class="solution-card" data-aos="zoom-in" data-aos-delay="600">
+                        <i class="fas fa-chart-line solution-icon"></i>
+                        <h3>解決4</h3>
+                        <p>ビジネス戦略も自動化<br><strong>14個のBusiness Agents</strong></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: AI-Driven Development Levels -->
+            <section>
+                <h2><i class="fas fa-layer-group"></i> AI駆動開発の3つのレベル</h2>
+                <div class="pyramid-container">
+                    <!-- T2I Placeholder: 3-level pyramid diagram -->
+                    <div class="pyramid">
+                        <div class="pyramid-level level-3" data-aos="fade-up" data-aos-delay="0">
+                            <div class="level-content">
+                                <h3>Level 3</h3>
+                                <p>プロセス完全自律化</p>
+                                <span class="level-badge miyabi">Miyabi</span>
+                            </div>
+                        </div>
+                        <div class="pyramid-level level-2" data-aos="fade-up" data-aos-delay="300">
+                            <div class="level-content">
+                                <h3>Level 2</h3>
+                                <p>タスク自動実行</p>
+                                <span class="level-badge">一部自動化ツール</span>
+                            </div>
+                        </div>
+                        <div class="pyramid-level level-1" data-aos="fade-up" data-aos-delay="600">
+                            <div class="level-content">
+                                <h3>Level 1</h3>
+                                <p>コーディングアシスト</p>
+                                <span class="level-badge">Copilot, Cursor</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="pyramid-note">← 現在地 | Miyabiは Level 3 を実現する初のフレームワーク</p>
+            </section>
+
+            <!-- Slide 7: Miyabi Positioning -->
+            <section>
+                <h2><i class="fas fa-compass"></i> Miyabiの位置づけ</h2>
+                <div class="positioning-grid">
+                    <div class="positioning-card">
+                        <i class="fas fa-tag"></i>
+                        <h3>カテゴリ</h3>
+                        <p>完全自律型AI開発オペレーションプラットフォーム</p>
+                    </div>
+                    <div class="positioning-card">
+                        <i class="fab fa-github"></i>
+                        <h3>特徴</h3>
+                        <p>GitHub as OS アーキテクチャ</p>
+                    </div>
+                    <div class="positioning-card">
+                        <i class="fas fa-lock-open"></i>
+                        <h3>ライセンス</h3>
+                        <p>オープンソース（MIT License）</p>
+                    </div>
+                    <div class="positioning-card">
+                        <i class="fas fa-gear"></i>
+                        <h3>実装</h3>
+                        <p>Rust 2021 Edition</p>
+                    </div>
+                </div>
+                <div class="github-stats">
+                    <a href="https://github.com/ShunsukeHayashi/Miyabi" target="_blank" class="github-link">
+                        <i class="fab fa-github"></i> github.com/ShunsukeHayashi/Miyabi
+                    </a>
+                </div>
+            </section>
+
+            <!-- Section 2: Miyabi Overview -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h1 class="section-title"><i class="fas fa-book-open"></i> Miyabi概要</h1>
+                <p class="section-subtitle">21個のAIエージェントが創る自律型開発体験</p>
+            </section>
+
+            <!-- Slide 10: GitHub as OS Architecture -->
+            <section>
+                <h2><i class="fab fa-github"></i> GitHub as OS アーキテクチャ</h2>
+                <div class="architecture-container">
+                    <p class="architecture-concept">コンセプト: <strong>GitHubを開発OSとして活用</strong></p>
+                    <!-- T2I Placeholder: GitHub OS architecture diagram -->
+                    <div class="architecture-diagram">
+                        <div class="os-component" data-aos="fade-in" data-aos-delay="0">
+                            <i class="fas fa-database"></i>
+                            <h4>Issues</h4>
+                            <p>データ永続化層</p>
+                        </div>
+                        <div class="os-component" data-aos="fade-in" data-aos-delay="200">
+                            <i class="fas fa-project-diagram"></i>
+                            <h4>Projects V2</h4>
+                            <p>ステートマネジメント</p>
+                        </div>
+                        <div class="os-component" data-aos="fade-in" data-aos-delay="400">
+                            <i class="fas fa-broadcast-tower"></i>
+                            <h4>Webhooks</h4>
+                            <p>イベントバス</p>
+                        </div>
+                        <div class="os-component" data-aos="fade-in" data-aos-delay="600">
+                            <i class="fas fa-play"></i>
+                            <h4>Actions</h4>
+                            <p>実行エンジン</p>
+                        </div>
+                        <div class="os-component" data-aos="fade-in" data-aos-delay="800">
+                            <i class="fas fa-tags"></i>
+                            <h4>Labels</h4>
+                            <p>状態管理（57ラベル）</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 11: 21 AI Agents -->
+            <section>
+                <h2><i class="fas fa-robot"></i> 21個のAIエージェント体系</h2>
+                <div class="agents-overview">
+                    <div class="agents-category coding">
+                        <h3><i class="fas fa-code"></i> Coding Agents（7個）</h3>
+                        <p class="category-desc">開発運用・自動化</p>
+                        <div class="agents-list">
+                            <span class="agent-badge">Coordinator</span>
+                            <span class="agent-badge">CodeGen</span>
+                            <span class="agent-badge">Review</span>
+                            <span class="agent-badge">Issue</span>
+                            <span class="agent-badge">PR</span>
+                            <span class="agent-badge">Deployment</span>
+                            <span class="agent-badge">Refresher</span>
+                        </div>
+                    </div>
+                    <div class="agents-category business">
+                        <h3><i class="fas fa-briefcase"></i> Business Agents（14個）</h3>
+                        <p class="category-desc">ビジネス戦略・マーケティング・営業</p>
+                        <div class="agents-list">
+                            <span class="agent-badge">AIEntrepreneur</span>
+                            <span class="agent-badge">ProductConcept</span>
+                            <span class="agent-badge">ProductDesign</span>
+                            <span class="agent-badge">FunnelDesign</span>
+                            <span class="agent-badge">Persona</span>
+                            <span class="agent-badge">SelfAnalysis</span>
+                            <span class="agent-badge">MarketResearch</span>
+                            <span class="agent-badge">Marketing</span>
+                            <span class="agent-badge">ContentCreation</span>
+                            <span class="agent-badge">SNSStrategy</span>
+                            <span class="agent-badge">YouTube</span>
+                            <span class="agent-badge">Sales</span>
+                            <span class="agent-badge">CRM</span>
+                            <span class="agent-badge">Analytics</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 12: Coding Agents Flow -->
+            <section>
+                <h2><i class="fas fa-code"></i> Coding Agents詳細</h2>
+                <!-- T2I Placeholder: Flowchart of coding agents -->
+                <div class="flow-diagram">
+                    <div class="flow-step" data-aos="fade-right" data-aos-delay="0">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h4>CoordinatorAgent</h4>
+                        <p>タスク統括・DAG分解</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" data-aos="fade-right" data-aos-delay="200">
+                        <i class="fas fa-code"></i>
+                        <h4>CodeGenAgent</h4>
+                        <p>AI駆動コード生成<br>(Claude Sonnet 4)</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" data-aos="fade-right" data-aos-delay="400">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>ReviewAgent</h4>
+                        <p>品質レビュー<br>(100点満点)</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" data-aos="fade-right" data-aos-delay="600">
+                        <i class="fas fa-code-branch"></i>
+                        <h4>PRAgent</h4>
+                        <p>Pull Request自動作成<br>(Conventional Commits)</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step" data-aos="fade-right" data-aos-delay="800">
+                        <i class="fas fa-rocket"></i>
+                        <h4>DeploymentAgent</h4>
+                        <p>CI/CDデプロイ自動化<br>(Firebase/Vercel/AWS)</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 15: State Transition Flow -->
+            <section>
+                <h2><i class="fas fa-exchange-alt"></i> 状態遷移フロー</h2>
+                <div class="state-flow">
+                    <div class="state-item" data-aos="fade-in" data-aos-delay="0">
+                        <i class="fas fa-inbox"></i>
+                        <h4>📥 pending</h4>
+                        <p>Issue作成</p>
+                    </div>
+                    <div class="state-arrow">→</div>
+                    <div class="state-item" data-aos="fade-in" data-aos-delay="200">
+                        <i class="fas fa-search"></i>
+                        <h4>🔍 analyzing</h4>
+                        <p>IssueAgent分析</p>
+                    </div>
+                    <div class="state-arrow">→</div>
+                    <div class="state-item" data-aos="fade-in" data-aos-delay="400">
+                        <i class="fas fa-hammer"></i>
+                        <h4>🏗️ implementing</h4>
+                        <p>CodeGen実装</p>
+                    </div>
+                    <div class="state-arrow">→</div>
+                    <div class="state-item" data-aos="fade-in" data-aos-delay="600">
+                        <i class="fas fa-eye"></i>
+                        <h4>👀 reviewing</h4>
+                        <p>Review品質チェック</p>
+                    </div>
+                    <div class="state-arrow">→</div>
+                    <div class="state-item" data-aos="fade-in" data-aos-delay="800">
+                        <i class="fas fa-check"></i>
+                        <h4>✅ done</h4>
+                        <p>完了</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 17: Rust Benefits -->
+            <section data-background-color="#ce422b">
+                <h2><i class="fas fa-gear"></i> Rust実装のメリット</h2>
+                <div class="rust-benefits">
+                    <!-- T2I Placeholder: Before/After comparison charts -->
+                    <div class="benefit-card" data-aos="flip-left" data-aos-delay="0">
+                        <i class="fas fa-tachometer-alt benefit-icon"></i>
+                        <h3>50%以上の実行時間削減</h3>
+                        <p>Rustの高速実行</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 50%"></div>
+                        </div>
+                    </div>
+                    <div class="benefit-card" data-aos="flip-left" data-aos-delay="200">
+                        <i class="fas fa-memory benefit-icon"></i>
+                        <h3>30%以上のメモリ削減</h3>
+                        <p>ゼロコスト抽象化</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="benefit-card" data-aos="flip-left" data-aos-delay="400">
+                        <i class="fas fa-cube benefit-icon"></i>
+                        <h3>単一バイナリ配布</h3>
+                        <p>Node.js依存の排除</p>
+                    </div>
+                    <div class="benefit-card" data-aos="flip-left" data-aos-delay="600">
+                        <i class="fas fa-shield-alt benefit-icon"></i>
+                        <h3>コンパイル時型安全性</h3>
+                        <p>ランタイムエラーの削減</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Live Demo -->
+            <section data-background-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+                <h1 class="section-title"><i class="fas fa-play-circle"></i> ライブデモ</h1>
+                <p class="section-subtitle">Issue作成からデプロイまで7分で完結</p>
+            </section>
+
+            <!-- Slide 32: Demo Scenario -->
+            <section>
+                <h2><i class="fas fa-list-ol"></i> デモシナリオ概要</h2>
+                <div class="demo-timeline">
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="0">
+                        <div class="timeline-badge">1</div>
+                        <div class="timeline-content">
+                            <h4>Issue作成（30秒）</h4>
+                            <p>"JWT認証の実装"</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="100">
+                        <div class="timeline-badge">2</div>
+                        <div class="timeline-content">
+                            <h4>IssueAgent自動分析（30秒）</h4>
+                            <p>自動ラベル付与</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="200">
+                        <div class="timeline-badge">3</div>
+                        <div class="timeline-content">
+                            <h4>CoordinatorAgent タスク分解（1分）</h4>
+                            <p>5つのサブタスク + DAG構築</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="300">
+                        <div class="timeline-badge">4</div>
+                        <div class="timeline-content">
+                            <h4>CodeGenAgent コード生成（2分）</h4>
+                            <p>Rust自動生成</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="400">
+                        <div class="timeline-badge">5</div>
+                        <div class="timeline-content">
+                            <h4>ReviewAgent 品質チェック（1分）</h4>
+                            <p>スコア95/100</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="500">
+                        <div class="timeline-badge">6</div>
+                        <div class="timeline-content">
+                            <h4>PRAgent 自動PR作成（1分）</h4>
+                            <p>Conventional Commits</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="600">
+                        <div class="timeline-badge">7</div>
+                        <div class="timeline-content">
+                            <h4>DeploymentAgent 自動デプロイ（1分）</h4>
+                            <p>Staging環境</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 34: Demo Results -->
+            <section data-background-color="#10b981">
+                <h2><i class="fas fa-trophy"></i> デモ結果サマリー</h2>
+                <div class="demo-results">
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="0">
+                        <i class="fas fa-clipboard-check"></i>
+                        <h4>Issue #270</h4>
+                        <p>JWT認証の実装</p>
+                    </div>
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="100">
+                        <i class="fas fa-tasks"></i>
+                        <h4>タスク数: 5個</h4>
+                        <p>DAG構築済み</p>
+                    </div>
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="200">
+                        <i class="fas fa-file-code"></i>
+                        <h4>生成コード: 200行</h4>
+                        <p>crates/auth/src/jwt.rs</p>
+                    </div>
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="300">
+                        <i class="fas fa-check-double"></i>
+                        <h4>テストカバレッジ: 85%</h4>
+                        <p>8/8 tests passed</p>
+                    </div>
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="400">
+                        <i class="fas fa-star"></i>
+                        <h4>品質スコア: 95/100</h4>
+                        <p>Excellent</p>
+                    </div>
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="500">
+                        <i class="fas fa-code-branch"></i>
+                        <h4>PR #271 自動作成</h4>
+                        <p>feat: implement JWT authentication</p>
+                    </div>
+                    <div class="result-item" data-aos="zoom-in" data-aos-delay="600">
+                        <i class="fas fa-rocket"></i>
+                        <h4>Staging環境デプロイ完了</h4>
+                        <p>v1.2.3</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 39: Summary -->
+            <section>
+                <h2><i class="fas fa-check-circle"></i> まとめ</h2>
+                <div class="summary-points">
+                    <div class="summary-point" data-aos="fade-in" data-aos-delay="0">
+                        <span class="point-number">1</span>
+                        <div>
+                            <h4>AI駆動開発の新しいパラダイム</h4>
+                            <p>Level 3 = プロセス完全自律化</p>
+                        </div>
+                    </div>
+                    <div class="summary-point" data-aos="fade-in" data-aos-delay="200">
+                        <span class="point-number">2</span>
+                        <div>
+                            <h4>21個のエージェント</h4>
+                            <p>Coding 7 + Business 14</p>
+                        </div>
+                    </div>
+                    <div class="summary-point" data-aos="fade-in" data-aos-delay="400">
+                        <span class="point-number">3</span>
+                        <div>
+                            <h4>実装技術</h4>
+                            <p>Rust + Worktree + Error Recovery</p>
+                        </div>
+                    </div>
+                    <div class="summary-point" data-aos="fade-in" data-aos-delay="600">
+                        <span class="point-number">4</span>
+                        <div>
+                            <h4>ライブデモ</h4>
+                            <p>Issue → コード → PR → デプロイ（7分で完結）</p>
+                        </div>
+                    </div>
+                    <div class="summary-point" data-aos="fade-in" data-aos-delay="800">
+                        <span class="point-number">5</span>
+                        <div>
+                            <h4>ビジネス自動化</h4>
+                            <p>14個のBusiness Agentsで戦略・マーケ・営業を自動化</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="miyabi-uniqueness">
+                    <h3><i class="fas fa-star"></i> Miyabiの独自性</h3>
+                    <ul>
+                        <li>GitHub as OS アーキテクチャ</li>
+                        <li>完全自律型オペレーションプラットフォーム</li>
+                        <li>オープンソース（MIT License）</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 40: Q&A + Contact -->
+            <section class="qna-slide" data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h1><i class="fas fa-comments"></i> Q&A</h1>
+                <p class="qna-subtitle">ご質問をどうぞ</p>
+
+                <div class="contact-info">
+                    <h3><i class="fas fa-link"></i> リンク</h3>
+                    <div class="link-grid">
+                        <a href="https://github.com/ShunsukeHayashi/Miyabi" target="_blank" class="contact-link">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        <a href="https://shunsukehayashi.github.io/Miyabi/" target="_blank" class="contact-link">
+                            <i class="fas fa-book"></i> Documentation
+                        </a>
+                        <a href="https://www.npmjs.com/package/miyabi" target="_blank" class="contact-link">
+                            <i class="fab fa-npm"></i> NPM
+                        </a>
+                    </div>
+                </div>
+
+                <div class="contact-details">
+                    <h3><i class="fas fa-envelope"></i> コンタクト</h3>
+                    <p>Email: your-email@example.com</p>
+                    <p>Twitter/X: @YourHandle</p>
+                    <p>GitHub: @ShunsukeHayashi</p>
+                </div>
+
+                <!-- T2I Placeholder: QR code for GitHub repo -->
+                <div class="qr-code">
+                    <i class="fas fa-qrcode"></i>
+                    <p>GitHub リポジトリ</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <!-- AOS Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+
+    <script src="script.js"></script>
+</body>
+</html>

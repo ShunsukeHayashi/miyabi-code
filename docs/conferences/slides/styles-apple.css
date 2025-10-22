@@ -1,0 +1,506 @@
+/* ===================================
+   Miyabi Presentation - Apple Style (Jony Ive Approved)
+   "Simplicity is the ultimate sophistication" - Steve Jobs
+   =================================== */
+
+/* ===== Apple SF Pro Display Font ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    color: #1d1d1f;
+    background: #ffffff;
+}
+
+/* Override Reveal.js defaults */
+.reveal {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    text-transform: none;
+    color: #1d1d1f;
+}
+
+.reveal code {
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+}
+
+/* ===== Apple Design System ===== */
+:root {
+    /* Apple Colors */
+    --apple-black: #1d1d1f;
+    --apple-gray: #86868b;
+    --apple-gray-light: #f5f5f7;
+    --apple-white: #ffffff;
+    --apple-blue: #007aff;
+
+    /* Typography (Apple Scale) */
+    --font-size-hero: 96px;
+    --font-size-h1: 48px;
+    --font-size-h2: 32px;
+    --font-size-body: 21px;
+    --font-size-caption: 17px;
+
+    /* Spacing (Apple 8px grid) */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-6: 48px;
+    --space-8: 64px;
+    --space-12: 96px;
+    --space-16: 128px;
+
+    /* Shadows (minimal) */
+    --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Slide 1: Title Slide (Apple Keynote Style) ===== */
+.title-slide {
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: var(--apple-white);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-16);
+}
+
+.title-content {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+/* Apple-style Logo (minimal) */
+.miyabi-logo {
+    margin-bottom: var(--space-8);
+}
+
+.miyabi-logo-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--space-4);
+    display: block;
+}
+
+/* Hero Title (Apple Keynote Style) */
+.main-title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: var(--font-size-hero);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--apple-black);
+    margin-bottom: var(--space-6);
+}
+
+/* Session Title */
+.session-title {
+    font-size: var(--font-size-h1);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--apple-black);
+    margin-bottom: var(--space-4);
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: var(--font-size-h2);
+    font-weight: 400;
+    color: var(--apple-gray);
+    margin-bottom: var(--space-8);
+    line-height: 1.4;
+}
+
+/* Speaker Info Card (Apple Card Style) */
+.speaker-info {
+    margin-top: var(--space-8);
+    padding: var(--space-6) var(--space-8);
+    background: var(--apple-gray-light);
+    border-radius: 18px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: none;
+    transition: transform 0.3s ease;
+}
+
+.speaker-info:hover {
+    transform: scale(1.02);
+}
+
+.speaker-name {
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    color: var(--apple-black);
+    margin-bottom: var(--space-2);
+}
+
+.event-name {
+    font-size: var(--font-size-body);
+    font-weight: 500;
+    color: var(--apple-blue);
+    margin-bottom: var(--space-1);
+}
+
+.event-date {
+    font-size: var(--font-size-caption);
+    color: var(--apple-gray);
+}
+
+/* ===== Agent Icons (Minimal) ===== */
+.agent-icons-bg {
+    display: none; /* Remove busy background */
+}
+
+/* ===== Slide 2: Self Introduction (Apple Style) ===== */
+.intro-slide {
+    padding: var(--space-12);
+    background: var(--apple-white);
+}
+
+.intro-slide h2 {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    color: var(--apple-black);
+    margin-bottom: var(--space-8);
+    text-align: center;
+}
+
+.intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-8);
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.intro-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.profile-photo,
+.github-contributions {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-subtle);
+    transition: transform 0.2s ease;
+}
+
+.profile-photo:hover,
+.github-contributions:hover {
+    transform: scale(1.02);
+}
+
+.profile-photo img,
+.github-contributions img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.intro-right {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.intro-list {
+    list-style: none;
+    font-size: var(--font-size-body);
+    line-height: 1.8;
+}
+
+.intro-list li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--apple-gray-light);
+}
+
+.intro-list strong {
+    color: var(--apple-black);
+    font-weight: 600;
+}
+
+.intro-list a {
+    color: var(--apple-blue);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.intro-list a:hover {
+    opacity: 0.7;
+}
+
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.tech-badge {
+    padding: var(--space-2) var(--space-3);
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: var(--font-size-caption);
+    background: var(--apple-gray-light);
+    color: var(--apple-black);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    transition: background 0.2s;
+}
+
+.tech-badge:hover {
+    background: #e8e8ed;
+}
+
+/* ===== All Slides: Apple Keynote Style ===== */
+section {
+    background: var(--apple-white) !important;
+    color: var(--apple-black) !important;
+}
+
+section h2 {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    color: var(--apple-black);
+    margin-bottom: var(--space-6);
+}
+
+section h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    color: var(--apple-black);
+    margin-bottom: var(--space-4);
+}
+
+section p {
+    font-size: var(--font-size-body);
+    color: var(--apple-gray);
+    line-height: 1.6;
+}
+
+/* ===== Contact Section (Apple Style) ===== */
+.qna-slide {
+    background: var(--apple-white) !important;
+    padding: var(--space-12);
+}
+
+.qna-slide h1 {
+    font-size: var(--font-size-hero);
+    font-weight: 700;
+    color: var(--apple-black);
+    margin-bottom: var(--space-8);
+}
+
+.qna-subtitle {
+    font-size: var(--font-size-h2);
+    color: var(--apple-gray);
+}
+
+.contact-info {
+    margin: var(--space-8) 0;
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    max-width: 800px;
+    margin: var(--space-6) auto;
+}
+
+.contact-link {
+    padding: var(--space-4);
+    background: var(--apple-gray-light);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--apple-blue);
+    font-size: var(--font-size-body);
+    font-weight: 500;
+    text-align: center;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.contact-link:hover {
+    background: #e8e8ed;
+    transform: translateY(-2px);
+}
+
+.contact-details {
+    margin: var(--space-8) 0;
+    font-size: var(--font-size-body);
+    line-height: 2;
+}
+
+.contact-details h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    color: var(--apple-black);
+    margin-bottom: var(--space-4);
+}
+
+.contact-details p {
+    margin: var(--space-2) 0;
+    color: var(--apple-gray);
+}
+
+.contact-details a {
+    color: var(--apple-blue);
+    text-decoration: none;
+}
+
+.contact-details a:hover {
+    opacity: 0.7;
+}
+
+.qr-code img {
+    width: 280px;
+    height: 280px;
+    margin: var(--space-6) auto;
+    display: block;
+    padding: var(--space-4);
+    background: var(--apple-white);
+    border-radius: 16px;
+    box-shadow: var(--shadow-subtle);
+}
+
+/* ===== Goals Grid (Apple Card Style) ===== */
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    max-width: 1000px;
+    margin: var(--space-8) auto;
+}
+
+.goal-card {
+    background: var(--apple-gray-light);
+    border-radius: 18px;
+    padding: var(--space-6);
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.goal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-subtle);
+}
+
+.goal-icon {
+    font-size: 48px;
+    color: var(--apple-blue);
+    margin-bottom: var(--space-3);
+}
+
+.goal-card h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    color: var(--apple-black);
+    margin-bottom: var(--space-2);
+}
+
+.goal-card p {
+    font-size: var(--font-size-body);
+    color: var(--apple-gray);
+}
+
+/* ===== Animations (Minimal, Apple-style) ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Remove all flashy animations */
+.miyabi-logo,
+.main-title,
+.session-title,
+.subtitle,
+.speaker-info {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+    .main-title {
+        font-size: 64px;
+    }
+
+    .session-title {
+        font-size: 36px;
+    }
+
+    .subtitle {
+        font-size: 24px;
+    }
+
+    .intro-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .goals-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 48px;
+    }
+
+    .session-title {
+        font-size: 28px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+    }
+}
+
+/* ===== Reveal.js Control Buttons (Apple Style) ===== */
+.reveal .controls {
+    color: var(--apple-blue) !important;
+}
+
+.reveal .progress {
+    background: var(--apple-gray-light) !important;
+}
+
+.reveal .progress span {
+    background: var(--apple-blue) !important;
+}
+
+.reveal .slide-number {
+    color: var(--apple-gray) !important;
+    background: transparent !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}

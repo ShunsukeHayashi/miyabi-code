@@ -1,0 +1,607 @@
+/* ===================================
+   Miyabi Presentation - Dark Mode
+   Modern, High-Contrast, Eye-Friendly
+   =================================== */
+
+/* ===== Modern Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    color: #e0e0e0;
+    background: #0a0a0a;
+}
+
+/* Override Reveal.js defaults */
+.reveal {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    text-transform: none;
+    color: #ffffff;
+}
+
+.reveal code {
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    background: #1a1a1a;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: #00d9ff;
+}
+
+/* ===== Dark Mode Design System ===== */
+:root {
+    /* Dark Colors */
+    --dark-bg: #0a0a0a;
+    --dark-bg-elevated: #141414;
+    --dark-bg-card: #1a1a1a;
+    --dark-text-primary: #ffffff;
+    --dark-text-secondary: #b0b0b0;
+    --dark-text-tertiary: #6a6a6a;
+    --dark-accent-blue: #00d9ff;
+    --dark-accent-purple: #a855f7;
+    --dark-accent-green: #10b981;
+    --dark-border: #2a2a2a;
+
+    /* Typography (Modern Scale) */
+    --font-size-hero: 96px;
+    --font-size-h1: 56px;
+    --font-size-h2: 40px;
+    --font-size-h3: 32px;
+    --font-size-body: 22px;
+    --font-size-caption: 18px;
+
+    /* Spacing (8px grid) */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-6: 48px;
+    --space-8: 64px;
+    --space-12: 96px;
+
+    /* Effects */
+    --shadow-glow: 0 0 20px rgba(0, 217, 255, 0.3);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* ===== Slide 1: Title Slide (Dark Cinematic) ===== */
+.title-slide {
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #141414 0%, #0a0a0a 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-12);
+}
+
+/* Animated background particles */
+.title-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+    animation: backgroundPulse 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes backgroundPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+.title-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* Logo (Glowing Effect) */
+.miyabi-logo {
+    margin-bottom: var(--space-8);
+}
+
+.miyabi-logo-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto var(--space-4);
+    display: block;
+    filter: drop-shadow(var(--shadow-glow));
+    animation: logoGlow 3s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.3)); }
+    50% { filter: drop-shadow(0 0 40px rgba(0, 217, 255, 0.6)); }
+}
+
+/* Hero Title (Gradient Text) */
+.main-title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: var(--font-size-hero);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    background: linear-gradient(135deg, var(--dark-accent-blue) 0%, var(--dark-accent-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-6);
+    animation: titleFadeIn 1s ease-out;
+}
+
+@keyframes titleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Session Title */
+.session-title {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-4);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: var(--font-size-h2);
+    font-weight: 400;
+    color: var(--dark-text-secondary);
+    margin-bottom: var(--space-8);
+    line-height: 1.4;
+}
+
+/* Speaker Info Card (Dark Glass) */
+.speaker-info {
+    margin-top: var(--space-8);
+    padding: var(--space-6) var(--space-8);
+    background: rgba(26, 26, 26, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s ease;
+}
+
+.speaker-info:hover {
+    transform: scale(1.02);
+    border-color: var(--dark-accent-blue);
+    box-shadow: 0 4px 32px rgba(0, 217, 255, 0.2);
+}
+
+.speaker-name {
+    font-size: var(--font-size-h2);
+    font-weight: 700;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.event-name {
+    font-size: var(--font-size-body);
+    font-weight: 600;
+    color: var(--dark-accent-blue);
+    margin-bottom: var(--space-1);
+}
+
+.event-date {
+    font-size: var(--font-size-caption);
+    color: var(--dark-text-secondary);
+}
+
+/* ===== Slide 2: Self Introduction (Dark Modern) ===== */
+.intro-slide {
+    padding: var(--space-12);
+    background: var(--dark-bg);
+}
+
+.intro-slide h2 {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-8);
+    text-align: center;
+    background: linear-gradient(90deg, var(--dark-accent-blue) 0%, var(--dark-accent-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-8);
+    align-items: start;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.intro-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.profile-photo,
+.github-contributions {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-photo:hover,
+.github-contributions:hover {
+    transform: scale(1.02);
+    border-color: var(--dark-accent-blue);
+}
+
+.profile-photo img,
+.github-contributions img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.intro-right {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.intro-list {
+    list-style: none;
+    font-size: var(--font-size-body);
+    line-height: 1.8;
+}
+
+.intro-list li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.intro-list strong {
+    color: var(--dark-text-primary);
+    font-weight: 600;
+}
+
+.intro-list a {
+    color: var(--dark-accent-blue);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.intro-list a:hover {
+    color: var(--dark-accent-purple);
+}
+
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.tech-badge {
+    padding: var(--space-2) var(--space-3);
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: var(--font-size-caption);
+    background: var(--dark-bg-card);
+    color: var(--dark-text-primary);
+    border: 1px solid var(--dark-border);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    transition: all 0.2s;
+}
+
+.tech-badge:hover {
+    background: var(--dark-accent-blue);
+    border-color: var(--dark-accent-blue);
+    color: var(--dark-bg);
+    transform: translateY(-2px);
+}
+
+/* ===== All Slides: Dark Mode ===== */
+section {
+    background: var(--dark-bg) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+section h2 {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-6);
+    border-left: 4px solid var(--dark-accent-blue);
+    padding-left: var(--space-3);
+}
+
+section h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-4);
+}
+
+section p {
+    font-size: var(--font-size-body);
+    color: var(--dark-text-secondary);
+    line-height: 1.6;
+}
+
+section ul,
+section ol {
+    font-size: var(--font-size-body);
+    color: var(--dark-text-secondary);
+    line-height: 1.8;
+}
+
+section code {
+    background: var(--dark-bg-card);
+    color: var(--dark-accent-blue);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* ===== Contact Section (Dark Cinematic) ===== */
+.qna-slide {
+    background: radial-gradient(ellipse at center, #141414 0%, #0a0a0a 100%) !important;
+    padding: var(--space-12);
+}
+
+.qna-slide h1 {
+    font-size: var(--font-size-hero);
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--dark-accent-blue) 0%, var(--dark-accent-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-8);
+}
+
+.qna-subtitle {
+    font-size: var(--font-size-h2);
+    color: var(--dark-text-secondary);
+}
+
+.contact-info {
+    margin: var(--space-8) 0;
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    max-width: 900px;
+    margin: var(--space-6) auto;
+}
+
+.contact-link {
+    padding: var(--space-4);
+    background: var(--dark-bg-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--dark-accent-blue);
+    font-size: var(--font-size-body);
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.contact-link:hover {
+    background: var(--dark-accent-blue);
+    color: var(--dark-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
+}
+
+.contact-details {
+    margin: var(--space-8) 0;
+    font-size: var(--font-size-body);
+    line-height: 2;
+}
+
+.contact-details h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 700;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-4);
+}
+
+.contact-details p {
+    margin: var(--space-2) 0;
+    color: var(--dark-text-secondary);
+}
+
+.contact-details a {
+    color: var(--dark-accent-blue);
+    text-decoration: none;
+}
+
+.contact-details a:hover {
+    color: var(--dark-accent-purple);
+}
+
+.qr-code img {
+    width: 300px;
+    height: 300px;
+    margin: var(--space-6) auto;
+    display: block;
+    padding: var(--space-4);
+    background: var(--dark-bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--shadow-card);
+}
+
+/* ===== Goals Grid (Dark Cards) ===== */
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    max-width: 1000px;
+    margin: var(--space-8) auto;
+}
+
+.goal-card {
+    background: var(--dark-bg-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: var(--space-6);
+    text-align: center;
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s;
+}
+
+.goal-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--dark-accent-blue);
+    box-shadow: 0 8px 32px rgba(0, 217, 255, 0.2);
+}
+
+.goal-icon {
+    font-size: 56px;
+    background: linear-gradient(135deg, var(--dark-accent-blue) 0%, var(--dark-accent-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-3);
+}
+
+.goal-card h3 {
+    font-size: var(--font-size-h3);
+    font-weight: 700;
+    color: var(--dark-text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.goal-card p {
+    font-size: var(--font-size-body);
+    color: var(--dark-text-secondary);
+}
+
+/* ===== Animations (Subtle, Modern) ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.miyabi-logo,
+.main-title,
+.session-title,
+.subtitle,
+.speaker-info {
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+    .main-title {
+        font-size: 72px;
+    }
+
+    .session-title {
+        font-size: 42px;
+    }
+
+    .subtitle {
+        font-size: 32px;
+    }
+
+    .intro-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .goals-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 56px;
+    }
+
+    .session-title {
+        font-size: 32px;
+    }
+
+    .subtitle {
+        font-size: 24px;
+    }
+}
+
+/* ===== Reveal.js Control Buttons (Dark Mode) ===== */
+.reveal .controls {
+    color: var(--dark-accent-blue) !important;
+}
+
+.reveal .progress {
+    background: var(--dark-bg-card) !important;
+}
+
+.reveal .progress span {
+    background: linear-gradient(90deg, var(--dark-accent-blue) 0%, var(--dark-accent-purple) 100%) !important;
+}
+
+.reveal .slide-number {
+    color: var(--dark-text-secondary) !important;
+    background: transparent !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===== High Contrast Mode Support ===== */
+@media (prefers-contrast: high) {
+    :root {
+        --dark-text-primary: #ffffff;
+        --dark-text-secondary: #e0e0e0;
+        --dark-accent-blue: #00ffff;
+    }
+}

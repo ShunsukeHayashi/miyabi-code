@@ -1,0 +1,508 @@
+/* ===================================
+   Miyabi Presentation - Classic Business Style
+   Traditional, Professional, Conservative
+   =================================== */
+
+/* ===== Professional Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Open+Sans:wght@400;600;700&display=swap');
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Open Sans', 'Arial', sans-serif;
+    font-weight: 400;
+    color: #2c3e50;
+    background: #ecf0f1;
+}
+
+/* Override Reveal.js defaults */
+.reveal {
+    font-family: 'Open Sans', 'Arial', sans-serif;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+    font-family: 'Merriweather', 'Georgia', serif;
+    font-weight: 700;
+    text-transform: none;
+    color: #2c3e50;
+}
+
+.reveal code {
+    font-family: 'Courier New', monospace;
+}
+
+/* ===== Classic Business Design System ===== */
+:root {
+    /* Classic Colors */
+    --classic-navy: #2c3e50;
+    --classic-gray: #7f8c8d;
+    --classic-light-gray: #ecf0f1;
+    --classic-white: #ffffff;
+    --classic-accent: #3498db;
+    --classic-gold: #f39c12;
+
+    /* Typography (Traditional Scale) */
+    --font-size-hero: 72px;
+    --font-size-h1: 48px;
+    --font-size-h2: 36px;
+    --font-size-h3: 28px;
+    --font-size-body: 20px;
+    --font-size-caption: 16px;
+
+    /* Spacing (Traditional 16px grid) */
+    --space-1: 16px;
+    --space-2: 32px;
+    --space-3: 48px;
+    --space-4: 64px;
+    --space-6: 96px;
+    --space-8: 128px;
+
+    /* Borders */
+    --border-thin: 1px solid var(--classic-gray);
+    --border-thick: 3px solid var(--classic-accent);
+}
+
+/* ===== Slide 1: Title Slide (Business Card Style) ===== */
+.title-slide {
+    text-align: center;
+    background: linear-gradient(135deg, var(--classic-white) 0%, var(--classic-light-gray) 100%);
+    border-top: 8px solid var(--classic-accent);
+    border-bottom: 8px solid var(--classic-accent);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-8);
+}
+
+.title-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Logo (Classic Badge Style) */
+.miyabi-logo {
+    margin-bottom: var(--space-6);
+}
+
+.miyabi-logo-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto var(--space-3);
+    display: block;
+    border: 4px solid var(--classic-accent);
+    border-radius: 50%;
+    padding: var(--space-2);
+    background: var(--classic-white);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Hero Title (Serif, Traditional) */
+.main-title {
+    font-family: 'Merriweather', 'Georgia', serif;
+    font-size: var(--font-size-hero);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-4);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Session Title */
+.session-title {
+    font-size: var(--font-size-h1);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-3);
+    border-bottom: 2px solid var(--classic-gold);
+    padding-bottom: var(--space-2);
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: var(--font-size-h2);
+    font-weight: 400;
+    color: var(--classic-gray);
+    margin-bottom: var(--space-6);
+    line-height: 1.5;
+}
+
+/* Speaker Info Card (Classic Business Card) */
+.speaker-info {
+    margin-top: var(--space-6);
+    padding: var(--space-4) var(--space-6);
+    background: var(--classic-white);
+    border: 2px solid var(--classic-accent);
+    border-radius: 8px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.speaker-name {
+    font-size: var(--font-size-h2);
+    font-weight: 700;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-2);
+}
+
+.event-name {
+    font-size: var(--font-size-body);
+    font-weight: 600;
+    color: var(--classic-accent);
+    margin-bottom: var(--space-1);
+}
+
+.event-date {
+    font-size: var(--font-size-caption);
+    color: var(--classic-gray);
+}
+
+/* ===== Slide 2: Self Introduction (Traditional Layout) ===== */
+.intro-slide {
+    padding: var(--space-8);
+    background: var(--classic-white);
+}
+
+.intro-slide h2 {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-6);
+    text-align: center;
+    border-bottom: 3px solid var(--classic-accent);
+    padding-bottom: var(--space-2);
+}
+
+.intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-6);
+    align-items: start;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.intro-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.profile-photo,
+.github-contributions {
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid var(--classic-gray);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-photo img,
+.github-contributions img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.intro-right {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.intro-list {
+    list-style: none;
+    font-size: var(--font-size-body);
+    line-height: 2;
+}
+
+.intro-list li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--classic-light-gray);
+}
+
+.intro-list strong {
+    color: var(--classic-navy);
+    font-weight: 700;
+}
+
+.intro-list a {
+    color: var(--classic-accent);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.intro-list a:hover {
+    color: var(--classic-gold);
+}
+
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.tech-badge {
+    padding: var(--space-1) var(--space-2);
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: var(--font-size-caption);
+    background: var(--classic-light-gray);
+    color: var(--classic-navy);
+    border: 1px solid var(--classic-gray);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+/* ===== All Slides: Classic Business Style ===== */
+section {
+    background: var(--classic-white) !important;
+    color: var(--classic-navy) !important;
+}
+
+section h2 {
+    font-size: var(--font-size-h1);
+    font-weight: 700;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-4);
+    border-left: 6px solid var(--classic-accent);
+    padding-left: var(--space-3);
+}
+
+section h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 600;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-3);
+}
+
+section p {
+    font-size: var(--font-size-body);
+    color: var(--classic-gray);
+    line-height: 1.8;
+}
+
+section ul,
+section ol {
+    font-size: var(--font-size-body);
+    line-height: 2;
+}
+
+/* ===== Contact Section (Business Card Style) ===== */
+.qna-slide {
+    background: linear-gradient(135deg, var(--classic-white) 0%, var(--classic-light-gray) 100%) !important;
+    padding: var(--space-8);
+    border-top: 8px solid var(--classic-accent);
+}
+
+.qna-slide h1 {
+    font-size: var(--font-size-hero);
+    font-weight: 900;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-6);
+}
+
+.qna-subtitle {
+    font-size: var(--font-size-h2);
+    color: var(--classic-gray);
+}
+
+.contact-info {
+    margin: var(--space-6) 0;
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    max-width: 900px;
+    margin: var(--space-4) auto;
+}
+
+.contact-link {
+    padding: var(--space-3);
+    background: var(--classic-white);
+    border: 2px solid var(--classic-accent);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--classic-accent);
+    font-size: var(--font-size-body);
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.contact-link:hover {
+    background: var(--classic-accent);
+    color: var(--classic-white);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.contact-details {
+    margin: var(--space-6) 0;
+    font-size: var(--font-size-body);
+    line-height: 2;
+}
+
+.contact-details h3 {
+    font-size: var(--font-size-h2);
+    font-weight: 700;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-3);
+}
+
+.contact-details p {
+    margin: var(--space-2) 0;
+    color: var(--classic-gray);
+}
+
+.contact-details a {
+    color: var(--classic-accent);
+    text-decoration: none;
+}
+
+.contact-details a:hover {
+    color: var(--classic-gold);
+}
+
+.qr-code img {
+    width: 300px;
+    height: 300px;
+    margin: var(--space-4) auto;
+    display: block;
+    padding: var(--space-3);
+    background: var(--classic-white);
+    border-radius: 8px;
+    border: 2px solid var(--classic-gray);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Goals Grid (Traditional Card Style) ===== */
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    max-width: 1000px;
+    margin: var(--space-6) auto;
+}
+
+.goal-card {
+    background: var(--classic-white);
+    border: 2px solid var(--classic-accent);
+    border-radius: 8px;
+    padding: var(--space-4);
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
+
+.goal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: var(--classic-gold);
+}
+
+.goal-icon {
+    font-size: 56px;
+    color: var(--classic-accent);
+    margin-bottom: var(--space-2);
+}
+
+.goal-card h3 {
+    font-size: var(--font-size-h3);
+    font-weight: 700;
+    color: var(--classic-navy);
+    margin-bottom: var(--space-2);
+}
+
+.goal-card p {
+    font-size: var(--font-size-body);
+    color: var(--classic-gray);
+}
+
+/* ===== No Flashy Animations (Professional) ===== */
+/* No animations - static, professional appearance */
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+    .main-title {
+        font-size: 56px;
+    }
+
+    .session-title {
+        font-size: 36px;
+    }
+
+    .subtitle {
+        font-size: 28px;
+    }
+
+    .intro-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .goals-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 42px;
+    }
+
+    .session-title {
+        font-size: 28px;
+    }
+
+    .subtitle {
+        font-size: 22px;
+    }
+}
+
+/* ===== Reveal.js Control Buttons (Classic Style) ===== */
+.reveal .controls {
+    color: var(--classic-accent) !important;
+}
+
+.reveal .progress {
+    background: var(--classic-light-gray) !important;
+}
+
+.reveal .progress span {
+    background: var(--classic-accent) !important;
+}
+
+.reveal .slide-number {
+    color: var(--classic-gray) !important;
+    background: transparent !important;
+    font-family: 'Open Sans', 'Arial', sans-serif;
+}
+
+/* ===== Print Support ===== */
+@media print {
+    body {
+        background: white;
+    }
+
+    .reveal {
+        background: white;
+    }
+}
