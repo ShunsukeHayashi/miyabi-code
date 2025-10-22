@@ -9,7 +9,7 @@ on:
 jobs:
   lint-and-typecheck:
     name: Lint & Type Check
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
 
     steps:
       - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
 
     steps:
       - name: Checkout code
@@ -43,7 +43,7 @@ jobs:
 
   e2e-integrated-tests:
     name: E2E Integrated System Tests
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     # Run after lint and tests pass for faster feedback
     needs: [lint-and-typecheck, unit-tests]
 
@@ -71,7 +71,7 @@ jobs:
 
   feedback-loop-validation:
     name: Feedback Loop System Validation
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     needs: [e2e-integrated-tests]
 
     steps:
@@ -137,7 +137,7 @@ jobs:
 
   build:
     name: Build Project
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     needs: [feedback-loop-validation]
 
     steps:
@@ -163,7 +163,7 @@ jobs:
 
   integration-report:
     name: Generate Integration Report
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     needs: [build]
     if: always()
 
