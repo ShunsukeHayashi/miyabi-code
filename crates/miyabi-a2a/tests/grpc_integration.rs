@@ -2,28 +2,20 @@
 //!
 //! Comprehensive end-to-end tests for the gRPC transport layer.
 
+use async_trait::async_trait;
 use miyabi_a2a::{
     error::A2AError,
     grpc::{
         proto::{
-            a2a_service_client::A2aServiceClient,
-            a2a_service_server::A2aServiceServer,
-            GetAuthenticatedExtendedCardRequest,
-            MessageSendRequest,
-            Part,
-            part::PartType,
-            Role as ProtoRole,
-            TasksCancelRequest,
-            TasksGetRequest,
-            TasksListRequest,
-            TextPart,
+            a2a_service_client::A2aServiceClient, a2a_service_server::A2aServiceServer,
+            part::PartType, GetAuthenticatedExtendedCardRequest, MessageSendRequest, Part,
+            Role as ProtoRole, TasksCancelRequest, TasksGetRequest, TasksListRequest, TextPart,
         },
         A2AServiceImpl,
     },
     rpc::{A2ARpcHandler, AgentCardRpcHandler, TaskStorage},
     types::{AgentCard, Task, TaskStatus},
 };
-use async_trait::async_trait;
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 use tokio::{sync::RwLock, time::Duration};
 use tonic::transport::{Channel, Server};
@@ -394,7 +386,10 @@ async fn test_agent_get_authenticated_extended_card_success() {
 
     let request = GetAuthenticatedExtendedCardRequest { token };
 
-    let response = client.agent_get_authenticated_extended_card(request).await.unwrap();
+    let response = client
+        .agent_get_authenticated_extended_card(request)
+        .await
+        .unwrap();
     let result = response.into_inner();
 
     assert!(result.card.is_some());
@@ -675,7 +670,10 @@ async fn test_benchmark_grpc_throughput() {
     println!("========================================");
     println!("Requests: {}", request_count);
     println!("Total Duration: {:?}", duration);
-    println!("Requests/sec: {:.2}", request_count as f64 / duration.as_secs_f64());
+    println!(
+        "Requests/sec: {:.2}",
+        request_count as f64 / duration.as_secs_f64()
+    );
     println!("Avg latency: {:?}", duration / request_count);
     println!("========================================\n");
 
@@ -730,7 +728,10 @@ async fn test_benchmark_grpc_parallel_throughput() {
     println!("Total Requests: {}", request_count);
     println!("Concurrency: {}", concurrency);
     println!("Total Duration: {:?}", duration);
-    println!("Requests/sec: {:.2}", request_count as f64 / duration.as_secs_f64());
+    println!(
+        "Requests/sec: {:.2}",
+        request_count as f64 / duration.as_secs_f64()
+    );
     println!("Avg latency: {:?}", duration / request_count);
     println!("========================================\n");
 
@@ -750,11 +751,8 @@ async fn test_benchmark_grpc_parallel_throughput() {
 async fn test_connection_timeout() {
     // Test connection to a non-existent server
     let endpoint = "http://127.0.0.1:9999";
-    let result = tokio::time::timeout(
-        Duration::from_secs(2),
-        A2aServiceClient::connect(endpoint),
-    )
-    .await;
+    let result =
+        tokio::time::timeout(Duration::from_secs(2), A2aServiceClient::connect(endpoint)).await;
 
     // Should timeout or fail quickly
     assert!(result.is_err() || result.unwrap().is_err());

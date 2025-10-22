@@ -19,7 +19,7 @@
 //! - In-memory task storage (for demo purposes)
 
 use miyabi_a2a::rest::{RestServer, RestServerConfig};
-use miyabi_a2a::rpc::{A2ARpcHandler, TaskStorage, A2AError};
+use miyabi_a2a::rpc::{A2AError, A2ARpcHandler, TaskStorage};
 use miyabi_a2a::types::{Task, TaskStatus};
 use std::collections::HashMap;
 use std::path::PathBuf;

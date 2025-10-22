@@ -16,6 +16,10 @@ pub enum ServerError {
     #[error("GitHub error: {0}")]
     GitHub(String),
 
+    /// Knowledge management error
+    #[error("Knowledge error: {0}")]
+    Knowledge(String),
+
     /// Configuration error
     #[error("Configuration error: {0}")]
     Config(String),

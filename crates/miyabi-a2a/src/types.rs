@@ -2,8 +2,8 @@
 //!
 //! This module provides core types used throughout the A2A system.
 
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 // Re-export from task module
 pub use crate::task::{TaskStatus, TaskType};
@@ -100,10 +100,7 @@ pub enum Part {
     #[serde(rename = "image")]
     Image { url: String },
     #[serde(rename = "data")]
-    Data {
-        content: Vec<u8>,
-        mime_type: String,
-    },
+    Data { content: Vec<u8>, mime_type: String },
 }
 
 impl Part {

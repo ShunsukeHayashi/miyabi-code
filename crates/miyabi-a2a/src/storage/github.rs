@@ -78,8 +78,8 @@ impl GitHubTaskStorage {
             .iter()
             .find_map(|label| {
                 let name = label.name.as_str();
-                name.strip_prefix("a2a:").and_then(|task_type| {
-                    match task_type {
+                name.strip_prefix("a2a:")
+                    .and_then(|task_type| match task_type {
                         "codegen" => Some(TaskType::CodeGeneration),
                         "review" => Some(TaskType::CodeReview),
                         "testing" => Some(TaskType::Testing),
@@ -87,13 +87,24 @@ impl GitHubTaskStorage {
                         "documentation" => Some(TaskType::Documentation),
                         "analysis" => Some(TaskType::Analysis),
                         _ => None,
-                    }
-                })
+                    })
             })
             .unwrap_or(TaskType::Analysis);
 
         // Extract agent from assignee
         let agent = issue.assignee.as_ref().map(|a| a.login.clone());
+
+        // Extract retry_count from label (format: "retry:N")
+        let retry_count = issue
+            .labels
+            .iter()
+            .find_map(|label| {
+                label
+                    .name
+                    .strip_prefix("retry:")
+                    .and_then(|count_str| count_str.parse::<u32>().ok())
+            })
+            .unwrap_or(0);
 
         Ok(A2ATask {
             id: issue.number,
@@ -104,6 +115,7 @@ impl GitHubTaskStorage {
             agent,
             context_id: None, // TODO: Extract from body or custom field
             priority: 3,      // TODO: Extract from labels
+            retry_count,
             created_at: issue.created_at,
             updated_at: issue.updated_at,
             issue_url: issue.html_url.to_string(),
@@ -431,8 +443,8 @@ impl TaskStorage for GitHubTaskStorage {
             debug!("Updated task #{} description", id);
         }
 
-        // Update status via labels
-        if let Some(new_status) = update.status {
+        // Update status or retry_count via labels
+        if update.status.is_some() || update.retry_count.is_some() {
             // Fetch current issue to get existing labels
             let issue = self
                 .client
@@ -440,7 +452,7 @@ impl TaskStorage for GitHubTaskStorage {
                 .get(id)
                 .await?;
 
-            // Filter out old status labels (a2a:pending, a2a:in-progress, etc.)
+            // Filter out old status labels and retry labels
             let mut new_labels: Vec<String> = issue
                 .labels
                 .iter()
@@ -450,12 +462,22 @@ impl TaskStorage for GitHubTaskStorage {
                         && !label.name.starts_with("a2a:completed")
                         && !label.name.starts_with("a2a:failed")
                         && !label.name.starts_with("a2a:blocked")
+                        && !label.name.starts_with("retry:")
                 })
                 .map(|label| label.name.clone())
                 .collect();
 
-            // Add new status label
-            new_labels.push(new_status.to_label());
+            // Add new status label if provided
+            if let Some(new_status) = update.status {
+                new_labels.push(new_status.to_label());
+                debug!("Updated task #{} status to {:?}", id, new_status);
+            }
+
+            // Add new retry_count label if provided
+            if let Some(retry_count) = update.retry_count {
+                new_labels.push(format!("retry:{}", retry_count));
+                debug!("Updated task #{} retry_count to {}", id, retry_count);
+            }
 
             // Update issue labels
             self.client
@@ -464,8 +486,6 @@ impl TaskStorage for GitHubTaskStorage {
                 .labels(&new_labels)
                 .send()
                 .await?;
-
-            debug!("Updated task #{} status to {:?}", id, new_status);
         }
 
         Ok(())

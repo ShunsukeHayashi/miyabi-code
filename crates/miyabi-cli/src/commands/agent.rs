@@ -8,9 +8,9 @@ use colored::Colorize;
 use miyabi_agents::{
     AIEntrepreneurAgent, AnalyticsAgent, AuditLogHook, BaseAgent, CRMAgent, CodeGenAgent,
     ContentCreationAgent, CoordinatorAgentWithLLM, DeploymentAgent, EnvironmentCheckHook,
-    FunnelDesignAgent, HookedAgent, IssueAgent, MarketResearchAgent, MarketingAgent,
-    MetricsHook, PRAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent, ReviewAgent,
-    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+    FunnelDesignAgent, HookedAgent, IssueAgent, MarketResearchAgent, MarketingAgent, MetricsHook,
+    PRAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent, ReviewAgent, SNSStrategyAgent,
+    SalesAgent, SelfAnalysisAgent, YouTubeAgent,
 };
 use miyabi_core::git::{find_git_root, get_current_branch};
 use miyabi_types::task::TaskType;

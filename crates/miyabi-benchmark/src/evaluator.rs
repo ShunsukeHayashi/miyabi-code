@@ -110,10 +110,7 @@ impl SWEBenchProEvaluator {
     ) -> Result<PatchOutput> {
         let start_time = Instant::now();
 
-        info!(
-            "Generating patch for instance: {}",
-            instance.instance_id
-        );
+        info!("Generating patch for instance: {}", instance.instance_id);
 
         // 1. Create worktree and checkout base commit
         let worktree_name = format!("swebench-{}", instance.instance_id.replace('/', "-"));
@@ -315,11 +312,7 @@ impl SWEBenchProEvaluator {
     }
 
     /// Executes agent via Claude API code generation
-    async fn execute_agent(
-        &self,
-        worktree_path: &Path,
-        instance: &SWEBenchInstance,
-    ) -> Result<()> {
+    async fn execute_agent(&self, worktree_path: &Path, instance: &SWEBenchInstance) -> Result<()> {
         info!(
             "Executing Claude API code generation for instance: {} in worktree: {:?}",
             instance.instance_id, worktree_path
@@ -375,9 +368,7 @@ impl SWEBenchProEvaluator {
             Please provide a code fix for this issue. Output ONLY the code changes needed, \
             formatted as a git diff or the actual code to be changed. \
             Be concise and focus on the minimal fix required.",
-            instance.repo,
-            instance.problem_statement,
-            instance.base_commit
+            instance.repo, instance.problem_statement, instance.base_commit
         );
 
         let prompt_chars = prompt.len();
@@ -438,8 +429,14 @@ impl SWEBenchProEvaluator {
         if let Some(usage) = response_json.get("usage") {
             debug!(
                 "📊 Claude API usage: input_tokens={}, output_tokens={}",
-                usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
-                usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0)
+                usage
+                    .get("input_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0),
+                usage
+                    .get("output_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0)
             );
         }
 
@@ -458,13 +455,15 @@ impl SWEBenchProEvaluator {
 
         // Write fix to file
         let fix_path = worktree_path.join("CLAUDE_FIX.md");
-        std::fs::write(&fix_path, fix_content)
-            .context("Failed to write Claude-generated fix")?;
+        std::fs::write(&fix_path, fix_content).context("Failed to write Claude-generated fix")?;
 
         debug!("💾 Claude-generated fix written to: {:?}", fix_path);
 
         // Commit the fix
-        self.commit_fix(worktree_path, &format!("Fix: {} (Claude-generated)", instance.instance_id))?;
+        self.commit_fix(
+            worktree_path,
+            &format!("Fix: {} (Claude-generated)", instance.instance_id),
+        )?;
 
         info!(
             "✅ Claude-generated fix committed for instance: {}",
@@ -489,10 +488,12 @@ impl SWEBenchProEvaluator {
             instance.base_commit
         );
 
-        std::fs::write(&fix_doc_path, fix_content)
-            .context("Failed to write placeholder fix")?;
+        std::fs::write(&fix_doc_path, fix_content).context("Failed to write placeholder fix")?;
 
-        self.commit_fix(worktree_path, &format!("Fix: {} (placeholder)", instance.instance_id))?;
+        self.commit_fix(
+            worktree_path,
+            &format!("Fix: {} (placeholder)", instance.instance_id),
+        )?;
 
         Ok(())
     }
@@ -592,7 +593,10 @@ impl SWEBenchProEvaluator {
                 );
             }
         } else {
-            debug!("⏭️  Worktree does not exist, skipping cleanup: {}", worktree_name);
+            debug!(
+                "⏭️  Worktree does not exist, skipping cleanup: {}",
+                worktree_name
+            );
         }
 
         Ok(())
@@ -712,7 +716,10 @@ impl SWEBenchProEvaluator {
                     } else {
                         warn!(
                             "⚠️  [{}/{}] No patch generated: {} ({:.2}s)",
-                            idx + 1, total_instances, instance_id, duration
+                            idx + 1,
+                            total_instances,
+                            instance_id,
+                            duration
                         );
                         stats.lock().unwrap().failed += 1;
                     }
@@ -751,7 +758,11 @@ impl SWEBenchProEvaluator {
             "  Success rate: {:.1}%",
             (stats.successful as f64 / stats.total_instances as f64) * 100.0
         );
-        info!("  ⏱️  Total time: {:.2}s ({:.1}m)", evaluation_duration.as_secs_f64(), evaluation_duration.as_secs_f64() / 60.0);
+        info!(
+            "  ⏱️  Total time: {:.2}s ({:.1}m)",
+            evaluation_duration.as_secs_f64(),
+            evaluation_duration.as_secs_f64() / 60.0
+        );
         if let Some(avg) = if stats.total_instances > 0 {
             Some(stats.total_duration_secs / stats.total_instances as f64)
         } else {
@@ -849,7 +860,10 @@ impl SWEBenchProEvaluator {
         );
 
         if !predictions_path.exists() {
-            return Err(anyhow!("Predictions file not found: {:?}", predictions_path));
+            return Err(anyhow!(
+                "Predictions file not found: {:?}",
+                predictions_path
+            ));
         }
 
         // Build command - swe-bench-pro official harness

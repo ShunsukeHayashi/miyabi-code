@@ -130,6 +130,9 @@ pub struct TaskUpdate {
 
     /// Update priority
     pub priority: Option<u8>,
+
+    /// Update retry count
+    pub retry_count: Option<u32>,
 }
 
 /// Storage error types

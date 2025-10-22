@@ -97,9 +97,9 @@ pub use miyabi_agent_review::ReviewAgent;
 pub use miyabi_agent_workflow::{DeploymentAgent, IssueAgent, PRAgent};
 
 pub use miyabi_agent_business::{
-    AIEntrepreneurAgent, AnalyticsAgent, ContentCreationAgent, CRMAgent, FunnelDesignAgent,
+    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
     MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
-    SalesAgent, SelfAnalysisAgent, SNSStrategyAgent, YouTubeAgent,
+    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
 };
 
 pub use miyabi_agent_integrations::{DiscordCommunityAgent, PotpieIntegration, RefresherAgent};

@@ -202,11 +202,7 @@ impl<S: TaskStorage> A2ARpcHandler<S> {
     pub async fn tasks_list(&self, params: TasksListParams) -> A2AResult<TasksListResponse> {
         let tasks = self
             .storage
-            .list_tasks(
-                params.context_id.as_deref(),
-                params.status,
-                params.limit,
-            )
+            .list_tasks(params.context_id.as_deref(), params.status, params.limit)
             .await?;
 
         let total_count = tasks.len();

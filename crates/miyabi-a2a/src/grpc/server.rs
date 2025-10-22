@@ -5,9 +5,9 @@
 
 use crate::grpc::proto::{
     a2a_service_server::{A2aService, A2aServiceServer},
-    GetAuthenticatedExtendedCardRequest, GetAuthenticatedExtendedCardResponse,
-    MessageSendRequest, MessageSendResponse, TasksCancelRequest, TasksCancelResponse,
-    TasksGetRequest, TasksGetResponse, TasksListRequest, TasksListResponse,
+    GetAuthenticatedExtendedCardRequest, GetAuthenticatedExtendedCardResponse, MessageSendRequest,
+    MessageSendResponse, TasksCancelRequest, TasksCancelResponse, TasksGetRequest,
+    TasksGetResponse, TasksListRequest, TasksListResponse,
 };
 use crate::rpc::{A2ARpcHandler, AgentCardRpcHandler, TaskStorage};
 use std::sync::Arc;
@@ -50,7 +50,10 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
 
     /// Stream type for MessageStream
     type MessageStreamStream = std::pin::Pin<
-        Box<dyn futures::Stream<Item = Result<crate::grpc::proto::MessageStreamEvent, Status>> + Send>,
+        Box<
+            dyn futures::Stream<Item = Result<crate::grpc::proto::MessageStreamEvent, Status>>
+                + Send,
+        >,
     >;
 
     /// Handle message/send RPC method
@@ -234,8 +237,8 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
 // ==============================================================================
 
 use crate::grpc::conversions::{
-    a2a_error_to_status, agent_card_to_proto, proto_to_part, proto_to_role,
-    proto_to_task_status, task_status_to_proto, task_to_proto,
+    a2a_error_to_status, agent_card_to_proto, proto_to_part, proto_to_role, proto_to_task_status,
+    task_status_to_proto, task_to_proto,
 };
 
 /// Convert proto role to internal role (wrapper)
@@ -249,9 +252,7 @@ fn proto_part_to_part(part: crate::grpc::proto::Part) -> Result<crate::types::Pa
 }
 
 /// Convert proto task status to internal task status (wrapper)
-fn proto_task_status_to_task_status(
-    status: i32,
-) -> Result<crate::types::TaskStatus, Status> {
+fn proto_task_status_to_task_status(status: i32) -> Result<crate::types::TaskStatus, Status> {
     proto_to_task_status(status)
 }
 

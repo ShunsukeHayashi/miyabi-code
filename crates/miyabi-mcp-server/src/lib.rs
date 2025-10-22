@@ -28,6 +28,10 @@
 //! - `github.issue.list` - List open issues
 //! - `github.pr.create` - Create pull request
 //!
+//! ### Knowledge Management
+//!
+//! - `knowledge.search` - Search knowledge base with vector similarity
+//!
 //! ### Health & Status
 //!
 //! - `server.health` - Check server health
@@ -73,5 +77,5 @@ pub use server::McpServer;
 // Re-export RPC types for convenience
 pub use rpc::{
     AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams, IssueListParams,
-    IssueResponse,
+    IssueResponse, KnowledgeMetadata, KnowledgeSearchParams, KnowledgeSearchResult,
 };

@@ -81,7 +81,7 @@ impl DAG {
         if self.has_cycles() {
             return Err(crate::error::MiyabiError::CircularDependency(
                 crate::error::CircularDependencyError::new(vec![
-                    "Cycle detected in task dependencies".to_string()
+                    "Cycle detected in task dependencies".to_string(),
                 ]),
             ));
         }

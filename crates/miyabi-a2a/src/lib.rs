@@ -65,11 +65,16 @@ pub mod types;
 // RPC modules for push notification configuration
 pub mod rpc;
 
-// gRPC server and protocol buffers (Phase 3)
+// gRPC server and protocol buffers (Phase 3) - optional
+#[cfg(feature = "grpc")]
 pub mod grpc;
 
 // Authentication and authorization (Phase 3)
 pub mod auth;
+
+// HTTP REST API server for dashboard (optional)
+#[cfg(feature = "http")]
+pub mod http;
 
 // Re-export main types
 pub use error::{A2AError, A2AResult};
@@ -81,10 +86,9 @@ pub use storage::{
 pub use task::{A2ATask, TaskStatus, TaskType};
 
 // Re-export RPC types (Issue #274, #276, #277)
+pub use rpc::push_notification::{
+    generate_webhook_signature, send_push_notification, PushNotificationPayload, WebhookConfig,
+};
 pub use rpc::push_notification_config::{
     ConfigStorage, MemoryConfigStorage, PushNotificationConfig,
-};
-pub use rpc::push_notification::{
-    generate_webhook_signature, send_push_notification,
-    PushNotificationPayload, WebhookConfig,
 };

@@ -43,14 +43,13 @@ where
 
     match value {
         // Case 1: Already an array
-        Value::Array(arr) => {
-            arr.into_iter()
-                .map(|v| match v {
-                    Value::String(s) => Ok(s),
-                    _ => Err(D::Error::custom("Expected string in array")),
-                })
-                .collect()
-        }
+        Value::Array(arr) => arr
+            .into_iter()
+            .map(|v| match v {
+                Value::String(s) => Ok(s),
+                _ => Err(D::Error::custom("Expected string in array")),
+            })
+            .collect(),
         // Case 2: String containing a JSON array
         Value::String(s) => {
             // Try to parse the string as JSON
@@ -127,7 +126,10 @@ pub struct SWEBenchInstance {
     /// List of test identifiers that were failing before the fix
     /// and should pass after the fix is applied.
     /// Example: `["tests.auth.test_login", "tests.auth.test_logout"]`
-    #[serde(rename = "fail_to_pass", deserialize_with = "deserialize_string_or_vec")]
+    #[serde(
+        rename = "fail_to_pass",
+        deserialize_with = "deserialize_string_or_vec"
+    )]
     pub fail_to_pass: Vec<String>,
 
     /// Tests that should continue to pass
@@ -135,7 +137,10 @@ pub struct SWEBenchInstance {
     /// List of test identifiers that were passing before the fix
     /// and should continue to pass after the fix is applied.
     /// Used to detect regressions.
-    #[serde(rename = "pass_to_pass", deserialize_with = "deserialize_string_or_vec")]
+    #[serde(
+        rename = "pass_to_pass",
+        deserialize_with = "deserialize_string_or_vec"
+    )]
     pub pass_to_pass: Vec<String>,
 
     /// Programming language
@@ -254,8 +259,8 @@ impl EvaluationResult {
         pass_to_pass_total: usize,
         execution_time: f64,
     ) -> Self {
-        let resolved = fail_to_pass_count == fail_to_pass_total
-            && pass_to_pass_count == pass_to_pass_total;
+        let resolved =
+            fail_to_pass_count == fail_to_pass_total && pass_to_pass_count == pass_to_pass_total;
 
         Self {
             instance_id,
@@ -350,8 +355,8 @@ impl BenchmarkSummary {
         let pass_to_pass_total = results.iter().map(|r| r.pass_to_pass_count).sum();
         let errors = results.iter().filter(|r| r.error.is_some()).count();
 
-        let avg_execution_time = results.iter().map(|r| r.execution_time).sum::<f64>()
-            / total_instances as f64;
+        let avg_execution_time =
+            results.iter().map(|r| r.execution_time).sum::<f64>() / total_instances as f64;
 
         // Group by language
         let mut by_language: HashMap<String, LanguageStats> = HashMap::new();
@@ -487,14 +492,7 @@ mod tests {
 
     #[test]
     fn test_evaluation_result_success() {
-        let result = EvaluationResult::success(
-            "test-123".to_string(),
-            5,
-            5,
-            10,
-            10,
-            120.5,
-        );
+        let result = EvaluationResult::success("test-123".to_string(), 5, 5, 10, 10, 120.5);
 
         assert!(result.resolved);
         assert_eq!(result.resolve_rate(), 1.0);
@@ -504,11 +502,8 @@ mod tests {
 
     #[test]
     fn test_evaluation_result_failure() {
-        let result = EvaluationResult::failure(
-            "test-456".to_string(),
-            "Timeout".to_string(),
-            300.0,
-        );
+        let result =
+            EvaluationResult::failure("test-456".to_string(), "Timeout".to_string(), 300.0);
 
         assert!(!result.resolved);
         assert_eq!(result.resolve_rate(), 0.0);

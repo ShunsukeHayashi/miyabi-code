@@ -3,14 +3,17 @@
 //! This module provides functions to fetch real production data from GitHub Issues
 //! and compute live system metrics.
 
-use crate::http::routes::{Agent, AgentCategory, AgentColor, AgentStatus, SystemStatus};
+use crate::http::routes::{
+    Agent, AgentCategory, AgentColor, AgentStatus, DagData, DagEdge, DagNode, SystemStatus,
+    TimelineEvent,
+};
 use anyhow::{Context, Result};
 use miyabi_github::GitHubClient;
 use octocrab::params::State;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 
 /// Global cache instance
 static GLOBAL_CACHE: OnceLock<Arc<Mutex<DataCache>>> = OnceLock::new();
@@ -115,9 +118,7 @@ where
 
 /// Get the global cache instance
 fn get_cache() -> Arc<Mutex<DataCache>> {
-    GLOBAL_CACHE
-        .get_or_init(|| DataCache::new())
-        .clone()
+    GLOBAL_CACHE.get_or_init(|| DataCache::new()).clone()
 }
 
 /// Fetch real agents data from GitHub Issues (with caching and retry)
@@ -131,9 +132,7 @@ pub async fn fetch_real_agents() -> Result<Vec<Agent>> {
     }
 
     // Fetch with retry
-    let result = retry_with_backoff(|| async {
-        fetch_real_agents_impl().await
-    }).await;
+    let result = retry_with_backoff(|| async { fetch_real_agents_impl().await }).await;
 
     // Update cache on success
     if let Ok(ref agents) = result {
@@ -150,11 +149,28 @@ pub async fn fetch_real_agents() -> Result<Vec<Agent>> {
     result
 }
 
+/// Map agent label name to HashMap key (handle special cases like "codegen" -> "CodeGen")
+fn agent_label_to_key(label: &str) -> String {
+    // Special mappings for multi-word camelCase names
+    match label.to_lowercase().as_str() {
+        "codegen" => "CodeGen".to_string(),
+        "aientrepreneur" => "AIEntrepreneur".to_string(),
+        _ => {
+            // Default: capitalize first letter only
+            let mut chars = label.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        }
+    }
+}
+
 /// Internal implementation of fetch_real_agents
 async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
-    let owner = std::env::var("GITHUB_REPOSITORY_OWNER")
-        .unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner =
+        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let repo = std::env::var("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
         .split('/')
@@ -165,7 +181,12 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch all open issues with agent labels
+    info!(
+        "🔍 Fetching issues from GitHub API (owner: {}, repo: {})",
+        owner, repo
+    );
     let issues = client.list_issues(Some(State::Open), vec![]).await?;
+    info!("📥 Fetched {} open issues from GitHub", issues.len());
 
     // Group issues by agent type
     let mut agent_stats: HashMap<String, AgentData> = HashMap::new();
@@ -174,23 +195,50 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     initialize_agents(&mut agent_stats);
 
     // Count tasks per agent from issues
+    let mut agent_issue_count = 0;
     for issue in &issues {
+        let agent_labels: Vec<_> = issue
+            .labels
+            .iter()
+            .filter(|l| l.starts_with("🤖 agent:"))
+            .collect();
+        if !agent_labels.is_empty() {
+            agent_issue_count += 1;
+            info!(
+                "📋 Issue #{}: {} (labels: {:?})",
+                issue.number, issue.title, issue.labels
+            );
+        }
+
         for label in &issue.labels {
             if label.starts_with("🤖 agent:") {
                 let agent_name = label.strip_prefix("🤖 agent:").unwrap_or("unknown");
-                if let Some(data) = agent_stats.get_mut(agent_name) {
+                // Map agent label to HashMap key (handles special cases like "codegen" -> "CodeGen")
+                let agent_key = agent_label_to_key(agent_name);
+
+                if let Some(data) = agent_stats.get_mut(&agent_key) {
                     data.tasks += 1;
 
                     // Determine status from state labels
-                    if issue.labels.iter().any(|l| l.contains("state:implementing")) {
+                    if issue
+                        .labels
+                        .iter()
+                        .any(|l| l.contains("state:implementing"))
+                    {
                         data.status = AgentStatus::Working;
                     } else if issue.labels.iter().any(|l| l.contains("state:analyzing")) {
                         data.status = AgentStatus::Active;
                     }
+                } else {
+                    warn!(
+                        "⚠️ Unknown agent name: {} (mapped to: {})",
+                        agent_name, agent_key
+                    );
                 }
             }
         }
     }
+    info!("🤖 Found {} issues with agent labels", agent_issue_count);
 
     // Convert to Agent vec
     let agents: Vec<Agent> = agent_stats
@@ -221,13 +269,14 @@ pub async fn fetch_real_system_status() -> Result<SystemStatus> {
     }
 
     // Fetch with retry
-    let result = retry_with_backoff(|| async {
-        fetch_real_system_status_impl().await
-    }).await;
+    let result = retry_with_backoff(|| async { fetch_real_system_status_impl().await }).await;
 
     // Update cache on success
     if let Ok(ref status) = result {
-        cache.lock().unwrap().set_system_status(status.clone(), CACHE_TTL);
+        cache
+            .lock()
+            .unwrap()
+            .set_system_status(status.clone(), CACHE_TTL);
     } else {
         warn!("Failed to fetch system status after retries, checking for stale cache");
         // Return stale cache if available
@@ -243,8 +292,8 @@ pub async fn fetch_real_system_status() -> Result<SystemStatus> {
 /// Internal implementation of fetch_real_system_status
 async fn fetch_real_system_status_impl() -> Result<SystemStatus> {
     let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
-    let owner = std::env::var("GITHUB_REPOSITORY_OWNER")
-        .unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner =
+        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
     let repo = std::env::var("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
         .split('/')
@@ -519,4 +568,307 @@ fn get_description(agent_type: &str) -> String {
         _ => "説明なし",
     }
     .to_string()
+}
+
+/// Fetch real timeline events from GitHub Issues (with caching and retry)
+pub async fn fetch_real_events() -> Result<Vec<TimelineEvent>> {
+    const CACHE_TTL: Duration = Duration::from_secs(60);
+
+    // Check cache first
+    let _cache = get_cache();
+    // TODO: Add events cache
+
+    // Fetch with retry
+    let result = retry_with_backoff(|| async { fetch_real_events_impl().await }).await;
+
+    result
+}
+
+/// Internal implementation of fetch_real_events
+async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
+    let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
+    let owner =
+        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let repo = std::env::var("GITHUB_REPOSITORY")
+        .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
+        .split('/')
+        .nth(1)
+        .unwrap_or("miyabi-private")
+        .to_string();
+
+    let client = GitHubClient::new(&token, &owner, &repo)?;
+
+    // Fetch recent issues (last 50)
+    info!(
+        "🔍 Fetching issues for timeline events (owner: {}, repo: {})",
+        owner, repo
+    );
+    let issues = client.list_issues(Some(State::All), vec![]).await?;
+    info!("📥 Fetched {} issues from GitHub", issues.len());
+
+    let mut events = Vec::new();
+
+    // Generate events from issues
+    for issue in issues.iter().take(50) {
+        // Event 1: Issue created
+        events.push(TimelineEvent {
+            id: format!("issue-{}-created", issue.number),
+            event_type: "task_created".to_string(),
+            message: format!("Issue #{} created: {}", issue.number, issue.title),
+            timestamp: issue.created_at.format("%H:%M:%S").to_string(),
+            task_id: Some(format!("{}", issue.number)),
+            agent_id: None,
+            agent_name: None,
+            agent_type: None,
+        });
+
+        // Event 2: Agent assigned (if agent label exists)
+        for label in &issue.labels {
+            if label.starts_with("🤖 agent:") {
+                let agent_name = label.strip_prefix("🤖 agent:").unwrap_or("unknown");
+                let agent_key = agent_label_to_key(agent_name);
+                let japanese_name = get_japanese_name(&agent_key);
+
+                events.push(TimelineEvent {
+                    id: format!("issue-{}-assigned-{}", issue.number, agent_name),
+                    event_type: "task_assigned".to_string(),
+                    message: format!("{} assigned to Issue #{}", japanese_name, issue.number),
+                    timestamp: issue.created_at.format("%H:%M:%S").to_string(),
+                    task_id: Some(format!("{}", issue.number)),
+                    agent_id: Some(agent_key.clone()),
+                    agent_name: Some(japanese_name),
+                    agent_type: Some(agent_name.to_lowercase()),
+                });
+            }
+        }
+
+        // Event 3: Status change (if implementing state)
+        if issue
+            .labels
+            .iter()
+            .any(|l| l.contains("state:implementing"))
+        {
+            events.push(TimelineEvent {
+                id: format!("issue-{}-implementing", issue.number),
+                event_type: "task_status".to_string(),
+                message: format!("Issue #{} → Implementing", issue.number),
+                timestamp: issue.updated_at.format("%H:%M:%S").to_string(),
+                task_id: Some(format!("{}", issue.number)),
+                agent_id: None,
+                agent_name: None,
+                agent_type: None,
+            });
+        }
+
+        // Event 4: Completed (if closed)
+        if issue.state == miyabi_types::issue::IssueStateGithub::Closed {
+            events.push(TimelineEvent {
+                id: format!("issue-{}-completed", issue.number),
+                event_type: "task_completed".to_string(),
+                message: format!("Issue #{} → Completed ✅", issue.number),
+                timestamp: issue.updated_at.format("%H:%M:%S").to_string(),
+                task_id: Some(format!("{}", issue.number)),
+                agent_id: None,
+                agent_name: None,
+                agent_type: None,
+            });
+        }
+    }
+
+    // Sort by timestamp (newest first)
+    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+    info!("📋 Generated {} timeline events", events.len());
+
+    Ok(events)
+}
+
+/// Fetch real workflow DAG from GitHub Issues (with caching and retry)
+pub async fn fetch_real_workflow_dag() -> Result<DagData> {
+    const CACHE_TTL: Duration = Duration::from_secs(60);
+
+    // Check cache first
+    let _cache = get_cache();
+    // TODO: Add DAG cache
+
+    // Fetch with retry
+    let result = retry_with_backoff(|| async { fetch_real_workflow_dag_impl().await }).await;
+
+    result
+}
+
+/// Internal implementation of fetch_real_workflow_dag
+async fn fetch_real_workflow_dag_impl() -> Result<DagData> {
+    let token = std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN not set")?;
+    let owner =
+        std::env::var("GITHUB_REPOSITORY_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let repo = std::env::var("GITHUB_REPOSITORY")
+        .unwrap_or_else(|_| "ShunsukeHayashi/miyabi-private".to_string())
+        .split('/')
+        .nth(1)
+        .unwrap_or("miyabi-private")
+        .to_string();
+
+    let client = GitHubClient::new(&token, &owner, &repo)?;
+
+    // Fetch recent open issues with agent labels
+    info!(
+        "🔍 Fetching issues for workflow DAG (owner: {}, repo: {})",
+        owner, repo
+    );
+    let issues = client.list_issues(Some(State::Open), vec![]).await?;
+    info!("📥 Fetched {} open issues from GitHub", issues.len());
+
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+
+    // Build nodes from issues with agent labels
+    for issue in issues.iter().take(20) {
+        // Find agent label
+        let agent_label = issue
+            .labels
+            .iter()
+            .find(|l| l.starts_with("🤖 agent:"))
+            .and_then(|l| l.strip_prefix("🤖 agent:"));
+
+        if let Some(agent_name) = agent_label {
+            let agent_key = agent_label_to_key(agent_name);
+            let japanese_name = get_japanese_name(&agent_key);
+
+            // Determine status from state labels
+            let status = if issue
+                .labels
+                .iter()
+                .any(|l| l.contains("state:done") || l.contains("state:completed"))
+            {
+                "completed"
+            } else if issue
+                .labels
+                .iter()
+                .any(|l| l.contains("state:implementing") || l.contains("state:reviewing"))
+            {
+                "working"
+            } else if issue
+                .labels
+                .iter()
+                .any(|l| l.contains("state:error") || l.contains("state:blocked"))
+            {
+                "failed"
+            } else {
+                "pending"
+            };
+
+            nodes.push(DagNode {
+                id: format!("task-{}", issue.number),
+                label: issue.title.clone(),
+                status: status.to_string(),
+                agent: japanese_name,
+                agent_type: agent_name.to_lowercase(),
+            });
+        }
+    }
+
+    // Build edges based on dependencies (extract from issue body or labels)
+    // For now, create a simple sequential flow if we have multiple issues
+    if nodes.len() > 1 {
+        for i in 0..nodes.len() - 1 {
+            edges.push(DagEdge {
+                from: nodes[i].id.clone(),
+                to: nodes[i + 1].id.clone(),
+                edge_type: "depends_on".to_string(),
+            });
+        }
+    }
+
+    // If no real data, return sample DAG
+    if nodes.is_empty() {
+        info!("⚠️ No agent-assigned issues found, returning sample DAG");
+        return Ok(create_sample_dag_public());
+    }
+
+    let dag_data = DagData {
+        workflow_id: format!(
+            "workflow-{}",
+            issues
+                .first()
+                .map(|i| i.number.to_string())
+                .unwrap_or_else(|| "unknown".to_string())
+        ),
+        nodes,
+        edges,
+    };
+
+    info!(
+        "🔗 Generated DAG with {} nodes and {} edges",
+        dag_data.nodes.len(),
+        dag_data.edges.len()
+    );
+
+    Ok(dag_data)
+}
+
+/// Create sample DAG for demonstration
+pub fn create_sample_dag_public() -> DagData {
+    DagData {
+        workflow_id: "workflow-sample".to_string(),
+        nodes: vec![
+            DagNode {
+                id: "task-a".to_string(),
+                label: "Parse Spec".to_string(),
+                status: "completed".to_string(),
+                agent: "しきるん".to_string(),
+                agent_type: "coordinator".to_string(),
+            },
+            DagNode {
+                id: "task-b".to_string(),
+                label: "Extract Data".to_string(),
+                status: "completed".to_string(),
+                agent: "しきるん".to_string(),
+                agent_type: "coordinator".to_string(),
+            },
+            DagNode {
+                id: "task-c".to_string(),
+                label: "Generate Code".to_string(),
+                status: "working".to_string(),
+                agent: "つくるん".to_string(),
+                agent_type: "codegen".to_string(),
+            },
+            DagNode {
+                id: "task-d".to_string(),
+                label: "Run Tests".to_string(),
+                status: "pending".to_string(),
+                agent: "めだまん".to_string(),
+                agent_type: "review".to_string(),
+            },
+            DagNode {
+                id: "task-e".to_string(),
+                label: "Deploy".to_string(),
+                status: "pending".to_string(),
+                agent: "はこぶん".to_string(),
+                agent_type: "deploy".to_string(),
+            },
+        ],
+        edges: vec![
+            DagEdge {
+                from: "task-a".to_string(),
+                to: "task-c".to_string(),
+                edge_type: "depends_on".to_string(),
+            },
+            DagEdge {
+                from: "task-b".to_string(),
+                to: "task-c".to_string(),
+                edge_type: "depends_on".to_string(),
+            },
+            DagEdge {
+                from: "task-c".to_string(),
+                to: "task-d".to_string(),
+                edge_type: "depends_on".to_string(),
+            },
+            DagEdge {
+                from: "task-d".to_string(),
+                to: "task-e".to_string(),
+                edge_type: "depends_on".to_string(),
+            },
+        ],
+    }
 }

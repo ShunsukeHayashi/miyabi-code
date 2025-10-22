@@ -124,6 +124,87 @@ pub struct HealthCheckResult {
     pub uptime_seconds: u64,
 }
 
+/// Knowledge search parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnowledgeSearchParams {
+    /// Search query
+    pub query: String,
+
+    /// Workspace filter (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub workspace: Option<String>,
+
+    /// Agent filter (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent: Option<String>,
+
+    /// Issue number filter (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issue_number: Option<u32>,
+
+    /// Task type filter (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub task_type: Option<String>,
+
+    /// Outcome filter (optional, "success" or "failed")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<String>,
+
+    /// Maximum number of results (default: 10)
+    #[serde(default = "default_search_limit")]
+    pub limit: usize,
+}
+
+fn default_search_limit() -> usize {
+    10
+}
+
+/// Knowledge search result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnowledgeSearchResult {
+    /// Entry ID
+    pub id: String,
+
+    /// Similarity score (0.0-1.0)
+    pub score: f32,
+
+    /// Content
+    pub content: String,
+
+    /// Metadata
+    pub metadata: KnowledgeMetadata,
+
+    /// Timestamp
+    pub timestamp: String,
+}
+
+/// Knowledge metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnowledgeMetadata {
+    /// Workspace name
+    pub workspace: String,
+
+    /// Worktree (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub worktree: Option<String>,
+
+    /// Agent (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent: Option<String>,
+
+    /// Issue number (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issue_number: Option<u32>,
+
+    /// Task type (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub task_type: Option<String>,
+
+    /// Outcome (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<String>,
+}
+
 /// RPC handler context
 pub struct RpcContext {
     config: Arc<ServerConfig>,
@@ -271,6 +352,73 @@ impl RpcContext {
             github_connected,
             uptime_seconds,
         })
+    }
+
+    /// Search knowledge base
+    pub async fn search_knowledge(
+        &self,
+        params: KnowledgeSearchParams,
+    ) -> Result<Vec<KnowledgeSearchResult>> {
+        use miyabi_knowledge::searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter};
+        use miyabi_knowledge::KnowledgeConfig;
+
+        tracing::info!("Searching knowledge base: {}", params.query);
+
+        // Load config
+        let config = KnowledgeConfig::default();
+
+        // Initialize searcher
+        let searcher = QdrantSearcher::new(config)
+            .await
+            .map_err(|e| ServerError::Knowledge(e.to_string()))?;
+
+        // Build filter
+        let mut filter = SearchFilter::new();
+        if let Some(w) = params.workspace {
+            filter = filter.with_workspace(w);
+        }
+        if let Some(a) = params.agent {
+            filter = filter.with_agent(a);
+        }
+        if let Some(i) = params.issue_number {
+            filter = filter.with_issue_number(i);
+        }
+        if let Some(t) = params.task_type {
+            filter = filter.with_task_type(t);
+        }
+        if let Some(o) = params.outcome {
+            filter = filter.with_outcome(o);
+        }
+
+        // Search
+        let results = searcher
+            .search_filtered(&params.query, filter)
+            .await
+            .map_err(|e| ServerError::Knowledge(e.to_string()))?;
+
+        // Convert to MCP result format
+        let mcp_results: Vec<KnowledgeSearchResult> = results
+            .into_iter()
+            .take(params.limit)
+            .map(|r| KnowledgeSearchResult {
+                id: r.id.to_string(),
+                score: r.score,
+                content: r.content,
+                metadata: KnowledgeMetadata {
+                    workspace: r.metadata.workspace,
+                    worktree: r.metadata.worktree,
+                    agent: r.metadata.agent,
+                    issue_number: r.metadata.issue_number,
+                    task_type: r.metadata.task_type,
+                    outcome: r.metadata.outcome,
+                },
+                timestamp: r.timestamp.to_rfc3339(),
+            })
+            .collect();
+
+        tracing::info!("Found {} results", mcp_results.len());
+
+        Ok(mcp_results)
     }
 }
 

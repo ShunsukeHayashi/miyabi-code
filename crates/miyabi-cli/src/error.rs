@@ -31,6 +31,9 @@ pub enum CliError {
     #[error("Miyabi error: {0}")]
     Miyabi(#[from] miyabi_types::error::MiyabiError),
 
+    #[error("Knowledge management error: {0}")]
+    Knowledge(#[from] miyabi_knowledge::error::KnowledgeError),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 

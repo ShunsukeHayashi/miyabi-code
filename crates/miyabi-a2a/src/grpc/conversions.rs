@@ -29,7 +29,7 @@ pub fn part_to_proto(part: types::Part) -> Result<proto::Part, Status> {
         types::Part::Data { content, mime_type } => {
             // Internal Part::Data is binary data, map to proto File
             Some(proto::part::PartType::File(proto::FilePart {
-                name: "data".to_string(), // Required field, use generic name
+                name: "data".to_string(),     // Required field, use generic name
                 mime_type: mime_type.clone(), // Required field
                 url: None,
                 data: Some(content),
@@ -56,9 +56,9 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
         }
         proto::part::PartType::Audio(audio) => {
             // Map Audio to Data (binary)
-            let data = audio.data.ok_or_else(|| {
-                Status::invalid_argument("Audio part requires data")
-            })?;
+            let data = audio
+                .data
+                .ok_or_else(|| Status::invalid_argument("Audio part requires data"))?;
             let mime_type = audio.mime_type.unwrap_or_else(|| "audio/mpeg".to_string());
             Ok(types::Part::Data {
                 content: data,
@@ -71,9 +71,9 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
         }
         proto::part::PartType::File(file) => {
             // Map File to Data (binary)
-            let data = file.data.ok_or_else(|| {
-                Status::invalid_argument("File part requires data")
-            })?;
+            let data = file
+                .data
+                .ok_or_else(|| Status::invalid_argument("File part requires data"))?;
             Ok(types::Part::Data {
                 content: data,
                 mime_type: file.mime_type,
@@ -182,15 +182,16 @@ fn task_input_to_proto(input: types::TaskInput) -> Result<proto::TaskInput, Stat
         vec![]
     };
 
-    let artifacts = if let Some(artifacts_array) = input.params.get("artifacts").and_then(|a| a.as_array()) {
-        artifacts_array
-            .iter()
-            .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
-            .map(artifact_to_proto)
-            .collect::<Result<Vec<_>, _>>()?
-    } else {
-        vec![]
-    };
+    let artifacts =
+        if let Some(artifacts_array) = input.params.get("artifacts").and_then(|a| a.as_array()) {
+            artifacts_array
+                .iter()
+                .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
+                .map(artifact_to_proto)
+                .collect::<Result<Vec<_>, _>>()?
+        } else {
+            vec![]
+        };
 
     Ok(proto::TaskInput {
         prompt: input.prompt,
@@ -251,15 +252,16 @@ fn task_output_to_proto(result: serde_json::Value) -> Result<proto::TaskOutput, 
         vec![]
     };
 
-    let artifacts = if let Some(artifacts_array) = result.get("artifacts").and_then(|a| a.as_array()) {
-        artifacts_array
-            .iter()
-            .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
-            .map(artifact_to_proto)
-            .collect::<Result<Vec<_>, _>>()?
-    } else {
-        vec![]
-    };
+    let artifacts =
+        if let Some(artifacts_array) = result.get("artifacts").and_then(|a| a.as_array()) {
+            artifacts_array
+                .iter()
+                .filter_map(|a| serde_json::from_value::<types::Artifact>(a.clone()).ok())
+                .map(artifact_to_proto)
+                .collect::<Result<Vec<_>, _>>()?
+        } else {
+            vec![]
+        };
 
     Ok(proto::TaskOutput {
         messages,
@@ -420,7 +422,10 @@ pub fn proto_to_artifact(artifact: proto::Artifact) -> Result<types::Artifact, S
     let mut metadata = serde_json::Map::new();
     metadata.insert("name".to_string(), serde_json::Value::String(artifact.name));
     if let Some(mime_type) = artifact.mime_type {
-        metadata.insert("mime_type".to_string(), serde_json::Value::String(mime_type));
+        metadata.insert(
+            "mime_type".to_string(),
+            serde_json::Value::String(mime_type),
+        );
     }
     if let Some(url) = artifact.url {
         metadata.insert("url".to_string(), serde_json::Value::String(url));
@@ -429,7 +434,10 @@ pub fn proto_to_artifact(artifact: proto::Artifact) -> Result<types::Artifact, S
         metadata.insert("size".to_string(), serde_json::Value::Number(size.into()));
     }
     if let Some(created_at) = artifact.created_at {
-        metadata.insert("created_at".to_string(), serde_json::Value::String(created_at));
+        metadata.insert(
+            "created_at".to_string(),
+            serde_json::Value::String(created_at),
+        );
     }
 
     Ok(types::Artifact {

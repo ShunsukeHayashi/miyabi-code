@@ -9,7 +9,8 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, InitCommand, InstallCommand, ParallelCommand, SetupCommand, StatusCommand,
+    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, ParallelCommand, SetupCommand,
+    StatusCommand,
 };
 use error::Result;
 
@@ -83,6 +84,11 @@ enum Commands {
     WorkOn {
         /// Issue description or number
         task: String,
+    },
+    /// Knowledge management (search, index, stats)
+    Knowledge {
+        #[command(subcommand)]
+        command: KnowledgeCommand,
     },
 }
 
@@ -159,6 +165,7 @@ async fn main() -> Result<()> {
                 Ok(())
             }
         }
+        Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());

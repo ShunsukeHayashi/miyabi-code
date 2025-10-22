@@ -189,13 +189,38 @@ impl AgentHook for MetricsHook {
 /// Hook that appends execution details to log files under `.ai/logs`.
 pub struct AuditLogHook {
     log_dir: PathBuf,
+    #[cfg(feature = "knowledge-integration")]
+    knowledge_config: Option<miyabi_knowledge::KnowledgeConfig>,
 }
 
 impl AuditLogHook {
     pub fn new<P: Into<PathBuf>>(log_dir: P) -> Self {
         Self {
             log_dir: log_dir.into(),
+            #[cfg(feature = "knowledge-integration")]
+            knowledge_config: None,
         }
+    }
+
+    /// Enable automatic indexing with the provided configuration.
+    ///
+    /// After each agent execution, logs will be automatically indexed
+    /// into the knowledge base in the background.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use miyabi_agents::AuditLogHook;
+    /// use miyabi_knowledge::KnowledgeConfig;
+    ///
+    /// let config = KnowledgeConfig::default();
+    /// let hook = AuditLogHook::new(".ai/logs")
+    ///     .with_auto_index(config);
+    /// ```
+    #[cfg(feature = "knowledge-integration")]
+    pub fn with_auto_index(mut self, config: miyabi_knowledge::KnowledgeConfig) -> Self {
+        self.knowledge_config = Some(config);
+        self
     }
 
     /// Append log entry to audit log file.
@@ -242,6 +267,58 @@ impl AuditLogHook {
             .and_then(|v| v.as_str())
             .map(|s| s.to_string())
     }
+
+    /// Trigger automatic indexing of the latest log entry.
+    ///
+    /// This method is called in the background after agent execution completes.
+    /// It attempts to index the workspace with retries based on configuration.
+    #[cfg(feature = "knowledge-integration")]
+    async fn trigger_auto_index(config: miyabi_knowledge::KnowledgeConfig) -> Result<()> {
+        use miyabi_knowledge::KnowledgeManager;
+
+        let retry_count = config.auto_index.retry_count;
+        let workspace = config.workspace.name.clone();
+
+        for attempt in 1..=retry_count {
+            match KnowledgeManager::new(config.clone()).await {
+                Ok(manager) => {
+                    match manager.index_workspace(&workspace).await {
+                        Ok(stats) => {
+                            tracing::info!(
+                                "Auto-indexing completed: {} entries indexed",
+                                stats.total
+                            );
+                            return Ok(());
+                        }
+                        Err(e) => {
+                            if attempt < retry_count {
+                                tracing::warn!(
+                                    "Auto-indexing attempt {}/{} failed: {}. Retrying...",
+                                    attempt,
+                                    retry_count,
+                                    e
+                                );
+                                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                            } else {
+                                return Err(MiyabiError::Internal(format!(
+                                    "Auto-indexing failed after {} attempts: {}",
+                                    retry_count, e
+                                )));
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    return Err(MiyabiError::Internal(format!(
+                        "Failed to initialize KnowledgeManager: {}",
+                        e
+                    )));
+                }
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -271,7 +348,28 @@ impl AgentHook for AuditLogHook {
             task.id,
             result.status
         );
-        self.append(&entry, worktree_id.as_deref()).await
+        self.append(&entry, worktree_id.as_deref()).await?;
+
+        // Trigger auto-indexing in the background if enabled
+        #[cfg(feature = "knowledge-integration")]
+        if let Some(ref config) = self.knowledge_config {
+            if config.auto_index.enabled {
+                let config_clone = config.clone();
+                let delay = std::time::Duration::from_secs(config.auto_index.delay_seconds);
+
+                tokio::spawn(async move {
+                    // Wait for configured delay
+                    tokio::time::sleep(delay).await;
+
+                    // Attempt auto-indexing with retries
+                    if let Err(e) = Self::trigger_auto_index(config_clone).await {
+                        tracing::warn!("Auto-indexing failed: {}", e);
+                    }
+                });
+            }
+        }
+
+        Ok(())
     }
 
     async fn on_error(&self, agent: AgentType, task: &Task, error: &MiyabiError) -> Result<()> {
@@ -554,5 +652,105 @@ mod tests {
         // Verify log content
         let content = fs::read_to_string(&expected_file).await.unwrap();
         assert!(content.contains("🔄 Agent CodeGenAgent starting task test-task"));
+    }
+
+    #[cfg(feature = "knowledge-integration")]
+    #[test]
+    fn test_audit_log_hook_with_auto_index_config() {
+        use tempfile::TempDir;
+        use miyabi_knowledge::{KnowledgeConfig, AutoIndexConfig};
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        // Create config with auto-indexing enabled
+        let mut config = KnowledgeConfig::default();
+        config.auto_index = AutoIndexConfig {
+            enabled: true,
+            delay_seconds: 1,
+            retry_count: 2,
+        };
+
+        // Create hook with auto-index
+        let hook = AuditLogHook::new(log_dir.clone()).with_auto_index(config.clone());
+
+        // Verify config is set
+        assert!(hook.knowledge_config.is_some());
+        let stored_config = hook.knowledge_config.as_ref().unwrap();
+        assert!(stored_config.auto_index.enabled);
+        assert_eq!(stored_config.auto_index.delay_seconds, 1);
+        assert_eq!(stored_config.auto_index.retry_count, 2);
+    }
+
+    #[cfg(feature = "knowledge-integration")]
+    #[test]
+    fn test_audit_log_hook_without_auto_index() {
+        use tempfile::TempDir;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        // Create hook without auto-index
+        let hook = AuditLogHook::new(log_dir);
+
+        // Verify config is not set
+        assert!(hook.knowledge_config.is_none());
+    }
+
+    #[cfg(feature = "knowledge-integration")]
+    #[tokio::test]
+    async fn test_audit_log_hook_auto_index_disabled() {
+        use tempfile::TempDir;
+        use miyabi_knowledge::{KnowledgeConfig, AutoIndexConfig};
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        // Create config with auto-indexing disabled
+        let mut config = KnowledgeConfig::default();
+        config.auto_index = AutoIndexConfig {
+            enabled: false,
+            delay_seconds: 0,
+            retry_count: 0,
+        };
+
+        // Create hook with disabled auto-index
+        let hook = AuditLogHook::new(log_dir.clone()).with_auto_index(config);
+
+        let task = Task {
+            id: "test-task".into(),
+            title: "Test Task".into(),
+            description: "Test".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::CodeGenAgent),
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        let result = AgentResult {
+            status: ResultStatus::Success,
+            data: None,
+            error: None,
+            metrics: None,
+            escalation: None,
+        };
+
+        // Execute hook (should not trigger auto-indexing)
+        let hook_result = hook.on_post_execute(AgentType::CodeGenAgent, &task, &result).await;
+
+        // Should succeed even if auto-indexing is disabled
+        assert!(hook_result.is_ok());
+
+        // Verify log file was created
+        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        let expected_file = log_dir.join(format!("{}.md", date));
+        assert!(expected_file.exists());
     }
 }

@@ -44,8 +44,8 @@ impl EvaluationReporter {
     pub fn save_json(&self, output_path: &Path) -> Result<()> {
         info!("Saving evaluation results to JSON: {:?}", output_path);
 
-        let json = serde_json::to_string_pretty(&self.results)
-            .context("Failed to serialize results")?;
+        let json =
+            serde_json::to_string_pretty(&self.results).context("Failed to serialize results")?;
 
         fs::write(output_path, json).context("Failed to write JSON file")?;
 
@@ -189,7 +189,6 @@ impl EvaluationReporter {
         debug!("Markdown report saved: {:?}", output_path);
         Ok(())
     }
-
 }
 
 #[cfg(test)]

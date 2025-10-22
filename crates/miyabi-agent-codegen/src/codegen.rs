@@ -3,9 +3,9 @@
 //! Responsible for generating code based on Task requirements.
 //! Integrates with GitHub for repository context and Claude Code for implementation.
 
-use miyabi_agent_integrations::PotpieIntegration;
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
+use miyabi_agent_integrations::PotpieIntegration;
 use miyabi_core::documentation::{
     generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, ReadmeTemplate,
 };

@@ -83,8 +83,8 @@ async fn main() -> Result<()> {
             info!("Concurrency: {}", concurrency);
 
             // Load dataset
-            let dataset = SWEBenchDataset::load_from_json(&dataset)
-                .context("Failed to load dataset")?;
+            let dataset =
+                SWEBenchDataset::load_from_json(&dataset).context("Failed to load dataset")?;
 
             info!("Loaded {} instances from dataset", dataset.len());
 
@@ -107,8 +107,8 @@ async fn main() -> Result<()> {
             };
 
             // Create evaluator
-            let evaluator = SWEBenchProEvaluator::with_config(config)
-                .context("Failed to create evaluator")?;
+            let evaluator =
+                SWEBenchProEvaluator::with_config(config).context("Failed to create evaluator")?;
 
             // Run evaluation
             info!("Running evaluation with {} workers", concurrency);

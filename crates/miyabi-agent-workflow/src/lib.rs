@@ -28,10 +28,10 @@
 //! # }
 //! ```
 
-pub mod pr;
-pub mod issue;
 pub mod deployment;
+pub mod issue;
+pub mod pr;
 
-pub use pr::PRAgent;
-pub use issue::IssueAgent;
 pub use deployment::DeploymentAgent;
+pub use issue::IssueAgent;
+pub use pr::PRAgent;

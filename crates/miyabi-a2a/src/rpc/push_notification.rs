@@ -198,19 +198,15 @@ impl WebhookConfig {
 /// let signature = generate_webhook_signature(secret, timestamp, payload_json);
 /// assert_eq!(signature.len(), 64); // SHA256 produces 64 hex characters
 /// ```
-pub fn generate_webhook_signature(
-    secret: &str,
-    timestamp: &str,
-    payload_json: &str,
-) -> String {
+pub fn generate_webhook_signature(secret: &str, timestamp: &str, payload_json: &str) -> String {
     type HmacSha256 = Hmac<Sha256>;
 
     // Construct message: timestamp + "." + json_payload
     let message = format!("{}.{}", timestamp, payload_json);
 
     // Create HMAC instance
-    let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
-        .expect("HMAC can take key of any size");
+    let mut mac =
+        HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC can take key of any size");
 
     // Update with message
     mac.update(message.as_bytes());
@@ -271,9 +267,8 @@ pub async fn send_push_notification(
         );
 
         // Serialize payload to JSON for both body and signature generation
-        let payload_json = serde_json::to_string(payload).map_err(|e| {
-            A2AError::InternalError(format!("Failed to serialize payload: {}", e))
-        })?;
+        let payload_json = serde_json::to_string(payload)
+            .map_err(|e| A2AError::InternalError(format!("Failed to serialize payload: {}", e)))?;
 
         // Build HTTP request
         let mut request = client
@@ -288,11 +283,7 @@ pub async fn send_push_notification(
 
         // Add HMAC-SHA256 signature if webhook_secret is configured
         if let Some(secret) = &config.webhook_secret {
-            let signature = generate_webhook_signature(
-                secret,
-                &payload.timestamp,
-                &payload_json,
-            );
+            let signature = generate_webhook_signature(secret, &payload.timestamp, &payload_json);
 
             request = request.header("X-Miyabi-Signature", signature);
 
@@ -382,7 +373,10 @@ pub async fn send_push_notification(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wiremock::{matchers::{header, header_exists, method, path}, Mock, MockServer, ResponseTemplate};
+    use wiremock::{
+        matchers::{header, header_exists, method, path},
+        Mock, MockServer, ResponseTemplate,
+    };
 
     #[tokio::test]
     async fn test_send_push_notification_success() {
@@ -549,7 +543,8 @@ mod tests {
     fn test_generate_webhook_signature_deterministic() {
         let secret = "test-secret-key";
         let timestamp = "2025-10-21T12:00:00Z";
-        let payload_json = r#"{"event_type":"test","task_id":"123","data":{},"timestamp":"2025-10-21T12:00:00Z"}"#;
+        let payload_json =
+            r#"{"event_type":"test","task_id":"123","data":{},"timestamp":"2025-10-21T12:00:00Z"}"#;
 
         // Generate signature twice with same inputs
         let signature1 = generate_webhook_signature(secret, timestamp, payload_json);

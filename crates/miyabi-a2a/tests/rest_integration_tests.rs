@@ -180,13 +180,19 @@ async fn test_rest_message_send_and_get() {
         context_id: Some("test-context".to_string()),
     };
 
-    let send_result = handler.message_send(params).await.expect("message_send should succeed");
+    let send_result = handler
+        .message_send(params)
+        .await
+        .expect("message_send should succeed");
     assert_eq!(send_result.status, TaskStatus::Submitted);
 
     let get_params = miyabi_a2a::rpc::TasksGetParams {
         task_id: send_result.task_id.clone(),
     };
-    let get_result = handler.tasks_get(get_params).await.expect("tasks_get should succeed");
+    let get_result = handler
+        .tasks_get(get_params)
+        .await
+        .expect("tasks_get should succeed");
     assert_eq!(get_result.task.id, send_result.task_id);
 }
 
@@ -212,7 +218,10 @@ async fn test_rest_tasks_list_with_filters() {
         limit: 10,
         offset: 0,
     };
-    let result = handler.tasks_list(list_params).await.expect("tasks_list should succeed");
+    let result = handler
+        .tasks_list(list_params)
+        .await
+        .expect("tasks_list should succeed");
 
     assert_eq!(result.tasks.len(), 5);
     assert_eq!(result.total, 5);
@@ -240,7 +249,10 @@ async fn test_rest_tasks_list_with_pagination() {
         limit: 3,
         offset: 0,
     };
-    let result1 = handler.tasks_list(list_params1).await.expect("tasks_list should succeed");
+    let result1 = handler
+        .tasks_list(list_params1)
+        .await
+        .expect("tasks_list should succeed");
     assert_eq!(result1.tasks.len(), 3);
     assert_eq!(result1.total, 10);
 
@@ -251,7 +263,10 @@ async fn test_rest_tasks_list_with_pagination() {
         limit: 3,
         offset: 3,
     };
-    let result2 = handler.tasks_list(list_params2).await.expect("tasks_list should succeed");
+    let result2 = handler
+        .tasks_list(list_params2)
+        .await
+        .expect("tasks_list should succeed");
     assert_eq!(result2.tasks.len(), 3);
 
     // Ensure different tasks
@@ -275,7 +290,10 @@ async fn test_rest_tasks_cancel() {
     let cancel_params = miyabi_a2a::rpc::TasksCancelParams {
         task_id: send_result.task_id.clone(),
     };
-    let cancel_result = handler.tasks_cancel(cancel_params).await.expect("tasks_cancel should succeed");
+    let cancel_result = handler
+        .tasks_cancel(cancel_params)
+        .await
+        .expect("tasks_cancel should succeed");
     assert_eq!(cancel_result.status, TaskStatus::Cancelled);
 
     // Verify task is cancelled
@@ -359,7 +377,10 @@ async fn test_rest_context_id_filtering() {
         limit: 100,
         offset: 0,
     };
-    let result = handler.tasks_list(list_params).await.expect("tasks_list should succeed");
+    let result = handler
+        .tasks_list(list_params)
+        .await
+        .expect("tasks_list should succeed");
 
     assert_eq!(result.tasks.len(), 3);
     assert_eq!(result.total, 3);
@@ -400,7 +421,10 @@ async fn test_rest_status_filtering() {
         limit: 100,
         offset: 0,
     };
-    let result_submitted = handler.tasks_list(list_params_submitted).await.expect("tasks_list should succeed");
+    let result_submitted = handler
+        .tasks_list(list_params_submitted)
+        .await
+        .expect("tasks_list should succeed");
     assert_eq!(result_submitted.tasks.len(), 3);
 
     // Filter by status = "cancelled"
@@ -410,7 +434,10 @@ async fn test_rest_status_filtering() {
         limit: 100,
         offset: 0,
     };
-    let result_cancelled = handler.tasks_list(list_params_cancelled).await.expect("tasks_list should succeed");
+    let result_cancelled = handler
+        .tasks_list(list_params_cancelled)
+        .await
+        .expect("tasks_list should succeed");
     assert_eq!(result_cancelled.tasks.len(), 2);
 }
 
@@ -426,7 +453,10 @@ async fn test_rest_empty_list() {
         limit: 100,
         offset: 0,
     };
-    let result = handler.tasks_list(list_params).await.expect("tasks_list should succeed");
+    let result = handler
+        .tasks_list(list_params)
+        .await
+        .expect("tasks_list should succeed");
 
     assert_eq!(result.tasks.len(), 0);
     assert_eq!(result.total, 0);
@@ -473,7 +503,10 @@ async fn test_rest_concurrent_message_send() {
         limit: 200,
         offset: 0,
     };
-    let list_result = handler.tasks_list(list_params).await.expect("tasks_list should succeed");
+    let list_result = handler
+        .tasks_list(list_params)
+        .await
+        .expect("tasks_list should succeed");
     assert_eq!(list_result.total, 100);
 }
 

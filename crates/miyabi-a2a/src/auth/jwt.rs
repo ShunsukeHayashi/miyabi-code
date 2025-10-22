@@ -54,7 +54,7 @@ impl JwtValidator {
     pub fn extract_bearer_token(auth_header: &str) -> A2AResult<&str> {
         if !auth_header.starts_with("Bearer ") {
             return Err(A2AError::InvalidRequest(
-                "Authorization header must start with 'Bearer '".to_string()
+                "Authorization header must start with 'Bearer '".to_string(),
             ));
         }
 
@@ -113,7 +113,10 @@ mod tests {
         let result = validator.validate(&token);
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid JWT token"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid JWT token"));
     }
 
     #[test]

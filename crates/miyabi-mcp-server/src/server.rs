@@ -7,7 +7,9 @@ use tokio::sync::RwLock;
 
 use crate::config::{ServerConfig, TransportMode};
 use crate::error::{Result, ServerError};
-use crate::rpc::{AgentExecuteParams, IssueFetchParams, IssueListParams, RpcContext};
+use crate::rpc::{
+    AgentExecuteParams, IssueFetchParams, IssueListParams, KnowledgeSearchParams, RpcContext,
+};
 
 /// MCP Server
 pub struct McpServer {
@@ -74,6 +76,23 @@ impl McpServer {
                     let context = ctx.read().await;
                     let result = context
                         .list_issues(params)
+                        .await
+                        .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                    Ok(serde_json::to_value(result).unwrap())
+                }
+            });
+        }
+
+        // knowledge.search
+        {
+            let ctx = context.clone();
+            io.add_method("knowledge.search", move |params: Params| {
+                let ctx = ctx.clone();
+                async move {
+                    let params: KnowledgeSearchParams = params.parse()?;
+                    let context = ctx.read().await;
+                    let result = context
+                        .search_knowledge(params)
                         .await
                         .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
                     Ok(serde_json::to_value(result).unwrap())
