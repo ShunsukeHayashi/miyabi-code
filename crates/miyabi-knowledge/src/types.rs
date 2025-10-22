@@ -156,6 +156,10 @@ pub struct IndexStats {
     /// 失敗数
     pub failed: usize,
 
+    /// スキップ数（増分インデックス化時）
+    #[serde(default)]
+    pub skipped: usize,
+
     /// 処理時間（秒）
     pub duration_secs: f64,
 }
@@ -166,6 +170,7 @@ impl Default for IndexStats {
             total: 0,
             success: 0,
             failed: 0,
+            skipped: 0,
             duration_secs: 0.0,
         }
     }

@@ -1,14 +1,19 @@
 //! ベクトル化・インデックス化機能
 
+use crate::cache::IndexCache;
 use crate::chunking::{ChunkConfig, TextChunker};
+use crate::collector::{KnowledgeCollector, LogCollector};
 use crate::config::KnowledgeConfig;
 use crate::embeddings::{create_embedding_generator, EmbeddingGenerator};
 use crate::error::{KnowledgeError, Result};
+use crate::hasher::hash_file;
 use crate::qdrant::QdrantClient;
 use crate::types::{IndexStats, KnowledgeEntry, KnowledgeId, KnowledgeMetadata};
 use async_trait::async_trait;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
+use walkdir::WalkDir;
 
 /// インデックス化トレイト
 #[async_trait]
@@ -21,6 +26,9 @@ pub trait KnowledgeIndexer: Send + Sync {
 
     /// ワークスペース全体をインデックス化
     async fn index_workspace(&self, workspace: &str) -> Result<IndexStats>;
+
+    /// ワークスペース全体を増分インデックス化（差分検出）
+    async fn index_workspace_incremental(&self, workspace: &str) -> Result<IndexStats>;
 }
 
 /// Qdrantインデックス実装
@@ -185,6 +193,116 @@ impl KnowledgeIndexer for QdrantIndexer {
 
         warn!("index_workspace is not yet implemented");
         Ok(IndexStats::default())
+    }
+
+    async fn index_workspace_incremental(&self, workspace: &str) -> Result<IndexStats> {
+        info!("Incremental indexing workspace: {}", workspace);
+        let start = std::time::Instant::now();
+
+        // キャッシュをロード
+        let mut cache = IndexCache::load_or_default(workspace)?;
+        info!(
+            "Loaded cache with {} indexed files",
+            cache.indexed_count()
+        );
+
+        let mut stats = IndexStats::default();
+
+        // ログディレクトリから全てのMarkdownファイルを収集
+        let log_files = self.collect_log_files()?;
+        stats.total = log_files.len();
+        info!("Found {} log files", log_files.len());
+
+        // Collector初期化
+        let collector = LogCollector::new(self.config.clone())?;
+
+        // 各ファイルをチェック
+        for file_path in log_files {
+            // ハッシュ計算
+            let hash = match hash_file(&file_path) {
+                Ok(h) => h,
+                Err(e) => {
+                    warn!("Failed to hash file {:?}: {}", file_path, e);
+                    stats.failed += 1;
+                    continue;
+                }
+            };
+
+            // キャッシュチェック
+            if cache.is_indexed(&file_path, &hash) {
+                debug!("Skipping unchanged file: {:?}", file_path);
+                stats.skipped += 1;
+                continue;
+            }
+
+            // ファイルが変更されているのでインデックス化
+            info!("Indexing changed file: {:?}", file_path);
+
+            match collector.collect(&file_path).await {
+                Ok(entries) => {
+                    // エントリをインデックス化
+                    match self.index_batch(&entries).await {
+                        Ok(batch_stats) => {
+                            stats.success += batch_stats.success;
+                            stats.failed += batch_stats.failed;
+
+                            // キャッシュを更新
+                            cache.mark_indexed(file_path.clone(), hash);
+                        }
+                        Err(e) => {
+                            warn!("Failed to index entries from {:?}: {}", file_path, e);
+                            stats.failed += 1;
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to collect from {:?}: {}", file_path, e);
+                    stats.failed += 1;
+                }
+            }
+        }
+
+        // キャッシュを保存
+        if let Err(e) = cache.save() {
+            warn!("Failed to save cache: {}", e);
+        }
+
+        stats.duration_secs = start.elapsed().as_secs_f64();
+
+        info!(
+            "Incremental indexing complete: {} success, {} skipped, {} failed in {:.2}s",
+            stats.success, stats.skipped, stats.failed, stats.duration_secs
+        );
+
+        Ok(stats)
+    }
+}
+
+impl QdrantIndexer {
+    /// ログディレクトリから全てのMarkdownファイルを収集
+    fn collect_log_files(&self) -> Result<Vec<PathBuf>> {
+        let log_dir = &self.config.collection.log_dir;
+
+        if !log_dir.exists() {
+            return Ok(Vec::new());
+        }
+
+        let mut files = Vec::new();
+
+        for entry in WalkDir::new(log_dir)
+            .follow_links(true)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let path = entry.path();
+
+            // Markdownファイルのみ
+            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
+                files.push(path.to_path_buf());
+            }
+        }
+
+        Ok(files)
     }
 }
 

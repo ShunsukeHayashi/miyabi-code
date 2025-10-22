@@ -5,7 +5,7 @@ use clap::Subcommand;
 use colored::Colorize;
 use miyabi_knowledge::{
     searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter},
-    KnowledgeConfig,
+    IndexCache, KnowledgeConfig,
 };
 
 #[derive(Subcommand)]
@@ -79,6 +79,16 @@ pub enum KnowledgeCommand {
         #[arg(long, default_value = "~/.config/miyabi/knowledge.json")]
         config_path: String,
     },
+
+    /// Clear index cache (force re-indexing)
+    ClearCache {
+        /// Workspace to clear (all if not specified)
+        workspace: Option<String>,
+
+        /// Skip confirmation prompt
+        #[arg(long)]
+        yes: bool,
+    },
 }
 
 impl KnowledgeCommand {
@@ -125,6 +135,9 @@ impl KnowledgeCommand {
                     json_output,
                 )
                 .await
+            }
+            Self::ClearCache { workspace, yes } => {
+                clear_cache(workspace.clone(), *yes, json_output).await
             }
         }
     }
@@ -467,6 +480,72 @@ async fn manage_config(
             "{}",
             "ℹ️  No changes made. Use --show to view current configuration.".yellow()
         );
+    }
+
+    Ok(())
+}
+
+async fn clear_cache(
+    workspace: Option<String>,
+    skip_confirmation: bool,
+    json_output: bool,
+) -> Result<()> {
+    // 確認プロンプト
+    if !skip_confirmation && !json_output {
+        let workspace_desc = workspace
+            .as_ref()
+            .map(|w| format!("workspace '{}'", w))
+            .unwrap_or_else(|| "all workspaces".to_string());
+
+        println!(
+            "{} This will delete index cache for {}",
+            "⚠️".yellow(),
+            workspace_desc.bold()
+        );
+        print!("Are you sure? (y/N): ");
+        use std::io::{self, Write};
+        io::stdout().flush()?;
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+
+        if !input.trim().eq_ignore_ascii_case("y") {
+            println!("{}", "❌ Cancelled".red());
+            return Ok(());
+        }
+    }
+
+    // キャッシュ削除
+    let deleted_count = IndexCache::delete_cache(workspace.as_deref())?;
+
+    if json_output {
+        let json = serde_json::json!({
+            "status": "success",
+            "deleted_count": deleted_count,
+            "workspace": workspace,
+        });
+        println!("{}", serde_json::to_string_pretty(&json)?);
+    } else {
+        if deleted_count > 0 {
+            let workspace_desc = workspace
+                .as_ref()
+                .map(|w| format!("for workspace '{}'", w))
+                .unwrap_or_else(|| "for all workspaces".to_string());
+
+            println!(
+                "{} Deleted {} cache file{} {}",
+                "✅".green(),
+                deleted_count,
+                if deleted_count == 1 { "" } else { "s" },
+                workspace_desc
+            );
+            println!(
+                "{} Next indexing will be a full rebuild (slower)",
+                "ℹ️".cyan()
+            );
+        } else {
+            println!("{} No cache files found", "ℹ️".cyan());
+        }
     }
 
     Ok(())

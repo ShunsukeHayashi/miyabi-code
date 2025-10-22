@@ -43,6 +43,9 @@ chrono = { workspace = true }
 # UUID
 uuid = { version = "1.0", features = ["v4", "serde"] }
 
+# ハッシュ
+sha2 = "0.10"
+
 # パス操作
 walkdir = "2.4"
 
