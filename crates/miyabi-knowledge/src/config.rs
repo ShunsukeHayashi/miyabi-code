@@ -1,6 +1,6 @@
 //! 設定管理
 
-use crate::error::{KnowledgeError, Result};
+use crate::error::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 

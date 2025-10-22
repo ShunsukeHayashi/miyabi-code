@@ -6,7 +6,6 @@ use crate::error::{KnowledgeError, Result};
 use crate::qdrant::QdrantClient;
 use crate::types::{KnowledgeId, KnowledgeMetadata, KnowledgeResult};
 use async_trait::async_trait;
-use chrono::Utc;
 use qdrant_client::qdrant::{Condition, Filter};
 use std::sync::Arc;
 use tracing::{debug, info};
@@ -328,7 +327,7 @@ impl KnowledgeSearcher for QdrantSearcher {
     async fn find_similar(
         &self,
         entry_id: &KnowledgeId,
-        limit: usize,
+        _limit: usize,
     ) -> Result<Vec<KnowledgeResult>> {
         info!("Finding similar entries for: {}", entry_id);
 

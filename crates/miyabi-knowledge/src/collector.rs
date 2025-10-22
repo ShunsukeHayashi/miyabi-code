@@ -1,12 +1,11 @@
 //! ログ収集機能
 
 use crate::config::KnowledgeConfig;
-use crate::error::{KnowledgeError, Result};
+use crate::error::Result;
 use crate::types::{KnowledgeEntry, KnowledgeMetadata};
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use pulldown_cmark::{Event, Parser, Tag};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tracing::{debug, info, warn};
 use walkdir::WalkDir;
 
@@ -39,7 +38,7 @@ impl LogCollector {
         let mut entries = Vec::new();
         let mut current_section = String::new();
         let mut current_heading = String::new();
-        let mut in_code_block = false;
+        let mut _in_code_block = false;
 
         let parser = Parser::new(content);
 
@@ -66,10 +65,10 @@ impl LogCollector {
                     current_section.push_str(&text);
                 }
                 Event::Start(Tag::CodeBlock(_)) => {
-                    in_code_block = true;
+                    _in_code_block = true;
                 }
                 Event::End(Tag::CodeBlock(_)) => {
-                    in_code_block = false;
+                    _in_code_block = false;
                 }
                 Event::Code(code) | Event::Html(code) => {
                     current_section.push_str(&code);

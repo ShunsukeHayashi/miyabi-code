@@ -572,11 +572,11 @@ fn get_description(agent_type: &str) -> String {
 
 /// Fetch real timeline events from GitHub Issues (with caching and retry)
 pub async fn fetch_real_events() -> Result<Vec<TimelineEvent>> {
-    const CACHE_TTL: Duration = Duration::from_secs(60);
+    const _CACHE_TTL: Duration = Duration::from_secs(60);
 
     // Check cache first
     let _cache = get_cache();
-    // TODO: Add events cache
+    // TODO: Add events cache with _CACHE_TTL
 
     // Fetch with retry
     let result = retry_with_backoff(|| async { fetch_real_events_impl().await }).await;
@@ -685,11 +685,11 @@ async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
 
 /// Fetch real workflow DAG from GitHub Issues (with caching and retry)
 pub async fn fetch_real_workflow_dag() -> Result<DagData> {
-    const CACHE_TTL: Duration = Duration::from_secs(60);
+    const _CACHE_TTL: Duration = Duration::from_secs(60);
 
     // Check cache first
     let _cache = get_cache();
-    // TODO: Add DAG cache
+    // TODO: Add DAG cache with _CACHE_TTL
 
     // Fetch with retry
     let result = retry_with_backoff(|| async { fetch_real_workflow_dag_impl().await }).await;

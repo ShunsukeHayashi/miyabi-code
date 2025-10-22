@@ -69,14 +69,13 @@ pub use types::{
     IndexStats, KnowledgeEntry, KnowledgeId, KnowledgeMetadata, KnowledgeResult, WorkspaceInfo,
 };
 
-use async_trait::async_trait;
 use std::path::Path;
 
 /// ナレッジ管理のファサードクラス
 ///
 /// 収集・インデックス化・検索を統合的に管理します。
 pub struct KnowledgeManager {
-    config: KnowledgeConfig,
+    _config: KnowledgeConfig,
     collector: Box<dyn KnowledgeCollector>,
     indexer: Box<dyn KnowledgeIndexer>,
     searcher: Box<dyn KnowledgeSearcher>,
@@ -103,7 +102,7 @@ impl KnowledgeManager {
         let searcher = Box::new(QdrantSearcher::new(config.clone()).await?);
 
         Ok(Self {
-            config,
+            _config: config,
             collector,
             indexer,
             searcher,
