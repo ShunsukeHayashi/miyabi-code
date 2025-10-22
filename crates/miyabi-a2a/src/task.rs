@@ -34,6 +34,10 @@ pub struct A2ATask {
     /// Priority (0-5, higher = more urgent)
     pub priority: u8,
 
+    /// Number of retry attempts (for failed tasks)
+    #[serde(default)]
+    pub retry_count: u32,
+
     /// Created timestamp
     pub created_at: DateTime<Utc>,
 
@@ -139,8 +143,8 @@ mod tests {
 
     #[test]
     fn test_task_status_label() {
-        assert_eq!(TaskStatus::Pending.to_label(), "a2a:pending");
-        assert_eq!(TaskStatus::InProgress.to_label(), "a2a:in-progress");
+        assert_eq!(TaskStatus::Submitted.to_label(), "a2a:submitted");
+        assert_eq!(TaskStatus::Working.to_label(), "a2a:working");
         assert_eq!(TaskStatus::Completed.to_label(), "a2a:completed");
     }
 
@@ -152,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_task_status_display() {
-        assert_eq!(TaskStatus::Pending.to_string(), "pending");
-        assert_eq!(TaskStatus::InProgress.to_string(), "in-progress");
+        assert_eq!(TaskStatus::Submitted.to_string(), "submitted");
+        assert_eq!(TaskStatus::Working.to_string(), "working");
     }
 }

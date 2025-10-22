@@ -10,7 +10,7 @@ repository = "https://github.com/ShunsukeHayashi/Miyabi"
 [dependencies]
 # Discord API
 twilight-http = "0.15"
-twilight-model = "0.16"
+twilight-model = "0.15"
 twilight-gateway = "0.15"
 twilight-cache-inmemory = "0.15"
 
