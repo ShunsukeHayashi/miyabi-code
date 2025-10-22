@@ -61,6 +61,16 @@ export const ErrorDashboard: React.FC = () => {
                               Task #{error.taskId}
                             </Chip>
                           )}
+                          {error.retryCount !== undefined && error.retryCount > 0 && (
+                            <Chip size="sm" variant="flat" color="warning">
+                              Retry {error.retryCount}/3
+                            </Chip>
+                          )}
+                          {error.nextRetryAt && (
+                            <Chip size="sm" variant="flat" color="primary">
+                              Next: {new Date(error.nextRetryAt).toLocaleTimeString()}
+                            </Chip>
+                          )}
                         </div>
                       </div>
                       

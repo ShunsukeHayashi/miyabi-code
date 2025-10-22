@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Agent, SystemStatus } from '../lib/api-client';
+import type { TaskRetryEvent, TaskCancelEvent, ErrorInfo } from '../types/error-types';
 
 const WS_URL = import.meta.env.VITE_API_URL?.replace('http', 'ws') + '/ws' || 'ws://localhost:3001/ws';
 const RECONNECT_INTERVAL = 3000; // 3 seconds
@@ -9,6 +10,9 @@ const RECONNECT_INTERVAL = 3000; // 3 seconds
 type DashboardUpdate =
   | { type: 'agents'; agents: Agent[] }
   | { type: 'systemstatus'; status: SystemStatus }
+  | { type: 'error'; error: ErrorInfo }
+  | { type: 'taskretry'; event: TaskRetryEvent }
+  | { type: 'taskcancel'; event: TaskCancelEvent }
   | { type: 'ping' };
 
 interface WebSocketContextValue {
@@ -16,6 +20,9 @@ interface WebSocketContextValue {
   systemStatus: SystemStatus | null;
   isConnected: boolean;
   error: Error | null;
+  taskRetryEvents: TaskRetryEvent[];
+  taskCancelEvents: TaskCancelEvent[];
+  errorEvents: ErrorInfo[];
 }
 
 const WebSocketContext = createContext<WebSocketContextValue | undefined>(undefined);
@@ -29,6 +36,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [taskRetryEvents, setTaskRetryEvents] = useState<TaskRetryEvent[]>([]);
+  const [taskCancelEvents, setTaskCancelEvents] = useState<TaskCancelEvent[]>([]);
+  const [errorEvents, setErrorEvents] = useState<ErrorInfo[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
@@ -57,6 +67,34 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             case 'systemstatus':
               console.log('[WebSocket Context] Received system status update');
               setSystemStatus(data.status);
+              break;
+            case 'error':
+              console.log('[WebSocket Context] Received error event:', data.error);
+              setErrorEvents((prev) => [data.error, ...prev].slice(0, 100));
+              break;
+            case 'taskretry':
+              console.log('[WebSocket Context] Received task retry event:', data.event);
+              setTaskRetryEvents((prev) => [data.event, ...prev].slice(0, 100));
+
+              // Show browser notification
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🔄 Task Retry', {
+                  body: `Task ${data.event.task_id} retry attempt ${data.event.retry_count}${data.event.reason ? `: ${data.event.reason}` : ''}`,
+                  icon: '/favicon.ico',
+                });
+              }
+              break;
+            case 'taskcancel':
+              console.log('[WebSocket Context] Received task cancel event:', data.event);
+              setTaskCancelEvents((prev) => [data.event, ...prev].slice(0, 100));
+
+              // Show browser notification
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('❌ Task Cancelled', {
+                  body: `Task ${data.event.task_id} cancelled: ${data.event.reason}`,
+                  icon: '/favicon.ico',
+                });
+              }
               break;
             case 'ping':
               // Ignore ping messages
@@ -126,6 +164,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     systemStatus,
     isConnected,
     error,
+    taskRetryEvents,
+    taskCancelEvents,
+    errorEvents,
   };
 
   return (

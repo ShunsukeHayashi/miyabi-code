@@ -1,15 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HeroUI Chat - App</title>
+
+    <!-- SEO & Performance -->
+    <meta name="description" content="Miyabi A2A Dashboard - Real-time Agent-to-Agent system monitoring and workflow visualization" />
+    <meta name="theme-color" content="#9353d3" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Preconnect to CDN -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
+    <title>Miyabi A2A Dashboard - Real-time Agent Monitoring</title>
   </head>
   <body class="h-full min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script src="https://cdn.jsdelivr.net/npm/heroui-chat-script@0/dist/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/heroui-chat-script@beta/dist/select-and-edit-utils.global.js"></script>
+
+    <!-- External scripts loaded asynchronously -->
+    <script async src="https://cdn.jsdelivr.net/npm/heroui-chat-script@0/dist/index.min.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/heroui-chat-script@beta/dist/select-and-edit-utils.global.js"></script>
   </body>
 </html>

@@ -1,10 +1,11 @@
 import React from "react";
-import { Card, CardBody, Progress, Tooltip, Chip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from "@heroui/react";
+import { Card, CardBody, Progress, Chip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from "@heroui/react";
 import { Icon } from "@iconify/react";
-import { Agent } from "../types/miyabi-types"; // ✅ Rust型に準拠
-import { useMiyabiData } from "../hooks/use-miyabi-data"; // ✅ 実データフック
+import { useMiyabiData } from "../hooks/use-miyabi-data";
+import { useWebSocketContext } from "../contexts/websocket-context";
+import type { Agent } from "../types/miyabi-types";
 
-const getStatusIcon = (status: string) => {
+const getStatusIcon = (status: Agent['status']) => {
   switch (status) {
     case "active":
     case "working":
@@ -23,7 +24,7 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getAgentColorClass = (color: string) => {
+const getAgentColorClass = (color: Agent['color']) => {
   switch (color) {
     case "leader":
       return "border-l-agent-leader";
@@ -38,29 +39,53 @@ const getAgentColorClass = (color: string) => {
   }
 };
 
-export const Dashboard: React.FC = () => {
-  const { systemStatus, agents } = useMiyabiData(); // ✅ 実データ取得
+export const DashboardRealtime: React.FC = () => {
+  // Use WebSocket context directly for real-time data
+  const { agents: wsAgents, systemStatus: wsSystemStatus, isConnected, error } = useWebSocketContext();
+
+  // Local state for loading
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Update loading state when data arrives
+  React.useEffect(() => {
+    if (wsAgents && wsSystemStatus) {
+      setIsLoading(false);
+    }
+  }, [wsAgents, wsSystemStatus]);
+
+  // Use WebSocket data with fallback to empty arrays
+  const agents = wsAgents || [];
+  const systemStatus = wsSystemStatus || {
+    status: "unknown",
+    active_tasks: 0,
+    queued_tasks: 0,
+    active_agents: 0,
+    task_throughput: 0,
+    avg_completion_time: 0
+  };
+  const isHealthy = isConnected;
+
   const [categoryFilter, setCategoryFilter] = React.useState<"all" | "coding" | "business">("all");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "active" | "working" | "idle">("all");
   const [selectedAgent, setSelectedAgent] = React.useState<Agent | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  // Loading state
-  if (!agents || !systemStatus) {
-    return <div>Loading dashboard data...</div>;
-  }
-
   // フィルタリングされたAgent
-  const filteredAgents = agents.filter(agent => {
-    const categoryMatch = categoryFilter === "all" || agent.category === categoryFilter;
-    const statusMatch = statusFilter === "all" || agent.status === statusFilter;
-    return categoryMatch && statusMatch;
-  });
+  const filteredAgents = React.useMemo(() => {
+    if (!agents) return [];
+    return agents.filter(agent => {
+      const categoryMatch = categoryFilter === "all" || agent.category === categoryFilter;
+      // "Active"フィルターは "active" と "working" の両方を表示（実際に作業中のエージェント）
+      const statusMatch = statusFilter === "all" ||
+        (statusFilter === "active" ? (agent.status === "active" || agent.status === "working") : agent.status === statusFilter);
+      return categoryMatch && statusMatch;
+    });
+  }, [agents, categoryFilter, statusFilter]);
 
   // 統計情報
-  const codingAgents = agents.filter(a => a.category === "coding");
-  const businessAgents = agents.filter(a => a.category === "business");
-  const activeCount = agents.filter(a => a.status === "active" || a.status === "working").length;
+  const codingAgents = React.useMemo(() => agents?.filter(a => a.category === "coding") || [], [agents]);
+  const businessAgents = React.useMemo(() => agents?.filter(a => a.category === "business") || [], [agents]);
+  const activeCount = React.useMemo(() => agents?.filter(a => a.status === "active" || a.status === "working").length || 0, [agents]);
 
   // Agent詳細モーダルを開く
   const handleAgentClick = (agent: Agent) => {
@@ -68,15 +93,65 @@ export const Dashboard: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  // エラーハンドリング
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 space-y-4">
+        <Icon icon="lucide:alert-triangle" className="text-6xl text-red-500" />
+        <h2 className="text-2xl font-bold">WebSocket接続エラー</h2>
+        <p className="text-gray-600">リアルタイムデータの受信に失敗しました</p>
+        <div className="flex gap-3">
+          <Button color="primary" onPress={() => window.location.reload()}>
+            <Icon icon="lucide:refresh-cw" className="mr-2" />
+            再接続
+          </Button>
+          <Button color="default" variant="flat">
+            ヘルプを見る
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ローディング表示
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 space-y-4">
+        <Spinner size="lg" color="primary" />
+        <p className="text-lg font-medium text-foreground-600">
+          WebSocketでリアルタイムデータを読み込み中...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* API接続ステータス */}
+      <div className="flex items-center gap-2 text-sm">
+        {isHealthy ? (
+          <>
+            <span className="flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span className="text-green-600 font-medium">Rust API接続中 (http://localhost:3001)</span>
+          </>
+        ) : (
+          <>
+            <span className="flex h-2 w-2 bg-red-500 rounded-full"></span>
+            <span className="text-red-600 font-medium">API接続なし</span>
+          </>
+        )}
+      </div>
+
       {/* System Health */}
       <div className="flex flex-col md:flex-row gap-4 items-start">
         <Card className="w-full">
           <CardBody>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Icon icon="lucide:activity" className="text-miyabi-primary" />
-              System Health
+              System Health (Production Data)
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -85,7 +160,7 @@ export const Dashboard: React.FC = () => {
                   <span className="text-gray-600">Status</span>
                   <span className="flex items-center text-miyabi-success font-medium">
                     <Icon icon="lucide:check-circle" className="mr-1" />
-                    Healthy
+                    {systemStatus.status}
                   </span>
                 </div>
 
@@ -113,7 +188,7 @@ export const Dashboard: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Task Throughput</span>
-                  <span className="font-medium">{systemStatus.task_throughput.toFixed(1)} tasks/hour</span>
+                  <span className="font-medium">{systemStatus.task_throughput} tasks/hour</span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -320,7 +395,7 @@ export const Dashboard: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                         <Icon icon="lucide:bar-chart" />
-                        パフォーマンス統計
+                        パフォーマンス統計 (Production Data)
                       </h3>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-blue-50 rounded">
@@ -347,26 +422,6 @@ export const Dashboard: React.FC = () => {
                             {Math.floor(Math.random() * 20) + 80}
                           </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* 最近のタスク */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        <Icon icon="lucide:clock" />
-                        最近のタスク履歴
-                      </h3>
-                      <div className="space-y-2">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
-                            <Icon icon="lucide:check-circle" className="text-green-500" />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">Task #{100 + i}</p>
-                              <p className="text-xs text-gray-500">{i}時間前</p>
-                            </div>
-                            <Chip size="sm" color="success" variant="flat">完了</Chip>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>

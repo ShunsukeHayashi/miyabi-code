@@ -1,14 +1,17 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Card, CardBody, Progress, Divider, Chip } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { AgentCard } from "./agent-card";
 import { MetricsChart } from "./metrics-chart";
-import { AgentDetailModal } from "./agent-detail-modal";
 import { AgentFilters, FilterOptions } from "./agent-filters";
+import { VirtualizedAgentGrid, useResponsiveColumns } from "./virtualized-agent-grid";
+import { MinimalLoadingFallback } from "./loading-fallback";
 import { useMiyabiData } from "../hooks/use-miyabi-data";
-import { useSse } from "../hooks/use-sse";
 import { useNotifications } from "../contexts/notification-context";
-import { Agent } from "../types/miyabi-types";
+import { Agent } from "../types/miyabi-types"; // ✅ Rust型に準拠
+
+// Code-split AgentDetailModal (heavy modal with lots of UI)
+const AgentDetailModal = React.lazy(() => import("./agent-detail-modal").then(module => ({ default: module.AgentDetailModal })));
 
 export const LiveDashboard: React.FC = () => {
   const { systemStatus, agents, metrics } = useMiyabiData();
@@ -16,6 +19,7 @@ export const LiveDashboard: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
   const { addNotification } = useNotifications();
   const [hasConnected, setHasConnected] = React.useState(false);
+  const columnCount = useResponsiveColumns();
 
   // Filter state
   const [filters, setFilters] = React.useState<FilterOptions>({
@@ -127,12 +131,16 @@ export const LiveDashboard: React.FC = () => {
     });
   }, [addNotification]);
 
-  // Connect to SSE stream
-  const { isConnected, error } = useSse("/v1/events/stream", {
-    onMessage: handleSseMessage,
-    onOpen: handleSseOpen,
-    onError: handleSseError,
-  });
+  // SSE connection disabled - using WebSocket via useMiyabiData instead
+  // const { isConnected, error } = useSse("/v1/events/stream", {
+  //   onMessage: handleSseMessage,
+  //   onOpen: handleSseOpen,
+  //   onError: handleSseError,
+  // });
+
+  // Mock SSE status for UI (WebSocket is handling real-time updates)
+  const isConnected = true;
+  const error = null;
 
   // Filter and sort agents
   const filteredAndSortedAgents = React.useMemo(() => {
@@ -144,7 +152,7 @@ export const LiveDashboard: React.FC = () => {
         const query = filters.searchQuery.toLowerCase();
         if (
           !agent.name.toLowerCase().includes(query) &&
-          !agent.type.toLowerCase().includes(query)
+          !agent.role.toLowerCase().includes(query) // ✅ agent.role (not agent.type)
         ) {
           return false;
         }
@@ -158,10 +166,10 @@ export const LiveDashboard: React.FC = () => {
         return false;
       }
 
-      // Type filter
+      // Type filter (now using role)
       if (
         filters.typeFilter.length > 0 &&
-        !filters.typeFilter.includes(agent.type)
+        !filters.typeFilter.includes(agent.role.toLowerCase()) // ✅ agent.role (not agent.type)
       ) {
         return false;
       }
@@ -181,7 +189,7 @@ export const LiveDashboard: React.FC = () => {
           comparison = a.status.localeCompare(b.status);
           break;
         case "tasks":
-          comparison = (a.taskCount || 0) - (b.taskCount || 0);
+          comparison = (a.tasks || 0) - (b.tasks || 0); // ✅ agent.tasks (not agent.taskCount)
           break;
       }
 
@@ -221,13 +229,13 @@ export const LiveDashboard: React.FC = () => {
           <CardBody className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">System Health</h3>
-              <Icon 
-                icon={systemStatus.health === "healthy" ? "lucide:check-circle" : "lucide:alert-circle"} 
-                className={`h-6 w-6 ${systemStatus.health === "healthy" ? "text-miyabi-success" : "text-miyabi-error"}`} 
+              <Icon
+                icon={systemStatus.status === "healthy" ? "lucide:check-circle" : "lucide:alert-circle"}
+                className={`h-6 w-6 ${systemStatus.status === "healthy" ? "text-miyabi-success" : "text-miyabi-error"}`}
               />
             </div>
             <p className="text-xl font-semibold">
-              {systemStatus.health === "healthy" ? "Healthy" : "Issues Detected"}
+              {systemStatus.status === "healthy" ? "Healthy" : "Issues Detected"}
             </p>
             <p className="text-sm text-foreground-500">
               Last checked: {new Date().toLocaleTimeString()}
@@ -243,14 +251,14 @@ export const LiveDashboard: React.FC = () => {
               <Icon icon="lucide:list-checks" className="h-6 w-6 text-miyabi-primary" />
             </div>
             <div className="flex items-end gap-2">
-              <p className="text-xl font-semibold">{systemStatus.activeTasks}</p>
+              <p className="text-xl font-semibold">{systemStatus.active_tasks}</p>
               <p className="text-sm text-foreground-500">
-                ({systemStatus.queuedTasks} queued)
+                ({systemStatus.queued_tasks} queued)
               </p>
             </div>
-            <Progress 
-              value={systemStatus.activeTasks} 
-              maxValue={systemStatus.activeTasks + systemStatus.queuedTasks}
+            <Progress
+              value={systemStatus.active_tasks}
+              maxValue={systemStatus.active_tasks + systemStatus.queued_tasks}
               color="primary"
               className="mt-1"
             />
@@ -319,18 +327,14 @@ export const LiveDashboard: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredAndSortedAgents.map((agent) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                onClick={() => {
-                  setSelectedAgent(agent);
-                  setIsDetailModalOpen(true);
-                }}
-              />
-            ))}
-          </div>
+          <VirtualizedAgentGrid
+            agents={filteredAndSortedAgents}
+            onAgentClick={(agent) => {
+              setSelectedAgent(agent);
+              setIsDetailModalOpen(true);
+            }}
+            columnCount={columnCount}
+          />
         )}
       </div>
 
@@ -345,14 +349,16 @@ export const LiveDashboard: React.FC = () => {
       </div>
 
       {/* Agent Detail Modal */}
-      <AgentDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedAgent(null);
-        }}
-        agent={selectedAgent}
-      />
+      <Suspense fallback={<MinimalLoadingFallback />}>
+        <AgentDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedAgent(null);
+          }}
+          agent={selectedAgent}
+        />
+      </Suspense>
     </div>
   );
 };

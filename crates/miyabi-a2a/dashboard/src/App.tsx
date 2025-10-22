@@ -1,17 +1,20 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Tabs, Tab, Divider, Spinner } from "@heroui/react";
 import { LiveDashboard } from "./components/live-dashboard";
 import { DashboardRealtime } from "./components/dashboard-realtime";
-import { EventTimeline } from "./components/event-timeline";
-import { DagVisualizer } from "./components/dag-visualizer";
-import { ErrorDashboard } from "./components/error-dashboard";
-import { PerformanceAnalytics } from "./components/performance-analytics";
 import { Header } from "./components/header";
+import { TabLoadingFallback } from "./components/loading-fallback";
 import { useMiyabiData } from "./hooks/use-miyabi-data";
 import { NotificationProvider } from "./contexts/notification-context";
 import { ThemeProvider } from "./contexts/theme-context";
 import { RefreshProvider } from "./contexts/refresh-context";
 import { WebSocketProvider } from "./contexts/websocket-context";
+
+// Code-split heavy components with React.lazy
+const EventTimeline = React.lazy(() => import("./components/event-timeline").then(module => ({ default: module.EventTimeline })));
+const DagVisualizer = React.lazy(() => import("./components/dag-visualizer").then(module => ({ default: module.DagVisualizer })));
+const ErrorDashboard = React.lazy(() => import("./components/error-dashboard").then(module => ({ default: module.ErrorDashboard })));
+const PerformanceAnalytics = React.lazy(() => import("./components/performance-analytics").then(module => ({ default: module.PerformanceAnalytics })));
 
 const AppContent: React.FC = () => {
   const [selected, setSelected] = React.useState("production");
@@ -49,16 +52,24 @@ const AppContent: React.FC = () => {
             <LiveDashboard />
           </Tab>
           <Tab key="timeline" title="Event Timeline">
-            <EventTimeline />
+            <Suspense fallback={<TabLoadingFallback tabName="Event Timeline" />}>
+              <EventTimeline />
+            </Suspense>
           </Tab>
           <Tab key="workflow" title="Workflow DAG">
-            <DagVisualizer />
+            <Suspense fallback={<TabLoadingFallback tabName="Workflow DAG" />}>
+              <DagVisualizer />
+            </Suspense>
           </Tab>
           <Tab key="errors" title="Errors & Warnings">
-            <ErrorDashboard />
+            <Suspense fallback={<TabLoadingFallback tabName="Error Dashboard" />}>
+              <ErrorDashboard />
+            </Suspense>
           </Tab>
           <Tab key="analytics" title="パフォーマンス">
-            <PerformanceAnalytics />
+            <Suspense fallback={<TabLoadingFallback tabName="Performance Analytics" />}>
+              <PerformanceAnalytics />
+            </Suspense>
           </Tab>
         </Tabs>
       </main>

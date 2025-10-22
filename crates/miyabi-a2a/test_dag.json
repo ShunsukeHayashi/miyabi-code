@@ -1,0 +1,19 @@
+{
+  "workflowId": "workflow-sample",
+  "nodes": [
+    {
+      "id": "task-a",
+      "label": "Parse Spec",
+      "status": "completed",
+      "agent": "しきるん",
+      "agentType": "coordinator"
+    }
+  ],
+  "edges": [
+    {
+      "from": "task-a",
+      "to": "task-c",
+      "type": "depends_on"
+    }
+  ]
+}

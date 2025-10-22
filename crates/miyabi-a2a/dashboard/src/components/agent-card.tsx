@@ -1,20 +1,29 @@
 import React from "react";
-import { Card, CardBody, Chip, Tooltip, Button, Progress } from "@heroui/react";
+import { Card, CardBody, Chip, Tooltip, Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
-import { Agent } from "../types/miyabi-types";
+import { Agent } from "../types/miyabi-types"; // ✅ Rust型に準拠
+import { AgentProgressBar } from "./agent-progress-bar";
+import { AgentErrorIndicator } from "./agent-error-indicator";
 
 interface AgentCardProps {
   agent: Agent;
   onClick?: () => void;
 }
 
-export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
+/**
+ * AgentCard component - optimized with React.memo
+ * Only re-renders when agent props change
+ */
+export const AgentCard = React.memo<AgentCardProps>(({ agent, onClick }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [showDetails, setShowDetails] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
 
-  // Map agent type to color, icon, and emoji
-  const getAgentTypeInfo = (type: string) => {
+  // Map agent role to color, icon, and emoji
+  // Note: agent.role is English name (e.g., "Coordinator"), so we convert to lowercase
+  const getAgentTypeInfo = React.useCallback((role: string) => {
+    const type = role.toLowerCase();
     switch (type) {
       case "coordinator":
         return {
@@ -73,10 +82,10 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
           label: "エージェント"
         };
     }
-  };
+  }, []);
 
   // Map status to color and animation
-  const getStatusInfo = (status: string) => {
+  const getStatusInfo = React.useCallback((status: string) => {
     switch (status) {
       case "active":
         return { color: "success", icon: "lucide:activity", label: "稼働中" };
@@ -89,37 +98,57 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
       default:
         return { color: "default", icon: "lucide:help-circle", label: "不明" };
     }
-  };
+  }, []);
 
-  const typeInfo = getAgentTypeInfo(agent.type);
-  const statusInfo = getStatusInfo(agent.status);
-  const isWorking = agent.status === "working" || agent.status === "active";
+  const typeInfo = React.useMemo(() => getAgentTypeInfo(agent.role), [agent.role, getAgentTypeInfo]);
+  const statusInfo = React.useMemo(() => getStatusInfo(agent.status), [agent.status, getStatusInfo]);
+  const isWorking = React.useMemo(
+    () => agent.status === "working" || agent.status === "active",
+    [agent.status]
+  );
 
-  // Animation variants
-  const cardVariants = {
+  const handleCardPress = React.useCallback(() => {
+    setShowDetails(prev => !prev);
+    onClick?.();
+  }, [onClick]);
+
+  const handleImageError = React.useCallback(() => {
+    setImageError(true);
+  }, []);
+
+  const handleHoverStart = React.useCallback(() => {
+    setIsHovered(true);
+  }, []);
+
+  const handleHoverEnd = React.useCallback(() => {
+    setIsHovered(false);
+  }, []);
+
+  // Animation variants (memoized)
+  const cardVariants = React.useMemo(() => ({
     initial: { scale: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" },
     hover: {
       scale: 1.02,
       boxShadow: "0 10px 30px rgba(99, 102, 241, 0.2)",
       transition: { duration: 0.2 }
     },
-  };
+  }), []);
 
-  const iconVariants = {
+  const iconVariants = React.useMemo(() => ({
     working: {
       rotate: 360,
       transition: { duration: 2, repeat: Infinity, ease: "linear" }
     },
     idle: { rotate: 0 }
-  };
+  }), []);
 
   return (
     <motion.div
       variants={cardVariants}
       initial="initial"
       whileHover="hover"
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverStart={handleHoverStart}
+      onHoverEnd={handleHoverEnd}
     >
       <Card
         className={`
@@ -128,26 +157,32 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
           ${isHovered ? "bg-content2" : ""}
         `}
         isPressable
-        onPress={() => {
-          setShowDetails(!showDetails);
-          onClick?.();
-        }}
+        onPress={handleCardPress}
       >
         <CardBody className="p-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Agent Icon with Gradient */}
+              {/* Agent Character Image with Fallback */}
               <motion.div
                 className={`
-                  flex h-10 w-10 items-center justify-center rounded-full
+                  relative flex h-12 w-12 items-center justify-center rounded-full
                   bg-gradient-to-br ${typeInfo.color}
-                  shadow-lg
+                  shadow-lg overflow-hidden
                 `}
                 animate={isWorking ? "working" : "idle"}
                 variants={iconVariants}
               >
-                <Icon icon={typeInfo.icon} className="h-5 w-5 text-white" />
+                {!imageError ? (
+                  <img
+                    src={`/agents/${agent.role.toLowerCase()}.png`}
+                    alt={agent.name}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <Icon icon={typeInfo.icon} className="h-6 w-6 text-white" />
+                )}
               </motion.div>
 
               {/* Agent Info */}
@@ -156,7 +191,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
                   <span className="text-lg">{typeInfo.emoji}</span>
                   <h3 className="font-semibold text-lg">{agent.name}</h3>
                 </div>
-                <p className="text-xs text-foreground-400">{typeInfo.label} • {agent.type}</p>
+                <p className="text-xs text-foreground-400">{typeInfo.label} • {agent.role}</p>
               </div>
             </div>
 
@@ -175,28 +210,17 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-foreground-500">処理中タスク</span>
-              <span className="font-semibold">{agent.taskCount}</span>
+              <span className="font-semibold">{agent.tasks}</span>
             </div>
 
-            {agent.taskCount > 0 && (
-              <Progress
-                value={(agent.taskCount / 5) * 100}
-                color={statusInfo.color}
-                size="sm"
-                className="max-w-full"
-              />
-            )}
-
-            {agent.currentTask && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-2 rounded-md bg-default-100 p-2"
-              >
-                <p className="text-xs text-foreground-500 mb-1">現在の作業:</p>
-                <p className="text-sm font-medium truncate">{agent.currentTask}</p>
-              </motion.div>
-            )}
+            {/* AgentProgressBar - animated task progress */}
+            <AgentProgressBar
+              tasks={agent.tasks || 0}
+              maxTasks={10}
+              status={agent.status}
+              showLabel={agent.tasks > 0}
+              height="md"
+            />
           </div>
 
           {/* Actions (show on hover) */}
@@ -226,8 +250,20 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
             </Tooltip>
           </motion.div>
 
+          {/* Status indicators */}
+          {/* Error indicator with animation */}
+          {agent.status === "error" && (
+            <AgentErrorIndicator
+              show={true}
+              severity="error"
+              position="top-right"
+              errorMessage="Agent encountered an error"
+              size="md"
+            />
+          )}
+
           {/* Pulse indicator for working agents */}
-          {isWorking && (
+          {isWorking && agent.status !== "error" && (
             <div className="absolute top-2 right-2">
               <motion.div
                 className="h-2 w-2 rounded-full bg-primary"
@@ -247,4 +283,6 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick }) => {
       </Card>
     </motion.div>
   );
-};
+});
+
+AgentCard.displayName = "AgentCard";

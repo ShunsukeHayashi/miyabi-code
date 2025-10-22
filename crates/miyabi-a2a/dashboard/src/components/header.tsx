@@ -14,7 +14,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ systemStatus }) => {
-  const isHealthy = systemStatus?.health === "healthy";
+  const isHealthy = systemStatus?.status === "healthy";
   const [isControlPanelOpen, setIsControlPanelOpen] = React.useState(false);
   const [isNotificationHistoryOpen, setIsNotificationHistoryOpen] = React.useState(false);
   const { notifications } = useNotifications();
