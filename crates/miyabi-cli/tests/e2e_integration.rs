@@ -20,7 +20,7 @@ fn test_init_command_creates_structure() {
     // Change to temp directory
     std::env::set_current_dir(temp_dir.path()).unwrap();
 
-    let cmd = InitCommand::new("test-project".to_string(), false);
+    let cmd = InitCommand::with_interactive("test-project".to_string(), false, false);
     let result = tokio_test::block_on(cmd.execute());
 
     // Should succeed
@@ -51,7 +51,7 @@ fn test_init_with_invalid_name() {
     std::env::set_current_dir(temp_dir.path()).unwrap();
 
     // Test with invalid characters
-    let cmd = InitCommand::new("test project".to_string(), false);
+    let cmd = InitCommand::with_interactive("test project".to_string(), false, false);
     let result = tokio_test::block_on(cmd.execute());
 
     assert!(result.is_err());
@@ -156,7 +156,7 @@ fn test_full_workflow_init_to_status() {
     std::env::set_current_dir(temp_dir.path()).unwrap();
 
     // Step 2: Initialize project
-    let init_cmd = InitCommand::new("workflow-test".to_string(), false);
+    let init_cmd = InitCommand::with_interactive("workflow-test".to_string(), false, false);
     let init_result = tokio_test::block_on(init_cmd.execute());
     assert!(init_result.is_ok());
 
@@ -186,7 +186,7 @@ fn test_config_file_content() {
 
     std::env::set_current_dir(temp_dir.path()).unwrap();
 
-    let cmd = InitCommand::new("config-test".to_string(), false);
+    let cmd = InitCommand::with_interactive("config-test".to_string(), false, false);
     tokio_test::block_on(cmd.execute()).unwrap();
 
     let config_path = temp_dir.path().join("config-test/.miyabi.yml");

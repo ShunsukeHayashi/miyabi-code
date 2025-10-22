@@ -2,11 +2,10 @@
 //!
 //! Tests the integration of Business Agents with the CLI and core systems
 
-use miyabi_agents::base::BaseAgent;
-use miyabi_agents::business::{
-    AIEntrepreneurAgent, AnalyticsAgent, CRMAgent, ContentCreationAgent, FunnelDesignAgent,
-    MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent,
-    SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
+use miyabi_agents::{
+    AIEntrepreneurAgent, AnalyticsAgent, BaseAgent, CRMAgent, ContentCreationAgent,
+    FunnelDesignAgent, MarketResearchAgent, MarketingAgent, PersonaAgent, ProductConceptAgent,
+    ProductDesignAgent, SNSStrategyAgent, SalesAgent, SelfAnalysisAgent, YouTubeAgent,
 };
 use miyabi_types::{agent::ResultStatus, task::TaskType, AgentConfig, AgentType, Task};
 use std::collections::HashMap;

@@ -1,0 +1,31 @@
+[package]
+name = "miyabi-agent-coordinator"
+version = "0.1.1"
+edition = "2021"
+authors = ["Shunsuke Hayashi <supernovasyun@gmail.com>"]
+description = "Coordinator agents for task orchestration and parallel execution"
+license = "MIT"
+repository = "https://github.com/ShunsukeHayashi/Miyabi"
+
+[dependencies]
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
+miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+miyabi-llm = { version = "0.1.0", path = "../miyabi-llm", optional = true }
+
+tokio = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+default = []
+llm-integration = ["miyabi-llm"]
+
+[dev-dependencies]
+tempfile = "3.13"
+tokio = { workspace = true, features = ["test-util"] }
