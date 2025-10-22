@@ -292,6 +292,7 @@ crates/
 ├── miyabi-worktree/          # Git Worktree管理
 ├── miyabi-llm/               # LLM抽象化層（GPT-OSS-20B、Groq/vLLM/Ollama）
 ├── miyabi-potpie/            # Potpie AI統合（Neo4j知識グラフ、RAG）
+├── miyabi-knowledge/         # ナレッジ管理システム（ベクトルDB、埋め込み、検索）
 └── miyabi-mcp-server/        # MCP Server（JSON-RPC 2.0、Agent実行）
 ```
 
@@ -323,6 +324,75 @@ crates/
   - Transport modes: stdio (CLI統合), HTTP (remote access)
   - Codex CLI integration: MCP経由でMiyabi Agent実行
   - 詳細: `crates/miyabi-mcp-server/src/lib.rs`
+
+- **miyabi-knowledge** (`.knowledge/`): ナレッジ管理システム（NEW - v0.1.1）
+  - **Vector Database**: Qdrant統合（Rust製、高速ベクトル検索）
+    - 384次元ベクトル（Ollama: all-MiniLM-L6-v2）
+    - 1536次元ベクトル（OpenAI: text-embedding-3-small）対応
+  - **Embeddings Provider**:
+    - Ollama統合（ローカル実行、Mac mini LAN接続対応）
+    - OpenAI API統合（高品質埋め込み）
+  - **Log Collection**:
+    - `.ai/logs/` Markdown自動収集・パース
+    - Worktree実行ログの自動インデックス化
+    - バッチ処理最適化（100エントリ/バッチ）
+  - **Metadata Extraction**:
+    - Agent種別（CoordinatorAgent, CodeGenAgent等）
+    - Issue番号（#270形式の自動抽出）
+    - Task種別（feature, bug, refactor等）
+    - 実行結果（success/failed）
+    - ツール使用状況の自動推論
+  - **Search Capabilities**:
+    - ベクトル類似性検索（意味的類似度スコア0.0-1.0）
+    - メタデータフィルタリング（Agent, Issue, Task, Outcome）
+    - 複合検索（ベクトル検索 + フィルタ）
+  - **Workspace Hierarchy**: 3階層管理
+    - Project > Worktree > Agent
+    - Workspace単位での検索・統計取得
+  - **3つのアクセス方法**:
+    - Rust API: `KnowledgeManager`, `QdrantSearcher`, `KnowledgeIndexer`
+    - CLI: `miyabi knowledge search/stats/index`
+    - MCP Server: `knowledge.search` JSON-RPC 2.0メソッド（Claude Code統合）
+  - **Text Processing**:
+    - Markdown chunking（512文字 + 128文字オーバーラップ）
+    - UTF-8境界対応の安全な分割
+    - `pulldown-cmark`によるMarkdownパース
+  - **主要API**:
+    ```rust
+    use miyabi_knowledge::{KnowledgeManager, KnowledgeConfig};
+
+    let config = KnowledgeConfig::default();
+    let manager = KnowledgeManager::new(config).await?;
+
+    // インデックス化
+    let stats = manager.index_workspace("miyabi-private").await?;
+
+    // 検索
+    let results = manager.search("error handling in Rust", 10).await?;
+    ```
+  - **CLI使用例**:
+    ```bash
+    # ワークスペースインデックス化
+    miyabi knowledge index miyabi-private
+
+    # 検索
+    miyabi knowledge search "deployment error" --agent DeploymentAgent
+
+    # 統計表示
+    miyabi knowledge stats --json
+    ```
+  - **MCP統合**: Claude Codeから自動的にナレッジベース検索
+  - **ドキュメント**:
+    - User Guide: `crates/miyabi-knowledge/USER_GUIDE.md`
+    - API Reference: `crates/miyabi-knowledge/API_REFERENCE.md`
+    - README: `crates/miyabi-knowledge/README.md`
+  - **今後の拡張計画**（Issue #421）:
+    - Phase 1: 自動インデックス化（Lifecycle Hook統合） - Issue #422
+    - Phase 2: 増分インデックス化（差分検出）
+    - Phase 3: ログ保持ポリシー（自動クリーンアップ）
+    - Phase 4: Web UIダッシュボード（可視化・統計グラフ） - Issue #423
+    - Phase 5: エクスポート機能（CSV/JSON/Markdown）
+    - Phase 6: 統合テスト（Docker Compose + E2E） - Issue #424
 
 **レガシー TypeScript版** (参考):
 - `packages/`: NPMパッケージ（Rust移行中）
@@ -388,6 +458,86 @@ cargo clippy -- -D warnings
 - `.miyabi.yml`は`.gitignore`に追加
 - Dependabot有効
 - CodeQL有効
+
+## 📚 外部依存関係の取り扱い - Context7の使用
+
+### Context7とは
+
+**Model Context Protocol (MCP) サーバー** - 20,000以上のライブラリの最新ドキュメントを動的に取得し、古いAPI参照を排除します。
+
+**開発元**: Upstash（オープンソース・無料）
+**公式サイト**: https://context7.com/
+**GitHub**: https://github.com/upstash/context7
+
+### セットアップ（初回のみ）
+
+```bash
+# Context7 MCPサーバーを追加
+claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
+
+# または HTTPトランスポート経由
+claude mcp add --transport http context7 https://mcp.context7.com/mcp --header "CONTEXT7_API_KEY: YOUR_API_KEY"
+```
+
+**API Key取得**: [context7.com](https://context7.com/) でアカウント作成（無料）
+
+**設定確認**:
+```bash
+# MCPサーバーリスト確認
+claude mcp list
+
+# Context7が表示されればOK
+```
+
+### 使用方法
+
+**Claude Codeでの指示例**:
+```
+Use context7 to get the latest Tokio async runtime documentation
+
+Use context7 to get the latest SWE-bench Pro evaluation harness code
+
+Use context7 to get the latest Rust serde_json API examples
+
+Use context7 to get the latest AgentBench Docker setup
+```
+
+### 使用が必須のケース
+
+✅ **必ず使用**:
+- 公式ベンチマークハーネスのコード参照（SWE-bench Pro, AgentBench, HAL, Galileo等）
+- 外部ライブラリの実装パターン確認（Tokio, serde, octocrab, axum等）
+- フレームワーク固有の型定義参照（actix-web, rocket, yew等）
+- 最新APIの仕様確認（Breaking changes対応時、メジャーバージョンアップ時）
+- Docker設定ファイルの標準パターン取得
+- 評価スクリプトの実装パターン確認
+
+❌ **禁止事項**:
+- コードの直接コピー&ペースト（ライセンス違反リスク）
+- Context7なしでの外部コード再実装（古いAPI使用リスク）
+- 公式ドキュメント無視の独自実装（再現性欠如リスク）
+- 非推奨APIの使用（Breaking changesリスク）
+
+### トラブルシューティング
+
+**Q: Context7が見つからないライブラリがある**
+A: 手動で公式リポジトリを確認してください。ただし、20,000以上のライブラリをカバーしているため、ほとんどの場合は対応済みです。
+
+**Q: API Keyエラーが出る**
+A: `~/.config/claude/claude_desktop_config.json` でAPI Key設定を確認してください。
+
+**Q: MCPサーバーが起動しない**
+A: Node.jsがインストールされているか確認してください（`node --version`）。npxコマンドが利用可能である必要があります。
+
+**Q: 古いドキュメントが返ってくる**
+A: Context7は常に最新版を取得します。もし古い場合は、ライブラリのバージョン指定が間違っている可能性があります。
+
+---
+
+**関連ドキュメント**:
+- [BENCHMARK_IMPLEMENTATION_CHECKLIST.md](.claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md) - ベンチマーク実装時の詳細チェックリスト
+- [dependency-management SKILL](.claude/skills/dependency-management/SKILL.md) - 依存関係管理詳細ガイド
+- [CodeGenAgent Prompt](.claude/agents/prompts/coding/codegen-agent-prompt.md) - コード生成時の実行指示
 
 ## Label System - 53ラベル体系
 
