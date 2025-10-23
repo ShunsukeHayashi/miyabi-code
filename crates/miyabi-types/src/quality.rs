@@ -3,12 +3,19 @@
 use serde::{Deserialize, Serialize};
 
 /// Quality report from ReviewAgent
+///
+/// Contains comprehensive quality assessment with score, issues, and recommendations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QualityReport {
-    pub score: u8,    // 0-100
-    pub passed: bool, // score >= 80
+    /// Overall quality score (0-100 points)
+    pub score: u8,
+    /// Whether the code passes quality threshold (score >= 80)
+    pub passed: bool,
+    /// List of detected quality issues (linting, typing, security, coverage)
     pub issues: Vec<QualityIssue>,
+    /// Human-readable recommendations for improvement
     pub recommendations: Vec<String>,
+    /// Detailed breakdown by category (clippy, rustc, security, test coverage)
     pub breakdown: QualityBreakdown,
 }
 
@@ -80,27 +87,42 @@ impl QualityBreakdown {
 }
 
 /// Quality issue
+///
+/// Represents a single quality issue detected during code review,
+/// with location information and severity assessment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QualityIssue {
+    /// Type of issue (eslint, typescript, security, coverage)
     #[serde(rename = "type")]
     pub issue_type: QualityIssueType,
+    /// Severity level (low, medium, high, critical)
     pub severity: QualitySeverity,
+    /// Human-readable error message
     pub message: String,
+    /// Optional file path where the issue was found
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<String>,
+    /// Optional line number in the file
     #[serde(skip_serializing_if = "Option::is_none")]
     pub line: Option<u32>,
+    /// Optional column number in the line
     #[serde(skip_serializing_if = "Option::is_none")]
     pub column: Option<u32>,
-    pub score_impact: u8, // Points deducted
+    /// Points deducted from overall score (0-100)
+    pub score_impact: u8,
 }
 
+/// Quality issue type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum QualityIssueType {
+    /// Linting issue (ESLint for TypeScript, Clippy for Rust)
     Eslint,
+    /// Type checking issue (TypeScript or rustc)
     Typescript,
+    /// Security vulnerability detected
     Security,
+    /// Test coverage gap
     Coverage,
 }
 
@@ -108,39 +130,64 @@ pub enum QualityIssueType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum QualitySeverity {
+    /// Low severity - minor style or formatting issue
     Low,
+    /// Medium severity - potential issue but not critical
     Medium,
+    /// High severity - significant issue that should be addressed
     High,
+    /// Critical severity - must be fixed before merge
     Critical,
 }
 
 /// Review comment
+///
+/// A human-readable comment added during code review,
+/// typically with a suggested fix.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReviewComment {
+    /// File path where the comment applies
     pub file: String,
+    /// Line number in the file
     pub line: u32,
+    /// Severity level of the issue
     pub severity: QualitySeverity,
+    /// Human-readable comment message
     pub message: String,
+    /// Optional suggested fix or code snippet
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggestion: Option<String>,
 }
 
 /// Review request
+///
+/// Request to ReviewAgent for code quality assessment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReviewRequest {
+    /// List of file paths to review
     pub files: Vec<String>,
+    /// Git branch name
     pub branch: String,
+    /// Context description for the review
     pub context: String,
 }
 
 /// Review result
+///
+/// Complete result from ReviewAgent including quality report,
+/// approval status, and escalation requirements.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReviewResult {
+    /// Detailed quality assessment report
     pub quality_report: QualityReport,
+    /// Whether the review is approved (typically score >= 80)
     pub approved: bool,
+    /// Whether escalation to human reviewer is required
     pub escalation_required: bool,
+    /// Optional target role for escalation (TechLead, PO, etc.)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub escalation_target: Option<crate::agent::EscalationTarget>,
+    /// List of review comments with suggested fixes
     pub comments: Vec<ReviewComment>,
 }
 

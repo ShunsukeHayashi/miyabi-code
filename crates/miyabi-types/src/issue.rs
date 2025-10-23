@@ -5,17 +5,28 @@ use crate::quality::QualityReport;
 use serde::{Deserialize, Serialize};
 
 /// GitHub Issue
+///
+/// Represents a GitHub issue with its metadata, state, and lifecycle information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Issue {
+    /// Issue number (starts at 1 in GitHub)
     pub number: u64,
+    /// Issue title (max 256 characters recommended)
     pub title: String,
+    /// Issue body/description in Markdown format
     pub body: String,
+    /// GitHub state (open/closed)
     pub state: IssueStateGithub,
+    /// List of label names attached to this issue
     pub labels: Vec<String>,
+    /// Optional GitHub username of assigned user
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assignee: Option<String>,
+    /// Timestamp when the issue was created
     pub created_at: chrono::DateTime<chrono::Utc>,
+    /// Timestamp when the issue was last updated
     pub updated_at: chrono::DateTime<chrono::Utc>,
+    /// Full URL to the issue (e.g., "https://github.com/owner/repo/issues/123")
     pub url: String,
 }
 

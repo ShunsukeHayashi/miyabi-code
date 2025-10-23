@@ -47,17 +47,31 @@ pub enum MiyabiError {
 }
 
 /// Agent-specific error
+///
+/// Represents errors that occur during agent execution, including
+/// the agent type, optional task ID, and error message.
 #[derive(Error, Debug)]
 #[error("Agent {agent_type:?} failed: {message}")]
 pub struct AgentError {
+    /// Human-readable error message describing what went wrong
     pub message: String,
+    /// Type of agent that encountered the error (e.g., CodeGenAgent, ReviewAgent)
     pub agent_type: AgentType,
+    /// Optional task ID if the error occurred during task execution
     pub task_id: Option<String>,
+    /// Optional underlying cause of the error for error chaining
     #[source]
     pub cause: Option<Box<dyn std::error::Error + Send + Sync>>,
 }
 
 impl AgentError {
+    /// Creates a new `AgentError` without an underlying cause
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - Error message describing what went wrong
+    /// * `agent_type` - Type of agent that encountered the error
+    /// * `task_id` - Optional task ID if error occurred during task execution
     pub fn new(message: impl Into<String>, agent_type: AgentType, task_id: Option<String>) -> Self {
         Self {
             message: message.into(),
@@ -67,6 +81,14 @@ impl AgentError {
         }
     }
 
+    /// Creates a new `AgentError` with an underlying cause for error chaining
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - Error message describing what went wrong
+    /// * `agent_type` - Type of agent that encountered the error
+    /// * `task_id` - Optional task ID if error occurred during task execution
+    /// * `cause` - Underlying error that caused this error
     pub fn with_cause(
         message: impl Into<String>,
         agent_type: AgentType,
@@ -83,16 +105,31 @@ impl AgentError {
 }
 
 /// Escalation error (requires human intervention)
+///
+/// Represents situations where automated agent execution cannot proceed
+/// and requires escalation to a human operator (Tech Lead, PO, CISO, etc.).
 #[derive(Error, Debug)]
 #[error("Escalation to {target:?} required: {message} (severity: {severity:?})")]
 pub struct EscalationError {
+    /// Human-readable message explaining why escalation is needed
     pub message: String,
+    /// Target role to escalate to (TechLead, PO, CISO, CTO, DevOps)
     pub target: EscalationTarget,
+    /// Severity level of the issue (Critical, High, Medium, Low, Trivial)
     pub severity: Severity,
+    /// Additional context as JSON (e.g., issue number, PR URL, error details)
     pub context: serde_json::Value,
 }
 
 impl EscalationError {
+    /// Creates a new `EscalationError`
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - Human-readable message explaining why escalation is needed
+    /// * `target` - Target role to escalate to (TechLead, PO, CISO, CTO, DevOps)
+    /// * `severity` - Severity level (Critical, High, Medium, Low, Trivial)
+    /// * `context` - Additional context as JSON value
     pub fn new(
         message: impl Into<String>,
         target: EscalationTarget,
@@ -109,13 +146,22 @@ impl EscalationError {
 }
 
 /// Circular dependency error in DAG
+///
+/// Represents a detected cycle in the task dependency graph (DAG).
+/// Contains the sequence of task IDs forming the cycle.
 #[derive(Error, Debug)]
 #[error("Circular dependency detected: {}", cycle.join(" -> "))]
 pub struct CircularDependencyError {
+    /// Sequence of task IDs forming the cycle (e.g., ["task-1", "task-2", "task-1"])
     pub cycle: Vec<String>,
 }
 
 impl CircularDependencyError {
+    /// Creates a new `CircularDependencyError`
+    ///
+    /// # Arguments
+    ///
+    /// * `cycle` - Sequence of task IDs forming the cycle
     pub fn new(cycle: Vec<String>) -> Self {
         Self { cycle }
     }
