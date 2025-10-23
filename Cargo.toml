@@ -19,14 +19,12 @@ members = [
     "crates/miyabi-knowledge",
     "crates/miyabi-business-agents",
     "crates/miyabi-mcp-server",
-    # Temporarily excluded: twilight v0.16 breaking changes require extensive fixes
-    # TODO: Fix twilight API changes in discord-mcp-server (Issue to be created)
-    # "crates/miyabi-discord-mcp-server",
+    "crates/miyabi-discord-mcp-server",
     "crates/miyabi-a2a",
     "crates/miyabi-webhook",
     "crates/miyabi-benchmark",
     "crates/miyabi-web-api",
-    "crates/miyabi-orchestrator", "crates/miyabi-feedback-loop",
+    "crates/miyabi-orchestrator", "crates/miyabi-feedback-loop", "crates/miyabi-scheduler",
 ]
 
 [workspace.package]

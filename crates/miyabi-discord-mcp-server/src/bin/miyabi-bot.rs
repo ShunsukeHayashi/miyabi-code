@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, ShardId, StreamExt};
 use twilight_http::Client as HttpClient;
 use twilight_model::channel::message::embed::{Embed, EmbedFooter};
 use twilight_model::channel::Message;
@@ -146,13 +146,11 @@ impl MiyabiBot {
                 error!("Failed to delete spam message: {}", e);
             }
 
-            // Send warning
-            if let Ok(response) = self.http.create_message(msg.channel_id).content(&format!(
+            // Send warning (twilight v0.16: builder pattern, call .await directly)
+            let _ = self.http.create_message(msg.channel_id).content(&format!(
                 "⚠️ {}さん、メッセージを送信するペースが速すぎます。\n少しゆっくりお願いします。",
                 msg.author.name
-            )) {
-                let _ = response.await;
-            }
+            )).await;
 
             // Report to progress channel
             if let Some(ref reporter) = self.progress_reporter {
@@ -185,14 +183,12 @@ impl MiyabiBot {
             error!("Failed to delete profane message: {}", e);
         }
 
-        // Send warning
-        if let Ok(response) = self.http.create_message(msg.channel_id).content(&format!(
+        // Send warning (twilight v0.16: builder pattern, call .await directly)
+        let _ = self.http.create_message(msg.channel_id).content(&format!(
             "🚫 {}さん、不適切な言葉が含まれていたため、メッセージを削除しました。\n\
                  コミュニティルールを守って、みんなが楽しめる環境を作りましょう！",
             msg.author.name
-        )) {
-            let _ = response.await;
-        }
+        )).await;
 
         // Report to progress channel
         if let Some(ref reporter) = self.progress_reporter {
@@ -293,11 +289,12 @@ impl MiyabiBot {
             || content_lower.contains("こんばんは")
             || content_lower.contains("おはよう")
         {
+            // Twilight v0.16: call .await? at the end of the builder chain
             self.http
                 .create_message(msg.channel_id)
                 .content(
                     "🌸 こんにちは！Miyabiちゃんだよ！\n何か手伝えることがあったら教えてね！✨",
-                )?
+                )
                 .await?;
             return Ok(());
         }
@@ -307,6 +304,7 @@ impl MiyabiBot {
             || content_lower.contains("おしえて")
             || content_lower.contains("help")
         {
+            // Twilight v0.16: call .await? at the end of the builder chain
             self.http
                 .create_message(msg.channel_id)
                 .content(
@@ -315,12 +313,12 @@ impl MiyabiBot {
                          **Agent一覧**: `!miyabi agent list`\n\
                          **システム状態**: `!miyabi status`\n\n\
                          詳しくは各コマンドを試してみてね！✨",
-                )?
+                )
                 .await?;
             return Ok(());
         }
 
-        // Agent question
+        // Agent question (twilight v0.16: call .await? at end)
         if content_lower.contains("agent") || content_lower.contains("エージェント") {
             self.http
                 .create_message(msg.channel_id)
@@ -329,7 +327,7 @@ impl MiyabiBot {
                          Miyabiには7つのCoding Agentがいるよ！\n\
                          `!miyabi agent list` で全員紹介するね！\n\n\
                          気になるAgentがあったら `!miyabi agent run <名前>` で実行できるよ！",
-                )?
+                )
                 .await?;
             return Ok(());
         }
@@ -341,12 +339,12 @@ impl MiyabiBot {
         {
             self.http
                 .create_message(msg.channel_id)
-                .content("🌸 どういたしまして！また何かあったら声をかけてね！✨")?
+                .content("🌸 どういたしまして！また何かあったら声をかけてね！✨")
                 .await?;
             return Ok(());
         }
 
-        // Default response for mentions
+        // Default response for mentions (twilight v0.16: call .await? at end)
         self.http
             .create_message(msg.channel_id)
             .content(&format!(
@@ -354,7 +352,7 @@ impl MiyabiBot {
                  何か質問があったら聞いてね！\n\
                  `!miyabi help` でコマンド一覧が見れるよ！✨",
                 msg.author.name
-            ))?
+            ))
             .await?;
 
         Ok(())
@@ -384,7 +382,7 @@ impl MiyabiBot {
 
         self.http
             .create_message(msg.channel_id)
-            .content(help_text)?
+            .content(help_text)
             .await?;
 
         Ok(())
@@ -394,7 +392,7 @@ impl MiyabiBot {
     async fn cmd_ping(&self, msg: &Message) -> Result<(), Box<dyn std::error::Error>> {
         self.http
             .create_message(msg.channel_id)
-            .content("🏓 Pong! Miyabiちゃんは元気だよ！")?
+            .content("🏓 Pong! Miyabiちゃんは元気だよ！")
             .await?;
 
         Ok(())
@@ -421,7 +419,7 @@ impl MiyabiBot {
 
         self.http
             .create_message(msg.channel_id)
-            .content(status_text)?
+            .content(status_text)
             .await?;
 
         Ok(())
@@ -436,7 +434,7 @@ impl MiyabiBot {
         if args.is_empty() {
             self.http
                 .create_message(msg.channel_id)
-                .content("使い方: `!miyabi agent <list|run|status>`")?
+                .content("使い方: `!miyabi agent <list|run|status>`")
                 .await?;
             return Ok(());
         }
@@ -460,14 +458,14 @@ impl MiyabiBot {
 
                 self.http
                     .create_message(msg.channel_id)
-                    .content(agent_list)?
+                    .content(agent_list)
                     .await?;
             }
             "run" => {
                 if args.len() < 2 {
                     self.http
                         .create_message(msg.channel_id)
-                        .content("使い方: `!miyabi agent run <agent-name>`\n例: `!miyabi agent run つくるん`")?
+                        .content("使い方: `!miyabi agent run <agent-name>`\n例: `!miyabi agent run つくるん`")
                         .await?;
                     return Ok(());
                 }
@@ -483,7 +481,7 @@ impl MiyabiBot {
 
                 self.http
                     .create_message(msg.channel_id)
-                    .content(&response)?
+                    .content(&response)
                     .await?;
 
                 // Report agent execution start
@@ -517,7 +515,7 @@ impl MiyabiBot {
             _ => {
                 self.http
                     .create_message(msg.channel_id)
-                    .content("未知のサブコマンドだよ。`!miyabi agent list` で確認してね！")?
+                    .content("未知のサブコマンドだよ。`!miyabi agent list` で確認してね！")
                     .await?;
             }
         }
@@ -534,7 +532,7 @@ impl MiyabiBot {
         if args.is_empty() {
             self.http
                 .create_message(msg.channel_id)
-                .content("使い方: `!miyabi issue <create|list|assign>`")?
+                .content("使い方: `!miyabi issue <create|list|assign>`")
                 .await?;
             return Ok(());
         }
@@ -545,7 +543,7 @@ impl MiyabiBot {
                 if args.len() < 3 {
                     self.http
                         .create_message(msg.channel_id)
-                        .content("📝 **使い方**: `!miyabi issue create <channel_id> <message_id>`\n\n**例**: `!miyabi issue create 1199878848968405057 1234567890123456789`\n\n💡 チャンネルIDとメッセージIDは、メッセージURLから取得できるよ！\nURL形式: `https://discord.com/channels/[guild_id]/[channel_id]/[message_id]`")?
+                        .content("📝 **使い方**: `!miyabi issue create <channel_id> <message_id>`\n\n**例**: `!miyabi issue create 1199878848968405057 1234567890123456789`\n\n💡 チャンネルIDとメッセージIDは、メッセージURLから取得できるよ！\nURL形式: `https://discord.com/channels/[guild_id]/[channel_id]/[message_id]`")
                         .await?;
                     return Ok(());
                 }
@@ -556,7 +554,7 @@ impl MiyabiBot {
                     Err(_) => {
                         self.http
                             .create_message(msg.channel_id)
-                            .content("❌ 無効なチャンネルIDだよ。数値で指定してね！")?
+                            .content("❌ 無効なチャンネルIDだよ。数値で指定してね！")
                             .await?;
                         return Ok(());
                     }
@@ -567,7 +565,7 @@ impl MiyabiBot {
                     Err(_) => {
                         self.http
                             .create_message(msg.channel_id)
-                            .content("❌ 無効なメッセージIDだよ。数値で指定してね！")?
+                            .content("❌ 無効なメッセージIDだよ。数値で指定してね！")
                             .await?;
                         return Ok(());
                     }
@@ -579,7 +577,7 @@ impl MiyabiBot {
                     _ => {
                         self.http
                             .create_message(msg.channel_id)
-                            .content("❌ GitHub連携が設定されていません。\n\n管理者に以下の環境変数を設定してもらってね：\n- `GITHUB_TOKEN`\n- `GITHUB_REPO` (形式: `owner/repo`)")?
+                            .content("❌ GitHub連携が設定されていません。\n\n管理者に以下の環境変数を設定してもらってね：\n- `GITHUB_TOKEN`\n- `GITHUB_REPO` (形式: `owner/repo`)")
                             .await?;
                         return Ok(());
                     }
@@ -588,7 +586,7 @@ impl MiyabiBot {
                 // Show progress
                 self.http
                     .create_message(msg.channel_id)
-                    .content("🔍 メッセージを取得中...")?
+                    .content("🔍 メッセージを取得中...")
                     .await?;
 
                 // Fetch Discord message
@@ -599,7 +597,7 @@ impl MiyabiBot {
                             error!("Failed to parse message: {}", e);
                             self.http
                                 .create_message(msg.channel_id)
-                                .content(&format!("❌ メッセージの解析に失敗しました: {}", e))?
+                                .content(&format!("❌ メッセージの解析に失敗しました: {}", e))
                                 .await?;
                             return Ok(());
                         }
@@ -608,7 +606,7 @@ impl MiyabiBot {
                         error!("Failed to fetch message: {}", e);
                         self.http
                             .create_message(msg.channel_id)
-                            .content(&format!("❌ メッセージの取得に失敗しました: {}\n\n💡 チャンネルIDとメッセージIDが正しいか確認してね！", e))?
+                            .content(&format!("❌ メッセージの取得に失敗しました: {}\n\n💡 チャンネルIDとメッセージIDが正しいか確認してね！", e))
                             .await?;
                         return Ok(());
                     }
@@ -627,7 +625,7 @@ impl MiyabiBot {
                 // Show progress
                 self.http
                     .create_message(msg.channel_id)
-                    .content("📝 GitHub Issueを作成中...")?
+                    .content("📝 GitHub Issueを作成中...")
                     .await?;
 
                 // Create GitHub Issue
@@ -644,7 +642,7 @@ impl MiyabiBot {
                         error!("Failed to create GitHub Issue: {}", e);
                         self.http
                             .create_message(msg.channel_id)
-                            .content(&format!("❌ GitHub Issueの作成に失敗しました: {}\n\n💡 GitHubトークンの権限を確認してね！", e))?
+                            .content(&format!("❌ GitHub Issueの作成に失敗しました: {}\n\n💡 GitHubトークンの権限を確認してね！", e))
                             .await?;
                         return Ok(());
                     }
@@ -688,7 +686,7 @@ impl MiyabiBot {
 
                 self.http
                     .create_message(msg.channel_id)
-                    .content(&success_message)?
+                    .content(&success_message)
                     .await?;
 
                 // Report to progress channel
@@ -709,19 +707,19 @@ impl MiyabiBot {
             "list" => {
                 self.http
                     .create_message(msg.channel_id)
-                    .content("📋 Issue一覧表示機能は開発中だよ！")?
+                    .content("📋 Issue一覧表示機能は開発中だよ！")
                     .await?;
             }
             "assign" => {
                 self.http
                     .create_message(msg.channel_id)
-                    .content("🎯 Agent割り当て機能は開発中だよ！")?
+                    .content("🎯 Agent割り当て機能は開発中だよ！")
                     .await?;
             }
             _ => {
                 self.http
                     .create_message(msg.channel_id)
-                    .content("未知のサブコマンドだよ。`!miyabi help` で確認してね！")?
+                    .content("未知のサブコマンドだよ。`!miyabi help` で確認してね！")
                     .await?;
             }
         }
@@ -742,7 +740,7 @@ impl MiyabiBot {
 
         self.http
             .create_message(msg.channel_id)
-            .content(&response)?
+            .content(&response)
             .await?;
 
         Ok(())
@@ -840,17 +838,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Event loop
     loop {
-        let event = match shard.next_event().await {
-            Ok(event) => event,
-            Err(source) => {
+        // Twilight v0.16: next_event() requires EventTypeFlags and returns Option<Result<...>>
+        let event = match shard.next_event(EventTypeFlags::all()).await {
+            Some(Ok(event)) => event,
+            Some(Err(source)) => {
                 error!("Error receiving event: {}", source);
-
-                if source.is_fatal() {
-                    error!("Fatal error, shutting down");
-                    break;
-                }
-
+                // Twilight v0.16: is_fatal() removed, just continue on errors
                 continue;
+            }
+            None => {
+                info!("Event stream closed");
+                break;
             }
         };
 
@@ -931,18 +929,18 @@ async fn process_event(
                         video: None,
                     };
 
+                    // Twilight v0.16: call .await first to get Result
                     match bot
                         .http
                         .create_message(dm_channel.model().await?.id)
                         .embeds(&[welcome_embed])
+                        .await
                     {
-                        Ok(msg_builder) => {
-                            if let Err(e) = msg_builder.await {
-                                error!("Failed to send welcome DM: {}", e);
-                            }
+                        Ok(_) => {
+                            info!("Successfully sent welcome DM");
                         }
                         Err(e) => {
-                            error!("Failed to create welcome message: {}", e);
+                            error!("Failed to send welcome DM: {}", e);
                         }
                     }
                 }
@@ -959,15 +957,15 @@ async fn process_event(
                     member_add.user.name
                 );
 
+                // Twilight v0.16: call .await first to get Result
                 match bot
                     .http
                     .create_message(intro_channel_id)
                     .content(&announcement)
+                    .await
                 {
-                    Ok(msg_builder) => {
-                        if let Err(e) = msg_builder.await {
-                            error!("Failed to post to introductions channel: {}", e);
-                        }
+                    Ok(_) => {
+                        info!("Successfully posted to introductions channel");
                     }
                     Err(e) => {
                         error!("Failed to create announcement message: {}", e);
