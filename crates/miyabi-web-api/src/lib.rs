@@ -56,6 +56,7 @@ pub use error::{AppError, Result};
     ),
     paths(
         routes::health::health_check,
+        routes::auth::github_oauth_initiate,
         routes::auth::github_oauth_callback,
         routes::auth::refresh_token,
         routes::auth::logout,
@@ -140,6 +141,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Health check
         .route("/health", get(routes::health::health_check))
         // Authentication routes
+        .route("/auth/github", get(routes::auth::github_oauth_initiate))
         .route(
             "/auth/github/callback",
             get(routes::auth::github_oauth_callback),

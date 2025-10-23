@@ -6,14 +6,28 @@ use crate::{
     models::User,
     AppState,
 };
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, Redirect},
+    Json,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+/// GitHub OAuth initiation query parameters
+#[derive(Deserialize)]
+pub struct GitHubInitQuery {
+    #[serde(default)]
+    redirect: Option<String>,
+}
 
 /// GitHub OAuth callback query parameters
 #[derive(Deserialize)]
 pub struct GitHubCallbackQuery {
     code: String,
+    #[serde(default)]
+    state: Option<String>,
 }
 
 /// GitHub access token response
@@ -55,18 +69,53 @@ pub struct UserResponse {
     avatar_url: Option<String>,
 }
 
+/// GitHub OAuth initiation handler
+///
+/// Redirects to GitHub OAuth authorization page
+#[utoipa::path(
+    get,
+    path = "/api/v1/auth/github",
+    tag = "auth",
+    params(
+        ("redirect" = Option<String>, Query, description = "Frontend redirect path after login")
+    ),
+    responses(
+        (status = 302, description = "Redirect to GitHub OAuth"),
+        (status = 500, description = "Internal server error")
+    )
+)]
+pub async fn github_oauth_initiate(
+    State(state): State<AppState>,
+    axum::extract::Query(query): axum::extract::Query<GitHubInitQuery>,
+) -> Result<Redirect> {
+    // Build GitHub OAuth URL
+    let redirect_path = query.redirect.unwrap_or_else(|| "/dashboard".to_string());
+
+    // Use state parameter to pass redirect path
+    use urlencoding::encode;
+    let auth_url = format!(
+        "https://github.com/login/oauth/authorize?client_id={}&redirect_uri={}&scope=read:user user:email repo&state={}",
+        state.config.github_client_id,
+        encode(&state.config.github_callback_url),
+        encode(&redirect_path)
+    );
+
+    Ok(Redirect::temporary(&auth_url))
+}
+
 /// GitHub OAuth callback handler
 ///
-/// Exchanges authorization code for access token
+/// Exchanges authorization code for access token and redirects to frontend
 #[utoipa::path(
     get,
     path = "/api/v1/auth/github/callback",
     tag = "auth",
     params(
-        ("code" = String, Query, description = "GitHub authorization code")
+        ("code" = String, Query, description = "GitHub authorization code"),
+        ("state" = Option<String>, Query, description = "Frontend redirect path")
     ),
     responses(
-        (status = 200, description = "Authentication successful", body = TokenResponse),
+        (status = 302, description = "Redirect to frontend with token"),
         (status = 400, description = "Invalid authorization code"),
         (status = 500, description = "Internal server error")
     )
@@ -74,7 +123,7 @@ pub struct UserResponse {
 pub async fn github_oauth_callback(
     State(state): State<AppState>,
     axum::extract::Query(query): axum::extract::Query<GitHubCallbackQuery>,
-) -> Result<(StatusCode, Json<TokenResponse>)> {
+) -> Result<impl IntoResponse> {
     // 1. Exchange code for GitHub access token
     let client = reqwest::Client::new();
     let token_response = client
@@ -154,24 +203,20 @@ pub async fn github_oauth_callback(
     let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
     let access_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
 
-    // For now, use the same token as refresh token (TODO: implement proper refresh token)
-    let refresh_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
+    // TODO: implement proper refresh token mechanism
+    // let _refresh_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
 
-    Ok((
-        StatusCode::OK,
-        Json(TokenResponse {
-            access_token,
-            refresh_token,
-            expires_in: state.config.jwt_expiration,
-            user: UserResponse {
-                id: user.id.to_string(),
-                github_id: user.github_id,
-                email: user.email,
-                name: user.name,
-                avatar_url: user.avatar_url,
-            },
-        }),
-    ))
+    // 5. Redirect to frontend with token
+    use urlencoding::encode;
+    let redirect_path = query.state.as_deref().unwrap_or("/dashboard");
+    let frontend_redirect = format!(
+        "{}{}?token={}",
+        state.config.frontend_url,
+        redirect_path,
+        encode(&access_token)
+    );
+
+    Ok(Redirect::temporary(&frontend_redirect))
 }
 
 /// Creates or updates a user in the database

@@ -9,10 +9,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     github_id INTEGER UNIQUE NOT NULL,
-    github_username VARCHAR(255) NOT NULL,
-    email VARCHAR(255),
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     avatar_url TEXT,
-    line_user_id VARCHAR(255) UNIQUE, -- LINE integration
+    access_token TEXT NOT NULL, -- GitHub access token
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
