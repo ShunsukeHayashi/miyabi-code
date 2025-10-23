@@ -239,58 +239,89 @@ pub struct TraceNote {
 /// Pull Request result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PRResult {
+    /// Pull request number
     pub number: u64,
+    /// Full URL to the pull request
     pub url: String,
+    /// Current state of the pull request
     pub state: PRState,
+    /// Timestamp when PR was created
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+/// Pull request state
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PRState {
+    /// Draft PR (not ready for review)
     Draft,
+    /// Open PR (ready for review)
     Open,
+    /// PR has been merged
     Merged,
+    /// PR was closed without merging
     Closed,
 }
 
 /// Deployment result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeploymentResult {
+    /// Target environment (staging or production)
     pub environment: Environment,
+    /// Deployed version string (e.g., "v1.2.3" or git commit hash)
     pub version: String,
+    /// Project ID in the deployment platform (Firebase, Vercel, etc.)
     pub project_id: String,
+    /// URL where the deployment is accessible
     pub deployment_url: String,
+    /// Timestamp when deployment completed
     pub deployed_at: chrono::DateTime<chrono::Utc>,
+    /// Deployment duration in milliseconds
     pub duration_ms: u64,
+    /// Final deployment status
     pub status: DeploymentStatus,
 }
 
+/// Deployment environment
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Environment {
+    /// Staging environment for testing
     Staging,
+    /// Production environment for end users
     Production,
 }
 
+/// Deployment status
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DeploymentStatus {
+    /// Deployment completed successfully
     Success,
+    /// Deployment failed
     Failed,
+    /// Deployment was rolled back to previous version
     RolledBack,
 }
 
 /// Issue analysis result from IssueAgent
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IssueAnalysis {
+    /// Issue number being analyzed
     pub issue_number: u64,
+    /// Inferred issue type (feature, bug, refactor, etc.)
     pub issue_type: crate::task::TaskType,
+    /// Severity level (Sev.1-Critical to Sev.4-Low)
     pub severity: crate::agent::Severity,
+    /// Impact level (high, medium, low)
     pub impact: ImpactLevel,
+    /// Agent recommended to handle this issue
     pub assigned_agent: crate::agent::AgentType,
-    pub estimated_duration: u32, // minutes
+    /// Estimated duration in minutes
+    pub estimated_duration: u32,
+    /// List of dependency issue numbers (e.g., ["#270", "#271"])
     pub dependencies: Vec<String>,
+    /// Recommended labels to apply
     pub labels: Vec<String>,
 }
 
