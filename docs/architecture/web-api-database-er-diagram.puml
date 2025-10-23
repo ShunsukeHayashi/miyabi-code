@@ -1,0 +1,129 @@
+@startuml Miyabi Web API - Database ER Diagram
+!theme blueprint
+
+title Miyabi Web API - Database ER Diagram
+
+entity "users" as users {
+  * id : UUID <<PK>>
+  --
+  * github_id : INTEGER <<UNIQUE>>
+  * github_username : VARCHAR(255)
+    email : VARCHAR(255)
+    avatar_url : TEXT
+    line_user_id : VARCHAR(255) <<UNIQUE>>
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "repositories" as repos {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * github_repo_id : INTEGER <<UNIQUE>>
+  * owner : VARCHAR(255)
+  * name : VARCHAR(255)
+  * full_name : VARCHAR(255)
+  * default_branch : VARCHAR(255)
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "agent_executions" as executions {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * repository_id : UUID <<FK>>
+  * agent_type : VARCHAR(50)
+    issue_number : INTEGER
+  * status : VARCHAR(20)
+    started_at : TIMESTAMP
+    completed_at : TIMESTAMP
+    error_message : TEXT
+    result : JSONB
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "workflows" as workflows {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * repository_id : UUID <<FK>>
+  * name : VARCHAR(255)
+    description : TEXT
+  * definition : JSONB
+  * is_template : BOOLEAN
+  * is_public : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "line_messages" as line_messages {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * line_user_id : VARCHAR(255)
+  * message_type : VARCHAR(20)
+    message_text : TEXT
+    parsed_intent : VARCHAR(50)
+    issue_number : INTEGER
+  * created_at : TIMESTAMP
+}
+
+entity "websocket_connections" as ws_connections {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * connection_id : VARCHAR(255) <<UNIQUE>>
+  * connected_at : TIMESTAMP
+  * last_ping_at : TIMESTAMP
+}
+
+' Relationships
+users ||--o{ repos : "owns"
+users ||--o{ executions : "creates"
+users ||--o{ workflows : "creates"
+users ||--o{ line_messages : "sends"
+users ||--o{ ws_connections : "has"
+
+repos ||--o{ executions : "runs on"
+repos ||--o{ workflows : "defined for"
+
+' Notes
+note right of users
+  **Primary user entity**
+  - Authenticated via GitHub OAuth
+  - Optional LINE integration
+  - Cascading deletes for all related data
+end note
+
+note right of executions
+  **Agent execution tracking**
+  - Status: pending, running, completed, failed
+  - Agent types: Coordinator, CodeGen, Review, etc.
+  - JSONB result for flexible data storage
+end note
+
+note right of workflows
+  **Workflow definitions**
+  - React Flow format (nodes, edges)
+  - Can be templates or user-specific
+  - Public workflows for sharing
+end note
+
+note right of line_messages
+  **LINE Bot integration**
+  - Tracks all LINE interactions
+  - GPT-4 intent parsing
+  - Links to created GitHub issues
+end note
+
+note right of ws_connections
+  **Real-time WebSocket tracking**
+  - Active connections management
+  - Ping/pong for keepalive
+  - Auto-cleanup on disconnect
+end note
+
+@enduml

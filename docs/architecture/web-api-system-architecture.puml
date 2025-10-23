@@ -1,0 +1,85 @@
+@startuml Miyabi Web API System Architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!include DEVICONS/react.puml
+!include DEVICONS/rust.puml
+!include DEVICONS/postgresql.puml
+!include DEVICONS/nginx.puml
+!include FONTAWESOME/users.puml
+
+title Miyabi Web API - System Architecture (C4 Container Diagram)
+
+Person(user, "Developer", "GitHub user using Miyabi")
+Person(line_user, "LINE User", "User interacting via LINE Bot")
+
+System_Boundary(web_ui, "Miyabi Web UI") {
+    Container(web_app, "Web Application", "Next.js 14, React 18, TypeScript", "Provides Miyabi UI for agent orchestration", $sprite="react")
+    Container(web_browser, "Web Browser", "Chrome, Firefox, Safari", "Renders UI and handles user interactions")
+}
+
+System_Boundary(api_gateway, "API Gateway Layer") {
+    Container(web_api, "Web API Server", "Rust (Axum 0.7)", "REST API + WebSocket + LINE Webhook handler", $sprite="rust")
+}
+
+System_Boundary(business_logic, "Business Logic Layer") {
+    Container(auth_service, "Auth Service", "Rust", "JWT + GitHub OAuth 2.0")
+    Container(repo_service, "Repository Service", "Rust", "GitHub repo integration")
+    Container(agent_service, "Agent Orchestration", "Rust", "Agent execution management")
+    Container(workflow_service, "Workflow Service", "Rust", "Workflow definition & execution")
+    Container(line_service, "LINE Integration", "Rust", "LINE Messaging API handler")
+}
+
+System_Boundary(data_layer, "Data Layer") {
+    ContainerDb(postgres, "PostgreSQL", "PostgreSQL 15", "Stores users, repos, executions, workflows", $sprite="postgresql")
+    ContainerDb(redis, "Redis Cache", "Upstash Redis", "Session data, WebSocket connections, rate limiting")
+}
+
+System_Boundary(miyabi_core, "Miyabi Core (Existing)") {
+    Container(a2a, "miyabi-a2a", "Rust", "Agent-to-Agent task storage")
+    Container(agents, "miyabi-agents", "Rust", "Agent implementations (Coordinator, CodeGen, etc.)")
+    Container(worktree, "miyabi-worktree", "Rust", "Git Worktree management")
+    Container(github_sdk, "miyabi-github", "Rust", "GitHub API client")
+}
+
+System_Ext(github_api, "GitHub API", "GitHub REST API + OAuth")
+System_Ext(line_api, "LINE Messaging API", "LINE Bot Platform")
+
+' User Interactions
+Rel(user, web_browser, "Uses")
+Rel(web_browser, web_app, "HTTPS", "Loads UI")
+Rel(web_app, web_api, "HTTPS + WebSocket", "API calls")
+Rel(line_user, line_api, "Sends messages")
+Rel(line_api, web_api, "HTTPS Webhook", "Message events")
+
+' API Gateway to Services
+Rel(web_api, auth_service, "Calls")
+Rel(web_api, repo_service, "Calls")
+Rel(web_api, agent_service, "Calls")
+Rel(web_api, workflow_service, "Calls")
+Rel(web_api, line_service, "Calls")
+
+' Services to Data Layer
+Rel(auth_service, postgres, "SQL", "CRUD users")
+Rel(repo_service, postgres, "SQL", "CRUD repositories")
+Rel(agent_service, postgres, "SQL", "CRUD executions")
+Rel(workflow_service, postgres, "SQL", "CRUD workflows")
+Rel(line_service, postgres, "SQL", "Log messages")
+Rel(web_api, redis, "Redis Protocol", "Cache & sessions")
+
+' Services to Miyabi Core
+Rel(agent_service, a2a, "Uses", "Task storage")
+Rel(agent_service, agents, "Uses", "Execute agents")
+Rel(agent_service, worktree, "Uses", "Git operations")
+Rel(repo_service, github_sdk, "Uses", "GitHub API")
+
+' External APIs
+Rel(auth_service, github_api, "HTTPS", "OAuth 2.0")
+Rel(repo_service, github_api, "HTTPS", "Fetch repos")
+Rel(github_sdk, github_api, "HTTPS", "REST API")
+Rel(line_service, line_api, "HTTPS", "Send replies")
+
+SHOW_LEGEND()
+
+@enduml
