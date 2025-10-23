@@ -12,6 +12,7 @@ categories = ["development-tools"]
 [dependencies]
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+miyabi-knowledge = { version = "0.1.0", path = "../miyabi-knowledge" }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
