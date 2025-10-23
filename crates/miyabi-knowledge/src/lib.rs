@@ -54,6 +54,7 @@ pub mod config;
 pub mod embeddings;
 pub mod error;
 pub mod hasher;
+pub mod hybrid_context;
 pub mod indexer;
 pub mod qdrant;
 pub mod searcher;
@@ -67,6 +68,7 @@ pub use collector::{KnowledgeCollector, LogCollector};
 pub use config::{AutoIndexConfig, KnowledgeConfig};
 pub use error::{KnowledgeError, Result};
 pub use hasher::{hash_bytes, hash_file, hash_string};
+pub use hybrid_context::{ContextPiece, ContextSource, HybridContextError, HybridContextSearcher};
 pub use indexer::{KnowledgeIndexer, QdrantIndexer};
 pub use searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter};
 pub use types::{
