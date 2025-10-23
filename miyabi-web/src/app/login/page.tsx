@@ -39,7 +39,7 @@ function LoginContent() {
           <div className="space-y-4">
             <Button
               onClick={handleGitHubLogin}
-              className="w-full h-12 bg-slate-900 hover:bg-slate-800"
+              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white"
               size="lg"
               aria-label="Sign in with GitHub account"
             >
