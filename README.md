@@ -16,7 +16,7 @@
 [![Powered by Claude](https://img.shields.io/badge/Powered%20by-Claude%20AI-5865F2?style=for-the-badge&logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/miyabi)
 
-[🇯🇵 日本語](#日本語) • [🇺🇸 English](#english) • [👶 For Beginners](docs/MIYABI_FOR_BEGINNERS.md) • [📖 Docs](https://github.com/ShunsukeHayashi/Miyabi/wiki) • [🤖 Agents Manual](docs/AGENTS.md) • [💬 Discord](https://discord.gg/miyabi) • [🦀 Codex (Subproject)](https://github.com/ShunsukeHayashi/codex)
+[🇯🇵 日本語](#日本語) • [🇺🇸 English](#english) • [👶 For Beginners](docs/MIYABI_FOR_BEGINNERS.md) • [📖 Docs](https://github.com/ShunsukeHayashi/Miyabi/wiki) • [📚 API Reference](https://customer-cloud.github.io/miyabi-private/) • [🤖 Agents Manual](docs/AGENTS.md) • [💬 Discord](https://discord.gg/miyabi) • [🦀 Codex (Subproject)](https://github.com/ShunsukeHayashi/codex)
 
 </div>
 
