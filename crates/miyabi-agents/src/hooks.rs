@@ -891,4 +891,213 @@ mod tests {
         let expected_file = log_dir.join(format!("{}.md", date));
         assert!(expected_file.exists());
     }
+
+    // StructuredLogHook tests
+    #[tokio::test]
+    async fn test_structured_log_hook_on_post_execute() {
+        use tempfile::TempDir;
+        use tokio::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        let hook = StructuredLogHook::new(log_dir.clone());
+
+        let task = Task {
+            id: "test-task-123".into(),
+            title: "Test Task".into(),
+            description: "Test description".into(),
+            task_type: TaskType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::CodeGenAgent),
+            dependencies: vec![],
+            estimated_duration: Some(300),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        let result = AgentResult {
+            status: ResultStatus::Success,
+            data: Some(serde_json::json!({"generated_files": 5})),
+            error: None,
+            metrics: Some(AgentMetrics {
+                task_id: "test-task-123".into(),
+                agent_type: AgentType::CodeGenAgent,
+                duration_ms: 1250,
+                quality_score: Some(92),
+                lines_changed: Some(150),
+                tests_added: Some(5),
+                coverage_percent: Some(85.5),
+                errors_found: Some(2),
+                timestamp: chrono::Utc::now(),
+            }),
+            escalation: None,
+        };
+
+        // Execute hook
+        hook.on_post_execute(AgentType::CodeGenAgent, &task, &result)
+            .await
+            .unwrap();
+
+        // Find the generated JSON file
+        let mut entries = fs::read_dir(&log_dir).await.unwrap();
+        let mut json_files = vec![];
+        while let Some(entry) = entries.next_entry().await.unwrap() {
+            if entry.file_name().to_string_lossy().ends_with(".json") {
+                json_files.push(entry.path());
+            }
+        }
+
+        assert_eq!(json_files.len(), 1, "Expected exactly one JSON file");
+
+        // Verify JSON content
+        let content = fs::read_to_string(&json_files[0]).await.unwrap();
+        let json: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+        assert_eq!(json["agent_type"], "CodeGenAgent");
+        assert_eq!(json["task_id"], "test-task-123");
+        assert_eq!(json["status"], "Success");
+        assert_eq!(json["duration_ms"], 1250);
+        assert_eq!(json["quality_score"], 92);
+    }
+
+    #[tokio::test]
+    async fn test_structured_log_hook_on_error() {
+        use tempfile::TempDir;
+        use tokio::fs;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        let hook = StructuredLogHook::new(log_dir.clone());
+
+        let task = Task {
+            id: "error-task".into(),
+            title: "Error Task".into(),
+            description: "Will fail".into(),
+            task_type: TaskType::Bug,
+            priority: 2,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::ReviewAgent),
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        let error = MiyabiError::Validation("Test error message".to_string());
+
+        // Execute error hook
+        hook.on_error(AgentType::ReviewAgent, &task, &error)
+            .await
+            .unwrap();
+
+        // Find the generated JSON file
+        let mut entries = fs::read_dir(&log_dir).await.unwrap();
+        let mut json_files = vec![];
+        while let Some(entry) = entries.next_entry().await.unwrap() {
+            if entry.file_name().to_string_lossy().ends_with(".json") {
+                json_files.push(entry.path());
+            }
+        }
+
+        assert_eq!(json_files.len(), 1, "Expected exactly one JSON file");
+
+        // Verify JSON content
+        let content = fs::read_to_string(&json_files[0]).await.unwrap();
+        let json: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+        assert_eq!(json["agent_type"], "ReviewAgent");
+        assert_eq!(json["task_id"], "error-task");
+        assert_eq!(json["status"], "Failed");
+        assert!(json["error"].as_str().unwrap().contains("Test error message"));
+    }
+
+    #[tokio::test]
+    async fn test_structured_log_hook_with_escalation() {
+        use tempfile::TempDir;
+        use tokio::fs;
+        use miyabi_types::agent::{EscalationTarget, Severity};
+        use std::collections::HashMap;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        let hook = StructuredLogHook::new(log_dir.clone());
+
+        let task = Task {
+            id: "escalation-task".into(),
+            title: "Escalation Task".into(),
+            description: "Needs escalation".into(),
+            task_type: TaskType::Feature,
+            priority: 0,
+            severity: Some(Severity::Critical),
+            impact: None,
+            assigned_agent: Some(AgentType::CoordinatorAgent),
+            dependencies: vec![],
+            estimated_duration: None,
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        let result = AgentResult {
+            status: ResultStatus::Failed,
+            data: None,
+            error: Some("Critical failure".to_string()),
+            metrics: None,
+            escalation: Some(miyabi_types::agent::EscalationInfo {
+                reason: "System overload".to_string(),
+                target: EscalationTarget::TechLead,
+                severity: Severity::Critical,
+                context: HashMap::new(),
+                timestamp: chrono::Utc::now(),
+            }),
+        };
+
+        // Execute hook
+        hook.on_post_execute(AgentType::CoordinatorAgent, &task, &result)
+            .await
+            .unwrap();
+
+        // Verify JSON file
+        let mut entries = fs::read_dir(&log_dir).await.unwrap();
+        let mut json_files = vec![];
+        while let Some(entry) = entries.next_entry().await.unwrap() {
+            if entry.file_name().to_string_lossy().ends_with(".json") {
+                json_files.push(entry.path());
+            }
+        }
+
+        assert_eq!(json_files.len(), 1);
+
+        let content = fs::read_to_string(&json_files[0]).await.unwrap();
+        let json: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+        assert_eq!(json["status"], "Failed");
+        assert!(json["escalation"].is_object());
+        assert_eq!(json["escalation"]["target"], "TechLead");
+        assert_eq!(json["escalation"]["severity"], "Critical");
+        assert_eq!(json["escalation"]["reason"], "System overload");
+    }
+
+    #[test]
+    fn test_structured_log_hook_new() {
+        use tempfile::TempDir;
+
+        let temp_dir = TempDir::new().unwrap();
+        let log_dir = temp_dir.path().to_path_buf();
+
+        let hook = StructuredLogHook::new(log_dir.clone());
+
+        assert_eq!(hook.log_dir, log_dir);
+    }
 }
