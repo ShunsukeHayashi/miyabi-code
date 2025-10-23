@@ -107,6 +107,10 @@ async fn main() -> Result<()> {
     // Perform startup checks (non-fatal warnings)
     startup::perform_startup_checks();
 
+    // Safety check: Ensure we're in a valid directory
+    // This prevents bash session crashes when worktrees are deleted
+    ensure_valid_working_directory();
+
     let result = match cli.command {
         Some(Commands::Init {
             name,
@@ -175,11 +179,79 @@ async fn main() -> Result<()> {
         }
     };
 
-    // Handle errors
+    // Handle errors with recovery
     if let Err(ref e) = result {
         eprintln!("{} {}", "Error:".red().bold(), e);
+
+        // Attempt directory recovery if error is related to working directory
+        if is_directory_related_error(e) {
+            eprintln!("{}", "⚠️  Attempting to recover from directory error...".yellow());
+            if recover_from_directory_error() {
+                eprintln!("{}", "✅ Directory recovered. Please retry the command.".green());
+                std::process::exit(2); // Exit with recoverable error code
+            } else {
+                eprintln!("{}", "❌ Failed to recover directory. Please manually cd to project root.".red());
+            }
+        }
+
         std::process::exit(1);
     }
 
     result
+}
+
+/// Ensure we're in a valid working directory
+/// This prevents bash session crashes when worktrees are deleted
+fn ensure_valid_working_directory() {
+    match std::env::current_dir() {
+        Ok(current) => {
+            // Check if current directory exists
+            if !current.exists() {
+                eprintln!("{}", "⚠️  Current directory no longer exists (possibly deleted worktree)".yellow());
+                recover_from_directory_error();
+            }
+        }
+        Err(e) => {
+            eprintln!("{}", format!("⚠️  Cannot read current directory: {}", e).yellow());
+            recover_from_directory_error();
+        }
+    }
+}
+
+/// Check if error is related to directory issues
+fn is_directory_related_error(error: &error::CliError) -> bool {
+    let error_msg = error.to_string().to_lowercase();
+    error_msg.contains("directory")
+        || error_msg.contains("no such file")
+        || error_msg.contains("worktree")
+        || error_msg.contains("current_dir")
+}
+
+/// Attempt to recover from directory errors by moving to repository root
+fn recover_from_directory_error() -> bool {
+    // Try to find git repository root
+    if let Ok(output) = std::process::Command::new("git")
+        .args(["rev-parse", "--show-toplevel"])
+        .output()
+    {
+        if output.status.success() {
+            if let Ok(repo_root) = String::from_utf8(output.stdout) {
+                let repo_root = repo_root.trim();
+                if let Ok(_) = std::env::set_current_dir(repo_root) {
+                    eprintln!("{}", format!("  ✓ Changed directory to: {}", repo_root).green());
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Fallback: Try to go to home directory
+    if let Ok(home) = std::env::var("HOME") {
+        if let Ok(_) = std::env::set_current_dir(&home) {
+            eprintln!("{}", format!("  ✓ Changed directory to home: {}", home).green());
+            return true;
+        }
+    }
+
+    false
 }
