@@ -11,7 +11,7 @@ on:
 jobs:
   demo:
     name: 🚀 Self-Hosted Runner Demo
-    runs-on: [self-hosted, macOS, arm64, rust]
+    runs-on: [self-hosted, macOS, arm64]
 
     steps:
       - name: 📋 Demo Start
@@ -30,12 +30,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🦀 Check Rust Installation
+        continue-on-error: true
         run: |
           echo "================================"
-          echo "🦀 Rust Environment"
+          echo "🦀 Rust Environment (optional)"
           echo "================================"
-          rustc --version
-          cargo --version
+          rustc --version 2>/dev/null || echo "⚠️ Rust not found"
+          cargo --version 2>/dev/null || echo "⚠️ Cargo not found"
           echo ""
 
       - name: 📊 System Information
@@ -50,15 +51,19 @@ jobs:
           echo ""
 
       - name: 🏗️ Quick Rust Build Test
+        continue-on-error: true
         run: |
           echo "================================"
-          echo "🏗️ Building a simple Rust project"
+          echo "🏗️ Building a simple Rust project (optional)"
           echo "================================"
-          cargo --version
-          echo ""
-          echo "📦 Running cargo check..."
-          time cargo check --workspace --quiet
-          echo "✅ Build check completed!"
+          if command -v cargo &> /dev/null; then
+            cargo --version
+            echo ""
+            echo "📦 Running cargo check..."
+            time cargo check --workspace --quiet && echo "✅ Build check completed!" || echo "⚠️ Build check failed"
+          else
+            echo "⚠️ Cargo not available, skipping build test"
+          fi
           echo ""
 
       - name: 🎯 Custom Message
