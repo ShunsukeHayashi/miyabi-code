@@ -47,7 +47,8 @@ export type AIAction =
   | 'cancel'
   | 'scroll'
   | 'focus'
-  | 'hover';
+  | 'hover'
+  | 'none';
 
 /**
  * Expected results after action execution

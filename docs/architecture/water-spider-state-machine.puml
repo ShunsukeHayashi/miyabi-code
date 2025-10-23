@@ -1,0 +1,127 @@
+@startuml Water Spider - Task State Machine
+!theme vibrant
+
+title Water Spider Orchestrator - Task State Transitions
+
+[*] --> Pending : Issue created
+
+state "Pending" as pending : Labels: state:pending
+state "Queued" as queued : In Priority Queue
+state "Blocked" as blocked : Dependencies unresolved
+state "Ready" as ready : Ready for dispatch
+state "Dispatched" as dispatched : workflow_dispatch sent
+state "Running" as running : Claude Code executing
+state "Reviewing" as reviewing : Quality check
+state "Completing" as completing : Creating PR
+state "Completed" as completed : Issue closed
+state "Failed" as failed : Execution error
+state "Retrying" as retrying : Retry with backoff
+
+pending --> queued : Collector polls\n& enqueues
+queued --> blocked : Has dependencies\n(blocked-by: #N)
+queued --> ready : No dependencies\n& runner available
+
+blocked --> ready : Dependencies resolved
+
+ready --> dispatched : Dispatcher triggers\nGitHub Actions
+
+dispatched --> running : Self-hosted runner\nstarts session
+
+running --> reviewing : Code generation\ncompleted
+running --> failed : Execution error\nor timeout
+
+reviewing --> completing : Quality score >= 80
+reviewing --> failed : Quality score < 80\n(threshold miss)
+
+completing --> completed : PR created &\nissue closed
+completing --> failed : PR creation failed
+
+completed --> [*]
+
+failed --> retrying : Retry count < 3
+failed --> [*] : Max retries exceeded\n(manual intervention)
+
+retrying --> queued : Exponential backoff\ncomplete
+
+note right of pending
+    **Initial State**
+    - Issue just created
+    - Labels applied by user/IssueAgent
+    - Waiting for collector to poll
+end note
+
+note right of blocked
+    **Blocked State**
+    - Has "blocked-by: #N" label
+    - Waiting for dependency to complete
+    - Automatically transitions when ready
+
+    **Example**:
+    Issue #471 blocked-by: #448
+    → Stays blocked until #448 closes
+end note
+
+note right of ready
+    **Ready for Execution**
+    - All dependencies resolved
+    - Runner capacity available (< 5 active)
+    - Priority threshold met
+
+    **Wait Time**:
+    - P0-Critical: dispatch immediately
+    - P1-High: < 30 seconds
+    - P2-Medium: < 2 minutes
+    - P3-Low: < 5 minutes
+end note
+
+note right of running
+    **Execution Phase**
+    - Headless Claude Code active
+    - Progress logged to Issue comments
+    - Worktree isolated execution
+
+    **Timeout**:
+    - Default: 2 hours
+    - Can be extended via label:
+      "estimated-time: 4h"
+
+    **Monitoring**:
+    - git commit activity
+    - Process health check (every 30s)
+    - Memory/CPU usage tracking
+end note
+
+note right of failed
+    **Failure Handling**
+    - Log error to Issue comment
+    - @mention assignee for investigation
+    - Determine retry eligibility
+
+    **Retry Conditions**:
+    ✅ Transient errors (network, API rate limit)
+    ✅ External service failures
+    ❌ Code compilation errors
+    ❌ Test failures
+    ❌ Quality score too low
+
+    **Manual Intervention Required**:
+    - After 3 retries
+    - Label added: "needs-human"
+end note
+
+note right of completed
+    **Success State**
+    - PR created and linked
+    - Issue closed automatically
+    - Milestone updated (if set)
+    - Worktree cleaned up
+    - Metrics recorded
+
+    **Artifacts**:
+    - PR with code changes
+    - Issue comment log (audit trail)
+    - Session execution time
+    - Quality score report
+end note
+
+@enduml

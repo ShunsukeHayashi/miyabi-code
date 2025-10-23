@@ -1,0 +1,65 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   🔄 再起動後セッション - ここから再開してください               ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📍 現在の状態：Phase 13.6 - BlackHole 2ch 再起動後設定
+
+✅ 完了している作業：
+   - Phase 13.1-13.5（Social Stream Ninja統合）
+   - BlackHole 2ch インストール
+
+⏳ 次にやること：
+   1. BlackHole 2chが認識されているか確認
+   2. Multi-Output Device 作成
+   3. System Sound Output 設定
+   4. OBS Studio Audio Input 設定
+   5. OBS Browser Source 追加
+   6. 統合テスト
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 最初に読むべきファイル（優先度順）：
+
+1. SESSION_RESUME_README.md         ⭐⭐⭐ 最優先
+   → セッション全体の復帰ガイド
+   → 現在地と次のタスクの完全な説明
+
+2. AFTER_REBOOT_GUIDE.md            ⭐⭐⭐ 最優先
+   → 再起動後の具体的な設定手順
+   → ステップバイステップガイド
+
+3. OBS_SETUP_GUIDE.md               ⭐⭐ 重要
+   → OBS Studio完全セットアップ
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 今すぐ実行するコマンド：
+
+# ディレクトリ移動
+cd /Users/a003/dev/miyabi-private/tools
+
+# セッション復帰ガイドを読む
+cat SESSION_RESUME_README.md
+
+# 再起動後ガイドを読む
+cat AFTER_REBOOT_GUIDE.md
+
+# BlackHole 2chが認識されているか確認
+system_profiler SPAudioDataType | grep -A 10 "BlackHole"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 クイックリファレンス：
+
+次の作業：Multi-Output Device 作成
+実行場所：Audio MIDI Setup（手動操作）
+参考ドキュメント：AFTER_REBOOT_GUIDE.md - Step 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+最終更新：2025-10-23 17:40
+作成者：Claude Code (AI Assistant)
+
+🎯 Phase 13.6（OBS Studio統合）進行中 - 再起動後の設定待ち

@@ -1,0 +1,133 @@
+@startuml Knowledge Management System
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Miyabi Knowledge System - Vector DB & RAG Architecture
+
+package "Application Layer" {
+    [miyabi CLI] as cli
+    [miyabi MCP Server] as mcp
+    [Claude Code] as claude
+}
+
+package "Knowledge Management (miyabi-knowledge)" as knowledge #LightYellow {
+    component "KnowledgeManager" as manager {
+        [Indexer]
+        [Searcher]
+        [Stats Collector]
+    }
+
+    component "Log Collection" as collector {
+        [Markdown Parser]
+        [Metadata Extractor]
+        [Chunker]
+    }
+
+    component "Embedding Provider" as embedding {
+        [Ollama Client]
+        [OpenAI Client]
+        [Provider Abstraction]
+    }
+
+    component "Vector Search" as search {
+        [Qdrant Client]
+        [Filter Builder]
+        [Result Ranker]
+    }
+}
+
+database "Qdrant Vector DB" as qdrant {
+    [Collection: miyabi-logs]
+    [Vector Index: 384d/1536d]
+    [Metadata Store]
+}
+
+folder ".ai/logs/" as logs {
+    file "2025-10-24.md"
+    file "2025-10-23.md"
+    file "..."
+}
+
+folder ".worktrees/" as worktrees {
+    folder "issue-270/" {
+        file "execution.log"
+    }
+    folder "issue-271/" {
+        file "execution.log"
+    }
+}
+
+' Log ingestion flow
+logs --> collector : read Markdown files
+worktrees --> collector : read execution logs
+collector --> embedding : chunks (512 chars)
+embedding --> qdrant : store vectors + metadata
+
+' Search flow
+cli --> manager : search query
+mcp --> manager : search query
+claude --> mcp : search request
+manager --> search : execute search
+search --> qdrant : vector similarity query
+qdrant --> search : results (with score)
+search --> manager : ranked results
+manager --> cli : search results
+manager --> mcp : search results
+
+' Indexing flow
+cli --> manager : index command
+manager --> collector : collect logs
+collector --> embedding : generate embeddings
+
+note right of collector
+    **Metadata Extraction**
+    - Agent type (CoordinatorAgent, etc.)
+    - Issue number (#270, #271, etc.)
+    - Task type (feature, bug, refactor)
+    - Execution outcome (success/failed)
+    - Tool usage (git, cargo, etc.)
+    - Timestamp & session ID
+end note
+
+note right of embedding
+    **Embedding Providers**
+    1. Ollama (local/LAN)
+       - Model: all-MiniLM-L6-v2
+       - Dimension: 384
+       - Mac mini LAN support
+
+    2. OpenAI API
+       - Model: text-embedding-3-small
+       - Dimension: 1536
+       - Higher quality
+end note
+
+note right of qdrant
+    **Vector Database**
+    - Rust-native (fast)
+    - HNSW index
+    - Metadata filtering
+    - Cosine similarity
+    - Score range: 0.0-1.0
+end note
+
+note bottom of knowledge
+    **3 Access Methods**
+    1. Rust API: KnowledgeManager::search()
+    2. CLI: miyabi knowledge search/index
+    3. MCP: knowledge.search (JSON-RPC 2.0)
+
+    **Use Cases**
+    - Find similar error patterns
+    - Retrieve best practices
+    - Learn from past executions
+    - Auto-suggest solutions
+end note
+
+legend right
+    |<#LightYellow> Knowledge System |
+    |<#LightBlue> External Services |
+    |<#LightGreen> Storage |
+endlegend
+
+@enduml

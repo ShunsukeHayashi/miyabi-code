@@ -1,0 +1,178 @@
+# Water Spider Orchestrator - 完全非同期並列実行システム 解説動画台本
+
+## オープニング
+
+こんにちは！ずんだもんなのだ！
+今日は、Miyabiの新しい革命的なシステム、「Water Spider Orchestrator」について、詳しく解説していくのだ！
+
+このシステムは、Claude Codeのセッション時間を劇的に短縮して、完全非同期並列実行を実現する、すごいシステムなのだ！
+
+## 第1章：現状の問題点
+
+まず、今のMiyabiの問題点を説明するのだ。
+
+現在のClaude Codeセッションは、1つのIssueを処理するのに15分から30分もかかってしまうのだ。
+そして、並列実行も手動で3タスクまでしかできないのだ。
+
+これだと、100個以上のIssueを処理するのに、何時間もかかってしまうのだ！
+
+## 第2章：Water Spiderの目標
+
+Water Spider Orchestratorは、この問題を解決するために設計されたのだ！
+
+目標は3つあるのだ：
+
+1つ目は、セッション時間を10秒以下にすること！
+今まで15分かかっていたのが、10秒になるのだ！すごいのだ！
+
+2つ目は、並列実行数を無制限にすること！
+手動で3タスクだったのが、100個でも200個でも同時に実行できるのだ！
+
+3つ目は、完全自動化！
+ユーザーが何もしなくても、全部自動でやってくれるのだ！
+
+## 第3章：アーキテクチャの全体像
+
+Water Spiderは、3つの層で構成されているのだ。
+
+1層目は、GitHub！
+全てのIssueがGitHubに保存されて、GitHub Actionsがトリガーとして動くのだ。
+
+2層目は、Task Scheduler Service！
+これは独立した常駐サービスで、24時間365日動き続けるのだ。
+10秒ごとにGitHub APIをチェックして、新しいIssueを見つけたら、優先順位を計算して、Task Queueに入れるのだ。
+
+3層目は、Self-hosted Runner！
+Mac miniやローカルマシンで動いて、ヘッドレスモードのClaude Codeを実行するのだ。
+
+## 第4章：Task Scheduler Service
+
+Task Scheduler Serviceは、4つのコンポーネントで構成されているのだ。
+
+1つ目は、Issue Collector！
+10秒ごとにGitHub APIをポーリングして、openのIssueを収集するのだ。
+trigger:agent-executeラベルがついたIssueだけを集めるのだ。
+
+2つ目は、Priority Calculator！
+優先度を計算するのだ。
+P0-Criticalラベルは1.0点、P1-Highは0.7点、P2-Mediumは0.4点、P3-Lowは0.1点なのだ。
+それに、推定時間、依存関係、Issue作成日を加味して、最終スコアを計算するのだ。
+
+3つ目は、Task Queue！
+3種類のキューがあるのだ。
+Priority Queueは、すぐ実行できるタスク。
+Blocked Queueは、依存関係で待っているタスク。
+Running Queueは、今実行中のタスク。
+
+4つ目は、Task Dispatcher！
+Priority Queueから次のタスクを取り出して、GitHub Actionsのworkflow_dispatchをトリガーするのだ。
+最大5個まで並列実行できるように、Running Queueの容量をチェックするのだ。
+
+## 第5章：1 Session = 1 Issue 原則
+
+Water Spiderには、とても重要な原則があるのだ。
+
+それは、「1つのセッションは、1つのIssueだけを処理する」という原則なのだ！
+
+各セッションは、専用のWorktreeを持つのだ。
+例えば、Issue #443なら、.worktrees/issue-443/というディレクトリが作られるのだ。
+そして、feature/issue-443というブランチが作られるのだ。
+
+これによって、セッション間で干渉することがなくなるのだ！
+ログも整合性が取れて、デバッグも簡単になるのだ！
+
+## 第6章：ヘッドレスモード実行
+
+Claude Codeは、ヘッドレスモードで実行されるのだ。
+
+ヘッドレスモードというのは、UIなしで、コマンドラインだけで実行するモードなのだ。
+
+実行コマンドは、こんな感じなのだ：
+
+claude code --headless \
+  --execute-command "/agent-run --issue 443" \
+  --cwd .worktrees/issue-443 \
+  --no-human-in-loop
+
+--no-human-in-loopオプションが重要なのだ！
+これによって、Claude Codeは質問や確認を一切しなくなるのだ。
+
+## 第7章：ログベースコミュニケーション
+
+ヘッドレスモードでは、人間に質問できないのだ。
+だから、全ての進捗は、Issueコメントに記録されるのだ。
+
+進捗報告は、こんな感じで記録されるのだ：
+
+Phase 1/4: Issue分析・DAG構築 ✅
+- ✅ Issue本文パース
+- ✅ 依存関係解析
+- ✅ DAG構築（4タスク）
+
+Phase 2/4: タスク実行 🚧
+- ✅ Task 1: tonic依存追加
+- 🚧 Task 2: コンパイル確認中...
+
+エラーが起きたら、@mentionで人間に通知するのだ。
+例えば、「@username Issue #448の完了が必要です」みたいな感じなのだ。
+
+## 第8章：実装計画
+
+Water Spiderは、6つのフェーズで実装されるのだ。
+
+Phase 0は、設計完了！今日完了したのだ！
+
+Phase 1は、基盤構築！
+Issue #443、#448、#449、#450を完了して、CI/CDパイプラインを構築するのだ。
+期間は1日なのだ。
+
+Phase 2は、ヘッドレス実装！
+Session Manager、Headless Launcher、Result Parserを実装するのだ。
+期間は2日なのだ。
+
+Phase 3は、DAGスケジューラ！
+DAG Builder、Dependency Resolver、Schedulerを実装するのだ。
+期間は3日なのだ。
+
+Phase 4は、リモート実行！
+Remote Executor、Load Balancerを実装して、複数マシンで分散実行できるようにするのだ。
+Mac mini LANも活用するのだ。
+期間は2日なのだ。
+
+Phase 5は、Milestone統合！
+Result Aggregator、Milestone Integrator、Notification Systemを実装するのだ。
+期間は2日なのだ。
+
+Phase 6は、本番運用開始！
+100個以上のIssueを同時処理できるようになるのだ！
+
+## 第9章：期待される効果
+
+Water Spiderが完成すると、すごいことが起きるのだ！
+
+セッション時間は、30分から10秒になるのだ。
+180倍の高速化なのだ！
+
+並列実行数は、3タスクから無制限になるのだ。
+100個でも200個でも、同時に実行できるのだ！
+
+依存関係は、手動から完全自動になるのだ。
+もう、ユーザーが依存関係を考える必要はないのだ！
+
+完了検知も、手動確認から自動通知になるのだ。
+Discord、Slackに自動で通知が飛ぶのだ！
+
+統合時間も、手動PR作成から自動Milestone統合になるのだ。
+全部自動なのだ！
+
+## エンディング
+
+Water Spider Orchestratorは、Miyabiを次のレベルに引き上げる、革命的なシステムなのだ！
+
+このシステムによって、開発速度は100倍以上になって、ユーザーは何もしなくても、全てが自動で完了するのだ！
+
+Phase 1の実装が楽しみなのだ！
+
+みんなも、Water Spiderの完成を楽しみに待っていてほしいのだ！
+
+それじゃあ、またね！ずんだもんでした！のだ！

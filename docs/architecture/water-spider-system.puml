@@ -1,0 +1,195 @@
+@startuml Water Spider Orchestrator - System Architecture
+!theme vibrant
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Water Spider Orchestrator - Complete Autonomous Execution System
+
+package "GitHub OS" as github_os #LightBlue {
+    database "Issues\n(Task Storage)" as issues {
+        [Issue #443\nP0-Critical]
+        [Issue #448\nP1-High]
+        [Issue #471\nblocked-by: #448]
+        [Issue #490\nstate:implementing]
+    }
+
+    component "Webhooks" as webhooks {
+        [issues.labeled]
+        [issues.opened]
+        [issues.commented]
+    }
+
+    component "GitHub Actions" as actions {
+        [task-execute.yml]
+        [task-monitor.yml]
+        [milestone-integrate.yml]
+    }
+
+    database "Results" as results {
+        [PRs]
+        [Issue Comments]
+        [Milestones]
+    }
+}
+
+package "Task Scheduler Service (24/7 Daemon)" as scheduler #LightGreen {
+    component "Issue Collector" as collector {
+        [GitHub API Poller\n(10s interval)]
+        [Webhook Listener]
+        [Issue Parser]
+    }
+
+    component "Priority Calculator" as priority {
+        [Label Analyzer\nP0>P1>P2>P3]
+        [Dependency Resolver\nDAG Builder]
+        [Time Estimator]
+    }
+
+    database "Task Queues" as queues {
+        queue "Priority Queue" as pq
+        queue "Blocked Queue" as bq
+        queue "Running Queue" as rq
+    }
+
+    component "Task Dispatcher" as dispatcher {
+        [Load Balancer\nmax 5 parallel]
+        [workflow_dispatch\nTrigger]
+        [Session Monitor]
+    }
+
+    component "Database" as db {
+        [SQLite:\nusage.sqlite]
+        [Session History]
+        [Metrics]
+    }
+}
+
+package "Self-hosted Runner (Mac mini / Local)" as runner #LightYellow {
+    component "GitHub Actions Runner" as gh_runner {
+        [Task Receiver]
+        [Environment Setup]
+        [Worktree Manager]
+    }
+
+    component "Headless Claude Code\nSessions" as claude_sessions {
+        frame "Session #1\nIssue #443" as s1 {
+            [Worktree:\nissue-443/]
+            [claude code\n--headless]
+            [No Human-in-Loop]
+        }
+
+        frame "Session #2\nIssue #448" as s2 {
+            [Worktree:\nissue-448/]
+            [claude code\n--headless]
+            [No Human-in-Loop]
+        }
+
+        frame "Session #3+\n(parallel)" as s3 {
+            [Worktree:\nissue-449/]
+            [claude code\n--headless]
+            [No Human-in-Loop]
+        }
+    }
+
+    component "Session Log Manager" as log_mgr {
+        [git commit\nMonitor]
+        [Issue Comment\nWriter]
+        [@mention\nEscalation]
+    }
+
+    component "Control Plane\nHTTP API" as control {
+        [/healthz]
+        [/sessions]
+        [/metrics]
+        [:8080]
+    }
+}
+
+' Connections
+issues --> webhooks : trigger
+issues --> collector : poll (10s)
+webhooks --> collector : event
+
+collector --> priority : parse & validate
+priority --> queues : enqueue
+queues --> dispatcher : dequeue by priority
+
+dispatcher --> actions : workflow_dispatch
+actions --> gh_runner : trigger execution
+
+gh_runner --> claude_sessions : spawn headless\nClaude Code
+claude_sessions --> log_mgr : git commit events
+log_mgr --> results : write comments
+
+claude_sessions --> results : create PRs
+results --> issues : close & integrate
+
+dispatcher --> db : record sessions
+control --> db : query metrics
+
+note right of issues
+    **Label-based State Management**
+    - state:pending → trigger execution
+    - state:analyzing → in progress
+    - state:implementing → agent working
+    - state:reviewing → quality check
+    - state:done → completed
+
+    **Priority Labels**
+    - priority:P0-Critical
+    - priority:P1-High
+    - priority:P2-Medium
+    - priority:P3-Low
+
+    **Dependencies**
+    - blocked-by: #448
+    - depends-on: #443
+end note
+
+note right of scheduler
+    **Design Goals**
+    - Session time: minimize (seconds)
+    - Parallel execution: unlimited (auto)
+    - Dependency resolution: automatic
+    - Completion detection: automatic
+    - Zero-touch operation: no manual intervention
+
+    **24/7 Daemon**
+    - Rust + Tokio runtime
+    - axum HTTP server (:8080)
+    - SQLite for persistence
+    - Automatic retry on failure
+end note
+
+note right of claude_sessions
+    **Headless Execution Principle**
+    1 Session = 1 Issue (strict mapping)
+
+    **Command**:
+    claude code --headless \
+      --execute-command "/agent-run --issue 443" \
+      --cwd .worktrees/issue-443 \
+      --no-human-in-loop
+
+    **Constraints**:
+    🚫 Human-in-the-loop: PROHIBITED
+    📝 All logs: Issue comments
+    🔔 Escalation: @mention in comments
+    ⚡ Auto-exit: after task completion
+end note
+
+legend right
+    |<#LightBlue> GitHub OS |
+    |<#LightGreen> Task Scheduler (Daemon) |
+    |<#LightYellow> Self-hosted Runner |
+
+    **Execution Flow**:
+    1. Issues created → Collected
+    2. Priority calculated → Queued
+    3. Dispatched → GitHub Actions
+    4. Self-hosted runner executes
+    5. Headless Claude Code runs
+    6. Results posted to GitHub
+endlegend
+
+@enduml

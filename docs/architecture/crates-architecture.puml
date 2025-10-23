@@ -1,0 +1,251 @@
+@startuml Miyabi Crates Architecture
+!theme vibrant
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Miyabi Crates - Comprehensive Architecture (Rust 2021 Edition)
+
+package "Foundation Layer" as foundation #LightBlue {
+    component [miyabi-types] as types <<Core Types>> {
+        [Agent]
+        [Task]
+        [Issue]
+        [Error Types]
+        [Workflow]
+    }
+}
+
+package "Core Utilities" as core_layer #LightGreen {
+    component [miyabi-core] as core <<Configuration & Logging>> {
+        [Config Manager]
+        [Logger]
+        [Retry Logic]
+        [Validation]
+    }
+}
+
+package "Infrastructure Layer" as infra #LightYellow {
+    component [miyabi-github] as github <<GitHub API>> {
+        [Octocrab Wrapper]
+        [Issue Manager]
+        [PR Manager]
+        [Label Manager]
+    }
+
+    component [miyabi-worktree] as worktree <<Git Worktree>> {
+        [Worktree Manager]
+        [Parallel Execution]
+        [Session Manager]
+    }
+
+    component [miyabi-llm] as llm <<LLM Integration>> {
+        [GPT-OSS-20B]
+        [Groq/vLLM/Ollama]
+        [Provider Abstraction]
+    }
+
+    component [miyabi-knowledge] as knowledge <<Knowledge Base>> {
+        [Qdrant Vector DB]
+        [Embedding Provider]
+        [Search Engine]
+        [Log Indexer]
+    }
+
+    component [miyabi-potpie] as potpie <<Potpie AI>> {
+        [Neo4j Integration]
+        [RAG Engine]
+        [Code Analysis]
+    }
+}
+
+package "Agent Core Layer" as agent_core_layer #LightCoral {
+    component [miyabi-agent-core] as agent_core <<Agent Traits>> {
+        [BaseAgent Trait]
+        [AgentHooks Trait]
+        [Agent Execution Context]
+    }
+}
+
+package "Specialized Agents" as agents #LightSalmon {
+    component [miyabi-agent-coordinator] as coordinator <<Coordinator Agent>> {
+        [Issue Analysis]
+        [Task Decomposition]
+        [DAG Builder]
+    }
+
+    component [miyabi-agent-codegen] as codegen <<CodeGen Agent>> {
+        [Code Generation]
+        [Rust Implementation]
+        [Test Generation]
+    }
+
+    component [miyabi-agent-review] as review <<Review Agent>> {
+        [Quality Scoring]
+        [Clippy Integration]
+        [Security Scan]
+    }
+
+    component [miyabi-agent-workflow] as workflow <<Workflow Agent>> {
+        [PR Creation]
+        [Deployment]
+        [Issue Management]
+    }
+
+    component [miyabi-agent-business] as business <<Business Agent>> {
+        [AIEntrepreneur]
+        [Market Research]
+        [Business Planning]
+    }
+
+    component [miyabi-agent-integrations] as integrations <<Integrations>> {
+        [External API]
+        [Webhook Handler]
+        [MCP Integration]
+    }
+}
+
+package "Agent Aggregator" as aggregator #Wheat {
+    component [miyabi-agents] as agents_agg <<DEPRECATED>> {
+        note right: Re-exports all agent crates\nfor backward compatibility
+    }
+}
+
+package "Application Layer" as app #LightPink {
+    component [miyabi-cli] as cli <<CLI Binary>> {
+        [Command Handler]
+        [Interactive Mode]
+        [Status Display]
+    }
+
+    component [miyabi-mcp-server] as mcp <<MCP Server>> {
+        [JSON-RPC 2.0]
+        [Agent Execution API]
+        [Claude Code Integration]
+    }
+
+    component [miyabi-web-api] as web <<Web API>> {
+        [REST API]
+        [HTTP Server]
+        [Dashboard]
+    }
+
+    component [miyabi-orchestrator] as orchestrator <<Orchestrator>> {
+        [Task Scheduler]
+        [Agent Coordinator]
+        [Workflow Engine]
+    }
+}
+
+package "Support Modules" as support #LightGray {
+    component [miyabi-webhook] as webhook <<Webhook Handler>>
+    component [miyabi-benchmark] as benchmark <<Benchmark Suite>>
+    component [miyabi-feedback-loop] as feedback <<Feedback Loop>>
+    component [miyabi-a2a] as a2a <<Agent-to-Agent>>
+}
+
+' Foundation dependencies
+core --> types : depends on
+github --> types : depends on
+worktree --> types : depends on
+worktree --> core : depends on
+agent_core --> types : depends on
+
+' Infrastructure dependencies
+knowledge --> types : depends on
+llm --> types : depends on
+potpie --> types : depends on
+
+' Agent dependencies
+coordinator --> agent_core : implements
+codegen --> agent_core : implements
+review --> agent_core : implements
+workflow --> agent_core : implements
+business --> agent_core : implements
+integrations --> agent_core : implements
+
+coordinator --> types : uses
+codegen --> types : uses
+review --> types : uses
+workflow --> types : uses
+business --> types : uses
+
+' Agent infrastructure dependencies
+coordinator --> github : uses
+coordinator --> worktree : uses
+workflow --> github : uses
+codegen --> llm : optional
+business --> llm : uses
+business --> knowledge : optional
+
+' Aggregator dependencies
+agents_agg --> coordinator : re-exports
+agents_agg --> codegen : re-exports
+agents_agg --> review : re-exports
+agents_agg --> workflow : re-exports
+agents_agg --> business : re-exports
+agents_agg --> integrations : re-exports
+
+' Application dependencies
+cli --> types : uses
+cli --> core : uses
+cli --> github : uses
+cli --> agents_agg : uses
+cli --> worktree : uses
+cli --> knowledge : uses
+cli --> feedback : uses
+
+mcp --> types : uses
+mcp --> agents_agg : uses
+mcp --> knowledge : uses
+
+web --> types : uses
+web --> agents_agg : uses
+
+orchestrator --> types : uses
+orchestrator --> agents_agg : uses
+
+' Support module dependencies
+webhook --> types : uses
+webhook --> github : uses
+benchmark --> types : uses
+feedback --> types : uses
+a2a --> types : uses
+a2a --> agents_agg : uses
+
+legend right
+    |<#LightBlue> Foundation Layer |
+    |<#LightGreen> Core Utilities |
+    |<#LightYellow> Infrastructure |
+    |<#LightCoral> Agent Core |
+    |<#LightSalmon> Specialized Agents |
+    |<#Wheat> Aggregator (DEPRECATED) |
+    |<#LightPink> Application Layer |
+    |<#LightGray> Support Modules |
+endlegend
+
+note bottom of types
+    **Core Type Definitions**
+    - Agent, Task, Issue
+    - Error Types (MiyabiError)
+    - Workflow (N1/N2/N3 notation)
+    - Entity-Relation Model (12 Entities, 27 Relations)
+end note
+
+note bottom of cli
+    **Main Entry Point**
+    Binary: target/release/miyabi
+    Commands:
+    - miyabi init <project>
+    - miyabi agent run <type> --issue N
+    - miyabi status --watch
+    - miyabi knowledge search/index
+end note
+
+note bottom of agents_agg
+    **DEPRECATED**
+    Use miyabi-agent-* crates directly.
+    This aggregator remains for
+    backward compatibility only.
+end note
+
+@enduml

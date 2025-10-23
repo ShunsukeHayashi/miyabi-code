@@ -1,0 +1,252 @@
+@startuml Cline Learnings - Applicable to Miyabi
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Key Learnings from Cline - Applicable Patterns for Miyabi
+
+package "Cline Best Practices → Miyabi Implementation" as learnings {
+
+    frame "1. Context Management" as context_mgmt #LightBlue {
+        component "Cline Approach" as cline_context {
+            [File Context Tracker\nAST-based analysis]
+            [Context Window Utils\nToken optimization]
+            [Model Context Tracker\nUsage tracking]
+        }
+
+        component "Miyabi Enhancement" as miyabi_context {
+            [Hybrid Context Builder\nAST + Vector search]
+            [Smart Context Pruning\nPriority-based]
+            [Context Cache\nReduce API calls]
+        }
+
+        cline_context ..> miyabi_context : inspire
+
+        note bottom of cline_context
+            **Cline Strategy**:
+            - Parse file ASTs for structure
+            - Track which files are in context
+            - Optimize token usage per request
+            - Remove least relevant context first
+
+            **Key Files**:
+            - FileContextTracker.ts
+            - ContextManager.ts
+            - context-window-utils.ts
+        end note
+
+        note bottom of miyabi_context
+            **Miyabi Application**:
+            ✅ Combine AST parsing + RAG search
+            ✅ Priority-based context pruning
+            ✅ Cache frequently used context
+            ✅ Distributed context across worktrees
+
+            **Implementation**:
+            - crates/miyabi-knowledge/
+            - Integrate tree-sitter for AST
+            - Extend ContextBuilder trait
+        end note
+    }
+
+    frame "2. Lock Management" as lock_mgmt #LightGreen {
+        component "Cline Approach" as cline_locks {
+            [SqliteLockManager\nDatabase-backed locks]
+            [FolderLockUtils\nDirectory-level locks]
+            [Timeout Handling\nDead lock detection]
+        }
+
+        component "Miyabi Enhancement" as miyabi_locks {
+            [Worktree Isolation\nGit-based separation]
+            [Distributed Locks\nGitHub Actions coordination]
+            [Lock-free Execution\nNo file conflicts]
+        }
+
+        cline_locks ..> miyabi_locks : inspire
+
+        note bottom of cline_locks
+            **Cline Strategy**:
+            - SQLite for centralized lock storage
+            - Folder-level granularity
+            - Timeout-based dead lock detection
+            - Single-process concurrency
+
+            **Key Files**:
+            - SqliteLockManager.ts
+            - FolderLockUtils.ts
+        end note
+
+        note bottom of miyabi_locks
+            **Miyabi Application**:
+            ✅ Worktree = isolated workspace
+            ✅ No locks needed (different dirs)
+            ✅ GitHub Actions for coordination
+            ✅ Unlimited parallelism
+
+            **Implementation**:
+            - crates/miyabi-worktree/
+            - crates/miyabi-orchestrator/
+            - Each issue = separate worktree
+        end note
+    }
+
+    frame "3. Prompt Management" as prompt_mgmt #LightYellow {
+        component "Cline Approach" as cline_prompts {
+            [System Prompts\nRole definition]
+            [User Instructions\n.clinerules support]
+            [Tool Prompts\nTool usage guidance]
+            [Workflow Prompts\nStep-by-step]
+        }
+
+        component "Miyabi Enhancement" as miyabi_prompts {
+            [Agent-specific Prompts\nPer agent type]
+            [Worktree Context Prompts\nExecution context]
+            [Issue-driven Prompts\nGitHub Issue → Prompt]
+            [Knowledge-augmented\nRAG context injection]
+        }
+
+        cline_prompts ..> miyabi_prompts : inspire
+
+        note bottom of cline_prompts
+            **Cline Strategy**:
+            - Modular prompt templates
+            - .clinerules for custom rules
+            - Workflows for complex tasks
+            - Tool-specific guidance
+
+            **Key Files**:
+            - core/prompts/
+            - cline-rules.ts
+            - workflows.ts
+        end note
+
+        note bottom of miyabi_prompts
+            **Miyabi Application**:
+            ✅ Agent-specific prompt files
+            ✅ Issue → Agent prompt mapping
+            ✅ RAG context injection
+            ✅ Worktree execution context
+
+            **Implementation**:
+            - .claude/agents/prompts/
+            - .agent-context.json per worktree
+            - EXECUTION_CONTEXT.md
+            - Knowledge system integration
+        end note
+    }
+
+    frame "4. Storage & Persistence" as storage_mgmt #LightCoral {
+        component "Cline Approach" as cline_storage {
+            [SQLite Database\nConversation history]
+            [File Timeline\nEdit tracking]
+            [Task History\nPrevious tasks]
+        }
+
+        component "Miyabi Enhancement" as miyabi_storage {
+            [GitHub OS\nIssues/PRs as state]
+            [SQLite\nSession metrics]
+            [Qdrant\nVector knowledge base]
+            [Multi-tier Storage\nHot/Cold data]
+        }
+
+        cline_storage ..> miyabi_storage : inspire
+
+        note bottom of cline_storage
+            **Cline Strategy**:
+            - SQLite for local persistence
+            - File Timeline integration
+            - Conversation replay
+            - Task history for context
+
+            **Key Files**:
+            - core/storage/
+            - Conversation storage
+        end note
+
+        note bottom of miyabi_storage
+            **Miyabi Application**:
+            ✅ GitHub as primary state store
+            ✅ SQLite for metrics/analytics
+            ✅ Qdrant for knowledge search
+            ✅ Multi-tier: Hot (GitHub) / Cold (Qdrant)
+
+            **Implementation**:
+            - crates/miyabi-github/
+            - crates/miyabi-knowledge/
+            - crates/miyabi-orchestrator/ (SQLite)
+        end note
+    }
+
+    frame "5. MCP Integration" as mcp_mgmt #LightPink {
+        component "Cline Approach" as cline_mcp {
+            [MCP Client\nTool discovery]
+            [Dynamic Tool Loading\nRuntime registration]
+            [Tool Execution\nSandboxed]
+        }
+
+        component "Miyabi Enhancement" as miyabi_mcp {
+            [MCP Server\nJSON-RPC 2.0]
+            [Agent Execution API\nRemote agent invocation]
+            [Knowledge Search API\nVector search]
+            [Bidirectional\nClient + Server]
+        }
+
+        cline_mcp ..> miyabi_mcp : inspire
+
+        note bottom of cline_mcp
+            **Cline Strategy**:
+            - MCP client for tool discovery
+            - Dynamic loading at runtime
+            - Sandboxed execution
+            - Tool result caching
+
+            **Key Files**:
+            - integrations/mcp/
+        end note
+
+        note bottom of miyabi_mcp
+            **Miyabi Application**:
+            ✅ Both MCP client + server
+            ✅ Agent execution via MCP
+            ✅ Knowledge search via MCP
+            ✅ Claude Code integration
+
+            **Implementation**:
+            - crates/miyabi-mcp-server/
+            - JSON-RPC 2.0 protocol
+            - stdio transport
+        end note
+    }
+}
+
+legend right
+    **Top 5 Learnings from Cline**:
+
+    1. **Context Management**:
+       → AST-based file tracking + smart pruning
+       → Apply: Hybrid AST + RAG in Miyabi
+
+    2. **Lock Management**:
+       → SQLite-backed centralized locks
+       → Apply: Worktree isolation (better than locks)
+
+    3. **Prompt Engineering**:
+       → Modular prompts + .clinerules
+       → Apply: Agent-specific prompts + RAG context
+
+    4. **Storage Architecture**:
+       → SQLite for local persistence
+       → Apply: Multi-tier (GitHub + SQLite + Qdrant)
+
+    5. **MCP Integration**:
+       → Dynamic tool discovery
+       → Apply: Both client + server, bidirectional
+
+    **Action Items for Miyabi**:
+    - [ ] Implement AST-based context tracking
+    - [ ] Enhance prompt templates with RAG
+    - [ ] Add .miyabirules support (like .clinerules)
+    - [ ] Improve MCP server tool registry
+    - [ ] Add conversation replay feature
+endlegend
+
+@enduml

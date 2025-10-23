@@ -1,0 +1,139 @@
+@startuml Water Spider - Task Lifecycle Flow
+!theme vibrant
+skinparam sequenceMessageAlign center
+
+title Water Spider Orchestrator - Complete Task Lifecycle
+
+actor "Developer" as dev
+participant "GitHub\nIssues" as gh
+participant "Task Scheduler\nService" as scheduler
+database "Task Queues" as queue
+participant "GitHub\nActions" as actions
+participant "Self-hosted\nRunner" as runner
+participant "Headless\nClaude Code" as claude
+database "Results" as results
+
+== Phase 1: Issue Creation & Collection ==
+
+dev -> gh : Create Issue #443\n+ labels: priority:P0-Critical\n+ agent:coordinator
+activate gh
+
+gh -> scheduler : Webhook:\nissues.labeled
+activate scheduler
+
+scheduler -> scheduler : Parse issue\nExtract priority\nCheck dependencies
+scheduler -> queue : Enqueue to\nPriority Queue
+activate queue
+
+scheduler -> gh : Update state:\nstate:pending
+
+note right of scheduler
+    **Priority Calculation**
+    - Label: P0-Critical (weight: 100)
+    - Dependencies: none (ready)
+    - Estimated time: 15min
+    - Final priority: 100
+end note
+
+== Phase 2: Task Scheduling & Dispatch ==
+
+scheduler -> queue : Dequeue highest\npriority task
+queue --> scheduler : Task #443
+
+scheduler -> scheduler : Check runner capacity\n(current: 3/5 slots)
+scheduler -> actions : workflow_dispatch:\ntask-execute.yml\n+ issue_number: 443
+activate actions
+
+scheduler -> gh : Update state:\nstate:analyzing
+
+actions -> runner : Trigger job\non self-hosted runner
+activate runner
+
+deactivate actions
+
+== Phase 3: Worktree Setup & Execution ==
+
+runner -> runner : Create worktree:\n.worktrees/issue-443
+runner -> runner : Checkout branch:\nfeature/issue-443
+
+runner -> runner : Write execution context:\n.agent-context.json\nEXECUTION_CONTEXT.md
+
+runner -> claude : Spawn headless session:\nclaude code --headless \\\n  --execute-command "/agent-run --issue 443" \\\n  --cwd .worktrees/issue-443 \\\n  --no-human-in-loop
+activate claude
+
+claude -> gh : Read issue details\nvia GitHub API
+
+gh --> claude : Issue #443 data
+
+note over claude
+    **Headless Execution**
+    - No terminal UI
+    - No user prompts
+    - Auto-execute command
+    - Exit on completion/error
+end note
+
+== Phase 4: Agent Execution ==
+
+claude -> claude : Execute CoordinatorAgent
+claude -> gh : Post comment:\n"✅ Phase 1/4: Issue analyzed"
+
+claude -> claude : Decompose task\nBuild DAG
+claude -> gh : Post comment:\n"✅ Phase 2/4: 3 subtasks created"
+
+claude -> claude : Execute CodeGenAgent\nGenerate Rust code
+claude -> gh : Post comment:\n"🚧 Phase 3/4: Generating code..."
+
+claude -> claude : Run tests:\ncargo test --all
+claude -> gh : Post comment:\n"✅ Phase 3/4: All tests passed"
+
+claude -> claude : Execute ReviewAgent\nQuality check
+claude -> gh : Post comment:\n"✅ Phase 4/4: Quality score: 95/100"
+
+== Phase 5: Results & Cleanup ==
+
+claude -> claude : git add && git commit
+claude -> claude : Create PR:\nfeat: implement issue #443
+
+claude -> results : Create PR #123\nfrom feature/issue-443
+activate results
+
+claude -> gh : Post comment:\n"✅ Completed: PR #123 created\n4 files changed (+293/-1)"
+
+claude -> runner : Exit (success)
+deactivate claude
+
+runner -> runner : Cleanup worktree\n(optional: keep for debugging)
+
+runner -> scheduler : Report completion\nvia GitHub API
+deactivate runner
+
+== Phase 6: State Update & Milestone Integration ==
+
+scheduler -> gh : Update issue:\n- state:done\n- Close issue
+scheduler -> gh : Link PR #123 to Milestone
+scheduler -> queue : Remove from Running Queue
+deactivate queue
+
+results -> gh : PR #123 merged
+deactivate results
+
+gh -> dev : Notification:\nIssue #443 completed
+deactivate gh
+
+note over dev, results
+    **Timing**:
+    - Issue creation → Dispatch: <30 seconds
+    - Worktree setup: 5-10 seconds
+    - Claude Code execution: 5-15 minutes
+    - PR creation: <10 seconds
+    - Total: ~15-20 minutes (fully automated)
+
+    **Zero Human Intervention**:
+    All steps execute automatically
+    Human only needed for:
+    - Creating initial issue
+    - Reviewing/merging PR (optional: can be auto-merged)
+end note
+
+@enduml

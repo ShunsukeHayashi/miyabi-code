@@ -1,0 +1,195 @@
+@startuml Task Scheduler Service Architecture
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Task Scheduler Service - Internal Architecture
+
+package "Task Scheduler Service (miyabi-orchestrator)" as scheduler #LightGreen {
+
+    component "Issue Collector Module" as collector {
+        [GitHub API Client\nOctocrab wrapper]
+        [Poller Loop\n(10s interval)]
+        [Webhook Server\naxum :8080/webhooks]
+        [Issue Parser\nLabel extractor]
+    }
+
+    component "Priority Calculator Module" as priority_calc {
+        component "Label Analyzer" as label_analyzer {
+            [P0-Critical: 100]
+            [P1-High: 75]
+            [P2-Medium: 50]
+            [P3-Low: 25]
+        }
+
+        component "Dependency Resolver" as dep_resolver {
+            [DAG Builder]
+            [Cycle Detector]
+            [Topological Sort]
+            [blocked-by Parser]
+        }
+
+        component "Time Estimator" as time_est {
+            [Historical Data]
+            [Agent Type Estimates]
+            [Complexity Heuristics]
+        }
+    }
+
+    database "Task Queues (In-Memory)" as queues {
+        queue "Priority Queue\n(Heap-based)" as pq {
+            [#443: P0, priority=100]
+            [#448: P1, priority=75]
+            [#449: P2, priority=50]
+        }
+
+        queue "Blocked Queue\n(Dependency waiting)" as bq {
+            [#471: blocked-by #448]
+            [#480: depends-on #443]
+        }
+
+        queue "Running Queue\n(Active sessions)" as rq {
+            [#490: Session #1, started: 10:35]
+            [#492: Session #2, started: 10:37]
+            [#495: Session #3, started: 10:38]
+        }
+
+        queue "Completed Queue\n(Recent 100)" as cq {
+            [#440: success, 12min]
+            [#441: success, 8min]
+        }
+
+        queue "Failed Queue\n(Retry queue)" as fq {
+            [#465: failed (retry 1/3)]
+        }
+    }
+
+    component "Task Dispatcher Module" as dispatcher {
+        [Load Balancer\nmax 5 concurrent]
+        [GitHub Actions\nworkflow_dispatch]
+        [Retry Manager\nExponential backoff]
+        [Session Tracker]
+    }
+
+    component "Monitoring Module" as monitor {
+        [Health Check\nHTTP /healthz]
+        [Metrics Collector\nPrometheus format]
+        [Alert Manager\nSlack/Discord]
+        [Dashboard API\nJSON stats]
+    }
+
+    database "SQLite Database" as db {
+        [sessions\nid, issue_number, status,\nstarted_at, completed_at,\nduration_sec, exit_code]
+
+        [metrics\ntimestamp, metric_name,\nvalue]
+
+        [queue_history\nissue_number, queue_name,\nenqueued_at, dequeued_at]
+    }
+}
+
+' Internal connections
+collector --> priority_calc : parsed issues
+priority_calc --> queues : enqueue with priority
+queues --> dispatcher : dequeue ready tasks
+dispatcher --> monitor : session events
+dispatcher --> db : record session
+monitor --> db : query metrics
+
+note right of collector
+    **Polling Strategy**:
+    - Interval: 10 seconds
+    - Query: state=open, label:state:pending
+    - Batch size: 100 issues/request
+    - Rate limit aware (5000 req/hour)
+
+    **Webhook Events**:
+    - issues.opened
+    - issues.labeled
+    - issues.commented (@mention)
+    - issues.closed
+end note
+
+note right of priority_calc
+    **Priority Formula**:
+    priority = label_weight
+             + dependency_boost
+             - estimated_time_penalty
+             + age_bonus
+
+    **Examples**:
+    - P0-Critical, no deps, 10min → 100
+    - P1-High, blocked, 30min → 50
+    - P2-Medium, ready, 5min → 55
+end note
+
+note right of queues
+    **Queue Transitions**:
+
+    Priority → Running:
+      - When runner capacity available
+      - Dependencies resolved
+      - No blocking issues
+
+    Running → Completed:
+      - Session exits with code 0
+      - PR created successfully
+
+    Running → Failed:
+      - Session exits with error
+      - Timeout exceeded (2h)
+
+    Failed → Priority:
+      - Retry with exponential backoff
+      - Max retries: 3
+end note
+
+note right of dispatcher
+    **Load Balancing**:
+    - Max concurrent: 5 sessions
+    - Queue: FIFO within same priority
+    - Fairness: Round-robin per user
+
+    **Dispatch Criteria**:
+    ✅ Runner capacity available
+    ✅ Task dependencies resolved
+    ✅ No conflicting file changes
+    ✅ Priority threshold met (>= P3)
+
+    **GitHub Actions Trigger**:
+    POST /repos/{owner}/{repo}/actions/workflows/task-execute.yml/dispatches
+    {
+      "ref": "main",
+      "inputs": {
+        "issue_number": "443",
+        "agent_type": "coordinator",
+        "worktree_base": ".worktrees"
+      }
+    }
+end note
+
+note right of db
+    **Database Schema**:
+    - sessions: Session execution history
+    - metrics: Time-series performance data
+    - queue_history: Queue residence time tracking
+
+    **Retention Policy**:
+    - sessions: 30 days
+    - metrics: 90 days
+    - queue_history: 7 days
+
+    **Backup**:
+    - Daily snapshot to GitHub repo
+    - Compressed SQLite dump
+end note
+
+legend right
+    **Service Characteristics**:
+    - Runtime: Rust + Tokio async
+    - HTTP Server: axum (:8080)
+    - Database: SQLite (embedded)
+    - Deployment: systemd service
+    - Logging: tracing + JSON output
+    - Monitoring: /healthz endpoint
+endlegend
+
+@enduml

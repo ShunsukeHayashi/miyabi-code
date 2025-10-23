@@ -1,0 +1,128 @@
+@startuml Agent Execution Flow
+!theme vibrant
+skinparam sequenceMessageAlign center
+
+title Miyabi Agent Execution Flow - Worktree-based Parallel Execution
+
+actor "User" as user
+participant "miyabi CLI" as cli
+participant "CoordinatorAgent" as coordinator
+database "GitHub API" as github
+participant "WorktreeManager" as worktree
+participant "Worktree #1\n(Issue #270)" as wt1
+participant "Worktree #2\n(Issue #271)" as wt2
+participant "Claude Code\nSession #1" as claude1
+participant "Claude Code\nSession #2" as claude2
+participant "Agent\n(CodeGen/Review)" as agent
+
+user -> cli : miyabi agent run coordinator --issues 270,271
+activate cli
+
+cli -> coordinator : execute(issues: [270, 271])
+activate coordinator
+
+coordinator -> github : fetch issues #270, #271
+github --> coordinator : Issue details
+
+coordinator -> coordinator : analyze & decompose tasks
+note right
+    1. Task decomposition
+    2. Build DAG
+    3. Detect dependencies
+    4. Assign agent types
+end note
+
+coordinator -> worktree : createWorktree("issue-270")
+activate worktree
+worktree -> wt1 : git worktree add .worktrees/issue-270
+wt1 --> worktree : worktree created
+worktree -> wt1 : write .agent-context.json
+worktree -> wt1 : write EXECUTION_CONTEXT.md
+worktree --> coordinator : WorktreeInfo
+deactivate worktree
+
+coordinator -> worktree : createWorktree("issue-271")
+activate worktree
+worktree -> wt2 : git worktree add .worktrees/issue-271
+wt2 --> worktree : worktree created
+worktree -> wt2 : write .agent-context.json
+worktree -> wt2 : write EXECUTION_CONTEXT.md
+worktree --> coordinator : WorktreeInfo
+deactivate worktree
+
+par Parallel Execution
+    coordinator -> claude1 : spawn Claude Code\n(cwd: .worktrees/issue-270)
+    activate claude1
+    claude1 -> wt1 : read .agent-context.json
+    wt1 --> claude1 : agentType: "CodeGenAgent"
+    claude1 -> wt1 : read prompt:\n.claude/agents/prompts/coding/codegen-agent-prompt.md
+    wt1 --> claude1 : CodeGen instructions
+
+    claude1 -> agent : invoke CodeGenAgent
+    activate agent
+    agent -> agent : generate Rust code
+    agent -> agent : write tests
+    agent -> agent : cargo test
+    agent --> claude1 : code generated
+    deactivate agent
+
+    claude1 -> wt1 : git add . && git commit
+    wt1 --> claude1 : commit created
+    claude1 --> coordinator : execution completed
+    deactivate claude1
+else
+    coordinator -> claude2 : spawn Claude Code\n(cwd: .worktrees/issue-271)
+    activate claude2
+    claude2 -> wt2 : read .agent-context.json
+    wt2 --> claude2 : agentType: "ReviewAgent"
+    claude2 -> wt2 : read prompt:\n.claude/agents/prompts/coding/review-agent-prompt.md
+    wt2 --> claude2 : Review instructions
+
+    claude2 -> agent : invoke ReviewAgent
+    activate agent
+    agent -> agent : cargo clippy
+    agent -> agent : quality scoring
+    agent -> agent : generate report
+    agent --> claude2 : review completed
+    deactivate agent
+
+    claude2 -> wt2 : git add . && git commit
+    wt2 --> claude2 : commit created
+    claude2 --> coordinator : execution completed
+    deactivate claude2
+end
+
+coordinator -> worktree : mergeWorktree("issue-270")
+activate worktree
+worktree -> wt1 : git push origin issue-270
+worktree -> worktree : create PR (optional)
+worktree --> coordinator : merged
+deactivate worktree
+
+coordinator -> worktree : mergeWorktree("issue-271")
+activate worktree
+worktree -> wt2 : git push origin issue-271
+worktree -> worktree : create PR (optional)
+worktree --> coordinator : merged
+deactivate worktree
+
+coordinator -> worktree : cleanup
+worktree -> wt1 : git worktree remove
+worktree -> wt2 : git worktree remove
+
+coordinator --> cli : execution summary
+deactivate coordinator
+
+cli --> user : display results
+deactivate cli
+
+note over user, agent
+    **Key Benefits of Worktree-based Execution**
+    1. **True Parallelism**: Each issue has isolated workspace
+    2. **Conflict Avoidance**: No file locking between agents
+    3. **Easy Rollback**: Per-worktree git history
+    4. **Independent Debugging**: Separate logs per worktree
+    5. **Scalability**: Unlimited concurrent worktrees
+end note
+
+@enduml

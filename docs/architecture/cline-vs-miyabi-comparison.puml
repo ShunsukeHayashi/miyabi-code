@@ -1,0 +1,146 @@
+@startuml Cline vs Miyabi - Architecture Comparison
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Cline vs Miyabi - Architecture Comparison & Integration Opportunities
+
+package "Cline (VS Code Extension)" as cline #LightBlue {
+    component "Core Engine" as cline_core {
+        [Controller\nTask orchestration]
+        [Task Manager\nTask lifecycle]
+        [Context Manager\nContext window optimization]
+        [Lock Manager\nSQLite-based file locks]
+        [Workspace Manager\nWorkspace operations]
+        [Prompts\nPrompt templates]
+    }
+
+    component "User Interface" as cline_ui {
+        [Webview UI\nReact chat interface]
+        [VS Code Integration\nEditor commands]
+        [Human-in-the-loop\nApproval dialogs]
+    }
+
+    component "Tool System" as cline_tools {
+        [File Operations\nCreate/Edit/Delete]
+        [Terminal Execution\nShell integration]
+        [Browser Control\nComputer Use API]
+        [MCP Client\nModel Context Protocol]
+    }
+
+    component "Storage Layer" as cline_storage {
+        [SQLite Database\nTask history]
+        [File Context Tracker\nAST-based tracking]
+        [Conversation Storage\nChat history]
+    }
+}
+
+package "Miyabi (Rust CLI + GitHub OS)" as miyabi #LightGreen {
+    component "Agent Framework" as miyabi_agents {
+        [CoordinatorAgent\nDAG-based orchestration]
+        [CodeGenAgent\nRust code generation]
+        [ReviewAgent\nQuality scoring]
+        [WorkflowAgent\nPR/Deploy automation]
+    }
+
+    component "Execution Engine" as miyabi_exec {
+        [Worktree Manager\nGit worktree isolation]
+        [Parallel Executor\nUnlimited concurrency]
+        [Session Manager\nHeadless Claude Code]
+        [Task Scheduler\nPriority queue]
+    }
+
+    component "Infrastructure" as miyabi_infra {
+        [GitHub OS\nIssue/PR/Labels]
+        [Self-hosted Runner\nGitHub Actions]
+        [Knowledge System\nQdrant Vector DB]
+        [MCP Server\nJSON-RPC 2.0]
+    }
+
+    component "Persistence" as miyabi_storage {
+        [SQLite\nSession history]
+        [GitHub Storage\nIssues as state]
+        [Qdrant\nVector search]
+    }
+}
+
+package "Shared Concepts" as shared #LightYellow {
+    [MCP Protocol\nModel Context Protocol]
+    [Claude API\nAnthropic Sonnet 4]
+    [Human-in-the-loop\nApproval mechanism]
+    [Context Management\nWindow optimization]
+    [Tool Execution\nFile/Terminal/Browser]
+}
+
+' Cline internal connections
+cline_core --> cline_ui : updates
+cline_core --> cline_tools : invokes
+cline_core --> cline_storage : persists
+cline_tools --> cline_storage : logs
+
+' Miyabi internal connections
+miyabi_agents --> miyabi_exec : orchestrates
+miyabi_exec --> miyabi_infra : uses
+miyabi_agents --> miyabi_storage : persists
+miyabi_infra --> miyabi_storage : stores
+
+' Shared concepts connections
+cline_tools ..> shared : implements
+miyabi_infra ..> shared : implements
+
+note right of cline
+    **Cline (VS Code Extension)**
+    - **Focus**: Interactive IDE assistant
+    - **User Model**: Developer-in-the-loop
+    - **Execution**: Synchronous with UI
+    - **State**: Local SQLite + file tracking
+    - **Concurrency**: Single task at a time
+    - **Integration**: VS Code API
+
+    **Strengths**:
+    ✅ Rich interactive UI (chat, diff view)
+    ✅ Real-time feedback & approval
+    ✅ Deep VS Code integration
+    ✅ Computer Use (browser control)
+    ✅ Context window optimization
+    ✅ File lock management
+end note
+
+note left of miyabi
+    **Miyabi (Autonomous System)**
+    - **Focus**: Autonomous batch processing
+    - **User Model**: Zero-touch operation
+    - **Execution**: Async parallel (unlimited)
+    - **State**: GitHub OS + distributed
+    - **Concurrency**: Unlimited (worktree-based)
+    - **Integration**: GitHub Actions + CLI
+
+    **Strengths**:
+    ✅ Unlimited parallel execution
+    ✅ GitHub OS as state layer
+    ✅ Worktree isolation (no conflicts)
+    ✅ Knowledge management (RAG)
+    ✅ Priority-based scheduling
+    ✅ Self-hosted runner support
+end note
+
+legend right
+    **Key Differences**:
+
+    |Aspect|Cline|Miyabi|
+    |---|---|---|
+    |**Execution Model**|Interactive|Autonomous|
+    |**Concurrency**|Single task|Unlimited parallel|
+    |**State Storage**|SQLite|GitHub OS|
+    |**User Interaction**|Chat UI|Issue comments|
+    |**Isolation**|File locks|Git worktrees|
+    |**Integration**|VS Code|GitHub Actions|
+    |**Target Users**|Solo developers|Teams + CI/CD|
+
+    **Potential Integration**:
+    1. Cline UI → Miyabi Agent execution
+    2. Miyabi Knowledge → Cline Context
+    3. Cline File Locks → Miyabi Worktree
+    4. Shared MCP servers
+endlegend
+
+@enduml

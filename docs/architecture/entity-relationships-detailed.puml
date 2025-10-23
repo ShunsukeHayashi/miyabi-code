@@ -1,0 +1,196 @@
+@startuml Entity Relationships - Detailed (27 Relations)
+!theme vibrant
+skinparam linetype ortho
+
+title Miyabi Entity Relationships - All 27 Relations
+
+' Entities
+class Issue {
+  + number: INTEGER
+  + title: STRING
+  + state: ENUM
+  + labels: Label[]
+}
+
+class Task {
+  + id: UUID
+  + issue_id: INTEGER
+  + status: ENUM
+  + dependencies: Task[]
+}
+
+class Agent {
+  + type: ENUM
+  + status: ENUM
+  + current_task: Task?
+}
+
+class PR {
+  + number: INTEGER
+  + issue_id: INTEGER
+  + status: ENUM
+}
+
+class Label {
+  + name: STRING
+  + category: ENUM
+}
+
+class QualityReport {
+  + score: INTEGER
+  + task_id: UUID
+}
+
+class Command {
+  + name: STRING
+  + path: STRING
+}
+
+class Escalation {
+  + target: ENUM
+  + severity: ENUM
+}
+
+class Deployment {
+  + environment: ENUM
+  + pr_id: INTEGER
+}
+
+class LDDLog {
+  + phase: ENUM
+  + task_id: UUID
+}
+
+class DAG {
+  + issue_id: INTEGER
+  + nodes: Task[]
+}
+
+class Worktree {
+  + issue_id: INTEGER
+  + path: STRING
+}
+
+' R1-R10: Issue-centric relationships
+Issue "1" --> "N" Task : R1: decomposed-into
+Issue "1" --> "N" Label : R2: tagged-with
+Issue "1" --> "1" PR : R3: creates
+Issue "1" --> "1" DAG : R4: analyzed-by
+Issue "1" --> "1" Worktree : R5: isolated-in
+Issue "1" ..> "1" Agent : R6: assigned-to (IssueAgent)
+Issue "1" ..> "N" Escalation : R7: triggers (on error)
+
+note right of Issue
+  **R1-R7: Issue Relations**
+  R1: 1 Issue → N Tasks (CoordinatorAgent)
+  R2: 1 Issue → N Labels (state management)
+  R3: 1 Issue → 1 PR (WorkflowAgent)
+  R4: 1 Issue → 1 DAG (CoordinatorAgent)
+  R5: 1 Issue → 1 Worktree (isolation)
+  R6: 1 Issue → 1 Agent (IssueAgent analyzes)
+  R7: 1 Issue → N Escalations (error handling)
+end note
+
+' R8-R15: Task-centric relationships
+Task "N" --> "1" Agent : R8: executed-by
+Task "1" --> "N" Task : R9: depends-on (DAG)
+Task "1" --> "1" QualityReport : R10: reviewed-as
+Task "1" --> "N" LDDLog : R11: logged-in
+Task "N" --> "1" DAG : R12: organized-in
+Task "1" --> "1" Worktree : R13: executes-in
+Task "1" ..> "1" Escalation : R14: triggers (on block)
+
+note right of Task
+  **R8-R14: Task Relations**
+  R8: N Tasks → 1 Agent (specialist)
+  R9: 1 Task → N Tasks (dependencies)
+  R10: 1 Task → 1 QualityReport (ReviewAgent)
+  R11: 1 Task → N LDDLogs (all actions)
+  R12: N Tasks → 1 DAG (organized)
+  R13: 1 Task → 1 Worktree (execution)
+  R14: 1 Task → N Escalations (blocks)
+end note
+
+' R15-R20: Agent-centric relationships
+Agent "1" --> "N" QualityReport : R15: generates
+Agent "1" --> "N" Escalation : R16: triggers
+Agent "1" --> "N" PR : R17: creates (PRAgent)
+Agent "1" --> "N" Deployment : R18: performs (DeploymentAgent)
+Agent "1" --> "N" LDDLog : R19: logs-to
+Agent "1" <.. "1" Command : R20: invoked-by
+
+note left of Agent
+  **R15-R20: Agent Relations**
+  R15: 1 Agent → N QualityReports
+  R16: 1 Agent → N Escalations
+  R17: 1 Agent → N PRs (PRAgent)
+  R18: 1 Agent → N Deployments (DeploymentAgent)
+  R19: 1 Agent → N LDDLogs
+  R20: 1 Command → N Agents (invoke)
+end note
+
+' R21-R25: PR & Deployment relationships
+PR "1" --> "N" Deployment : R21: deployed-as
+PR "1" --> "1" Issue : R22: resolves
+PR "1" ..> "1" Agent : R23: created-by (PRAgent)
+
+Deployment "1" ..> "1" Agent : R24: performed-by
+Deployment "1" --> "N" LDDLog : R25: logged-in
+
+note left of PR
+  **R21-R23: PR Relations**
+  R21: 1 PR → N Deployments (staging, prod)
+  R22: 1 PR → 1 Issue (resolves)
+  R23: 1 Agent → N PRs (PRAgent creates)
+end note
+
+note left of Deployment
+  **R24-R25: Deployment Relations**
+  R24: 1 Agent → N Deployments
+  R25: 1 Deployment → N LDDLogs
+end note
+
+' R26-R27: Worktree & DAG relationships
+Worktree "1" --> "N" LDDLog : R26: logged-in
+DAG "1" ..> "1" Agent : R27: built-by (CoordinatorAgent)
+
+note bottom of Worktree
+  **R26: Worktree → LDDLog**
+  All worktree operations logged
+  execution.log → LDDLog
+end note
+
+note bottom of DAG
+  **R27: CoordinatorAgent → DAG**
+  Builds dependency graph
+  Topological sort
+  Parallel execution plan
+end note
+
+' Relationship summary
+legend right
+  **27 Relationships Summary**:
+
+  **Issue Relations (7)**:
+  R1-R7: Issue → Task, Label, PR, DAG, Worktree, Agent, Escalation
+
+  **Task Relations (7)**:
+  R8-R14: Task → Agent, Task, QualityReport, LDDLog, DAG, Worktree, Escalation
+
+  **Agent Relations (6)**:
+  R15-R20: Agent → QualityReport, Escalation, PR, Deployment, LDDLog, Command
+
+  **PR Relations (3)**:
+  R21-R23: PR → Deployment, Issue, Agent
+
+  **Deployment Relations (2)**:
+  R24-R25: Deployment → Agent, LDDLog
+
+  **Other Relations (2)**:
+  R26: Worktree → LDDLog
+  R27: DAG → Agent
+
+  **Total**: 27 Relations, 12 Entities
+endlegend
+
+@enduml

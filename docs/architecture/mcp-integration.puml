@@ -1,0 +1,154 @@
+@startuml MCP Integration Architecture
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Miyabi MCP Server - Claude Code Integration
+
+actor "Claude Code User" as user
+participant "Claude Code\nCLI" as claude
+participant "MCP Client\n(stdio)" as mcp_client
+participant "miyabi-mcp-server" as mcp_server
+participant "Agent Router" as router
+database "Miyabi Agents" as agents
+database "Knowledge System" as knowledge
+database "GitHub API" as github
+
+user -> claude : ask about error handling
+activate claude
+
+claude -> mcp_client : knowledge.search
+activate mcp_client
+note right
+    JSON-RPC 2.0 Request:
+    {
+      "jsonrpc": "2.0",
+      "method": "knowledge.search",
+      "params": {
+        "query": "error handling in Rust",
+        "agent": "CodeGenAgent",
+        "limit": 10
+      },
+      "id": 1
+    }
+end note
+
+mcp_client -> mcp_server : knowledge.search (stdio)
+activate mcp_server
+mcp_server -> knowledge : search(query, filters)
+activate knowledge
+knowledge --> mcp_server : SearchResults
+deactivate knowledge
+
+mcp_server --> mcp_client : JSON-RPC Response
+deactivate mcp_server
+note left
+    {
+      "jsonrpc": "2.0",
+      "result": {
+        "results": [
+          {
+            "text": "...",
+            "score": 0.95,
+            "metadata": {...}
+          }
+        ],
+        "total": 42
+      },
+      "id": 1
+    }
+end note
+
+mcp_client --> claude : search results
+deactivate mcp_client
+claude --> user : display context
+
+user -> claude : execute agent for issue #270
+activate claude
+
+claude -> mcp_client : agent.execute
+activate mcp_client
+note right
+    JSON-RPC 2.0 Request:
+    {
+      "jsonrpc": "2.0",
+      "method": "agent.execute",
+      "params": {
+        "agentType": "CodeGenAgent",
+        "issueNumber": 270,
+        "options": {
+          "useWorktree": true
+        }
+      },
+      "id": 2
+    }
+end note
+
+mcp_client -> mcp_server : agent.execute (stdio)
+activate mcp_server
+mcp_server -> router : route(agentType)
+activate router
+router -> agents : execute CodeGenAgent
+activate agents
+
+agents -> github : fetch issue #270
+github --> agents : Issue details
+
+agents -> agents : generate code
+agents -> agents : run tests
+
+agents --> router : AgentResult
+deactivate agents
+router --> mcp_server : execution summary
+deactivate router
+
+mcp_server --> mcp_client : JSON-RPC Response
+deactivate mcp_server
+note left
+    {
+      "jsonrpc": "2.0",
+      "result": {
+        "status": "completed",
+        "output": {
+          "filesCreated": 3,
+          "testsRun": 12,
+          "testsPassed": 12
+        },
+        "worktree": "issue-270"
+      },
+      "id": 2
+    }
+end note
+
+mcp_client --> claude : execution result
+deactivate mcp_client
+claude --> user : display result
+deactivate claude
+
+note over user, github
+    **MCP Server Features**
+    1. **Agent Execution**: 6 agent types (Coordinator, CodeGen, Review, etc.)
+    2. **Knowledge Search**: Vector similarity search with filters
+    3. **Worktree Management**: Create/manage/cleanup worktrees
+    4. **GitHub Integration**: Issue/PR operations
+    5. **Statistics**: Agent execution stats, knowledge base stats
+
+    **Transport Modes**
+    - stdio: Claude Code integration (default)
+    - HTTP: Remote access (future)
+
+    **Configuration**
+    ~/.config/claude/claude_desktop_config.json
+    {
+      "mcpServers": {
+        "miyabi": {
+          "command": "miyabi",
+          "args": ["mcp", "serve", "--stdio"],
+          "env": {
+            "GITHUB_TOKEN": "ghp_xxx"
+          }
+        }
+      }
+    }
+end note
+
+@enduml

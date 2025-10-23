@@ -1,0 +1,145 @@
+@startuml Entity Data Flow
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Miyabi Entity Data Flow - Issue to Deployment
+
+actor "Developer" as dev
+database "GitHub Issues" as gh_issues
+component "CoordinatorAgent" as coordinator
+database "DAG Builder" as dag
+database "Task Queue" as queue
+component "Specialist Agents" as agents
+database "Worktree Manager" as worktree
+component "ReviewAgent" as reviewer
+component "PRAgent" as pr_agent
+database "GitHub PRs" as gh_prs
+component "DeploymentAgent" as deployer
+database "Deployed Services" as deployed
+
+' Issue creation flow
+dev -> gh_issues : Create Issue\n+ labels
+gh_issues -> coordinator : Webhook trigger
+
+' Analysis & decomposition flow
+coordinator -> dag : Build dependency graph
+coordinator -> queue : Create Task[]
+dag --> coordinator : Topological order
+queue --> coordinator : Priority queue
+
+note right of coordinator
+    **Entity Transformation**:
+    1 Issue → N Tasks
+
+    Creates:
+    - Task entities
+    - DAG entity
+    - Label assignments
+end note
+
+' Task execution flow
+coordinator -> agents : Assign tasks
+coordinator -> worktree : Create worktrees\n(1 per Issue)
+
+worktree -> agents : Isolated workspace
+agents -> worktree : Execute in isolation
+
+note right of worktree
+    **Worktree Mapping**:
+    Issue #443 → .worktrees/issue-443/
+    Issue #448 → .worktrees/issue-448/
+
+    Parallel execution:
+    No file conflicts!
+end note
+
+' Code generation & review flow
+agents -> reviewer : Request review
+reviewer -> agents : QualityReport\n(score: 0-100)
+
+note right of reviewer
+    **Quality Entity**:
+    - score: INTEGER (0-100)
+    - issues: Issue[]
+    - recommendations: STRING[]
+
+    Threshold: 80
+end note
+
+' PR creation flow
+agents -> pr_agent : Create PR
+pr_agent -> gh_prs : Submit PR
+gh_prs --> pr_agent : PR #123 created
+
+note right of pr_agent
+    **PR Entity**:
+    - source_branch: feature/issue-443
+    - target_branch: main
+    - Linked to Issue #443
+    - Conventional Commits format
+end note
+
+' Deployment flow
+gh_prs -> deployer : PR merged
+deployer -> deployed : Deploy to staging
+deployed --> deployer : Health check
+deployer -> gh_prs : Update status
+
+note right of deployer
+    **Deployment Entity**:
+    - environment: staging/production
+    - status: pending/deployed/failed
+    - url: https://...
+    - Health checks included
+end note
+
+' Completion flow
+deployer -> gh_issues : Close Issue\n+ state:done
+gh_issues -> dev : Notification
+
+' LDD logging (parallel)
+agents ..> "LDDLog" : Log all actions
+reviewer ..> "LDDLog" : Log reviews
+deployer ..> "LDDLog" : Log deployments
+
+note bottom of "LDDLog"
+    **LDD Entity** (Learn-Do-Decide):
+    Logs every agent action
+
+    Stored in:
+    - .ai/logs/YYYY-MM-DD.md
+    - Indexed in Qdrant (RAG)
+end note
+
+' Escalation flow (error path)
+agents ..> "Escalation" : On critical error
+"Escalation" ..> dev : @mention notification
+
+note top of "Escalation"
+    **Escalation Entity**:
+    - target: CTO/PM/Guardian
+    - severity: Critical/High/Medium
+    - Includes full context
+end note
+
+legend right
+    **Entity Flow Summary**:
+
+    1. Issue → CoordinatorAgent
+    2. CoordinatorAgent → Task[] + DAG
+    3. Task[] → Worktree[] (1:1 mapping)
+    4. Worktree[] → Specialist Agents
+    5. Agents → QualityReport
+    6. QualityReport → PR
+    7. PR → Deployment
+    8. Deployment → Issue (close)
+
+    **Parallel Logging**:
+    All entities → LDDLog
+    LDDLog → Qdrant (indexing)
+
+    **Error Handling**:
+    Any entity → Escalation → Human
+endlegend
+
+@enduml

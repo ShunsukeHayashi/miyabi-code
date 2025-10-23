@@ -1,0 +1,115 @@
+@startuml Miyabi Crates Layers
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Miyabi Crates - Layered Architecture
+
+package "Layer 1: Foundation" as layer1 #Technology {
+    [miyabi-types] as types
+    note right of types
+        **Zero Dependencies**
+        Core type definitions:
+        - Agent, Task, Issue
+        - MiyabiError (12 variants)
+        - Workflow (N1/N2/N3)
+        - Entity-Relation Model
+    end note
+}
+
+package "Layer 2: Core Utilities" as layer2 #Application {
+    [miyabi-core] as core
+    note right of core
+        Configuration, Logging,
+        Retry Logic, Validation
+    end note
+}
+
+package "Layer 3: Infrastructure" as layer3 #Business {
+    [miyabi-github] as github
+    [miyabi-worktree] as worktree
+    [miyabi-llm] as llm
+    [miyabi-knowledge] as knowledge
+    [miyabi-potpie] as potpie
+
+    note right of github
+        GitHub API Integration
+        (Octocrab wrapper)
+    end note
+
+    note right of worktree
+        Git Worktree Management
+        Parallel Execution
+    end note
+
+    note right of knowledge
+        Qdrant Vector DB
+        Log Indexing & Search
+    end note
+}
+
+package "Layer 4: Agent Framework" as layer4 #Implementation {
+    [miyabi-agent-core] as agent_core
+    note right of agent_core
+        BaseAgent Trait
+        AgentHooks Trait
+        Execution Context
+    end note
+}
+
+package "Layer 5: Specialized Agents" as layer5 #Strategy {
+    package "Coding Agents" {
+        [miyabi-agent-coordinator] as coordinator
+        [miyabi-agent-codegen] as codegen
+        [miyabi-agent-review] as review
+        [miyabi-agent-workflow] as workflow
+    }
+
+    package "Business Agents" {
+        [miyabi-agent-business] as business
+    }
+
+    package "Integration Agents" {
+        [miyabi-agent-integrations] as integrations
+    }
+}
+
+package "Layer 6: Application" as layer6 #Motivation {
+    [miyabi-cli] as cli
+    [miyabi-mcp-server] as mcp
+    [miyabi-web-api] as web
+    [miyabi-orchestrator] as orchestrator
+
+    note right of cli
+        **Main Entry Point**
+        Binary: miyabi
+        - Issue processing
+        - Agent execution
+        - Knowledge search
+    end note
+}
+
+' Layer dependencies (bottom-up)
+layer2 --> layer1 : depends on
+layer3 --> layer1 : depends on
+layer3 --> layer2 : depends on
+layer4 --> layer1 : depends on
+layer5 --> layer4 : implements
+layer5 --> layer3 : uses
+layer6 --> layer5 : orchestrates
+layer6 --> layer3 : uses
+layer6 --> layer2 : uses
+layer6 --> layer1 : uses
+
+legend right
+    **Dependency Flow**
+    Arrows point from higher layers
+    to lower layers (bottom-up)
+
+    **Key Principles**
+    - Layer 1: Zero dependencies
+    - Layer 2-3: Infrastructure
+    - Layer 4-5: Agent framework
+    - Layer 6: User-facing apps
+endlegend
+
+@enduml

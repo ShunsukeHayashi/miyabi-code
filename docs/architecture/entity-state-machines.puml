@@ -1,0 +1,135 @@
+@startuml Entity State Machines
+!theme vibrant
+
+title Miyabi Core Entities - State Machines
+
+state "Issue State Machine" as issue_sm {
+    [*] --> Pending : Created
+
+    state "Pending" as issue_pending : Labels: state:pending
+    state "Analyzing" as issue_analyzing : CoordinatorAgent active
+    state "Implementing" as issue_implementing : Specialist Agents working
+    state "Reviewing" as issue_reviewing : ReviewAgent checking
+    state "Done" as issue_done : Completed & closed
+    state "Blocked" as issue_blocked : Dependencies unresolved
+
+    Pending --> Analyzing : Coordinator assigned
+    Analyzing --> Implementing : Tasks decomposed
+    Analyzing --> Blocked : Dependencies found
+    Blocked --> Implementing : Dependencies resolved
+    Implementing --> Reviewing : Code completed
+    Reviewing --> Implementing : Quality issues found
+    Reviewing --> Done : Quality passed
+    Done --> [*]
+}
+
+state "Task State Machine" as task_sm {
+    [*] --> Created : Decomposed from Issue
+
+    state "Created" as task_created : In DAG
+    state "Ready" as task_ready : Dependencies met
+    state "Queued" as task_queued : In priority queue
+    state "Executing" as task_executing : Agent working
+    state "Completed" as task_completed : Success
+    state "Failed" as task_failed : Error occurred
+
+    Created --> Ready : Dependencies resolved
+    Ready --> Queued : Added to queue
+    Queued --> Executing : Agent assigned
+    Executing --> Completed : Success
+    Executing --> Failed : Error
+    Failed --> Queued : Retry
+    Completed --> [*]
+}
+
+state "Agent State Machine" as agent_sm {
+    [*] --> Idle : Initialized
+
+    state "Idle" as agent_idle : No task assigned
+    state "Executing" as agent_executing : Task in progress
+    state "Completed" as agent_completed : Task finished
+    state "Escalated" as agent_escalated : Need human intervention
+
+    Idle --> Executing : Task assigned
+    Executing --> Completed : Success
+    Executing --> Escalated : Error/Block
+    Escalated --> Idle : Issue resolved
+    Completed --> Idle : Ready for next task
+}
+
+state "PR State Machine" as pr_sm {
+    [*] --> Draft : Created
+
+    state "Draft" as pr_draft : Initial creation
+    state "Open" as pr_open : Ready for review
+    state "Approved" as pr_approved : Review passed
+    state "Merged" as pr_merged : Merged to main
+    state "Closed" as pr_closed : Rejected
+
+    Draft --> Open : Mark ready
+    Open --> Approved : Reviewer approval
+    Open --> Closed : Rejected
+    Approved --> Merged : Merge approved
+    Merged --> [*]
+    Closed --> [*]
+}
+
+state "Worktree State Machine" as worktree_sm {
+    [*] --> Creating : git worktree add
+
+    state "Creating" as wt_creating : Setup in progress
+    state "Active" as wt_active : Agent executing
+    state "Completed" as wt_completed : Task done
+    state "Merged" as wt_merged : Changes merged
+    state "Removed" as wt_removed : Cleanup done
+
+    Creating --> Active : Ready
+    Active --> Completed : Task finished
+    Completed --> Merged : git merge
+    Merged --> Removed : git worktree remove
+    Removed --> [*]
+}
+
+note right of issue_sm
+    **Issue Labels Drive State**
+    - state:pending
+    - state:analyzing
+    - state:implementing
+    - state:reviewing
+    - state:done
+    - state:blocked
+
+    Labels are single source of truth
+end note
+
+note right of task_sm
+    **Task Priority Queue**
+    - Priority: P0 > P1 > P2 > P3
+    - Dependencies: DAG-based
+    - Retry: Max 3 attempts
+    - Timeout: 2 hours default
+end note
+
+note right of agent_sm
+    **21 Agent Types**
+    7 Coding + 14 Business
+
+    All follow same state machine
+    Escalation targets:
+    - CTO: Critical decisions
+    - PM: Priority conflicts
+    - Guardian: Security issues
+end note
+
+note right of worktree_sm
+    **Isolation Guarantee**
+    1 Issue = 1 Worktree
+
+    Benefits:
+    - No file conflicts
+    - Parallel execution
+    - Easy rollback
+    - Independent debugging
+end note
+
+@enduml

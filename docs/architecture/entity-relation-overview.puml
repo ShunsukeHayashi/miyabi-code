@@ -1,0 +1,205 @@
+@startuml Miyabi Entity-Relation Model - Overview
+!theme vibrant
+skinparam linetype ortho
+
+title Miyabi Entity-Relation Model - 12 Core Entities
+
+' Define entities
+entity "Issue" as issue <<GitHub Issue>> #LightBlue {
+  * id: INTEGER
+  --
+  * number: INTEGER
+  * title: STRING
+  * body: STRING
+  * state: ENUM (open/closed)
+  * labels: Label[]
+  * assignees: User[]
+  * created_at: TIMESTAMP
+  * updated_at: TIMESTAMP
+}
+
+entity "Task" as task <<Decomposed Unit>> #LightGreen {
+  * id: UUID
+  --
+  * issue_id: INTEGER
+  * title: STRING
+  * description: STRING
+  * agent_type: ENUM
+  * status: ENUM
+  * dependencies: Task[]
+  * priority: INTEGER
+  * estimated_time: DURATION
+}
+
+entity "Agent" as agent <<Autonomous Executor>> #LightCoral {
+  * type: ENUM
+  --
+  * name: STRING
+  * role: STRING
+  * capabilities: STRING[]
+  * status: ENUM (idle/executing/completed)
+  * current_task: Task?
+}
+
+entity "PR" as pr <<Pull Request>> #LightYellow {
+  * number: INTEGER
+  --
+  * title: STRING
+  * body: STRING
+  * source_branch: STRING
+  * target_branch: STRING
+  * status: ENUM
+  * issue_id: INTEGER
+  * created_at: TIMESTAMP
+}
+
+entity "Label" as label <<State/Metadata>> #LightPink {
+  * name: STRING
+  --
+  * color: STRING
+  * description: STRING
+  * category: ENUM
+}
+
+entity "QualityReport" as quality <<Review Output>> #LightSalmon {
+  * id: UUID
+  --
+  * task_id: UUID
+  * agent_type: ENUM
+  * score: INTEGER (0-100)
+  * issues: Issue[]
+  * recommendations: STRING[]
+  * created_at: TIMESTAMP
+}
+
+entity "Command" as command <<Claude Code Command>> #LightCyan {
+  * name: STRING
+  --
+  * path: STRING
+  * description: STRING
+  * prompt: STRING
+}
+
+entity "Escalation" as escalation <<Error Handling>> #Orange {
+  * id: UUID
+  --
+  * task_id: UUID
+  * target: ENUM (CTO/PM/Guardian)
+  * severity: ENUM
+  * message: STRING
+  * metadata: JSON
+  * created_at: TIMESTAMP
+}
+
+entity "Deployment" as deployment <<Deploy Info>> #LightGreen {
+  * id: UUID
+  --
+  * pr_id: INTEGER
+  * environment: ENUM
+  * status: ENUM
+  * url: STRING
+  * started_at: TIMESTAMP
+  * completed_at: TIMESTAMP
+}
+
+entity "LDDLog" as ldd <<Learn-Do-Decide>> #LightGray {
+  * id: UUID
+  --
+  * task_id: UUID
+  * phase: ENUM (Learn/Do/Decide)
+  * action: STRING
+  * result: STRING
+  * created_at: TIMESTAMP
+}
+
+entity "DAG" as dag <<Dependency Graph>> #LightBlue {
+  * id: UUID
+  --
+  * issue_id: INTEGER
+  * nodes: Task[]
+  * edges: Edge[]
+  * topological_order: Task[]
+}
+
+entity "Worktree" as worktree <<Git Worktree>> #LightYellow {
+  * id: UUID
+  --
+  * issue_id: INTEGER
+  * path: STRING
+  * branch: STRING
+  * session_id: UUID
+  * status: ENUM
+  * created_at: TIMESTAMP
+}
+
+' Primary relationships
+issue "1" -- "N" task : decomposes into >
+issue "1" -- "N" label : tagged with >
+issue "1" -- "1" pr : creates >
+issue "1" -- "1" dag : analyzed by >
+issue "1" -- "1" worktree : isolated in >
+
+task "1" -- "1" agent : executed by >
+task "1" -- "N" task : depends on >
+task "1" -- "1" quality : reviewed as >
+task "1" -- "N" ldd : logged in >
+task "N" -- "1" dag : organized in >
+
+agent "1" -- "1" escalation : triggers >
+agent "1" -- "N" quality : generates >
+
+pr "1" -- "N" deployment : deployed as >
+pr "1" -- "1" issue : resolves >
+
+command "1" -- "1" agent : invokes >
+
+worktree "1" -- "1" task : executes >
+
+note top of issue
+  **Primary Entity**
+  - GitHub Issue as source of truth
+  - Triggers all workflows
+  - Label-based state management
+end note
+
+note bottom of agent
+  **7 Coding Agents**
+  - CoordinatorAgent
+  - CodeGenAgent
+  - ReviewAgent
+  - IssueAgent
+  - PRAgent
+  - DeploymentAgent
+  - WorkflowAgent
+
+  **14 Business Agents**
+  - AIEntrepreneur
+  - ProductConcept
+  - ... (11 more)
+end note
+
+note right of worktree
+  **Isolation Mechanism**
+  - Each Issue = 1 Worktree
+  - Parallel execution
+  - No file conflicts
+  - Git-based separation
+end note
+
+legend right
+  **Entity Categories**:
+  |Color|Category|Count|
+  |<#LightBlue>|Core (Issue, DAG)|2|
+  |<#LightGreen>|Execution (Task, Deployment)|2|
+  |<#LightCoral>|Actors (Agent)|1|
+  |<#LightYellow>|Output (PR, Worktree)|2|
+  |<#LightPink>|Metadata (Label)|1|
+  |<#LightSalmon>|Quality (QualityReport)|1|
+  |<#LightCyan>|Interface (Command)|1|
+  |<#Orange>|Error (Escalation)|1|
+  |<#LightGray>|Logging (LDDLog)|1|
+
+  **Total**: 12 Entities, 27 Relationships
+endlegend
+
+@enduml

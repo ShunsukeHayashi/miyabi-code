@@ -1,0 +1,190 @@
+@startuml Cline + Miyabi Integration Opportunities
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Cline + Miyabi - Integration Opportunities & Hybrid Architecture
+
+package "Hybrid System: Cline UI + Miyabi Engine" as hybrid #LightCyan {
+
+    package "Frontend: Cline UI Layer" as frontend #LightBlue {
+        component "Webview UI" as ui {
+            [Chat Interface]
+            [Diff View Editor]
+            [Approval Dialogs]
+            [Progress Display]
+        }
+
+        component "VS Code Integration" as vscode {
+            [Editor Commands]
+            [File Watchers]
+            [Terminal Integration]
+            [Browser Control]
+        }
+    }
+
+    package "Backend: Miyabi Agent System" as backend #LightGreen {
+        component "Agent Execution" as agents {
+            [CoordinatorAgent\nDAG orchestration]
+            [CodeGenAgent\nRust codegen]
+            [ReviewAgent\nQuality check]
+            [WorkflowAgent\nPR/Deploy]
+        }
+
+        component "Parallel Execution Engine" as parallel {
+            [Worktree Manager\nGit isolation]
+            [Task Scheduler\nPriority queue]
+            [Session Manager\nMultiple sessions]
+        }
+
+        component "Knowledge Layer" as knowledge {
+            [Qdrant Vector DB\nRAG search]
+            [Embedding Provider\nOllama/OpenAI]
+            [Log Indexer\nExecution history]
+        }
+    }
+
+    package "Shared Services" as shared_services #LightYellow {
+        database "Unified Storage" as storage {
+            [SQLite\nSession history]
+            [Qdrant\nVector search]
+            [GitHub\nIssue/PR state]
+        }
+
+        component "MCP Integration" as mcp {
+            [MCP Server\nJSON-RPC 2.0]
+            [Tool Registry\nShared tools]
+            [Context Protocol\nShared context]
+        }
+
+        component "Context Manager" as context {
+            [Cline Context Tracker\nAST-based]
+            [Miyabi Knowledge Search\nVector-based]
+            [Hybrid Context Builder\nBest of both]
+        }
+    }
+}
+
+' Connections
+ui --> agents : dispatch task
+ui --> parallel : monitor progress
+agents --> parallel : execute in worktrees
+parallel --> knowledge : query context
+agents --> storage : persist results
+ui <-- storage : fetch history
+vscode --> mcp : invoke tools
+agents --> mcp : invoke tools
+context --> knowledge : search knowledge
+context --> storage : read history
+
+note right of frontend
+    **Cline UI Strengths (Keep)**:
+    - Rich chat interface with markdown
+    - Real-time diff view editor
+    - Human-in-the-loop approval system
+    - VS Code deep integration
+    - Browser control (Computer Use)
+
+    **Use Cases**:
+    - Interactive development
+    - Code review with AI
+    - Quick prototyping
+    - Learning & exploration
+end note
+
+note left of backend
+    **Miyabi Engine Strengths (Keep)**:
+    - Unlimited parallel execution
+    - Git worktree isolation (no conflicts)
+    - Priority-based scheduling
+    - GitHub OS state management
+    - Knowledge-driven context (RAG)
+
+    **Use Cases**:
+    - Batch issue processing
+    - Large refactoring projects
+    - Multi-agent workflows
+    - CI/CD integration
+end note
+
+note bottom of shared_services
+    **Integration Points**:
+
+    1. **Context Sharing**:
+       - Cline's AST-based file tracking
+       + Miyabi's RAG vector search
+       = Hybrid context with best of both
+
+    2. **Execution Models**:
+       - Cline: Single task, interactive
+       - Miyabi: Parallel tasks, autonomous
+       → User chooses based on task complexity
+
+    3. **Storage Unification**:
+       - SQLite: Session history (both)
+       - Qdrant: Knowledge base (Miyabi)
+       - GitHub: State & results (Miyabi)
+
+    4. **Tool Ecosystem**:
+       - Shared MCP servers
+       - Unified tool registry
+       - Context protocol integration
+end note
+
+frame "Integration Architecture Scenarios" as scenarios {
+    usecase "Scenario 1:\nCline UI → Miyabi Backend" as s1
+    usecase "Scenario 2:\nMiyabi CLI → Cline UI" as s2
+    usecase "Scenario 3:\nHybrid: Both UIs" as s3
+}
+
+note right of s1
+    **Scenario 1: Cline UI → Miyabi Backend**
+    User interacts via Cline chat,
+    but tasks execute via Miyabi agents
+    with worktree isolation.
+
+    **Benefits**:
+    - Familiar Cline UI
+    - Miyabi parallel execution
+    - Best of both worlds
+
+    **Implementation**:
+    - Cline extension calls Miyabi CLI
+    - Miyabi returns progress via JSON
+    - Cline displays in chat UI
+end note
+
+note right of s2
+    **Scenario 2: Miyabi CLI → Cline UI**
+    Miyabi orchestrates tasks autonomously,
+    but opens Cline UI for manual review
+    when needed.
+
+    **Benefits**:
+    - Autonomous batch processing
+    - Manual intervention when needed
+    - Escalation with context
+
+    **Implementation**:
+    - Miyabi detects need for review
+    - Opens VS Code with Cline
+    - Passes context via MCP
+end note
+
+note right of s3
+    **Scenario 3: Hybrid - Both UIs**
+    Developer chooses UI based on task:
+    - Cline for interactive tasks
+    - Miyabi for batch tasks
+
+    **Benefits**:
+    - Flexibility
+    - Shared context
+    - Unified tool ecosystem
+
+    **Implementation**:
+    - Shared MCP server
+    - Unified storage layer
+    - Context synchronization
+end note
+
+@enduml
