@@ -46,11 +46,11 @@ export default function Header() {
             <p className="text-sm font-medium text-gray-900">
               {user?.name || user?.email}
             </p>
-            <p className="text-xs text-gray-500">@{user?.github_id}</p>
+            <p className="text-xs text-gray-500">@{user?.githubId}</p>
           </div>
-          {user?.avatar_url && (
+          {user?.avatarUrl && (
             <img
-              src={user.avatar_url}
+              src={user.avatarUrl}
               alt={user.name || 'User avatar'}
               className="w-10 h-10 rounded-full"
             />

@@ -71,6 +71,7 @@ pub async fn parse_code_generation_results(worktree_path: &Path) -> Result<CodeG
 
 /// ワークツリーを作成（git2::Worktree が !Send のため spawn_blocking を利用）
 #[cfg(feature = "git-worktree")]
+#[allow(dead_code)] // Reserved for future Worktree integration
 pub async fn setup_worktree(config: &AgentConfig, task: &Task) -> Result<()> {
     let task_id = task.id.clone();
     let task_id_for_log = task.id.clone();
@@ -139,6 +140,7 @@ pub async fn setup_worktree(config: &AgentConfig, task: &Task) -> Result<()> {
 
 /// ワークツリーのクリーンアップ
 #[cfg(feature = "git-worktree")]
+#[allow(dead_code)] // Reserved for future Worktree integration
 pub async fn cleanup_worktree(config: &AgentConfig) -> Result<()> {
     let worktree_base = config
         .worktree_base_path

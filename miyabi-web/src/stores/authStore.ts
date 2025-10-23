@@ -4,11 +4,9 @@ import { persist } from 'zustand/middleware';
 interface User {
   id: string;
   githubId: number;
-  github_id: number;
   email: string;
   name?: string;
   avatarUrl?: string;
-  avatar_url?: string;
 }
 
 interface AuthState {
