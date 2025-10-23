@@ -49,6 +49,15 @@ Implementation roadmap for Cline + Miyabi integration:
 - Entity data flow (Issue → Deployment)
 - Detailed relationships (27 relations)
 
+### End-to-End Workflow
+**Documentation**: [END_TO_END_WORKFLOW.md](END_TO_END_WORKFLOW.md)
+
+Complete workflow from Issue to Production:
+- 9 phases with detailed sequence diagram
+- 100% autonomous operation (45 minutes average)
+- Parallel execution with worktree isolation
+- Quality-driven decision making (threshold: 80/100)
+
 ---
 
 ## 🎨 Available Diagrams
@@ -80,6 +89,21 @@ Implementation roadmap for Cline + Miyabi integration:
 | Integration Opportunities | `Cline + Miyabi Integration Opportunities.png` | 305 KB | Component |
 | Key Learnings | `Cline Learnings - Applicable to Miyabi.png` | 155 KB | Component |
 | Integration Timeline | `Cline + Miyabi Integration Timeline.png` | 162 KB | Component |
+
+### Entity-Relation Model
+
+| Diagram | File | Size | Type |
+|---------|------|------|------|
+| Entity-Relation Overview | `Miyabi Entity-Relation Model - Overview.png` | 227 KB | ER Diagram |
+| Entity State Machines | `Entity State Machines.png` | 123 KB | State |
+| Entity Data Flow | `Entity Data Flow.png` | 190 KB | Sequence |
+| Detailed Relationships | `Entity Relationships - Detailed (27 Relations).png` | 224 KB | ER Diagram |
+
+### End-to-End Workflow
+
+| Diagram | File | Size | Type |
+|---------|------|------|------|
+| Complete Workflow | `Miyabi End-to-End Workflow - Complete Sequence.png` | 414 KB | Sequence |
 
 ---
 
@@ -238,10 +262,12 @@ These diagrams complement the following documentation:
 | Water Spider | 4 | ~0.9 MB | Medium-High |
 | Cline Analysis | 4 | ~0.9 MB | Medium |
 | Entity-Relation | 4 | ~0.8 MB | Medium-High |
-| **Total** | **17** | **~3.6 MB** | **Medium-High** |
+| End-to-End Workflow | 1 | ~0.4 MB | Very High |
+| **Total** | **18** | **~4.0 MB** | **Medium-High** |
 
-**Node Count**: 200+ components/actors across all diagrams
-**Relationship Count**: 400+ arrows/connections
+**Node Count**: 220+ components/actors across all diagrams
+**Relationship Count**: 450+ arrows/connections
+**Sequence Complexity**: 9 phases, 14 participants, 100+ interactions
 
 ---
 
@@ -276,10 +302,11 @@ These diagrams complement the following documentation:
 ---
 
 **Last Updated**: 2025-10-24
-**Diagram Count**: 17 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation)
-**Total Size**: ~3.6 MB
+**Diagram Count**: 18 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 1 E2E Workflow)
+**Total Size**: ~4.0 MB
 **Format**: PlantUML → PNG (1200+ DPI)
 **Codebase Version**: 0.1.1 (Rust Edition)
 **Water Spider Version**: v1.0.0 (Design) / v0.1.1 (Implementation)
 **Cline Analysis**: v3.34.0 (analyzed)
 **Cline Integration**: Roadmap v1.0.0 (6-month, $129K budget)
+**End-to-End Workflow**: v1.0.0 (9 phases, 45 min avg, 100% autonomous)

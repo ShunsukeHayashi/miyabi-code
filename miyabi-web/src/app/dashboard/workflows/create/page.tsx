@@ -27,6 +27,8 @@ import {
   Trash2,
   Plus,
 } from 'lucide-react';
+import { nodeTypes } from '@/components/workflow';
+import type { AgentNodeData, IssueNodeData, ConditionNodeData } from '@/components/workflow';
 
 /**
  * ワークフローエディタページ
@@ -61,18 +63,34 @@ export default function WorkflowCreatePage() {
 
   // ノード追加ハンドラ（後でAgentパレットから呼び出す）
   const addNode = useCallback(
-    (type: string, agentType?: string) => {
+    (nodeType: 'agent' | 'issue' | 'condition' | 'input' | 'output', agentType?: string) => {
       const newNode: Node = {
-        id: `${type}-${Date.now()}`,
-        type: type === 'agent' ? 'default' : type,
+        id: `${nodeType}-${Date.now()}`,
+        type: nodeType === 'agent' ? 'agentNode' : nodeType === 'issue' ? 'issueNode' : nodeType === 'condition' ? 'conditionNode' : 'default',
         position: {
           x: Math.random() * 400,
           y: Math.random() * 400,
         },
-        data: {
-          label: agentType ? `${agentType}Agent` : `${type} Node`,
-          agentType,
-        },
+        data: (nodeType === 'agent' && agentType
+          ? {
+              agentType,
+              status: 'idle',
+            } as AgentNodeData
+          : nodeType === 'issue'
+          ? {
+              issueNumber: 0,
+              title: '新規Issue',
+              state: 'open',
+            } as IssueNodeData
+          : nodeType === 'condition'
+          ? {
+              condition: 'condition',
+              trueLabel: 'True',
+              falseLabel: 'False',
+            } as ConditionNodeData
+          : {
+              label: `${nodeType} Node`,
+            }) as any,
       };
       setNodes((nds) => [...nds, newNode]);
     },
@@ -240,6 +258,32 @@ export default function WorkflowCreatePage() {
           <div className="space-y-2">
             <Button
               variant="outline"
+              className="w-full justify-start text-left"
+              onClick={() => addNode('issue')}
+              data-ai-action="add-node"
+              data-ai-node-type="issue"
+            >
+              <span className="mr-2">🎫</span>
+              <div>
+                <div className="font-medium">Issue</div>
+                <div className="text-xs text-gray-500">Issue情報</div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left"
+              onClick={() => addNode('condition')}
+              data-ai-action="add-node"
+              data-ai-node-type="condition"
+            >
+              <span className="mr-2">⚡</span>
+              <div>
+                <div className="font-medium">Condition</div>
+                <div className="text-xs text-gray-500">条件分岐</div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
               className="w-full justify-start"
               onClick={() => addNode('input')}
               data-ai-action="add-node"
@@ -269,6 +313,7 @@ export default function WorkflowCreatePage() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            nodeTypes={nodeTypes as any}
             fitView
             attributionPosition="bottom-left"
           >

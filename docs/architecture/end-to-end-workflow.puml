@@ -1,0 +1,320 @@
+@startuml Miyabi End-to-End Workflow - Complete Sequence
+!theme vibrant
+skinparam maxMessageSize 200
+
+title Miyabi Complete Workflow: Issue Creation → Production Deployment
+
+actor "Developer" as dev
+participant "GitHub\nIssues" as gh_issues
+participant "GitHub\nWebhook" as webhook
+participant "Water Spider\nOrchestrator" as orchestrator
+participant "IssueAgent" as issue_agent
+participant "CoordinatorAgent" as coordinator
+participant "WorktreeManager" as worktree_mgr
+participant "Claude Code\nSession" as claude
+participant "SpecialistAgent\n(CodeGen/Review)" as specialist
+participant "PRAgent" as pr_agent
+participant "GitHub\nPull Requests" as gh_prs
+participant "DeploymentAgent" as deploy_agent
+participant "Production\nEnvironment" as prod
+database "Qdrant\n(Knowledge Base)" as qdrant
+database "SQLite\n(State DB)" as sqlite
+
+== Phase 1: Issue Creation & Analysis ==
+
+dev -> gh_issues : Create Issue #500\n**Title**: Add user authentication\n**Labels**: type:feature, priority:P1-High
+activate gh_issues
+
+gh_issues -> webhook : Webhook trigger\n(issue.opened)
+activate webhook
+
+webhook -> orchestrator : POST /webhook\n{"action": "opened", "issue": 500}
+activate orchestrator
+
+orchestrator -> sqlite : Check active sessions\nSELECT * FROM sessions\nWHERE status='running'
+sqlite --> orchestrator : No conflicts found
+
+orchestrator -> issue_agent : Execute IssueAgent\n{"issue_number": 500}
+activate issue_agent
+
+issue_agent -> gh_issues : GET /issues/500
+gh_issues --> issue_agent : Issue data
+
+issue_agent -> qdrant : Search similar issues\nquery="user authentication"
+qdrant --> issue_agent : Similar: #123, #234
+
+issue_agent -> issue_agent : AI analysis\n- Complexity: 8/10\n- Type: feature\n- Security: High
+
+issue_agent -> gh_issues : Add labels\n- security:high\n- agent:codegen\n- estimated:16h
+gh_issues --> issue_agent : Labels updated
+
+issue_agent --> orchestrator : **IssueAnalysisResult**\n- Complexity: 8/10\n- Recommended: CoordinatorAgent\n- Escalation: None
+deactivate issue_agent
+
+== Phase 2: Task Decomposition & DAG Creation ==
+
+orchestrator -> coordinator : Execute CoordinatorAgent\n{"issue_number": 500}
+activate coordinator
+
+coordinator -> gh_issues : GET /issues/500
+gh_issues --> coordinator : Full issue data
+
+coordinator -> coordinator : Decompose into tasks:\n1. Add User model\n2. Add Auth middleware\n3. Add JWT generation\n4. Add Login endpoint\n5. Add tests\n6. Update docs
+
+coordinator -> coordinator : Build DAG:\n1 → 2,3\n2,3 → 4\n4 → 5\n5 → 6
+
+coordinator -> sqlite : INSERT INTO tasks\n(issue_id, task_id, dependencies,\nestimated_duration, agent_type)
+sqlite --> coordinator : Tasks created
+
+coordinator -> gh_issues : Add comment\n"✅ Decomposed into 6 tasks\n⏱ Estimated: 16 hours\n🔀 DAG depth: 3 levels"
+gh_issues --> coordinator : Comment posted
+
+coordinator --> orchestrator : **TaskDecompositionResult**\n- Tasks: 6\n- Parallel groups: 2,3 can run in parallel\n- Critical path: 1→2→4→5→6
+deactivate coordinator
+
+orchestrator -> gh_issues : Update labels\n- state:pending → state:implementing
+gh_issues --> orchestrator : Label updated
+
+== Phase 3: Worktree Creation & Agent Assignment ==
+
+orchestrator -> worktree_mgr : Create worktree for #500
+activate worktree_mgr
+
+worktree_mgr -> worktree_mgr : git worktree add\n.worktrees/issue-500\n-b feature/issue-500
+
+worktree_mgr -> worktree_mgr : Write context files:\n- .agent-context.json\n- EXECUTION_CONTEXT.md
+
+worktree_mgr --> orchestrator : **WorktreeInfo**\n- Path: .worktrees/issue-500\n- Branch: feature/issue-500\n- Status: active
+deactivate worktree_mgr
+
+== Phase 4: Claude Code Execution (Task 1: User Model) ==
+
+orchestrator -> claude : Start session in worktree\ncd .worktrees/issue-500
+activate claude
+
+claude -> claude : Read .agent-context.json\n{"agentType": "CodeGenAgent",\n "task": "Add User model"}
+
+claude -> claude : Read prompt:\n.claude/agents/prompts/\ncoding/codegen-agent-prompt.md
+
+claude -> specialist : Execute CodeGenAgent
+activate specialist
+
+specialist -> specialist : Generate code:\ncrates/miyabi-types/src/user.rs
+
+specialist -> specialist : Run tests:\ncargo test --package miyabi-types
+
+specialist -> specialist : cargo fmt + cargo clippy
+
+specialist -> specialist : git add + git commit\n"feat(types): add User model\n\n- Define User struct\n- Add authentication fields\n- Implement validation\n\nCloses #500 (task 1/6)"
+
+specialist --> claude : **AgentResult**\n- Status: Success\n- Files: 1 created\n- Tests: 5 passed\n- Warnings: 0
+deactivate specialist
+
+claude -> qdrant : Index execution log\nEmbedding: "Added User model..."
+qdrant --> claude : Indexed
+
+claude --> orchestrator : Task 1 complete
+deactivate claude
+
+orchestrator -> sqlite : UPDATE tasks\nSET status='completed'\nWHERE task_id='task-500-1'
+sqlite --> orchestrator : Updated
+
+== Phase 5: Parallel Execution (Tasks 2 & 3) ==
+
+note over orchestrator, claude
+  Tasks 2 and 3 run in parallel
+  using separate Claude Code sessions
+end note
+
+par Task 2: Auth Middleware
+    orchestrator -> claude : Session #2\nTask: Auth middleware
+    activate claude
+    claude -> specialist : Execute
+    activate specialist
+    specialist -> specialist : Implement auth.rs
+    specialist --> claude : Success
+    deactivate specialist
+    claude --> orchestrator : Task 2 complete
+    deactivate claude
+else Task 3: JWT Generation
+    orchestrator -> claude : Session #3\nTask: JWT generation
+    activate claude
+    claude -> specialist : Execute
+    activate specialist
+    specialist -> specialist : Implement jwt.rs
+    specialist --> claude : Success
+    deactivate specialist
+    claude --> orchestrator : Task 3 complete
+    deactivate claude
+end
+
+== Phase 6: Review & Quality Check ==
+
+orchestrator -> claude : Start ReviewAgent session
+activate claude
+
+claude -> specialist : Execute ReviewAgent\nfor worktree issue-500
+activate specialist
+
+specialist -> specialist : cargo clippy --all-targets
+specialist -> specialist : cargo audit
+specialist -> specialist : cargo test --all
+specialist -> specialist : Calculate quality score:\n- Tests: 95% coverage = 35/35\n- Clippy: 0 warnings = 25/25\n- Security: No CVEs = 20/20\n- Docs: 100% coverage = 20/20\n**Total: 100/100**
+
+specialist -> gh_issues : Add comment\n"✅ Quality Report #500\n⭐ Score: 100/100\n✓ All checks passed"
+gh_issues --> specialist : Comment posted
+
+specialist --> claude : **QualityReport**\n- Score: 100/100\n- Recommendation: Approve
+deactivate specialist
+
+claude --> orchestrator : Review complete
+deactivate claude
+
+orchestrator -> gh_issues : Add label: quality:excellent
+gh_issues --> orchestrator : Label added
+
+== Phase 7: PR Creation ==
+
+orchestrator -> claude : Start PRAgent session
+activate claude
+
+claude -> pr_agent : Execute PRAgent\nfor worktree issue-500
+activate pr_agent
+
+pr_agent -> worktree_mgr : Push branch\ngit push origin feature/issue-500
+worktree_mgr --> pr_agent : Pushed
+
+pr_agent -> gh_prs : Create PR\n**Title**: feat: Add user authentication (#500)\n**Body**:\n## Summary\n- Added User model\n- Implemented JWT auth\n- 100% test coverage\n\n## Quality\n⭐ Score: 100/100\n✓ Security audit passed
+activate gh_prs
+
+gh_prs --> pr_agent : PR #501 created
+
+pr_agent -> gh_prs : Link to issue\nCloses #500
+gh_prs --> pr_agent : Linked
+
+pr_agent --> claude : **PRResult**\n- PR number: 501\n- URL: https://github.com/.../pull/501
+deactivate pr_agent
+
+claude --> orchestrator : PR created
+deactivate claude
+
+orchestrator -> gh_issues : Add comment\n"🎉 PR created: #501"
+gh_issues --> orchestrator : Comment posted
+
+== Phase 8: CI/CD & Deployment ==
+
+gh_prs -> gh_prs : Run CI checks\n- cargo test --all\n- cargo clippy\n- cargo audit
+
+gh_prs -> gh_prs : All checks passed ✅
+
+gh_prs -> gh_prs : Auto-merge\n(quality score >= 90)
+
+gh_prs -> webhook : Webhook trigger\n(pull_request.merged)
+
+webhook -> orchestrator : POST /webhook\n{"action": "merged", "pr": 501}
+
+orchestrator -> deploy_agent : Execute DeploymentAgent\n{"pr_number": 501}
+activate deploy_agent
+
+deploy_agent -> deploy_agent : cargo build --release
+
+deploy_agent -> deploy_agent : Run deployment:\n- Build Docker image\n- Push to registry\n- Deploy to staging
+
+deploy_agent -> prod : Deploy to staging\nURL: https://staging.miyabi.dev
+activate prod
+
+prod --> deploy_agent : Deployment successful
+
+deploy_agent -> prod : Health check\nGET /health
+prod --> deploy_agent : 200 OK
+
+deploy_agent -> gh_prs : Add deployment status\n✅ Deployed to staging
+gh_prs --> deploy_agent : Status updated
+
+deploy_agent -> prod : Deploy to production\nURL: https://miyabi.dev
+
+prod --> deploy_agent : Deployment successful
+
+deploy_agent -> prod : Health check
+prod --> deploy_agent : 200 OK
+
+deploy_agent --> orchestrator : **DeploymentResult**\n- Staging: ✅\n- Production: ✅\n- Health: 100%
+deactivate deploy_agent
+deactivate prod
+
+== Phase 9: Cleanup & Notification ==
+
+orchestrator -> gh_issues : Close issue #500\nAdd label: state:done
+activate gh_issues
+
+gh_issues --> orchestrator : Issue closed
+
+orchestrator -> gh_issues : Add comment\n"✅ Deployed to production\n⏱ Total time: 45 minutes\n🎯 Quality: 100/100"
+gh_issues --> orchestrator : Comment posted
+deactivate gh_issues
+
+orchestrator -> worktree_mgr : Cleanup worktree
+activate worktree_mgr
+
+worktree_mgr -> worktree_mgr : git worktree remove\n.worktrees/issue-500
+
+worktree_mgr --> orchestrator : Worktree removed
+deactivate worktree_mgr
+
+orchestrator -> sqlite : UPDATE sessions\nSET status='completed',\ncompletion_time=NOW()
+sqlite --> orchestrator : Session closed
+
+orchestrator -> dev : Notification\n📧 "Issue #500 deployed to production"
+deactivate orchestrator
+
+dev -> prod : Verify in production\nGET /api/auth/login
+activate prod
+prod --> dev : 200 OK - Auth working ✅
+deactivate prod
+
+deactivate webhook
+deactivate gh_issues
+
+note right of dev
+    **Complete Workflow Duration**: 45 minutes
+    **Tasks Executed**: 6
+    **Quality Score**: 100/100
+    **Deployment**: Staging + Production ✅
+    **Zero Human Intervention**: Full automation
+end note
+
+legend right
+    **Miyabi End-to-End Workflow Summary**
+
+    **9 Phases**:
+    1. Issue Creation & Analysis (IssueAgent)
+    2. Task Decomposition (CoordinatorAgent + DAG)
+    3. Worktree Creation (WorktreeManager)
+    4. Code Generation (Claude Code + CodeGenAgent)
+    5. Parallel Execution (Worktree isolation)
+    6. Quality Review (ReviewAgent)
+    7. PR Creation (PRAgent)
+    8. CI/CD & Deployment (DeploymentAgent)
+    9. Cleanup & Notification
+
+    **Key Components**:
+    • Water Spider Orchestrator (24/7 daemon)
+    • 7 Specialized Agents
+    • Git Worktree isolation
+    • Claude Code integration
+    • Qdrant knowledge base
+    • SQLite state database
+    • GitHub OS (Issues/PRs/Labels)
+
+    **Parallelism**:
+    • Multiple worktrees = Multiple tasks
+    • No file conflicts
+    • Independent debugging
+
+    **Automation Level**: 100%
+    • No human approval required
+    • Quality-driven (threshold: 80/100)
+    • Self-healing (retry on failure)
+endlegend
+
+@enduml
