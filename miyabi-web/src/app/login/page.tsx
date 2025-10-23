@@ -5,10 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Github, Loader2 } from 'lucide-react';
 import { toDataAttributes, CommonMetadata } from '@/lib/ai-metadata';
+import { useAuthStore } from '@/stores/authStore';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setAuth } = useAuthStore();
 
   useEffect(() => {
     // Handle OAuth callback
@@ -26,25 +28,46 @@ function LoginContent() {
   };
 
   const handleMockLogin = async () => {
+    console.log('🎭 Demo Mode login button clicked');
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      console.log('API URL:', apiUrl);
+
+      console.log('Sending request to:', `${apiUrl}/api/auth/mock`);
       const response = await fetch(`${apiUrl}/api/auth/mock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'demo-user' }),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Mock login failed');
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`Mock login failed: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
-      localStorage.setItem('miyabi_token', data.token);
-      localStorage.setItem('miyabi_user', JSON.stringify(data.user));
+      console.log('Login successful, received token');
+      console.log('User data:', data.user);
+
+      // Update auth store (this will automatically persist to localStorage via Zustand persist)
+      setAuth(data.token, {
+        id: data.user.id,
+        githubId: parseInt(data.user.id) || 0,
+        email: data.user.email || '',
+        name: data.user.github_username,
+        avatarUrl: data.user.avatar_url,
+      });
+
+      console.log('Auth store updated');
+      console.log('Redirecting to dashboard...');
       router.push('/dashboard');
     } catch (error) {
       console.error('Mock login error:', error);
-      alert('モックログインに失敗しました');
+      alert(`モックログインに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -111,24 +134,22 @@ function LoginContent() {
             </Button>
 
             {/* Demo Mode Button (Development Only) */}
-            {process.env.NODE_ENV === 'development' && (
-              <Button
-                onClick={handleMockLogin}
-                variant="outline"
-                className="h-12 px-10 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors duration-200"
-                size="lg"
-                aria-label="Try demo mode without GitHub account"
-                {...toDataAttributes({
-                  role: 'button',
-                  action: 'mock-login',
-                  target: 'demo-login-button',
-                  description: 'Development mock authentication',
-                  context: 'login-page',
-                })}
-              >
-                🎭 Demo Mode (No GitHub Required)
-              </Button>
-            )}
+            <Button
+              onClick={handleMockLogin}
+              variant="outline"
+              className="h-12 px-10 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors duration-200"
+              size="lg"
+              aria-label="Try demo mode without GitHub account"
+              {...toDataAttributes({
+                role: 'button',
+                action: 'mock-login',
+                target: 'demo-login-button',
+                description: 'Development mock authentication',
+                context: 'login-page',
+              })}
+            >
+              🎭 Demo Mode (No GitHub Required)
+            </Button>
           </div>
 
           {/* Legal Text */}
