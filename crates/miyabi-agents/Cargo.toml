@@ -40,3 +40,6 @@ knowledge-integration = ["miyabi-knowledge"]
 
 [dev-dependencies]
 tempfile = "3.13"
+anyhow = "1.0"
+tracing-subscriber = "0.3"
+serde_json = "1.0"
