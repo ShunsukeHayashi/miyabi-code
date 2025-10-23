@@ -11,7 +11,7 @@ on:
 jobs:
   demo:
     name: 🚀 Self-Hosted Runner Demo
-    runs-on: [self-hosted, macOS, arm64]
+    runs-on: [self-hosted, macOS, arm64, rust]
 
     steps:
       - name: 📋 Demo Start
