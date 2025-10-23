@@ -609,6 +609,88 @@ cargo clippy -- -D warnings
 - Dependabot有効
 - CodeQL有効
 
+### エラーハンドリング
+
+**統一されたエラー型**: `miyabi_types::error::MiyabiError`
+
+全てのクレートは、統一されたエラー型を使用します。`thiserror`クレートを使用して、構造化されたエラー定義を提供します。
+
+**コアエラー型** (`crates/miyabi-types/src/error.rs`):
+```rust
+use miyabi_types::error::{MiyabiError, Result};
+
+// Result型の使用
+fn my_function() -> Result<String> {
+    // 成功
+    Ok("success".to_string())
+
+    // エラー（各種variant）
+    Err(MiyabiError::Config("Missing API key".to_string()))
+    Err(MiyabiError::Validation("Invalid input".to_string()))
+
+    // 自動変換（#[from]）
+    std::fs::read_to_string("file.txt")?  // → MiyabiError::Io
+    serde_json::from_str("{}")? // → MiyabiError::Json
+}
+```
+
+**12種類のエラーvariant**:
+- `Agent(AgentError)` - Agent実行エラー
+- `Escalation(EscalationError)` - エスカレーション必要
+- `CircularDependency(CircularDependencyError)` - DAG循環依存
+- `Io(std::io::Error)` - I/Oエラー
+- `Json(serde_json::Error)` - JSONエラー
+- `Http(String)` - HTTPリクエストエラー
+- `GitHub(String)` - GitHub APIエラー
+- `Git(String)` - Git操作エラー
+- `Auth(String)` - 認証エラー
+- `Config(String)` - 設定エラー
+- `Validation(String)` - バリデーションエラー
+- `Timeout(u64)` - タイムアウト
+
+**カスタムエラー作成例** (`crates/miyabi-cli/src/error.rs`):
+```rust
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum CliError {
+    #[error("Invalid project name: {0}")]
+    InvalidProjectName(String),
+
+    // MiyabiErrorからの自動変換
+    #[error("Miyabi error: {0}")]
+    Miyabi(#[from] miyabi_types::error::MiyabiError),
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+}
+
+pub type Result<T> = std::result::Result<T, CliError>;
+```
+
+**エラーハンドリングのベストプラクティス**:
+1. ✅ `Result<T>`型を常に使用
+2. ✅ `?`演算子でエラー伝播
+3. ✅ 具体的なエラーメッセージを提供
+4. ✅ `#[from]`属性で自動変換
+5. ❌ `unwrap()`/`expect()`の多用は避ける（テスト以外）
+6. ❌ `panic!`の使用は避ける（致命的エラーのみ）
+
+**エスカレーション**:
+```rust
+use miyabi_types::error::{EscalationError, EscalationTarget, Severity};
+
+// CTOエスカレーション
+let error = EscalationError::new(
+    "Production deployment requires approval",
+    EscalationTarget::CTO,
+    Severity::Critical,
+    serde_json::json!({"pr": 123}),
+);
+```
+
+**詳細**: `crates/miyabi-types/src/error.rs` (600行以上のテスト付き)
+
 ## 📚 外部依存関係の取り扱い - Context7の使用
 
 ### Context7とは
