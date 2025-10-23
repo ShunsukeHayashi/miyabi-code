@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toDataAttributes, CommonMetadata } from '@/lib/ai-metadata';
@@ -15,6 +16,7 @@ import {
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const router = useRouter();
 
   return (
     <div
@@ -126,6 +128,7 @@ export default function DashboardPage() {
             </p>
             <Button
               className="mt-8 bg-gray-900 hover:bg-gray-800 text-white transition-colors"
+              onClick={() => router.push('/dashboard/repositories')}
               {...toDataAttributes(CommonMetadata.connectRepositoryButton())}
             >
               Connect Repository
@@ -141,6 +144,13 @@ export default function DashboardPage() {
           role="button"
           tabIndex={0}
           aria-label="Execute agent for specific issue"
+          onClick={() => router.push('/dashboard/repositories')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push('/dashboard/repositories');
+            }
+          }}
           {...toDataAttributes({
             role: 'card',
             action: 'click',
@@ -173,6 +183,13 @@ export default function DashboardPage() {
           role="button"
           tabIndex={0}
           aria-label="View and manage workflows"
+          onClick={() => router.push('/dashboard/workflows')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push('/dashboard/workflows');
+            }
+          }}
           {...toDataAttributes({
             role: 'card',
             action: 'click',
@@ -205,6 +222,13 @@ export default function DashboardPage() {
           role="button"
           tabIndex={0}
           aria-label="View analytics and performance metrics"
+          onClick={() => router.push('/dashboard/analytics')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push('/dashboard/analytics');
+            }
+          }}
           {...toDataAttributes({
             role: 'card',
             action: 'click',
