@@ -10,7 +10,7 @@ use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
     AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, ParallelCommand, SetupCommand,
-    StatusCommand,
+    StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
 
@@ -89,6 +89,11 @@ enum Commands {
     Knowledge {
         #[command(subcommand)]
         command: KnowledgeCommand,
+    },
+    /// Worktree management (list, prune, remove)
+    Worktree {
+        #[command(subcommand)]
+        command: WorktreeSubcommand,
     },
 }
 
@@ -170,6 +175,10 @@ async fn main() -> Result<()> {
             }
         }
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
+        Some(Commands::Worktree { command }) => {
+            let cmd = WorktreeCommand::new(command);
+            cmd.execute().await
+        }
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());
