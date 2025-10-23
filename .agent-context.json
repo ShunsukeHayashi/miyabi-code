@@ -1,0 +1,30 @@
+{
+  "agentType": "CodeGenAgent",
+  "agentStatus": "executing",
+  "task": {
+    "id": "tutorial-01",
+    "title": "Getting Started チュートリアル",
+    "description": "Miyabiの基本的なセットアップとインストール手順",
+    "type": "docs",
+    "priority": 1,
+    "estimated_duration": 120,
+    "dependencies": []
+  },
+  "issue": {
+    "number": 472,
+    "title": "[P4-003] チュートリアル10個作成",
+    "url": "https://github.com/customer-cloud/miyabi-private/issues/472"
+  },
+  "config": {
+    "max_runtime": 1800,
+    "output_dir": ".miyabi/sessions",
+    "cleanup_on_success": false
+  },
+  "promptPath": ".claude/agents/prompts/coding/codegen-agent-prompt.md",
+  "worktreeInfo": {
+    "path": ".worktrees/tutorial-01",
+    "branch": "tutorial-01-getting-started",
+    "sessionId": "tutorial-01-session",
+    "createdAt": "2025-10-24T00:00:00Z"
+  }
+}
