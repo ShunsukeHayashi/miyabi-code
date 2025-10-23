@@ -1,15 +1,60 @@
-name: Weekly KPI Report
+name: 📊 Weekly Consolidated Report
 
-# Post weekly KPI report to GitHub Discussions every Monday at 9:00 AM UTC
+# Unified weekly reporting workflow
+# Replaces 2 separate workflows:
+#   - weekly-report.yml (Issue-based weekly report)
+#   - weekly-kpi-report.yml (KPI report to Discussions)
+
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9:00 AM UTC
-  workflow_dispatch:  # Allow manual trigger
+    # Run every Monday at 9:00 AM UTC (6:00 PM JST)
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+  discussions: write
 
 jobs:
-  generate-and-post-report:
-    runs-on: self-hosted
-    name: Generate and post weekly KPI report
+  # Job 1: Generate Issue-based Weekly Report
+  generate-issue-report:
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
+    name: Generate Weekly Issue Report
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate weekly report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+          PROJECT_NUMBER: 1
+        run: npm run report:weekly:issue
+
+      - name: Log completion
+        run: |
+          echo "✅ Weekly Issue report generated"
+          echo "   Repository: ${{ github.repository }}"
+          echo "   Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  # Job 2: Generate and Post KPI Report to Discussions
+  generate-kpi-report:
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
+    name: Generate and Post KPI Report
+    needs: generate-issue-report
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,14 +63,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Generate and Post KPI Report
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_PROJECT_NUMBER: 1
         run: |
           cat > post-kpi-report.ts << 'EOF'
           import { ProjectsV2Client } from './agents/github/projects-v2.js';
@@ -75,8 +122,9 @@ jobs:
 
       - name: Summary
         run: |
-          echo "### 📊 Weekly KPI Report Posted" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Weekly Reports Generated" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✓ Successfully generated and posted weekly KPI report to Discussions" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Issue-based weekly report: Completed" >> $GITHUB_STEP_SUMMARY
+          echo "✓ KPI report posted to Discussions" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View at: https://github.com/${{ github.repository }}/discussions" >> $GITHUB_STEP_SUMMARY
+          echo "View Discussions at: https://github.com/${{ github.repository }}/discussions" >> $GITHUB_STEP_SUMMARY
