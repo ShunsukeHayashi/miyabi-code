@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { toDataAttributes, CommonMetadata } from '@/lib/ai-metadata';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,6 +128,9 @@ export default function IssuesPage() {
           <button
             onClick={() => router.push('/dashboard/repositories')}
             className="hover:text-gray-900 transition-colors"
+            {...toDataAttributes(
+              CommonMetadata.breadcrumbLink('リポジトリ', '/dashboard/repositories')
+            )}
           >
             リポジトリ
           </button>
@@ -150,6 +154,9 @@ export default function IssuesPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
               aria-label="Search issues"
+              {...toDataAttributes(
+                CommonMetadata.searchInput('issues-list', 'Issueを検索...')
+              )}
             />
             <div className="flex gap-2" role="group" aria-label="Filter issues by state">
               <Button
@@ -157,6 +164,7 @@ export default function IssuesPage() {
                 onClick={() => setStateFilter('open')}
                 aria-pressed={stateFilter === 'open'}
                 aria-label="Show open issues"
+                {...toDataAttributes(CommonMetadata.issueFilterButton('open'))}
               >
                 Open
               </Button>
@@ -165,6 +173,7 @@ export default function IssuesPage() {
                 onClick={() => setStateFilter('closed')}
                 aria-pressed={stateFilter === 'closed'}
                 aria-label="Show closed issues"
+                {...toDataAttributes(CommonMetadata.issueFilterButton('closed'))}
               >
                 Closed
               </Button>
@@ -173,6 +182,7 @@ export default function IssuesPage() {
                 onClick={() => setStateFilter('all')}
                 aria-pressed={stateFilter === 'all'}
                 aria-label="Show all issues"
+                {...toDataAttributes(CommonMetadata.issueFilterButton('all'))}
               >
                 All
               </Button>
@@ -217,6 +227,12 @@ export default function IssuesPage() {
                           )
                         }
                         className="text-lg font-semibold text-slate-900 hover:text-blue-600 transition-colors text-left"
+                        {...toDataAttributes(
+                          CommonMetadata.issueTitleLink(
+                            issue.number,
+                            params.id as string
+                          )
+                        )}
                       >
                         #{issue.number} {issue.title}
                       </button>
@@ -279,6 +295,9 @@ export default function IssuesPage() {
                             disabled={executingIssueId === issue.id}
                             aria-label={`Execute agent for issue #${issue.number}`}
                             className="w-full sm:w-auto"
+                            {...toDataAttributes(
+                              CommonMetadata.agentExecuteButton(issue.number)
+                            )}
                           >
                             {executingIssueId === issue.id ? (
                               <>
@@ -309,7 +328,12 @@ export default function IssuesPage() {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleExecuteAgent(issue)}>
+                            <AlertDialogAction
+                              onClick={() => handleExecuteAgent(issue)}
+                              {...toDataAttributes(
+                                CommonMetadata.agentExecuteConfirmButton(issue.number)
+                              )}
+                            >
                               実行
                             </AlertDialogAction>
                           </AlertDialogFooter>
