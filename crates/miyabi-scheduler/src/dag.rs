@@ -2,9 +2,9 @@
 
 use crate::error::{Result, SchedulerError};
 use miyabi_types::task::Task;
-use miyabi_types::workflow::{Edge, DAG};
+use miyabi_types::workflow::DAG;
 use std::collections::{HashMap, HashSet};
-use tracing::{debug, info};
+use tracing::debug;
 
 /// Task ID type alias
 pub type TaskId = String;
@@ -113,6 +113,7 @@ impl DAGOperations {
 mod tests {
     use super::*;
     use miyabi_types::task::TaskType;
+    use miyabi_types::workflow::Edge;
 
     fn create_test_dag() -> DAG {
         // Create a simple DAG:

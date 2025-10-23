@@ -161,7 +161,7 @@ impl Scheduler {
             .await?;
 
         // Track running session
-        self.running.insert(task.id.clone(), session_id);
+        self.running.insert(task.id.clone(), session_id.clone());
 
         debug!("Task {} started with session {}", task.id, session_id);
 
@@ -256,7 +256,7 @@ pub struct SchedulerStats {
 mod tests {
     use super::*;
     use miyabi_types::task::{Task, TaskType};
-    use miyabi_types::workflow::{Edge, DAG};
+    use miyabi_types::workflow::DAG;
 
     fn create_simple_dag() -> DAG {
         let task1 = Task::new(
