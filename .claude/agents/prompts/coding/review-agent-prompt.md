@@ -35,6 +35,50 @@ git diff main...HEAD
 git log --oneline -10
 ```
 
+### 1.5. プロジェクトルール確認（2分）
+
+**重要**: プロジェクト固有のルールと品質基準を確認してください。
+
+```bash
+# .miyabirules ファイルの存在確認
+if [ -f .miyabirules ] || [ -f .miyabirules.yaml ] || [ -f .miyabirules.yml ]; then
+  echo "✅ Project rules found"
+  cat .miyabirules* | head -100
+else
+  echo "ℹ️ No project rules found - using default standards"
+fi
+```
+
+**.miyabirules が存在する場合**:
+
+1. **ルールベースのレビュー**: パターンマッチングされたコードを確認
+   ```bash
+   # 変更されたRustファイルで.unwrap()を検索
+   git diff main...HEAD -- '*.rs' | grep -n '\.unwrap()'
+   ```
+
+2. **Agent設定確認**: `agent_preferences.review` セクションを確認
+   ```yaml
+   agent_preferences:
+     review:
+       min_score: 85              # 最小合格スコア（デフォルト: 80）
+       clippy_strict: true        # 厳格なClippyチェック
+       require_tests: true        # テスト必須
+       require_docs: true         # ドキュメント必須
+   ```
+
+3. **スコアリング調整**: .miyabirules の `min_score` に従って合格基準を設定
+
+**例**: .miyabirules が以下の設定を含む場合:
+```yaml
+agent_preferences:
+  review:
+    min_score: 90
+    clippy_strict: true
+```
+
+→ 合格基準を90点に引き上げ、Clippy警告を0件に設定
+
 ### 2. 静的解析実行（10分）
 
 #### ESLint実行
@@ -147,6 +191,22 @@ cat coverage/coverage-summary.json > .review/coverage.json
 - [ ] **5点**: JSDocコメントがある
 - [ ] **3点**: READMEが更新されている
 - [ ] **2点**: 使用例が含まれている
+
+#### ボーナス/ペナルティ: .miyabirules 準拠（±10点）
+
+**.miyabirules が存在する場合のみ適用**:
+
+- [ ] **+5点**: 全てのルール（severity: error）に準拠している
+- [ ] **+3点**: ほとんどのルール（severity: warning）に準拠している
+- [ ] **+2点**: Agent設定（review preferences）に従っている
+- [ ] **-3点**: 重大なルール違反（severity: error）がある
+- [ ] **-5点**: 複数のルール違反が未修正のまま
+- [ ] **-10点**: ルールを完全に無視している
+
+**合格基準の調整**:
+- デフォルト: 80点以上で合格
+- `.miyabirules` で `min_score` が指定されている場合、その値を使用
+- 例: `min_score: 90` → 90点以上で合格
 
 ### 6. レビューコメント生成（10分）
 
@@ -301,6 +361,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - [ ] セキュリティスキャンが完了している
 - [ ] テストカバレッジが計測されている
 - [ ] 100点満点でスコアリングされている
+- [ ] **.miyabirules ルールが確認されている**（存在する場合）
+  - ルール違反が特定されている
+  - Agent設定（review preferences）が考慮されている
+  - min_score設定が反映されている
 - [ ] 改善提案が具体的に記述されている
 - [ ] レビューレポートが`.review/`ディレクトリに保存されている
 - [ ] 結果がコミットされている
