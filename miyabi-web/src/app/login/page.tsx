@@ -21,8 +21,31 @@ function LoginContent() {
 
   const handleGitHubLogin = () => {
     // Redirect to backend OAuth endpoint
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    window.location.href = `${apiUrl}/api/v1/auth/github`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    window.location.href = `${apiUrl}/api/auth/github`;
+  };
+
+  const handleMockLogin = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${apiUrl}/api/auth/mock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'demo-user' }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Mock login failed');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('miyabi_token', data.token);
+      localStorage.setItem('miyabi_user', JSON.stringify(data.user));
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Mock login error:', error);
+      alert('モックログインに失敗しました');
+    }
   };
 
   return (
@@ -74,8 +97,8 @@ function LoginContent() {
             AI-Powered Development Automation
           </p>
 
-          {/* CTA Button */}
-          <div className="mb-12">
+          {/* CTA Buttons */}
+          <div className="mb-12 flex flex-col gap-4 items-center">
             <Button
               onClick={handleGitHubLogin}
               className="h-14 px-12 bg-gray-900 hover:bg-gray-800 text-white text-base font-medium transition-colors duration-200"
@@ -86,6 +109,26 @@ function LoginContent() {
               <Github className="mr-3 h-5 w-5" aria-hidden="true" />
               Sign in with GitHub
             </Button>
+
+            {/* Demo Mode Button (Development Only) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                onClick={handleMockLogin}
+                variant="outline"
+                className="h-12 px-10 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors duration-200"
+                size="lg"
+                aria-label="Try demo mode without GitHub account"
+                {...toDataAttributes({
+                  role: 'button',
+                  action: 'mock-login',
+                  target: 'demo-login-button',
+                  description: 'Development mock authentication',
+                  context: 'login-page',
+                })}
+              >
+                🎭 Demo Mode (No GitHub Required)
+              </Button>
+            )}
           </div>
 
           {/* Legal Text */}

@@ -2,6 +2,22 @@
 
 This directory contains comprehensive PlantUML architecture diagrams for the Miyabi project.
 
+## 🗺️ Quick Navigation
+
+**New to Miyabi?** Start here:
+1. **[NAVIGATION_GUIDE.md](NAVIGATION_GUIDE.md)** ⭐ - Comprehensive navigation guide with 5 user journeys
+2. **[Architecture Map](Miyabi%20Architecture%20Documentation%20Map.png)** - Visual diagram showing how all 20 diagrams connect
+3. **[README.md](README.md)** (this file) - Master index of all collections
+
+**User Journeys**:
+- 🆕 [New Developer Onboarding](NAVIGATION_GUIDE.md#-journey-1-new-developer-onboarding) (2-3 hours)
+- 💼 [Stakeholder/Management](NAVIGATION_GUIDE.md#-journey-2-stakeholdermanagement) (30-45 min)
+- 🔧 [DevOps/SRE Engineer](NAVIGATION_GUIDE.md#-journey-3-devopssre-engineer) (4-6 hours)
+- 🤝 [Integration Partner](NAVIGATION_GUIDE.md#-journey-4-integration-partner) (2-3 hours)
+- 🎓 [Technical Writer](NAVIGATION_GUIDE.md#-journey-5-technical-writerdocumentarian) (1-2 hours)
+
+---
+
 ## 📋 Diagram Collections
 
 ### Crates Architecture
@@ -119,6 +135,12 @@ Production deployment infrastructure:
 | Diagram | File | Size | Type |
 |---------|------|------|------|
 | Production Deployment | `Miyabi Deployment Architecture.png` | 466 KB | Component |
+
+### Architecture Documentation Map
+
+| Diagram | File | Size | Type |
+|---------|------|------|------|
+| Documentation Map | `Miyabi Architecture Documentation Map.png` | 453 KB | Component |
 
 ---
 
@@ -279,12 +301,14 @@ These diagrams complement the following documentation:
 | Entity-Relation | 4 | ~0.8 MB | Medium-High |
 | End-to-End Workflow | 1 | ~0.4 MB | Very High |
 | Deployment Architecture | 1 | ~0.5 MB | High |
-| **Total** | **19** | **~4.5 MB** | **Medium-High** |
+| Documentation Map | 1 | ~0.5 MB | High |
+| **Total** | **20** | **~5.0 MB** | **Medium-High** |
 
-**Node Count**: 250+ components/actors across all diagrams
-**Relationship Count**: 500+ arrows/connections
+**Node Count**: 280+ components/actors across all diagrams
+**Relationship Count**: 550+ arrows/connections
 **Sequence Complexity**: 9 phases, 14 participants, 100+ interactions
 **Infrastructure Coverage**: 5 environments, 3 cloud providers, 20+ services
+**User Journeys**: 5 personas, 15+ navigation paths
 
 ---
 
@@ -319,9 +343,11 @@ These diagrams complement the following documentation:
 ---
 
 **Last Updated**: 2025-10-24
-**Diagram Count**: 19 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 1 E2E + 1 Deployment)
-**Total Size**: ~4.5 MB
+**Diagram Count**: 20 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 1 E2E + 1 Deployment + 1 Map)
+**Total Size**: ~5.0 MB
 **Format**: PlantUML → PNG (1200+ DPI)
+**Documentation**: 7 comprehensive guides (NAVIGATION_GUIDE.md, README.md, 5 collection guides)
+**User Journeys**: 5 personas (Developer, Stakeholder, DevOps, Partner, Writer)
 **Codebase Version**: 0.1.1 (Rust Edition)
 **Water Spider Version**: v1.0.0 (Design) / v0.1.1 (Implementation)
 **Cline Analysis**: v3.34.0 (analyzed)

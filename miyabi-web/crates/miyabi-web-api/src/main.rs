@@ -35,6 +35,7 @@ async fn main() {
         )
         .route("/api/auth/me", get(handlers::auth::get_current_user))
         .route("/api/auth/logout", post(handlers::auth::logout))
+        .route("/api/auth/mock", post(handlers::auth::mock_auth))
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
@@ -43,11 +44,19 @@ async fn main() {
         );
 
     // Start server
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3001));
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|p| p.parse::<u16>().ok())
+        .unwrap_or(8080);
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .unwrap();
+
     tracing::info!("Miyabi Web API listening on {}", addr);
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    axum::serve(listener, app)
         .await
         .unwrap();
 }

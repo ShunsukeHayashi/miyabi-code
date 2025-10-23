@@ -83,6 +83,34 @@ pub async fn logout() -> Result<Json<serde_json::Value>, String> {
     Ok(Json(serde_json::json!({"success": true})))
 }
 
+/// POST /api/auth/mock
+/// Mock authentication endpoint for development (bypasses GitHub OAuth)
+/// Request body: { "username": "test-user" }
+pub async fn mock_auth(Json(payload): Json<serde_json::Value>) -> Result<Json<AuthResponse>, String> {
+    // Only allow in development mode
+    if std::env::var("RUST_ENV").unwrap_or_default() == "production" {
+        return Err("Mock auth not available in production".to_string());
+    }
+
+    let username = payload
+        .get("username")
+        .and_then(|v| v.as_str())
+        .unwrap_or("test-user");
+
+    // Generate JWT
+    let jwt_token = generate_jwt(username).map_err(|e| e.to_string())?;
+
+    Ok(Json(AuthResponse {
+        token: jwt_token,
+        user: UserResponse {
+            id: "mock-user-123".to_string(),
+            github_username: username.to_string(),
+            email: Some(format!("{}@example.com", username)),
+            avatar_url: Some("https://github.com/github.png".to_string()),
+        },
+    }))
+}
+
 // Helper functions
 
 #[derive(Debug, Deserialize)]
