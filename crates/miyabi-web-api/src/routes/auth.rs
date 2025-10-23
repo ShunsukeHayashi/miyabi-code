@@ -364,6 +364,84 @@ pub async fn logout(State(_state): State<AppState>) -> Result<StatusCode> {
     Ok(StatusCode::OK)
 }
 
+/// Mock login request (development only)
+#[derive(Deserialize)]
+pub struct MockLoginRequest {
+    username: String,
+}
+
+/// Mock login response
+#[derive(Serialize)]
+pub struct MockLoginResponse {
+    token: String,
+    user: MockUserResponse,
+}
+
+/// Mock user response
+#[derive(Serialize)]
+pub struct MockUserResponse {
+    id: String,
+    email: String,
+    name: String,
+    github_id: i64,
+}
+
+/// Mock login handler (development/testing only)
+///
+/// Creates a temporary user without GitHub authentication
+///
+/// **WARNING**: This endpoint should NEVER be enabled in production
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/mock",
+    tag = "auth",
+    request_body = MockLoginRequest,
+    responses(
+        (status = 200, description = "Mock login successful", body = MockLoginResponse),
+        (status = 403, description = "Mock login disabled in production"),
+        (status = 500, description = "Internal server error")
+    )
+)]
+pub async fn mock_login(
+    State(state): State<AppState>,
+    Json(request): Json<MockLoginRequest>,
+) -> Result<(StatusCode, Json<MockLoginResponse>)> {
+    // SECURITY: Only allow in development/test environments
+    if state.config.environment == "production" {
+        return Err(AppError::Authentication(
+            "Mock login is disabled in production".to_string(),
+        ));
+    }
+
+    // Generate a deterministic user ID based on username
+    let user_id = Uuid::new_v5(&Uuid::NAMESPACE_DNS, request.username.as_bytes());
+    let github_id = 999999; // Mock GitHub ID
+
+    // Create JWT token
+    let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+    let token = jwt_manager.create_token(&user_id.to_string(), github_id)?;
+
+    // Create mock user response
+    let email = format!("{}@example.com", request.username);
+    let response = MockLoginResponse {
+        token,
+        user: MockUserResponse {
+            id: user_id.to_string(),
+            email: email.clone(),
+            name: request.username.clone(),
+            github_id,
+        },
+    };
+
+    tracing::info!(
+        "Mock login successful: {} ({})",
+        request.username,
+        user_id
+    );
+
+    Ok((StatusCode::OK, Json(response)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
