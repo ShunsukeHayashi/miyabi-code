@@ -354,7 +354,11 @@ mod tests {
         assert_eq!(filter.task_type, Some("feature".to_string()));
     }
 
+    /// Integration test - requires Qdrant server running
+    /// Run with: cargo test -- --ignored
+    /// Start Qdrant: docker run -p 6333:6333 qdrant/qdrant
     #[tokio::test]
+    #[ignore]
     async fn test_vectorize_query_placeholder() {
         let config = KnowledgeConfig::default();
         let searcher = QdrantSearcher::new(config).await.unwrap();

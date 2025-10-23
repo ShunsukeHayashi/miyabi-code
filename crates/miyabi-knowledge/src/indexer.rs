@@ -313,7 +313,11 @@ mod tests {
     use super::*;
     
 
+    /// Integration test - requires Qdrant server running
+    /// Run with: cargo test -- --ignored
+    /// Start Qdrant: docker run -p 6333:6333 qdrant/qdrant
     #[tokio::test]
+    #[ignore]
     async fn test_vectorize_placeholder() {
         let config = KnowledgeConfig::default();
         let indexer = QdrantIndexer::new(config).await.unwrap();
@@ -322,7 +326,10 @@ mod tests {
         assert_eq!(vector.len(), 384);
     }
 
+    /// Integration test - requires Qdrant server running
+    /// Run with: cargo test -- --ignored
     #[tokio::test]
+    #[ignore]
     async fn test_index_batch_empty() {
         let config = KnowledgeConfig::default();
         let indexer = QdrantIndexer::new(config).await.unwrap();
