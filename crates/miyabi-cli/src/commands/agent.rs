@@ -1,9 +1,7 @@
 //! Agent command - Run agents
 
-use crate::{
-    error::{CliError, Result},
-    worktree::default_worktree_base_dir,
-};
+use crate::error::{CliError, Result};
+use crate::worktree::default_worktree_base_dir;
 use colored::Colorize;
 use miyabi_agents::{
     AIEntrepreneurAgent, AnalyticsAgent, AuditLogHook, BaseAgent, CRMAgent, CodeGenAgent,

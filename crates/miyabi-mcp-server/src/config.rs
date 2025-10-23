@@ -71,12 +71,12 @@ pub struct ServerArgs {
     #[arg(long, env = "GITHUB_TOKEN")]
     pub github_token: Option<String>,
 
-    /// Repository owner (can also be set via MIYABI_REPO_OWNER env var)
-    #[arg(long, env = "MIYABI_REPO_OWNER")]
+    /// Repository owner (can also be set via REPO_OWNER env var)
+    #[arg(long, env = "REPO_OWNER")]
     pub repo_owner: Option<String>,
 
-    /// Repository name (can also be set via MIYABI_REPO_NAME env var)
-    #[arg(long, env = "MIYABI_REPO_NAME")]
+    /// Repository name (can also be set via REPO_NAME env var)
+    #[arg(long, env = "REPO_NAME")]
     pub repo_name: Option<String>,
 
     /// Anthropic API key (can also be set via ANTHROPIC_API_KEY env var)

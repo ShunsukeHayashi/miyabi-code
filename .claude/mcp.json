@@ -14,6 +14,19 @@
     },
 
     "miyabi": {
+      "command": "/Users/shunsuke/Dev/miyabi-private/target/release/miyabi-mcp-server",
+      "args": [],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "REPO_OWNER": "ShunsukeHayashi",
+        "REPO_NAME": "Miyabi",
+        "RUST_LOG": "miyabi_mcp_server=info,miyabi_agents=debug"
+      },
+      "disabled": false,
+      "description": "Miyabi Rust MCP Server - Agent execution via JSON-RPC 2.0"
+    },
+
+    "miyabi-legacy": {
       "command": "node",
       "args": [
         ".claude/mcp-servers/miyabi-integration.js"
@@ -22,8 +35,8 @@
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",
         "REPOSITORY": "${REPOSITORY}"
       },
-      "disabled": false,
-      "description": "Miyabi CLI統合 - プロジェクト作成、Agent実行、自動化機能"
+      "disabled": true,
+      "description": "[Legacy] Node.js版 Miyabi統合 (deprecated, use Rust version)"
     },
 
     "github-enhanced": {
