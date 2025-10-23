@@ -27,7 +27,7 @@ impl StatusCommand {
         self.check_git_status()?;
 
         // Check worktrees
-        self.check_worktrees();
+        self.check_worktrees().await;
 
         // Check recent activity
         self.check_recent_activity();
@@ -146,7 +146,8 @@ impl StatusCommand {
         Ok(())
     }
 
-    fn check_worktrees(&self) {
+    async fn check_worktrees(&self) {
+        use miyabi_worktree::WorktreeManager;
         use std::process::Command;
 
         println!("{}", "Worktrees:".bold());
@@ -155,28 +156,105 @@ impl StatusCommand {
             .map(PathBuf::from)
             .unwrap_or_else(|_| default_worktree_base_dir());
         println!("  Base directory: {}", base.to_string_lossy());
+        println!();
 
-        let output = Command::new("git").args(["worktree", "list"]).output();
+        // Try to get detailed statistics from WorktreeManager
+        let detailed_stats = async {
+            // Get current directory for repo path
+            let repo_path = std::env::current_dir().ok()?;
 
-        if let Ok(output) = output {
-            if output.status.success() {
-                let worktrees = String::from_utf8_lossy(&output.stdout);
-                let worktree_lines: Vec<&str> = worktrees.lines().collect();
+            // Try to create WorktreeManager
+            WorktreeManager::new(repo_path.clone(), base.clone(), 10).ok()
+        }.await;
 
-                if worktree_lines.len() > 1 {
-                    println!("  {} active worktree(s)", worktree_lines.len() - 1);
-                    for (i, line) in worktree_lines.iter().skip(1).enumerate() {
-                        println!("    {}. {}", i + 1, line);
+        if let Some(manager) = detailed_stats {
+            // Get statistics
+            let stats = manager.stats().await;
+
+            println!("  📊 Statistics:");
+            println!("    Total worktrees: {}", stats.total);
+
+            if stats.active > 0 {
+                println!("    {} Active: {}", "▶".green(), stats.active);
+            }
+            if stats.idle > 0 {
+                println!("    {} Idle: {}", "⏸".yellow(), stats.idle);
+            }
+            if stats.completed > 0 {
+                println!("    {} Completed: {}", "✓".green(), stats.completed);
+            }
+            if stats.failed > 0 {
+                println!("    {} Failed: {}", "✗".red(), stats.failed);
+            }
+
+            println!();
+            println!("  🎛️  Concurrency:");
+            println!("    Max concurrency: {}", stats.max_concurrency);
+            println!("    Available slots: {}", stats.available_slots);
+            println!();
+
+            // List individual worktrees
+            let worktrees = manager.list_worktrees().await;
+            if !worktrees.is_empty() {
+                println!("  📋 Active Worktrees:");
+                for (i, wt) in worktrees.iter().enumerate() {
+                    let status_icon = match wt.status {
+                        miyabi_worktree::WorktreeStatus::Active => "▶".green(),
+                        miyabi_worktree::WorktreeStatus::Idle => "⏸".yellow(),
+                        miyabi_worktree::WorktreeStatus::Completed => "✓".green(),
+                        miyabi_worktree::WorktreeStatus::Failed => "✗".red(),
+                    };
+
+                    println!(
+                        "    {}. {} Issue #{} - {}",
+                        i + 1,
+                        status_icon,
+                        wt.issue_number,
+                        wt.branch_name.dimmed(),
+                    );
+                    println!(
+                        "       Path: {}",
+                        wt.path.to_string_lossy().dimmed()
+                    );
+                }
+                println!();
+            }
+
+            // Get telemetry report
+            let telemetry = manager.telemetry_report().await;
+            if !telemetry.is_empty() && telemetry != "No events recorded" {
+                println!("  📈 Telemetry:");
+                for line in telemetry.lines().take(10) {
+                    println!("    {}", line.dimmed());
+                }
+                println!();
+            }
+        } else {
+            // Fallback to basic git worktree list
+            println!("  Using git worktree list (basic mode):");
+            println!();
+
+            let output = Command::new("git").args(["worktree", "list"]).output();
+
+            if let Ok(output) = output {
+                if output.status.success() {
+                    let worktrees = String::from_utf8_lossy(&output.stdout);
+                    let worktree_lines: Vec<&str> = worktrees.lines().collect();
+
+                    if worktree_lines.len() > 1 {
+                        println!("    {} worktree(s) found", worktree_lines.len() - 1);
+                        for (i, line) in worktree_lines.iter().skip(1).enumerate() {
+                            println!("      {}. {}", i + 1, line);
+                        }
+                    } else {
+                        println!("    No active worktrees");
                     }
                 } else {
-                    println!("  No active worktrees");
+                    println!("    Unable to check worktrees");
                 }
-            } else {
-                println!("  Unable to check worktrees");
             }
+            println!();
         }
-
-        println!();
     }
 
     fn check_recent_activity(&self) {
