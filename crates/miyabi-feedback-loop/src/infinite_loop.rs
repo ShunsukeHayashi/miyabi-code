@@ -2,7 +2,7 @@
 
 use crate::config::LoopConfig;
 use crate::error::{LoopError, LoopResult};
-use crate::goal_manager::{Goal, GoalManager, GoalStatus};
+use crate::goal_manager::{GoalManager, GoalStatus};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::time::Duration;
