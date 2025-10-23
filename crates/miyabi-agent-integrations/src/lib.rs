@@ -10,20 +10,29 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use miyabi_agent_integrations::{DiscordCommunityAgent, RefresherAgent};
 //! use miyabi_agent_core::BaseAgent;
-//! use miyabi_types::{AgentConfig, Task};
+//! use miyabi_types::{AgentConfig, Task, TaskType};
 //!
 //! # async fn example() -> miyabi_types::error::Result<()> {
-//! let config = AgentConfig::default();
+//! let config = AgentConfig {
+//!     github_token: Some("ghp_xxx".to_string()),
+//!     ..AgentConfig::new("test-project".to_string())
+//! };
 //!
 //! // Discord integration
 //! let discord = DiscordCommunityAgent::new(config.clone());
-//! let task = Task::default(); // Your task here
+//! let task = Task::new(
+//!     "task-1".to_string(),
+//!     "Test Task".to_string(),
+//!     "Task description".to_string(),
+//!     TaskType::Feature,
+//!     1,
+//! )?;
 //! let result = discord.execute(&task).await?;
 //!
-//! println!("Discord action: {}", result.data);
+//! println!("Discord action: {:?}", result.data);
 //! # Ok(())
 //! # }
 //! ```

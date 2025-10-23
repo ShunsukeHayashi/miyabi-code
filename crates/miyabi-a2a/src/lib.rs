@@ -36,11 +36,12 @@
 //!         id: 0, // Will be assigned by storage
 //!         title: "Implement feature X".to_string(),
 //!         description: "Details...".to_string(),
-//!         status: TaskStatus::Pending,
+//!         status: TaskStatus::Submitted,
 //!         task_type: TaskType::CodeGeneration,
 //!         agent: None,
 //!         context_id: Some("project-123".to_string()),
 //!         priority: 3,
+//!         retry_count: 0,
 //!         created_at: Utc::now(),
 //!         updated_at: Utc::now(),
 //!         issue_url: String::new(),

@@ -143,19 +143,19 @@ impl InfiniteLoopOrchestrator {
                     results.push(iter_result);
 
                     // Check convergence
-                    if iteration >= self.config.min_iterations_before_convergence {
-                        if self.check_convergence(&convergence_metrics) {
-                            tracing::info!(
-                                "Convergence detected at iteration {} for goal: {}",
-                                iteration,
-                                goal_id
-                            );
-                            self.goal_manager
-                                .update_status(goal_id, GoalStatus::Completed)?;
-                            self.active_loops
-                                .insert(goal_id.to_string(), LoopStatus::Completed);
-                            break;
-                        }
+                    if iteration >= self.config.min_iterations_before_convergence
+                        && self.check_convergence(&convergence_metrics)
+                    {
+                        tracing::info!(
+                            "Convergence detected at iteration {} for goal: {}",
+                            iteration,
+                            goal_id
+                        );
+                        self.goal_manager
+                            .update_status(goal_id, GoalStatus::Completed)?;
+                        self.active_loops
+                            .insert(goal_id.to_string(), LoopStatus::Completed);
+                        break;
                     }
                 }
                 Err(e) => {

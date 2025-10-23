@@ -70,33 +70,23 @@ impl LoopCommand {
                 max_retries,
                 iteration_delay_ms,
             } => {
-                Self::execute_start(
-                    issues,
-                    *max_iterations,
-                    *convergence_threshold,
-                    *min_iterations_before_convergence,
-                    *auto_refinement,
-                    *timeout_ms,
-                    *max_retries,
-                    *iteration_delay_ms,
-                )
-                .await
+                let config = LoopConfig {
+                    max_iterations: *max_iterations,
+                    convergence_threshold: *convergence_threshold,
+                    min_iterations_before_convergence: *min_iterations_before_convergence,
+                    auto_refinement_enabled: *auto_refinement,
+                    timeout_ms: *timeout_ms,
+                    max_retries: *max_retries,
+                    iteration_delay_ms: *iteration_delay_ms,
+                };
+                Self::execute_start(issues, config).await
             }
             LoopCommand::Status { goal_id } => Self::execute_status(goal_id.as_deref()).await,
             LoopCommand::Cancel { goal_id } => Self::execute_cancel(goal_id).await,
         }
     }
 
-    async fn execute_start(
-        issues: &[u64],
-        max_iterations: Option<usize>,
-        convergence_threshold: f64,
-        min_iterations_before_convergence: usize,
-        auto_refinement_enabled: bool,
-        timeout_ms: u64,
-        max_retries: usize,
-        iteration_delay_ms: u64,
-    ) -> Result<()> {
+    async fn execute_start(issues: &[u64], config: LoopConfig) -> Result<()> {
         if issues.is_empty() {
             return Err(CliError::InvalidInput(
                 "No issues specified. Use --issues=N,M,... to specify issues".to_string(),
@@ -107,16 +97,6 @@ impl LoopCommand {
             "{}",
             format!("🔄 Starting feedback loop for {} issue(s)...", issues.len()).cyan()
         );
-
-        let config = LoopConfig {
-            max_iterations,
-            convergence_threshold,
-            min_iterations_before_convergence,
-            auto_refinement_enabled,
-            timeout_ms,
-            max_retries,
-            iteration_delay_ms,
-        };
 
         config.validate().map_err(|e| {
             CliError::InvalidInput(format!("Invalid loop configuration: {}", e))
@@ -259,17 +239,16 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_start_no_issues() {
-        let result = LoopCommand::execute_start(
-            &[],
-            Some(10),
-            5.0,
-            3,
-            true,
-            300_000,
-            3,
-            1000,
-        )
-        .await;
+        let config = LoopConfig {
+            max_iterations: Some(10),
+            convergence_threshold: 5.0,
+            min_iterations_before_convergence: 3,
+            auto_refinement_enabled: true,
+            timeout_ms: 300_000,
+            max_retries: 3,
+            iteration_delay_ms: 1000,
+        };
+        let result = LoopCommand::execute_start(&[], config).await;
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), CliError::InvalidInput(_)));
     }
