@@ -6,42 +6,55 @@ use thiserror::Error;
 /// Main error type for Miyabi operations
 #[derive(Error, Debug)]
 pub enum MiyabiError {
+    /// Agent execution error
     #[error("Agent error: {0}")]
     Agent(#[from] AgentError),
 
+    /// Escalation required (human intervention needed)
     #[error("Escalation required: {0}")]
     Escalation(#[from] EscalationError),
 
+    /// Circular dependency detected in task DAG
     #[error("Circular dependency detected: {0}")]
     CircularDependency(#[from] CircularDependencyError),
 
+    /// I/O operation error
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// JSON serialization/deserialization error
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 
+    /// HTTP request error
     #[error("HTTP error: {0}")]
     Http(String),
 
+    /// GitHub API error
     #[error("GitHub API error: {0}")]
     GitHub(String),
 
+    /// Git operation error
     #[error("Git error: {0}")]
     Git(String),
 
+    /// Authentication error (invalid token, permissions, etc.)
     #[error("Authentication error: {0}")]
     Auth(String),
 
+    /// Configuration error (missing or invalid config)
     #[error("Configuration error: {0}")]
     Config(String),
 
+    /// Validation error (invalid input)
     #[error("Validation error: {0}")]
     Validation(String),
 
+    /// Operation timeout error
     #[error("Timeout error: operation timed out after {0}ms")]
     Timeout(u64),
 
+    /// Unknown or unclassified error
     #[error("Unknown error: {0}")]
     Unknown(String),
 }
