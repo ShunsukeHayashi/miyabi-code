@@ -159,8 +159,6 @@ pub async fn create_repository(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_parse_full_name() {
         let full_name = "owner/repo";

@@ -3,6 +3,8 @@
 //! This module provides bidirectional conversion between Rust types in `crates/miyabi-a2a/src/types/`
 //! and generated Protocol Buffer types from `proto/a2a.proto`.
 
+#![allow(clippy::result_large_err)]
+
 use crate::error::A2AError;
 use crate::grpc::proto;
 use crate::types;

@@ -2,6 +2,8 @@
 //!
 //! This crate provides task storage and communication infrastructure
 //! for agent-to-agent (A2A) collaboration in the Miyabi framework.
+
+#![allow(clippy::result_large_err)]
 //!
 //! # Overview
 //!

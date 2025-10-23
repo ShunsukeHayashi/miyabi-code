@@ -313,12 +313,9 @@ mod tests {
             Ok(())
         }
 
-        async fn get_task(&self, task_id: &str) -> Result<Task, A2AError> {
+        async fn get_task(&self, task_id: &str) -> Result<Option<Task>, A2AError> {
             let tasks = self.tasks.read().await;
-            tasks
-                .get(task_id)
-                .cloned()
-                .ok_or_else(|| A2AError::TaskNotFound(task_id.to_string()))
+            Ok(tasks.get(task_id).cloned())
         }
 
         async fn update_task(&self, task: Task) -> Result<(), A2AError> {
@@ -332,10 +329,9 @@ mod tests {
 
         async fn list_tasks(
             &self,
-            status: Option<TaskStatus>,
             context_id: Option<&str>,
+            status: Option<TaskStatus>,
             limit: usize,
-            offset: usize,
         ) -> Result<Vec<Task>, A2AError> {
             let tasks = self.tasks.read().await;
             let mut filtered: Vec<_> = tasks
@@ -357,31 +353,17 @@ mod tests {
                 .collect();
 
             filtered.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-            Ok(filtered.into_iter().skip(offset).take(limit).collect())
+            Ok(filtered.into_iter().take(limit).collect())
         }
 
-        async fn count_tasks(
-            &self,
-            status: Option<TaskStatus>,
-            context_id: Option<&str>,
-        ) -> Result<usize, A2AError> {
-            let tasks = self.tasks.read().await;
-            Ok(tasks
-                .values()
-                .filter(|task| {
-                    if let Some(s) = status {
-                        if task.status != s {
-                            return false;
-                        }
-                    }
-                    if let Some(ctx) = context_id {
-                        if task.context_id.as_deref() != Some(ctx) {
-                            return false;
-                        }
-                    }
-                    true
-                })
-                .count())
+        async fn cancel_task(&self, task_id: &str) -> Result<(), A2AError> {
+            let mut tasks = self.tasks.write().await;
+            if let Some(task) = tasks.get_mut(task_id) {
+                task.status = TaskStatus::Cancelled;
+                Ok(())
+            } else {
+                Err(A2AError::TaskNotFound(task_id.to_string()))
+            }
         }
     }
 
