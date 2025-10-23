@@ -2093,6 +2093,7 @@ dependencies = [
  "indicatif",
  "miyabi-agents",
  "miyabi-core",
+ "miyabi-feedback-loop",
  "miyabi-github",
  "miyabi-knowledge",
  "miyabi-types",
@@ -2133,6 +2134,22 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "validator",
+]
+
+[[package]]
+name = "miyabi-feedback-loop"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "miyabi-agent-core",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tracing",
 ]
 
 [[package]]

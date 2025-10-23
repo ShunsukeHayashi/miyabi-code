@@ -9,8 +9,8 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, ParallelCommand, SetupCommand,
-    StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ParallelCommand,
+    SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
 
@@ -94,6 +94,11 @@ enum Commands {
     Worktree {
         #[command(subcommand)]
         command: WorktreeSubcommand,
+    },
+    /// Infinite feedback loop orchestration
+    Loop {
+        #[command(subcommand)]
+        command: LoopCommand,
     },
 }
 
@@ -179,6 +184,7 @@ async fn main() -> Result<()> {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
         }
+        Some(Commands::Loop { command }) => command.execute().await,
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());

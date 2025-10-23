@@ -26,7 +26,7 @@ members = [
     "crates/miyabi-webhook",
     "crates/miyabi-benchmark",
     "crates/miyabi-web-api",
-    "crates/miyabi-orchestrator",
+    "crates/miyabi-orchestrator", "crates/miyabi-feedback-loop",
 ]
 
 [workspace.package]

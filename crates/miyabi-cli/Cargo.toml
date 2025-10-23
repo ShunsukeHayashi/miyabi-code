@@ -25,6 +25,7 @@ miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
 miyabi-agents = { version = "0.1.0", path = "../miyabi-agents" }
 miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" }
 miyabi-knowledge = { version = "0.1.1", path = "../miyabi-knowledge" }
+miyabi-feedback-loop = { version = "0.1.0", path = "../miyabi-feedback-loop" }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
