@@ -107,11 +107,13 @@ impl CoordinatorAgentWithLLM {
         let plans_md = self.base_coordinator.generate_plans_md(&decomposition);
         tracing::info!("Generated Plans.md ({} characters)", plans_md.len());
 
-        // Write Plans.md to current directory
-        if let Err(e) = std::fs::write("Plans.md", &plans_md) {
-            tracing::warn!("Failed to write Plans.md: {}", e);
+        // Write Plans.md to current directory with issue number in filename
+        let issue_number = decomposition.original_issue.number;
+        let plans_filename = format!("Plans-{}.md", issue_number);
+        if let Err(e) = std::fs::write(&plans_filename, &plans_md) {
+            tracing::warn!("Failed to write {}: {}", plans_filename, e);
         } else {
-            tracing::info!("✅ Plans.md written successfully");
+            tracing::info!("✅ {} written successfully", plans_filename);
         }
 
         Ok(decomposition)

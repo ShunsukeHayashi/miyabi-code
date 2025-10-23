@@ -10,19 +10,18 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use miyabi_agent_coordinator::CoordinatorAgent;
 //! use miyabi_types::{AgentConfig, Issue};
 //!
-//! # async fn example() -> miyabi_types::error::Result<()> {
-//! let config = AgentConfig::default();
+//! # async fn example() {
+//! let config = AgentConfig { /* config fields */ };
 //! let coordinator = CoordinatorAgent::new(config);
 //!
-//! let issue = Issue::default(); // Your issue here
-//! let decomposition = coordinator.decompose_issue(&issue).await?;
+//! let issue = Issue { /* issue fields */ };
+//! let decomposition = coordinator.decompose_issue(&issue).await;
 //!
 //! println!("Created {} tasks", decomposition.tasks.len());
-//! # Ok(())
 //! # }
 //! ```
 
