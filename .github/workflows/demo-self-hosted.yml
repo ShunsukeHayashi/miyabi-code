@@ -1,0 +1,82 @@
+name: 🎬 Demo Self-Hosted Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Demo message'
+        required: false
+        default: 'Hello from Self-Hosted Runner!'
+
+jobs:
+  demo:
+    name: 🚀 Self-Hosted Runner Demo
+    runs-on: [self-hosted, macOS, arm64]
+
+    steps:
+      - name: 📋 Demo Start
+        run: |
+          echo "================================"
+          echo "🎬 Self-Hosted Runner Demo"
+          echo "================================"
+          echo ""
+          echo "📅 Date: $(date)"
+          echo "💻 Hostname: $(hostname)"
+          echo "🔧 Architecture: $(uname -m)"
+          echo "🍎 OS: $(sw_vers -productName) $(sw_vers -productVersion)"
+          echo ""
+
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Check Rust Installation
+        run: |
+          echo "================================"
+          echo "🦀 Rust Environment"
+          echo "================================"
+          rustc --version
+          cargo --version
+          echo ""
+
+      - name: 📊 System Information
+        run: |
+          echo "================================"
+          echo "📊 System Resources"
+          echo "================================"
+          echo "🔢 CPU Cores: $(sysctl -n hw.ncpu)"
+          echo "💾 Memory: $(sysctl -n hw.memsize | awk '{print $0/1024/1024/1024 " GB"}')"
+          echo "💿 Disk Usage:"
+          df -h | grep -E "^/dev" | head -3
+          echo ""
+
+      - name: 🏗️ Quick Rust Build Test
+        run: |
+          echo "================================"
+          echo "🏗️ Building a simple Rust project"
+          echo "================================"
+          cargo --version
+          echo ""
+          echo "📦 Running cargo check..."
+          time cargo check --workspace --quiet
+          echo "✅ Build check completed!"
+          echo ""
+
+      - name: 🎯 Custom Message
+        run: |
+          echo "================================"
+          echo "🎯 Custom Message"
+          echo "================================"
+          echo "${{ github.event.inputs.message }}"
+          echo ""
+
+      - name: 🎉 Demo Complete
+        run: |
+          echo "================================"
+          echo "🎉 Demo Completed Successfully!"
+          echo "================================"
+          echo "✅ Runner Name: ${{ runner.name }}"
+          echo "✅ Runner OS: ${{ runner.os }}"
+          echo "✅ Workflow: ${{ github.workflow }}"
+          echo "✅ Run Number: ${{ github.run_number }}"
+          echo ""
+          echo "🚀 Self-hosted runner is working perfectly!"
