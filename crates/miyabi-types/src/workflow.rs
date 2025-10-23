@@ -7,14 +7,20 @@ use serde::{Deserialize, Serialize};
 /// Directed Acyclic Graph (DAG) for task dependencies
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DAG {
+    /// List of task nodes in the graph
     pub nodes: Vec<Task>,
+    /// Edges representing dependencies between tasks
     pub edges: Vec<Edge>,
-    pub levels: Vec<Vec<String>>, // Topologically sorted levels
+    /// Topologically sorted levels of task IDs (level 0 = no dependencies)
+    pub levels: Vec<Vec<String>>,
 }
 
+/// Edge in the DAG representing a dependency
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Edge {
+    /// Source task ID
     pub from: String,
+    /// Target task ID (depends on 'from')
     pub to: String,
 }
 
@@ -137,13 +143,19 @@ impl DAG {
 /// Execution plan from CoordinatorAgent
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionPlan {
+    /// Session ID for this execution
     pub session_id: String,
+    /// Device identifier executing the plan
     pub device_identifier: String,
     /// Concurrency level (1-100)
     pub concurrency: usize,
+    /// List of tasks to execute
     pub tasks: Vec<Task>,
+    /// Task dependency DAG
     pub dag: DAG,
+    /// Estimated total duration in minutes
     pub estimated_duration: u32,
+    /// Start timestamp (Unix epoch milliseconds)
     pub start_time: u64,
 }
 
@@ -204,14 +216,23 @@ impl ExecutionPlan {
 /// Execution report
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionReport {
+    /// Session ID for this execution
     pub session_id: String,
+    /// Device identifier that executed the plan
     pub device_identifier: String,
+    /// Start timestamp (Unix epoch milliseconds)
     pub start_time: u64,
+    /// End timestamp (Unix epoch milliseconds)
     pub end_time: u64,
+    /// Total execution duration in milliseconds
     pub total_duration_ms: u64,
+    /// Summary of execution results
     pub summary: ExecutionSummary,
+    /// List of task results
     pub tasks: Vec<TaskResult>,
+    /// Agent metrics collected during execution
     pub metrics: Vec<AgentMetrics>,
+    /// Escalations that occurred during execution
     pub escalations: Vec<EscalationInfo>,
 }
 
