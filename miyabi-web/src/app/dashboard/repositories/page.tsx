@@ -6,6 +6,20 @@ import { useAuthStore } from '@/stores/authStore';
 import { api } from '@/lib/api';
 import { fetchUserRepositories } from '@/lib/github';
 import type { Repository, GitHubRepository } from '@/types/repository';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import {
+  Loader2,
+  Star,
+  Lock,
+  Globe,
+  Check,
+  Settings,
+  FileText,
+} from 'lucide-react';
 
 export default function RepositoriesPage() {
   const router = useRouter();
@@ -61,8 +75,8 @@ export default function RepositoriesPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-slate-900 mx-auto" />
+          <p className="mt-4 text-slate-600">読み込み中...</p>
         </div>
       </div>
     );
@@ -71,160 +85,156 @@ export default function RepositoriesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">リポジトリ管理</h2>
-        <p className="mt-2 text-gray-600">
+        <h2 className="text-3xl font-bold text-slate-900">リポジトリ管理</h2>
+        <p className="mt-2 text-slate-600">
           GitHubリポジトリを接続してAgent自動化を開始
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-800">{error}</p>
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('connected')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'connected'
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'connected' | 'available')}>
+        <TabsList>
+          <TabsTrigger value="connected">
             接続済み ({repositories.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('available')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'available'
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
+          </TabsTrigger>
+          <TabsTrigger value="available">
             利用可能 ({githubRepos.length})
-          </button>
-        </nav>
-      </div>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Connected Repositories */}
-      {activeTab === 'connected' && (
-        <div className="space-y-4">
-          {repositories.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <p className="text-gray-500">接続されているリポジトリはありません</p>
-              <p className="mt-2 text-sm text-gray-400">
-                「利用可能」タブから接続してください
-              </p>
-            </div>
-          ) : (
-            repositories.map((repo) => (
-              <div
-                key={repo.id}
-                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {repo.full_name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      最終更新: {new Date(repo.updated_at).toLocaleDateString('ja-JP')}
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleViewIssues(repo)}
-                      className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      Issue一覧
-                    </button>
-                    <button
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      設定
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+        {/* Connected Repositories */}
+        <TabsContent value="connected" className="mt-6">
+          <div className="space-y-4">
+            {repositories.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <p className="text-slate-500">接続されているリポジトリはありません</p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    「利用可能」タブから接続してください
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              repositories.map((repo) => (
+                <Card key={repo.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                          {repo.full_name}
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-500">
+                          最終更新: {new Date(repo.updated_at).toLocaleDateString('ja-JP')}
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button onClick={() => handleViewIssues(repo)}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Issue一覧
+                        </Button>
+                        <Button variant="outline">
+                          <Settings className="h-4 w-4 mr-2" />
+                          設定
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
 
-      {/* Available GitHub Repositories */}
-      {activeTab === 'available' && (
-        <div className="space-y-4">
-          {githubRepos.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <p className="text-gray-500">利用可能なリポジトリがありません</p>
-            </div>
-          ) : (
-            githubRepos.map((repo) => {
-              const isConnected = repositories.some(
-                (r) => r.github_repo_id === repo.id
-              );
+        {/* Available GitHub Repositories */}
+        <TabsContent value="available" className="mt-6">
+          <div className="space-y-4">
+            {githubRepos.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <p className="text-slate-500">利用可能なリポジトリがありません</p>
+                </CardContent>
+              </Card>
+            ) : (
+              githubRepos.map((repo) => {
+                const isConnected = repositories.some(
+                  (r) => r.github_repo_id === repo.id
+                );
 
-              return (
-                <div
-                  key={repo.id}
-                  className="bg-white rounded-lg border border-gray-200 p-6"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={repo.owner.avatar_url}
-                          alt={repo.owner.login}
-                          className="w-10 h-10 rounded"
-                        />
+                return (
+                  <Card key={repo.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={repo.owner.avatar_url}
+                              alt={repo.owner.login}
+                              className="w-10 h-10 rounded"
+                            />
+                            <div>
+                              <h3 className="text-lg font-semibold text-slate-900">
+                                {repo.full_name}
+                              </h3>
+                              {repo.description && (
+                                <p className="mt-1 text-sm text-slate-600">
+                                  {repo.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center gap-4 text-sm text-slate-500">
+                            {repo.language && (
+                              <Badge variant="secondary" className="flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                {repo.language}
+                              </Badge>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <Star className="h-4 w-4" />
+                              {repo.stargazers_count}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {repo.private ? (
+                                <>
+                                  <Lock className="h-4 w-4" />
+                                  Private
+                                </>
+                              ) : (
+                                <>
+                                  <Globe className="h-4 w-4" />
+                                  Public
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {repo.full_name}
-                          </h3>
-                          {repo.description && (
-                            <p className="mt-1 text-sm text-gray-600">
-                              {repo.description}
-                            </p>
+                          {isConnected ? (
+                            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
+                              <Check className="h-4 w-4 mr-1" />
+                              接続済み
+                            </Badge>
+                          ) : (
+                            <Button onClick={() => handleConnectRepository(repo)}>
+                              接続
+                            </Button>
                           )}
                         </div>
                       </div>
-                      <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-                        {repo.language && (
-                          <span className="flex items-center gap-1">
-                            <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                            {repo.language}
-                          </span>
-                        )}
-                        <span>⭐ {repo.stargazers_count}</span>
-                        <span>
-                          {repo.private ? '🔒 Private' : '🌍 Public'}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      {isConnected ? (
-                        <span className="px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
-                          ✓ 接続済み
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleConnectRepository(repo)}
-                          className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                        >
-                          接続
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

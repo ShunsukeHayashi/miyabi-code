@@ -1,14 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { api } from '@/lib/api';
 import { fetchRepositoryIssues } from '@/lib/github';
 import type { Repository, Issue } from '@/types/repository';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import {
+  Loader2,
+  Bot,
+  ExternalLink,
+  ChevronRight,
+} from 'lucide-react';
 
 export default function IssuesPage() {
   const params = useParams();
+  const router = useRouter();
   const { accessToken } = useAuthStore();
   const [repository, setRepository] = useState<Repository | null>(null);
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -68,8 +80,8 @@ export default function IssuesPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-slate-900 mx-auto" />
+          <p className="mt-4 text-slate-600">読み込み中...</p>
         </div>
       </div>
     );
@@ -77,9 +89,9 @@ export default function IssuesPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-sm text-red-800">{error}</p>
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
@@ -87,156 +99,157 @@ export default function IssuesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-          <a href="/dashboard/repositories" className="hover:text-gray-700">
+        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+          <button
+            onClick={() => router.push('/dashboard/repositories')}
+            className="hover:text-slate-700"
+          >
             リポジトリ
-          </a>
-          <span>/</span>
-          <span className="text-gray-900">{repository?.full_name}</span>
+          </button>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-slate-900">{repository?.full_name}</span>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900">Issue一覧</h2>
-        <p className="mt-2 text-gray-600">
+        <h2 className="text-3xl font-bold text-slate-900">Issue一覧</h2>
+        <p className="mt-2 text-slate-600">
           {repository?.full_name} のIssueを管理
         </p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Issueを検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStateFilter('open')}
-              className={`px-4 py-2 rounded-lg ${
-                stateFilter === 'open'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Open
-            </button>
-            <button
-              onClick={() => setStateFilter('closed')}
-              className={`px-4 py-2 rounded-lg ${
-                stateFilter === 'closed'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Closed
-            </button>
-            <button
-              onClick={() => setStateFilter('all')}
-              className={`px-4 py-2 rounded-lg ${
-                stateFilter === 'all'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              All
-            </button>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <Input
+              type="text"
+              placeholder="Issueを検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            <div className="flex gap-2">
+              <Button
+                variant={stateFilter === 'open' ? 'default' : 'outline'}
+                onClick={() => setStateFilter('open')}
+              >
+                Open
+              </Button>
+              <Button
+                variant={stateFilter === 'closed' ? 'default' : 'outline'}
+                onClick={() => setStateFilter('closed')}
+              >
+                Closed
+              </Button>
+              <Button
+                variant={stateFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setStateFilter('all')}
+              >
+                All
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Issues List */}
       <div className="space-y-4">
         {filteredIssues.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-            <p className="text-gray-500">
-              {searchQuery
-                ? '検索条件に一致するIssueがありません'
-                : 'Issueがありません'}
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-slate-500">
+                {searchQuery
+                  ? '検索条件に一致するIssueがありません'
+                  : 'Issueがありません'}
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           filteredIssues.map((issue) => (
-            <div
-              key={issue.id}
-              className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded ${
-                        issue.state === 'open'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-purple-100 text-purple-800'
-                      }`}
-                    >
-                      {issue.state === 'open' ? 'Open' : 'Closed'}
-                    </span>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      #{issue.number} {issue.title}
-                    </h3>
-                  </div>
+            <Card key={issue.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant={issue.state === 'open' ? 'default' : 'secondary'}
+                        className={
+                          issue.state === 'open'
+                            ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                            : 'bg-purple-100 text-purple-800 hover:bg-purple-100'
+                        }
+                      >
+                        {issue.state === 'open' ? 'Open' : 'Closed'}
+                      </Badge>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        #{issue.number} {issue.title}
+                      </h3>
+                    </div>
 
-                  {/* Labels */}
-                  {issue.labels.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {issue.labels.map((label) => (
-                        <span
-                          key={label.name}
-                          className="px-2 py-1 text-xs rounded"
-                          style={{
-                            backgroundColor: `#${label.color}20`,
-                            color: `#${label.color}`,
-                          }}
+                    {/* Labels */}
+                    {issue.labels.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {issue.labels.map((label) => (
+                          <Badge
+                            key={label.name}
+                            variant="outline"
+                            style={{
+                              backgroundColor: `#${label.color}20`,
+                              borderColor: `#${label.color}`,
+                              color: `#${label.color}`,
+                            }}
+                          >
+                            {label.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={issue.user.avatar_url}
+                          alt={issue.user.login}
+                          className="w-5 h-5 rounded-full"
+                        />
+                        <span>{issue.user.login}</span>
+                      </div>
+                      <span>
+                        作成: {new Date(issue.created_at).toLocaleDateString('ja-JP')}
+                      </span>
+                      <Button
+                        variant="link"
+                        className="h-auto p-0 text-blue-600"
+                        asChild
+                      >
+                        <a
+                          href={issue.html_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1"
                         >
-                          {label.name}
-                        </span>
-                      ))}
+                          GitHub で開く
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </Button>
                     </div>
-                  )}
+                  </div>
 
-                  <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={issue.user.avatar_url}
-                        alt={issue.user.login}
-                        className="w-5 h-5 rounded-full"
-                      />
-                      <span>{issue.user.login}</span>
-                    </div>
-                    <span>
-                      作成: {new Date(issue.created_at).toLocaleDateString('ja-JP')}
-                    </span>
-                    <a
-                      href={issue.html_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      GitHub で開く →
-                    </a>
+                  <div className="ml-4">
+                    {issue.state === 'open' && (
+                      <Button onClick={() => handleExecuteAgent(issue)}>
+                        <Bot className="h-4 w-4 mr-2" />
+                        Agent実行
+                      </Button>
+                    )}
                   </div>
                 </div>
-
-                <div className="ml-4">
-                  {issue.state === 'open' && (
-                    <button
-                      onClick={() => handleExecuteAgent(issue)}
-                      className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      🤖 Agent実行
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))
         )}
       </div>
 
       {/* Summary */}
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-sm text-slate-500">
         {filteredIssues.length} 件のIssue
       </div>
     </div>

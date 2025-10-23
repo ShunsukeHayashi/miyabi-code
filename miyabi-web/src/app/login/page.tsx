@@ -3,8 +3,8 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Github } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Github, Loader2 } from 'lucide-react';
 
 function LoginContent() {
   const router = useRouter();
@@ -27,45 +27,48 @@ function LoginContent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-[420px] p-8 shadow-xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Miyabi</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            AI-Powered Development Automation
-          </p>
-        </div>
+      <Card className="w-[420px] shadow-xl">
+        <CardContent className="p-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-slate-900">Miyabi</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              AI-Powered Development Automation
+            </p>
+          </div>
 
-        <div className="space-y-4">
-          <Button
-            onClick={handleGitHubLogin}
-            className="w-full h-12 bg-slate-900 hover:bg-slate-800"
-            size="lg"
-          >
-            <Github className="mr-2 h-5 w-5" />
-            Sign in with GitHub
-          </Button>
+          <div className="space-y-4">
+            <Button
+              onClick={handleGitHubLogin}
+              className="w-full h-12 bg-slate-900 hover:bg-slate-800"
+              size="lg"
+            >
+              <Github className="mr-2 h-5 w-5" />
+              Sign in with GitHub
+            </Button>
 
-          <p className="text-xs text-center text-slate-500">
-            By signing in, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </div>
+            <p className="text-xs text-center text-slate-500">
+              By signing in, you agree to our Terms of Service and Privacy
+              Policy
+            </p>
+          </div>
 
-        <div className="mt-8 pt-6 border-t border-slate-200">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-slate-900">7</div>
-              <div className="text-xs text-slate-600">Agents</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900">∞</div>
-              <div className="text-xs text-slate-600">Workflows</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900">24/7</div>
-              <div className="text-xs text-slate-600">Automation</div>
+          <div className="mt-8 pt-6 border-t border-slate-200">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-slate-900">7</div>
+                <div className="text-xs text-slate-600">Agents</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900">∞</div>
+                <div className="text-xs text-slate-600">Workflows</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900">24/7</div>
+                <div className="text-xs text-slate-600">Automation</div>
+              </div>
             </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );
@@ -73,7 +76,16 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-slate-900 mx-auto" />
+            <p className="mt-4 text-slate-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );

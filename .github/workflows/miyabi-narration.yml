@@ -1,0 +1,213 @@
+name: 🎤 Miyabi開発進捗 - ゆっくり解説音声ガイド自動生成
+
+on:
+  # Pushトリガー（mainブランチ）
+  push:
+    branches:
+      - main
+    paths:
+      - 'crates/**'
+      - 'tools/**'
+      - '.github/workflows/miyabi-narration.yml'
+
+  # 日次スケジュール実行（JST 18:00 = UTC 09:00）
+  schedule:
+    - cron: '0 9 * * *'
+
+  # 手動実行
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '過去N日分のcommitsを収集'
+        required: false
+        default: '3'
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+  UV_VERSION: '0.9.5'
+
+jobs:
+  generate-narration:
+    name: 音声ガイド生成
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      # =====================================================
+      # Phase 1: 環境セットアップ
+      # =====================================================
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 全履歴取得（git log用）
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 🔍 Verify uv installation
+        run: uv --version
+
+      # =====================================================
+      # Phase 2: VOICEVOX Engine セットアップ（Docker）
+      # =====================================================
+      - name: 🐳 Pull VOICEVOX Engine Docker Image
+        run: |
+          docker pull voicevox/voicevox_engine:cpu-latest
+
+      - name: 🚀 Start VOICEVOX Engine (Background)
+        run: |
+          docker run -d \
+            --name voicevox-engine \
+            -p 127.0.0.1:50021:50021 \
+            voicevox/voicevox_engine:cpu-latest
+
+          echo "⏳ Waiting for VOICEVOX Engine to start..."
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:50021/version > /dev/null; then
+              echo "✅ VOICEVOX Engine is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # バージョン確認
+          curl -s http://127.0.0.1:50021/version | jq .
+
+      # =====================================================
+      # Phase 3: 台本生成
+      # =====================================================
+      - name: 📝 Generate Script from Git Commits
+        working-directory: tools
+        run: |
+          DAYS="${{ github.event.inputs.days || '3' }}"
+          echo "📊 Collecting commits from last $DAYS days..."
+
+          python3 yukkuri-narration-generator.py --days "$DAYS"
+
+          echo "✅ Script generation completed"
+          cat script.md
+
+      # =====================================================
+      # Phase 4: 音声合成
+      # =====================================================
+      - name: 🎤 Synthesize Audio with VOICEVOX
+        working-directory: tools
+        run: |
+          echo "🎙️ Starting audio synthesis..."
+
+          # Python依存関係インストール
+          pip install requests
+
+          python3 voicevox-synthesizer.py
+
+          echo "✅ Audio synthesis completed"
+          ls -lh audio/
+
+      # =====================================================
+      # Phase 5: 成果物の整理
+      # =====================================================
+      - name: 📦 Organize Output
+        working-directory: tools
+        run: |
+          mkdir -p narration-output
+          mv script.md narration-output/
+          mv voicevox_requests.json narration-output/
+          mv audio narration-output/
+
+          # サマリー生成
+          cat > narration-output/SUMMARY.md << EOF
+          # 🎤 Miyabi開発進捗レポート
+
+          **生成日時**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **対象期間**: 過去${{ github.event.inputs.days || '3' }}日分
+
+          ## 📊 統計情報
+
+          - **音声ファイル数**: $(ls narration-output/audio/*.wav 2>/dev/null | wc -l)
+          - **合計サイズ**: $(du -sh narration-output/audio 2>/dev/null | cut -f1 || echo "N/A")
+          - **Commit数**: $(git log --oneline --since="${{ github.event.inputs.days || '3' }} days ago" | wc -l)
+
+          ## 📁 ファイル一覧
+
+          \`\`\`
+          $(ls -lh narration-output/)
+          \`\`\`
+
+          ## 🎬 生成された台本
+
+          \`\`\`markdown
+          $(cat narration-output/script.md)
+          \`\`\`
+          EOF
+
+          cat narration-output/SUMMARY.md
+
+      # =====================================================
+      # Phase 6: GitHub Artifactsにアップロード
+      # =====================================================
+      - name: 📤 Upload Narration Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: miyabi-narration-${{ github.run_number }}
+          path: tools/narration-output/
+          retention-days: 30
+
+      # =====================================================
+      # Phase 7: クリーンアップ
+      # =====================================================
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          docker stop voicevox-engine || true
+          docker rm voicevox-engine || true
+
+      # =====================================================
+      # Phase 8: 通知（成功）
+      # =====================================================
+      - name: ✅ Success Notification
+        if: success()
+        run: |
+          echo "::notice title=🎉 Narration Generated::音声ガイドの生成が完了しました！Artifactsからダウンロードできます。"
+
+      # =====================================================
+      # Phase 9: 通知（失敗）
+      # =====================================================
+      - name: ❌ Failure Notification
+        if: failure()
+        run: |
+          echo "::error title=❌ Narration Failed::音声ガイドの生成に失敗しました。ログを確認してください。"
+
+  # =====================================================
+  # Job 2: サマリーコメント（オプション）
+  # =====================================================
+  post-summary:
+    name: サマリー投稿
+    runs-on: ubuntu-latest
+    needs: generate-narration
+    if: success()
+
+    steps:
+      - name: 📝 Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: miyabi-narration-${{ github.run_number }}
+          path: output
+
+      - name: 📊 Create Summary
+        run: |
+          cat output/SUMMARY.md >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**📥 ダウンロード**: [miyabi-narration-${{ github.run_number }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
