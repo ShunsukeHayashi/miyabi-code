@@ -728,6 +728,31 @@ A ──┤      ├─ F         (26時間)
 
 ## 📚 ドキュメント
 
+### 🗺️ **ドキュメント構造**
+
+Miyabiのドキュメントは、ユーザーの役割と目的に応じて5階層に整理されています：
+
+<div align="center">
+
+| 階層 | 対象ユーザー | ディレクトリ |
+|:-----|:-----------|:------------|
+| 🚀 [Getting Started](docs/01_getting_started/) | 初めてMiyabiを使う方 | `docs/01_getting_started/` |
+| 🏗️ [Architecture](docs/02_architecture/) | システム設計を理解したい開発者 | `docs/02_architecture/` |
+| 📡 [API Reference](docs/03_api_reference/) | API利用者・統合開発者 | `docs/03_api_reference/` |
+| 🛠️ [Development Guide](docs/04_development_guide/) | Miyabi contributorと拡張開発者 | `docs/04_development_guide/` |
+| 🚢 [Operations](docs/05_operations/) | 本番環境で運用する組織 | `docs/05_operations/` |
+
+</div>
+
+**特殊ドキュメント**:
+- 💼 [Business Strategy](docs/business/) - ビジネスモデル・市場調査
+- 👥 [Community](docs/community/) - コミュニティガイドライン
+- 📋 [Templates](docs/templates/) - ドキュメントテンプレート
+
+**詳細**: [ドキュメント構造設計](docs/DOCUMENT_STRUCTURE.md) - 351ファイルの完全な分類と移行計画
+
+---
+
 ### 📖 **公式ドキュメント**
 
 <div align="center">
