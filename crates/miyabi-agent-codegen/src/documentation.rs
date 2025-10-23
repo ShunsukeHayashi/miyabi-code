@@ -53,7 +53,7 @@ pub async fn generate_documentation(
     })
 }
 
-fn build_readme_for_files(files: &[String]) -> Result<String, MiyabiError> {
+pub(crate) fn build_readme_for_files(files: &[String]) -> Result<String, MiyabiError> {
     let project_name = files
         .first()
         .and_then(|f| Path::new(f).file_stem())
@@ -76,10 +76,7 @@ fn build_readme_for_files(files: &[String]) -> Result<String, MiyabiError> {
             ),
         )
         .with_description("A simple usage example")],
-        api_docs_link: Some(format!(
-            "https://docs.rs/{}",
-            project_name.to_lowercase()
-        )),
+        api_docs_link: Some(format!("https://docs.rs/{}", project_name.to_lowercase())),
         license: Some("MIT OR Apache-2.0".to_string()),
     };
 

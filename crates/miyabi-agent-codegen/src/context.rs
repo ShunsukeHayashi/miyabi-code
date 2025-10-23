@@ -151,13 +151,15 @@ pub async fn write_context_files(
     let context_path = worktree_path.join("EXECUTION_CONTEXT.md");
     tokio::fs::write(&context_path, context_md)
         .await
-        .map_err(|e| MiyabiError::Unknown(format!("Failed to write EXECUTION_CONTEXT.md: {}", e)))?;
+        .map_err(|e| {
+            MiyabiError::Unknown(format!("Failed to write EXECUTION_CONTEXT.md: {}", e))
+        })?;
 
     let context_json = build_agent_context_json(config, task)?;
     let json_path = worktree_path.join(".agent-context.json");
-    tokio::fs::write(&json_path, context_json).await.map_err(|e| {
-        MiyabiError::Unknown(format!("Failed to write .agent-context.json: {}", e))
-    })?;
+    tokio::fs::write(&json_path, context_json)
+        .await
+        .map_err(|e| MiyabiError::Unknown(format!("Failed to write .agent-context.json: {}", e)))?;
 
     Ok(())
 }

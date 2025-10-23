@@ -23,9 +23,14 @@ pub async fn write_generated_code_to_worktree(
 
     let code_filename = determine_code_filename(task);
     let code_path = worktree_path.join(&code_filename);
-    tokio::fs::write(&code_path, generated_code).await.map_err(|e| {
-        MiyabiError::Unknown(format!("Failed to write generated code to {:?}: {}", code_path, e))
-    })?;
+    tokio::fs::write(&code_path, generated_code)
+        .await
+        .map_err(|e| {
+            MiyabiError::Unknown(format!(
+                "Failed to write generated code to {:?}: {}",
+                code_path, e
+            ))
+        })?;
 
     tracing::info!("Generated code written to: {:?}", code_path);
     Ok(())

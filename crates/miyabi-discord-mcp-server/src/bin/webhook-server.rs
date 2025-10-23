@@ -15,7 +15,7 @@ use axum::{
     routing::post,
     Router,
 };
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use hmac::{Hmac, Mac};
 use miyabi_discord_mcp_server::ProgressReporter;
 use serde::{Deserialize, Serialize};

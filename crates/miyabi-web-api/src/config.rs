@@ -65,8 +65,8 @@ impl AppConfig {
         let database_url = env::var("DATABASE_URL")
             .map_err(|_| "DATABASE_URL environment variable is required".to_string())?;
 
-        let server_address = env::var("SERVER_ADDRESS")
-            .unwrap_or_else(|_| "0.0.0.0:8080".to_string());
+        let server_address =
+            env::var("SERVER_ADDRESS").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
 
         let jwt_secret = env::var("JWT_SECRET")
             .map_err(|_| "JWT_SECRET environment variable is required".to_string())?;
@@ -80,8 +80,8 @@ impl AppConfig {
         let github_callback_url = env::var("GITHUB_CALLBACK_URL")
             .unwrap_or_else(|_| "http://localhost:8080/api/v1/auth/github/callback".to_string());
 
-        let frontend_url = env::var("FRONTEND_URL")
-            .unwrap_or_else(|_| "http://localhost:3000".to_string());
+        let frontend_url =
+            env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string());
 
         let jwt_expiration = env::var("JWT_EXPIRATION")
             .ok()
@@ -93,8 +93,7 @@ impl AppConfig {
             .and_then(|s| s.parse().ok())
             .unwrap_or_else(default_refresh_expiration);
 
-        let environment = env::var("ENVIRONMENT")
-            .unwrap_or_else(|_| default_environment());
+        let environment = env::var("ENVIRONMENT").unwrap_or_else(|_| default_environment());
 
         Ok(Self {
             database_url,

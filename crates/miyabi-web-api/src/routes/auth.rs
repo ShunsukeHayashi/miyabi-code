@@ -96,7 +96,10 @@ pub async fn github_oauth_callback(
     let github_user = client
         .get("https://api.github.com/user")
         .header("User-Agent", "Miyabi-Web-API")
-        .header("Authorization", format!("Bearer {}", token_response.access_token))
+        .header(
+            "Authorization",
+            format!("Bearer {}", token_response.access_token),
+        )
         .send()
         .await
         .map_err(|e| AppError::ExternalApi(format!("Failed to fetch user: {}", e)))?
@@ -118,7 +121,10 @@ pub async fn github_oauth_callback(
         let emails = client
             .get("https://api.github.com/user/emails")
             .header("User-Agent", "Miyabi-Web-API")
-            .header("Authorization", format!("Bearer {}", token_response.access_token))
+            .header(
+                "Authorization",
+                format!("Bearer {}", token_response.access_token),
+            )
             .send()
             .await
             .map_err(|e| AppError::ExternalApi(format!("Failed to fetch emails: {}", e)))?
@@ -183,7 +189,7 @@ async fn create_or_update_user(
         SELECT id, github_id, email, name, avatar_url, access_token, created_at, updated_at
         FROM users
         WHERE github_id = $1
-        "#
+        "#,
     )
     .bind(github_id)
     .fetch_optional(db)
@@ -197,7 +203,7 @@ async fn create_or_update_user(
             SET email = $2, name = $3, avatar_url = $4, access_token = $5, updated_at = NOW()
             WHERE github_id = $1
             RETURNING id, github_id, email, name, avatar_url, access_token, created_at, updated_at
-            "#
+            "#,
         )
         .bind(github_id)
         .bind(email)
@@ -215,7 +221,7 @@ async fn create_or_update_user(
             INSERT INTO users (github_id, email, name, avatar_url, access_token)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id, github_id, email, name, avatar_url, access_token, created_at, updated_at
-            "#
+            "#,
         )
         .bind(github_id)
         .bind(email)
@@ -266,7 +272,7 @@ pub async fn refresh_token(
         SELECT id, github_id, email, name, avatar_url, access_token, created_at, updated_at
         FROM users
         WHERE id = $1
-        "#
+        "#,
     )
     .bind(user_id)
     .fetch_optional(&state.db)

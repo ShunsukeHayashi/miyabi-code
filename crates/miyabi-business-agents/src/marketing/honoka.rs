@@ -220,7 +220,10 @@ impl BusinessAgent for HonokaAgent {
     }
 
     async fn generate_plan(&self, input: &BusinessInput) -> Result<BusinessPlan, MiyabiError> {
-        info!("HonokaAgent generating plan for industry: {}", input.industry);
+        info!(
+            "HonokaAgent generating plan for industry: {}",
+            input.industry
+        );
 
         // Parse context JSON to extract course creation parameters
         let context_data: serde_json::Value = if let Some(context_str) = &input.context {
@@ -229,16 +232,20 @@ impl BusinessAgent for HonokaAgent {
             serde_json::json!({})
         };
 
-        let niche = context_data.get("niche")
+        let niche = context_data
+            .get("niche")
             .and_then(|v| v.as_str())
             .unwrap_or(&input.industry);
-        let avatar = context_data.get("avatar")
+        let avatar = context_data
+            .get("avatar")
             .and_then(|v| v.as_str())
             .unwrap_or(&input.target_market);
-        let profession = context_data.get("profession")
+        let profession = context_data
+            .get("profession")
             .and_then(|v| v.as_str())
             .unwrap_or("Expert");
-        let primary_goal = context_data.get("primaryGoal")
+        let primary_goal = context_data
+            .get("primaryGoal")
             .and_then(|v| v.as_str())
             .unwrap_or("Master the subject");
 
@@ -298,8 +305,8 @@ Generate the output in the specified JSON format."#,
                     avatar
                 ),
                 priority: ((i + 1).min(5)) as u8, // Priority 1-5
-                estimated_cost: None, // Course creation is primarily time investment
-                expected_roi: Some(3.0), // Online courses typically have high ROI
+                estimated_cost: None,             // Course creation is primarily time investment
+                expected_roi: Some(3.0),          // Online courses typically have high ROI
                 dependencies: if i > 0 {
                     vec![format!("Section {}", i)]
                 } else {
@@ -335,7 +342,8 @@ Generate the output in the specified JSON format."#,
 
         // Create Timeline
         let now = chrono::Utc::now();
-        let end_date = now + chrono::Duration::days((input.timeframe_months.unwrap_or(12) * 30) as i64);
+        let end_date =
+            now + chrono::Duration::days((input.timeframe_months.unwrap_or(12) * 30) as i64);
         let timeline = Timeline {
             start_date: now,
             end_date,
@@ -343,19 +351,28 @@ Generate the output in the specified JSON format."#,
                 Milestone {
                     name: "Course Design Complete".to_string(),
                     target_date: now + chrono::Duration::days(7),
-                    deliverables: vec!["Course outline".to_string(), "Lesson structure".to_string()],
+                    deliverables: vec![
+                        "Course outline".to_string(),
+                        "Lesson structure".to_string(),
+                    ],
                     success_criteria: vec!["All sections defined".to_string()],
                 },
                 Milestone {
                     name: "Content Production Complete".to_string(),
                     target_date: now + chrono::Duration::days(21),
-                    deliverables: vec!["All lesson content".to_string(), "Video scripts".to_string()],
+                    deliverables: vec![
+                        "All lesson content".to_string(),
+                        "Video scripts".to_string(),
+                    ],
                     success_criteria: vec!["All lessons written".to_string()],
                 },
                 Milestone {
                     name: "Course Launch".to_string(),
                     target_date: now + chrono::Duration::days(30),
-                    deliverables: vec!["Published course".to_string(), "Marketing materials".to_string()],
+                    deliverables: vec![
+                        "Published course".to_string(),
+                        "Marketing materials".to_string(),
+                    ],
                     success_criteria: vec!["Course live on Udemy".to_string()],
                 },
             ],
@@ -367,13 +384,19 @@ Generate the output in the specified JSON format."#,
                 description: "Low course completion rate".to_string(),
                 severity: 3,
                 probability: 0.4,
-                mitigation: vec!["Engaging content".to_string(), "Interactive elements".to_string()],
+                mitigation: vec![
+                    "Engaging content".to_string(),
+                    "Interactive elements".to_string(),
+                ],
             },
             Risk {
                 description: "Insufficient student enrollment".to_string(),
                 severity: 4,
                 probability: 0.5,
-                mitigation: vec!["Marketing campaign".to_string(), "Free preview lessons".to_string()],
+                mitigation: vec![
+                    "Marketing campaign".to_string(),
+                    "Free preview lessons".to_string(),
+                ],
             },
         ];
 
@@ -433,7 +456,9 @@ Generate the output in the specified JSON format."#,
 
         // Add suggestions
         if plan.recommendations.len() < 5 {
-            suggestions.push("Consider adding more course sections for comprehensive coverage".to_string());
+            suggestions.push(
+                "Consider adding more course sections for comprehensive coverage".to_string(),
+            );
         }
 
         if plan.next_steps.len() < 3 {

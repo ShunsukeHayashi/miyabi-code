@@ -5,7 +5,7 @@
 //! DISCORD_BOT_TOKEN=xxx cargo run --bin miyabi-bot
 //! ```
 
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use miyabi_discord_mcp_server::{FeedbackEntry, ProgressReporter};
 use octocrab::Octocrab;
 use std::collections::HashMap;

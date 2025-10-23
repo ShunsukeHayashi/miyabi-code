@@ -60,7 +60,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let summary_embed = Embed {
         author: None,
         color: Some(0x9B59B6), // Purple
-        description: Some("🎉 **Miyabi Community ビジュアルアセット生成完了！**\n\n\
+        description: Some(
+            "🎉 **Miyabi Community ビジュアルアセット生成完了！**\n\n\
              ARK API (seedream-4-0) を使用して、3種類の画像を生成しました。\n\n\
              **生成アセット**:\n\
              1. 🌸 Miyabiちゃん（メインマスコット）\n\
@@ -69,7 +70,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              **次のステップ**:\n\
              1. 画像をダウンロード\n\
              2. Discordサーバー設定でアップロード\n\
-             3. サーバーアイコン・バナーとして設定".to_string()),
+             3. サーバーアイコン・バナーとして設定"
+                .to_string(),
+        ),
         fields: vec![],
         footer: Some(EmbedFooter {
             icon_url: None,

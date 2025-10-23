@@ -54,7 +54,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())
@@ -89,7 +89,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())
@@ -135,7 +135,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())
@@ -188,7 +188,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())
@@ -236,7 +236,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())
@@ -284,7 +284,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())
@@ -324,7 +324,7 @@ impl ProgressReporter {
 
         self.http
             .create_message(self.progress_channel_id)
-            .embeds(&[embed])?
+            .embeds(&[embed])
             .await?;
 
         Ok(())

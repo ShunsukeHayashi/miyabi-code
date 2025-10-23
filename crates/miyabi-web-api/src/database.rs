@@ -157,13 +157,17 @@ pub async fn run_migrations(pool: &PgPool) -> Result<()> {
         .execute(pool)
         .await?;
 
-    sqlx::query("CREATE INDEX IF NOT EXISTS idx_agent_executions_status ON agent_executions(status)")
-        .execute(pool)
-        .await?;
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_agent_executions_status ON agent_executions(status)",
+    )
+    .execute(pool)
+    .await?;
 
-    sqlx::query("CREATE INDEX IF NOT EXISTS idx_workflows_repository_id ON workflows(repository_id)")
-        .execute(pool)
-        .await?;
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_workflows_repository_id ON workflows(repository_id)",
+    )
+    .execute(pool)
+    .await?;
 
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_line_messages_user_id ON line_messages(user_id)")
         .execute(pool)

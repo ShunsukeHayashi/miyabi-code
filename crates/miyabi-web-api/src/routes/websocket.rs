@@ -10,10 +10,7 @@ use uuid::Uuid;
 /// WebSocket handler
 ///
 /// Upgrades HTTP connection to WebSocket
-pub async fn websocket_handler(
-    ws: WebSocketUpgrade,
-    State(_state): State<AppState>,
-) -> Response {
+pub async fn websocket_handler(ws: WebSocketUpgrade, State(_state): State<AppState>) -> Response {
     // TODO: Implement WebSocket authentication
     // 1. Extract and validate JWT token from query params or headers
     // 2. Get user ID from token

@@ -42,8 +42,7 @@ impl JwtManager {
             github_id,
         };
 
-        encode(&Header::default(), &claims, &self.encoding_key)
-            .map_err(AppError::Jwt)
+        encode(&Header::default(), &claims, &self.encoding_key).map_err(AppError::Jwt)
     }
 
     /// Validates a JWT token and returns the claims

@@ -203,10 +203,7 @@ impl KnowledgeIndexer for QdrantIndexer {
 
         // キャッシュをロード
         let mut cache = IndexCache::load_or_default(workspace)?;
-        info!(
-            "Loaded cache with {} indexed files",
-            cache.indexed_count()
-        );
+        info!("Loaded cache with {} indexed files", cache.indexed_count());
 
         let mut stats = IndexStats::default();
 
@@ -311,7 +308,6 @@ impl QdrantIndexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     /// Integration test - requires Qdrant server running
     /// Run with: cargo test -- --ignored

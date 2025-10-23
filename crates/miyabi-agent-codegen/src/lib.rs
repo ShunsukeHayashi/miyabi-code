@@ -32,6 +32,12 @@
 //! # }
 //! ```
 
+mod context;
+mod documentation;
+mod prompt;
+mod worktree;
+
 pub mod codegen;
 
 pub use codegen::CodeGenAgent;
+pub use documentation::DocumentationGenerationResult;

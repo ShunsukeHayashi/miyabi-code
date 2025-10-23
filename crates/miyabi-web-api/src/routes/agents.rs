@@ -38,7 +38,7 @@ pub async fn execute_agent(
         r#"
         SELECT id FROM repositories
         WHERE id = $1 AND user_id = $2
-        "#
+        "#,
     )
     .bind(request.repository_id)
     .bind(auth_user.user_id)
@@ -54,7 +54,7 @@ pub async fn execute_agent(
         VALUES ($1, $2, $3, 'pending')
         RETURNING id, repository_id, issue_number, agent_type, status, started_at, completed_at,
                   result_summary, quality_score, pr_number, created_at, updated_at
-        "#
+        "#,
     )
     .bind(request.repository_id)
     .bind(request.issue_number)
@@ -104,7 +104,7 @@ pub async fn list_executions(
         WHERE r.user_id = $1
         ORDER BY ae.created_at DESC
         LIMIT 100
-        "#
+        "#,
     )
     .bind(auth_user.user_id)
     .fetch_all(&state.db)
@@ -144,7 +144,7 @@ pub async fn get_execution(
         FROM agent_executions ae
         INNER JOIN repositories r ON ae.repository_id = r.id
         WHERE ae.id = $1 AND r.user_id = $2
-        "#
+        "#,
     )
     .bind(id)
     .bind(auth_user.user_id)

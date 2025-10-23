@@ -140,13 +140,25 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Health check
         .route("/health", get(routes::health::health_check))
         // Authentication routes
-        .route("/auth/github/callback", get(routes::auth::github_oauth_callback))
+        .route(
+            "/auth/github/callback",
+            get(routes::auth::github_oauth_callback),
+        )
         .route("/auth/refresh", post(routes::auth::refresh_token))
         .route("/auth/logout", post(routes::auth::logout))
         // Repository routes
-        .route("/repositories", get(routes::repositories::list_repositories))
-        .route("/repositories/:id", get(routes::repositories::get_repository))
-        .route("/repositories", post(routes::repositories::create_repository))
+        .route(
+            "/repositories",
+            get(routes::repositories::list_repositories),
+        )
+        .route(
+            "/repositories/:id",
+            get(routes::repositories::get_repository),
+        )
+        .route(
+            "/repositories",
+            post(routes::repositories::create_repository),
+        )
         // Agent execution routes
         .route("/agents/execute", post(routes::agents::execute_agent))
         .route("/agents/executions", get(routes::agents::list_executions))
@@ -196,7 +208,9 @@ pub async fn run_server(config: AppConfig) -> Result<()> {
     let app = create_app(config.clone()).await?;
 
     // Parse server address
-    let addr: std::net::SocketAddr = config.server_address.parse()
+    let addr: std::net::SocketAddr = config
+        .server_address
+        .parse()
         .map_err(|e| AppError::Configuration(format!("Invalid server address: {}", e)))?;
 
     tracing::info!("Starting Miyabi Web API server on {}", addr);

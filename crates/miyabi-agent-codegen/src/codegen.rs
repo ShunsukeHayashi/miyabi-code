@@ -3,21 +3,17 @@
 //! Responsible for generating code based on Task requirements.
 //! Integrates with GitHub for repository context and Claude Code for implementation.
 
+pub use crate::documentation::DocumentationGenerationResult;
+use crate::{documentation, prompt, worktree};
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
-use miyabi_agent_integrations::PotpieIntegration;
-use miyabi_core::documentation::{
-    generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, ReadmeTemplate,
-};
-use miyabi_core::retry::{retry_with_backoff, RetryConfig};
 use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
-use miyabi_potpie::PotpieConfig;
 use miyabi_types::agent::{AgentMetrics, ResultStatus};
-use miyabi_types::error::{AgentError, MiyabiError, Result};
+use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 // use miyabi_worktree::{WorktreeInfo, WorktreeManager}; // Temporarily disabled due to Send issues
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub struct CodeGenAgent {
     #[allow(dead_code)] // Reserved for future Agent configuration
@@ -49,7 +45,7 @@ impl CodeGenAgent {
     /// Generate code using LLM
     async fn generate_code_with_llm(&self, task: &Task) -> Result<String> {
         if let Some(ref provider) = self.llm_provider {
-            let prompt = self.build_code_generation_prompt(task);
+            let prompt = prompt::build_code_generation_prompt(task);
 
             let request = LLMRequest::new(prompt)
                 .with_temperature(0.2)
@@ -67,54 +63,6 @@ impl CodeGenAgent {
                 "LLM provider not configured".to_string(),
             ))
         }
-    }
-
-    /// Build code generation prompt for LLM
-    fn build_code_generation_prompt(&self, task: &Task) -> String {
-        let mut prompt = String::new();
-
-        prompt.push_str("# Code Generation Task\n\n");
-        prompt.push_str(&format!("**Task ID**: {}\n", task.id));
-        prompt.push_str(&format!("**Title**: {}\n", task.title));
-        prompt.push_str(&format!("**Type**: {:?}\n", task.task_type));
-        prompt.push_str(&format!("**Priority**: {}\n\n", task.priority));
-
-        if let Some(ref severity) = task.severity {
-            prompt.push_str(&format!("**Severity**: {:?}\n", severity));
-        }
-
-        if let Some(ref impact) = task.impact {
-            prompt.push_str(&format!("**Impact**: {:?}\n", impact));
-        }
-
-        prompt.push_str("\n## Description\n");
-        prompt.push_str(&task.description);
-        prompt.push_str("\n\n");
-
-        if !task.dependencies.is_empty() {
-            prompt.push_str("## Dependencies\n");
-            for dep in &task.dependencies {
-                prompt.push_str(&format!("- {}\n", dep));
-            }
-            prompt.push('\n');
-        }
-
-        prompt.push_str("## Instructions\n");
-        prompt.push_str("Please generate the necessary Rust code to implement this task.\n\n");
-        prompt.push_str("Requirements:\n");
-        prompt.push_str("1. Generate clean, idiomatic Rust code\n");
-        prompt.push_str("2. Include proper error handling\n");
-        prompt.push_str("3. Add comprehensive tests\n");
-        prompt.push_str("4. Include Rustdoc documentation\n");
-        prompt.push_str("5. Follow Rust best practices\n\n");
-
-        prompt.push_str("Please provide:\n");
-        prompt.push_str("- Complete Rust implementation\n");
-        prompt.push_str("- Unit tests with #[cfg(test)]\n");
-        prompt.push_str("- Rustdoc comments (///)\n");
-        prompt.push_str("- Error handling with Result<T, E>\n");
-
-        prompt
     }
 
     /// Generate code based on task requirements
@@ -145,9 +93,9 @@ impl CodeGenAgent {
 
         // If worktree is provided, execute Claude Code in it
         if let Some(worktree) = worktree_path {
-            self.execute_claude_code(worktree, task).await?;
+            worktree::prepare_claude_context(worktree, &self.config, task).await?;
             // Parse results from worktree
-            self.parse_code_generation_results(worktree, task).await
+            worktree::parse_code_generation_results(worktree).await
         } else {
             // Fallback: placeholder result for testing without worktree
             Ok(CodeGenerationResult {
@@ -177,11 +125,16 @@ impl CodeGenAgent {
 
         // If worktree is provided, write the generated code to files
         if let Some(worktree) = worktree_path {
-            self.write_generated_code_to_worktree(worktree, task, &generated_code)
-                .await?;
+            worktree::write_generated_code_to_worktree(
+                worktree,
+                &self.config,
+                task,
+                &generated_code,
+            )
+            .await?;
 
             // Parse results from worktree
-            self.parse_code_generation_results(worktree, task).await
+            worktree::parse_code_generation_results(worktree).await
         } else {
             // Return result with generated code metadata
             Ok(CodeGenerationResult {
@@ -195,471 +148,13 @@ impl CodeGenAgent {
         }
     }
 
-    /// Write generated code to worktree
-    async fn write_generated_code_to_worktree(
-        &self,
-        worktree_path: &Path,
-        task: &Task,
-        generated_code: &str,
-    ) -> Result<()> {
-        tracing::info!("Writing generated code to worktree: {:?}", worktree_path);
-
-        // Write EXECUTION_CONTEXT.md
-        let context_md = self.generate_execution_context(task);
-        let context_path = worktree_path.join("EXECUTION_CONTEXT.md");
-        tokio::fs::write(&context_path, context_md).await?;
-
-        // Write .agent-context.json
-        let context_json = self.generate_agent_context_json(task)?;
-        let json_path = worktree_path.join(".agent-context.json");
-        tokio::fs::write(&json_path, context_json).await?;
-
-        // Write generated code to appropriate file
-        let code_filename = self.determine_code_filename(task);
-        let code_path = worktree_path.join(&code_filename);
-        tokio::fs::write(&code_path, generated_code).await?;
-
-        tracing::info!("Generated code written to: {:?}", code_path);
-
-        Ok(())
-    }
-
-    /// Determine appropriate filename for generated code
-    fn determine_code_filename(&self, task: &Task) -> String {
-        match task.task_type {
-            TaskType::Feature => "src/feature.rs".to_string(),
-            TaskType::Bug => "src/fix.rs".to_string(),
-            TaskType::Refactor => "src/refactor.rs".to_string(),
-            _ => "src/generated.rs".to_string(),
-        }
-    }
-
-    /// Generate EXECUTION_CONTEXT.md for Claude Code
-    fn generate_execution_context(&self, task: &Task) -> String {
-        let mut context = String::new();
-
-        context.push_str("# Execution Context\n\n");
-        context.push_str(&format!("**Task ID**: {}\n\n", task.id));
-        context.push_str(&format!("**Task Title**: {}\n\n", task.title));
-        context.push_str(&format!("**Task Type**: {:?}\n\n", task.task_type));
-        context.push_str(&format!("**Priority**: {}\n\n", task.priority));
-
-        if let Some(ref severity) = task.severity {
-            context.push_str(&format!("**Severity**: {:?}\n\n", severity));
-        }
-
-        if let Some(ref impact) = task.impact {
-            context.push_str(&format!("**Impact**: {:?}\n\n", impact));
-        }
-
-        context.push_str("## Description\n\n");
-        context.push_str(&task.description);
-        context.push_str("\n\n");
-
-        if !task.dependencies.is_empty() {
-            context.push_str("## Dependencies\n\n");
-            for dep in &task.dependencies {
-                context.push_str(&format!("- {}\n", dep));
-            }
-            context.push('\n');
-        }
-
-        if let Some(duration) = task.estimated_duration {
-            context.push_str(&format!("**Estimated Duration**: {} minutes\n\n", duration));
-        }
-
-        context.push_str("## Instructions\n\n");
-        context.push_str("Please implement the following:\n\n");
-        context.push_str("1. Analyze the task requirements\n");
-        context.push_str("2. Generate the necessary code changes\n");
-        context.push_str("3. Create tests for the new functionality\n");
-        context.push_str("4. Add documentation (Rustdoc comments)\n");
-        context.push_str("5. Commit the changes with a descriptive message\n\n");
-
-        context.push_str("---\n\n");
-        context.push_str("*Generated by Miyabi CodeGenAgent*\n");
-
-        context
-    }
-
-    /// Generate enhanced EXECUTION_CONTEXT.md with Potpie integration
-    ///
-    /// This async version includes semantic search results from Potpie
-    /// to provide existing implementation examples.
-    #[allow(dead_code)] // Will be used in production deployment with Potpie enabled
-    async fn generate_enhanced_execution_context(
-        &self,
-        task: &Task,
-        potpie_config: Option<PotpieConfig>,
-    ) -> String {
-        // Start with base context
-        let mut context = self.generate_execution_context(task);
-
-        // Try to fetch existing implementations from Potpie
-        if let Some(config) = potpie_config {
-            let potpie = PotpieIntegration::new(Some(config));
-
-            if potpie.is_available().await {
-                tracing::info!("Fetching existing implementations from Potpie");
-
-                match potpie
-                    .find_existing_implementations(&task.description)
-                    .await
-                {
-                    Ok(existing_code) if !existing_code.is_empty() => {
-                        // Insert before the Instructions section
-                        let instructions_marker = "## Instructions\n\n";
-                        if let Some(pos) = context.find(instructions_marker) {
-                            context.insert_str(pos, &existing_code);
-                        } else {
-                            // Fallback: append before footer
-                            let footer_marker = "---\n\n";
-                            if let Some(pos) = context.find(footer_marker) {
-                                context.insert_str(pos, &existing_code);
-                            }
-                        }
-                    }
-                    Ok(_) => {
-                        tracing::debug!("No existing implementations found");
-                    }
-                    Err(e) => {
-                        tracing::warn!("Failed to fetch existing implementations: {}", e);
-                    }
-                }
-            } else {
-                tracing::debug!("Potpie not available, using base context");
-            }
-        }
-
-        context
-    }
-
-    /// Generate .agent-context.json for Claude Code
-    fn generate_agent_context_json(&self, task: &Task) -> Result<String> {
-        let context = serde_json::json!({
-            "agentType": "CodeGenAgent",
-            "agentStatus": "executing",
-            "task": {
-                "id": task.id,
-                "title": task.title,
-                "description": task.description,
-                "taskType": task.task_type,
-                "priority": task.priority,
-                "severity": task.severity,
-                "impact": task.impact,
-                "dependencies": task.dependencies,
-                "estimatedDuration": task.estimated_duration,
-            },
-            "config": {
-                "useTaskTool": self.config.use_task_tool,
-                "useWorktree": self.config.use_worktree,
-            },
-            "promptPath": ".claude/agents/prompts/coding/codegen-agent-prompt.md",
-        });
-
-        serde_json::to_string_pretty(&context)
-            .map_err(|e| MiyabiError::Unknown(format!("Failed to serialize agent context: {}", e)))
-    }
-
-    /// Execute Claude Code CLI in worktree
-    async fn execute_claude_code(&self, worktree_path: &Path, task: &Task) -> Result<()> {
-        tracing::info!("Executing Claude Code in {:?}", worktree_path);
-
-        // Write EXECUTION_CONTEXT.md
-        let context_md = self.generate_execution_context(task);
-        let context_path = worktree_path.join("EXECUTION_CONTEXT.md");
-        tokio::fs::write(&context_path, context_md).await?;
-
-        // Write .agent-context.json
-        let context_json = self.generate_agent_context_json(task)?;
-        let json_path = worktree_path.join(".agent-context.json");
-        tokio::fs::write(&json_path, context_json).await?;
-
-        tracing::info!("Generated context files in {:?}", worktree_path);
-
-        // Note: Actual Claude Code CLI execution would go here
-        // For now, we skip the CLI execution as it requires:
-        // 1. Claude Code CLI installed
-        // 2. API key configured
-        // 3. Interactive session handling
-        //
-        // This will be implemented in production deployment
-
-        Ok(())
-    }
-
-    /// Parse code generation results from worktree
-    async fn parse_code_generation_results(
-        &self,
-        worktree_path: &Path,
-        _task: &Task,
-    ) -> Result<CodeGenerationResult> {
-        tracing::info!("Parsing code generation results from {:?}", worktree_path);
-
-        // In real implementation, this would:
-        // 1. Check for git commits in the worktree
-        // 2. Parse git diff to count lines changed
-        // 3. Detect new/modified files
-        // 4. Count test files created
-        //
-        // For now, return a placeholder result
-        Ok(CodeGenerationResult {
-            files_created: vec![],
-            files_modified: vec![],
-            lines_added: 0,
-            lines_removed: 0,
-            tests_added: 0,
-            commit_sha: None,
-        })
-    }
-
-    /// Setup Worktree for task execution with retry
-    ///
-    /// Creates an isolated worktree for parallel task execution.
-    /// Uses spawn_blocking with a dedicated runtime to handle git2's !Send types.
-    /// Retries on transient failures (git lock conflicts, etc.)
-    #[allow(dead_code)] // Temporarily disabled due to Send issues
-    async fn setup_worktree(&self, task: &Task) -> Result<()> {
-        let task_id = task.id.clone();
-        let task_id_for_log = task.id.clone();
-        let worktree_base = self
-            .config
-            .worktree_base_path
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(".worktrees"));
-
-        // Retry with conservative config (git operations can be slow)
-        let retry_config = RetryConfig::conservative();
-
-        retry_with_backoff(retry_config, || {
-            let task_id = task_id.clone();
-            let _worktree_base = worktree_base.clone();
-
-            async move {
-                // Use spawn_blocking with a dedicated runtime to avoid deadlock
-                let task_id_for_error = task_id.clone(); // Clone for error handler
-                tokio::task::spawn_blocking(move || {
-                    // Create a new runtime for the blocking task
-                    let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                        AgentError::with_cause(
-                            "Failed to create runtime",
-                            AgentType::CodeGenAgent,
-                            Some(task_id.clone()),
-                            e,
-                        )
-                    })?;
-
-                    rt.block_on(async {
-                        let _repo_path = miyabi_core::find_git_root(None).map_err(|e| {
-                            AgentError::new(
-                                format!(
-                                    "Failed to find git repository root: {}\n\
-                                     Hint: Make sure you're running this command from within a git repository.",
-                                    e
-                                ),
-                                AgentType::CodeGenAgent,
-                                Some(task_id.clone()),
-                            )
-                        })?;
-
-                        // Extract issue number from task ID (format: "task-{issue_number}" or numeric ID)
-                        let _issue_number = task_id
-                            .trim_start_matches("task-")
-                            .parse::<u64>()
-                            .unwrap_or(0);
-
-                        // let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
-                        //     .map_err(|e| {
-                        //         AgentError::with_cause(
-                        //             "Failed to create WorktreeManager",
-                        //             AgentType::CodeGenAgent,
-                        //             Some(task_id.clone()),
-                        //             Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
-                        //         )
-                        //     })?;
-
-                        // // Create worktree using dedicated runtime
-                        // let worktree_info = manager.create_worktree(issue_number).await?;
-
-                        Ok::<(), MiyabiError>(())
-                    })
-                })
-                .await
-                .map_err(|e| {
-                    AgentError::new(
-                        format!("Spawn blocking failed: {}", e),
-                        AgentType::CodeGenAgent,
-                        Some(task_id_for_error.clone()),
-                    )
-                })??;
-
-                Ok(())
-            }
-        })
-        .await?;
-
-        tracing::info!("Created worktree for task {}", task_id_for_log);
-
-        Ok(())
-    }
-
-    /// Cleanup Worktree after task completion with retry
-    ///
-    /// Removes the worktree and associated resources.
-    /// Uses spawn_blocking with a dedicated runtime to handle git2's !Send types.
-    /// Retries on transient failures (filesystem delays, locks, etc.)
-    #[allow(dead_code)] // Temporarily disabled due to Send issues
-    async fn cleanup_worktree(&self, _worktree_info: &()) -> Result<()> {
-        // let worktree_id = worktree_info.id.clone();
-        // let worktree_path = worktree_info.path.clone();
-        let worktree_base = self
-            .config
-            .worktree_base_path
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(".worktrees"));
-
-        // Retry with aggressive config (cleanup is less critical, faster retries OK)
-        let retry_config = RetryConfig::aggressive();
-
-        retry_with_backoff(retry_config, || {
-            // let worktree_id = worktree_id.clone();
-            let _worktree_base = worktree_base.clone();
-
-            async move {
-                // Use spawn_blocking with a dedicated runtime to avoid deadlock
-                tokio::task::spawn_blocking(move || {
-                    // Create a new runtime for the blocking task
-                    let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                        AgentError::with_cause(
-                            "Failed to create runtime for cleanup",
-                            AgentType::CodeGenAgent,
-                            None,
-                            e,
-                        )
-                    })?;
-
-                    rt.block_on(async {
-                        let _repo_path = miyabi_core::find_git_root(None).map_err(|e| {
-                            AgentError::new(
-                                format!(
-                                    "Failed to find git repository root for cleanup: {}\n\
-                                     Hint: Make sure you're running this command from within a git repository.",
-                                    e
-                                ),
-                                AgentType::CodeGenAgent,
-                                None,
-                            )
-                        })?;
-
-                        // let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
-                        //     .map_err(|e| {
-                        //         AgentError::with_cause(
-                        //             "Failed to create WorktreeManager for cleanup",
-                        //             AgentType::CodeGenAgent,
-                        //             None,
-                        //             Box::new(e) as Box<dyn std::error::Error + Send + Sync>,
-                        //         )
-                        //     })?;
-
-                        // // Remove worktree using dedicated runtime
-                        // manager.remove_worktree(&worktree_id).await?;
-
-                        Ok::<(), MiyabiError>(())
-                    })
-                })
-                .await
-                .map_err(|e| {
-                    AgentError::new(
-                        format!("Cleanup spawn blocking failed: {}", e),
-                        AgentType::CodeGenAgent,
-                        None,
-                    )
-                })??;
-
-                Ok(())
-            }
-        })
-        .await?;
-
-        tracing::info!("Removed worktree");
-
-        Ok(())
-    }
-
-    /// Generate documentation for the generated code
-    ///
-    /// Creates Rustdoc documentation and README files
-    ///
-    /// # Arguments
-    /// * `project_path` - Path to the project root
-    /// * `result` - Code generation result
-    ///
-    /// # Returns
-    /// * `Ok(DocumentationGenerationResult)` - Documentation generated
-    /// * `Err(MiyabiError)` - Failed to generate documentation
+    /// 生成したコードに対するドキュメントを作成する
     pub async fn generate_documentation(
         &self,
         project_path: &Path,
         result: &CodeGenerationResult,
     ) -> Result<DocumentationGenerationResult> {
-        tracing::info!("Generating documentation for {:?}", project_path);
-
-        // Generate Rustdoc
-        let doc_config = DocumentationConfig::new(project_path).with_private_items();
-
-        let rustdoc_result = generate_rustdoc(&doc_config).await?;
-
-        // Generate README if there are new files
-        let readme_path = if !result.files_created.is_empty() {
-            let readme = self.generate_readme_for_files(&result.files_created)?;
-            let readme_path = project_path.join("README.md");
-
-            tokio::fs::write(&readme_path, readme).await?;
-
-            Some(readme_path.to_string_lossy().to_string())
-        } else {
-            None
-        };
-
-        Ok(DocumentationGenerationResult {
-            rustdoc_path: rustdoc_result.doc_path,
-            readme_path,
-            warnings: rustdoc_result.warnings,
-            success: rustdoc_result.success,
-        })
-    }
-
-    /// Generate README content for created files
-    fn generate_readme_for_files(&self, files: &[String]) -> Result<String> {
-        // Extract project name from first file path
-        let project_name = files
-            .first()
-            .and_then(|f| Path::new(f).file_stem())
-            .and_then(|s| s.to_str())
-            .unwrap_or("Project")
-            .to_string();
-
-        // Create basic README template
-        let template = ReadmeTemplate {
-            project_name: project_name.clone(),
-            description: format!("Auto-generated documentation for {}", project_name),
-            installation: Some(format!(
-                "```bash\ncargo add {}\n```",
-                project_name.to_lowercase()
-            )),
-            usage_examples: vec![CodeExample::new(
-                "Basic Usage",
-                format!(
-                    "use {};\n\nfn main() {{\n    // Your code here\n}}",
-                    project_name
-                ),
-            )
-            .with_description("A simple usage example")],
-            api_docs_link: Some(format!("https://docs.rs/{}", project_name.to_lowercase())),
-            license: Some("MIT OR Apache-2.0".to_string()),
-        };
-
-        Ok(generate_readme(&template))
+        documentation::generate_documentation(project_path, result).await
     }
 
     /// Validate generated code
@@ -752,22 +247,12 @@ pub struct CodeGenerationResult {
     pub commit_sha: Option<String>,
 }
 
-/// Result of documentation generation
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct DocumentationGenerationResult {
-    /// Path to generated Rustdoc
-    pub rustdoc_path: String,
-    /// Path to generated README (if any)
-    pub readme_path: Option<String>,
-    /// Documentation warnings
-    pub warnings: Vec<String>,
-    /// Whether documentation generation succeeded
-    pub success: bool,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::context;
+    use crate::documentation::build_readme_for_files;
+    use crate::{prompt, worktree};
 
     fn create_test_config() -> AgentConfig {
         AgentConfig {
@@ -818,11 +303,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_code_generation_prompt() {
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
         let task = create_test_task();
 
-        let prompt = agent.build_code_generation_prompt(&task);
+        let prompt = prompt::build_code_generation_prompt(&task);
 
         assert!(prompt.contains("# Code Generation Task"));
         assert!(prompt.contains("**Task ID**: task-1"));
@@ -837,22 +320,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_determine_code_filename() {
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
-
         let mut task = create_test_task();
 
         task.task_type = TaskType::Feature;
-        assert_eq!(agent.determine_code_filename(&task), "src/feature.rs");
+        assert_eq!(context::determine_code_filename(&task), "src/feature.rs");
 
         task.task_type = TaskType::Bug;
-        assert_eq!(agent.determine_code_filename(&task), "src/fix.rs");
+        assert_eq!(context::determine_code_filename(&task), "src/fix.rs");
 
         task.task_type = TaskType::Refactor;
-        assert_eq!(agent.determine_code_filename(&task), "src/refactor.rs");
+        assert_eq!(context::determine_code_filename(&task), "src/refactor.rs");
 
         task.task_type = TaskType::Docs;
-        assert_eq!(agent.determine_code_filename(&task), "src/generated.rs");
+        assert_eq!(context::determine_code_filename(&task), "src/generated.rs");
     }
 
     fn create_test_task() -> Task {
@@ -1190,11 +670,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_readme_for_files() {
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
-
         let files = vec!["src/my_module.rs".to_string()];
-        let readme = agent.generate_readme_for_files(&files).unwrap();
+        let readme = build_readme_for_files(&files).unwrap();
 
         assert!(readme.contains("# my_module"));
         assert!(readme.contains("## Installation"));
@@ -1207,16 +684,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_readme_multiple_files() {
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
-
         let files = vec![
             "src/parser.rs".to_string(),
             "src/lexer.rs".to_string(),
             "src/ast.rs".to_string(),
         ];
 
-        let readme = agent.generate_readme_for_files(&files).unwrap();
+        let readme = build_readme_for_files(&files).unwrap();
 
         // Should use first file for project name
         assert!(readme.contains("# parser"));
@@ -1337,16 +811,13 @@ mod tests {
     async fn test_generate_execution_context() {
         use miyabi_types::agent::{ImpactLevel, Severity};
 
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
-
         let mut task = create_test_task();
         task.severity = Some(Severity::High);
         task.impact = Some(ImpactLevel::High);
         task.dependencies = vec!["task-0".to_string()];
         task.estimated_duration = Some(60);
 
-        let context = agent.generate_execution_context(&task);
+        let context = context::build_execution_context(&task);
 
         // Verify all sections are present
         assert!(context.contains("# Execution Context"));
@@ -1372,12 +843,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_execution_context_minimal() {
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
-
         let task = create_test_task(); // No severity, impact, dependencies, duration
 
-        let context = agent.generate_execution_context(&task);
+        let context = context::build_execution_context(&task);
 
         // Verify required sections are present
         assert!(context.contains("# Execution Context"));
@@ -1395,14 +863,13 @@ mod tests {
         use miyabi_types::agent::{ImpactLevel, Severity};
 
         let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
 
         let mut task = create_test_task();
         task.severity = Some(Severity::High);
         task.impact = Some(ImpactLevel::Critical);
         task.dependencies = vec!["task-0".to_string(), "task-2".to_string()];
 
-        let json_str = agent.generate_agent_context_json(&task).unwrap();
+        let json_str = context::build_agent_context_json(&config, &task).unwrap();
         let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
         // Verify top-level fields
@@ -1435,7 +902,6 @@ mod tests {
     #[tokio::test]
     async fn test_execute_claude_code_file_writes() {
         let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
         let task = create_test_task();
 
         // Create temporary directory for worktree
@@ -1446,7 +912,7 @@ mod tests {
         tokio::fs::create_dir_all(&temp_dir).await.unwrap();
 
         // Execute Claude Code (writes context files)
-        let result = agent.execute_claude_code(&temp_dir, &task).await;
+        let result = worktree::prepare_claude_context(&temp_dir, &config, &task).await;
         assert!(result.is_ok());
 
         // Verify EXECUTION_CONTEXT.md exists
@@ -1476,7 +942,6 @@ mod tests {
         use miyabi_types::agent::{ImpactLevel, Severity};
 
         let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
 
         let mut task = create_test_task();
         task.title = "Fix authentication bug".to_string();
@@ -1489,7 +954,7 @@ mod tests {
         task.estimated_duration = Some(120);
 
         // Generate markdown
-        let md = agent.generate_execution_context(&task);
+        let md = context::build_execution_context(&task);
         assert!(md.contains("**Task Title**: Fix authentication bug"));
         assert!(md.contains("User login fails with 401 error"));
         assert!(md.contains("**Task Type**: Bug"));
@@ -1500,7 +965,7 @@ mod tests {
         assert!(md.contains("**Estimated Duration**: 120 minutes"));
 
         // Generate JSON
-        let json_str = agent.generate_agent_context_json(&task).unwrap();
+        let json_str = context::build_agent_context_json(&config, &task).unwrap();
         let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
         assert_eq!(json["task"]["title"], "Fix authentication bug");
         assert_eq!(
@@ -1542,10 +1007,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_code_generation_results_placeholder() {
-        let config = create_test_config();
-        let agent = CodeGenAgent::new(config);
-        let task = create_test_task();
-
         let temp_dir = std::env::temp_dir().join("miyabi-test-parse");
         if temp_dir.exists() {
             tokio::fs::remove_dir_all(&temp_dir).await.ok();
@@ -1553,8 +1014,7 @@ mod tests {
         tokio::fs::create_dir_all(&temp_dir).await.unwrap();
 
         // Parse results (should return placeholder for now)
-        let result = agent
-            .parse_code_generation_results(&temp_dir, &task)
+        let result = worktree::parse_code_generation_results(&temp_dir)
             .await
             .unwrap();
 

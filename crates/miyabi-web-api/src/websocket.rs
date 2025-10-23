@@ -8,7 +8,8 @@ use uuid::Uuid;
 
 /// WebSocket connection manager
 pub struct WebSocketManager {
-    connections: Arc<RwLock<std::collections::HashMap<Uuid, tokio::sync::mpsc::UnboundedSender<Message>>>>,
+    connections:
+        Arc<RwLock<std::collections::HashMap<Uuid, tokio::sync::mpsc::UnboundedSender<Message>>>>,
 }
 
 impl WebSocketManager {

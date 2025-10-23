@@ -699,24 +699,20 @@ fn extract_priority_from_labels(labels: &[String]) -> String {
 /// Estimate task duration from agent type (in minutes)
 fn estimate_minutes_from_agent(agent_type: &str) -> u32 {
     match agent_type {
-        "coordinator" => 60,   // 1 hour for coordination/planning
-        "codegen" => 45,       // 45 min for code generation
-        "review" => 30,        // 30 min for code review
+        "coordinator" => 60,           // 1 hour for coordination/planning
+        "codegen" => 45,               // 45 min for code generation
+        "review" => 30,                // 30 min for code review
         "deploy" | "deployment" => 40, // 40 min for deployment
-        "pr" => 15,            // 15 min for PR creation
-        "issue" => 20,         // 20 min for issue analysis
-        _ => 30,               // Default: 30 min
+        "pr" => 15,                    // 15 min for PR creation
+        "issue" => 20,                 // 20 min for issue analysis
+        _ => 30,                       // Default: 30 min
     }
 }
 
 /// Extract description from issue body (first paragraph, max 200 chars)
 fn extract_description_from_body(body: &str) -> String {
     // Take first paragraph (up to first double newline)
-    let first_para = body
-        .split("\n\n")
-        .next()
-        .unwrap_or(body)
-        .trim();
+    let first_para = body.split("\n\n").next().unwrap_or(body).trim();
 
     // Remove markdown formatting
     let cleaned = first_para

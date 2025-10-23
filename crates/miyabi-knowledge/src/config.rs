@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// ナレッジ管理システムの設定
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct KnowledgeConfig {
     /// ベクトルDB設定
     pub vector_db: VectorDbConfig,
@@ -27,7 +26,6 @@ pub struct KnowledgeConfig {
     #[serde(default)]
     pub auto_index: AutoIndexConfig,
 }
-
 
 impl KnowledgeConfig {
     /// ファイルから設定をロード
