@@ -329,47 +329,67 @@ pub struct IssueAnalysis {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IssueTraceLog {
     // Identification
+    /// Issue number
     pub issue_number: u64,
+    /// Issue title
     pub issue_title: String,
+    /// Full URL to the issue
     pub issue_url: String,
 
     // Lifecycle tracking
+    /// Timestamp when issue was created
     pub created_at: chrono::DateTime<chrono::Utc>,
+    /// Timestamp when issue was closed (None if still open)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub closed_at: Option<chrono::DateTime<chrono::Utc>>,
+    /// Current state of the issue
     pub current_state: IssueState,
+    /// History of all state transitions
     pub state_transitions: Vec<StateTransition>,
 
     // Agent execution tracking
+    /// List of all agent executions on this issue
     pub agent_executions: Vec<AgentExecution>,
 
     // Task decomposition
+    /// Total number of tasks decomposed from this issue
     pub total_tasks: u32,
+    /// Number of tasks completed successfully
     pub completed_tasks: u32,
+    /// Number of tasks that failed
     pub failed_tasks: u32,
 
     // Label tracking
+    /// History of all label changes
     pub label_changes: Vec<LabelChange>,
+    /// Current labels applied to the issue
     pub current_labels: Vec<String>,
 
     // Quality & metrics
+    /// List of quality reports from ReviewAgent
     pub quality_reports: Vec<QualityReport>,
+    /// Final quality score (0-100) if available
     #[serde(skip_serializing_if = "Option::is_none")]
     pub final_quality_score: Option<u8>,
 
     // Pull Request tracking
+    /// List of pull requests created for this issue
     pub pull_requests: Vec<PRResult>,
 
     // Deployment tracking
+    /// List of deployments triggered by this issue
     pub deployments: Vec<DeploymentResult>,
 
     // Escalations
+    /// List of escalations requiring human intervention
     pub escalations: Vec<EscalationInfo>,
 
     // Notes & annotations
+    /// Manual notes and annotations from agents or users
     pub notes: Vec<TraceNote>,
 
     // Metadata
+    /// Additional metadata for the issue
     pub metadata: IssueMetadata,
 }
 
@@ -439,12 +459,17 @@ impl IssueTraceLog {
     }
 }
 
+/// Issue metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IssueMetadata {
+    /// Device identifier where the issue was processed (e.g., "MacBook", "Server01")
     pub device_identifier: String,
+    /// List of session IDs that worked on this issue
     pub session_ids: Vec<String>,
+    /// Total duration spent on this issue in milliseconds
     #[serde(skip_serializing_if = "Option::is_none")]
     pub total_duration_ms: Option<u64>,
+    /// Timestamp when the metadata was last updated
     pub last_updated: chrono::DateTime<chrono::Utc>,
 }
 
