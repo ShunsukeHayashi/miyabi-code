@@ -9,40 +9,59 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TaskType {
+    /// New feature implementation
     Feature,
+    /// Bug fix
     Bug,
+    /// Code refactoring
     Refactor,
+    /// Documentation update
     Docs,
+    /// Test addition or update
     Test,
+    /// Deployment task
     Deployment,
 }
 
 /// Task definition
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
+    /// Task identifier (e.g., "task-1", "feature-auth")
     pub id: String,
+    /// Task title (max 200 characters)
     pub title: String,
+    /// Detailed task description with requirements
     pub description: String,
+    /// Task type (Feature, Bug, Refactor, Docs, Test, Deployment)
     #[serde(rename = "type")]
     pub task_type: TaskType,
-    /// Priority level (1-10, where 1 is highest)
+    /// Priority level (0-3: P0=Critical, P1=High, P2=Medium, P3=Low)
     pub priority: u8,
+    /// Optional severity level
     #[serde(skip_serializing_if = "Option::is_none")]
     pub severity: Option<Severity>,
+    /// Optional impact level
     #[serde(skip_serializing_if = "Option::is_none")]
     pub impact: Option<ImpactLevel>,
+    /// Agent assigned to execute this task
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assigned_agent: Option<AgentType>,
+    /// Task IDs this task depends on
     #[serde(default)]
     pub dependencies: Vec<String>,
+    /// Estimated execution duration in minutes
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub estimated_duration: Option<u32>, // minutes
+    pub estimated_duration: Option<u32>,
+    /// Current execution status
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<AgentStatus>,
+    /// Unix timestamp when task execution started
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<u64>,
+    /// Unix timestamp when task execution ended
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<u64>,
+    /// Additional task-specific metadata
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
@@ -107,23 +126,35 @@ impl Task {
 /// Task decomposition result from CoordinatorAgent
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskDecomposition {
+    /// Original issue that was decomposed
     pub original_issue: Issue,
+    /// Decomposed tasks
     pub tasks: Vec<Task>,
+    /// Directed Acyclic Graph of task dependencies
     pub dag: super::workflow::DAG,
+    /// Total estimated duration in minutes
     pub estimated_total_duration: u32,
+    /// Whether the DAG contains cycles (invalid)
     pub has_cycles: bool,
+    /// Recommendations for execution
     pub recommendations: Vec<String>,
 }
 
 /// Task execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskResult {
+    /// Task identifier
     pub task_id: String,
+    /// Execution status
     pub status: AgentStatus,
+    /// Agent that executed the task
     pub agent_type: AgentType,
+    /// Execution duration in milliseconds
     pub duration_ms: u64,
+    /// Detailed agent result
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<crate::agent::AgentResult>,
+    /// Error message if failed
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -131,24 +162,37 @@ pub struct TaskResult {
 /// Task grouping for parallel execution
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskGroup {
+    /// Group identifier
     pub group_id: String,
+    /// Tasks in this group
     pub tasks: Vec<Task>,
+    /// Agent assigned to this group
     pub agent: AgentType,
+    /// Group priority (0-3)
     pub priority: u8,
+    /// Estimated total duration in milliseconds
     pub estimated_duration_ms: u64,
+    /// Worktree path for parallel execution
     pub worktree_path: String,
-    pub level: usize, // DAG level for dependency ordering
+    /// DAG level for dependency ordering
+    pub level: usize,
 }
 
 /// Grouping configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroupingConfig {
-    pub min_group_size: usize,        // Default: 3
-    pub max_group_size: usize,        // Default: 10
-    pub max_concurrent_groups: usize, // Default: 5
-    pub priority_weight: f32,         // Default: 0.3
-    pub duration_weight: f32,         // Default: 0.4
-    pub agent_weight: f32,            // Default: 0.3
+    /// Minimum tasks per group (default: 3)
+    pub min_group_size: usize,
+    /// Maximum tasks per group (default: 10)
+    pub max_group_size: usize,
+    /// Maximum concurrent groups (default: 5)
+    pub max_concurrent_groups: usize,
+    /// Weight for priority in grouping algorithm (default: 0.3)
+    pub priority_weight: f32,
+    /// Weight for duration in grouping algorithm (default: 0.4)
+    pub duration_weight: f32,
+    /// Weight for agent type in grouping algorithm (default: 0.3)
+    pub agent_weight: f32,
 }
 
 impl Default for GroupingConfig {
