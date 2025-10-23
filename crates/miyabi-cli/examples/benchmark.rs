@@ -189,7 +189,7 @@ fn benchmark4_retry_execution(task_count: usize) -> BenchmarkResult {
     println!("\n📊 Benchmark 4: リトライ付き実行 ({}タスク)", task_count);
 
     use rand::Rng;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let start = Instant::now();
     let mut durations = Vec::with_capacity(task_count);
@@ -204,7 +204,7 @@ fn benchmark4_retry_execution(task_count: usize) -> BenchmarkResult {
         while !success && attempts < MAX_RETRIES {
             attempts += 1;
             // 30%の確率で失敗（リトライテスト）
-            if rng.gen::<f64>() > 0.3 || attempts >= 2 {
+            if rng.random::<f64>() > 0.3 || attempts >= 2 {
                 success = true;
                 let _result = format!("Result {}", i);
             }
