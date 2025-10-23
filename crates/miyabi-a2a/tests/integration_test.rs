@@ -27,11 +27,12 @@ async fn test_task_lifecycle() {
         title: "[TEST] A2A Integration Test Task".to_string(),
         description: "This is a test task created by integration tests. Safe to delete."
             .to_string(),
-        status: TaskStatus::Pending,
+        status: TaskStatus::Submitted,
         task_type: TaskType::Testing,
         agent: Some("TestAgent".to_string()),
         context_id: Some("test-context-123".to_string()),
         priority: 3,
+        retry_count: 0,
         created_at: chrono::Utc::now(),
         updated_at: chrono::Utc::now(),
         issue_url: String::new(), // Will be set by GitHub
@@ -49,15 +50,16 @@ async fn test_task_lifecycle() {
         .expect("Task not found");
 
     assert_eq!(retrieved.title, "[TEST] A2A Integration Test Task");
-    assert_eq!(retrieved.status, TaskStatus::Pending);
+    assert_eq!(retrieved.status, TaskStatus::Submitted);
     assert_eq!(retrieved.task_type, TaskType::Testing);
 
     // Update task status
     let update = TaskUpdate {
-        status: Some(TaskStatus::InProgress),
+        status: Some(TaskStatus::Working),
         description: None,
         agent: None,
         priority: None,
+        retry_count: None,
     };
 
     storage
@@ -72,7 +74,7 @@ async fn test_task_lifecycle() {
         .expect("Failed to get updated task")
         .expect("Task not found");
 
-    assert_eq!(updated.status, TaskStatus::InProgress);
+    assert_eq!(updated.status, TaskStatus::Working);
 
     // Clean up - close the task
     storage
@@ -95,9 +97,9 @@ async fn test_task_filtering() {
     )
     .expect("Failed to create storage");
 
-    // List all pending tasks
+    // List all submitted tasks
     let filter = TaskFilter {
-        status: Some(TaskStatus::Pending),
+        status: Some(TaskStatus::Submitted),
         ..Default::default()
     };
 
@@ -106,7 +108,7 @@ async fn test_task_filtering() {
         .await
         .expect("Failed to list tasks");
 
-    println!("Found {} pending tasks", tasks.len());
+    println!("Found {} submitted tasks", tasks.len());
 
     for task in &tasks {
         println!("  - #{}: {} ({})", task.id, task.title, task.status);
@@ -158,11 +160,12 @@ async fn test_cursor_pagination() {
             id: 0,
             title: format!("[TEST] Pagination Test Task {}", i),
             description: format!("Test task #{} for pagination testing", i),
-            status: TaskStatus::Pending,
+            status: TaskStatus::Submitted,
             task_type: TaskType::Testing,
             agent: None,
             context_id: Some("pagination-test".to_string()),
             priority: 3,
+            retry_count: 0,
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
             issue_url: String::new(),
