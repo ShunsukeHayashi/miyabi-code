@@ -43,6 +43,45 @@ pub struct ContextPiece {
 
     /// Line range (if applicable)
     pub line_range: Option<(usize, usize)>,
+
+    /// Priority for context pruning (0 = lowest, 10 = highest)
+    pub priority: u8,
+}
+
+impl ContextPiece {
+    /// Calculate priority based on source and score
+    fn calculate_priority(source: &ContextSource, score: f32) -> u8 {
+        match source {
+            // AST matches are high confidence, prioritize based on score
+            ContextSource::Ast => {
+                if score >= 0.9 {
+                    10
+                } else if score >= 0.8 {
+                    9
+                } else if score >= 0.7 {
+                    8
+                } else {
+                    7
+                }
+            }
+            // RAG matches prioritized by score
+            ContextSource::Rag => {
+                if score >= 0.9 {
+                    9
+                } else if score >= 0.8 {
+                    8
+                } else if score >= 0.7 {
+                    7
+                } else if score >= 0.6 {
+                    6
+                } else {
+                    5
+                }
+            }
+            // Hybrid (both sources agree) gets highest priority
+            ContextSource::Hybrid => 10,
+        }
+    }
 }
 
 /// Source of context
@@ -114,12 +153,15 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
 
         // Convert RAG results to context pieces
         for result in rag_results {
+            let score = result.score * (1.0 - self.ast_weight);
+            let source = ContextSource::Rag;
             context_pieces.push(ContextPiece {
-                source: ContextSource::Rag,
+                source: source.clone(),
                 content: result.content,
-                score: result.score * (1.0 - self.ast_weight),
+                score,
                 file_path: None,
                 line_range: None,
+                priority: ContextPiece::calculate_priority(&source, score),
             });
         }
 
@@ -132,12 +174,15 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
                         let relevant = self.extract_relevant_symbols(&file_context, query);
 
                         for (content, line_range) in relevant {
+                            let score = 0.8 * self.ast_weight; // AST matches are high confidence
+                            let source = ContextSource::Ast;
                             context_pieces.push(ContextPiece {
-                                source: ContextSource::Ast,
+                                source: source.clone(),
                                 content,
-                                score: 0.8 * self.ast_weight, // AST matches are high confidence
+                                score,
                                 file_path: Some(path.clone()),
                                 line_range: Some(line_range),
+                                priority: ContextPiece::calculate_priority(&source, score),
                             });
                         }
                     }
@@ -166,18 +211,65 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         Ok(contexts)
     }
 
-    /// Format context pieces for prompt injection
+    /// Format context pieces for prompt injection with priority-based pruning
+    ///
+    /// Implements multi-pass pruning algorithm:
+    /// 1. First pass: Include all priority 10 items (critical)
+    /// 2. Second pass: Include priority 9-8 items until 80% budget
+    /// 3. Third pass: Fill remaining budget with priority 7-5 items
     pub fn format_for_prompt(&self, pieces: &[ContextPiece], max_tokens: usize) -> String {
-        let mut output = vec!["## Relevant Context".to_string()];
-        let mut token_count = 0;
         let avg_chars_per_token = 4; // Rough estimate
+        let mut output = vec!["## Relevant Context".to_string()];
+        let mut included_pieces = Vec::new();
+        let mut token_count = 0;
 
-        for (i, piece) in pieces.iter().enumerate() {
-            let estimated_tokens = piece.content.len() / avg_chars_per_token;
-            if token_count + estimated_tokens > max_tokens {
-                break;
+        // Sort by priority (descending) and score (descending)
+        let mut sorted_pieces: Vec<_> = pieces.iter().collect();
+        sorted_pieces.sort_by(|a, b| {
+            b.priority
+                .cmp(&a.priority)
+                .then_with(|| b.score.partial_cmp(&a.score).unwrap())
+        });
+
+        // Multi-pass pruning algorithm
+        // Pass 1: Critical items (priority 10)
+        for piece in sorted_pieces.iter() {
+            if piece.priority == 10 {
+                let estimated_tokens = piece.content.len() / avg_chars_per_token;
+                if token_count + estimated_tokens <= max_tokens {
+                    included_pieces.push(*piece);
+                    token_count += estimated_tokens;
+                }
             }
+        }
 
+        // Pass 2: High priority items (priority 9-8) until 80% budget
+        let budget_80_percent = (max_tokens as f32 * 0.8) as usize;
+        if token_count < budget_80_percent {
+            for piece in sorted_pieces.iter() {
+                if piece.priority >= 8 && piece.priority < 10 {
+                    let estimated_tokens = piece.content.len() / avg_chars_per_token;
+                    if token_count + estimated_tokens <= budget_80_percent {
+                        included_pieces.push(*piece);
+                        token_count += estimated_tokens;
+                    }
+                }
+            }
+        }
+
+        // Pass 3: Fill remaining budget with medium priority items (priority 7-5)
+        for piece in sorted_pieces.iter() {
+            if piece.priority >= 5 && piece.priority < 8 {
+                let estimated_tokens = piece.content.len() / avg_chars_per_token;
+                if token_count + estimated_tokens <= max_tokens {
+                    included_pieces.push(*piece);
+                    token_count += estimated_tokens;
+                }
+            }
+        }
+
+        // Format output
+        for (i, piece) in included_pieces.iter().enumerate() {
             let source_label = match piece.source {
                 ContextSource::Ast => "AST",
                 ContextSource::Rag => "RAG",
@@ -197,16 +289,23 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
                 .unwrap_or_default();
 
             output.push(format!(
-                "\n### Context {} [{}] Score: {:.2}{}",
+                "\n### Context {} [{}] Priority: {} Score: {:.2}{}",
                 i + 1,
                 source_label,
+                piece.priority,
                 piece.score,
                 location
             ));
             output.push(format!("```\n{}\n```", piece.content));
-
-            token_count += estimated_tokens;
         }
+
+        // Add metadata footer
+        output.push(format!(
+            "\n---\n**Included**: {} pieces | **Estimated tokens**: {} / {}",
+            included_pieces.len(),
+            token_count,
+            max_tokens
+        ));
 
         output.join("\n")
     }
@@ -344,6 +443,7 @@ mod tests {
             score: 0.9,
             file_path: Some(PathBuf::from("test.rs")),
             line_range: Some((1, 3)),
+            priority: 10,
         }];
 
         let formatted = hybrid.format_for_prompt(&pieces, 1000);
@@ -351,5 +451,104 @@ mod tests {
         assert!(formatted.contains("Relevant Context"));
         assert!(formatted.contains("AST"));
         assert!(formatted.contains("test.rs"));
+        assert!(formatted.contains("Priority: 10"));
+    }
+
+    #[test]
+    fn test_priority_based_pruning() {
+        let mock_searcher = MockSearcher {
+            results: Vec::new(),
+        };
+
+        let hybrid = HybridContextSearcher::new(mock_searcher, 0.5).unwrap();
+
+        // Create pieces with different priorities
+        let pieces = vec![
+            ContextPiece {
+                source: ContextSource::Hybrid,
+                content: "Critical hybrid match".to_string(),
+                score: 0.95,
+                file_path: None,
+                line_range: None,
+                priority: 10,
+            },
+            ContextPiece {
+                source: ContextSource::Ast,
+                content: "High priority AST".to_string(),
+                score: 0.85,
+                file_path: None,
+                line_range: None,
+                priority: 9,
+            },
+            ContextPiece {
+                source: ContextSource::Rag,
+                content: "Medium priority RAG".to_string(),
+                score: 0.65,
+                file_path: None,
+                line_range: None,
+                priority: 6,
+            },
+            ContextPiece {
+                source: ContextSource::Rag,
+                content: "Low priority RAG".to_string(),
+                score: 0.55,
+                file_path: None,
+                line_range: None,
+                priority: 5,
+            },
+        ];
+
+        // Small token budget - should prioritize high priority items
+        let formatted = hybrid.format_for_prompt(&pieces, 20); // Very small budget
+
+        // Priority 10 should always be included
+        assert!(formatted.contains("Critical hybrid match"));
+        // Priority 9 might be included depending on token count
+        // Priority 6 and 5 likely excluded due to budget
+    }
+
+    #[test]
+    fn test_calculate_priority() {
+        // AST with high score
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Ast, 0.9),
+            10
+        );
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Ast, 0.85),
+            9
+        );
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Ast, 0.75),
+            8
+        );
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Ast, 0.65),
+            7
+        );
+
+        // RAG with varying scores
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Rag, 0.9),
+            9
+        );
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Rag, 0.85),
+            8
+        );
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Rag, 0.65),
+            6
+        );
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Rag, 0.55),
+            5
+        );
+
+        // Hybrid always gets max priority
+        assert_eq!(
+            ContextPiece::calculate_priority(&ContextSource::Hybrid, 0.5),
+            10
+        );
     }
 }
