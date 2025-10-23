@@ -96,7 +96,7 @@
 - Deliverables: テックデザインレビュー、CLI 実行ログ例。
 
 ### Phase 1: Orchestrator 基盤 (2 週間)
-- [ ] 新 crate `crates/miyabi-orchestrator` を追加。
+- [ ] 新 crate `crates/miyabi-orchestrator` を追加（設計詳細は `docs/CLAUDE_SESSION_SCHEDULER_DESIGN.md` を参照）。
   - `axum` または `warp` ベースの HTTP API (`POST /sessions`, `POST /sessions/{id}/messages`, `GET /sessions`).
   - `tokio::process::Command` で `claude` CLI を非同期制御。`--output-format json` を強制。
   - Session/Message schema を `sea-orm` or `sqlx` で定義。

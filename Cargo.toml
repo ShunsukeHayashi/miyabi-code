@@ -23,7 +23,10 @@ members = [
     # TODO: Fix twilight API changes in discord-mcp-server (Issue to be created)
     # "crates/miyabi-discord-mcp-server",
     "crates/miyabi-a2a",
-    "crates/miyabi-webhook", "crates/miyabi-benchmark", "crates/miyabi-web-api",
+    "crates/miyabi-webhook",
+    "crates/miyabi-benchmark",
+    "crates/miyabi-web-api",
+    "crates/miyabi-orchestrator",
 ]
 
 [workspace.package]
@@ -41,7 +44,7 @@ categories = ["command-line-utilities", "development-tools"]
 [workspace.dependencies]
 # Core dependencies
 # Note: Only include necessary tokio features to reduce compile time
-tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "fs", "process", "io-util", "sync", "time"] }
+tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "fs", "process", "io-util", "sync", "time", "signal"] }
 async-trait = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
