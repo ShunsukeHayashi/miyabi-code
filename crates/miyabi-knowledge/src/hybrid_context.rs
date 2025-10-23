@@ -5,7 +5,9 @@
 
 use crate::ast_context::{FileContext, FileContextTracker};
 use crate::searcher::{KnowledgeSearcher, SearchFilter};
+use std::collections::HashMap;
 use std::path::PathBuf;
+use std::time::{Duration, SystemTime};
 use thiserror::Error;
 
 /// Errors that can occur during hybrid context operations
@@ -97,6 +99,19 @@ pub enum ContextSource {
     Hybrid,
 }
 
+/// Cache entry for AST parsing results
+#[derive(Debug, Clone)]
+struct CacheEntry {
+    /// Cached file context
+    context: FileContext,
+
+    /// Timestamp when cached
+    cached_at: SystemTime,
+
+    /// File modification time at cache time
+    file_mtime: SystemTime,
+}
+
 /// Hybrid context searcher combining AST and RAG
 pub struct HybridContextSearcher<S: KnowledgeSearcher> {
     /// AST tracker
@@ -107,6 +122,15 @@ pub struct HybridContextSearcher<S: KnowledgeSearcher> {
 
     /// AST weight (0.0 - 1.0, remaining goes to RAG)
     ast_weight: f32,
+
+    /// AST parse cache (path -> (context, timestamp))
+    ast_cache: HashMap<PathBuf, CacheEntry>,
+
+    /// Cache TTL (time-to-live)
+    cache_ttl: Duration,
+
+    /// Maximum cache size (number of entries)
+    max_cache_size: usize,
 }
 
 impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
@@ -117,11 +141,31 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
     /// * `rag_searcher` - Vector database searcher
     /// * `ast_weight` - Weight for AST results (0.0 = RAG only, 1.0 = AST only)
     pub fn new(rag_searcher: S, ast_weight: f32) -> Result<Self> {
+        Self::new_with_cache(rag_searcher, ast_weight, Duration::from_secs(300), 100)
+    }
+
+    /// Create a new hybrid searcher with custom cache settings
+    ///
+    /// # Arguments
+    ///
+    /// * `rag_searcher` - Vector database searcher
+    /// * `ast_weight` - Weight for AST results (0.0 = RAG only, 1.0 = AST only)
+    /// * `cache_ttl` - Cache time-to-live
+    /// * `max_cache_size` - Maximum number of cached entries
+    pub fn new_with_cache(
+        rag_searcher: S,
+        ast_weight: f32,
+        cache_ttl: Duration,
+        max_cache_size: usize,
+    ) -> Result<Self> {
         let ast_tracker = FileContextTracker::new_rust()?;
         Ok(Self {
             ast_tracker,
             rag_searcher,
             ast_weight: ast_weight.clamp(0.0, 1.0),
+            ast_cache: HashMap::new(),
+            cache_ttl,
+            max_cache_size,
         })
     }
 
@@ -169,7 +213,8 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         if let Some(file_paths) = files {
             for path in file_paths {
                 if path.extension().and_then(|e| e.to_str()) == Some("rs") {
-                    if let Ok(file_context) = self.ast_tracker.parse_file(path) {
+                    // Try to get from cache first
+                    if let Some(file_context) = self.get_cached_or_parse(path)? {
                         // Extract relevant symbols based on query
                         let relevant = self.extract_relevant_symbols(&file_context, query);
 
@@ -308,6 +353,82 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         ));
 
         output.join("\n")
+    }
+
+    /// Get cached file context or parse the file
+    ///
+    /// Implements cache invalidation based on:
+    /// 1. TTL expiration
+    /// 2. File modification time change
+    fn get_cached_or_parse(&mut self, path: &std::path::Path) -> Result<Option<FileContext>> {
+        let now = SystemTime::now();
+
+        // Get file metadata
+        let metadata = match std::fs::metadata(path) {
+            Ok(m) => m,
+            Err(_) => return Ok(None), // File doesn't exist or can't read
+        };
+
+        let file_mtime = metadata
+            .modified()
+            .unwrap_or_else(|_| SystemTime::UNIX_EPOCH);
+
+        // Check cache
+        if let Some(entry) = self.ast_cache.get(path) {
+            // Check if cache is still valid
+            let cache_age = now
+                .duration_since(entry.cached_at)
+                .unwrap_or(Duration::from_secs(0));
+
+            if cache_age < self.cache_ttl && entry.file_mtime == file_mtime {
+                // Cache hit - return cached context
+                return Ok(Some(entry.context.clone()));
+            } else {
+                // Cache expired or file modified - remove entry
+                self.ast_cache.remove(path);
+            }
+        }
+
+        // Cache miss - parse file
+        let context = self.ast_tracker.parse_file(path)?;
+
+        // Add to cache (with LRU eviction if needed)
+        if self.ast_cache.len() >= self.max_cache_size {
+            self.evict_lru_entry();
+        }
+
+        self.ast_cache.insert(
+            path.to_path_buf(),
+            CacheEntry {
+                context: context.clone(),
+                cached_at: now,
+                file_mtime,
+            },
+        );
+
+        Ok(Some(context))
+    }
+
+    /// Evict least recently used cache entry
+    fn evict_lru_entry(&mut self) {
+        if let Some(oldest_key) = self
+            .ast_cache
+            .iter()
+            .min_by_key(|(_, entry)| entry.cached_at)
+            .map(|(k, _)| k.clone())
+        {
+            self.ast_cache.remove(&oldest_key);
+        }
+    }
+
+    /// Clear the AST parse cache
+    pub fn clear_cache(&mut self) {
+        self.ast_cache.clear();
+    }
+
+    /// Get cache statistics
+    pub fn cache_stats(&self) -> (usize, usize) {
+        (self.ast_cache.len(), self.max_cache_size)
     }
 
     /// Extract relevant symbols from file context based on query
@@ -505,6 +626,101 @@ mod tests {
         assert!(formatted.contains("Critical hybrid match"));
         // Priority 9 might be included depending on token count
         // Priority 6 and 5 likely excluded due to budget
+    }
+
+    #[test]
+    fn test_cache_functionality() {
+        let mock_searcher = MockSearcher {
+            results: Vec::new(),
+        };
+
+        let mut hybrid = HybridContextSearcher::new_with_cache(
+            mock_searcher,
+            0.5,
+            Duration::from_secs(1), // 1 second TTL
+            2,                      // Max 2 entries
+        )
+        .unwrap();
+
+        // Initially empty cache
+        let (size, max) = hybrid.cache_stats();
+        assert_eq!(size, 0);
+        assert_eq!(max, 2);
+
+        // Clear cache should work even when empty
+        hybrid.clear_cache();
+        let (size, _) = hybrid.cache_stats();
+        assert_eq!(size, 0);
+    }
+
+    #[test]
+    fn test_cache_eviction() {
+        use std::time::SystemTime;
+
+        let mock_searcher = MockSearcher {
+            results: Vec::new(),
+        };
+
+        let mut hybrid = HybridContextSearcher::new_with_cache(
+            mock_searcher,
+            0.5,
+            Duration::from_secs(300), // 5 minutes TTL
+            2,                        // Max 2 entries
+        )
+        .unwrap();
+
+        // Manually add cache entries to test eviction
+        let path1 = PathBuf::from("test1.rs");
+        let path2 = PathBuf::from("test2.rs");
+        let path3 = PathBuf::from("test3.rs");
+
+        let dummy_context = FileContext {
+            path: path1.clone(),
+            symbols: vec![],
+            total_lines: 0,
+            language: "rust".to_string(),
+            imports: vec![],
+        };
+
+        let now = SystemTime::now();
+
+        // Add first entry
+        hybrid.ast_cache.insert(
+            path1.clone(),
+            CacheEntry {
+                context: dummy_context.clone(),
+                cached_at: now,
+                file_mtime: now,
+            },
+        );
+
+        // Add second entry
+        hybrid.ast_cache.insert(
+            path2.clone(),
+            CacheEntry {
+                context: dummy_context.clone(),
+                cached_at: now + Duration::from_secs(1),
+                file_mtime: now,
+            },
+        );
+
+        assert_eq!(hybrid.ast_cache.len(), 2);
+
+        // Add third entry - should trigger eviction of oldest (path1)
+        hybrid.ast_cache.insert(
+            path3.clone(),
+            CacheEntry {
+                context: dummy_context.clone(),
+                cached_at: now + Duration::from_secs(2),
+                file_mtime: now,
+            },
+        );
+
+        // Manually evict LRU entry
+        hybrid.evict_lru_entry();
+
+        assert_eq!(hybrid.ast_cache.len(), 2);
+        assert!(!hybrid.ast_cache.contains_key(&path1)); // Oldest should be evicted
     }
 
     #[test]
