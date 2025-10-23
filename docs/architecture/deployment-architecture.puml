@@ -1,0 +1,295 @@
+@startuml Miyabi Deployment Architecture
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Miyabi Production Deployment Architecture
+
+' Development Environment
+package "Development Environment" as dev_env #LightBlue {
+    component "Local\nMiyabi CLI" as local_cli
+    component "VS Code\n+ Claude Code" as vscode
+    component "Local\nGit Worktrees" as local_wt
+    database "Local\nSQLite" as local_db
+
+    local_cli --> local_wt : Manages
+    vscode --> local_wt : Executes in
+    local_cli --> local_db : State tracking
+
+    note right of vscode
+        **Developer Workflow**:
+        1. Create Issue on GitHub
+        2. Run: miyabi agent run coordinator
+        3. Agents execute in worktrees
+        4. Auto-commit + push
+    end note
+}
+
+' Cloud Infrastructure
+cloud "Cloud Infrastructure (AWS/GCP/Azure)" as cloud {
+
+    ' GitHub OS Layer
+    package "GitHub OS" as github #LightGreen {
+        component "GitHub\nIssues" as gh_issues
+        component "GitHub\nPull Requests" as gh_prs
+        component "GitHub\nActions" as gh_actions
+        component "GitHub\nWebhooks" as gh_webhooks
+        component "GitHub\nPackages" as gh_packages
+        component "GitHub\nPages" as gh_pages
+
+        gh_issues <--> gh_webhooks : Events
+        gh_prs <--> gh_webhooks : Events
+        gh_actions --> gh_packages : Publish
+        gh_actions --> gh_pages : Deploy docs
+
+        note bottom of github
+            **GitHub as OS**:
+            - Issues = Task Queue
+            - Labels = State Management
+            - PRs = Code Review
+            - Actions = Execution Engine
+            - Webhooks = Event Bus
+        end note
+    }
+
+    ' Self-Hosted Runner Infrastructure
+    package "Self-Hosted Runners (24/7)" as runners #LightYellow {
+        component "Runner Pool\n(3 machines)" as runner_pool
+        component "Water Spider\nOrchestrator" as orchestrator
+        database "SQLite\n(Sessions)" as sqlite_sessions
+        database "Git Worktrees\n(.worktrees/)" as worktrees
+
+        runner_pool --> orchestrator : Executes
+        orchestrator --> sqlite_sessions : State
+        orchestrator --> worktrees : Manages
+
+        note right of orchestrator
+            **24/7 Daemon**:
+            - Listens to GitHub webhooks
+            - Schedules agent execution
+            - Manages concurrent sessions
+            - Handles cleanup
+        end note
+    }
+
+    ' Vector Database (Qdrant)
+    package "Knowledge Base" as knowledge #LightCoral {
+        database "Qdrant\n(Vector DB)" as qdrant
+        component "Embedding\nService" as embeddings
+        database "Execution Logs\n(.ai/logs/)" as logs
+
+        logs --> embeddings : Process
+        embeddings --> qdrant : Index
+
+        note right of qdrant
+            **RAG System**:
+            - 384/1536 dim vectors
+            - Semantic search
+            - Context retrieval
+            - Learning from history
+        end note
+    }
+
+    ' Application Deployment
+    package "Kubernetes Cluster" as k8s #LightPink {
+        ' Staging Environment
+        rectangle "Staging Namespace" as staging #Wheat {
+            component "miyabi-api\n(staging)" as api_staging
+            component "miyabi-mcp\n(staging)" as mcp_staging
+            database "PostgreSQL\n(staging)" as pg_staging
+
+            api_staging --> pg_staging : Connects
+            mcp_staging --> api_staging : JSON-RPC
+        }
+
+        ' Production Environment
+        rectangle "Production Namespace" as production #LightGreen {
+            component "miyabi-api\n(3 replicas)" as api_prod
+            component "miyabi-mcp\n(2 replicas)" as mcp_prod
+            database "PostgreSQL\n(HA)" as pg_prod
+            component "Redis\n(State Sync)" as redis_prod
+
+            api_prod --> pg_prod : Connects
+            api_prod --> redis_prod : Cache
+            mcp_prod --> api_prod : JSON-RPC
+
+            note bottom of api_prod
+                **Auto-scaling**:
+                - Min: 3 replicas
+                - Max: 10 replicas
+                - CPU threshold: 70%
+            end note
+        }
+
+        ' Load Balancer
+        component "Ingress\nController" as ingress
+
+        ingress --> api_staging : /staging
+        ingress --> api_prod : /
+        ingress --> mcp_staging : /mcp-staging
+        ingress --> mcp_prod : /mcp
+    }
+
+    ' Monitoring & Observability
+    package "Monitoring Stack" as monitoring #LightGray {
+        component "Prometheus" as prometheus
+        component "Grafana" as grafana
+        component "Loki\n(Logs)" as loki
+        component "Jaeger\n(Traces)" as jaeger
+
+        api_prod --> prometheus : Metrics
+        api_prod --> loki : Logs
+        api_prod --> jaeger : Traces
+        grafana --> prometheus : Query
+        grafana --> loki : Query
+        grafana --> jaeger : Query
+
+        note bottom of monitoring
+            **Observability**:
+            - Metrics: Prometheus + Grafana
+            - Logs: Loki (centralized)
+            - Traces: Jaeger (distributed)
+            - Alerts: PagerDuty integration
+        end note
+    }
+
+    ' CI/CD Pipeline
+    package "CI/CD Pipeline" as cicd #LightSalmon {
+        component "GitHub Actions\nWorkflow" as gh_workflow
+        component "Docker\nRegistry" as docker_registry
+        component "Helm\nCharts" as helm
+
+        gh_workflow --> docker_registry : Push images
+        gh_workflow --> helm : Deploy
+        helm --> k8s : Apply manifests
+
+        note right of gh_workflow
+            **Pipeline Stages**:
+            1. cargo test --all
+            2. cargo clippy
+            3. cargo build --release
+            4. docker build + push
+            5. Deploy to staging
+            6. Health check
+            7. Deploy to production
+        end note
+    }
+}
+
+' External Services
+cloud "External Services" as external {
+    component "Anthropic API\n(Claude)" as anthropic
+    component "OpenAI API\n(Embeddings)" as openai
+    component "Ollama\n(Local LLM)" as ollama
+    component "Firebase\n(Optional)" as firebase
+
+    note right of anthropic
+        **LLM Providers**:
+        - Primary: Anthropic Claude
+        - Embeddings: OpenAI
+        - Local: Ollama (Mac mini)
+        - Fallback: GPT-OSS-20B
+    end note
+}
+
+' Mac Mini (Local LLM)
+node "Mac Mini (LAN)" as macmini #LightSkyBlue {
+    component "Ollama Server" as ollama_server
+    database "Local Models\n(7B-70B)" as local_models
+
+    ollama_server --> local_models : Serves
+
+    note bottom of macmini
+        **Self-Hosted LLM**:
+        - Connected via LAN/Tailscale
+        - Models: Llama 3, Mistral, etc.
+        - Cost savings for high-volume
+    end note
+}
+
+' Connections between layers
+
+' Development → GitHub
+local_cli --> gh_issues : Create/Update
+local_cli --> gh_prs : Create
+vscode --> gh_issues : Push commits
+
+' GitHub → Self-Hosted Runners
+gh_webhooks --> orchestrator : POST /webhook
+orchestrator --> gh_actions : Trigger workflows
+
+' Self-Hosted Runners → Kubernetes
+orchestrator --> api_staging : Deploy
+orchestrator --> api_prod : Deploy
+
+' Kubernetes → GitHub
+api_prod --> gh_issues : Update status
+api_prod --> gh_prs : Post comments
+
+' Knowledge Base connections
+orchestrator --> qdrant : Index logs
+api_prod --> qdrant : RAG queries
+mcp_prod --> qdrant : Context retrieval
+
+' External Service connections
+orchestrator --> anthropic : Agent execution
+embeddings --> openai : Generate embeddings
+embeddings --> ollama_server : Local embeddings
+api_prod --> firebase : Optional deployment
+
+' CI/CD connections
+gh_actions --> gh_workflow : Trigger
+gh_workflow --> docker_registry : Push images
+docker_registry --> k8s : Pull images
+
+' Monitoring connections
+orchestrator --> prometheus : Expose metrics
+runner_pool --> loki : Ship logs
+
+' Internet/Public Access
+actor "End Users" as users
+actor "Developers" as developers
+actor "Claude Code\n(MCP Client)" as claude_client
+
+users --> ingress : HTTPS
+developers --> gh_issues : Web UI
+claude_client --> mcp_prod : JSON-RPC
+
+legend right
+    **Miyabi Deployment Architecture**
+
+    **5 Environments**:
+    1. Local Development (Dev machines)
+    2. GitHub OS (Cloud-native state)
+    3. Self-Hosted Runners (24/7 orchestration)
+    4. Kubernetes (Staging + Production)
+    5. Monitoring (Observability stack)
+
+    **Key Technologies**:
+    • Rust (core language)
+    • Kubernetes (orchestration)
+    • Qdrant (vector database)
+    • PostgreSQL (relational data)
+    • Redis (state sync)
+    • GitHub Actions (CI/CD)
+    • Prometheus + Grafana (monitoring)
+
+    **Deployment Targets**:
+    • AWS EKS / GCP GKE / Azure AKS
+    • Firebase (optional)
+    • Self-hosted runners (any cloud)
+
+    **High Availability**:
+    • Multi-replica deployments (3-10)
+    • Auto-scaling (CPU-based)
+    • Health checks + readiness probes
+    • Automatic rollback on failure
+
+    **Security**:
+    • TLS everywhere (Let's Encrypt)
+    • API key authentication
+    • GitHub token for API access
+    • Network policies (K8s)
+    • Secrets management (K8s secrets)
+endlegend
+
+@enduml

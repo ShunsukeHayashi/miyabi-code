@@ -58,6 +58,15 @@ Complete workflow from Issue to Production:
 - Parallel execution with worktree isolation
 - Quality-driven decision making (threshold: 80/100)
 
+### Deployment Architecture
+**Documentation**: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+
+Production deployment infrastructure:
+- 5 environment layers (Dev → GitHub OS → Runners → K8s → Monitoring)
+- Multi-cloud support (AWS EKS, GCP GKE, Azure AKS)
+- Complete CI/CD pipeline with auto-scaling
+- Cost estimation ($358-458/month production)
+
 ---
 
 ## 🎨 Available Diagrams
@@ -104,6 +113,12 @@ Complete workflow from Issue to Production:
 | Diagram | File | Size | Type |
 |---------|------|------|------|
 | Complete Workflow | `Miyabi End-to-End Workflow - Complete Sequence.png` | 414 KB | Sequence |
+
+### Deployment Architecture
+
+| Diagram | File | Size | Type |
+|---------|------|------|------|
+| Production Deployment | `Miyabi Deployment Architecture.png` | 466 KB | Component |
 
 ---
 
@@ -263,11 +278,13 @@ These diagrams complement the following documentation:
 | Cline Analysis | 4 | ~0.9 MB | Medium |
 | Entity-Relation | 4 | ~0.8 MB | Medium-High |
 | End-to-End Workflow | 1 | ~0.4 MB | Very High |
-| **Total** | **18** | **~4.0 MB** | **Medium-High** |
+| Deployment Architecture | 1 | ~0.5 MB | High |
+| **Total** | **19** | **~4.5 MB** | **Medium-High** |
 
-**Node Count**: 220+ components/actors across all diagrams
-**Relationship Count**: 450+ arrows/connections
+**Node Count**: 250+ components/actors across all diagrams
+**Relationship Count**: 500+ arrows/connections
 **Sequence Complexity**: 9 phases, 14 participants, 100+ interactions
+**Infrastructure Coverage**: 5 environments, 3 cloud providers, 20+ services
 
 ---
 
@@ -302,11 +319,12 @@ These diagrams complement the following documentation:
 ---
 
 **Last Updated**: 2025-10-24
-**Diagram Count**: 18 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 1 E2E Workflow)
-**Total Size**: ~4.0 MB
+**Diagram Count**: 19 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 1 E2E + 1 Deployment)
+**Total Size**: ~4.5 MB
 **Format**: PlantUML → PNG (1200+ DPI)
 **Codebase Version**: 0.1.1 (Rust Edition)
 **Water Spider Version**: v1.0.0 (Design) / v0.1.1 (Implementation)
 **Cline Analysis**: v3.34.0 (analyzed)
 **Cline Integration**: Roadmap v1.0.0 (6-month, $129K budget)
 **End-to-End Workflow**: v1.0.0 (9 phases, 45 min avg, 100% autonomous)
+**Deployment**: v1.0.0 (AWS/GCP/Azure, K8s, $358-458/month production)

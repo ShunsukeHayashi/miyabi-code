@@ -39,6 +39,57 @@ cat tsconfig.json
 - 依存関係を確認
 - BaseAgentパターンを確認（Agentの場合）
 
+### 1.5. プロジェクトルール確認（2分）
+
+**重要**: プロジェクト固有のルールと推奨事項を確認してください。
+
+```bash
+# .miyabirules ファイルの存在確認
+if [ -f .miyabirules ] || [ -f .miyabirules.yaml ] || [ -f .miyabirules.yml ]; then
+  echo "✅ Project rules found"
+  cat .miyabirules* | head -100
+else
+  echo "ℹ️ No project rules found - using default best practices"
+fi
+```
+
+**.miyabirules が存在する場合**:
+
+1. **ルール適用**: ファイル生成時にパターンマッチングを適用
+   - `pattern` にマッチするコードは `suggestion` に従って修正
+   - `severity` に応じて警告・エラーを報告
+   - `file_extensions` でフィルタリング
+
+2. **Agent設定確認**: `agent_preferences.codegen` セクションを確認
+   ```yaml
+   agent_preferences:
+     codegen:
+       style: "idiomatic"           # コードスタイル優先順位
+       error_handling: "thiserror"  # エラーハンドリング戦略
+       async_runtime: "tokio"       # 非同期ランタイム
+       test_framework: "default"    # テストフレームワーク
+   ```
+
+3. **グローバル設定**: `settings` セクションを確認
+   ```yaml
+   settings:
+     rust_edition: "2021"      # Rust Edition
+     max_line_length: 100      # 最大行長
+     use_tabs: false           # タブ使用
+   ```
+
+**例**: .miyabirules が以下のルールを含む場合:
+```yaml
+rules:
+  - name: "Avoid unwrap"
+    pattern: ".unwrap()"
+    suggestion: "Use ? operator or expect() with a clear error message"
+    file_extensions: ["rs"]
+    severity: "warning"
+```
+
+→ コード生成時に `.unwrap()` を避け、代わりに `?` または `expect()` を使用
+
 ### 2. コード設計（10分）
 
 以下を決定してください:
@@ -267,6 +318,10 @@ git log -1
 - [ ] JSDocコメントが付いている
 - [ ] エラーハンドリングが適切に実装されている
 - [ ] BaseAgentパターンに従っている（Agentの場合）
+- [ ] **.miyabirules ルールに準拠している**（存在する場合）
+  - パターンマッチングされたコードが修正されている
+  - Agent設定（codegen preferences）に従っている
+  - グローバル設定（max_line_length等）に従っている
 - [ ] コードがコミットされている
 - [ ] ドキュメントが更新されている
 

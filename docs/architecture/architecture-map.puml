@@ -1,0 +1,266 @@
+@startuml Miyabi Architecture Documentation Map
+!theme vibrant
+skinparam componentStyle rectangle
+
+title Miyabi Architecture Documentation Map - How All 19 Diagrams Connect
+
+' Central Hub
+package "Architecture Documentation Hub" as hub #LightGray {
+    component "README.md\n(Master Index)" as readme
+
+    note right of readme
+        **Start Here**
+        - Overview of all collections
+        - 19 diagrams catalog
+        - Navigation guide
+    end note
+}
+
+' Collection 1: Crates Architecture
+package "1. Crates Architecture\n(5 diagrams)" as crates #LightBlue {
+    component "Crates\nArchitecture" as c1
+    component "Crates\nLayers" as c2
+    component "Agent\nExecution Flow" as c3
+    component "Knowledge\nSystem" as c4
+    component "MCP\nIntegration" as c5
+
+    component "DIAGRAM_INDEX.md" as doc1
+
+    c1 -[hidden]right-> c2
+    c2 -[hidden]right-> c3
+    c3 -[hidden]down-> c4
+    c4 -[hidden]right-> c5
+
+    doc1 .up.> c1 : Documents
+    doc1 .up.> c2 : Documents
+    doc1 .up.> c3 : Documents
+    doc1 .up.> c4 : Documents
+    doc1 .up.> c5 : Documents
+}
+
+' Collection 2: Water Spider
+package "2. Water Spider Orchestrator\n(4 diagrams)" as water_spider #LightGreen {
+    component "System\nArchitecture" as w1
+    component "Task\nLifecycle" as w2
+    component "Task\nScheduler" as w3
+    component "State\nMachine" as w4
+
+    component "WATER_SPIDER_INDEX.md" as doc2
+
+    w1 -[hidden]right-> w2
+    w2 -[hidden]down-> w3
+    w3 -[hidden]right-> w4
+
+    doc2 .up.> w1 : Documents
+    doc2 .up.> w2 : Documents
+    doc2 .up.> w3 : Documents
+    doc2 .up.> w4 : Documents
+}
+
+' Collection 3: Cline Integration
+package "3. Cline Analysis & Integration\n(4 diagrams)" as cline #LightYellow {
+    component "Architecture\nComparison" as cl1
+    component "Integration\nOpportunities" as cl2
+    component "Key\nLearnings" as cl3
+    component "Integration\nTimeline" as cl4
+
+    component "CLINE_ANALYSIS.md" as doc3a
+    component "CLINE_INTEGRATION_\nROADMAP.md" as doc3b
+
+    cl1 -[hidden]right-> cl2
+    cl2 -[hidden]down-> cl3
+    cl3 -[hidden]right-> cl4
+
+    doc3a .up.> cl1 : Documents
+    doc3a .up.> cl2 : Documents
+    doc3a .up.> cl3 : Documents
+    doc3b .up.> cl4 : Documents
+}
+
+' Collection 4: Entity-Relation
+package "4. Entity-Relation Model\n(4 diagrams)" as entity #LightCoral {
+    component "ER\nOverview" as e1
+    component "State\nMachines" as e2
+    component "Data\nFlow" as e3
+    component "Detailed\nRelationships" as e4
+
+    component "ENTITY_RELATION_\nINDEX.md" as doc4
+
+    e1 -[hidden]right-> e2
+    e2 -[hidden]down-> e3
+    e3 -[hidden]right-> e4
+
+    doc4 .up.> e1 : Documents
+    doc4 .up.> e2 : Documents
+    doc4 .up.> e3 : Documents
+    doc4 .up.> e4 : Documents
+}
+
+' Collection 5: End-to-End Workflow
+package "5. End-to-End Workflow\n(1 diagram)" as e2e #LightPink {
+    component "Complete\nWorkflow" as e2e1
+
+    component "END_TO_END_\nWORKFLOW.md" as doc5
+
+    doc5 .up.> e2e1 : Documents
+
+    note bottom of e2e1
+        **Master Sequence**
+        - 9 phases
+        - 14 participants
+        - 100+ interactions
+        - 45 min average
+    end note
+}
+
+' Collection 6: Deployment
+package "6. Deployment Architecture\n(1 diagram)" as deploy #LightSalmon {
+    component "Production\nDeployment" as d1
+
+    component "DEPLOYMENT_\nGUIDE.md" as doc6
+
+    doc6 .up.> d1 : Documents
+
+    note bottom of d1
+        **Infrastructure**
+        - 5 environments
+        - 3 cloud providers
+        - K8s + monitoring
+        - $358-458/month
+    end note
+}
+
+' Connections from Hub
+readme --> doc1 : References
+readme --> doc2 : References
+readme --> doc3a : References
+readme --> doc3b : References
+readme --> doc4 : References
+readme --> doc5 : References
+readme --> doc6 : References
+
+' Cross-collection dependencies
+
+' Crates → Water Spider (Agent execution)
+c3 --> w1 : Agents run\nin orchestrator
+c5 --> w1 : MCP protocol\nused by orchestrator
+
+' Crates → Entity-Relation (Data model)
+c1 --> e1 : Implements\nentities
+c4 --> e4 : Knowledge\nrelationships
+
+' Water Spider → End-to-End (Orchestration)
+w1 --> e2e1 : Orchestrator\ncoordinates workflow
+w2 --> e2e1 : Task lifecycle\nin workflow
+
+' Entity-Relation → End-to-End (Data flows)
+e3 --> e2e1 : Data flow\nrealizes workflow
+e2 --> e2e1 : State machines\ntrack progress
+
+' End-to-End → Deployment (Implementation)
+e2e1 --> d1 : Workflow runs\non infrastructure
+
+' Cline → End-to-End (Integration)
+cl2 --> e2e1 : Hybrid scenarios\nextend workflow
+cl4 --> d1 : Integration\nrequires deployment
+
+' User Journeys
+actor "New Developer" as new_dev
+actor "Stakeholder" as stakeholder
+actor "DevOps Engineer" as devops
+actor "Integration Partner" as partner
+
+' New Developer Journey
+new_dev --> readme : 1. Start here
+readme --> e1 : 2. Understand\ndata model
+e1 --> e2e1 : 3. See complete\nworkflow
+e2e1 --> c1 : 4. Deep dive\ninto crates
+c1 --> d1 : 5. Learn\ndeployment
+
+note left of new_dev
+    **Onboarding Path**:
+    1. Master index
+    2. Entity-Relation Model
+    3. End-to-End Workflow
+    4. Crates Architecture
+    5. Deployment Guide
+end note
+
+' Stakeholder Journey
+stakeholder --> readme : 1. Overview
+readme --> cl4 : 2. Integration\ntimeline
+cl4 --> e2e1 : 3. Business\nvalue demo
+e2e1 --> d1 : 4. Cost\nestimation
+
+note right of stakeholder
+    **Business Focus**:
+    1. Overview
+    2. Integration roadmap
+    3. ROI demonstration
+    4. Cost estimation
+end note
+
+' DevOps Journey
+devops --> readme : 1. Start
+readme --> d1 : 2. Deployment\nguide
+d1 --> w1 : 3. Orchestrator\nsetup
+w1 --> c5 : 4. MCP\nintegration
+
+note right of devops
+    **Infrastructure Focus**:
+    1. Overview
+    2. Deployment guide
+    3. Orchestrator setup
+    4. Service integration
+end note
+
+' Integration Partner Journey
+partner --> readme : 1. Overview
+readme --> cl1 : 2. Compare\narchitectures
+cl1 --> cl2 : 3. Integration\nscenarios
+cl2 --> cl4 : 4. Implementation\nroadmap
+
+note left of partner
+    **Integration Focus**:
+    1. Overview
+    2. Architecture comparison
+    3. Integration scenarios
+    4. Roadmap & timeline
+end note
+
+' Diagram Categories
+legend right
+    **19 Diagrams by Type**:
+
+    **Component Diagrams (8)**:
+    • Crates Architecture
+    • Crates Layers
+    • Knowledge System
+    • Water Spider System
+    • Task Scheduler
+    • Cline Comparison
+    • Cline Opportunities
+    • Deployment Architecture
+
+    **Sequence Diagrams (5)**:
+    • Agent Execution Flow
+    • MCP Integration
+    • Task Lifecycle
+    • Entity Data Flow
+    • End-to-End Workflow
+
+    **State Diagrams (3)**:
+    • Water Spider State Machine
+    • Entity State Machines (5 machines)
+
+    **ER Diagrams (2)**:
+    • Entity-Relation Overview
+    • Detailed Relationships (27)
+
+    **Timeline Diagrams (1)**:
+    • Cline Integration Timeline
+
+    **Total**: 19 diagrams, 4.7 MB
+endlegend
+
+@enduml

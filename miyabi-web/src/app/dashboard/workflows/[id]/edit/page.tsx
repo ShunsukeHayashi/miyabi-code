@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, DragEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   ReactFlow,
@@ -11,23 +11,24 @@ import {
   useEdgesState,
   addEdge,
   Connection,
+  Edge,
   Node,
   BackgroundVariant,
+  ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
 import {
   Save,
   ArrowLeft,
   Play,
   Trash2,
-  Plus,
   Loader2,
 } from 'lucide-react';
 import { nodeTypes } from '@/components/workflow';
+import AgentPalette from '@/components/workflow/AgentPalette';
 import type { AgentNodeData, IssueNodeData, ConditionNodeData } from '@/components/workflow';
 
 /**
@@ -53,7 +54,9 @@ export default function WorkflowEditPage() {
   const [workflowDescription, setWorkflowDescription] = useState('');
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   // ワークフロー読み込み
   useEffect(() => {
@@ -91,6 +94,66 @@ export default function WorkflowEditPage() {
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
+  );
+
+  // ドロップハンドラ
+  const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+
+      const nodeType = event.dataTransfer.getData('application/reactflow') as 'agent' | 'issue' | 'condition';
+      const agentType = event.dataTransfer.getData('agentType');
+
+      if (!nodeType || !reactFlowInstance) {
+        return;
+      }
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      addNodeAtPosition(nodeType, position, agentType || undefined);
+    },
+    [reactFlowInstance]
+  );
+
+  // 位置指定でノード追加
+  const addNodeAtPosition = useCallback(
+    (nodeType: 'agent' | 'issue' | 'condition' | 'input' | 'output', position: { x: number; y: number }, agentType?: string) => {
+      const newNode: Node = {
+        id: `${nodeType}-${Date.now()}`,
+        type: nodeType === 'agent' ? 'agentNode' : nodeType === 'issue' ? 'issueNode' : nodeType === 'condition' ? 'conditionNode' : 'default',
+        position,
+        data: (nodeType === 'agent' && agentType
+          ? {
+              agentType,
+              status: 'idle',
+            } as AgentNodeData
+          : nodeType === 'issue'
+          ? {
+              issueNumber: 0,
+              title: '新規Issue',
+              state: 'open',
+            } as IssueNodeData
+          : nodeType === 'condition'
+          ? {
+              condition: 'condition',
+              trueLabel: 'True',
+              falseLabel: 'False',
+            } as ConditionNodeData
+          : {
+              label: `${nodeType} Node`,
+            }) as any,
+      };
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
   );
 
   const addNode = useCallback(
@@ -259,97 +322,23 @@ export default function WorkflowEditPage() {
       {/* メインエディタエリア */}
       <div className="flex flex-1 overflow-hidden">
         {/* Agentパレット（左サイドバー） */}
-        <Card className="w-64 m-4 p-4 overflow-y-auto">
-          <h3 className="text-lg font-light mb-4" data-ai-label="palette-title">
-            Agent
-          </h3>
-          <div className="space-y-2">
-            {[
-              { type: 'Coordinator', icon: '🎯', description: 'タスク統括' },
-              { type: 'CodeGen', icon: '✨', description: 'コード生成' },
-              { type: 'Review', icon: '🔍', description: '品質レビュー' },
-              { type: 'Deployment', icon: '🚀', description: 'デプロイ' },
-              { type: 'PR', icon: '📝', description: 'PR作成' },
-              { type: 'Issue', icon: '🎫', description: 'Issue分析' },
-            ].map((agent) => (
-              <Button
-                key={agent.type}
-                variant="outline"
-                className="w-full justify-start text-left"
-                onClick={() => addNode('agent', agent.type)}
-                data-ai-action="add-agent"
-                data-ai-agent-type={agent.type}
-              >
-                <span className="mr-2">{agent.icon}</span>
-                <div>
-                  <div className="font-medium">{agent.type}</div>
-                  <div className="text-xs text-gray-500">{agent.description}</div>
-                </div>
-              </Button>
-            ))}
-          </div>
-
-          <h3 className="text-lg font-light mb-4 mt-6" data-ai-label="other-nodes">
-            その他
-          </h3>
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left"
-              onClick={() => addNode('issue')}
-              data-ai-action="add-node"
-              data-ai-node-type="issue"
-            >
-              <span className="mr-2">🎫</span>
-              <div>
-                <div className="font-medium">Issue</div>
-                <div className="text-xs text-gray-500">Issue情報</div>
-              </div>
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left"
-              onClick={() => addNode('condition')}
-              data-ai-action="add-node"
-              data-ai-node-type="condition"
-            >
-              <span className="mr-2">⚡</span>
-              <div>
-                <div className="font-medium">Condition</div>
-                <div className="text-xs text-gray-500">条件分岐</div>
-              </div>
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => addNode('input')}
-              data-ai-action="add-node"
-              data-ai-node-type="input"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              入力ノード
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => addNode('output')}
-              data-ai-action="add-node"
-              data-ai-node-type="output"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              出力ノード
-            </Button>
-          </div>
-        </Card>
+        <AgentPalette onAddNode={addNode} />
 
         {/* React Flowキャンバス */}
-        <div className="flex-1 m-4" data-ai-component="react-flow-canvas">
+        <div
+          className="flex-1 m-4"
+          ref={reactFlowWrapper}
+          data-ai-component="react-flow-canvas"
+        >
           <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
             nodeTypes={nodeTypes as any}
             fitView
             attributionPosition="bottom-left"

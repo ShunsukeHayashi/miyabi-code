@@ -1,13 +1,14 @@
 /**
- * Workflow Custom Nodes Export
+ * Workflow Custom Nodes & Components Export
  *
  * React Flow カスタムノードコンポーネントのエクスポート
- * Issue #427: Phase 2.2実装
+ * Issue #427: Phase 2.2 & 2.3実装
  */
 
 import AgentNode, { AgentNodeData } from './AgentNode';
 import IssueNode, { IssueNodeData } from './IssueNode';
 import ConditionNode, { ConditionNodeData } from './ConditionNode';
+import AgentPalette, { AgentPaletteProps } from './AgentPalette';
 
 // カスタムノードタイプマッピング
 export const nodeTypes = {
@@ -17,7 +18,8 @@ export const nodeTypes = {
 };
 
 // 型エクスポート
-export type { AgentNodeData, IssueNodeData, ConditionNodeData };
+export type { AgentNodeData, IssueNodeData, ConditionNodeData, AgentPaletteProps };
 
 // コンポーネントエクスポート
-export { AgentNode, IssueNode, ConditionNode };
+export { AgentNode, IssueNode, ConditionNode, AgentPalette };
+export default AgentPalette;
