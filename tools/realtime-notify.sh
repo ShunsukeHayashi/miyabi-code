@@ -35,48 +35,39 @@ COMMIT_TIME=$(git log -1 --format='%cr')
 
 log_info "新しいコミットを検知: $COMMIT_HASH"
 
-# 通知メッセージを生成（ゆっくり風）
+# 通知メッセージを生成（絵文字のみ）
 case $COMMIT_TYPE in
     feat)
-        SPEAKER="霊夢"
-        MESSAGE="✨ 新機能を追加したわ！ ($COMMIT_HASH)"
+        MESSAGE="✨ FEAT: $COMMIT_HASH"
         ;;
     fix)
-        SPEAKER="魔理沙"
-        MESSAGE="🔧 バグを修正したぜ！ ($COMMIT_HASH)"
+        MESSAGE="🔧 FIX: $COMMIT_HASH"
         ;;
     docs)
-        SPEAKER="霊夢"
-        MESSAGE="📚 ドキュメントを更新したわ ($COMMIT_HASH)"
+        MESSAGE="📚 DOCS: $COMMIT_HASH"
         ;;
     refactor)
-        SPEAKER="魔理沙"
-        MESSAGE="♻️ リファクタリングしたぜ！ ($COMMIT_HASH)"
+        MESSAGE="♻️ REFACTOR: $COMMIT_HASH"
         ;;
     test)
-        SPEAKER="霊夢"
-        MESSAGE="🧪 テストを追加したわ ($COMMIT_HASH)"
+        MESSAGE="🧪 TEST: $COMMIT_HASH"
         ;;
     chore)
-        SPEAKER="魔理沙"
-        MESSAGE="🔨 雑務を片付けたぜ！ ($COMMIT_HASH)"
+        MESSAGE="🔨 CHORE: $COMMIT_HASH"
         ;;
     perf)
-        SPEAKER="霊夢"
-        MESSAGE="⚡ パフォーマンス改善したわ！ ($COMMIT_HASH)"
+        MESSAGE="⚡ PERF: $COMMIT_HASH"
         ;;
     style)
-        SPEAKER="魔理沙"
-        MESSAGE="💄 スタイル調整したぜ！ ($COMMIT_HASH)"
+        MESSAGE="💄 STYLE: $COMMIT_HASH"
         ;;
     *)
-        SPEAKER="霊夢"
-        MESSAGE="📝 コミット完了！ ($COMMIT_HASH)"
+        MESSAGE="📝 COMMIT: $COMMIT_HASH"
         ;;
 esac
 
 # OBSに表示
-echo "🎤 $SPEAKER: $MESSAGE" > "$OBS_TEXT_FILE"
+echo "$MESSAGE" > "$OBS_TEXT_FILE"
 log_success "OBS表示を更新: $SPEAKER"
 
 # 5秒後に統計情報を表示
@@ -87,11 +78,11 @@ log_success "OBS表示を更新: $SPEAKER"
     TODAY_COMMITS=$(git log --oneline --since="today" 2>/dev/null | wc -l | xargs)
     TOTAL_COMMITS=$(git rev-list --count HEAD)
 
-    echo "📊 リアルタイム統計: 今日${TODAY_COMMITS}件 / 合計${TOTAL_COMMITS}件のコミット（$COMMIT_TIME）" > "$OBS_TEXT_FILE"
+    echo "📊 TODAY: $TODAY_COMMITS | TOTAL: $TOTAL_COMMITS" > "$OBS_TEXT_FILE"
 
     # 10秒後に待機状態に戻す
     sleep 10
-    echo "⏸️ 待機中...（次のコミットを待っています）" > "$OBS_TEXT_FILE"
+    echo "⏸️ READY" > "$OBS_TEXT_FILE"
 ) &
 
 exit 0
