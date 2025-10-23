@@ -48,3 +48,15 @@ export interface Issue {
   html_url: string;
   body: string | null;
 }
+
+export interface IssueComment {
+  id: number;
+  user: {
+    login: string;
+    avatar_url: string;
+  };
+  body: string;
+  created_at: string;
+  updated_at: string;
+  html_url: string;
+}

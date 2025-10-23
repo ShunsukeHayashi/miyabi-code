@@ -210,9 +210,16 @@ export default function IssuesPage() {
                       >
                         {issue.state === 'open' ? 'Open' : 'Closed'}
                       </Badge>
-                      <h3 className="text-lg font-semibold text-slate-900">
+                      <button
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/repositories/${params.id}/issues/${issue.number}`
+                          )
+                        }
+                        className="text-lg font-semibold text-slate-900 hover:text-blue-600 transition-colors text-left"
+                      >
                         #{issue.number} {issue.title}
-                      </h3>
+                      </button>
                     </div>
 
                     {/* Labels */}

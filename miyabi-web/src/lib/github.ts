@@ -3,7 +3,7 @@
  */
 
 import axios from 'axios';
-import type { GitHubRepository, Issue } from '@/types/repository';
+import type { GitHubRepository, Issue, IssueComment } from '@/types/repository';
 
 const GITHUB_API = 'https://api.github.com';
 
@@ -67,5 +67,26 @@ export const fetchIssue = async (
 ): Promise<Issue> => {
   const client = createGitHubClient(accessToken);
   const response = await client.get<Issue>(`/repos/${owner}/${repo}/issues/${issueNumber}`);
+  return response.data;
+};
+
+/**
+ * Fetch comments for an issue
+ */
+export const fetchIssueComments = async (
+  accessToken: string,
+  owner: string,
+  repo: string,
+  issueNumber: number
+): Promise<IssueComment[]> => {
+  const client = createGitHubClient(accessToken);
+  const response = await client.get<IssueComment[]>(
+    `/repos/${owner}/${repo}/issues/${issueNumber}/comments`,
+    {
+      params: {
+        per_page: 100,
+      },
+    }
+  );
   return response.data;
 };
