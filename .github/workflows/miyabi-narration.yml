@@ -30,7 +30,7 @@ env:
 jobs:
   generate-narration:
     name: 音声ガイド生成
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
 
     permissions:
       contents: read
@@ -192,7 +192,7 @@ jobs:
   # =====================================================
   post-summary:
     name: サマリー投稿
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     needs: generate-narration
     if: success()
 

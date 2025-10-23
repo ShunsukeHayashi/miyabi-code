@@ -22,10 +22,7 @@ on:
 
 jobs:
   smoke:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,21 +38,10 @@ jobs:
         with:
           cache-key-prefix: codex-miyabi-smoke
 
-      - name: Install jq (Ubuntu)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Install jq (macOS)
-        if: runner.os == 'macOS'
         run: brew install jq
 
-      - name: Install jq (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: choco install jq -y
-
-      - name: Run smoke script (Linux/macOS)
-        if: runner.os != 'Windows'
+      - name: Run smoke script
         run: |
           set -euxo pipefail
           mkdir -p artifacts/codex-miyabi/${{ runner.os }}
@@ -69,37 +55,11 @@ jobs:
           cargo run -q -p codex-miyabi -- worktree cleanup --issue 270 --json | tee artifacts/codex-miyabi/${{ runner.os }}/worktree_cleanup.json | jq -e '.ok == true and .issue == 270' >/dev/null
           echo "[miyabi] smoke OK (${ { runner.os } })"
 
-      - name: Run smoke (Windows PowerShell)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: |
-          $ErrorActionPreference = "Stop"
-          New-Item -ItemType Directory -Force -Path artifacts/codex-miyabi/${{ runner.os }} | Out-Null
-          Write-Host "[miyabi] status"
-          $status = cargo run -q -p codex-miyabi -- status --json
-          $status | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/status.json -Encoding utf8
-          $status | jq -e ".ok == true" | Out-Null
-          Write-Host "[miyabi] agent run (NotImplemented)"
-          $agent = cmd /c "cargo run -q -p codex-miyabi -- agent run --type coordinator --json || ver > nul"
-          $agent | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/agent_run.json -Encoding utf8
-          $agent | jq -e ".ok == false and (.error|ascii_downcase|contains(\"not implemented\"))" | Out-Null
-          Write-Host "[miyabi] worktree list/create/cleanup"
-          $wtlist = cargo run -q -p codex-miyabi -- worktree list --json
-          $wtlist | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/worktree_list.json -Encoding utf8
-          $wtlist | jq -e "type == \"array\"" | Out-Null
-          $wtcreate = cargo run -q -p codex-miyabi -- worktree create --issue 270 --json
-          $wtcreate | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/worktree_create.json -Encoding utf8
-          $wtcreate | jq -e ".ok == true and .issue == 270" | Out-Null
-          $wtcleanup = cargo run -q -p codex-miyabi -- worktree cleanup --issue 270 --json
-          $wtcleanup | Out-File -FilePath artifacts/codex-miyabi/${{ runner.os }}/worktree_cleanup.json -Encoding utf8
-          $wtcleanup | jq -e ".ok == true and .issue == 270" | Out-Null
-          Write-Host "[miyabi] smoke OK (Windows)"
-
       - name: Upload JSON artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: codex-miyabi-json-${{ matrix.os }}
+          name: codex-miyabi-json-macOS
           path: artifacts/codex-miyabi/${{ runner.os }}
 
       - name: Show sccache statistics

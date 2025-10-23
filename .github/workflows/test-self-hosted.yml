@@ -11,7 +11,7 @@ on:
 jobs:
   test-environment:
     name: Test Runner Environment
-    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
+    runs-on: [self-hosted, macOS, arm64]
 
     steps:
       - name: Checkout code
@@ -131,7 +131,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Runner Type" >> $GITHUB_STEP_SUMMARY
           echo "- **OS**: $RUNNER_OS" >> $GITHUB_STEP_SUMMARY
-          echo "- **Runner**: ${{ vars.RUNNER_TYPE || 'GitHub-hosted (ubuntu-latest)' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner**: Self-hosted (macOS ARM64)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Environment" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Node.js: $(node --version)" >> $GITHUB_STEP_SUMMARY
