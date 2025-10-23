@@ -246,7 +246,7 @@ fn recover_from_directory_error() -> bool {
         if output.status.success() {
             if let Ok(repo_root) = String::from_utf8(output.stdout) {
                 let repo_root = repo_root.trim();
-                if let Ok(_) = std::env::set_current_dir(repo_root) {
+                if std::env::set_current_dir(repo_root).is_ok() {
                     eprintln!("{}", format!("  ✓ Changed directory to: {}", repo_root).green());
                     return true;
                 }
@@ -256,7 +256,7 @@ fn recover_from_directory_error() -> bool {
 
     // Fallback: Try to go to home directory
     if let Ok(home) = std::env::var("HOME") {
-        if let Ok(_) = std::env::set_current_dir(&home) {
+        if std::env::set_current_dir(&home).is_ok() {
             eprintln!("{}", format!("  ✓ Changed directory to home: {}", home).green());
             return true;
         }

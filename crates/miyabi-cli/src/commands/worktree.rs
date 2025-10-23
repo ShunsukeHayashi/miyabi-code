@@ -270,7 +270,7 @@ mod tests {
         assert!(matches!(cmd.subcommand, WorktreeSubcommand::List));
 
         let cmd = WorktreeCommand::new(WorktreeSubcommand::Prune {
-            older_than_days: 7,
+            older_than: 7,
             dry_run: true,
         });
         assert!(matches!(cmd.subcommand, WorktreeSubcommand::Prune { .. }));
