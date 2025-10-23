@@ -2,6 +2,8 @@
 //!
 //! Comprehensive end-to-end tests for the gRPC transport layer.
 
+#![cfg(feature = "grpc")]
+
 use async_trait::async_trait;
 use miyabi_a2a::{
     error::A2AError,
