@@ -33,5 +33,5 @@ mod infinite_loop;
 
 pub use config::LoopConfig;
 pub use error::{LoopError, LoopResult};
-pub use goal_manager::GoalManager;
+pub use goal_manager::{Goal, GoalManager, GoalStatus};
 pub use infinite_loop::{FeedbackLoop, InfiniteLoopOrchestrator, IterationResult, LoopStatus};
