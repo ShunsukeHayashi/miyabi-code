@@ -249,8 +249,8 @@ impl AgentCommand {
     /// Parse repository owner and name from git remote URL
     ///
     /// Supports formats:
-    /// - https://github.com/owner/repo
-    /// - https://github.com/owner/repo.git
+    /// - <https://github.com/owner/repo>
+    /// - <https://github.com/owner/repo.git>
     /// - git@github.com:owner/repo.git
     fn parse_git_remote(&self) -> Result<(String, String)> {
         // Run git remote get-url origin
