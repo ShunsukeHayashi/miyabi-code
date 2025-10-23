@@ -140,7 +140,7 @@ impl PRCreator {
             for file in &result.modified_files {
                 body.push_str(&format!("- `{}`\n", file));
             }
-            body.push_str("\n");
+            body.push('\n');
         }
 
         // Errors section (if any)
@@ -149,7 +149,7 @@ impl PRCreator {
             for error in &result.errors {
                 body.push_str(&format!("- {}\n", error));
             }
-            body.push_str("\n");
+            body.push('\n');
         }
 
         // Footer

@@ -4,7 +4,7 @@
 //! to provide comprehensive context for LLM prompts.
 
 use crate::ast_context::{FileContext, FileContextTracker};
-use crate::searcher::{KnowledgeSearcher, SearchFilter};
+use crate::searcher::KnowledgeSearcher;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::{Duration, SystemTime};
@@ -369,9 +369,7 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
             Err(_) => return Ok(None), // File doesn't exist or can't read
         };
 
-        let file_mtime = metadata
-            .modified()
-            .unwrap_or_else(|_| SystemTime::UNIX_EPOCH);
+        let file_mtime = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
 
         // Check cache
         if let Some(entry) = self.ast_cache.get(path) {
@@ -485,6 +483,7 @@ impl crate::ast_context::CodeSymbol {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::searcher::SearchFilter;
     use crate::types::KnowledgeResult;
 
     // Mock searcher for testing

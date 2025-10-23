@@ -1,0 +1,117 @@
+{
+  "nodes": [
+    {
+      "id": "tutorial-01",
+      "title": "Getting Started チュートリアル",
+      "description": "Miyabiの基本的なセットアップとインストール手順",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": []
+    },
+    {
+      "id": "tutorial-02",
+      "title": "Creating Your First Agent チュートリアル",
+      "description": "BaseAgent traitを使った初めてのAgent作成",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-01"]
+    },
+    {
+      "id": "tutorial-03",
+      "title": "Worktree Parallel Execution チュートリアル",
+      "description": "Git Worktreeを使った並列実行の実践",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-01"]
+    },
+    {
+      "id": "tutorial-04",
+      "title": "Integration with GitHub チュートリアル",
+      "description": "GitHub API統合（Issue、PR、Label操作）",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-01"]
+    },
+    {
+      "id": "tutorial-05",
+      "title": "Testing Strategies チュートリアル",
+      "description": "Rustテスト戦略（unit, integration, doc tests）",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-02"]
+    },
+    {
+      "id": "tutorial-06",
+      "title": "Performance Optimization チュートリアル",
+      "description": "Rustパフォーマンス最適化テクニック",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-02"]
+    },
+    {
+      "id": "tutorial-07",
+      "title": "Custom Agent Development チュートリアル",
+      "description": "カスタムAgentの設計と実装パターン",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-02", "tutorial-05"]
+    },
+    {
+      "id": "tutorial-08",
+      "title": "Deployment Guide チュートリアル",
+      "description": "Firebase/Vercel/AWSへのデプロイ手順",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-01"]
+    },
+    {
+      "id": "tutorial-09",
+      "title": "Troubleshooting チュートリアル",
+      "description": "よくある問題と解決方法",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-01", "tutorial-02"]
+    },
+    {
+      "id": "tutorial-10",
+      "title": "Advanced Topics チュートリアル",
+      "description": "高度なトピック（並列実行、最適化、拡張）",
+      "type": "docs",
+      "priority": 1,
+      "estimated_duration": 120,
+      "dependencies": ["tutorial-02", "tutorial-03", "tutorial-05", "tutorial-06"]
+    }
+  ],
+  "edges": [
+    {"from": "tutorial-01", "to": "tutorial-02"},
+    {"from": "tutorial-01", "to": "tutorial-03"},
+    {"from": "tutorial-01", "to": "tutorial-04"},
+    {"from": "tutorial-01", "to": "tutorial-08"},
+    {"from": "tutorial-01", "to": "tutorial-09"},
+    {"from": "tutorial-02", "to": "tutorial-05"},
+    {"from": "tutorial-02", "to": "tutorial-06"},
+    {"from": "tutorial-02", "to": "tutorial-07"},
+    {"from": "tutorial-02", "to": "tutorial-09"},
+    {"from": "tutorial-02", "to": "tutorial-10"},
+    {"from": "tutorial-03", "to": "tutorial-10"},
+    {"from": "tutorial-05", "to": "tutorial-07"},
+    {"from": "tutorial-05", "to": "tutorial-10"},
+    {"from": "tutorial-06", "to": "tutorial-10"}
+  ],
+  "levels": [
+    ["tutorial-01"],
+    ["tutorial-02", "tutorial-03", "tutorial-04", "tutorial-08"],
+    ["tutorial-05", "tutorial-06", "tutorial-09"],
+    ["tutorial-07"],
+    ["tutorial-10"]
+  ]
+}

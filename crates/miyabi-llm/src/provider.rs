@@ -183,6 +183,55 @@ impl GPTOSSProvider {
         Self::new_mac_mini("100.88.201.67")
     }
 
+    /// Create a provider with standard fallback chain
+    ///
+    /// Attempts to initialize LLM provider in the following order:
+    /// 1. Mac mini LAN (192.168.3.27:11434)
+    /// 2. Mac mini Tailscale (100.88.201.67:11434)
+    /// 3. Groq API (requires GROQ_API_KEY environment variable)
+    ///
+    /// # Returns
+    ///
+    /// Returns the first successfully initialized provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns `LLMError::AllProvidersUnavailable` if all providers fail to initialize.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use miyabi_llm::GPTOSSProvider;
+    ///
+    /// # tokio_test::block_on(async {
+    /// let provider = GPTOSSProvider::new_with_fallback().unwrap();
+    /// # });
+    /// ```
+    pub fn new_with_fallback() -> Result<Self> {
+        // Try Mac mini LAN
+        if let Ok(provider) = Self::new_mac_mini_lan() {
+            tracing::debug!("LLM provider initialized: Mac mini LAN");
+            return Ok(provider);
+        }
+
+        // Try Mac mini Tailscale
+        if let Ok(provider) = Self::new_mac_mini_tailscale() {
+            tracing::debug!("LLM provider initialized: Mac mini Tailscale");
+            return Ok(provider);
+        }
+
+        // Try Groq API
+        if let Ok(api_key) = std::env::var("GROQ_API_KEY") {
+            if let Ok(provider) = Self::new_groq(&api_key) {
+                tracing::debug!("LLM provider initialized: Groq API");
+                return Ok(provider);
+            }
+        }
+
+        // All providers failed
+        Err(LLMError::AllProvidersUnavailable)
+    }
+
     /// Set custom model name
     pub fn with_model(mut self, model: impl Into<String>) -> Self {
         self.model = model.into();

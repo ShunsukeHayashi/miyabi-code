@@ -44,6 +44,10 @@ pub enum LLMError {
     #[error("Model not available: {0}")]
     ModelNotAvailable(String),
 
+    /// All LLM providers unavailable
+    #[error("All LLM providers unavailable (Mac mini LAN, Tailscale, Groq API)")]
+    AllProvidersUnavailable,
+
     /// Prompt template error
     #[error("Prompt error: {0}")]
     PromptError(String),

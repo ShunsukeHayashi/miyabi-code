@@ -116,22 +116,28 @@ mod tests {
 
     #[test]
     fn test_validate_negative_threshold() {
-        let mut config = LoopConfig::default();
-        config.convergence_threshold = -1.0;
+        let config = LoopConfig {
+            convergence_threshold: -1.0,
+            ..Default::default()
+        };
         assert!(config.validate().is_err());
     }
 
     #[test]
     fn test_validate_zero_min_iterations() {
-        let mut config = LoopConfig::default();
-        config.min_iterations_before_convergence = 0;
+        let config = LoopConfig {
+            min_iterations_before_convergence: 0,
+            ..Default::default()
+        };
         assert!(config.validate().is_err());
     }
 
     #[test]
     fn test_validate_zero_timeout() {
-        let mut config = LoopConfig::default();
-        config.timeout_ms = 0;
+        let config = LoopConfig {
+            timeout_ms: 0,
+            ..Default::default()
+        };
         assert!(config.validate().is_err());
     }
 }

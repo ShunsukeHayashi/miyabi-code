@@ -301,7 +301,7 @@ impl AuditLogHook {
                                 );
                                 tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                             } else {
-                                return Err(MiyabiError::Internal(format!(
+                                return Err(MiyabiError::Unknown(format!(
                                     "Auto-indexing failed after {} attempts: {}",
                                     retry_count, e
                                 )));
@@ -310,7 +310,7 @@ impl AuditLogHook {
                     }
                 }
                 Err(e) => {
-                    return Err(MiyabiError::Internal(format!(
+                    return Err(MiyabiError::Unknown(format!(
                         "Failed to initialize KnowledgeManager: {}",
                         e
                     )));

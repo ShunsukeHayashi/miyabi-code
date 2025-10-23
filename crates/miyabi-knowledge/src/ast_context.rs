@@ -189,6 +189,7 @@ pub struct FileContextTracker {
     parser: Parser,
 
     /// Language
+    #[allow(dead_code)]
     language: Language,
 }
 
@@ -402,9 +403,7 @@ impl FileContextTracker {
     /// Extract documentation comment
     fn extract_doc_comment(&self, node: Node, source: &str) -> Option<String> {
         // Look for line_comment or block_comment nodes before this node
-        if node.prev_sibling().is_none() {
-            return None;
-        }
+        node.prev_sibling()?;
 
         let mut comment_lines = Vec::new();
         let mut current = node.prev_sibling();
@@ -441,6 +440,7 @@ impl FileContextTracker {
 
     /// Recursively collect import statements
     fn collect_imports(&self, node: Node, source: &str, imports: &mut Vec<String>) {
+        #![allow(clippy::only_used_in_recursion)]
         if node.kind() == "use_declaration" {
             if let Ok(text) = node.utf8_text(source.as_bytes()) {
                 imports.push(text.trim().to_string());

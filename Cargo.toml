@@ -17,7 +17,7 @@ members = [
     "crates/miyabi-llm",
     "crates/miyabi-potpie",
     "crates/miyabi-knowledge",
-    "crates/miyabi-business-agents",
+    # "crates/miyabi-business-agents",  # DEPRECATED: Replaced by miyabi-agents/business module
     "crates/miyabi-mcp-server",
     "crates/miyabi-discord-mcp-server",
     "crates/miyabi-a2a",

@@ -6,11 +6,10 @@
 
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
-use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
+use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
-use std::env;
 
 /// MarketingAgent - マーケティング戦略・キャンペーン企画Agent
 ///
@@ -29,13 +28,8 @@ impl MarketingAgent {
 
     /// Generate comprehensive marketing strategy using LLM
     async fn generate_marketing_strategy(&self, task: &Task) -> Result<MarketingStrategy> {
-        // Initialize LLM provider with fallback chain
-        let provider = GPTOSSProvider::new_mac_mini_lan()
-            .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
-            .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey)?;
-                GPTOSSProvider::new_groq(&groq_key)
-            })?;
+        // Initialize LLM provider with standard fallback chain
+        let provider = GPTOSSProvider::new_with_fallback()?;
 
         // Create context from task
         let context = LLMContext::from_task(task);

@@ -5,7 +5,7 @@
 
 use miyabi_knowledge::{
     AugmentationStrategy, PromptAugmenter, StandardPromptAugmenter, DEFAULT_MAX_CONTEXT_PIECES,
-    DEFAULT_RELEVANCE_THRESHOLD, KnowledgeConfig, KnowledgeSearcher, QdrantSearcher, SearchFilter,
+    DEFAULT_RELEVANCE_THRESHOLD, KnowledgeConfig, QdrantSearcher, SearchFilter,
 };
 use miyabi_types::error::{MiyabiError, Result};
 use std::sync::Arc;

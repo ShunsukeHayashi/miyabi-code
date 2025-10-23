@@ -204,7 +204,7 @@ impl MilestoneUpdater {
     pub fn generate_milestone_comment(&self, result: &AggregatedResult, milestone: &Milestone) -> String {
         let mut comment = String::new();
 
-        comment.push_str(&format!("## 🤖 Water Spider Progress Update\n\n"));
+        comment.push_str("## 🤖 Water Spider Progress Update\n\n");
         comment.push_str(&format!("**Milestone**: {} (#{}) - {:.1}% complete\n\n", milestone.title, milestone.number, milestone.progress));
 
         comment.push_str("### Session Results\n\n");
@@ -221,7 +221,7 @@ impl MilestoneUpdater {
             for file in &result.modified_files {
                 comment.push_str(&format!("- `{}`\n", file));
             }
-            comment.push_str("\n");
+            comment.push('\n');
         }
 
         if !result.errors.is_empty() {
@@ -229,7 +229,7 @@ impl MilestoneUpdater {
             for error in &result.errors {
                 comment.push_str(&format!("- {}\n", error));
             }
-            comment.push_str("\n");
+            comment.push('\n');
         }
 
         comment.push_str("---\n");
