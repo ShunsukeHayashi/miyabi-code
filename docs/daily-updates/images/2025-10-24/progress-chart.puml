@@ -1,0 +1,50 @@
+@startuml
+title Miyabi開発進捗 - 2025-10-24
+
+skinparam backgroundColor #FFFFFF
+skinparam titleFontSize 20
+skinparam titleFontColor #333333
+
+rectangle "今日の統計" {
+  (23コミット) as commits
+  (363ファイル変更) as files
+  (+26,726行追加) as additions
+  (-244行削除) as deletions
+}
+
+rectangle "カテゴリ別" {
+  (ドキュメント: 4件) as docs #lightblue
+  (新機能: 12件) as features #lightgreen
+  (バグ修正: 7件) as fixes #lightyellow
+}
+
+rectangle "主要ハイライト" {
+  (チュートリアル4本) as tutorials #FFE4B5
+  (認証システム) as auth #B0E0E6
+  (Water Spider v1.0) as orchestrator #98FB98
+  (React Flow Editor) as reactflow #FFB6C1
+  (.miyabirules統合) as rules #DDA0DD
+}
+
+commits --> docs
+commits --> features
+commits --> fixes
+
+docs --> tutorials
+features --> auth
+features --> orchestrator
+features --> reactflow
+features --> rules
+
+note right of tutorials
+  Tutorial 01-04完成
+  Getting Started から
+  GitHub統合まで
+end note
+
+note right of orchestrator
+  Phase 5 Milestone統合
+  並列実行最適化
+end note
+
+@enduml

@@ -1,0 +1,81 @@
+@startuml
+title Miyabi アーキテクチャ - 今日追加されたコンポーネント (2025-10-24)
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "Frontend (React)" {
+  [React Flow\nWorkflow Editor] as reactflow #FFB6C1
+  [Auth UI\n(Zustand)] as authui #B0E0E6
+  [Custom Nodes] as nodes #FFE4B5
+}
+
+package "Backend (Rust)" {
+  [Web API Server] as api #98FB98
+  [GitHub OAuth\nHandler] as oauth #DDA0DD
+  [Mock Auth\nEndpoint] as mockauth #F0E68C
+  [.miyabirules\nProcessor] as rules #87CEEB
+}
+
+package "Orchestrator" {
+  [Water Spider\nOrchestrator v1.0] as orchestrator #90EE90
+  [Milestone\nTracker] as milestone #FFD700
+  [Remote Execution\nInfra] as remote #FFA07A
+}
+
+package "Documentation" {
+  [Tutorial 01-04] as tutorials #AFEEEE
+  [README] as readme #F5DEB3
+}
+
+' Frontend connections
+authui --> oauth : "OAuth Flow"
+authui --> mockauth : "Dev Login"
+reactflow --> api : "Save/Load Workflow"
+reactflow --> nodes : "Use"
+
+' Backend connections
+api --> oauth
+api --> mockauth
+api --> rules : "Load & Apply"
+oauth --> orchestrator : "Trigger Agent"
+
+' Orchestrator connections
+orchestrator --> milestone : "Track Progress"
+orchestrator --> remote : "Execute"
+orchestrator --> rules : "Enforce Rules"
+
+' Documentation
+tutorials -[hidden]down- readme
+
+note right of reactflow
+  **Phase 2.1-2.3完了**
+  - 基本統合
+  - カスタムノード
+  - ドラッグ&ドロップ
+end note
+
+note right of oauth
+  **GitHub OAuth完全実装**
+  - Callback処理
+  - トークン交換
+  - ユーザー情報取得
+end note
+
+note right of orchestrator
+  **Phase 5完了**
+  - Milestone統合
+  - リモート実行
+  - 並列最適化
+end note
+
+note right of tutorials
+  **4本追加**
+  - Getting Started
+  - Agent作成
+  - Worktree並列実行
+  - GitHub統合
+end note
+
+@enduml
