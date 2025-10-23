@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { toDataAttributes, CommonMetadata } from '@/lib/ai-metadata';
 import {
   Loader2,
   Star,
@@ -98,7 +99,14 @@ export default function RepositoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div
+        {...toDataAttributes({
+          role: 'header',
+          target: 'repositories-page-header',
+          description: 'Repositories management page header with title and description',
+          context: 'repositories-page',
+        })}
+      >
         <h2 className="text-3xl font-bold text-slate-900">リポジトリ管理</h2>
         <p className="mt-2 text-slate-600">
           GitHubリポジトリを接続してAgent自動化を開始
@@ -114,10 +122,30 @@ export default function RepositoriesPage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'connected' | 'available')}>
         <TabsList>
-          <TabsTrigger value="connected">
+          <TabsTrigger
+            value="connected"
+            {...toDataAttributes({
+              role: 'button',
+              action: 'click',
+              target: 'repositories-tab-connected',
+              description: `Switch to connected repositories tab (${repositories.length} repositories)`,
+              context: 'repositories-tabs',
+              expectedResult: 'update-state',
+            })}
+          >
             接続済み ({repositories.length})
           </TabsTrigger>
-          <TabsTrigger value="available">
+          <TabsTrigger
+            value="available"
+            {...toDataAttributes({
+              role: 'button',
+              action: 'click',
+              target: 'repositories-tab-available',
+              description: `Switch to available GitHub repositories tab (${githubRepos.length} repositories)`,
+              context: 'repositories-tabs',
+              expectedResult: 'update-state',
+            })}
+          >
             利用可能 ({githubRepos.length})
           </TabsTrigger>
         </TabsList>
@@ -136,7 +164,16 @@ export default function RepositoriesPage() {
               </Card>
             ) : (
               repositories.map((repo) => (
-                <Card key={repo.id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={repo.id}
+                  className="hover:shadow-md transition-shadow"
+                  {...toDataAttributes({
+                    role: 'card',
+                    target: `connected-repository-${repo.id}`,
+                    description: `Connected repository: ${repo.full_name}`,
+                    context: 'connected-repositories-list',
+                  })}
+                >
                   <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex-1">
@@ -148,11 +185,34 @@ export default function RepositoriesPage() {
                         </p>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        <Button onClick={() => handleViewIssues(repo)} className="w-full sm:w-auto">
+                        <Button
+                          onClick={() => handleViewIssues(repo)}
+                          className="w-full sm:w-auto"
+                          {...toDataAttributes({
+                            role: 'button',
+                            action: 'click',
+                            target: `repository-view-issues-${repo.id}`,
+                            description: `Navigate to issues list for repository ${repo.full_name}`,
+                            context: 'connected-repository-card',
+                            expectedResult: 'navigate-to-page',
+                            navigationTarget: `/dashboard/repositories/${repo.id}/issues`,
+                          })}
+                        >
                           <FileText className="h-4 w-4 mr-2" />
                           Issue一覧
                         </Button>
-                        <Button variant="outline" className="w-full sm:w-auto">
+                        <Button
+                          variant="outline"
+                          className="w-full sm:w-auto"
+                          {...toDataAttributes({
+                            role: 'button',
+                            action: 'click',
+                            target: `repository-settings-${repo.id}`,
+                            description: `Open settings for repository ${repo.full_name}`,
+                            context: 'connected-repository-card',
+                            expectedResult: 'show-modal',
+                          })}
+                        >
                           <Settings className="h-4 w-4 mr-2" />
                           設定
                         </Button>
@@ -181,7 +241,16 @@ export default function RepositoriesPage() {
                 );
 
                 return (
-                  <Card key={repo.id}>
+                  <Card
+                    key={repo.id}
+                    {...toDataAttributes({
+                      role: 'card',
+                      target: `available-repository-${repo.id}`,
+                      description: `Available GitHub repository: ${repo.full_name}`,
+                      context: 'available-repositories-list',
+                      state: isConnected ? 'connected' : 'not-connected',
+                    })}
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -233,6 +302,13 @@ export default function RepositoriesPage() {
                             <Badge
                               className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100"
                               aria-label={`${repo.full_name} is connected`}
+                              {...toDataAttributes({
+                                role: 'badge',
+                                target: `repository-connected-badge-${repo.id}`,
+                                description: `Repository ${repo.full_name} is already connected`,
+                                context: 'available-repository-card',
+                                state: 'connected',
+                              })}
                             >
                               <Check className="h-4 w-4 mr-1" aria-hidden="true" />
                               接続済み
@@ -242,6 +318,18 @@ export default function RepositoriesPage() {
                               onClick={() => handleConnectRepository(repo)}
                               disabled={connectingRepoId === repo.id}
                               aria-label={`Connect ${repo.full_name} repository`}
+                              {...toDataAttributes({
+                                role: 'button',
+                                action: 'click',
+                                target: `repository-connect-button-${repo.id}`,
+                                description: `Connect repository ${repo.full_name} to enable agent automation`,
+                                context: 'available-repository-card',
+                                expectedResult: 'trigger-api',
+                                apiEndpoint: '/repositories',
+                                instructions: 'STEP 1: Click this button to connect repository. STEP 2: Wait for API call to complete. STEP 3: Repository appears in Connected tab. STEP 4: Navigate to connected tab to view issues.',
+                                nextActions: 'After connection, switch to Connected tab to view repository and start agent execution',
+                                successCriteria: 'Repository appears in Connected tab, button changes to 接続済み badge',
+                              })}
                             >
                               {connectingRepoId === repo.id ? (
                                 <>
