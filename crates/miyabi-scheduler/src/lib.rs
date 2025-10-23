@@ -33,12 +33,16 @@
 //! }
 //! ```
 
+pub mod dag;
 pub mod error;
 pub mod launcher;
 pub mod parser;
+pub mod scheduler;
 pub mod session;
 
 // Re-export key types
+pub use dag::{DAGOperations, TaskId};
 pub use error::{Result, SchedulerError};
 pub use parser::AgentResult;
+pub use scheduler::{Scheduler, SchedulerStats};
 pub use session::{SessionConfig, SessionId, SessionManager, SessionStatus};

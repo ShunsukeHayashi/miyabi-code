@@ -33,6 +33,7 @@ pub enum SessionStatus {
 
 /// Session information
 #[derive(Debug)]
+#[allow(dead_code)]
 struct Session {
     /// Session ID
     id: SessionId,

@@ -53,7 +53,7 @@ pub async fn launch_claude_headless(
     // Open output file for writing
     let output = tokio::fs::File::create(&output_file)
         .await
-        .map_err(|e| SchedulerError::Io(e))?;
+        .map_err(SchedulerError::Io)?;
     let output_std = output.into_std().await;
 
     debug!("Spawning: claude code --headless --execute-command '{}' --cwd {} --no-human-in-loop", command, cwd.display());
