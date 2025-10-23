@@ -25,6 +25,9 @@ miyabi-agent-integrations = { version = "0.1.0", path = "../miyabi-agent-integra
 # Core types
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 
+# LLM integration (for business agents)
+miyabi-llm = { version = "0.1.0", path = "../miyabi-llm", optional = true }
+
 # Optional: Knowledge base integration
 miyabi-knowledge = { version = "0.1.0", path = "../miyabi-knowledge", optional = true }
 
@@ -33,11 +36,13 @@ tokio = { version = "1.43", features = ["full"] }
 async-trait = "0.1"
 chrono = "0.4"
 tracing = "0.1"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [features]
-default = []
+default = ["llm-integration"]
 knowledge-integration = ["miyabi-knowledge"]
+llm-integration = ["miyabi-llm"]
 
 [dev-dependencies]
 tempfile = "3.13"

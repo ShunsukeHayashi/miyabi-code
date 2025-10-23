@@ -86,6 +86,7 @@ pub use miyabi_agent_core::{
 };
 
 // Local modules
+pub mod business;
 pub mod hooks;
 pub use hooks::StructuredLogHook;
 

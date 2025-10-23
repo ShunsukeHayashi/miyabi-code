@@ -15,6 +15,7 @@
 - **[ENTITY_RELATION_MODEL.md](docs/ENTITY_RELATION_MODEL.md)** - 12種類のEntity定義と27の関係性マップ ⭐⭐⭐
 - **[TEMPLATE_MASTER_INDEX.md](docs/TEMPLATE_MASTER_INDEX.md)** - 88ファイルの統合テンプレートインデックス ⭐⭐⭐
 - **[LABEL_SYSTEM_GUIDE.md](docs/LABEL_SYSTEM_GUIDE.md)** - 53ラベル体系完全ガイド ⭐⭐⭐
+- **[MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md)** - MCPファーストアプローチ標準プロトコル ⭐⭐⭐⭐⭐
 
 ## 🚨 **ベンチマーク実装の絶対ルール** ⭐⭐⭐⭐⭐
 
@@ -79,6 +80,155 @@ cat .claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md
 - Docker要件無視してローカル実行
 - 結果: 使い物にならない、比較不可能、世界標準規格ではない
 - **絶対に繰り返さない**
+
+---
+
+## 🔄 **MCP Integration Protocol - MCPファーストアプローチ** ⭐⭐⭐⭐⭐
+
+**重要度**: 最重要（全タスク実行前に必須）
+
+### 基本原則
+
+**"全てのタスク実行前に、まずMCPの活用可能性を検討する"**
+
+このプロジェクトでは、重複実装の防止と効率的な開発のため、MCPファーストアプローチを標準プロセスとして採用しています。
+
+**完全仕様**: [MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md)
+
+### 標準実行シーケンス
+
+```
+タスク開始
+    ↓
+┌────────────────────┐
+│ Phase 0: MCP確認   │ ← 【必須】全タスク実行前に実施
+└────────────────────┘
+    ↓
+【Q1】既存MCPで実現可能か？
+    ├─ Yes → 既存MCP活用 → 実装へ
+    └─ No → Q2へ
+    ↓
+【Q2】新規MCP作成が有効か？
+    ├─ 判断基準:
+    │   • 再利用回数 ≥ 3回
+    │   • ROI > 2.0
+    │   • 標準API存在
+    │   • セキュリティOK
+    ├─ Yes → 新規MCP作成 → 実装へ
+    └─ No → 通常実装へ
+```
+
+### Phase 0: MCP確認フェーズ（必須）
+
+#### Step 1: 既存MCPリスト確認
+
+```bash
+# インストール済みMCPサーバー一覧
+claude mcp list
+
+# または設定ファイル確認
+cat ~/.config/claude/claude_desktop_config.json
+```
+
+**確認項目**:
+- [ ] タスク内容に適合するMCPサーバーが存在するか？
+- [ ] そのMCPサーバーは利用可能な状態か？
+- [ ] API Key等の認証情報は設定済みか？
+
+#### Step 2: MCP適合性判定
+
+**MCPが適合するケース** (✅ MCP活用推奨):
+- 外部APIへのアクセスが必要（GitHub, Slack, Notion等）
+- データベース操作が必要（PostgreSQL, MongoDB等）
+- ファイルシステム操作が複雑
+- 既存のWebサービスとの連携
+- 標準化されたプロトコルでの通信が必要
+
+**MCPが不適合なケース** (❌ 通常実装):
+- プロジェクト固有のビジネスロジック
+- Rustクレート内部の実装
+- パフォーマンスクリティカルな処理
+- オフライン動作が必須
+
+#### Step 3: 新規MCP作成判定
+
+**MCP作成が有効なケース**:
+- 複数プロジェクトで再利用可能
+- 標準化されたAPIがある
+- Claude Codeからの操作頻度が高い
+- コミュニティで共有可能な価値がある
+
+**ROI判定**:
+```
+MCP作成のROI = (再利用回数 × 節約時間) / MCP作成時間
+ROI > 2.0 の場合は作成推奨
+```
+
+### 利用可能なMCPサーバー（Miyabi統合済み）
+
+#### 1. `@modelcontextprotocol/server-github`
+**用途**: GitHub操作全般
+- Issue/PR作成・更新
+- リポジトリ情報取得
+- Webhook管理
+
+**設定例**:
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxx"
+      }
+    }
+  }
+}
+```
+
+#### 2. `@modelcontextprotocol/server-filesystem`
+**用途**: ファイルシステム操作
+- ファイル読み書き
+- ディレクトリ操作
+- パス解決
+
+#### 3. `context7` (既存)
+**用途**: 外部ライブラリドキュメント取得
+- 20,000以上のライブラリ対応
+- 最新APIドキュメント取得
+
+#### 4. Custom: `miyabi-mcp-server` (実装済)
+**用途**: Miyabi Agent実行
+- Agent実行エンドポイント
+- JSON-RPC 2.0プロトコル
+
+### タスク実行前チェックリスト（必須）
+
+**全てのタスク開始前に以下を確認**:
+
+- [ ] `claude mcp list` で既存MCPを確認した
+- [ ] タスク内容とMCP機能の適合性を判定した
+- [ ] 新規MCP作成のROIを計算した（該当する場合）
+- [ ] セキュリティリスクを評価した
+- [ ] 実装方針をユーザーに確認した（重要な判断の場合）
+
+### 禁止事項
+
+❌ **やってはいけないこと**:
+- MCPの確認を省略して独自実装を開始
+- 既存MCPが存在するのに車輪の再発明
+- ROI計算なしでMCP作成を開始
+- セキュリティリスク評価の省略
+
+### 詳細ドキュメント
+
+**完全仕様**: [MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md)
+- Phase 0-3の詳細フロー
+- タスク別チェックリスト（GitHub, ファイルシステム, DB, API連携）
+- 新規MCP作成ガイドライン
+- セキュリティ・パフォーマンス・保守性の注意事項
+- 実践例（Issue操作、ベンチマーク実行、ベクトル検索）
 
 ---
 
