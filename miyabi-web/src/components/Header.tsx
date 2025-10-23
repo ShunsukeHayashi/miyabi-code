@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
+import { toDataAttributes, CommonMetadata } from '@/lib/ai-metadata';
 import {
   Sheet,
   SheetContent,
@@ -62,6 +63,7 @@ export default function Header() {
                     ? 'text-slate-900'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
+                {...toDataAttributes(CommonMetadata.navigationLink(item.label, item.href, 'header-desktop'))}
               >
                 {item.label}
               </Link>
@@ -90,6 +92,7 @@ export default function Header() {
                 variant="outline"
                 className="ml-4"
                 aria-label="Logout"
+                {...toDataAttributes(CommonMetadata.logoutButtonDesktop())}
               >
                 <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
                 Logout
@@ -105,8 +108,13 @@ export default function Header() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>
+                <AlertDialogCancel {...toDataAttributes(CommonMetadata.logoutCancelButton())}>
+                  キャンセル
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleLogout}
+                  {...toDataAttributes(CommonMetadata.logoutConfirmButton())}
+                >
                   ログアウト
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -174,6 +182,7 @@ export default function Header() {
                       variant="outline"
                       className="w-full"
                       aria-label="Logout"
+                      {...toDataAttributes(CommonMetadata.logoutButtonMobile())}
                     >
                       <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
                       Logout
