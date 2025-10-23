@@ -29,7 +29,7 @@ mkdir -p "$HOME/Documents/MiyabiOBS"
 # 最新のコミット情報を取得
 COMMIT_HASH=$(git log -1 --format='%h')
 COMMIT_TYPE=$(git log -1 --format='%s' | awk -F: '{print $1}')
-COMMIT_MSG=$(git log -1 --format='%s' | awk -F: '{print $2}' | sed 's/^ //')
+COMMIT_MSG=$(git log -1 --format='%s' | awk -F: '{print $2}' | sed 's/^ //' | cut -c1-30)
 COMMIT_AUTHOR=$(git log -1 --format='%an')
 COMMIT_TIME=$(git log -1 --format='%cr')
 
@@ -39,39 +39,39 @@ log_info "新しいコミットを検知: $COMMIT_HASH"
 case $COMMIT_TYPE in
     feat)
         SPEAKER="霊夢"
-        MESSAGE="✨ 新機能を追加したわ！「$COMMIT_MSG」"
+        MESSAGE="✨ 新機能を追加したわ！ ($COMMIT_HASH)"
         ;;
     fix)
         SPEAKER="魔理沙"
-        MESSAGE="🔧 バグを修正したぜ！「$COMMIT_MSG」"
+        MESSAGE="🔧 バグを修正したぜ！ ($COMMIT_HASH)"
         ;;
     docs)
         SPEAKER="霊夢"
-        MESSAGE="📚 ドキュメントを更新したわ。「$COMMIT_MSG」"
+        MESSAGE="📚 ドキュメントを更新したわ ($COMMIT_HASH)"
         ;;
     refactor)
         SPEAKER="魔理沙"
-        MESSAGE="♻️ コードをリファクタリングしたぜ！「$COMMIT_MSG」"
+        MESSAGE="♻️ リファクタリングしたぜ！ ($COMMIT_HASH)"
         ;;
     test)
         SPEAKER="霊夢"
-        MESSAGE="🧪 テストを追加したわ。「$COMMIT_MSG」"
+        MESSAGE="🧪 テストを追加したわ ($COMMIT_HASH)"
         ;;
     chore)
         SPEAKER="魔理沙"
-        MESSAGE="🔨 雑務を片付けたぜ！「$COMMIT_MSG」"
+        MESSAGE="🔨 雑務を片付けたぜ！ ($COMMIT_HASH)"
         ;;
     perf)
         SPEAKER="霊夢"
-        MESSAGE="⚡ パフォーマンスを改善したわ！「$COMMIT_MSG」"
+        MESSAGE="⚡ パフォーマンス改善したわ！ ($COMMIT_HASH)"
         ;;
     style)
         SPEAKER="魔理沙"
-        MESSAGE="💄 スタイルを調整したぜ！「$COMMIT_MSG」"
+        MESSAGE="💄 スタイル調整したぜ！ ($COMMIT_HASH)"
         ;;
     *)
         SPEAKER="霊夢"
-        MESSAGE="📝 コミット: $COMMIT_TYPE - $COMMIT_MSG"
+        MESSAGE="📝 コミット完了！ ($COMMIT_HASH)"
         ;;
 esac
 
