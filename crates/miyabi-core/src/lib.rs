@@ -8,6 +8,7 @@
 //! - Security audit (cargo-audit integration)
 //! - Git utilities (repository discovery, branch management, validation)
 //! - Error handling integration with miyabi-types
+//! - Project-specific rules support (.miyabirules)
 
 pub mod cache;
 pub mod config;
@@ -15,6 +16,7 @@ pub mod documentation;
 pub mod git;
 pub mod logger;
 pub mod retry;
+pub mod rules;
 pub mod security;
 
 pub use config::Config;
@@ -29,4 +31,7 @@ pub use git::{
 };
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
+pub use rules::{
+    AgentPreferences, MiyabiRules, Rule, RulesError, RulesLoader, Result as RulesResult,
+};
 pub use security::{run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity};

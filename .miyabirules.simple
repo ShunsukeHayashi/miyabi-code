@@ -1,0 +1,30 @@
+# Simple .miyabirules example for beginners
+#
+# This is a minimal configuration to get started with Miyabi custom rules.
+# Copy this to `.miyabirules` in your project root.
+
+version: 1
+
+rules:
+  - name: "Avoid unwrap"
+    pattern: ".unwrap()"
+    suggestion: "Use ? operator or expect() with a clear error message"
+    file_extensions: ["rs"]
+    severity: "warning"
+    enabled: true
+
+  - name: "Add documentation"
+    pattern: "pub fn"
+    suggestion: "Add /// documentation for public functions"
+    file_extensions: ["rs"]
+    severity: "info"
+    enabled: true
+
+agent_preferences:
+  codegen:
+    style: "idiomatic"
+    error_handling: "thiserror"
+
+  review:
+    min_score: 80
+    clippy_strict: false

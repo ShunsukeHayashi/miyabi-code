@@ -1,0 +1,79 @@
+# .miyabirules - Project-specific custom rules for Miyabi
+#
+# This file allows you to customize agent behavior and enforce project-specific
+# coding standards, similar to Cline's .clinerules.
+#
+# Place this file in your project root as `.miyabirules` (without .example extension)
+
+version: 1
+
+# Custom rules with pattern matching and suggestions
+rules:
+  - name: "Use async-trait for traits"
+    pattern: "trait.*{"
+    suggestion: "Add #[async_trait] attribute for traits with async methods"
+    file_extensions: ["rs"]
+    severity: "warning"
+    enabled: true
+
+  - name: "Prefer Result over Option"
+    pattern: "fn.*-> Option<"
+    suggestion: "Use Result<T, E> instead of Option<T> for better error context"
+    file_extensions: ["rs"]
+    severity: "info"
+    enabled: true
+
+  - name: "Require documentation for public items"
+    pattern: "pub (fn|struct|enum|trait)"
+    suggestion: "Add /// documentation comments for public items"
+    file_extensions: ["rs"]
+    severity: "warning"
+    enabled: true
+
+  - name: "Use thiserror for error types"
+    pattern: "(impl|derive.*Error)"
+    suggestion: "Consider using thiserror crate for error definitions"
+    file_extensions: ["rs"]
+    severity: "info"
+    enabled: true
+
+  - name: "Avoid unwrap() in production code"
+    pattern: ".unwrap()"
+    suggestion: "Use proper error handling instead of unwrap(). Consider expect() with clear message or ? operator"
+    file_extensions: ["rs"]
+    severity: "error"
+    enabled: true
+
+# Agent-specific preferences
+agent_preferences:
+  # CodeGenAgent preferences
+  codegen:
+    style: "idiomatic"           # Code style: "idiomatic", "explicit", "compact"
+    error_handling: "thiserror"  # Error handling: "thiserror", "anyhow", "std"
+    async_runtime: "tokio"       # Async runtime: "tokio", "async-std", "smol"
+    test_framework: "default"    # Test framework: "default", "rstest", "proptest"
+
+  # ReviewAgent preferences
+  review:
+    min_score: 85                # Minimum acceptable quality score (0-100)
+    clippy_strict: true          # Enable strict Clippy checks
+    require_tests: true          # Require tests for new code
+    require_docs: true           # Require documentation for public items
+
+  # DeploymentAgent preferences
+  deployment:
+    auto_deploy: false           # Auto-deploy on successful review
+    target: "staging"            # Default deployment target
+    run_tests: true              # Run tests before deployment
+
+  # CoordinatorAgent preferences
+  coordinator:
+    max_tasks: 10                # Maximum tasks to generate from single Issue
+    prefer_parallel: true        # Prefer parallel execution when possible
+
+# Global settings
+settings:
+  rust_edition: "2021"
+  max_line_length: 100
+  use_tabs: false
+  tab_width: 4
