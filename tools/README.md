@@ -5,7 +5,8 @@ Miyabiプロジェクトの開発進捗を、Git commitsから自動的に「ゆ
 ## 📋 概要
 
 ```
-Git Commits → 台本生成 → VOICEVOX音声合成 → 音声ファイル出力
+Git Commits → 台本生成 → VOICEVOX音声合成 → 音声ファイル出力 → 動画生成（MP4）
+   Phase 1        Phase 2                               Phase 3
 ```
 
 ## 🎯 用途
@@ -61,6 +62,64 @@ python voicevox-synthesizer.py
 
 ---
 
+### 3. `video-generator.py`
+
+**機能**: 音声ファイルから動画ファイル（MP4）を生成
+
+**入力**:
+- `audio/*.wav` - 音声ファイル群
+- `thumbnail.png` - サムネイル画像（オプション）
+
+**出力**:
+- `miyabi-progress.mp4` - Full HD動画（1920x1080、H.264/AAC）
+
+**使用例**:
+```bash
+python video-generator.py --audio-dir ./output/audio --output ./output/video.mp4
+```
+
+**特徴**:
+- 複数音声ファイルの自動連結
+- デフォルトサムネイル自動生成
+- Web再生最適化（faststart）
+- YouTube推奨エンコーディング設定
+
+**前提条件**:
+- ffmpegがインストール済み
+
+---
+
+### 4. `miyabi-narrate.sh` ⭐ 統合スクリプト（推奨）
+
+**機能**: Phase 1→2→3を一括実行する統合スクリプト
+
+**使用例**:
+```bash
+# 基本的な使用（Phase 1-2）
+./miyabi-narrate.sh
+
+# 動画生成も含む（Phase 1-2-3）
+./miyabi-narrate.sh --video
+
+# 7日分の進捗、Engine自動起動、動画生成
+./miyabi-narrate.sh --days 7 --start-engine --video
+```
+
+**オプション**:
+- `-d, --days N`: 過去N日分のcommitsを収集（デフォルト: 3）
+- `-o, --output DIR`: 出力ディレクトリ（デフォルト: ./output）
+- `-s, --start-engine`: VOICEVOX Engineを自動起動
+- `-k, --keep-engine`: 実行後もEngineを起動したまま
+- `-v, --video`: 動画ファイル（MP4）も生成
+- `-h, --help`: ヘルプ表示
+
+**Lifecycle Hooks統合**:
+- `narration-start-headless.sh` - 開始時に音声通知
+- `narration-complete-headless.sh` - 完了時に結果報告
+- `narration-error-headless.sh` - エラー時に警告通知
+
+---
+
 ## 🚀 クイックスタート
 
 ### 1. VOICEVOX Engineのセットアップ
@@ -84,36 +143,68 @@ uv run run.py --voicevox_dir=$VOICEVOX_DIR
 
 ---
 
-### 2. 台本生成 + 音声合成
+### 2. 統合スクリプトで全工程実行（推奨）⭐
 
 ```bash
 cd /Users/a003/dev/miyabi-private/tools
 
+# 基本実行（Phase 1-2: 台本 + 音声）
+./miyabi-narrate.sh
+
+# フル機能（Phase 1-2-3: 台本 + 音声 + 動画）
+./miyabi-narrate.sh --video
+
+# 7日分の進捗、Engine自動起動、動画生成
+./miyabi-narrate.sh --days 7 --start-engine --video
+```
+
+**実行時間の目安**:
+- Phase 1（台本生成）: ~5秒
+- Phase 2（音声合成）: ~20秒（14ファイル）
+- Phase 3（動画生成）: ~5秒
+- **合計**: 約30秒
+
+---
+
+### 3. 個別スクリプト実行（手動）
+
+統合スクリプトの代わりに、個別に実行することも可能です：
+
+```bash
 # 1. 台本生成
-python yukkuri-narration-generator.py
+python yukkuri-narration-generator.py --days 3
 
 # 2. 音声合成
 python voicevox-synthesizer.py
-```
 
-**ワンライナー実行**:
-```bash
-python yukkuri-narration-generator.py && python voicevox-synthesizer.py
+# 3. 動画生成（オプション）
+python video-generator.py --audio-dir ./audio --output ./video.mp4
 ```
 
 ---
 
-### 3. 生成物の確認
+### 4. 生成物の確認
 
 ```bash
-# 台本確認
-cat script.md
+# 出力ディレクトリ構造
+ls -lh output/
+# output/
+# ├── script.md              # 台本
+# ├── voicevox_requests.json # APIリクエスト
+# ├── audio/                 # 音声ファイル（14件、~3.7MB）
+# │   ├── speaker0_000.wav
+# │   └── ...
+# ├── thumbnail.png          # サムネイル画像
+# └── miyabi-progress.mp4    # 動画ファイル（~1.2MB）
 
-# 音声ファイル確認
-ls -lh audio/
+# 台本確認
+cat output/script.md
 
 # 音声再生（macOS）
-afplay audio/speaker0_000.wav
+afplay output/audio/speaker0_000.wav
+
+# 動画再生（macOS）
+open output/miyabi-progress.mp4
 ```
 
 ---
@@ -187,15 +278,22 @@ self.marisa_speaker_id = 6
 
 ```
 tools/
-├── yukkuri-narration-generator.py  # 台本生成スクリプト
-├── voicevox-synthesizer.py         # 音声合成スクリプト
+├── yukkuri-narration-generator.py  # Phase 1: 台本生成
+├── voicevox-synthesizer.py         # Phase 2: 音声合成
+├── video-generator.py               # Phase 3: 動画生成
+├── miyabi-narrate.sh                # 統合スクリプト（推奨）⭐
 ├── README.md                        # このファイル
-├── script.md                        # 生成された台本
-├── voicevox_requests.json           # APIリクエストデータ
-└── audio/                           # 音声ファイル出力先
-    ├── speaker0_000.wav             # 霊夢
-    ├── speaker1_001.wav             # 魔理沙
-    └── ...
+├── PROJECT_SUMMARY.md               # 完成報告書
+├── GITHUB_ACTIONS.md                # CI/CD設定ガイド
+└── output/                          # 出力ディレクトリ
+    ├── script.md                    # 台本（Markdown）
+    ├── voicevox_requests.json       # APIリクエストデータ
+    ├── thumbnail.png                # サムネイル画像（1920x1080）
+    ├── audio/                       # 音声ファイル
+    │   ├── speaker0_000.wav         # 霊夢（説明役）
+    │   ├── speaker1_001.wav         # 魔理沙（反応役）
+    │   └── ...
+    └── miyabi-progress.mp4          # 動画ファイル（H.264/AAC）
 ```
 
 ---
@@ -240,14 +338,22 @@ audio_query['intonationScale'] = 1.5  # イントネーション強調
 
 ## 🎬 次のステップ
 
-### Phase 7: 動画自動生成
+### ✅ Phase 12完了: 動画自動生成
 
-**ゆっくりムービーメーカー（YMM）統合**:
-- YMMプロジェクトファイル自動生成
-- テロップ自動挿入
-- サムネイル生成
+**実装済み機能**:
+- ✅ 音声ファイル自動連結（ffmpeg concat）
+- ✅ デフォルトサムネイル生成（1920x1080）
+- ✅ Full HD動画生成（H.264/AAC、Web最適化）
+- ✅ 統合スクリプト（miyabi-narrate.sh）
+- ✅ Lifecycle Hooks（Claude Code headless mode）
 
-### Phase 8: YouTube配信自動化
+**成果物**:
+- 82秒のFull HD動画（1.2MB、非常に軽量）
+- 実行時間約30秒（台本→音声→動画）
+
+---
+
+### Phase 13: YouTube配信自動化
 
 **YouTube Data API v3連携**:
 ```python
@@ -265,20 +371,37 @@ youtube.videos().insert(
         },
         'status': {'privacyStatus': 'public'}
     },
-    media_body='video.mp4'
+    media_body='output/miyabi-progress.mp4'
 ).execute()
 ```
 
-### Phase 9: Miyabi Agent統合
+**実装計画**:
+- OAuth 2.0認証
+- 動画メタデータ自動生成（タイトル、説明、タグ）
+- アップロードスケジューリング
+- プレイリスト自動整理
 
-**CLIツール化**:
+---
+
+### Phase 14: Miyabi Agent統合
+
+**NarrationAgentとして統合**:
 ```bash
 # Miyabiの一機能として統合
-miyabi narrate --days 3 --output youtube
+miyabi agent run narration --days 3
 
 # 自動配信モード
-miyabi narrate --schedule daily --time 18:00
+miyabi agent schedule narration --daily --time 18:00
+
+# Issue駆動実行
+miyabi agent run narration --issue 425
 ```
+
+**実装計画**:
+- `.claude/agents/specs/business/narration-agent.md` 作成済み
+- `.claude/skills/voicevox/SKILL.md` 作成済み
+- `.claude/commands/narrate.md` 作成済み
+- Rust crate `miyabi-narration` 実装予定
 
 ---
 
@@ -359,5 +482,9 @@ VOICEVOX Engineは LGPL v3 デュアルライセンスです。
 ---
 
 **作成日**: 2025-10-23
-**バージョン**: v1.0.0
+**バージョン**: v2.0.0
 **作成者**: Claude Code (AI Assistant)
+
+**変更履歴**:
+- v2.0.0 (2025-10-23): Phase 12完了 - 動画生成機能追加
+- v1.0.0 (2025-10-23): 初版リリース - 台本生成 + 音声合成

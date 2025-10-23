@@ -1,0 +1,58 @@
+[
+  {
+    "speaker_id": 0,
+    "text": "こんにちは、霊夢よ！今日もMiyabiの開発進捗を報告するわ〜"
+  },
+  {
+    "speaker_id": 1,
+    "text": "魔理沙だぜ！今日は何が進んだんだ？"
+  },
+  {
+    "speaker_id": 0,
+    "text": "uiモジュールで新機能を追加したわ。具体的には、apply Jonathan Ive design principles - Insanely Grよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "新機能が追加されたのか！すごいぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "uiモジュールでバグを修正したわ。具体的には、add text-white to GitHub login button for visibiliよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "バグ修正お疲れ様だぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "accessibilityモジュールでドキュメントを更新したわ。具体的には、add comprehensive color contrast audit reportよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "ドキュメント整備は重要だぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "uiモジュールで新機能を追加したわ。具体的には、implement Issue detail page with commentsよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "新機能が追加されたのか！すごいぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "uiモジュールで新機能を追加したわ。具体的には、implement confirmation dialogs for critical actionよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "新機能が追加されたのか！すごいぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "今日の開発進捗は以上よ！また明日ね〜"
+  },
+  {
+    "speaker_id": 1,
+    "text": "次回も楽しみにしてくれよな！それじゃあまただぜ！"
+  }
+]
