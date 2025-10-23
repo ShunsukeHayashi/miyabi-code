@@ -1,6 +1,17 @@
 <div align="center">
 
-# 🌸 Miyabi (雅)
+# ⚠️ DEPRECATED - TypeScript版
+
+> **重要**: このTypeScript版Miyabi CLIは**非推奨**です。
+> Rust版への移行が完了しました。新しいRust実装をご利用ください。
+>
+> **Rust版リポジトリ**: [miyabi-private](https://github.com/customer-cloud/miyabi-private)
+> **移行日**: 2025-10-23
+> **TypeScript版サポート終了**: 即時
+
+---
+
+# 🌸 Miyabi (雅) - TypeScript版（アーカイブ）
 
 **一つのコマンドで全てが完結する自律型開発フレームワーク**
 
