@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import {
   Loader2,
   Star,
@@ -24,11 +25,13 @@ import {
 export default function RepositoriesPage() {
   const router = useRouter();
   const { user, accessToken } = useAuthStore();
+  const { toast } = useToast();
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [githubRepos, setGithubRepos] = useState<GitHubRepository[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'connected' | 'available'>('connected');
+  const [connectingRepoId, setConnectingRepoId] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -57,13 +60,24 @@ export default function RepositoriesPage() {
 
   const handleConnectRepository = async (githubRepo: GitHubRepository) => {
     try {
+      setConnectingRepoId(githubRepo.id);
       await api.post('/repositories', {
         full_name: githubRepo.full_name,
       });
       await loadData();
       setActiveTab('connected');
+      toast({
+        title: '接続成功',
+        description: `${githubRepo.full_name} を接続しました`,
+      });
     } catch (err: any) {
-      alert(err.response?.data?.message || 'リポジトリの接続に失敗しました');
+      toast({
+        variant: 'destructive',
+        title: '接続失敗',
+        description: err.response?.data?.message || 'リポジトリの接続に失敗しました',
+      });
+    } finally {
+      setConnectingRepoId(null);
     }
   };
 
@@ -226,9 +240,17 @@ export default function RepositoriesPage() {
                           ) : (
                             <Button
                               onClick={() => handleConnectRepository(repo)}
+                              disabled={connectingRepoId === repo.id}
                               aria-label={`Connect ${repo.full_name} repository`}
                             >
-                              接続
+                              {connectingRepoId === repo.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                                  接続中...
+                                </>
+                              ) : (
+                                '接続'
+                              )}
                             </Button>
                           )}
                         </div>

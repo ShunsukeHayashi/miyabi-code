@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import {
   Loader2,
   Bot,
@@ -22,12 +23,14 @@ export default function IssuesPage() {
   const params = useParams();
   const router = useRouter();
   const { accessToken } = useAuthStore();
+  const { toast } = useToast();
   const [repository, setRepository] = useState<Repository | null>(null);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<'open' | 'closed' | 'all'>('open');
   const [searchQuery, setSearchQuery] = useState('');
+  const [executingIssueId, setExecutingIssueId] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -61,14 +64,24 @@ export default function IssuesPage() {
 
   const handleExecuteAgent = async (issue: Issue) => {
     try {
+      setExecutingIssueId(issue.id);
       await api.post('/agents/execute', {
         repository_id: params.id,
         issue_number: issue.number,
         agent_type: 'coordinator',
       });
-      alert(`Issue #${issue.number} のAgent実行を開始しました`);
+      toast({
+        title: 'Agent実行開始',
+        description: `Issue #${issue.number} のAgent実行を開始しました`,
+      });
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Agent実行に失敗しました');
+      toast({
+        variant: 'destructive',
+        title: 'Agent実行失敗',
+        description: err.response?.data?.message || 'Agent実行に失敗しました',
+      });
+    } finally {
+      setExecutingIssueId(null);
     }
   };
 
@@ -244,11 +257,21 @@ export default function IssuesPage() {
                     {issue.state === 'open' && (
                       <Button
                         onClick={() => handleExecuteAgent(issue)}
+                        disabled={executingIssueId === issue.id}
                         aria-label={`Execute agent for issue #${issue.number}`}
                         className="w-full sm:w-auto"
                       >
-                        <Bot className="h-4 w-4 mr-2" aria-hidden="true" />
-                        Agent実行
+                        {executingIssueId === issue.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                            実行中...
+                          </>
+                        ) : (
+                          <>
+                            <Bot className="h-4 w-4 mr-2" aria-hidden="true" />
+                            Agent実行
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>
