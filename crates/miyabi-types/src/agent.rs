@@ -42,20 +42,30 @@ mod serde_path {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AgentStatus {
+    /// Agent is idle and ready to accept tasks
     Idle,
+    /// Agent is currently executing a task
     Running,
+    /// Agent successfully completed its task
     Completed,
+    /// Agent failed to complete its task
     Failed,
+    /// Agent escalated the task to a human operator
     Escalated,
 }
 
 /// Escalation target roles
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EscalationTarget {
+    /// Technical Lead - escalate for architectural decisions
     TechLead,
+    /// Product Owner - escalate for product/feature decisions
     PO,
+    /// Chief Information Security Officer - escalate for security issues
     CISO,
+    /// Chief Technology Officer - escalate for strategic technical decisions
     CTO,
+    /// DevOps team - escalate for infrastructure/deployment issues
     DevOps,
 }
 
@@ -63,33 +73,57 @@ pub enum EscalationTarget {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum AgentType {
     // Coding Agents (9)
+    /// Coordinates task decomposition and agent orchestration (DAG-based)
     CoordinatorAgent,
+    /// Generates code implementations with AI assistance (Claude Sonnet 4)
     CodeGenAgent,
+    /// Reviews code quality and provides scoring (0-100 points)
     ReviewAgent,
+    /// Analyzes issues and infers appropriate labels (AI reasoning)
     IssueAgent,
+    /// Creates pull requests with Conventional Commits format
     PRAgent,
+    /// Handles CI/CD deployment automation (Firebase/Vercel/AWS)
     DeploymentAgent,
+    /// Automatically fixes common issues (clippy warnings, format, etc.)
     AutoFixAgent,
+    /// Monitors and refreshes stale issues/PRs (Toyota Lean methodology)
     WaterSpiderAgent,
+    /// Refreshes and updates project status periodically
     RefresherAgent,
 
     // Business Agents (14)
+    /// AI Entrepreneur - comprehensive business plan generation (8 phases)
     AIEntrepreneurAgent,
+    /// Product Concept - USP, business model, revenue model design
     ProductConceptAgent,
+    /// Product Design - detailed service design (6-month roadmap)
     ProductDesignAgent,
+    /// Funnel Design - customer journey optimization (認知→購入→LTV)
     FunnelDesignAgent,
+    /// Persona - detailed target customer personas (3-5 personas)
     PersonaAgent,
+    /// Self Analysis - career/skill/achievement analysis
     SelfAnalysisAgent,
+    /// Market Research - market trend analysis and competitor research (20+ companies)
     MarketResearchAgent,
+    /// Marketing - advertising, SEO, SNS strategy execution
     MarketingAgent,
+    /// Content Creation - blog, video, tutorial content production
     ContentCreationAgent,
+    /// SNS Strategy - Twitter/Instagram/LinkedIn strategy and calendar
     SNSStrategyAgent,
+    /// YouTube - channel optimization and content planning (13 workflows)
     YouTubeAgent,
+    /// Sales - lead generation and conversion rate optimization
     SalesAgent,
+    /// CRM - customer relationship management and LTV maximization
     CRMAgent,
+    /// Analytics - data analysis, PDCA cycle, continuous improvement
     AnalyticsAgent,
 
     // Community Agents (1)
+    /// Discord Community - community management and moderation
     DiscordCommunity,
 }
 
@@ -133,14 +167,19 @@ impl AgentType {
 /// Issue severity levels (ordered from lowest to highest severity for Ord)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Severity {
+    /// Trivial severity - cosmetic issues, typos
     #[serde(rename = "Sev.5-Trivial")]
     Trivial,
+    /// Low severity - minor issues with easy workarounds
     #[serde(rename = "Sev.4-Low")]
     Low,
+    /// Medium severity - moderate impact on functionality
     #[serde(rename = "Sev.3-Medium")]
     Medium,
+    /// High severity - significant impact, requires immediate attention
     #[serde(rename = "Sev.2-High")]
     High,
+    /// Critical severity - system down, security vulnerabilities
     #[serde(rename = "Sev.1-Critical")]
     Critical,
 }
@@ -148,75 +187,109 @@ pub enum Severity {
 /// Impact level (ordered from lowest to highest impact for Ord)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ImpactLevel {
+    /// Low impact - affects few users or minor functionality
     Low,
+    /// Medium impact - affects moderate number of users
     Medium,
+    /// High impact - affects many users or critical functionality
     High,
+    /// Critical impact - affects all users or system-wide failure
     Critical,
 }
 
 /// Agent execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentResult {
+    /// Result status (Success/Failed/Escalated)
     pub status: ResultStatus,
+    /// Optional result data (agent-specific)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
+    /// Error message if status is Failed
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    /// Execution metrics (duration, quality score, etc.)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metrics: Option<AgentMetrics>,
+    /// Escalation information if status is Escalated
     #[serde(skip_serializing_if = "Option::is_none")]
     pub escalation: Option<EscalationInfo>,
 }
 
+/// Result status for agent execution
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ResultStatus {
+    /// Agent successfully completed the task
     Success,
+    /// Agent failed to complete the task
     Failed,
+    /// Agent escalated the task to a human operator
     Escalated,
 }
 
 /// Agent execution metrics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentMetrics {
+    /// Task identifier
     pub task_id: String,
+    /// Agent type that executed the task
     pub agent_type: AgentType,
+    /// Execution duration in milliseconds
     pub duration_ms: u64,
+    /// Quality score (0-100) - ReviewAgent only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quality_score: Option<u8>,
+    /// Number of lines changed - CodeGenAgent only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lines_changed: Option<u32>,
+    /// Number of tests added - CodeGenAgent only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tests_added: Option<u32>,
+    /// Test coverage percentage - ReviewAgent only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub coverage_percent: Option<f32>,
+    /// Number of errors found - ReviewAgent only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub errors_found: Option<u32>,
+    /// Timestamp of execution
     pub timestamp: chrono::DateTime<chrono::Utc>,
 }
 
 /// Escalation information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EscalationInfo {
+    /// Reason for escalation
     pub reason: String,
+    /// Target role for escalation
     pub target: EscalationTarget,
+    /// Severity level of the issue
     pub severity: Severity,
+    /// Additional context (issue URLs, error messages, etc.)
     pub context: HashMap<String, serde_json::Value>,
+    /// Timestamp of escalation
     pub timestamp: chrono::DateTime<chrono::Utc>,
 }
 
 /// Agent configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentConfig {
+    /// Device identifier (e.g., "MacBook-Pro", "GitHub-Actions")
     pub device_identifier: String,
+    /// GitHub personal access token (ghp_xxx or github_pat_xxx)
     pub github_token: String,
     // Repository information
+    /// GitHub repository owner (e.g., "ShunsukeHayashi")
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_owner: Option<String>,
+    /// GitHub repository name (e.g., "Miyabi")
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_name: Option<String>,
+    /// Enable Claude Code Task tool integration
     pub use_task_tool: bool,
+    /// Enable Git Worktree-based parallel execution
     pub use_worktree: bool,
+    /// Base path for worktrees (e.g., ".worktrees" or "/tmp/wt")
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -224,21 +297,30 @@ pub struct AgentConfig {
         deserialize_with = "serde_path::deserialize_option"
     )]
     pub worktree_base_path: Option<PathBuf>,
+    /// Directory for agent execution logs (e.g., ".ai/logs")
     pub log_directory: String,
+    /// Directory for agent reports (e.g., ".ai/reports")
     pub report_directory: String,
+    /// GitHub username of Technical Lead (for escalation)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tech_lead_github_username: Option<String>,
+    /// GitHub username of CISO (for security escalation)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ciso_github_username: Option<String>,
+    /// GitHub username of Product Owner (for product escalation)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub po_github_username: Option<String>,
     // Deployment config
+    /// Firebase production project ID
     #[serde(skip_serializing_if = "Option::is_none")]
     pub firebase_production_project: Option<String>,
+    /// Firebase staging project ID
     #[serde(skip_serializing_if = "Option::is_none")]
     pub firebase_staging_project: Option<String>,
+    /// Production deployment URL
     #[serde(skip_serializing_if = "Option::is_none")]
     pub production_url: Option<String>,
+    /// Staging deployment URL
     #[serde(skip_serializing_if = "Option::is_none")]
     pub staging_url: Option<String>,
 }
