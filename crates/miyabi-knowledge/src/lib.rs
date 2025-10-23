@@ -46,6 +46,7 @@
 //! }
 //! ```
 
+pub mod ast_context;
 pub mod cache;
 pub mod chunking;
 pub mod collector;
@@ -58,6 +59,9 @@ pub mod qdrant;
 pub mod searcher;
 pub mod types;
 
+pub use ast_context::{
+    AstError, CodeSymbol, FileContext, FileContextTracker, SymbolKind, Visibility,
+};
 pub use cache::IndexCache;
 pub use collector::{KnowledgeCollector, LogCollector};
 pub use config::{AutoIndexConfig, KnowledgeConfig};

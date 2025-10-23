@@ -55,6 +55,10 @@ pulldown-cmark = "0.9"
 # 正規表現
 regex = "1.10"
 
+# AST parsing
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 mockito = "1.5"
