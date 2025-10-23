@@ -85,6 +85,10 @@ pub use miyabi_agent_core::{
     Orchestrated, OrchestrationEngine,
 };
 
+// Local modules
+pub mod hooks;
+pub use hooks::StructuredLogHook;
+
 // Re-export from specialized agent crates
 pub use miyabi_agent_coordinator::{
     CoordinatorAgent, CoordinatorAgentWithLLM, ParallelExecutor, TaskDecomposition,

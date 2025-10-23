@@ -9,6 +9,7 @@ use chrono::Utc;
 use miyabi_types::agent::AgentType;
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::{AgentResult, Task};
+use serde_json;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::{self, OpenOptions};
@@ -384,6 +385,143 @@ impl AgentHook for AuditLogHook {
         self.append(&entry, worktree_id.as_deref()).await
     }
 }
+
+/// Hook that writes structured JSON logs for agent executions.
+///
+/// Creates timestamped JSON files in `.ai/logs/` directory with complete
+/// execution metadata for analytics and debugging.
+///
+/// # File Format
+///
+/// `.ai/logs/agent-execution-{timestamp}.json`
+///
+/// # Example JSON Structure
+///
+/// ```json
+/// {
+///   "timestamp": "2025-10-23T07:50:00Z",
+///   "agent_type": "CodeGenAgent",
+///   "task_id": "task-123",
+///   "task_type": "Feature",
+///   "issue_number": 449,
+///   "status": "Success",
+///   "duration_ms": 1500,
+///   "quality_score": 85,
+///   "worktree_id": "abc123",
+///   "error": null
+/// }
+/// ```
+pub struct StructuredLogHook {
+    log_dir: PathBuf,
+}
+
+impl StructuredLogHook {
+    pub fn new<P: Into<PathBuf>>(log_dir: P) -> Self {
+        Self {
+            log_dir: log_dir.into(),
+        }
+    }
+
+    /// Write structured JSON log entry.
+    async fn write_json(&self, entry: serde_json::Value) -> Result<()> {
+        let timestamp = Utc::now().format("%Y%m%d-%H%M%S-%3f").to_string();
+        let filename = format!("agent-execution-{}.json", timestamp);
+        let path = self.log_dir.join(filename);
+
+        if let Some(dir) = path.parent() {
+            fs::create_dir_all(dir).await.map_err(MiyabiError::Io)?;
+        }
+
+        let json_str = serde_json::to_string_pretty(&entry)
+            .map_err(|e| MiyabiError::Unknown(format!("Failed to serialize JSON: {}", e)))?;
+
+        fs::write(&path, json_str)
+            .await
+            .map_err(MiyabiError::Io)?;
+
+        tracing::debug!("Structured log written to: {:?}", path);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl AgentHook for StructuredLogHook {
+    async fn on_post_execute(
+        &self,
+        agent: AgentType,
+        task: &Task,
+        result: &AgentResult,
+    ) -> Result<()> {
+        let worktree_id = task
+            .metadata
+            .as_ref()
+            .and_then(|m| m.get("worktree_id"))
+            .and_then(|v| v.as_str())
+            .map(String::from);
+
+        let issue_number = task
+            .metadata
+            .as_ref()
+            .and_then(|m| m.get("issue_number"))
+            .and_then(|v| v.as_u64());
+
+        let entry = serde_json::json!({
+            "timestamp": Utc::now().to_rfc3339(),
+            "agent_type": format!("{:?}", agent),
+            "task_id": &task.id,
+            "task_type": format!("{:?}", task.task_type),
+            "task_title": &task.title,
+            "issue_number": issue_number,
+            "status": format!("{:?}", result.status),
+            "duration_ms": result.metrics.as_ref().map(|m| m.duration_ms),
+            "quality_score": result.metrics.as_ref().and_then(|m| m.quality_score),
+            "lines_changed": result.metrics.as_ref().and_then(|m| m.lines_changed),
+            "tests_added": result.metrics.as_ref().and_then(|m| m.tests_added),
+            "coverage_percent": result.metrics.as_ref().and_then(|m| m.coverage_percent),
+            "errors_found": result.metrics.as_ref().and_then(|m| m.errors_found),
+            "worktree_id": worktree_id,
+            "error": result.error.as_ref().map(|e| e.to_string()),
+            "escalation": result.escalation.as_ref().map(|e| serde_json::json!({
+                "reason": &e.reason,
+                "severity": format!("{:?}", e.severity),
+                "target": format!("{:?}", e.target),
+            })),
+        });
+
+        self.write_json(entry).await
+    }
+
+    async fn on_error(&self, agent: AgentType, task: &Task, error: &MiyabiError) -> Result<()> {
+        let worktree_id = task
+            .metadata
+            .as_ref()
+            .and_then(|m| m.get("worktree_id"))
+            .and_then(|v| v.as_str())
+            .map(String::from);
+
+        let issue_number = task
+            .metadata
+            .as_ref()
+            .and_then(|m| m.get("issue_number"))
+            .and_then(|v| v.as_u64());
+
+        let entry = serde_json::json!({
+            "timestamp": Utc::now().to_rfc3339(),
+            "agent_type": format!("{:?}", agent),
+            "task_id": &task.id,
+            "task_type": format!("{:?}", task.task_type),
+            "task_title": &task.title,
+            "issue_number": issue_number,
+            "status": "Failed",
+            "duration_ms": null,
+            "worktree_id": worktree_id,
+            "error": error.to_string(),
+        });
+
+        self.write_json(entry).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
