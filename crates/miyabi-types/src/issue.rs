@@ -113,7 +113,9 @@ impl Issue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum IssueStateGithub {
+    /// Issue is open and active
     Open,
+    /// Issue is closed and resolved
     Closed,
 }
 
@@ -121,14 +123,22 @@ pub enum IssueStateGithub {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum IssueState {
-    Pending,      // Issue created, awaiting triage
-    Analyzing,    // CoordinatorAgent analyzing
-    Implementing, // Specialist Agents working
-    Reviewing,    // ReviewAgent checking quality
-    Deploying,    // DeploymentAgent deploying
-    Done,         // Completed successfully
-    Blocked,      // Blocked - requires intervention
-    Failed,       // Execution failed
+    /// Issue created, awaiting triage by CoordinatorAgent
+    Pending,
+    /// CoordinatorAgent is analyzing and decomposing the issue into tasks
+    Analyzing,
+    /// Specialist Agents (CodeGen, Review, etc.) are working on tasks
+    Implementing,
+    /// ReviewAgent is checking code quality and running tests
+    Reviewing,
+    /// DeploymentAgent is deploying changes to staging/production
+    Deploying,
+    /// Issue completed successfully with all tasks done
+    Done,
+    /// Issue is blocked and requires human intervention
+    Blocked,
+    /// Execution failed - needs manual review and restart
+    Failed,
 }
 
 impl IssueState {
@@ -150,10 +160,15 @@ impl IssueState {
 /// State transition record
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateTransition {
+    /// Previous state before transition
     pub from: IssueState,
+    /// New state after transition
     pub to: IssueState,
+    /// Timestamp when transition occurred
     pub timestamp: chrono::DateTime<chrono::Utc>,
-    pub triggered_by: String, // Agent or user
+    /// Who triggered the transition (Agent name or "user")
+    pub triggered_by: String,
+    /// Optional reason for the transition
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
@@ -161,17 +176,25 @@ pub struct StateTransition {
 /// Agent execution record
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentExecution {
+    /// Type of agent that executed (CodeGenAgent, ReviewAgent, etc.)
     pub agent_type: AgentType,
+    /// Optional task ID if this execution was for a specific task
     #[serde(skip_serializing_if = "Option::is_none")]
     pub task_id: Option<String>,
+    /// Timestamp when execution started
     pub start_time: chrono::DateTime<chrono::Utc>,
+    /// Timestamp when execution ended (None if still running)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
+    /// Execution duration in milliseconds (None if still running)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_ms: Option<u64>,
+    /// Current status of the execution
     pub status: AgentStatus,
+    /// Execution result (None if failed or still running)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<AgentResult>,
+    /// Error message if execution failed
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -179,25 +202,36 @@ pub struct AgentExecution {
 /// Label change record
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LabelChange {
+    /// Timestamp when label was changed
     pub timestamp: chrono::DateTime<chrono::Utc>,
+    /// Action performed (added or removed)
     pub action: LabelAction,
+    /// Label name that was added or removed
     pub label: String,
-    pub performed_by: String, // Agent or user
+    /// Who performed the action (Agent name or "user")
+    pub performed_by: String,
 }
 
+/// Label action type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LabelAction {
+    /// Label was added to the issue
     Added,
+    /// Label was removed from the issue
     Removed,
 }
 
 /// Trace note (manual annotation)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceNote {
+    /// Timestamp when note was created
     pub timestamp: chrono::DateTime<chrono::Utc>,
-    pub author: String, // Agent or user
+    /// Author of the note (Agent name or "user")
+    pub author: String,
+    /// Note content in Markdown format
     pub content: String,
+    /// Optional tags for categorization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<String>>,
 }
