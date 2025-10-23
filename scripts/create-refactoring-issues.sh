@@ -13,7 +13,7 @@
 #   gh auth login を実行してから実行
 #
 
-set -e
+set +e  # エラーを無視して続行
 
 # GitHub リポジトリ確認
 REPO_OWNER="ShunsukeHayashi"
@@ -110,7 +110,7 @@ cargo test --all
 **Phase**: 1/5 | **期限**: 2日以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P0-Critical" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P0-Critical" \
   && { echo "  ✅ P1-001 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-001 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -160,7 +160,7 @@ cargo test --all
 **Phase**: 1/5 | **期限**: 1日以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P0-Critical" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P0-Critical" \
   && { echo "  ✅ P1-002 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-002 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -225,7 +225,7 @@ discord-mcp-serverをワークスペースに復帰させ、twilight v0.16の破
 **Phase**: 1/5 | **期限**: 1週間以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P1-003 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-003 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -279,7 +279,7 @@ TypeScriptレガシーコード（packages/配下）の削除計画を策定す�
 **Phase**: 1/5 | **期限**: 2日以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P1-004 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-004 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -342,7 +342,7 @@ jobs:
 **Phase**: 1/5 | **期限**: 3日以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P1-005 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-005 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -392,7 +392,7 @@ jobs:
 **Phase**: 1/5 | **期限**: 2日以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P1-006 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-006 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -446,7 +446,7 @@ jobs:
 **Phase**: 1/5 | **期限**: 2日以内
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P1-007 created"; ((created_issues++)); } \
   || { echo "  ❌ P1-007 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -495,7 +495,7 @@ cargo tarpaulin -p miyabi-agents --out Html
 **Phase**: 2/5 | **期限**: Week 3-4
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,🧪 type:test" \
   && { echo "  ✅ P2-001 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-001 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -533,7 +533,7 @@ cargo tarpaulin -p miyabi-types --out Html
 **Phase**: 2/5 | **期限**: Week 3-4
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,🧪 type:test" \
   && { echo "  ✅ P2-002 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-002 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -571,7 +571,7 @@ cargo tarpaulin -p miyabi-cli --out Html
 **Phase**: 2/5 | **期限**: Week 4
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,🧪 type:test" \
   && { echo "  ✅ P2-003 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-003 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -608,7 +608,7 @@ cargo test -p miyabi-web-api --test '*'
 **Phase**: 2/5 | **期限**: Week 4-5
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,🧪 type:test" \
   && { echo "  ✅ P2-004 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-004 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -645,7 +645,7 @@ cargo test -p miyabi-worktree --test '*'
 **Phase**: 2/5 | **期限**: Week 5
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,🧪 type:test" \
   && { echo "  ✅ P2-005 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-005 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -682,7 +682,7 @@ E2Eテストフレームワークを構築し、システム全体のテスト�
 **Phase**: 2/5 | **期限**: Week 5
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium,🧪 type:test" \
   && { echo "  ✅ P2-006 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-006 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -725,7 +725,7 @@ fn test_issue_to_pr_workflow() {
 **Phase**: 2/5 | **期限**: Week 5-6
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium,🧪 type:test" \
   && { echo "  ✅ P2-007 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-007 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -767,7 +767,7 @@ fn test_parallel_worktree_execution() {
 **Phase**: 2/5 | **期限**: Week 6
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium,🧪 type:test" \
   && { echo "  ✅ P2-008 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-008 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -818,7 +818,7 @@ jobs:
 **Phase**: 2/5 | **期限**: Week 6
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium,🧪 tests" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium,🧪 type:test" \
   && { echo "  ✅ P2-009 created"; ((created_issues++)); } \
   || { echo "  ❌ P2-009 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -868,7 +868,7 @@ cargo-udeps
 **Phase**: 3/5 | **期限**: Week 7
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P3-001 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-001 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -905,7 +905,7 @@ P3-001で特定した不要な依存関係を削除する。
 **Phase**: 3/5 | **期限**: Week 7-8
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P3-002 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-002 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -949,7 +949,7 @@ sccacheを導入し、コンパイルキャッシュを有効化する。
 **Phase**: 3/5 | **期限**: Week 8
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P3-003 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-003 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -989,7 +989,7 @@ codegen-units = 1
 **Phase**: 3/5 | **期限**: Week 8
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P3-004 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-004 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1034,7 +1034,7 @@ fn bench_agent_execution(c: &mut Criterion) {
 **Phase**: 3/5 | **期限**: Week 8-9
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P3-005 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-005 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1071,7 +1071,7 @@ Box/Rc/Arcの使用を最適化し、メモリ使用量を削減する。
 **Phase**: 3/5 | **期限**: Week 9
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P3-006 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-006 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1108,7 +1108,7 @@ async/awaitパターンを最適化し、非同期処理のパフォーマンス
 **Phase**: 3/5 | **期限**: Week 9
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P3-007 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-007 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1146,7 +1146,7 @@ heaptrack_gui heaptrack.miyabi.*.gz
 **Phase**: 3/5 | **期限**: Week 9
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P3-Low" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P3-Low" \
   && { echo "  ✅ P3-008 created"; ((created_issues++)); } \
   || { echo "  ❌ P3-008 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1199,7 +1199,7 @@ docs/
 **Phase**: 4/5 | **期限**: Week 10
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,📚 docs" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,📚 type:docs" \
   && { echo "  ✅ P4-001 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-001 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1244,7 +1244,7 @@ pub struct Agent { ... }
 **Phase**: 4/5 | **期限**: Week 10-11
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,📚 docs" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,📚 type:docs" \
   && { echo "  ✅ P4-002 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-002 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1288,7 +1288,7 @@ gh issue create \
 **Phase**: 4/5 | **期限**: Week 11-12
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High,📚 docs" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High,📚 type:docs" \
   && { echo "  ✅ P4-003 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-003 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1341,7 +1341,7 @@ jobs:
 **Phase**: 4/5 | **期限**: Week 11
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium,📚 docs" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium,📚 type:docs" \
   && { echo "  ✅ P4-004 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-004 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1378,7 +1378,7 @@ gh issue create \
 **Phase**: 4/5 | **期限**: Week 11-12
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium,📚 docs" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium,📚 type:docs" \
   && { echo "  ✅ P4-005 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-005 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1417,7 +1417,7 @@ rm -rf packages/types
 **Phase**: 4/5 | **期限**: Week 12
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P4-006 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-006 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1454,7 +1454,7 @@ npm packagesを削除し、アーカイブする。
 **Phase**: 4/5 | **期限**: Week 12
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P4-007 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-007 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1492,7 +1492,7 @@ TypeScript → Rust 移行ガイドを作成する。
 **Phase**: 4/5 | **期限**: Week 12
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P3-Low,📚 docs" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P3-Low,📚 type:docs" \
   && { echo "  ✅ P4-008 created"; ((created_issues++)); } \
   || { echo "  ❌ P4-008 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1541,7 +1541,7 @@ cargo-deps --all-deps | dot -Tsvg > deps.svg
 **Phase**: 5/5 | **期限**: Week 13
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P5-001 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-001 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1578,7 +1578,7 @@ gh issue create \
 **Phase**: 5/5 | **期限**: Week 13-14
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P1-High" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P1-High" \
   && { echo "  ✅ P5-002 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-002 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1619,7 +1619,7 @@ pub trait Plugin {
 **Phase**: 5/5 | **期限**: Week 14-15
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P5-003 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-003 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1656,7 +1656,7 @@ Agent SDK v2.0を設計し、開発体験を向上させる。
 **Phase**: 5/5 | **期限**: Week 15
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P5-004 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-004 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1699,7 +1699,7 @@ async fn execute_agent(task: Task) {
 **Phase**: 5/5 | **期限**: Week 15-16
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P5-005 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-005 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1745,7 +1745,7 @@ pub enum MiyabiError {
 **Phase**: 5/5 | **期限**: Week 16
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P2-Medium" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P2-Medium" \
   && { echo "  ✅ P5-006 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-006 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1787,7 +1787,7 @@ let settings = Config::builder()
 **Phase**: 5/5 | **期限**: Week 16
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P3-Low" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P3-Low" \
   && { echo "  ✅ P5-007 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-007 failed"; ((failed_issues++)); }
 ((total_issues++))
@@ -1828,7 +1828,7 @@ if feature_flags.is_enabled("new_architecture") {
 **Phase**: 5/5 | **期限**: Week 16
 ISSUE_BODY
 )" \
-  --label "🔧 type:refactoring,📥 state:pending,🔥 priority:P3-Low" \
+  --label "🔧 type:refactor,📥 state:pending,🔥 priority:P3-Low" \
   && { echo "  ✅ P5-008 created"; ((created_issues++)); } \
   || { echo "  ❌ P5-008 failed"; ((failed_issues++)); }
 ((total_issues++))

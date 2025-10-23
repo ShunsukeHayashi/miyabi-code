@@ -9,6 +9,10 @@ description = "Miyabi CodeGen Agent - AI-driven code generation with LLM integra
 keywords = ["agents", "ai", "codegen", "llm", "automation"]
 categories = ["development-tools", "web-programming"]
 
+[features]
+default = []
+git-worktree = []
+
 [dependencies]
 miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
 miyabi-agent-integrations = { version = "0.1.0", path = "../miyabi-agent-integrations" }

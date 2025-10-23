@@ -163,3 +163,158 @@ pub async fn write_context_files(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use miyabi_types::agent::{ImpactLevel, Severity};
+    use miyabi_types::task::TaskType;
+    use miyabi_types::{AgentConfig, Task};
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn test_config() -> AgentConfig {
+        AgentConfig {
+            device_identifier: "test-device".to_string(),
+            github_token: "test-token".to_string(),
+            repo_owner: Some("owner".to_string()),
+            repo_name: Some("repo".to_string()),
+            use_task_tool: false,
+            use_worktree: false,
+            worktree_base_path: None,
+            log_directory: "./logs".to_string(),
+            report_directory: "./reports".to_string(),
+            tech_lead_github_username: None,
+            ciso_github_username: None,
+            po_github_username: None,
+            firebase_production_project: None,
+            firebase_staging_project: None,
+            production_url: None,
+            staging_url: None,
+        }
+    }
+
+    fn sample_task() -> Task {
+        let mut task = Task::new(
+            "task-1".to_string(),
+            "Implement new feature".to_string(),
+            "Feature description".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .expect("valid task");
+        task.dependencies = vec!["task-0".to_string()];
+        task.severity = Some(Severity::High);
+        task.impact = Some(ImpactLevel::High);
+        task.estimated_duration = Some(45);
+        task
+    }
+
+    #[test]
+    fn execution_context_contains_sections() {
+        let context = build_execution_context(&sample_task());
+
+        assert!(context.contains("# Execution Context"));
+        assert!(context.contains("**Task ID**: task-1"));
+        assert!(context.contains("**Task Title**: Implement new feature"));
+        assert!(context.contains("**Task Type**: Feature"));
+        assert!(context.contains("**Priority**: 1"));
+        assert!(context.contains("**Severity**: High"));
+        assert!(context.contains("**Impact**: High"));
+        assert!(context.contains("## Description"));
+        assert!(context.contains("Feature description"));
+        assert!(context.contains("## Dependencies"));
+        assert!(context.contains("- task-0"));
+        assert!(context.contains("**Estimated Duration**: 45 minutes"));
+        assert!(context.contains("## Instructions"));
+    }
+
+    #[test]
+    fn execution_context_handles_minimal_task() {
+        let task = Task::new(
+            "task-min".to_string(),
+            "Minimal task".to_string(),
+            "Just do it".to_string(),
+            TaskType::Docs,
+            3,
+        )
+        .expect("valid task");
+
+        let context = build_execution_context(&task);
+
+        assert!(context.contains("**Task ID**: task-min"));
+        assert!(context.contains("**Task Title**: Minimal task"));
+        assert!(!context.contains("**Severity**:"));
+        assert!(!context.contains("**Impact**:"));
+        assert!(!context.contains("## Dependencies"));
+    }
+
+    #[test]
+    fn agent_context_json_serializes_task() {
+        let config = test_config();
+        let task = sample_task();
+
+        let json_str = build_agent_context_json(&config, &task).expect("json");
+        let json: serde_json::Value = serde_json::from_str(&json_str).expect("valid json");
+
+        assert_eq!(json["agentType"], "CodeGenAgent");
+        assert_eq!(json["agentStatus"], "executing");
+        assert_eq!(json["task"]["id"], "task-1");
+        assert_eq!(json["task"]["title"], "Implement new feature");
+        assert_eq!(json["task"]["taskType"], "feature");
+        assert_eq!(json["task"]["priority"], 1);
+        assert_eq!(json["task"]["severity"], "Sev.2-High");
+        assert_eq!(json["task"]["impact"], "High");
+        assert_eq!(json["task"]["dependencies"][0], "task-0");
+        assert_eq!(json["task"]["estimatedDuration"], 45);
+        assert_eq!(
+            json["promptPath"],
+            ".claude/agents/prompts/coding/codegen-agent-prompt.md"
+        );
+    }
+
+    #[test]
+    fn determine_filename_by_task_type() {
+        let mut task = sample_task();
+        task.task_type = TaskType::Feature;
+        assert_eq!(determine_code_filename(&task), "src/feature.rs");
+
+        task.task_type = TaskType::Bug;
+        assert_eq!(determine_code_filename(&task), "src/fix.rs");
+
+        task.task_type = TaskType::Refactor;
+        assert_eq!(determine_code_filename(&task), "src/refactor.rs");
+
+        task.task_type = TaskType::Deployment;
+        assert_eq!(determine_code_filename(&task), "src/generated.rs");
+    }
+
+    #[tokio::test]
+    async fn write_context_files_creates_outputs() {
+        let config = test_config();
+        let task = sample_task();
+
+        let unique = format!(
+            "miyabi-context-test-{}-{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("time")
+                .as_nanos()
+        );
+        let temp_dir = std::env::temp_dir().join(unique);
+        tokio::fs::create_dir_all(&temp_dir)
+            .await
+            .expect("create temp dir");
+
+        write_context_files(&temp_dir, &config, &task)
+            .await
+            .expect("write files");
+
+        assert!(temp_dir.join("EXECUTION_CONTEXT.md").exists());
+        assert!(temp_dir.join(".agent-context.json").exists());
+
+        tokio::fs::remove_dir_all(&temp_dir)
+            .await
+            .expect("cleanup temp dir");
+    }
+}

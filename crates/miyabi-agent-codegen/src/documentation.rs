@@ -82,3 +82,56 @@ pub(crate) fn build_readme_for_files(files: &[String]) -> Result<String, MiyabiE
 
     Ok(generate_readme(&template))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn readme_includes_metadata_for_single_file() {
+        let readme = build_readme_for_files(&["src/my_module.rs".to_string()]).unwrap();
+
+        assert!(readme.contains("# my_module"));
+        assert!(readme.contains("Auto-generated documentation for my_module"));
+        assert!(readme.contains("cargo add my_module"));
+        assert!(readme.contains("```rust"));
+        assert!(readme.contains("use my_module;"));
+        assert!(readme.contains("https://docs.rs/my_module"));
+        assert!(readme.contains("MIT OR Apache-2.0"));
+    }
+
+    #[test]
+    fn readme_uses_first_file_as_project_name() {
+        let readme = build_readme_for_files(&[
+            "src/parser.rs".to_string(),
+            "src/lexer.rs".to_string(),
+            "src/ast.rs".to_string(),
+        ])
+        .unwrap();
+
+        assert!(readme.contains("# parser"));
+        assert!(readme.contains("Auto-generated documentation for parser"));
+    }
+
+    #[test]
+    fn documentation_generation_result_serializes() {
+        let result = DocumentationGenerationResult {
+            rustdoc_path: "target/doc".to_string(),
+            readme_path: Some("README.md".to_string()),
+            warnings: vec!["missing docs".to_string()],
+            success: true,
+        };
+
+        let json = serde_json::to_value(&result).expect("serialize");
+        assert_eq!(json["rustdoc_path"], "target/doc");
+        assert_eq!(json["readme_path"], "README.md");
+        assert_eq!(json["success"], true);
+
+        let deserialized: DocumentationGenerationResult =
+            serde_json::from_value(json).expect("deserialize");
+        assert_eq!(deserialized.rustdoc_path, "target/doc");
+        assert_eq!(deserialized.readme_path, Some("README.md".to_string()));
+        assert_eq!(deserialized.warnings.len(), 1);
+        assert!(deserialized.success);
+    }
+}

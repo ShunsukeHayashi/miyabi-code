@@ -51,3 +51,67 @@ pub fn build_code_generation_prompt(task: &Task) -> String {
 
     prompt
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use miyabi_types::task::TaskType;
+    use miyabi_types::Task;
+
+    fn sample_task() -> Task {
+        let mut task = Task::new(
+            "task-1".to_string(),
+            "Implement new feature".to_string(),
+            "Feature description".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .expect("valid task");
+        task.dependencies = vec!["task-0".to_string()];
+        task.severity = Some(miyabi_types::agent::Severity::High);
+        task.impact = Some(miyabi_types::agent::ImpactLevel::High);
+        task.estimated_duration = Some(30);
+        task
+    }
+
+    #[test]
+    fn prompt_contains_required_sections() {
+        let prompt = build_code_generation_prompt(&sample_task());
+
+        assert!(prompt.contains("# Code Generation Task"));
+        assert!(prompt.contains("**Task ID**: task-1"));
+        assert!(prompt.contains("**Title**: Implement new feature"));
+        assert!(prompt.contains("**Type**: Feature"));
+        assert!(prompt.contains("**Priority**: 1"));
+        assert!(prompt.contains("**Severity**: High"));
+        assert!(prompt.contains("**Impact**: High"));
+        assert!(prompt.contains("## Description"));
+        assert!(prompt.contains("Feature description"));
+        assert!(prompt.contains("## Dependencies"));
+        assert!(prompt.contains("- task-0"));
+        assert!(prompt.contains("## Instructions"));
+        assert!(prompt.contains("Generate clean, idiomatic Rust code"));
+    }
+
+    #[test]
+    fn prompt_handles_minimal_task() {
+        let task = Task::new(
+            "task-min".to_string(),
+            "Minimal task".to_string(),
+            "Just do it".to_string(),
+            TaskType::Refactor,
+            2,
+        )
+        .expect("valid task");
+
+        let prompt = build_code_generation_prompt(&task);
+
+        assert!(prompt.contains("**Task ID**: task-min"));
+        assert!(prompt.contains("**Title**: Minimal task"));
+        assert!(prompt.contains("**Type**: Refactor"));
+        assert!(prompt.contains("**Priority**: 2"));
+        assert!(!prompt.contains("**Severity**:"));
+        assert!(!prompt.contains("**Impact**:"));
+        assert!(!prompt.contains("## Dependencies"));
+    }
+}
