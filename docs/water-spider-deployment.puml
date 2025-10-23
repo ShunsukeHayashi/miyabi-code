@@ -1,0 +1,273 @@
+@startuml Water Spider Orchestrator - Deployment Architecture
+!theme materia-outline
+title Water Spider Orchestrator - Physical Deployment Architecture\n<size:14>分散実行環境 - Mac mini LAN統合</size>
+
+skinparam backgroundColor #f6f8fa
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+' ============================================
+' Cloud (GitHub)
+' ============================================
+cloud "GitHub.com" as github_cloud #24292e {
+
+    node "GitHub Services" as github_services {
+        database "Issue Storage" as issue_db {
+            [Issue #443\nIssue #448\nIssue #449\n...]
+        }
+
+        component "GitHub API" as github_api {
+            [REST API v4]
+            [GraphQL API]
+            [Webhooks]
+        }
+
+        component "GitHub Actions" as github_actions {
+            [Workflow: task-execute.yml]
+            [Workflow: task-monitor.yml]
+            [Workflow: task-cleanup.yml]
+        }
+
+        database "GitHub Packages" as packages {
+            [Docker Images]
+            [Rust Binaries]
+        }
+    }
+}
+
+' ============================================
+' VPS / Cloud Server (Task Scheduler)
+' ============================================
+node "VPS / Cloud Server\n<size:12>(Task Scheduler Host)</size>" as vps_node <<Ubuntu 22.04>> #0366d6 {
+
+    component "Task Scheduler Service" as scheduler_service {
+        [Issue Collector\n(GitHub API Polling)]
+        [Priority Calculator]
+        [Task Queue Manager]
+        [Task Dispatcher]
+    }
+
+    database "Redis\n<size:10>(Queue Storage)</size>" as redis_db {
+        [Priority Queue]
+        [Blocked Queue]
+        [Running Queue]
+    }
+
+    component "Monitoring" as monitoring {
+        [Prometheus]
+        [Grafana]
+        [Alert Manager]
+    }
+
+    note right of scheduler_service
+        **24/7常駐サービス**
+
+        - GitHub API polling (10秒ごと)
+        - Webhook受信
+        - 優先順位計算
+        - Task Queue管理
+        - workflow_dispatch発行
+
+        **リソース要件**
+        - CPU: 2 cores
+        - RAM: 4GB
+        - Disk: 20GB
+    end note
+}
+
+' ============================================
+' Mac mini #1 (Primary Self-hosted Runner)
+' ============================================
+node "Mac mini #1\n<size:12>192.168.3.27 (Primary Runner)</size>" as macmini1 <<macOS Sonoma>> #28a745 {
+
+    component "GitHub Actions Runner #1" as runner1 {
+        [Runner Process\n(Self-hosted)]
+        [Task Receiver]
+        [Environment Setup]
+    }
+
+    component "Claude Code Sessions" as claude_sessions1 {
+        [Session #1: Issue #443\nWorktree: .worktrees/issue-443/]
+        [Session #2: Issue #448\nWorktree: .worktrees/issue-448/]
+        [Session #3: Issue #449\nWorktree: .worktrees/issue-449/]
+    }
+
+    database "Git Repository" as git_repo1 {
+        [Main Branch]
+        [.worktrees/]
+        [- issue-443/]
+        [- issue-448/]
+        [- issue-449/]
+    }
+
+    component "Session Log Manager" as log_manager1 {
+        [git commit監視]
+        [Issue comment投稿]
+        [@mention処理]
+    }
+
+    note right of macmini1
+        **Primary Runner**
+
+        - User: a003
+        - Max parallel: 3 sessions
+        - Claude Code: Installed
+
+        **リソース**
+        - CPU: M2 Pro (12 cores)
+        - RAM: 16GB
+        - Disk: 512GB SSD
+    end note
+}
+
+' ============================================
+' Mac mini #2 (Secondary Self-hosted Runner)
+' ============================================
+node "Mac mini #2\n<size:12>192.168.3.26 (Secondary Runner)</size>" as macmini2 <<macOS Sonoma>> #28a745 {
+
+    component "GitHub Actions Runner #2" as runner2 {
+        [Runner Process\n(Self-hosted)]
+        [Task Receiver]
+        [Environment Setup]
+    }
+
+    component "Claude Code Sessions" as claude_sessions2 {
+        [Session #4: Issue #450\nWorktree: .worktrees/issue-450/]
+        [Session #5: Issue #451\nWorktree: .worktrees/issue-451/]
+    }
+
+    database "Git Repository" as git_repo2 {
+        [Main Branch]
+        [.worktrees/]
+        [- issue-450/]
+        [- issue-451/]
+    }
+
+    component "Session Log Manager" as log_manager2 {
+        [git commit監視]
+        [Issue comment投稿]
+        [@mention処理]
+    }
+
+    note right of macmini2
+        **Secondary Runner**
+
+        - User: shunsukehayashi
+        - Max parallel: 2 sessions
+        - Claude Code: Installed
+
+        **リソース**
+        - CPU: M1 (8 cores)
+        - RAM: 16GB
+        - Disk: 256GB SSD
+    end note
+}
+
+' ============================================
+' Developer Workstation (Optional)
+' ============================================
+node "Developer MacBook\n<size:12>(Manual Execution)</size>" as developer_mac <<macOS Sonoma>> #lightblue {
+
+    component "Claude Code\n(Interactive)" as claude_interactive {
+        [Manual Session]
+        [Human-in-the-loop]
+    }
+
+    component "Git Repository" as dev_git_repo {
+        [Main Branch]
+        [Feature Branches]
+    }
+
+    note right of developer_mac
+        **Manual Intervention**
+
+        - エラー時の手動修正
+        - 複雑なIssue対応
+        - Human-in-the-loop必要時
+
+        手動実行コマンド:
+        ```
+        miyabi agent run coordinator \
+          --issue 443
+        ```
+    end note
+}
+
+' ============================================
+' Network (LAN)
+' ============================================
+cloud "Local Network\n<size:12>192.168.3.0/24</size>" as lan {
+    [Router]
+}
+
+' ============================================
+' Relationships
+' ============================================
+
+' GitHub → Scheduler
+github_api -down-> scheduler_service : HTTPS\nAPI polling (10s)
+github_api -down-> scheduler_service : Webhooks\n(Issue events)
+scheduler_service -up-> github_actions : workflow_dispatch\nTrigger tasks
+
+' Scheduler → Runners (via GitHub Actions)
+github_actions -down-> runner1 : Dispatch Job\n(via GitHub)
+github_actions -down-> runner2 : Dispatch Job\n(via GitHub)
+
+' Scheduler Internal
+scheduler_service -right-> redis_db : Store/Retrieve\nQueues
+scheduler_service -right-> monitoring : Metrics
+
+' Runners → GitHub (Results)
+log_manager1 -up-> github_api : POST\nIssue comments
+log_manager2 -up-> github_api : POST\nIssue comments
+claude_sessions1 -up-> github_api : POST\nCreate PR
+claude_sessions2 -up-> github_api : POST\nCreate PR
+
+' Runners Internal Flow
+runner1 -down-> claude_sessions1 : Spawn Sessions
+runner1 -down-> git_repo1 : Create Worktrees
+claude_sessions1 -down-> log_manager1 : Monitor
+
+runner2 -down-> claude_sessions2 : Spawn Sessions
+runner2 -down-> git_repo2 : Create Worktrees
+claude_sessions2 -down-> log_manager2 : Monitor
+
+' LAN Connections
+lan -down-> macmini1 : Ethernet\n192.168.3.27
+lan -down-> macmini2 : Ethernet\n192.168.3.26
+lan -down-> developer_mac : Wi-Fi
+
+' Developer → GitHub
+claude_interactive -up-> github_api : Manual\nInteraction
+
+legend bottom
+    **Physical Deployment Strategy**
+
+    **GitHub Cloud** (github.com)
+    - Issue Storage (無制限)
+    - GitHub Actions (無料枠: 2,000 min/month)
+    - Webhooks (無制限)
+
+    **VPS / Cloud Server** ($5-10/month)
+    - Task Scheduler Service (常駐)
+    - Redis (Queue管理)
+    - Monitoring (Prometheus + Grafana)
+
+    **Self-hosted Runners** (Mac mini LAN)
+    - Mac mini #1: Primary (3 parallel sessions)
+    - Mac mini #2: Secondary (2 parallel sessions)
+    - Total: 5 parallel executions
+
+    **Network Requirements**
+    - Internet: GitHub API access (HTTPS)
+    - LAN: Self-hosted runners communication
+    - VPN: Tailscale (optional, for remote access)
+
+    **Cost Estimation**
+    - GitHub: Free (Open Source)
+    - VPS: $5-10/month (DigitalOcean/Linode)
+    - Mac mini: Already owned (no additional cost)
+    - Total: $5-10/month
+end legend
+
+@enduml

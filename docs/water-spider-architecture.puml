@@ -1,0 +1,211 @@
+@startuml Water Spider Orchestrator - System Architecture
+!theme materia-outline
+title Water Spider Orchestrator - Complete Async Parallel Execution System\nv1.0.0 - 完全非同期並列実行システム
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #f6f8fa
+skinparam shadowing false
+skinparam rectangleBorderColor #cccccc
+skinparam rectangleBackgroundColor #ffffff
+
+' ============================================
+' GitHub OS Layer
+' ============================================
+package "GitHub OS (Issue Storage)" as github_layer #24292e {
+
+    rectangle "Issues as Tasks" as issues #f0f0f0 {
+        rectangle "Priority Labels" as priority_labels #e1f5fe
+        rectangle "State Labels" as state_labels #fff3e0
+        rectangle "Agent Labels" as agent_labels #f3e5f5
+        rectangle "Dependencies" as dependency_meta #e8f5e9
+    }
+
+    rectangle "GitHub Webhooks" as webhooks #fce4ec {
+        rectangle "issue.created" as webhook_created
+        rectangle "issue.labeled" as webhook_labeled
+        rectangle "issue.commented" as webhook_commented
+    }
+
+    rectangle "GitHub API" as github_api #e3f2fd {
+        rectangle "REST API v4" as rest_api
+        rectangle "GraphQL API" as graphql_api
+    }
+
+    rectangle "GitHub Actions" as github_actions #e8eaf6 {
+        rectangle "task-execute.yml" as workflow_execute
+        rectangle "task-monitor.yml" as workflow_monitor
+    }
+}
+
+' ============================================
+' Task Scheduler Service Layer
+' ============================================
+package "Task Scheduler Service\n(独立サービス 24/7常駐)" as scheduler_layer #0366d6 {
+
+    rectangle "1. Issue Collector" as collector #bbdefb {
+        rectangle "GitHub API Polling\n(10秒ごと)" as polling
+        rectangle "Webhook Receiver" as webhook_receiver
+        rectangle "Issue Parser" as parser
+    }
+
+    rectangle "2. Priority Calculator" as calculator #90caf9 {
+        rectangle "Label-based Priority\nP0>P1>P2>P3" as label_priority
+        rectangle "Dependency Resolution" as dep_resolver
+        rectangle "Time Estimator" as time_estimator
+    }
+
+    rectangle "3. Task Queue\n(優先順位付きキュー)" as task_queue #64b5f6 {
+        rectangle "Priority Queue\nIssue #443 (P0)\nIssue #448 (P1)" as priority_queue
+        rectangle "Blocked Queue\nIssue #471 (depends on #448)" as blocked_queue
+        rectangle "Running Queue\nIssue #490 (in progress)" as running_queue
+    }
+
+    rectangle "4. Task Dispatcher" as dispatcher #42a5f5 {
+        rectangle "Task Assignment" as task_assign
+        rectangle "Load Balancing\n(max 5 parallel)" as load_balance
+        rectangle "workflow_dispatch Trigger" as workflow_trigger
+    }
+}
+
+' ============================================
+' Self-hosted Runner Layer
+' ============================================
+package "Self-hosted Runner\n(Mac mini / Local Machine)" as runner_layer #28a745 {
+
+    rectangle "GitHub Actions\nRunner Process" as runner_process #c8e6c9 {
+        rectangle "Task受信\n(workflow_dispatch)" as task_receive
+        rectangle "環境セットアップ" as env_setup
+    }
+
+    rectangle "Headless Claude Code\nSessions" as claude_sessions #a5d6a7 {
+        note right
+            **原則: 1 Session = 1 Issue**
+            厳密な1対1対応
+        end note
+
+        rectangle "Session #1\nIssue #443\nWorktree: .worktrees/issue-443/\nBranch: feature/issue-443" as session1 #6f42c1
+
+        rectangle "Session #2\nIssue #448\nWorktree: .worktrees/issue-448/\nBranch: feature/issue-448" as session2 #6f42c1
+
+        rectangle "Session #N\nIssue #449\nWorktree: .worktrees/issue-449/\n..." as sessionN #6f42c1
+    }
+
+    rectangle "Session Log Manager" as log_manager #81c784 {
+        rectangle "git commit監視" as git_monitor
+        rectangle "Issue comment記録" as comment_logger
+        rectangle "@mention エスカレーション" as escalation
+    }
+}
+
+' ============================================
+' GitHub Results Layer
+' ============================================
+package "GitHub (Results)" as results_layer #24292e {
+
+    rectangle "Issue Comments\n(ログ記録)" as issue_comments #fff9c4 {
+        rectangle "✅ Phase 1/4完了" as comment1
+        rectangle "🚧 Phase 2/4実行中" as comment2
+        rectangle "⚠️ @mention エラー通知" as comment3
+        rectangle "✅ 完了: PR作成" as comment4
+    }
+
+    rectangle "PR Creation" as pr_creation #c5e1a5 {
+        rectangle "自動PR作成" as auto_pr
+        rectangle "Worktreeマージ" as worktree_merge
+    }
+
+    rectangle "Issue Close" as issue_close #aed581 {
+        rectangle "自動クローズ" as auto_close
+        rectangle "Milestone統合" as milestone_integration
+    }
+}
+
+' ============================================
+' Relationships
+' ============================================
+
+' GitHub → Scheduler
+issues -down-> webhooks
+webhooks -down-> collector : trigger
+github_api -down-> collector : poll (10s)
+
+' Scheduler Internal Flow
+collector -down-> calculator
+calculator -down-> task_queue
+task_queue -down-> dispatcher
+
+' Scheduler → GitHub Actions
+dispatcher -down-> github_actions : workflow_dispatch
+
+' GitHub Actions → Runner
+github_actions -down-> runner_process : dispatch job
+
+' Runner Internal Flow
+runner_process -down-> claude_sessions : spawn sessions
+claude_sessions -down-> log_manager : monitor
+
+' Runner → GitHub
+log_manager -up-> issue_comments : POST logs
+claude_sessions -up-> pr_creation : create PR
+pr_creation -up-> issue_close : close issue
+
+' Feedback Loop
+issue_close -up-> issues : update state
+issue_comments -up-> collector : re-scan
+
+' ============================================
+' Notes
+' ============================================
+note right of task_queue
+    **Task Queue 3種類**
+
+    1. Priority Queue
+       - P0-Critical → P1-High → P2-Medium
+       - 依存関係なし
+       - 即実行可能
+
+    2. Blocked Queue
+       - depends-on未解決
+       - 待機中
+
+    3. Running Queue
+       - 実行中タスク
+       - 最大5並列
+end note
+
+note right of claude_sessions
+    **セッション時間最小化**
+
+    目標: 可能な限り短縮
+    現状: 15-30分/Issue
+
+    **完全非同期実行**
+    - メインラインなし
+    - 全タスク並列完了
+    - 依存関係自動解決
+
+    **コマンド例**
+    ```
+    claude code --headless
+      --execute-command "/agent-run --issue 443"
+      --cwd .worktrees/issue-443
+      --no-human-in-loop
+    ```
+
+    🚫 Human-in-the-loop: 禁止
+    📝 ログ記録: Issue commentに記録
+    🔔 エスカレーション: @mention
+end note
+
+legend bottom
+    **Water Spider Orchestrator - 設計原則**
+
+    1. セッション時間最小化 (可能な限り短縮)
+    2. 完全非同期並列実行 (無制限)
+    3. GitHub OS中心アーキテクチャ
+    4. Self-hosted Runnerによるローカル実行
+    5. 1 Session = 1 Issue (厳密対応)
+    6. ログベース通信 (Human-in-the-loop禁止)
+end legend
+
+@enduml

@@ -1,0 +1,140 @@
+@startuml Water Spider Orchestrator - State Transitions
+!theme materia-outline
+title Water Spider Orchestrator - Issue State Transitions\n<size:14>完全非同期ライフサイクル</size>
+
+skinparam backgroundColor #f6f8fa
+skinparam shadowing false
+
+' ============================================
+' States
+' ============================================
+[*] --> Created : Developer creates Issue
+
+state "Created" as created #lightblue {
+    state "Labels Added" as labeled : P0-Critical\nstate:pending\ntype:infrastructure
+}
+
+state "Priority Queue" as priority_queue #0366d6 {
+    state "Queued" as queued : Priority Score calculated\nWaiting for dispatch
+    state "High Priority" as high_prio : P0-Critical (Score: 100)
+    state "Medium Priority" as med_prio : P1-High (Score: 80)
+    state "Low Priority" as low_prio : P2-Medium (Score: 60)
+
+    high_prio --> queued
+    med_prio --> queued
+    low_prio --> queued
+}
+
+state "Blocked Queue" as blocked_queue #ffa500 {
+    state "Dependencies\nUnresolved" as blocked : depends-on: #443\nWaiting for completion
+}
+
+state "Running Queue" as running_queue #28a745 {
+    state "Dispatched" as dispatched : Task assigned to Runner
+    state "Worktree Created" as worktree : .worktrees/issue-443/\nBranch: feature/issue-443
+    state "Session Executing" as executing : Claude Code headless\n1 Session = 1 Issue
+
+    dispatched --> worktree : Create Worktree
+    worktree --> executing : Start Session
+}
+
+state "Session Phases" as session_phases #6f42c1 {
+    state "Phase 1" as phase1 : Issue分析・DAG構築
+    state "Phase 2" as phase2 : コード生成
+    state "Phase 3" as phase3 : テスト実行
+    state "Phase 4" as phase4 : PR作成
+
+    phase1 --> phase2 : ✅ Analysis Complete
+    phase2 --> phase3 : ✅ Code Generated
+    phase3 --> phase4 : ✅ Tests Passed
+}
+
+state "Completed" as completed #c8e6c9 {
+    state "PR Created" as pr_created : PR #123\ntitle: "feat: implement CI/CD foundation"
+    state "Issue Closed" as closed : state:done\nClosed via PR #123
+}
+
+state "Failed" as failed #ffcdd2 {
+    state "Error Logged" as error_logged : @mention: エスカレーション\nIssue comment: エラー詳細
+    state "Manual Intervention" as manual : Developer review required
+}
+
+' ============================================
+' Transitions
+' ============================================
+created --> priority_queue : Task Scheduler\nparses & prioritizes
+created --> blocked_queue : Dependencies detected
+
+blocked_queue --> priority_queue : Dependencies resolved\n(e.g., Issue #443 completed)
+
+priority_queue --> running_queue : Task Dispatcher\nassigns to Runner\n(max 5 parallel)
+
+running_queue --> session_phases : Claude Code\nSession Start
+
+session_phases --> completed : All phases\ncompleted
+session_phases --> failed : Error occurs\n(timeout, test fail, etc.)
+
+completed --> [*] : Issue closed\nMilestone integrated
+
+failed --> manual : @mention notification
+manual --> created : Developer fixes\nRe-trigger
+
+' ============================================
+' Notes
+' ============================================
+note right of priority_queue
+    **Priority Calculation**
+
+    Score = Label Priority + Urgency
+    - P0-Critical: 100
+    - P1-High: 80
+    - P2-Medium: 60
+    - P3-Low: 40
+
+    Load balancing: max 5 parallel
+end note
+
+note right of blocked_queue
+    **Dependency Resolution**
+
+    Automatic unblock when:
+    1. depends-on Issue completed
+    2. blocked-by Issue resolved
+
+    Re-scan every 10 seconds
+end note
+
+note right of session_phases
+    **Session Time Optimization**
+
+    Current: 15-30 min/Issue
+    Target: 可能な限り短縮
+
+    **No Human-in-the-loop**
+    - Fully automated
+    - Log to Issue comments
+    - @mention only on error
+end note
+
+note right of completed
+    **Automatic Integration**
+
+    1. PR auto-merged (if approved)
+    2. Worktree cleanup
+    3. Issue closed (state:done)
+    4. Milestone auto-integrated
+    5. Dependent Issues unblocked
+end note
+
+legend bottom
+    **State Transition Rules**
+
+    1. **Priority Queue**: All Issues start here (unless blocked)
+    2. **Blocked Queue**: Dependencies must resolve first
+    3. **Running Queue**: Max 5 parallel executions
+    4. **Session Phases**: 可能な限り短縮 (target)
+    5. **Completion**: Automatic PR merge + Issue close
+    6. **Failure**: @mention escalation to developer
+end legend
+
+@enduml

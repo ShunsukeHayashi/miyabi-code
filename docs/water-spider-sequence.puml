@@ -1,0 +1,235 @@
+@startuml Water Spider Orchestrator - Task Flow Sequence
+!theme materia-outline
+title Water Spider Orchestrator - Task Flow Sequence\n<size:14>Issue作成 → 完了までの完全フロー</size>
+
+skinparam backgroundColor #f6f8fa
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+' ============================================
+' Participants
+' ============================================
+actor "Developer" as dev #lightblue
+participant "GitHub\nIssue" as issue #24292e
+participant "Task Scheduler\nService" as scheduler #0366d6
+participant "Priority\nCalculator" as calc #0366d6
+participant "Task Queue" as queue #0366d6
+participant "Task\nDispatcher" as dispatch #0366d6
+participant "GitHub\nActions" as actions #24292e
+participant "Self-hosted\nRunner" as runner #28a745
+participant "Claude Code\nSession" as claude #6f42c1
+participant "Git\nWorktree" as worktree #28a745
+participant "Session Log\nManager" as logger #28a745
+participant "PR" as pr #24292e
+
+' ============================================
+' 1. Issue Creation
+' ============================================
+group Issue Creation & Labeling
+    dev -> issue : Create Issue #443\n"CI/CD基盤構築"
+    activate issue
+
+    dev -> issue : Add Labels\nP0-Critical\nstate:pending\ntype:infrastructure
+
+    issue -> scheduler : Webhook Event\nissue.created
+    activate scheduler
+
+    scheduler -> scheduler : Parse Issue #443
+    note right
+        - タイトル: CI/CD基盤構築
+        - Priority: P0-Critical
+        - State: pending
+        - Dependencies: なし
+    end note
+end
+
+' ============================================
+' 2. Priority Calculation
+' ============================================
+group Priority Calculation
+    scheduler -> calc : Calculate Priority\nIssue #443
+    activate calc
+
+    calc -> calc : Check Labels\nP0-Critical = 優先度100
+
+    calc -> calc : Check Dependencies\n依存なし = 即実行可能
+
+    calc -> calc : Estimate Time\n推定45分
+
+    calc -> scheduler : Priority Score: 100\nBlocked: false
+    deactivate calc
+
+    scheduler -> queue : Enqueue to\nPriority Queue
+    activate queue
+
+    note right of queue
+        **Priority Queue**
+        1. Issue #443 (P0, score:100)
+        2. Issue #448 (P1, score:80)
+        3. Issue #449 (P1, score:75)
+    end note
+end
+
+' ============================================
+' 3. Task Dispatch
+' ============================================
+group Task Dispatch
+    queue -> dispatch : Dequeue\nIssue #443
+    activate dispatch
+
+    dispatch -> dispatch : Check Load\n現在: 2/5 並列実行中
+
+    dispatch -> dispatch : Assign to\nSelf-hosted Runner
+
+    dispatch -> actions : workflow_dispatch\ntask-execute.yml\nwith: issue_number=443
+    deactivate dispatch
+    activate actions
+
+    actions -> runner : Trigger Job
+    deactivate actions
+    activate runner
+
+    runner -> runner : Setup Environment
+    note right
+        - Git clone/pull
+        - .claude/ 設定読み込み
+        - 環境変数設定
+    end note
+end
+
+' ============================================
+' 4. Worktree Creation
+' ============================================
+group Worktree Creation
+    runner -> worktree : Create Worktree\n.worktrees/issue-443
+    activate worktree
+
+    worktree -> worktree : git worktree add\n--track -b feature/issue-443
+
+    worktree -> runner : Worktree Ready
+end
+
+' ============================================
+' 5. Claude Code Session
+' ============================================
+group Claude Code Execution (時間最小化)
+    runner -> claude : Start Headless Session
+    activate claude
+
+    note right of claude
+        **実行コマンド**
+        ```
+        claude code --headless \
+          --execute-command "/agent-run --issue 443" \
+          --cwd .worktrees/issue-443 \
+          --no-human-in-loop
+        ```
+
+        **原則**
+        - 1 Session = 1 Issue
+        - Human-in-the-loop禁止
+        - ログはIssue commentに記録
+    end note
+
+    claude -> claude : Phase 1/4\nIssue分析・DAG構築
+    claude -> logger : Log Progress
+    activate logger
+    logger -> issue : Post Comment\n"✅ Phase 1/4完了:\nIssue分析・DAG構築"
+    deactivate logger
+
+    claude -> claude : Phase 2/4\nコード生成
+    claude -> logger : Log Progress
+    activate logger
+    logger -> issue : Post Comment\n"🚧 Phase 2/4実行中:\nコード生成..."
+    deactivate logger
+
+    claude -> worktree : git add .\ngit commit -m "feat: implement CI/CD..."
+    worktree -> worktree : Commit\nfeature/issue-443
+
+    claude -> claude : Phase 3/4\nテスト実行
+    claude -> logger : Log Progress
+    activate logger
+    logger -> issue : Post Comment\n"🧪 Phase 3/4実行中:\nテスト実行..."
+    deactivate logger
+
+    claude -> claude : Phase 4/4\nPR作成
+    claude -> worktree : git push origin\nfeature/issue-443
+
+    claude -> pr : Create PR #123\ntitle: "feat: implement CI/CD foundation"\nbody: "Closes #443"
+    activate pr
+
+    claude -> logger : Log Completion
+    activate logger
+    logger -> issue : Post Comment\n"✅ 完了: PR #123作成\n4ファイル変更（+293/-1）"
+    deactivate logger
+
+    claude -> runner : Session Complete\nExit Code: 0
+    deactivate claude
+end
+
+' ============================================
+' 6. Cleanup & Merge
+' ============================================
+group Cleanup & Integration
+    runner -> worktree : Cleanup Worktree\ngit worktree remove
+    deactivate worktree
+
+    runner -> scheduler : Report Success\nIssue #443 completed
+    deactivate runner
+
+    scheduler -> queue : Update Queue\nRemove from Running
+    deactivate queue
+    deactivate scheduler
+
+    pr -> issue : PR Merged
+    pr -> issue : Close Issue #443\nstate:done
+    deactivate pr
+    deactivate issue
+
+    note right of issue
+        **Issue #443**
+        State: done ✅
+        Closed via PR #123
+    end note
+end
+
+' ============================================
+' 7. Dependency Unblock
+' ============================================
+group Dependency Resolution
+    scheduler -> scheduler : Scan Blocked Queue
+    activate scheduler
+
+    scheduler -> calc : Re-check Dependencies\nIssue #471 (depends on #443)
+    activate calc
+
+    calc -> calc : Check Status\nIssue #443: done ✅
+
+    calc -> scheduler : Dependencies Resolved\nIssue #471 ready
+    deactivate calc
+
+    scheduler -> queue : Move to Priority Queue\nIssue #471
+    activate queue
+
+    note right of queue
+        **Priority Queue (Updated)**
+        1. Issue #471 (P1, unblocked)
+        2. Issue #448 (P1)
+        3. Issue #449 (P1)
+    end note
+
+    queue -> dispatch : Trigger Next Task\nIssue #471
+    activate dispatch
+
+    dispatch -> actions : workflow_dispatch\nIssue #471
+    deactivate dispatch
+    deactivate queue
+    deactivate scheduler
+
+    note right of actions
+        次のタスク実行開始...
+        完全非同期で継続
+    end note
+end
+
+@enduml
