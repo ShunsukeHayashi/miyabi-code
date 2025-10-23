@@ -108,6 +108,7 @@ pub trait Orchestrated: Send + Sync {
 
 /// オーケストレーション実行エンジン
 pub struct OrchestrationEngine {
+    /// Orchestration configuration (retry, backoff, timeout)
     config: OrchestrationConfig,
 }
 

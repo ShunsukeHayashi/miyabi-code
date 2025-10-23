@@ -44,7 +44,9 @@ pub trait AgentHook: Send + Sync {
 
 /// Wrapper that executes hooks around a concrete agent implementation.
 pub struct HookedAgent<A: BaseAgent> {
+    /// The wrapped agent instance
     agent: A,
+    /// Registered lifecycle hooks
     hooks: Vec<Arc<dyn AgentHook>>,
 }
 
@@ -117,6 +119,7 @@ impl<A: BaseAgent> HookedAgent<A> {
 
 /// Hook that validates required environment variables exist before execution.
 pub struct EnvironmentCheckHook {
+    /// List of environment variable names that must be present
     required_vars: Vec<String>,
 }
 
@@ -188,6 +191,7 @@ impl AgentHook for MetricsHook {
 
 /// Hook that appends execution details to log files under `.ai/logs`.
 pub struct AuditLogHook {
+    /// Directory where log files are stored (e.g., ".ai/logs")
     log_dir: PathBuf,
 }
 
