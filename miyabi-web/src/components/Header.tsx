@@ -11,6 +11,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Bot, LogOut, Menu } from 'lucide-react';
 import { useState } from 'react';
 
@@ -73,15 +84,34 @@ export default function Header() {
               className="w-10 h-10 rounded-full"
             />
           )}
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="ml-4"
-            aria-label="Logout"
-          >
-            <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
-            Logout
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="ml-4"
+                aria-label="Logout"
+              >
+                <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
+                Logout
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>ログアウトの確認</AlertDialogTitle>
+                <AlertDialogDescription>
+                  本当にログアウトしますか？
+                  <br />
+                  再度ログインするにはGitHub認証が必要です。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                  ログアウト
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Mobile Menu */}
@@ -138,18 +168,39 @@ export default function Header() {
                     <p className="text-xs text-slate-500">@{user?.githubId}</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    handleLogout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full"
-                  aria-label="Logout"
-                >
-                  <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
-                  Logout
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      aria-label="Logout"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
+                      Logout
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ログアウトの確認</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        本当にログアウトしますか？
+                        <br />
+                        再度ログインするにはGitHub認証が必要です。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          handleLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        ログアウト
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </SheetContent>

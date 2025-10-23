@@ -13,6 +13,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Loader2,
   Bot,
   ExternalLink,
@@ -255,24 +266,48 @@ export default function IssuesPage() {
 
                   <div className="w-full sm:w-auto sm:ml-4">
                     {issue.state === 'open' && (
-                      <Button
-                        onClick={() => handleExecuteAgent(issue)}
-                        disabled={executingIssueId === issue.id}
-                        aria-label={`Execute agent for issue #${issue.number}`}
-                        className="w-full sm:w-auto"
-                      >
-                        {executingIssueId === issue.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-                            実行中...
-                          </>
-                        ) : (
-                          <>
-                            <Bot className="h-4 w-4 mr-2" aria-hidden="true" />
-                            Agent実行
-                          </>
-                        )}
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            disabled={executingIssueId === issue.id}
+                            aria-label={`Execute agent for issue #${issue.number}`}
+                            className="w-full sm:w-auto"
+                          >
+                            {executingIssueId === issue.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                                実行中...
+                              </>
+                            ) : (
+                              <>
+                                <Bot className="h-4 w-4 mr-2" aria-hidden="true" />
+                                Agent実行
+                              </>
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Agent実行の確認</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Issue #{issue.number} に対してCoordinatorAgentを実行します。
+                              <br />
+                              <br />
+                              <strong>{issue.title}</strong>
+                              <br />
+                              <br />
+                              この操作により、Agentが自動的にタスクを分析・実行します。
+                              よろしいですか？
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleExecuteAgent(issue)}>
+                              実行
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 </div>
