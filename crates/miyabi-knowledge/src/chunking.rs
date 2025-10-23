@@ -244,7 +244,7 @@ mod tests {
         let text = "Paragraph 1.\n\nParagraph 2.\n\nParagraph 3.";
         let chunks = chunker.chunk_by_paragraphs(text).unwrap();
 
-        assert!(chunks.len() >= 1);
+        assert!(!chunks.is_empty());
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod tests {
         let text = "Sentence 1. Sentence 2. Sentence 3.";
         let chunks = chunker.chunk_by_sentences(text).unwrap();
 
-        assert!(chunks.len() >= 1);
+        assert!(!chunks.is_empty());
     }
 
     #[test]

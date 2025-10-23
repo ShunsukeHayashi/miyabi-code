@@ -6,10 +6,8 @@
 //! ```
 
 use clap::Parser;
-use reqwest;
 use serde::{Deserialize, Serialize};
 use std::env;
-use tokio;
 
 #[derive(Parser)]
 struct Args {

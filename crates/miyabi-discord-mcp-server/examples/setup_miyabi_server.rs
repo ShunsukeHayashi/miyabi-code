@@ -81,16 +81,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .await?;
 
-    let categories = vec![
-        "📢 WELCOME & RULES",
+    let categories = ["📢 WELCOME & RULES",
         "💬 GENERAL",
         "🔧 CODING AGENTS",
         "💼 BUSINESS AGENTS",
         "🆘 SUPPORT",
         "🎨 SHOWCASE",
         "🛠️ DEVELOPMENT",
-        "🎉 COMMUNITY",
-    ];
+        "🎉 COMMUNITY"];
 
     for (i, category_name) in categories.iter().enumerate() {
         println!("Creating category: {}", category_name);

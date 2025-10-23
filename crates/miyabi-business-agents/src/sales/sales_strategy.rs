@@ -397,6 +397,7 @@ mod tests {
         }
         let agent = agent.unwrap();
 
+        #[allow(clippy::field_reassign_with_default)]
         let mut plan = BusinessPlan::default();
         plan.recommendations = vec![
             Recommendation {

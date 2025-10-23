@@ -2,6 +2,8 @@
 //!
 //! This crate provides 15 specialized business agents for SaaS operations,
 //! including strategy, marketing, sales, and analytics automation.
+
+#![allow(clippy::field_reassign_with_default)]
 //!
 //! # Agent Categories
 //!
@@ -94,7 +96,6 @@ pub use types::*;
 mod tests {
     #[test]
     fn test_crate_compiles() {
-        // Basic compilation test
-        assert!(true);
+        // Basic compilation test - if this test runs, the crate compiles
     }
 }

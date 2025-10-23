@@ -223,9 +223,11 @@ mod tests {
 
     #[test]
     fn test_knowledge_metadata_serialization() {
-        let mut metadata = KnowledgeMetadata::default();
-        metadata.workspace = "test-workspace".to_string();
-        metadata.agent = Some("CodeGenAgent".to_string());
+        let metadata = KnowledgeMetadata {
+            workspace: "test-workspace".to_string(),
+            agent: Some("CodeGenAgent".to_string()),
+            ..Default::default()
+        };
 
         let json = serde_json::to_string(&metadata).unwrap();
         let deserialized: KnowledgeMetadata = serde_json::from_str(&json).unwrap();

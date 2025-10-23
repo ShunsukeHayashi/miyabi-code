@@ -8,12 +8,12 @@
 use miyabi_worktree::{WorktreeManager, WorktreeStatus};
 use serial_test::serial;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::time::Duration;
 
 /// Helper to create a test file in worktree
 async fn create_test_file(
-    path: &PathBuf,
+    path: &Path,
     filename: &str,
     content: &str,
 ) -> Result<(), std::io::Error> {
@@ -23,7 +23,7 @@ async fn create_test_file(
 }
 
 /// Helper to commit changes in worktree
-async fn commit_changes(path: &PathBuf, message: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn commit_changes(path: &Path, message: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Stage all changes
     let output = tokio::process::Command::new("git")
         .arg("add")
@@ -161,7 +161,7 @@ async fn test_parallel_worktree_execution() {
         let worktree = manager
             .create_worktree(issue)
             .await
-            .expect(&format!("Failed to create worktree for issue #{}", issue));
+            .unwrap_or_else(|_| panic!("Failed to create worktree for issue #{}", issue));
 
         // Simulate work
         tokio::time::sleep(Duration::from_millis(100)).await;

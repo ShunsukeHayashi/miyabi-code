@@ -6,10 +6,8 @@
 //! ```
 
 use clap::Parser;
-use reqwest;
 use serde::{Deserialize, Serialize};
 use std::env;
-use tokio;
 
 #[derive(Parser)]
 struct Args {
@@ -151,14 +149,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent_urls = generate_image(&client, &api_key, agent_prompt, Some(6)).await?;
 
     println!("\n📥 Agent Character URLs:");
-    let agent_names = vec![
-        "しきるん (Coordinator)",
+    let agent_names = ["しきるん (Coordinator)",
         "つくるん (CodeGen)",
         "めだまん (Review)",
         "はこぶん (Deployment)",
         "つなぐん (PR Agent)",
-        "みつけるん (Issue Agent)",
-    ];
+        "みつけるん (Issue Agent)"];
     for (i, (name, url)) in agent_names.iter().zip(agent_urls.iter()).enumerate() {
         println!("   [{}] {}: {}", i + 1, name, url);
     }

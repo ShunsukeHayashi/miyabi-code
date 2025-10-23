@@ -311,7 +311,7 @@ impl QdrantIndexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::KnowledgeMetadata;
+    
 
     #[tokio::test]
     async fn test_vectorize_placeholder() {

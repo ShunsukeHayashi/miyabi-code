@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .or_else(|| env::var("DISCORD_BOT_TOKEN").ok())
         .expect("DISCORD_BOT_TOKEN not found");
 
-    let guild_id: Id<GuildMarker> = args.guild_id.parse()?;
+    let _guild_id: Id<GuildMarker> = args.guild_id.parse()?;
     let progress_channel: Id<ChannelMarker> = args.progress_channel_id.parse()?;
 
     let client = Client::new(token);
@@ -60,8 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let summary_embed = Embed {
         author: None,
         color: Some(0x9B59B6), // Purple
-        description: Some(format!(
-            "🎉 **Miyabi Community ビジュアルアセット生成完了！**\n\n\
+        description: Some("🎉 **Miyabi Community ビジュアルアセット生成完了！**\n\n\
              ARK API (seedream-4-0) を使用して、3種類の画像を生成しました。\n\n\
              **生成アセット**:\n\
              1. 🌸 Miyabiちゃん（メインマスコット）\n\
@@ -70,8 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              **次のステップ**:\n\
              1. 画像をダウンロード\n\
              2. Discordサーバー設定でアップロード\n\
-             3. サーバーアイコン・バナーとして設定"
-        )),
+             3. サーバーアイコン・バナーとして設定".to_string()),
         fields: vec![],
         footer: Some(EmbedFooter {
             icon_url: None,

@@ -11,12 +11,11 @@ use clap::Parser;
 use std::collections::HashMap;
 use std::env;
 use twilight_http::Client;
-use twilight_model::channel::message::embed::{Embed, EmbedAuthor, EmbedFooter};
+use twilight_model::channel::message::embed::{Embed, EmbedFooter};
 use twilight_model::id::{
     marker::{ChannelMarker, GuildMarker},
     Id,
 };
-use twilight_model::util::Timestamp;
 
 #[derive(Parser)]
 struct Args {

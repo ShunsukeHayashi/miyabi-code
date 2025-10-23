@@ -12,10 +12,8 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
-use tracing_subscriber;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
@@ -236,7 +234,6 @@ impl MiyabiBot {
         if content.starts_with(&self.command_prefix) {
             // Parse command
             let args: Vec<&str> = content[self.command_prefix.len()..]
-                .trim()
                 .split_whitespace()
                 .collect();
 

@@ -224,7 +224,7 @@ mod tests {
 
     #[test]
     fn test_priority_score() {
-        let mut entry = FeedbackEntry {
+        let entry = FeedbackEntry {
             message_id: Id::new(1),
             author_name: "test_user".to_string(),
             author_id: "123".to_string(),

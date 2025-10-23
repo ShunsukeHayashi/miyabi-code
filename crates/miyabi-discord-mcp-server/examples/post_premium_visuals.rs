@@ -10,7 +10,7 @@
 use clap::Parser;
 use std::env;
 use twilight_http::Client;
-use twilight_model::channel::message::embed::{Embed, EmbedField, EmbedFooter};
+use twilight_model::channel::message::embed::{Embed, EmbedFooter};
 use twilight_model::id::{
     marker::{ChannelMarker, GuildMarker},
     Id,

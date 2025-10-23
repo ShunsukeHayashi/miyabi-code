@@ -198,10 +198,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_knowledge_manager_creation() {
-        let config = KnowledgeConfig::default();
+        let _config = KnowledgeConfig::default();
         // Note: This will fail without Qdrant running
         // Use mock in actual tests
-        // let manager = KnowledgeManager::new(config).await;
+        // let manager = KnowledgeManager::new(_config).await;
         // assert!(manager.is_ok());
     }
 }
