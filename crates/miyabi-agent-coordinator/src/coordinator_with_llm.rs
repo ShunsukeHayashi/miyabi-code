@@ -107,16 +107,70 @@ impl CoordinatorAgentWithLLM {
         let plans_md = self.base_coordinator.generate_plans_md(&decomposition);
         tracing::info!("Generated Plans.md ({} characters)", plans_md.len());
 
-        // Write Plans.md to current directory with issue number in filename
+        // Write Plans.md to .ai/plans/{issue-number}/Plans-{timestamp}.md
         let issue_number = decomposition.original_issue.number;
-        let plans_filename = format!("Plans-{}.md", issue_number);
-        if let Err(e) = std::fs::write(&plans_filename, &plans_md) {
-            tracing::warn!("Failed to write {}: {}", plans_filename, e);
-        } else {
-            tracing::info!("✅ {} written successfully", plans_filename);
+        if let Err(e) = self.write_plans_with_history(issue_number, &plans_md).await {
+            tracing::warn!("Failed to write Plans.md with history: {}", e);
         }
 
         Ok(decomposition)
+    }
+
+    /// Write Plans.md with history management
+    /// Format: .ai/plans/{issue-number}/Plans-{timestamp}.md
+    async fn write_plans_with_history(&self, issue_number: u64, content: &str) -> Result<()> {
+        use chrono::Utc;
+        use std::fs;
+        use std::path::PathBuf;
+
+        // Create directory structure: .ai/plans/{issue-number}/
+        let plans_dir: PathBuf = format!(".ai/plans/{}", issue_number).into();
+        fs::create_dir_all(&plans_dir)?;
+
+        // Generate timestamped filename: Plans-{timestamp}.md
+        let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
+        let filename = format!("Plans-{}.md", timestamp);
+        let file_path = plans_dir.join(&filename);
+
+        // Write content
+        fs::write(&file_path, content)?;
+
+        tracing::info!(
+            "✅ Plans.md written: {} ({} bytes)",
+            file_path.display(),
+            content.len()
+        );
+
+        // Also create a symlink to latest version: Plans-latest.md
+        let latest_link = plans_dir.join("Plans-latest.md");
+
+        // Remove old symlink if exists
+        if latest_link.exists() {
+            let _ = fs::remove_file(&latest_link);
+        }
+
+        // Create symlink (Unix only)
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::symlink;
+            if let Err(e) = symlink(&filename, &latest_link) {
+                tracing::warn!("Failed to create Plans-latest.md symlink: {}", e);
+            } else {
+                tracing::info!("✅ Symlink created: {}", latest_link.display());
+            }
+        }
+
+        // On Windows or if symlink failed, copy the file
+        #[cfg(not(unix))]
+        {
+            if let Err(e) = fs::copy(&file_path, &latest_link) {
+                tracing::warn!("Failed to copy Plans-latest.md: {}", e);
+            } else {
+                tracing::info!("✅ Latest copy created: {}", latest_link.display());
+            }
+        }
+
+        Ok(())
     }
 
     /// Create task decomposition prompt for LLM
@@ -590,6 +644,55 @@ mod tests {
         assert_eq!(tasks[1].assigned_agent, Some(AgentType::CodeGenAgent));
         assert_eq!(tasks[1].dependencies.len(), 1);
         assert_eq!(tasks[1].dependencies[0], "task-123-analysis");
+    }
+
+    #[tokio::test]
+    async fn test_write_plans_with_history() {
+        use std::fs;
+        use std::path::PathBuf;
+
+        let config = create_test_config();
+        let agent = CoordinatorAgentWithLLM::new(config);
+
+        let issue_number = 999;
+        let content = "# Test Plans\n\nThis is a test.";
+
+        // Clean up test directory
+        let test_dir: PathBuf = format!(".ai/plans/{}", issue_number).into();
+        let _ = fs::remove_dir_all(&test_dir);
+
+        // Write plans
+        agent
+            .write_plans_with_history(issue_number, content)
+            .await
+            .unwrap();
+
+        // Verify directory exists
+        assert!(test_dir.exists());
+
+        // Verify at least one Plans-*.md file exists
+        let entries = fs::read_dir(&test_dir).unwrap();
+        let plans_files: Vec<_> = entries
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.file_name()
+                    .to_string_lossy()
+                    .starts_with("Plans-")
+                    && e.file_name().to_string_lossy().ends_with(".md")
+            })
+            .collect();
+
+        assert!(!plans_files.is_empty(), "No Plans-*.md files found");
+
+        // Verify latest symlink exists (Unix only)
+        #[cfg(unix)]
+        {
+            let latest_link = test_dir.join("Plans-latest.md");
+            assert!(latest_link.exists(), "Plans-latest.md not found");
+        }
+
+        // Clean up
+        let _ = fs::remove_dir_all(&test_dir);
     }
 
     #[tokio::test]

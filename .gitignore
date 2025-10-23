@@ -40,10 +40,17 @@ lerna-debug.log*
 
 # AI Agent outputs
 .ai/logs/*.md
+.ai/logs/*.json
 .ai/parallel-reports/*.json
 .ai/parallel-reports/escalations/
 .ai/issues/*.json
 .ai/*.mjs
+
+# Plans history management (keep all Plans.md files)
+# Format: .ai/plans/{issue-number}/Plans-{timestamp}.md
+!.ai/plans/
+!.ai/plans/**/
+!.ai/plans/**/*.md
 
 # Keep directory structure but ignore contents
 !.ai/logs/.gitkeep

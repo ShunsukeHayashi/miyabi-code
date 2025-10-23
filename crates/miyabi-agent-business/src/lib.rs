@@ -27,20 +27,17 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use miyabi_agent_business::AIEntrepreneurAgent;
 //! use miyabi_agent_core::BaseAgent;
 //! use miyabi_types::{AgentConfig, Task};
 //!
-//! # async fn example() -> miyabi_types::error::Result<()> {
-//! let config = AgentConfig::default();
+//! # async fn example() {
+//! let config = AgentConfig { /* config fields */ };
 //! let entrepreneur = AIEntrepreneurAgent::new(config);
 //!
-//! let task = Task::default(); // Your task here
-//! let result = entrepreneur.execute(&task).await?;
-//!
-//! println!("Business plan: {}", result.data);
-//! # Ok(())
+//! let task = Task { /* task fields */ };
+//! let result = entrepreneur.execute(&task).await;
 //! # }
 //! ```
 

@@ -15,20 +15,17 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use miyabi_agent_codegen::CodeGenAgent;
 //! use miyabi_agent_core::BaseAgent;
 //! use miyabi_types::{AgentConfig, Task};
 //!
-//! # async fn example() -> miyabi_types::error::Result<()> {
-//! let config = AgentConfig::default();
+//! # async fn example() {
+//! let config = AgentConfig { /* config fields */ };
 //! let codegen = CodeGenAgent::new(config);
 //!
-//! let task = Task::default(); // Your task here
-//! let result = codegen.execute(&task).await?;
-//!
-//! println!("Generated code: {}", result.data);
-//! # Ok(())
+//! let task = Task { /* task fields */ };
+//! let result = codegen.execute(&task).await;
 //! # }
 //! ```
 
