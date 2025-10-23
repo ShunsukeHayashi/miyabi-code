@@ -296,7 +296,17 @@ impl WorktreeManager {
         Ok(worktree_info)
     }
 
-    /// Remove worktree after task completion
+    /// Remove worktree after task completion with safety checks
+    ///
+    /// This method implements the safe worktree deletion protocol:
+    /// 1. Check if current directory is inside the worktree to be deleted
+    /// 2. If yes, change to repository root first
+    /// 3. Verify worktree exists
+    /// 4. Execute git worktree remove
+    /// 5. Run git worktree prune
+    ///
+    /// This prevents "Unable to read current working directory" errors
+    /// that occur when deleting a worktree while the shell is inside it.
     pub async fn remove_worktree(&self, worktree_id: &str) -> Result<()> {
         let worktree_info = {
             let worktrees = self.worktrees.lock().await;
@@ -317,22 +327,68 @@ impl WorktreeManager {
 
         tracing::info!("Removing worktree {:?}", worktree_info.path);
 
-        // Remove worktree using git command
-        let output = tokio::process::Command::new("git")
+        // SAFETY CHECK: Ensure we're not in the worktree directory
+        // This prevents bash session crashes when deleting the current directory
+        if let Ok(current_dir) = std::env::current_dir() {
+            if current_dir.starts_with(&worktree_info.path) {
+                tracing::warn!(
+                    "Current directory is inside worktree to be deleted. Changing to repository root first."
+                );
+                if let Err(e) = std::env::set_current_dir(&self.repo_path) {
+                    tracing::error!(
+                        "Failed to change directory to repository root: {}. This may cause issues.",
+                        e
+                    );
+                    // Continue anyway - the git command uses current_dir() parameter
+                }
+            }
+        }
+
+        // Check if worktree path exists
+        if !worktree_info.path.exists() {
+            tracing::warn!(
+                "Worktree path does not exist: {:?}. It may have been already removed.",
+                worktree_info.path
+            );
+            // Continue to clean up tracking data
+        } else {
+            // Remove worktree using git command
+            // Always use repo_path as current_dir to avoid being inside the worktree
+            let output = tokio::process::Command::new("git")
+                .arg("worktree")
+                .arg("remove")
+                .arg(&worktree_info.path)
+                .arg("--force")
+                .current_dir(&self.repo_path)
+                .output()
+                .await
+                .map_err(|e| {
+                    MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e))
+                })?;
+
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                tracing::warn!("Failed to remove worktree: {}", stderr);
+            }
+        }
+
+        // Run git worktree prune to clean up worktree metadata
+        // This removes stale worktree administrative files
+        let prune_output = tokio::process::Command::new("git")
             .arg("worktree")
-            .arg("remove")
-            .arg(&worktree_info.path)
-            .arg("--force")
+            .arg("prune")
             .current_dir(&self.repo_path)
             .output()
             .await
             .map_err(|e| {
-                MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e))
+                MiyabiError::Git(format!("Failed to execute git worktree prune: {}", e))
             })?;
 
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            tracing::warn!("Failed to remove worktree: {}", stderr);
+        if !prune_output.status.success() {
+            let stderr = String::from_utf8_lossy(&prune_output.stderr);
+            tracing::warn!("Failed to prune worktrees: {}", stderr);
+        } else {
+            tracing::info!("✅ git worktree prune completed successfully");
         }
 
         // Remove branch
