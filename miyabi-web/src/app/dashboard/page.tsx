@@ -16,146 +16,150 @@ export default function DashboardPage() {
   const { user } = useAuthStore();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-16">
       <div>
-        <h2 className="text-3xl font-bold text-slate-900">
+        <h2 className="text-6xl font-semibold tracking-tight text-gray-900 mb-4">
           Welcome back, {user?.name || 'there'}!
         </h2>
-        <p className="mt-2 text-slate-600">
+        <p className="text-lg text-gray-600">
           Here's what's happening with your autonomous agents
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
+      {/* Summary Cards - Ive Style: グレースケールのみ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <Card className="border border-gray-200 transition-colors hover:bg-gray-50">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">
+                <p className="text-sm font-medium text-gray-600 mb-3">
                   Active Executions
                 </p>
-                <p className="mt-2 text-3xl font-bold text-slate-900">0</p>
+                <p className="text-5xl font-extralight text-gray-900">0</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Activity className="h-6 w-6 text-blue-600" />
+              <div className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center">
+                <Activity className="h-7 w-7 text-gray-900" />
               </div>
             </div>
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-6 text-sm text-gray-500">
               No active agent executions
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border border-gray-200 transition-colors hover:bg-gray-50">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">
+                <p className="text-sm font-medium text-gray-600 mb-3">
                   Completed Today
                 </p>
-                <p className="mt-2 text-3xl font-bold text-slate-900">0</p>
+                <p className="text-5xl font-extralight text-gray-900">0</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center">
+                <CheckCircle2 className="h-7 w-7 text-gray-900" />
               </div>
             </div>
-            <p className="mt-4 text-sm text-slate-500">100% success rate</p>
+            <p className="mt-6 text-sm text-gray-500">100% success rate</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border border-gray-200 transition-colors hover:bg-gray-50">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Failed</p>
-                <p className="mt-2 text-3xl font-bold text-slate-900">0</p>
+                <p className="text-sm font-medium text-gray-600 mb-3">Failed</p>
+                <p className="text-5xl font-extralight text-gray-900">0</p>
               </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <XCircle className="h-6 w-6 text-red-600" />
+              <div className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center">
+                <XCircle className="h-7 w-7 text-gray-900" />
               </div>
             </div>
-            <p className="mt-4 text-sm text-slate-500">No failures detected</p>
+            <p className="mt-6 text-sm text-gray-500">No failures detected</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Executions */}
-      <Card>
+      <Card className="border border-gray-200">
         <CardHeader>
-          <CardTitle>Recent Agent Executions</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight text-gray-900">
+            Recent Agent Executions
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12">
-            <p className="text-slate-500">No agent executions yet</p>
-            <p className="mt-2 text-sm text-slate-400">
+          <div className="text-center py-20">
+            <p className="text-lg text-gray-600 font-light">No agent executions yet</p>
+            <p className="mt-3 text-base text-gray-500">
               Connect a repository to start automating your workflow
             </p>
-            <Button className="mt-6">Connect Repository</Button>
+            <Button className="mt-8 bg-gray-900 hover:bg-gray-800 text-white transition-colors">
+              Connect Repository
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="group" aria-label="Quick actions">
+      {/* Quick Actions - Ive Style: グレースケールのみ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="group" aria-label="Quick actions">
         <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer"
+          className="border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
           role="button"
           tabIndex={0}
           aria-label="Execute agent for specific issue"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center" aria-hidden="true">
-                <Rocket className="h-5 w-5 text-purple-600" />
+          <CardContent className="p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center" aria-hidden="true">
+                <Rocket className="h-6 w-6 text-gray-900" />
               </div>
-              <h4 className="text-lg font-semibold text-slate-900">
+              <h4 className="text-xl font-semibold text-gray-900">
                 Execute Agent
               </h4>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-base text-gray-600 font-light">
               Manually trigger an agent execution for a specific issue
             </p>
           </CardContent>
         </Card>
 
         <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer"
+          className="border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
           role="button"
           tabIndex={0}
           aria-label="View and manage workflows"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center" aria-hidden="true">
-                <Workflow className="h-5 w-5 text-blue-600" />
+          <CardContent className="p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center" aria-hidden="true">
+                <Workflow className="h-6 w-6 text-gray-900" />
               </div>
-              <h4 className="text-lg font-semibold text-slate-900">
+              <h4 className="text-xl font-semibold text-gray-900">
                 View Workflows
               </h4>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-base text-gray-600 font-light">
               Create and manage your autonomous agent workflows
             </p>
           </CardContent>
         </Card>
 
         <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer"
+          className="border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
           role="button"
           tabIndex={0}
           aria-label="View analytics and performance metrics"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center" aria-hidden="true">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+          <CardContent className="p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center" aria-hidden="true">
+                <TrendingUp className="h-6 w-6 text-gray-900" />
               </div>
-              <h4 className="text-lg font-semibold text-slate-900">
+              <h4 className="text-xl font-semibold text-gray-900">
                 Analytics
               </h4>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-base text-gray-600 font-light">
               View detailed analytics and performance metrics
             </p>
           </CardContent>

@@ -3,7 +3,6 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Github, Loader2 } from 'lucide-react';
 
 function LoginContent() {
@@ -26,51 +25,59 @@ function LoginContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-[420px] shadow-xl">
-        <CardContent className="p-8">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-slate-900">Miyabi</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              AI-Powered Development Automation
-            </p>
-          </div>
+    <div className="flex min-h-screen items-center justify-center bg-white py-48">
+      <div className="w-full max-w-2xl px-8">
+        <div className="text-center">
+          {/* Hero Title - Ive Style: 巨大なタイトル + 極細フォント */}
+          <h1 className="text-[96px] font-extralight tracking-tighter leading-none text-gray-900 mb-6">
+            Miyabi
+          </h1>
 
-          <div className="space-y-4">
+          {/* 1px Divider - Ive Style: 繊細な区切り線 */}
+          <div className="h-px w-24 bg-gray-300 mx-auto mb-12"></div>
+
+          {/* Subtitle */}
+          <p className="text-2xl font-light text-gray-600 mb-20">
+            AI-Powered Development Automation
+          </p>
+
+          {/* CTA Button */}
+          <div className="mb-12">
             <Button
               onClick={handleGitHubLogin}
-              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white"
+              className="h-14 px-12 bg-gray-900 hover:bg-gray-800 text-white text-base font-medium transition-colors duration-200"
               size="lg"
               aria-label="Sign in with GitHub account"
             >
-              <Github className="mr-2 h-5 w-5" aria-hidden="true" />
+              <Github className="mr-3 h-5 w-5" aria-hidden="true" />
               Sign in with GitHub
             </Button>
-
-            <p className="text-xs text-center text-slate-500">
-              By signing in, you agree to our Terms of Service and Privacy
-              Policy
-            </p>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-200" role="complementary" aria-label="Platform features">
-            <dl className="grid grid-cols-3 gap-4 text-center">
+          {/* Legal Text */}
+          <p className="text-sm text-gray-500 mb-32">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </p>
+
+          {/* Stats - Ive Style: グレースケールのみ */}
+          <div role="complementary" aria-label="Platform features">
+            <dl className="grid grid-cols-3 gap-16">
               <div>
-                <dt className="text-2xl font-bold text-slate-900">7</dt>
-                <dd className="text-xs text-slate-600">Agents</dd>
+                <dt className="text-6xl font-extralight text-gray-900 mb-2">7</dt>
+                <dd className="text-sm font-medium text-gray-600 tracking-wide">AGENTS</dd>
               </div>
               <div>
-                <dt className="text-2xl font-bold text-slate-900">∞</dt>
-                <dd className="text-xs text-slate-600">Workflows</dd>
+                <dt className="text-6xl font-extralight text-gray-900 mb-2">∞</dt>
+                <dd className="text-sm font-medium text-gray-600 tracking-wide">WORKFLOWS</dd>
               </div>
               <div>
-                <dt className="text-2xl font-bold text-slate-900">24/7</dt>
-                <dd className="text-xs text-slate-600">Automation</dd>
+                <dt className="text-6xl font-extralight text-gray-900 mb-2">24/7</dt>
+                <dd className="text-sm font-medium text-gray-600 tracking-wide">AUTOMATION</dd>
               </div>
             </dl>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -79,10 +86,10 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="flex min-h-screen items-center justify-center bg-white">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-slate-900 mx-auto" />
-            <p className="mt-4 text-slate-600">Loading...</p>
+            <Loader2 className="h-12 w-12 animate-spin text-gray-900 mx-auto" />
+            <p className="mt-6 text-lg font-light text-gray-600">Loading...</p>
           </div>
         </div>
       }

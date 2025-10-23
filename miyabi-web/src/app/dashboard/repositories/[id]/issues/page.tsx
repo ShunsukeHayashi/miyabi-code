@@ -123,18 +123,18 @@ export default function IssuesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
           <button
             onClick={() => router.push('/dashboard/repositories')}
-            className="hover:text-slate-700"
+            className="hover:text-gray-900 transition-colors"
           >
             リポジトリ
           </button>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-slate-900">{repository?.full_name}</span>
+          <span className="text-gray-900 font-medium">{repository?.full_name}</span>
         </div>
-        <h2 className="text-3xl font-bold text-slate-900">Issue一覧</h2>
-        <p className="mt-2 text-slate-600">
+        <h2 className="text-5xl font-semibold tracking-tight text-gray-900 mb-3">Issue一覧</h2>
+        <p className="text-lg text-gray-600">
           {repository?.full_name} のIssueを管理
         </p>
       </div>
@@ -195,8 +195,8 @@ export default function IssuesPage() {
           </Card>
         ) : (
           filteredIssues.map((issue) => (
-            <Card key={issue.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
+            <Card key={issue.id} className="border border-gray-200 hover:bg-gray-50 transition-colors">
+              <CardContent className="p-8">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="flex-1 w-full">
                     <div className="flex flex-wrap items-center gap-3">
@@ -204,8 +204,8 @@ export default function IssuesPage() {
                         variant={issue.state === 'open' ? 'default' : 'secondary'}
                         className={
                           issue.state === 'open'
-                            ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                            : 'bg-purple-100 text-purple-800 hover:bg-purple-100'
+                            ? 'bg-gray-50 text-gray-900 border border-gray-300 hover:bg-gray-100 font-medium'
+                            : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
                         }
                       >
                         {issue.state === 'open' ? 'Open' : 'Closed'}

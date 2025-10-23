@@ -101,38 +101,38 @@ export default function IssueDetailPage() {
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-slate-500">
+      <div className="flex items-center gap-2 text-sm text-gray-500">
         <button
           onClick={() => router.push('/dashboard/repositories')}
-          className="hover:text-slate-700"
+          className="hover:text-gray-900 transition-colors"
         >
           リポジトリ
         </button>
         <ChevronRight className="h-4 w-4" />
         <button
           onClick={() => router.push(`/dashboard/repositories/${params.id}/issues`)}
-          className="hover:text-slate-700"
+          className="hover:text-gray-900 transition-colors"
         >
           {repository.full_name}
         </button>
         <ChevronRight className="h-4 w-4" />
-        <span className="text-slate-900">Issue #{issue.number}</span>
+        <span className="text-gray-900 font-medium">Issue #{issue.number}</span>
       </div>
 
       {/* Issue Header */}
       <div>
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-4 mb-4">
           <Badge
             variant={issue.state === 'open' ? 'default' : 'secondary'}
             className={
               issue.state === 'open'
-                ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                : 'bg-purple-100 text-purple-800 hover:bg-purple-100'
+                ? 'bg-gray-50 text-gray-900 border border-gray-300 hover:bg-gray-100 font-medium'
+                : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
             }
           >
             {issue.state === 'open' ? 'Open' : 'Closed'}
           </Badge>
-          <h1 className="text-3xl font-bold text-slate-900">{issue.title}</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-gray-900">{issue.title}</h1>
         </div>
         <div className="flex items-center gap-4 text-sm text-slate-600">
           <span className="flex items-center gap-2">
