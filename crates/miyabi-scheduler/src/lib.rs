@@ -4,6 +4,11 @@
 //! - **SessionManager**: Manage multiple headless Claude Code sessions
 //! - **Launcher**: Spawn Claude Code processes with proper I/O redirection
 //! - **Parser**: Parse execution results and error logs
+//! - **Scheduler**: DAG-based dependency resolution and parallel execution
+//! - **LoadBalancer**: Intelligent task distribution across machines
+//! - **ResultAggregator**: Collect and aggregate multiple session results
+//! - **PRCreator**: Create pull requests from aggregated results
+//! - **MilestoneUpdater**: Update GitHub Milestones with progress
 //!
 //! # Example
 //!
@@ -33,21 +38,27 @@
 //! }
 //! ```
 
+pub mod aggregator;
 pub mod dag;
 pub mod error;
 pub mod launcher;
 pub mod load_balancer;
+pub mod milestone_updater;
 pub mod parser;
+pub mod pr_creator;
 pub mod remote;
 pub mod scheduler;
 pub mod session;
 pub mod ssh;
 
 // Re-export key types
+pub use aggregator::{AggregatedResult, ResultAggregator};
 pub use dag::{DAGOperations, TaskId};
 pub use error::{Result, SchedulerError};
 pub use load_balancer::{LoadBalancer, LoadBalancerStats};
+pub use milestone_updater::{Milestone, MilestoneConfig, MilestoneState, MilestoneUpdater};
 pub use parser::AgentResult;
+pub use pr_creator::{PRConfig, PRCreator, PullRequest};
 pub use remote::RemoteExecutor;
 pub use scheduler::{Scheduler, SchedulerStats};
 pub use session::{SessionConfig, SessionId, SessionManager, SessionStatus};
