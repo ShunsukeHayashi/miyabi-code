@@ -1,79 +1,84 @@
-# .miyabirules - Project-specific custom rules for Miyabi
+# .miyabirules - Miyabi Project-specific Custom Rules
+# Version: 1.0.0
 #
-# This file allows you to customize agent behavior and enforce project-specific
-# coding standards, similar to Cline's .clinerules.
-#
-# Place this file in your project root as `.miyabirules` (without .example extension)
+# This file defines project-specific coding standards, preferences, and agent behaviors.
+# Place this file in your project root to customize Miyabi's behavior.
 
 version: 1
 
-# Custom rules with pattern matching and suggestions
+# Coding Standards & Rules
 rules:
   - name: "Use async-trait for traits"
-    pattern: "trait.*{"
-    suggestion: "Add #[async_trait] attribute for traits with async methods"
-    file_extensions: ["rs"]
+    pattern: "trait.*\\{"
+    suggestion: "Add #[async_trait] for async methods in traits"
     severity: "warning"
     enabled: true
 
   - name: "Prefer Result over Option"
     pattern: "fn.*-> Option<"
-    suggestion: "Use Result<T, E> instead of Option<T> for better error context"
-    file_extensions: ["rs"]
+    suggestion: "Use Result<T, E> for better error context"
     severity: "info"
     enabled: true
 
-  - name: "Require documentation for public items"
-    pattern: "pub (fn|struct|enum|trait)"
-    suggestion: "Add /// documentation comments for public items"
-    file_extensions: ["rs"]
-    severity: "warning"
-    enabled: true
-
-  - name: "Use thiserror for error types"
-    pattern: "(impl|derive.*Error)"
-    suggestion: "Consider using thiserror crate for error definitions"
-    file_extensions: ["rs"]
-    severity: "info"
-    enabled: true
-
-  - name: "Avoid unwrap() in production code"
-    pattern: ".unwrap()"
-    suggestion: "Use proper error handling instead of unwrap(). Consider expect() with clear message or ? operator"
-    file_extensions: ["rs"]
-    severity: "error"
-    enabled: true
-
-# Agent-specific preferences
+# Agent Preferences
 agent_preferences:
-  # CodeGenAgent preferences
   codegen:
-    style: "idiomatic"           # Code style: "idiomatic", "explicit", "compact"
-    error_handling: "thiserror"  # Error handling: "thiserror", "anyhow", "std"
-    async_runtime: "tokio"       # Async runtime: "tokio", "async-std", "smol"
-    test_framework: "default"    # Test framework: "default", "rstest", "proptest"
+    style: "idiomatic"
+    error_handling: "thiserror"
+    async_runtime: "tokio"
+    generate_tests: true
+    generate_docs: true
+    prefer_workspace_deps: true
 
-  # ReviewAgent preferences
   review:
-    min_score: 85                # Minimum acceptable quality score (0-100)
-    clippy_strict: true          # Enable strict Clippy checks
-    require_tests: true          # Require tests for new code
-    require_docs: true           # Require documentation for public items
+    min_score: 85
+    clippy_strict: true
+    clippy_deny_level: "warnings"
+    require_tests: true
+    min_coverage: 80
+    security_audit: true
 
-  # DeploymentAgent preferences
   deployment:
-    auto_deploy: false           # Auto-deploy on successful review
-    target: "staging"            # Default deployment target
-    run_tests: true              # Run tests before deployment
+    auto_deploy: false
+    default_target: "staging"
+    auto_rollback: true
+    health_check_timeout: 300
 
-  # CoordinatorAgent preferences
+  pr:
+    auto_create: true
+    default_type: "draft"
+    commit_format: "conventional"
+
   coordinator:
-    max_tasks: 10                # Maximum tasks to generate from single Issue
-    prefer_parallel: true        # Prefer parallel execution when possible
+    decomposition_strategy: "sequential"
+    max_concurrency: 3
+    task_timeout: 3600
+    auto_assign: true
 
-# Global settings
-settings:
-  rust_edition: "2021"
-  max_line_length: 100
-  use_tabs: false
-  tab_width: 4
+  issue:
+    auto_label: true
+    ai_inference: true
+    escalation_priority: "P0-Critical"
+
+# Project Context
+context:
+  description: "Miyabi - Autonomous development framework"
+  tech_stack:
+    - "Rust 2021 Edition"
+    - "Tokio async runtime"
+    - "Axum web framework"
+  architecture: "modular-monolith"
+  conventions:
+    - "Follow Rust API Guidelines"
+    - "Use thiserror for error handling"
+
+# Escalation Rules
+escalation:
+  security_issues: true
+  breaking_changes: true
+  low_quality_threshold: 70
+  test_failures: true
+  targets:
+    security: "CISO"
+    architecture: "TechLead"
+    business: "ProductOwner"

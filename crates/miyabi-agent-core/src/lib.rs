@@ -6,7 +6,9 @@
 pub mod base;
 pub mod hooks;
 pub mod orchestration;
+pub mod rules_context;
 
 pub use base::BaseAgent;
 pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
+pub use rules_context::RulesContext;
