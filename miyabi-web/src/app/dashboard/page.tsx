@@ -27,7 +27,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -97,11 +97,16 @@ export default function DashboardPage() {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="group" aria-label="Quick actions">
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          role="button"
+          tabIndex={0}
+          aria-label="Execute agent for specific issue"
+        >
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center" aria-hidden="true">
                 <Rocket className="h-5 w-5 text-purple-600" />
               </div>
               <h4 className="text-lg font-semibold text-slate-900">
@@ -114,10 +119,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          role="button"
+          tabIndex={0}
+          aria-label="View and manage workflows"
+        >
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center" aria-hidden="true">
                 <Workflow className="h-5 w-5 text-blue-600" />
               </div>
               <h4 className="text-lg font-semibold text-slate-900">
@@ -130,10 +140,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          role="button"
+          tabIndex={0}
+          aria-label="View analytics and performance metrics"
+        >
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center" aria-hidden="true">
                 <TrendingUp className="h-5 w-5 text-green-600" />
               </div>
               <h4 className="text-lg font-semibold text-slate-900">

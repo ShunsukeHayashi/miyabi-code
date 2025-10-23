@@ -124,7 +124,7 @@ export default function RepositoriesPage() {
               repositories.map((repo) => (
                 <Card key={repo.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-slate-900">
                           {repo.full_name}
@@ -133,12 +133,12 @@ export default function RepositoriesPage() {
                           最終更新: {new Date(repo.updated_at).toLocaleDateString('ja-JP')}
                         </p>
                       </div>
-                      <div className="flex gap-3">
-                        <Button onClick={() => handleViewIssues(repo)}>
+                      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <Button onClick={() => handleViewIssues(repo)} className="w-full sm:w-auto">
                           <FileText className="h-4 w-4 mr-2" />
                           Issue一覧
                         </Button>
-                        <Button variant="outline">
+                        <Button variant="outline" className="w-full sm:w-auto">
                           <Settings className="h-4 w-4 mr-2" />
                           設定
                         </Button>
@@ -216,12 +216,18 @@ export default function RepositoriesPage() {
                         </div>
                         <div>
                           {isConnected ? (
-                            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
-                              <Check className="h-4 w-4 mr-1" />
+                            <Badge
+                              className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100"
+                              aria-label={`${repo.full_name} is connected`}
+                            >
+                              <Check className="h-4 w-4 mr-1" aria-hidden="true" />
                               接続済み
                             </Badge>
                           ) : (
-                            <Button onClick={() => handleConnectRepository(repo)}>
+                            <Button
+                              onClick={() => handleConnectRepository(repo)}
+                              aria-label={`Connect ${repo.full_name} repository`}
+                            >
                               接続
                             </Button>
                           )}

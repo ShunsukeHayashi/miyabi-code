@@ -152,6 +152,13 @@ if $START_ENGINE; then
 
         if ! check_voicevox_engine; then
             log_error "VOICEVOX Engineの起動に失敗しました"
+
+            # Lifecycle Hook: NarrationAgent Error
+            ERROR_HOOK="../.claude/hooks/narration-error.sh"
+            if [ -x "$ERROR_HOOK" ]; then
+                "$ERROR_HOOK" voicevox "VOICEVOX Engine startup failed" &
+            fi
+
             exit 1
         fi
 
@@ -167,9 +174,22 @@ else
         log_info ""
         log_info "または -s オプションで自動起動："
         log_info "  ./miyabi-narrate.sh -s"
+
+        # Lifecycle Hook: NarrationAgent Error
+        ERROR_HOOK="../.claude/hooks/narration-error.sh"
+        if [ -x "$ERROR_HOOK" ]; then
+            "$ERROR_HOOK" voicevox "VOICEVOX Engine not running" &
+        fi
+
         exit 1
     fi
     log_success "VOICEVOX Engine接続確認OK"
+fi
+
+# Lifecycle Hook: NarrationAgent Start
+HOOK_SCRIPT="../.claude/hooks/narration-start.sh"
+if [ -x "$HOOK_SCRIPT" ]; then
+    "$HOOK_SCRIPT" "$DAYS" &
 fi
 
 # Phase 1: 台本生成
@@ -177,6 +197,13 @@ echo ""
 log_info "📝 Phase 1: 台本生成中..."
 python3 yukkuri-narration-generator.py --days "$DAYS" || {
     log_error "台本生成に失敗しました"
+
+    # Lifecycle Hook: NarrationAgent Error
+    ERROR_HOOK="../.claude/hooks/narration-error.sh"
+    if [ -x "$ERROR_HOOK" ]; then
+        "$ERROR_HOOK" git "No commits found or script generation failed" &
+    fi
+
     exit 1
 }
 
@@ -232,10 +259,18 @@ echo ""
 if [ -d "$OUTPUT_DIR/audio" ]; then
     AUDIO_COUNT=$(ls "$OUTPUT_DIR/audio"/*.wav 2>/dev/null | wc -l)
     AUDIO_SIZE=$(du -sh "$OUTPUT_DIR/audio" | awk '{print $1}')
+    COMMIT_COUNT=$(git log --oneline --since="$DAYS days ago" 2>/dev/null | wc -l | xargs)
+
     echo "📊 統計情報:"
     echo "  - 音声ファイル数: $AUDIO_COUNT 件"
     echo "  - 合計サイズ: $AUDIO_SIZE"
     echo ""
+
+    # Lifecycle Hook: NarrationAgent Complete
+    COMPLETE_HOOK="../.claude/hooks/narration-complete.sh"
+    if [ -x "$COMPLETE_HOOK" ]; then
+        "$COMPLETE_HOOK" "$AUDIO_COUNT" "$AUDIO_SIZE" "$COMMIT_COUNT" &
+    fi
 fi
 
 exit 0

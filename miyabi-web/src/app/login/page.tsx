@@ -41,8 +41,9 @@ function LoginContent() {
               onClick={handleGitHubLogin}
               className="w-full h-12 bg-slate-900 hover:bg-slate-800"
               size="lg"
+              aria-label="Sign in with GitHub account"
             >
-              <Github className="mr-2 h-5 w-5" />
+              <Github className="mr-2 h-5 w-5" aria-hidden="true" />
               Sign in with GitHub
             </Button>
 
@@ -52,21 +53,21 @@ function LoginContent() {
             </p>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-200">
-            <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="mt-8 pt-6 border-t border-slate-200" role="complementary" aria-label="Platform features">
+            <dl className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-slate-900">7</div>
-                <div className="text-xs text-slate-600">Agents</div>
+                <dt className="text-2xl font-bold text-slate-900">7</dt>
+                <dd className="text-xs text-slate-600">Agents</dd>
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900">∞</div>
-                <div className="text-xs text-slate-600">Workflows</div>
+                <dt className="text-2xl font-bold text-slate-900">∞</dt>
+                <dd className="text-xs text-slate-600">Workflows</dd>
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900">24/7</div>
-                <div className="text-xs text-slate-600">Automation</div>
+                <dt className="text-2xl font-bold text-slate-900">24/7</dt>
+                <dd className="text-xs text-slate-600">Automation</dd>
               </div>
-            </div>
+            </dl>
           </div>
         </CardContent>
       </Card>

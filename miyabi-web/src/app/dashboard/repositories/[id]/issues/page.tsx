@@ -118,30 +118,37 @@ export default function IssuesPage() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <Input
               type="text"
               placeholder="Issueを検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
+              aria-label="Search issues"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-label="Filter issues by state">
               <Button
                 variant={stateFilter === 'open' ? 'default' : 'outline'}
                 onClick={() => setStateFilter('open')}
+                aria-pressed={stateFilter === 'open'}
+                aria-label="Show open issues"
               >
                 Open
               </Button>
               <Button
                 variant={stateFilter === 'closed' ? 'default' : 'outline'}
                 onClick={() => setStateFilter('closed')}
+                aria-pressed={stateFilter === 'closed'}
+                aria-label="Show closed issues"
               >
                 Closed
               </Button>
               <Button
                 variant={stateFilter === 'all' ? 'default' : 'outline'}
                 onClick={() => setStateFilter('all')}
+                aria-pressed={stateFilter === 'all'}
+                aria-label="Show all issues"
               >
                 All
               </Button>
@@ -166,9 +173,9 @@ export default function IssuesPage() {
           filteredIssues.map((issue) => (
             <Card key={issue.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-wrap items-center gap-3">
                       <Badge
                         variant={issue.state === 'open' ? 'default' : 'secondary'}
                         className={
@@ -233,10 +240,14 @@ export default function IssuesPage() {
                     </div>
                   </div>
 
-                  <div className="ml-4">
+                  <div className="w-full sm:w-auto sm:ml-4">
                     {issue.state === 'open' && (
-                      <Button onClick={() => handleExecuteAgent(issue)}>
-                        <Bot className="h-4 w-4 mr-2" />
+                      <Button
+                        onClick={() => handleExecuteAgent(issue)}
+                        aria-label={`Execute agent for issue #${issue.number}`}
+                        className="w-full sm:w-auto"
+                      >
+                        <Bot className="h-4 w-4 mr-2" aria-hidden="true" />
                         Agent実行
                       </Button>
                     )}
