@@ -236,35 +236,52 @@ pub struct ExecutionReport {
     pub escalations: Vec<EscalationInfo>,
 }
 
+/// Execution summary
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionSummary {
+    /// Total number of tasks
     pub total: u32,
+    /// Number of completed tasks
     pub completed: u32,
+    /// Number of failed tasks
     pub failed: u32,
+    /// Number of escalated tasks
     pub escalated: u32,
+    /// Success rate (0.0-1.0)
     pub success_rate: f32,
 }
 
 /// Worker pool for parallel execution
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkerPool {
+    /// Maximum number of concurrent workers
     pub max_concurrency: usize,
+    /// Number of currently active workers
     pub active_workers: usize,
+    /// Queue of tasks waiting to be executed
     pub queue: Vec<Task>,
-    // Note: HashMap doesn't serialize well, so we use Vec of tuples
+    /// Currently running tasks (task_id, Task)
     pub running: Vec<(String, Task)>,
+    /// Completed tasks (task_id, TaskResult)
     pub completed: Vec<(String, TaskResult)>,
+    /// Failed tasks (task_id, TaskResult)
     pub failed: Vec<(String, TaskResult)>,
 }
 
 /// Progress status
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProgressStatus {
+    /// Total number of tasks
     pub total: u32,
+    /// Number of completed tasks
     pub completed: u32,
+    /// Number of currently running tasks
     pub running: u32,
+    /// Number of tasks waiting to start
     pub waiting: u32,
+    /// Number of failed tasks
     pub failed: u32,
+    /// Completion percentage (0.0-100.0)
     pub percentage: f32,
 }
 
@@ -296,17 +313,23 @@ impl ProgressStatus {
 /// Execution options
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionOptions {
+    /// Optional list of issue numbers to execute
     #[serde(skip_serializing_if = "Option::is_none")]
     pub issues: Option<Vec<u64>>,
+    /// Optional list of todo keywords to execute
     #[serde(skip_serializing_if = "Option::is_none")]
     pub todos: Option<Vec<String>>,
+    /// Concurrency level (number of parallel tasks)
     pub concurrency: usize,
+    /// Dry run mode (analyze without executing)
     #[serde(default)]
     pub dry_run: bool,
+    /// Ignore task dependencies (execute all in parallel)
     #[serde(default)]
     pub ignore_dependencies: bool,
+    /// Optional timeout in minutes
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeout: Option<u32>, // minutes
+    pub timeout: Option<u32>,
 }
 
 impl Default for ExecutionOptions {
