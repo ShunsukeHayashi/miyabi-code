@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { toDataAttributes, CommonMetadata } from '@/lib/ai-metadata';
 import {
   Loader2,
   ChevronRight,
@@ -105,6 +106,9 @@ export default function IssueDetailPage() {
         <button
           onClick={() => router.push('/dashboard/repositories')}
           className="hover:text-gray-900 transition-colors"
+          {...toDataAttributes(
+            CommonMetadata.breadcrumbLink('リポジトリ', '/dashboard/repositories')
+          )}
         >
           リポジトリ
         </button>
@@ -112,6 +116,9 @@ export default function IssueDetailPage() {
         <button
           onClick={() => router.push(`/dashboard/repositories/${params.id}/issues`)}
           className="hover:text-gray-900 transition-colors"
+          {...toDataAttributes(
+            CommonMetadata.breadcrumbLink(repository.full_name, `/dashboard/repositories/${params.id}/issues`)
+          )}
         >
           {repository.full_name}
         </button>
@@ -120,7 +127,14 @@ export default function IssueDetailPage() {
       </div>
 
       {/* Issue Header */}
-      <div>
+      <div
+        {...toDataAttributes({
+          role: 'header',
+          target: `issue-detail-header-${issue.number}`,
+          description: `Issue #${issue.number} header with state, title, author, and creation date`,
+          context: 'issue-detail-page',
+        })}
+      >
         <div className="flex items-center gap-4 mb-4">
           <Badge
             variant={issue.state === 'open' ? 'default' : 'secondary'}
@@ -129,10 +143,27 @@ export default function IssueDetailPage() {
                 ? 'bg-gray-50 text-gray-900 border border-gray-300 hover:bg-gray-100 font-medium'
                 : 'bg-gray-200 text-gray-900 hover:bg-gray-300 font-medium'
             }
+            {...toDataAttributes({
+              role: 'badge',
+              target: `issue-state-badge-${issue.number}`,
+              description: `Issue state: ${issue.state}`,
+              context: 'issue-detail-header',
+              state: issue.state,
+            })}
           >
             {issue.state === 'open' ? 'Open' : 'Closed'}
           </Badge>
-          <h1 className="text-4xl font-semibold tracking-tight text-gray-900">{issue.title}</h1>
+          <h1
+            className="text-4xl font-semibold tracking-tight text-gray-900"
+            {...toDataAttributes({
+              role: 'header',
+              target: `issue-title-${issue.number}`,
+              description: `Issue title: ${issue.title}`,
+              context: 'issue-detail-header',
+            })}
+          >
+            {issue.title}
+          </h1>
         </div>
         <div className="flex items-center gap-4 text-sm text-slate-600">
           <span className="flex items-center gap-2">
@@ -153,6 +184,15 @@ export default function IssueDetailPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1"
+              {...toDataAttributes({
+                role: 'link',
+                action: 'navigate',
+                target: `issue-github-link-${issue.number}`,
+                description: `Open Issue #${issue.number} on GitHub in new tab`,
+                context: 'issue-detail-header',
+                expectedResult: 'open-external',
+                navigationTarget: issue.html_url,
+              })}
             >
               GitHub で開く
               <ExternalLink className="h-3 w-3" />
@@ -163,7 +203,15 @@ export default function IssueDetailPage() {
 
       {/* Labels */}
       {issue.labels.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div
+          className="flex flex-wrap gap-2"
+          {...toDataAttributes({
+            role: 'container',
+            target: `issue-labels-${issue.number}`,
+            description: `Issue labels (${issue.labels.length} labels)`,
+            context: 'issue-detail-page',
+          })}
+        >
           {issue.labels.map((label) => (
             <Badge
               key={label.name}
@@ -173,6 +221,12 @@ export default function IssueDetailPage() {
                 borderColor: `#${label.color}`,
                 color: `#${label.color}`,
               }}
+              {...toDataAttributes({
+                role: 'badge',
+                target: `issue-label-${label.name.toLowerCase().replace(/\s+/g, '-')}`,
+                description: `Label: ${label.name}`,
+                context: 'issue-labels',
+              })}
             >
               {label.name}
             </Badge>
@@ -182,7 +236,14 @@ export default function IssueDetailPage() {
 
       {/* Issue Body */}
       {issue.body && (
-        <Card>
+        <Card
+          {...toDataAttributes({
+            role: 'card',
+            target: `issue-body-${issue.number}`,
+            description: `Issue description/body content for Issue #${issue.number}`,
+            context: 'issue-detail-page',
+          })}
+        >
           <CardHeader>
             <CardTitle className="text-lg">説明</CardTitle>
           </CardHeader>
@@ -198,7 +259,14 @@ export default function IssueDetailPage() {
 
       {/* Comments */}
       {comments.length > 0 && (
-        <Card>
+        <Card
+          {...toDataAttributes({
+            role: 'card',
+            target: `issue-comments-${issue.number}`,
+            description: `Issue comments section (${comments.length} comments)`,
+            context: 'issue-detail-page',
+          })}
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <MessageSquare className="h-5 w-5" />
@@ -208,7 +276,15 @@ export default function IssueDetailPage() {
           <CardContent>
             <div className="space-y-6">
               {comments.map((comment, index) => (
-                <div key={comment.id}>
+                <div
+                  key={comment.id}
+                  {...toDataAttributes({
+                    role: 'list-item',
+                    target: `issue-comment-${comment.id}`,
+                    description: `Comment by ${comment.user.login}`,
+                    context: 'issue-comments',
+                  })}
+                >
                   {index > 0 && <Separator className="my-6" />}
                   <div className="flex gap-4">
                     <img
@@ -243,7 +319,14 @@ export default function IssueDetailPage() {
       )}
 
       {comments.length === 0 && (
-        <Card>
+        <Card
+          {...toDataAttributes({
+            role: 'card',
+            target: `issue-no-comments-${issue.number}`,
+            description: 'No comments placeholder card',
+            context: 'issue-detail-page',
+          })}
+        >
           <CardContent className="p-12 text-center">
             <MessageSquare className="h-12 w-12 text-slate-400 mx-auto mb-4" />
             <p className="text-slate-500">コメントはありません</p>
