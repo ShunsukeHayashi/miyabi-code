@@ -36,13 +36,19 @@
 pub mod dag;
 pub mod error;
 pub mod launcher;
+pub mod load_balancer;
 pub mod parser;
+pub mod remote;
 pub mod scheduler;
 pub mod session;
+pub mod ssh;
 
 // Re-export key types
 pub use dag::{DAGOperations, TaskId};
 pub use error::{Result, SchedulerError};
+pub use load_balancer::{LoadBalancer, LoadBalancerStats};
 pub use parser::AgentResult;
+pub use remote::RemoteExecutor;
 pub use scheduler::{Scheduler, SchedulerStats};
 pub use session::{SessionConfig, SessionId, SessionManager, SessionStatus};
+pub use ssh::{Machine, MachineStatus, SshConfig};
