@@ -25,6 +25,10 @@ pub struct KnowledgeConfig {
     /// 自動インデックス化設定
     #[serde(default)]
     pub auto_index: AutoIndexConfig,
+
+    /// 保持ポリシー設定
+    #[serde(default)]
+    pub retention: RetentionPolicyConfig,
 }
 
 impl KnowledgeConfig {
@@ -208,6 +212,44 @@ fn default_delay_seconds() -> u64 {
 /// デフォルト: 3回リトライ
 fn default_retry_count() -> u32 {
     3
+}
+
+/// 保持ポリシー設定
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetentionPolicyConfig {
+    /// 最大保持日数（デフォルト: 90日）
+    #[serde(default = "default_retention_max_days")]
+    pub max_days: i64,
+
+    /// 最大エントリ数（デフォルト: 10000）
+    #[serde(default = "default_retention_max_entries")]
+    pub max_entries: usize,
+
+    /// クリーンアップ間隔（時間）（デフォルト: 24時間）
+    #[serde(default = "default_retention_cleanup_interval")]
+    pub cleanup_interval_hours: u64,
+}
+
+impl Default for RetentionPolicyConfig {
+    fn default() -> Self {
+        Self {
+            max_days: default_retention_max_days(),
+            max_entries: default_retention_max_entries(),
+            cleanup_interval_hours: default_retention_cleanup_interval(),
+        }
+    }
+}
+
+fn default_retention_max_days() -> i64 {
+    90
+}
+
+fn default_retention_max_entries() -> usize {
+    10_000
+}
+
+fn default_retention_cleanup_interval() -> u64 {
+    24
 }
 
 #[cfg(test)]

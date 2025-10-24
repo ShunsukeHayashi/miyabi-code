@@ -1,0 +1,231 @@
+@startuml command-hook-agent-integration-v2
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName "Helvetica Neue"
+skinparam defaultFontSize 11
+skinparam shadowing true
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 70
+skinparam ArrowThickness 2
+skinparam ArrowColor #546E7A
+
+title Miyabi Complete Integration - Commands, Hooks, and 21 Agents
+
+' ============================================
+' Top Section: Entry & External
+' ============================================
+skinparam actorBackgroundColor #FFE0B2
+skinparam actorBorderColor #FF6F00
+skinparam cloudBackgroundColor #E3F2FD
+skinparam cloudBorderColor #1976D2
+
+left to right direction
+
+actor "👤 Developer" as dev #FFE0B2
+cloud "GitHub" as github #B3E5FC
+cloud "Anthropic\nAPI" as anthropic #E1BEE7
+cloud "VoiceVox" as voicevox #C5E1A5
+
+dev -[#1976D2,bold]-> github : create issue
+dev -[#4CAF50,bold]-> cmd_auto : trigger
+github -[#1976D2,bold]-> orchestrator : webhook
+
+' ============================================
+' Commands Section - Organized
+' ============================================
+package "🎯 Slash Commands (18)" as commands #E3F2FD {
+
+  together {
+    package "Development" as dev_pkg #BBDEFB {
+      rectangle "create-issue" as cmd_create #90CAF9
+      rectangle "test" as cmd_test #90CAF9
+      rectangle "verify" as cmd_verify #90CAF9
+      rectangle "review" as cmd_review #90CAF9
+    }
+
+    package "Agent Control" as agent_ctrl_pkg #C8E6C9 {
+      rectangle "agent-run" as cmd_agent #81C784
+      rectangle "miyabi-auto" as cmd_auto #66BB6A
+      rectangle "infinity" as cmd_infinity #66BB6A
+      rectangle "todos" as cmd_todos #81C784
+    }
+
+    package "Delivery" as delivery_pkg #FFE0B2 {
+      rectangle "deploy" as cmd_deploy #FFB74D
+    }
+
+    package "Documentation" as doc_pkg #F3E5F5 {
+      rectangle "gen-docs" as cmd_docs #CE93D8
+      rectangle "gen-lp" as cmd_lp #CE93D8
+    }
+
+    package "Reports Voice" as report_pkg #FFF9C4 {
+      rectangle "daily" as cmd_daily #FFEB3B
+      rectangle "voicevox" as cmd_voice #AED581
+      rectangle "narrate" as cmd_narrate #AED581
+      rectangle "watch" as cmd_watch #AED581
+    }
+
+    package "Security" as security_pkg #FFCDD2 {
+      rectangle "security" as cmd_security #EF5350
+    }
+  }
+}
+
+' ============================================
+' Git Hooks Section - Simplified
+' ============================================
+package "🪝 Git Hooks (5)" as hooks #FFF8E1 {
+  together {
+    rectangle "pre-commit\nTest+Security" as hook_pre #FFD54F
+    rectangle "commit-msg\nConventional" as hook_msg #FBC02D
+    rectangle "post-commit\nVoice" as hook_post #F9A825
+    rectangle "pre-push\nFull Suite" as hook_push #FFD54F
+    rectangle "post-merge\nDeploy" as hook_merge #F9A825
+  }
+}
+
+' ============================================
+' Coding Agents - Clear Flow
+' ============================================
+package "🤖 Coding Agents (7)" as coding_agents #E8F5E9 {
+
+  rectangle "1. Coordinator\nしきるん\nDAG分解" as agent_coord #66BB6A
+  rectangle "2. Issue\nみつけるん\nLabel推論" as agent_issue #81C784
+  rectangle "3. CodeGen\nつくるん\n生成" as agent_codegen #4CAF50
+  rectangle "4. Review\nめだまん\n100点満点" as agent_review #66BB6A
+  rectangle "5. PR\nまとめるん\n自動作成" as agent_pr #81C784
+  rectangle "6. Deploy\nはこぶん\nCI/CD" as agent_deploy #66BB6A
+  rectangle "7. Refresher\nつなぐん\n監視" as agent_refresh #AED581
+
+  agent_coord -[#4CAF50,bold]-> agent_codegen : delegate
+  agent_codegen -[#4CAF50,bold]-> agent_review : quality check
+  agent_review -[#FF5722,dashed]-> agent_codegen : feedback\n(if <80)
+  agent_codegen -[#1976D2,bold]-> agent_pr : done
+  agent_pr -[#FF6F00,bold]-> agent_deploy : merge
+}
+
+' ============================================
+' Business Agents - Compact
+' ============================================
+package "💼 Business Agents (14)" as business_agents #F3E5F5 {
+
+  together {
+    rectangle "Strategy(6)\nEntrepreneur\nConcept\nDesign\nPersona\nSelfAnalysis\nFunnel" as strategy_agents #BA68C8
+
+    rectangle "Marketing(5)\nResearch\nMarketing\nContent\nSNS\nYouTube" as marketing_agents #AB47BC
+
+    rectangle "Sales/CRM(3)\nSales\nCRM\nAnalytics" as sales_agents #9C27B0
+  }
+}
+
+' ============================================
+' Core Infrastructure
+' ============================================
+package "⚙️ Core Systems (5)" as core #FFEBEE {
+
+  rectangle "Orchestrator\n24/7 Daemon\nQueue: 2-5\nUptime: 99.9%" as orchestrator #EF5350
+  rectangle "Worktree\nParallel: 3x\n15-25min" as worktree #F44336
+  rectangle "LLM Gateway\nGPT-OSS-20B\n$0.15-0.40/Issue" as llm #E53935
+  rectangle "Knowledge\n15K Embeddings\n<100ms" as knowledge #EF5350
+  rectangle "MCP Server\nJSON-RPC 2.0" as mcp #EF9A9A
+}
+
+' ============================================
+' Data Stores - Clear Labels
+' ============================================
+package "📊 Data Stores (3)" as datastores #ECEFF1 {
+  database "GitHub\n500+ Issues\n53 Labels" as gh_issues #78909C
+  database "Qdrant\n15K vectors\n2GB" as qdrant #78909C
+  database "SQLite\n10K+ records\n50MB" as sqlite #78909C
+}
+
+' ============================================
+' Outputs - Simple
+' ============================================
+package "📤 Outputs (6)" as outputs #FFF9C4 {
+  together {
+    rectangle "PR\n100+/mo" as out_pr #FFF176
+    rectangle "Docs\n50+/mo" as out_docs #FFF176
+    rectangle "Deploy\n30+/mo" as out_deploy #FFF176
+    rectangle "Voice\n200+/mo" as out_voice #FFF176
+    rectangle "Report\n30/mo" as out_report #FFF176
+    rectangle "Notify\n500+/mo" as out_macos #FFF176
+  }
+}
+
+' ============================================
+' Primary Flows - Bold & Clear
+' ============================================
+
+' Entry Flow
+cmd_create -[#1976D2,thickness=3]-> github
+cmd_agent -[#4CAF50,thickness=3]-> orchestrator
+cmd_auto -[#4CAF50,thickness=3]-> orchestrator
+cmd_infinity -[#4CAF50,thickness=3]-> orchestrator
+
+' Orchestrator to Agents
+orchestrator -[#4CAF50,thickness=3]-> agent_issue
+orchestrator -[#4CAF50,thickness=3]-> agent_coord
+agent_issue -[#1976D2]-> github : label
+agent_coord -[#1976D2]-> worktree : create
+
+' Code Generation
+agent_codegen -[#E53935,thickness=2]-> llm
+llm -[#E1BEE7]-> anthropic
+agent_codegen -[#FFD54F]-> hook_pre
+hook_pre -[#90CAF9]-> cmd_test
+hook_pre -[#EF5350]-> cmd_security
+
+' Knowledge & Data
+agent_codegen -[#EF5350]-> knowledge
+agent_review -[#EF5350]-> knowledge
+knowledge -[#78909C]-> qdrant
+knowledge -[#EF9A9A]-> mcp
+
+agent_coord -[#78909C]-> sqlite
+agent_issue -[#78909C]-> gh_issues
+agent_refresh -[#78909C]-> gh_issues
+
+' Voice Flow
+cmd_voice -[#AED581,thickness=2]-> voicevox
+cmd_narrate -[#AED581,thickness=2]-> voicevox
+cmd_watch -[#AED581,thickness=2]-> voicevox
+hook_post -[#AED581]-> voicevox
+voicevox -[#FFF176]-> out_voice
+
+' Output Flow
+agent_pr -[#FFF176]-> out_pr
+agent_deploy -[#FFF176]-> out_deploy
+agent_codegen -[#FFF176]-> out_docs
+cmd_daily -[#FFF176]-> out_report
+
+' Business Agents
+cmd_agent -[#BA68C8,dashed]-> strategy_agents
+cmd_agent -[#AB47BC,dashed]-> marketing_agents
+strategy_agents -[#FFF176]-> out_docs
+marketing_agents -[#FFF176]-> out_report
+
+' Monitoring
+agent_refresh -[#AED581,dashed]-> orchestrator : re-trigger
+
+' ============================================
+' Compact Metrics - Top Right
+' ============================================
+legend top right
+  **System Metrics**
+
+  ⏱ Avg Issue: 15-25min
+  ✅ Success: 87%
+  🔄 Parallel: 3 concurrent
+  💰 Cost: $0.15-0.40/Issue
+  📊 Daily: 200-500 LLM calls
+
+  **Components**
+  18 Commands | 5 Hooks
+  7 Coding | 14 Business
+  5 Core Systems | 3 Data Stores
+end legend
+
+@enduml

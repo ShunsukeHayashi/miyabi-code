@@ -1,6 +1,7 @@
 //! Miyabi CLI - 一つのコマンドで全てが完結
 
 mod commands;
+mod config;
 mod error;
 mod service;
 mod startup;
@@ -9,8 +10,8 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ParallelCommand,
-    SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ModeCommand,
+    ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
 
@@ -100,6 +101,11 @@ enum Commands {
         #[command(subcommand)]
         command: LoopCommand,
     },
+    /// Adaptive mode system (inspired by Roo-Code)
+    Mode {
+        #[command(flatten)]
+        command: ModeCommand,
+    },
 }
 
 #[tokio::main]
@@ -185,6 +191,7 @@ async fn main() -> Result<()> {
             cmd.execute().await
         }
         Some(Commands::Loop { command }) => command.execute().await,
+        Some(Commands::Mode { command }) => command.execute().await,
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());

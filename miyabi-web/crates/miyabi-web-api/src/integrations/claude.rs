@@ -94,6 +94,7 @@ pub struct ParsedIssue {
 }
 
 /// Claude API client
+#[derive(Clone)]
 pub struct ClaudeClient {
     http_client: Client,
     api_key: String,

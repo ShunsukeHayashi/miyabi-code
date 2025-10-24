@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miyabi Live Dashboard - Real-time Agent Monitoring</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .container {
+      max-width: 1920px;
+      height: 100vh;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2em;
+      font-weight: 300;
+      letter-spacing: -0.5px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.connected { background: #10b981; }
+    .status-dot.disconnected { background: #ef4444; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .architecture-panel {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+    }
+
+    .metrics-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .metric-title {
+      font-size: 0.9em;
+      opacity: 0.7;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .metric-value {
+      font-size: 2.5em;
+      font-weight: 200;
+      line-height: 1;
+    }
+
+    .metric-chart {
+      width: 100%;
+      height: 80px;
+      margin-top: 15px;
+      position: relative;
+    }
+
+    /* Architecture Diagram Styles */
+    .arch-layer {
+      margin-bottom: 30px;
+    }
+
+    .layer-title {
+      font-size: 0.9em;
+      opacity: 0.5;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .component {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .component:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .component.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+      animation: glow 1.5s infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+      }
+    }
+
+    .component-name {
+      font-size: 0.85em;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .component-status {
+      font-size: 0.7em;
+      opacity: 0.7;
+    }
+
+    .component::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #667eea, transparent);
+      animation: shimmer 2s infinite;
+      opacity: 0;
+    }
+
+    .component.active::before {
+      opacity: 1;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Flow Animation */
+    .flow-line {
+      stroke: rgba(102, 126, 234, 0.3);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .flow-line.active {
+      stroke: #667eea;
+      stroke-width: 3;
+      animation: flow 1s ease-in-out infinite;
+    }
+
+    @keyframes flow {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -20; }
+    }
+
+    /* Activity Log */
+    .activity-log {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+      font-size: 0.8em;
+    }
+
+    .log-entry {
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .log-timestamp {
+      opacity: 0.5;
+      margin-right: 10px;
+    }
+
+    .log-type {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.85em;
+      margin-right: 8px;
+    }
+
+    .log-type.info { background: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+    .log-type.success { background: rgba(16, 185, 129, 0.3); color: #34d399; }
+    .log-type.warning { background: rgba(245, 158, 11, 0.3); color: #fbbf24; }
+    .log-type.error { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: 300;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.75em;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Agent Phase Indicator */
+    .phase-indicator {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      justify-content: space-between;
+    }
+
+    .phase {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phase.active {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .phase.completed {
+      background: #10b981;
+    }
+
+    .phase::after {
+      content: attr(data-phase);
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      font-size: 0.7em;
+      opacity: 0.5;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>🎯 Miyabi Live Dashboard</h1>
+        <p style="font-size: 0.9em; opacity: 0.7; margin-top: 5px;">Real-time Agent Monitoring & Execution Flow</p>
+      </div>
+      <div class="status-indicator">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Connecting...</span>
+      </div>
+    </header>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value" id="activeAgents">0</div>
+        <div class="stat-label">Active Agents</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="completedToday">0</div>
+        <div class="stat-label">Completed Today</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="avgTime">0s</div>
+        <div class="stat-label">Avg Time</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="successRate">0%</div>
+        <div class="stat-label">Success Rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="queueSize">0</div>
+        <div class="stat-label">Queue Size</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <!-- Architecture Panel -->
+      <div class="architecture-panel">
+        <h2 style="font-size: 1.2em; font-weight: 300; margin-bottom: 20px;">System Architecture - Live Status</h2>
+
+        <!-- Phase Indicator -->
+        <div class="phase-indicator">
+          <div class="phase" data-phase="Issue"></div>
+          <div class="phase" data-phase="Analysis"></div>
+          <div class="phase" data-phase="Decompose"></div>
+          <div class="phase" data-phase="CodeGen"></div>
+          <div class="phase" data-phase="Review"></div>
+          <div class="phase" data-phase="PR"></div>
+          <div class="phase" data-phase="Deploy"></div>
+          <div class="phase" data-phase="Monitor"></div>
+        </div>
+
+        <!-- Commands -->
+        <div class="arch-layer">
+          <div class="layer-title">🎯 Commands (18)</div>
+          <div class="component-grid" id="commandsGrid"></div>
+        </div>
+
+        <!-- Git Hooks -->
+        <div class="arch-layer">
+          <div class="layer-title">🪝 Git Hooks (5)</div>
+          <div class="component-grid" id="hooksGrid"></div>
+        </div>
+
+        <!-- Coding Agents -->
+        <div class="arch-layer">
+          <div class="layer-title">🤖 Coding Agents (7)</div>
+          <div class="component-grid" id="agentsGrid"></div>
+        </div>
+
+        <!-- Core Systems -->
+        <div class="arch-layer">
+          <div class="layer-title">⚙️ Core Systems (5)</div>
+          <div class="component-grid" id="systemsGrid"></div>
+        </div>
+      </div>
+
+      <!-- Metrics & Activity Panel -->
+      <div class="metrics-panel">
+        <!-- Real-time Metrics -->
+        <div class="metric-card">
+          <div class="metric-title">Current Execution</div>
+          <div id="currentExecution" style="font-size: 0.9em; opacity: 0.7;">Waiting for agent execution...</div>
+          <div id="executionProgress" style="margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <span style="font-size: 0.8em; opacity: 0.7;">Progress</span>
+              <span style="font-size: 0.8em;" id="progressPercent">0%</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+              <div id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LLM Gateway Metrics -->
+        <div class="metric-card">
+          <div class="metric-title">LLM Gateway</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+            <div>
+              <div style="font-size: 1.5em; font-weight: 200;" id="llmCalls">0</div>
+              <div style="font-size: 0.75em; opacity: 0.7;">API Calls</div>
+            </div>
+            <div>
+              <div style="font-size: 1.5em; font-weight: 200;" id="llmLatency">0ms</div>
+              <div style="font-size: 0.75em; opacity: 0.7;">Avg Latency</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knowledge System -->
+        <div class="metric-card">
+          <div class="metric-title">Knowledge System</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+            <div>
+              <div style="font-size: 1.5em; font-weight: 200;" id="vectorQueries">0</div>
+              <div style="font-size: 0.75em; opacity: 0.7;">Vector Queries</div>
+            </div>
+            <div>
+              <div style="font-size: 1.5em; font-weight: 200;" id="cacheHits">0%</div>
+              <div style="font-size: 0.75em; opacity: 0.7;">Cache Hit Rate</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="metric-card" style="flex: 1;">
+          <div class="metric-title">Activity Log</div>
+          <div class="activity-log" id="activityLog"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Component Data
+    const commands = [
+      'create-issue', 'test', 'verify', 'review', 'agent-run', 'miyabi-auto',
+      'miyabi-infinity', 'miyabi-todos', 'deploy', 'generate-docs', 'generate-lp',
+      'daily-update', 'check-benchmark', 'session-end', 'voicevox', 'narrate',
+      'watch-sprint', 'security-scan'
+    ];
+
+    const hooks = [
+      'pre-commit', 'commit-msg', 'post-commit', 'pre-push', 'post-merge'
+    ];
+
+    const agents = [
+      { name: 'Coordinator', jp: 'しきるん' },
+      { name: 'Issue', jp: 'みつけるん' },
+      { name: 'CodeGen', jp: 'つくるん' },
+      { name: 'Review', jp: 'めだまん' },
+      { name: 'PR', jp: 'まとめるん' },
+      { name: 'Deployment', jp: 'はこぶん' },
+      { name: 'Refresher', jp: 'つなぐん' }
+    ];
+
+    const systems = [
+      'Orchestrator', 'Worktree', 'LLM Gateway', 'Knowledge', 'MCP Server'
+    ];
+
+    // State
+    let wsConnection = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let activityLogEntries = [];
+    let metricsData = {
+      activeAgents: 0,
+      completedToday: 0,
+      avgTime: 0,
+      successRate: 87,
+      queueSize: 0,
+      llmCalls: 0,
+      llmLatency: 0,
+      vectorQueries: 0,
+      cacheHits: 85
+    };
+
+    // Initialize UI
+    function initUI() {
+      // Render Commands
+      const commandsGrid = document.getElementById('commandsGrid');
+      commandsGrid.innerHTML = commands.map(cmd => `
+        <div class="component" data-component="command-${cmd}" data-type="command">
+          <div class="component-name">/${cmd}</div>
+          <div class="component-status">Idle</div>
+        </div>
+      `).join('');
+
+      // Render Hooks
+      const hooksGrid = document.getElementById('hooksGrid');
+      hooksGrid.innerHTML = hooks.map(hook => `
+        <div class="component" data-component="hook-${hook}" data-type="hook">
+          <div class="component-name">${hook}</div>
+          <div class="component-status">Ready</div>
+        </div>
+      `).join('');
+
+      // Render Agents
+      const agentsGrid = document.getElementById('agentsGrid');
+      agentsGrid.innerHTML = agents.map(agent => `
+        <div class="component" data-component="agent-${agent.name.toLowerCase()}" data-type="agent">
+          <div class="component-name">${agent.name}</div>
+          <div class="component-status">${agent.jp}</div>
+        </div>
+      `).join('');
+
+      // Render Systems
+      const systemsGrid = document.getElementById('systemsGrid');
+      systemsGrid.innerHTML = systems.map(sys => `
+        <div class="component" data-component="system-${sys.toLowerCase().replace(' ', '-')}" data-type="system">
+          <div class="component-name">${sys}</div>
+          <div class="component-status">Online</div>
+        </div>
+      `).join('');
+    }
+
+    // WebSocket Connection
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//localhost:3001/ws?events=true`;
+
+      addLog('info', 'Connecting to WebSocket...');
+
+      wsConnection = new WebSocket(wsUrl);
+
+      wsConnection.onopen = () => {
+        reconnectAttempts = 0;
+        updateConnectionStatus(true);
+        addLog('success', 'WebSocket connected successfully');
+      };
+
+      wsConnection.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleEvent(data);
+        } catch (e) {
+          console.error('Failed to parse WebSocket message:', e);
+        }
+      };
+
+      wsConnection.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        addLog('error', 'WebSocket connection error');
+      };
+
+      wsConnection.onclose = () => {
+        updateConnectionStatus(false);
+        addLog('warning', 'WebSocket disconnected');
+
+        // Attempt reconnection
+        if (reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++;
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+          addLog('info', `Reconnecting in ${delay/1000}s... (attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+          setTimeout(connectWebSocket, delay);
+        }
+      };
+    }
+
+    // Update Connection Status
+    function updateConnectionStatus(connected) {
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+
+      if (connected) {
+        statusDot.className = 'status-dot connected';
+        statusText.textContent = 'Connected';
+      } else {
+        statusDot.className = 'status-dot disconnected';
+        statusText.textContent = 'Disconnected';
+      }
+    }
+
+    // Handle WebSocket Events
+    function handleEvent(event) {
+      console.log('Received event:', event);
+
+      switch (event.type) {
+        case 'execution_started':
+          handleExecutionStarted(event);
+          break;
+        case 'execution_progress':
+          handleExecutionProgress(event);
+          break;
+        case 'execution_completed':
+          handleExecutionCompleted(event);
+          break;
+        case 'execution_failed':
+          handleExecutionFailed(event);
+          break;
+        case 'agent_log':
+          handleAgentLog(event);
+          break;
+        case 'metrics_update':
+          handleMetricsUpdate(event);
+          break;
+      }
+    }
+
+    // Event Handlers
+    function handleExecutionStarted(event) {
+      metricsData.activeAgents++;
+      updateMetrics();
+
+      activateComponent(`agent-${event.agent_type?.toLowerCase()}`);
+      updateCurrentExecution(event);
+      addLog('info', `Execution started: ${event.agent_type} for Issue #${event.issue_number}`);
+
+      // Update phase
+      updatePhase(getPhaseIndex(event.agent_type));
+    }
+
+    function handleExecutionProgress(event) {
+      const progressBar = document.getElementById('progressBar');
+      const progressPercent = document.getElementById('progressPercent');
+
+      progressBar.style.width = `${event.progress}%`;
+      progressPercent.textContent = `${event.progress}%`;
+
+      addLog('info', event.message);
+    }
+
+    function handleExecutionCompleted(event) {
+      metricsData.activeAgents = Math.max(0, metricsData.activeAgents - 1);
+      metricsData.completedToday++;
+      updateMetrics();
+
+      deactivateComponent(`agent-${event.agent_type?.toLowerCase()}`);
+      addLog('success', `Execution completed: PR #${event.pr_number} (Quality: ${event.quality_score}/100)`);
+
+      // Mark phase as completed
+      completePhase(getPhaseIndex(event.agent_type));
+    }
+
+    function handleExecutionFailed(event) {
+      metricsData.activeAgents = Math.max(0, metricsData.activeAgents - 1);
+      updateMetrics();
+
+      deactivateComponent(`agent-${event.agent_type?.toLowerCase()}`);
+      addLog('error', `Execution failed: ${event.error}`);
+    }
+
+    function handleAgentLog(event) {
+      addLog('info', event.message);
+    }
+
+    function handleMetricsUpdate(event) {
+      Object.assign(metricsData, event);
+      updateMetrics();
+    }
+
+    // Component Activation
+    function activateComponent(componentId) {
+      const component = document.querySelector(`[data-component="${componentId}"]`);
+      if (component) {
+        component.classList.add('active');
+        const status = component.querySelector('.component-status');
+        if (status) status.textContent = 'Running';
+      }
+    }
+
+    function deactivateComponent(componentId) {
+      const component = document.querySelector(`[data-component="${componentId}"]`);
+      if (component) {
+        component.classList.remove('active');
+        const status = component.querySelector('.component-status');
+        if (status) {
+          const type = component.dataset.type;
+          status.textContent = type === 'agent' ? agents.find(a => `agent-${a.name.toLowerCase()}` === componentId)?.jp || 'Idle' : 'Idle';
+        }
+      }
+    }
+
+    // Phase Management
+    function getPhaseIndex(agentType) {
+      const phaseMap = {
+        'issue': 1,
+        'coordinator': 2,
+        'codegen': 3,
+        'review': 4,
+        'pr': 5,
+        'deployment': 6,
+        'refresher': 7
+      };
+      return phaseMap[agentType?.toLowerCase()] || 0;
+    }
+
+    function updatePhase(index) {
+      const phases = document.querySelectorAll('.phase');
+      if (phases[index]) {
+        phases[index].classList.add('active');
+      }
+    }
+
+    function completePhase(index) {
+      const phases = document.querySelectorAll('.phase');
+      if (phases[index]) {
+        phases[index].classList.remove('active');
+        phases[index].classList.add('completed');
+      }
+    }
+
+    // Current Execution Display
+    function updateCurrentExecution(event) {
+      const currentExecution = document.getElementById('currentExecution');
+      currentExecution.innerHTML = `
+        <div style="margin-bottom: 8px;">
+          <strong>Issue #${event.issue_number}</strong>
+        </div>
+        <div style="font-size: 0.85em; opacity: 0.8;">
+          Agent: ${event.agent_type}<br>
+          Repository: ${event.repository_id}<br>
+          Started: ${new Date(event.timestamp).toLocaleTimeString()}
+        </div>
+      `;
+    }
+
+    // Metrics Update
+    function updateMetrics() {
+      document.getElementById('activeAgents').textContent = metricsData.activeAgents;
+      document.getElementById('completedToday').textContent = metricsData.completedToday;
+      document.getElementById('avgTime').textContent = `${metricsData.avgTime}s`;
+      document.getElementById('successRate').textContent = `${metricsData.successRate}%`;
+      document.getElementById('queueSize').textContent = metricsData.queueSize;
+      document.getElementById('llmCalls').textContent = metricsData.llmCalls;
+      document.getElementById('llmLatency').textContent = `${metricsData.llmLatency}ms`;
+      document.getElementById('vectorQueries').textContent = metricsData.vectorQueries;
+      document.getElementById('cacheHits').textContent = `${metricsData.cacheHits}%`;
+    }
+
+    // Activity Log
+    function addLog(type, message) {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = { timestamp, type, message };
+
+      activityLogEntries.unshift(logEntry);
+      if (activityLogEntries.length > 50) {
+        activityLogEntries.pop();
+      }
+
+      renderActivityLog();
+    }
+
+    function renderActivityLog() {
+      const activityLog = document.getElementById('activityLog');
+      activityLog.innerHTML = activityLogEntries.map(entry => `
+        <div class="log-entry">
+          <span class="log-timestamp">${entry.timestamp}</span>
+          <span class="log-type ${entry.type}">${entry.type.toUpperCase()}</span>
+          <span>${entry.message}</span>
+        </div>
+      `).join('');
+    }
+
+    // Demo Mode (if WebSocket unavailable)
+    function startDemoMode() {
+      addLog('warning', 'Running in demo mode - simulating events');
+
+      let demoStep = 0;
+      const demoScenarios = [
+        () => {
+          handleExecutionStarted({
+            type: 'execution_started',
+            execution_id: '12345',
+            repository_id: 'miyabi-private',
+            issue_number: 500,
+            agent_type: 'Coordinator',
+            timestamp: new Date().toISOString()
+          });
+        },
+        () => {
+          handleExecutionProgress({
+            type: 'execution_progress',
+            execution_id: '12345',
+            progress: 25,
+            message: 'Analyzing issue and creating task DAG...'
+          });
+        },
+        () => {
+          handleExecutionProgress({
+            type: 'execution_progress',
+            execution_id: '12345',
+            progress: 50,
+            message: 'Decomposed into 6 tasks'
+          });
+        },
+        () => {
+          handleExecutionStarted({
+            type: 'execution_started',
+            execution_id: '12346',
+            repository_id: 'miyabi-private',
+            issue_number: 500,
+            agent_type: 'CodeGen',
+            timestamp: new Date().toISOString()
+          });
+        },
+        () => {
+          handleExecutionProgress({
+            type: 'execution_progress',
+            execution_id: '12346',
+            progress: 75,
+            message: 'Generating code with LLM...'
+          });
+        },
+        () => {
+          handleExecutionCompleted({
+            type: 'execution_completed',
+            execution_id: '12346',
+            agent_type: 'CodeGen',
+            pr_number: 501,
+            quality_score: 95,
+            timestamp: new Date().toISOString()
+          });
+        }
+      ];
+
+      setInterval(() => {
+        if (demoStep < demoScenarios.length) {
+          demoScenarios[demoStep]();
+          demoStep++;
+        } else {
+          demoStep = 0;
+        }
+
+        // Update random metrics
+        metricsData.llmCalls += Math.floor(Math.random() * 3);
+        metricsData.llmLatency = 2000 + Math.floor(Math.random() * 4000);
+        metricsData.vectorQueries += Math.floor(Math.random() * 2);
+        updateMetrics();
+      }, 5000);
+    }
+
+    // Initialize
+    initUI();
+
+    // Try WebSocket connection, fallback to demo mode
+    try {
+      connectWebSocket();
+    } catch (e) {
+      console.error('WebSocket connection failed, starting demo mode:', e);
+      updateConnectionStatus(false);
+      setTimeout(startDemoMode, 2000);
+    }
+
+    // Fallback to demo mode if connection doesn't establish in 5 seconds
+    setTimeout(() => {
+      if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+        startDemoMode();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

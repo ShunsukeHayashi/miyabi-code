@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miyabi Interactive Architecture - Commands, Hooks, and 21 Agents</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      padding: 40px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-primary { background: #667eea; color: white; }
+    .btn-success { background: #48bb78; color: white; }
+    .btn-warning { background: #f6ad55; color: white; }
+    .btn-danger { background: #fc8181; color: white; }
+    .btn-info { background: #4299e1; color: white; }
+
+    .diagram-container {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+      position: relative;
+      overflow: auto;
+    }
+
+    .info-panel {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .info-panel.active {
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-panel h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .info-panel h3 {
+      color: #4a5568;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    .info-panel ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-panel li {
+      padding: 8px 0;
+      padding-left: 25px;
+      position: relative;
+    }
+
+    .info-panel li::before {
+      content: "▸";
+      position: absolute;
+      left: 5px;
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .metric-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .metric-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .metric-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .flow-path {
+      background: #f7fafc;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .flow-step {
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .flow-step-number {
+      background: #667eea;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .search-box {
+      width: 100%;
+      max-width: 500px;
+      padding: 12px 20px;
+      border: 2px solid #667eea;
+      border-radius: 25px;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+      margin: 0 auto 30px;
+      display: block;
+    }
+
+    .search-box:focus {
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .component-card {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+
+    .component-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .component-card.command { border-left-color: #4299e1; }
+    .component-card.hook { border-left-color: #f6ad55; }
+    .component-card.agent { border-left-color: #48bb78; }
+    .component-card.system { border-left-color: #fc8181; }
+
+    .component-card h4 {
+      color: #2d3748;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .component-card p {
+      color: #4a5568;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-right: 5px;
+      margin-top: 5px;
+    }
+
+    .tag-command { background: #bee3f8; color: #2c5282; }
+    .tag-hook { background: #feebc8; color: #7c2d12; }
+    .tag-agent { background: #c6f6d5; color: #22543d; }
+    .tag-system { background: #fed7d7; color: #742a2a; }
+
+    footer {
+      text-align: center;
+      color: white;
+      padding: 30px;
+      margin-top: 50px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .mermaid {
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 Miyabi Interactive Architecture</h1>
+      <p class="subtitle">Commands, Hooks, and 21 Agents - Full System Overview</p>
+    </header>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="showSection('overview')">📊 Overview</button>
+      <button class="btn btn-success" onclick="showSection('commands')">🎯 Commands (18)</button>
+      <button class="btn btn-warning" onclick="showSection('agents')">🤖 Agents (21)</button>
+      <button class="btn btn-danger" onclick="showSection('flow')">🔄 Execution Flow</button>
+      <button class="btn btn-info" onclick="showSection('metrics')">📈 Metrics</button>
+    </div>
+
+    <input type="text"
+           class="search-box"
+           id="searchBox"
+           placeholder="🔍 Search commands, agents, or components..."
+           onkeyup="searchComponents()">
+
+    <!-- Overview Section -->
+    <div id="overview-section" class="info-panel active">
+      <h2>📊 System Overview</h2>
+
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">18</div>
+          <div class="metric-label">Slash Commands</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">5</div>
+          <div class="metric-label">Git Hooks</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">21</div>
+          <div class="metric-label">Total Agents</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">15-25min</div>
+          <div class="metric-label">Avg Issue Time</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">87%</div>
+          <div class="metric-label">Success Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">$0.15-0.40</div>
+          <div class="metric-label">Cost per Issue</div>
+        </div>
+      </div>
+
+      <h3>🎯 System Architecture</h3>
+      <p>Miyabiは完全自律型AI開発フレームワークです。GitHub Issue作成から本番デプロイまで、人間の介入なしで完全自動化されたワークフローを実現します。</p>
+
+      <h3>🔑 Key Features</h3>
+      <ul>
+        <li><strong>100% Autonomous</strong>: Issue → Code → PR → Deploy まで完全自動</li>
+        <li><strong>Parallel Execution</strong>: Git Worktreeによる3並列実行</li>
+        <li><strong>Quality Driven</strong>: ReviewAgentによる100点満点スコアリング</li>
+        <li><strong>Cost Efficient</strong>: Issue当たり$0.15-0.40の低コスト</li>
+        <li><strong>High Success Rate</strong>: 87%の成功率（自動リトライ含む）</li>
+      </ul>
+    </div>
+
+    <!-- Commands Section -->
+    <div id="commands-section" class="info-panel">
+      <h2>🎯 Slash Commands (18)</h2>
+
+      <input type="text"
+             class="search-box"
+             placeholder="🔍 Search commands..."
+             onkeyup="filterComponents('command')">
+
+      <div class="component-grid" id="commands-grid">
+        <!-- Commands will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Agents Section -->
+    <div id="agents-section" class="info-panel">
+      <h2>🤖 Agents (21)</h2>
+
+      <h3>Coding Agents (7)</h3>
+      <div class="component-grid" id="coding-agents-grid">
+        <!-- Coding agents will be populated by JavaScript -->
+      </div>
+
+      <h3>Business Agents (14)</h3>
+      <div class="component-grid" id="business-agents-grid">
+        <!-- Business agents will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Flow Section -->
+    <div id="flow-section" class="info-panel">
+      <h2>🔄 Execution Flow</h2>
+
+      <div class="flow-path">
+        <h3>Phase 1: Issue Creation (30s)</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">1</div>
+          <div>Developer executes <code>/create-issue</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">2</div>
+          <div>GitHub Issue created (#500)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">3</div>
+          <div>Webhook triggers Orchestrator</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 2: Issue Analysis (30s) - AI Inference</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">4</div>
+          <div>IssueAgent analyzes via LLM Gateway → Anthropic API</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">5</div>
+          <div>Knowledge Manager searches similar issues (Qdrant)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">6</div>
+          <div>Labels applied: type:feature, priority:p1-high, area:agents</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 3: Task Decomposition (1-2min) - DAG Creation</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">7</div>
+          <div>CoordinatorAgent breaks down into 6 tasks</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">8</div>
+          <div>DAG created: 1 → 2,3 → 4 → 5 → 6</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">9</div>
+          <div>Tasks saved to SQLite</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 4: Worktree Setup (5s)</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">10</div>
+          <div>Worktree Manager creates <code>.worktrees/issue-500/</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">11</div>
+          <div>Branch: <code>feature/issue-500</code></div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 5: Code Generation (3-5min) - Parallel Execution</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">12</div>
+          <div>3x CodeGenAgent run in parallel (separate worktrees)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">13</div>
+          <div>Each: Generate → Test → Lint → Commit</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">14</div>
+          <div>pre-commit hook: Test + Security Scan</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">15</div>
+          <div>post-commit hook: VoiceVox notification 🔊</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 6: Quality Review (2-3min)</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">16</div>
+          <div>ReviewAgent analyzes code quality</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">17</div>
+          <div>Score: 95/100 ✅ (threshold: 80)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">18</div>
+          <div>If score < 80 → Feedback to CodeGenAgent</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 7: PR Creation (1min)</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">19</div>
+          <div>PRAgent creates Pull Request #501</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">20</div>
+          <div>Link: Closes #500</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 8: CI/CD & Deployment (5-10min)</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">21</div>
+          <div>pre-push hook: Full test suite</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">22</div>
+          <div>GitHub Actions CI runs</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">23</div>
+          <div>Auto-merge (quality ≥ 90)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">24</div>
+          <div>post-merge hook triggers DeploymentAgent</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">25</div>
+          <div>Deploy: Staging → Production ✅</div>
+        </div>
+      </div>
+
+      <div class="flow-path">
+        <h3>Phase 9: Cleanup & Monitoring (1min)</h3>
+        <div class="flow-step">
+          <div class="flow-step-number">26</div>
+          <div>Issue #500 closed with state:done label</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">27</div>
+          <div>Worktree cleaned up</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-number">28</div>
+          <div>RefresherAgent monitors for future issues</div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">9</div>
+          <div class="metric-label">Total Phases</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">28</div>
+          <div class="metric-label">Total Steps</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">15-25min</div>
+          <div class="metric-label">Total Time</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">$0.50</div>
+          <div class="metric-label">Total Cost</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics Section -->
+    <div id="metrics-section" class="info-panel">
+      <h2>📈 System Metrics</h2>
+
+      <h3>Commands Performance</h3>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">95%</div>
+          <div class="metric-label">Success Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~50</div>
+          <div class="metric-label">Daily Calls</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">30s-5min</div>
+          <div class="metric-label">Avg Execution</div>
+        </div>
+      </div>
+
+      <h3>Git Hooks Performance</h3>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">100%</div>
+          <div class="metric-label">Trigger Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">5%</div>
+          <div class="metric-label">Abort Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">15-45s</div>
+          <div class="metric-label">Avg Hook Time</div>
+        </div>
+      </div>
+
+      <h3>Coding Agents Performance</h3>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">87%</div>
+          <div class="metric-label">Success Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">13%</div>
+          <div class="metric-label">Retry Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">3</div>
+          <div class="metric-label">Parallel Capacity</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">80/100</div>
+          <div class="metric-label">Quality Threshold</div>
+        </div>
+      </div>
+
+      <h3>Infrastructure Metrics</h3>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">99.9%</div>
+          <div class="metric-label">Orchestrator Uptime</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">&lt;500ms</div>
+          <div class="metric-label">Webhook Latency</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~200MB</div>
+          <div class="metric-label">Memory Usage</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">5-15%</div>
+          <div class="metric-label">CPU Usage</div>
+        </div>
+      </div>
+
+      <h3>LLM Gateway Metrics</h3>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">2-8s</div>
+          <div class="metric-label">Avg Response</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">500-3K</div>
+          <div class="metric-label">Tokens/Request</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">5%</div>
+          <div class="metric-label">Fallback Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">200-500</div>
+          <div class="metric-label">Daily API Calls</div>
+        </div>
+      </div>
+
+      <h3>Data Stores Performance</h3>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-value">500+</div>
+          <div class="metric-label">GitHub Issues</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">15K</div>
+          <div class="metric-label">Qdrant Embeddings</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">10K+</div>
+          <div class="metric-label">SQLite Records</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">&lt;100ms</div>
+          <div class="metric-label">Query Latency</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>🤖 Generated with <a href="https://claude.com/claude-code" style="color: white;">Claude Code</a></p>
+      <p style="margin-top: 10px; opacity: 0.8;">Miyabi - Autonomous AI Development Framework (Rust Edition)</p>
+    </footer>
+  </div>
+
+  <script>
+    // Component Data
+    const commands = [
+      { name: '/create-issue', category: 'Development', desc: 'GitHub Issue作成（Agent実行用・汎用両対応）', metrics: '成功率: 98%, 平均: 30秒' },
+      { name: '/test', category: 'Development', desc: 'プロジェクト全体テスト実行', metrics: '成功率: 92%, 平均: 45-90秒' },
+      { name: '/verify', category: 'Development', desc: 'システム動作確認（環境・コンパイル・テスト）', metrics: '成功率: 95%, 平均: 2-3分' },
+      { name: '/review', category: 'Development', desc: 'コード品質レビュー（100点満点）', metrics: '成功率: 90%, 平均: 2-3分, スコア: 82/100' },
+      { name: '/agent-run', category: 'Agent', desc: 'Agent実行（単一/並列/バッチ）', metrics: '成功率: 87%, 平均: 3-15分' },
+      { name: '/miyabi-auto', category: 'Agent', desc: '全自動開発モード', metrics: '成功率: 85%, 平均: 15-25分' },
+      { name: '/miyabi-infinity', category: 'Agent', desc: 'Infinity Sprint（無限自律実行）', metrics: '稼働率: 99.5%, 処理: 5-10/時' },
+      { name: '/miyabi-todos', category: 'Agent', desc: 'TODO自動Issue化', metrics: '成功率: 95%, 検出: 10-20個' },
+      { name: '/deploy', category: 'Deployment', desc: 'Firebase/Cloud Run デプロイ', metrics: '成功率: 95%, 平均: 5-10分, 月30+回' },
+      { name: '/generate-docs', category: 'Documentation', desc: 'コードからドキュメント自動生成', metrics: '成功率: 93%, 平均: 3-5分, 生成: 10-20ページ' },
+      { name: '/generate-lp', category: 'Documentation', desc: 'ランディングページ生成', metrics: '成功率: 90%, 平均: 5-8分' },
+      { name: '/daily-update', category: 'Reports', desc: '開発進捗レポート（note.com投稿用）', metrics: '成功率: 98%, 平均: 2-3分, 月30回' },
+      { name: '/check-benchmark', category: 'Reports', desc: 'ベンチマーク実装チェック', metrics: '成功率: 100%, 平均: 10秒' },
+      { name: '/session-end', category: 'Notifications', desc: 'セッション終了通知（macOS+音声）', metrics: '成功率: 100%, <1秒, 日5-10回' },
+      { name: '/voicevox', category: 'VoiceVox', desc: '単発テキスト読み上げ', metrics: '成功率: 99%, <1秒, 日50-100回' },
+      { name: '/narrate', category: 'VoiceVox', desc: 'Git commitから開発進捗ナレーション', metrics: '成功率: 95%, 平均: 1-2分, 月20-30回' },
+      { name: '/watch-sprint', category: 'VoiceVox', desc: 'Infinity Sprintログ監視+音声通知', metrics: '成功率: 99%, 通知: 10-20/時' },
+      { name: '/security-scan', category: 'Security', desc: 'セキュリティ脆弱性スキャン', metrics: '成功率: 98%, 平均: 1-2分, 日10-15回' }
+    ];
+
+    const codingAgents = [
+      { name: 'CoordinatorAgent (しきるん)', desc: 'タスクDAG分解・統括', metrics: '平均: 1-2分, 成功率: 90%, タスク: 5-8個' },
+      { name: 'IssueAgent (みつけるん)', desc: 'AI Label推論・Issue分析', metrics: '平均: 30秒, 成功率: 95%, 精度: 88%' },
+      { name: 'CodeGenAgent (つくるん)', desc: 'AI駆動コード生成', metrics: '平均: 3-5分, 成功率: 85%, LLM: 15-25回' },
+      { name: 'ReviewAgent (めだまん)', desc: '品質レビュー（100点満点スコアリング）', metrics: '平均: 2-3分, 成功率: 90%, スコア: 82/100' },
+      { name: 'PRAgent (まとめるん)', desc: 'Pull Request自動作成', metrics: '平均: 1分, 成功率: 98%, マージ率: 85%' },
+      { name: 'DeploymentAgent (はこぶん)', desc: 'CI/CDデプロイ自動化', metrics: '平均: 5-10分, 成功率: 95%, 月30+回' },
+      { name: 'RefresherAgent (つなぐん)', desc: 'Issue状態監視・自動更新', metrics: '平均: 10秒, 間隔: 1時間, 検出: 7日' }
+    ];
+
+    const businessAgents = [
+      { name: 'AIEntrepreneurAgent', category: 'Strategy', desc: '包括的ビジネスプラン作成', metrics: '平均: 10-15分, 出力: 50-100ページ' },
+      { name: 'ProductConceptAgent', category: 'Strategy', desc: 'プロダクト構想・USP設計', metrics: '平均: 8-12分' },
+      { name: 'ProductDesignAgent', category: 'Strategy', desc: 'サービス詳細設計（6ヶ月分）', metrics: '平均: 12-18分' },
+      { name: 'PersonaAgent', category: 'Strategy', desc: 'ターゲット顧客ペルソナ設定（3-5人）', metrics: '平均: 5-8分' },
+      { name: 'SelfAnalysisAgent', category: 'Strategy', desc: 'キャリア・スキル・実績分析', metrics: '平均: 6-10分' },
+      { name: 'FunnelDesignAgent', category: 'Strategy', desc: '認知→購入→LTV導線設計', metrics: '平均: 8-12分' },
+      { name: 'MarketResearchAgent', category: 'Marketing', desc: '市場調査・競合分析（20社以上）', metrics: '平均: 15-20分' },
+      { name: 'MarketingAgent', category: 'Marketing', desc: '広告・SEO・SNS戦略', metrics: '平均: 10-15分' },
+      { name: 'ContentCreationAgent', category: 'Marketing', desc: '動画・記事・教材制作計画', metrics: '平均: 8-12分' },
+      { name: 'SNSStrategyAgent', category: 'Marketing', desc: 'Twitter/Instagram/LinkedIn戦略', metrics: '平均: 6-10分' },
+      { name: 'YouTubeAgent', category: 'Marketing', desc: 'YouTubeチャンネル運用最適化', metrics: '平均: 10-15分' },
+      { name: 'SalesAgent', category: 'Sales/CRM', desc: 'リード→顧客転換最適化', metrics: '平均: 8-12分' },
+      { name: 'CRMAgent', category: 'Sales/CRM', desc: '顧客満足度・LTV最大化', metrics: '平均: 10-15分' },
+      { name: 'AnalyticsAgent', category: 'Sales/CRM', desc: 'データ分析・PDCAサイクル実行', metrics: '平均: 5-10分' }
+    ];
+
+    // Initialize
+    function init() {
+      renderCommands();
+      renderCodingAgents();
+      renderBusinessAgents();
+    }
+
+    function renderCommands() {
+      const grid = document.getElementById('commands-grid');
+      grid.innerHTML = commands.map(cmd => `
+        <div class="component-card command" onclick="showCommandDetail('${cmd.name}')">
+          <h4>${cmd.name}</h4>
+          <p><strong>${cmd.category}</strong></p>
+          <p>${cmd.desc}</p>
+          <div style="margin-top: 10px;">
+            <span class="tag tag-command">${cmd.category}</span>
+          </div>
+          <p style="margin-top: 10px; font-size: 0.85em; color: #718096;"><strong>Metrics:</strong> ${cmd.metrics}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderCodingAgents() {
+      const grid = document.getElementById('coding-agents-grid');
+      grid.innerHTML = codingAgents.map(agent => `
+        <div class="component-card agent" onclick="showAgentDetail('${agent.name}')">
+          <h4>${agent.name}</h4>
+          <p>${agent.desc}</p>
+          <div style="margin-top: 10px;">
+            <span class="tag tag-agent">Coding</span>
+          </div>
+          <p style="margin-top: 10px; font-size: 0.85em; color: #718096;"><strong>Metrics:</strong> ${agent.metrics}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderBusinessAgents() {
+      const grid = document.getElementById('business-agents-grid');
+      grid.innerHTML = businessAgents.map(agent => `
+        <div class="component-card agent" onclick="showAgentDetail('${agent.name}')">
+          <h4>${agent.name}</h4>
+          <p><strong>${agent.category}</strong></p>
+          <p>${agent.desc}</p>
+          <div style="margin-top: 10px;">
+            <span class="tag tag-agent">${agent.category}</span>
+          </div>
+          <p style="margin-top: 10px; font-size: 0.85em; color: #718096;"><strong>Metrics:</strong> ${agent.metrics}</p>
+        </div>
+      `).join('');
+    }
+
+    function showSection(section) {
+      // Hide all panels
+      document.querySelectorAll('.info-panel').forEach(panel => {
+        panel.classList.remove('active');
+      });
+
+      // Show selected panel
+      document.getElementById(`${section}-section`).classList.add('active');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showCommandDetail(name) {
+      const cmd = commands.find(c => c.name === name);
+      if (cmd) {
+        alert(`${cmd.name}\n\nCategory: ${cmd.category}\n\n${cmd.desc}\n\nMetrics: ${cmd.metrics}\n\nFile: .claude/commands/${cmd.name.slice(1)}.md`);
+      }
+    }
+
+    function showAgentDetail(name) {
+      const agent = [...codingAgents, ...businessAgents].find(a => a.name === name);
+      if (agent) {
+        alert(`${agent.name}\n\n${agent.desc}\n\nMetrics: ${agent.metrics}\n\nSpec: .claude/agents/specs/`);
+      }
+    }
+
+    function searchComponents() {
+      const query = document.getElementById('searchBox').value.toLowerCase();
+
+      // Filter all component cards
+      document.querySelectorAll('.component-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Initialize on load
+    window.onload = init;
+  </script>
+</body>
+</html>

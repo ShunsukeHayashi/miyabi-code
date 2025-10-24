@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miyabi Project-Centric Live Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      overflow: hidden;
+    }
+
+    .container {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      border-bottom: 1px solid #30363d;
+      padding: 15px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-title h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .repo-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 0.85rem;
+      color: #8b949e;
+    }
+
+    .repo-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: rgba(88, 166, 255, 0.1);
+      border-radius: 6px;
+      border: 1px solid rgba(88, 166, 255, 0.2);
+    }
+
+    .git-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .branch-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: rgba(46, 160, 67, 0.1);
+      border-radius: 6px;
+      border: 1px solid rgba(46, 160, 67, 0.2);
+      font-size: 0.8rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid #30363d;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.active { background: #3fb950; box-shadow: 0 0 8px #3fb950; }
+    .status-dot.idle { background: #8b949e; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Main Layout */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      overflow: hidden;
+    }
+
+    /* Left Panel - Directory Tree */
+    .tree-panel {
+      background: #0d1117;
+      border-right: 1px solid #30363d;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 15px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-count {
+      font-size: 0.75rem;
+      color: #8b949e;
+      font-weight: 400;
+    }
+
+    .tree-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .tree-node {
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      position: relative;
+    }
+
+    .tree-node:hover {
+      background: #161b22;
+    }
+
+    .tree-node.active {
+      background: rgba(88, 166, 255, 0.15);
+      border-left: 2px solid #58a6ff;
+    }
+
+    .tree-node.editing {
+      background: rgba(242, 161, 0, 0.15);
+      animation: editing-pulse 2s infinite;
+    }
+
+    @keyframes editing-pulse {
+      0%, 100% { background: rgba(242, 161, 0, 0.15); }
+      50% { background: rgba(242, 161, 0, 0.25); }
+    }
+
+    .tree-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .tree-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tree-indent {
+      display: inline-block;
+    }
+
+    .heatmap-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .heat-high { background: #f85149; box-shadow: 0 0 6px #f85149; }
+    .heat-medium { background: #f2a10d; box-shadow: 0 0 6px #f2a10d; }
+    .heat-low { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
+    .heat-none { background: #6e7681; }
+
+    /* Center Panel - File Editor */
+    .editor-panel {
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-tabs {
+      display: flex;
+      gap: 2px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      overflow-x: auto;
+    }
+
+    .editor-tab {
+      padding: 10px 16px;
+      background: #0d1117;
+      border: none;
+      color: #8b949e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+      border-top: 2px solid transparent;
+    }
+
+    .editor-tab:hover {
+      background: #161b22;
+      color: #c9d1d9;
+    }
+
+    .editor-tab.active {
+      color: #58a6ff;
+      border-top-color: #58a6ff;
+    }
+
+    .tab-close {
+      opacity: 0;
+      margin-left: 8px;
+      font-size: 1rem;
+      color: #8b949e;
+      transition: all 0.2s;
+    }
+
+    .editor-tab:hover .tab-close {
+      opacity: 1;
+    }
+
+    .tab-close:hover {
+      color: #f85149;
+    }
+
+    .editor-content {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .diff-view {
+      padding: 20px;
+      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+
+    .diff-header {
+      padding: 15px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .diff-file-path {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.85rem;
+      color: #58a6ff;
+    }
+
+    .diff-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 0.75rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-add { color: #3fb950; }
+    .stat-del { color: #f85149; }
+
+    .diff-line {
+      padding: 2px 10px;
+      display: flex;
+      gap: 15px;
+    }
+
+    .line-number {
+      color: #6e7681;
+      user-select: none;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .line-content {
+      flex: 1;
+    }
+
+    .diff-line.add {
+      background: rgba(63, 185, 80, 0.15);
+      border-left: 2px solid #3fb950;
+    }
+
+    .diff-line.add .line-content {
+      color: #3fb950;
+    }
+
+    .diff-line.del {
+      background: rgba(248, 81, 73, 0.15);
+      border-left: 2px solid #f85149;
+    }
+
+    .diff-line.del .line-content {
+      color: #f85149;
+    }
+
+    /* Right Panel - Activity */
+    .activity-panel {
+      background: #0d1117;
+      border-left: 1px solid #30363d;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .activity-section {
+      border-bottom: 1px solid #30363d;
+    }
+
+    .activity-header {
+      padding: 12px 15px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .activity-content {
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .agent-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+
+    .agent-card:hover {
+      border-color: #58a6ff;
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .agent-card.active {
+      border-color: #3fb950;
+      background: rgba(63, 185, 80, 0.05);
+      box-shadow: 0 0 10px rgba(63, 185, 80, 0.2);
+    }
+
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .agent-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+
+    .agent-badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .badge-running {
+      background: rgba(63, 185, 80, 0.2);
+      color: #3fb950;
+    }
+
+    .badge-idle {
+      background: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .agent-target {
+      font-size: 0.75rem;
+      color: #8b949e;
+      font-family: 'SF Mono', monospace;
+      margin-bottom: 8px;
+    }
+
+    .agent-progress {
+      width: 100%;
+      height: 4px;
+      background: #30363d;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3fb950 0%, #56d364 100%);
+      transition: width 0.3s ease;
+    }
+
+    .commit-list {
+      padding: 10px;
+    }
+
+    .commit-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-left: 2px solid #30363d;
+      margin-left: 10px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+
+    .commit-item:hover {
+      border-left-color: #58a6ff;
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .commit-hash {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.75rem;
+      color: #58a6ff;
+      flex-shrink: 0;
+    }
+
+    .commit-details {
+      flex: 1;
+    }
+
+    .commit-message {
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .commit-meta {
+      font-size: 0.7rem;
+      color: #8b949e;
+    }
+
+    .log-stream {
+      padding: 10px;
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .log-entry {
+      padding: 4px 0;
+      display: flex;
+      gap: 10px;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time {
+      color: #6e7681;
+      flex-shrink: 0;
+    }
+
+    .log-level {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .log-info { background: rgba(88, 166, 255, 0.2); color: #58a6ff; }
+    .log-success { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+    .log-warning { background: rgba(242, 161, 0, 0.2); color: #f2a10d; }
+    .log-error { background: rgba(248, 81, 73, 0.2); color: #f85149; }
+
+    .log-message {
+      flex: 1;
+      color: #c9d1d9;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #161b22;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #484f58;
+    }
+
+    /* Icons */
+    .icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <h1>📂 Project-Centric Live View</h1>
+      </div>
+
+      <div class="repo-info">
+        <div class="repo-badge">
+          <span>📁</span>
+          <span id="repoName">miyabi-private</span>
+        </div>
+        <div class="git-status">
+          <div class="branch-badge">
+            <span>🌿</span>
+            <span id="currentBranch">main</span>
+          </div>
+          <span id="filesChanged">0 files changed</span>
+        </div>
+      </div>
+
+      <div class="status-indicator">
+        <div class="status-dot" id="systemStatus"></div>
+        <span id="systemStatusText">Idle</span>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+      <!-- Left: Directory Tree -->
+      <div class="tree-panel">
+        <div class="panel-header">
+          <span>📁 Project Files</span>
+          <span class="file-count" id="fileCount">0 files</span>
+        </div>
+        <div class="tree-container" id="treeContainer"></div>
+      </div>
+
+      <!-- Center: File Editor/Diff View -->
+      <div class="editor-panel">
+        <div class="editor-tabs" id="editorTabs">
+          <div class="editor-tab active">
+            <span>📄</span>
+            <span>Welcome</span>
+          </div>
+        </div>
+
+        <div class="editor-content">
+          <div class="diff-view" id="diffView">
+            <div style="text-align: center; padding: 60px 20px; color: #6e7681;">
+              <h2 style="margin-bottom: 10px;">👋 Project-Centric Live View</h2>
+              <p>Select a file from the tree to view real-time changes</p>
+              <p style="margin-top: 20px; font-size: 0.85rem;">Active agents will automatically highlight files they're working on</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Activity Panel -->
+      <div class="activity-panel">
+        <!-- Active Agents -->
+        <div class="activity-section">
+          <div class="activity-header">🤖 Active Agents</div>
+          <div class="activity-content" id="agentList">
+            <div style="text-align: center; padding: 20px; color: #6e7681; font-size: 0.85rem;">
+              No active agents
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Commits -->
+        <div class="activity-section">
+          <div class="activity-header">📝 Recent Commits</div>
+          <div class="commit-list" id="commitList">
+            <div style="text-align: center; padding: 20px; color: #6e7681; font-size: 0.85rem;">
+              No recent commits
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="activity-section" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="activity-header">📊 Activity Log</div>
+          <div class="log-stream" id="logStream"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mock project structure (from tree command output)
+    const projectStructure = [
+      { path: 'crates', type: 'dir', children: [
+        { path: 'crates/miyabi-core', type: 'dir', heat: 'high' },
+        { path: 'crates/miyabi-agents', type: 'dir', heat: 'medium' },
+        { path: 'crates/miyabi-web-api', type: 'dir', heat: 'high' },
+        { path: 'crates/miyabi-cli', type: 'dir', heat: 'low' },
+        { path: 'crates/miyabi-types', type: 'dir', heat: 'medium' },
+      ]},
+      { path: 'docs', type: 'dir', children: [
+        { path: 'docs/architecture', type: 'dir', heat: 'high' },
+        { path: 'docs/README.md', type: 'file', heat: 'medium' },
+      ]},
+      { path: 'miyabi-web', type: 'dir', children: [
+        { path: 'miyabi-web/src', type: 'dir', heat: 'medium' },
+      ]},
+      { path: 'scripts', type: 'dir', heat: 'low' },
+      { path: 'Cargo.toml', type: 'file', heat: 'medium' },
+      { path: 'README.md', type: 'file', heat: 'low' },
+    ];
+
+    // State
+    let activeAgents = [];
+    let recentCommits = [];
+    let activityLog = [];
+    let openFiles = new Set();
+    let currentFile = null;
+
+    // Render project tree
+    function renderTree() {
+      const container = document.getElementById('treeContainer');
+      container.innerHTML = '';
+
+      function renderNode(node, indent = 0) {
+        const div = document.createElement('div');
+        div.className = 'tree-node';
+        div.style.paddingLeft = `${indent * 15 + 10}px`;
+
+        const icon = node.type === 'dir' ? '📁' : '📄';
+        const heatClass = node.heat ? `heat-${node.heat}` : 'heat-none';
+
+        div.innerHTML = `
+          <span class="tree-icon">${icon}</span>
+          <span class="tree-label">${node.path.split('/').pop()}</span>
+          <span class="heatmap-indicator ${heatClass}"></span>
+        `;
+
+        div.onclick = () => selectFile(node);
+        container.appendChild(div);
+
+        if (node.children) {
+          node.children.forEach(child => renderNode(child, indent + 1));
+        }
+      }
+
+      projectStructure.forEach(node => renderNode(node));
+
+      document.getElementById('fileCount').textContent =
+        `${countFiles(projectStructure)} files`;
+    }
+
+    function countFiles(nodes) {
+      let count = 0;
+      nodes.forEach(node => {
+        if (node.type === 'file') count++;
+        if (node.children) count += countFiles(node.children);
+      });
+      return count;
+    }
+
+    // Select file
+    function selectFile(node) {
+      if (node.type === 'file') {
+        currentFile = node;
+        showFileDiff(node);
+      }
+    }
+
+    // Show file diff
+    function showFileDiff(node) {
+      const diffView = document.getElementById('diffView');
+
+      const mockDiff = [
+        { type: 'context', old: 10, new: 10, content: 'use miyabi_types::Agent;' },
+        { type: 'context', old: 11, new: 11, content: 'use miyabi_core::Logger;' },
+        { type: 'add', old: null, new: 12, content: 'use miyabi_llm::Gateway;' },
+        { type: 'context', old: 12, new: 13, content: '' },
+        { type: 'context', old: 13, new: 14, content: 'pub struct CodeGenAgent {' },
+        { type: 'del', old: 14, new: null, content: '    logger: Logger,' },
+        { type: 'add', old: null, new: 15, content: '    logger: Logger,' },
+        { type: 'add', old: null, new: 16, content: '    llm_gateway: Gateway,' },
+        { type: 'context', old: 15, new: 17, content: '}' },
+      ];
+
+      diffView.innerHTML = `
+        <div class="diff-header">
+          <div class="diff-file-path">${node.path}</div>
+          <div class="diff-stats">
+            <div class="stat-item stat-add">+${mockDiff.filter(l => l.type === 'add').length}</div>
+            <div class="stat-item stat-del">-${mockDiff.filter(l => l.type === 'del').length}</div>
+          </div>
+        </div>
+        <div class="diff-content">
+          ${mockDiff.map(line => `
+            <div class="diff-line ${line.type}">
+              <span class="line-number">${line.old || ''}</span>
+              <span class="line-number">${line.new || ''}</span>
+              <span class="line-content">${line.content}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Render agents
+    function renderAgents() {
+      const container = document.getElementById('agentList');
+
+      if (activeAgents.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #6e7681; font-size: 0.85rem;">
+            No active agents
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeAgents.map(agent => `
+        <div class="agent-card ${agent.status === 'running' ? 'active' : ''}">
+          <div class="agent-header">
+            <div class="agent-name">${agent.name}</div>
+            <div class="agent-badge badge-${agent.status}">${agent.status}</div>
+          </div>
+          <div class="agent-target">${agent.target}</div>
+          <div class="agent-progress">
+            <div class="progress-bar" style="width: ${agent.progress}%"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render commits
+    function renderCommits() {
+      const container = document.getElementById('commitList');
+
+      if (recentCommits.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #6e7681; font-size: 0.85rem;">
+            No recent commits
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = recentCommits.map(commit => `
+        <div class="commit-item">
+          <div class="commit-hash">${commit.hash.substring(0, 7)}</div>
+          <div class="commit-details">
+            <div class="commit-message">${commit.message}</div>
+            <div class="commit-meta">${commit.author} • ${commit.time}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Add log entry
+    function addLog(level, message) {
+      const timestamp = new Date().toLocaleTimeString();
+      activityLog.unshift({ timestamp, level, message });
+
+      if (activityLog.length > 100) {
+        activityLog.pop();
+      }
+
+      renderLog();
+    }
+
+    // Render log
+    function renderLog() {
+      const container = document.getElementById('logStream');
+      container.innerHTML = activityLog.map(entry => `
+        <div class="log-entry">
+          <span class="log-time">${entry.timestamp}</span>
+          <span class="log-level log-${entry.level}">${entry.level.toUpperCase()}</span>
+          <span class="log-message">${entry.message}</span>
+        </div>
+      `).join('');
+    }
+
+    // Update system status
+    function updateSystemStatus(isActive) {
+      const dot = document.getElementById('systemStatus');
+      const text = document.getElementById('systemStatusText');
+
+      if (isActive) {
+        dot.className = 'status-dot active';
+        text.textContent = 'Active';
+      } else {
+        dot.className = 'status-dot idle';
+        text.textContent = 'Idle';
+      }
+    }
+
+    // Demo mode
+    function startDemo() {
+      addLog('info', 'Starting demo mode...');
+
+      let step = 0;
+      setInterval(() => {
+        switch(step) {
+          case 0:
+            activeAgents = [{
+              name: 'CodeGen (つくるん)',
+              status: 'running',
+              target: 'crates/miyabi-agents/src/codegen.rs',
+              progress: 35
+            }];
+            updateSystemStatus(true);
+            addLog('info', 'CodeGen agent started for Issue #500');
+            break;
+
+          case 1:
+            activeAgents[0].progress = 60;
+            addLog('success', 'Generated 150 lines of code');
+            break;
+
+          case 2:
+            activeAgents[0].progress = 100;
+            recentCommits.unshift({
+              hash: 'a3f7c2d',
+              message: 'feat(codegen): implement LLM gateway integration',
+              author: 'CodeGen Agent',
+              time: 'Just now'
+            });
+            addLog('success', 'Commit created: a3f7c2d');
+            break;
+
+          case 3:
+            activeAgents = [];
+            updateSystemStatus(false);
+            addLog('info', 'All agents completed');
+            break;
+        }
+
+        renderAgents();
+        renderCommits();
+
+        step = (step + 1) % 4;
+      }, 4000);
+    }
+
+    // Initialize
+    renderTree();
+    renderAgents();
+    renderCommits();
+    addLog('info', 'Dashboard initialized');
+    updateSystemStatus(false);
+
+    // Start demo
+    setTimeout(startDemo, 2000);
+  </script>
+</body>
+</html>

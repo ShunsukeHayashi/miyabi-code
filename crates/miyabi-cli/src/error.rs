@@ -42,6 +42,9 @@ pub enum CliError {
 
     #[error("Serialization error: {0}")]
     Serialization(String),
+
+    #[error("Mode error: {0}")]
+    Mode(#[from] miyabi_modes::error::ModeError),
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;

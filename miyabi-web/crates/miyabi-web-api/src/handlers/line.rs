@@ -3,10 +3,10 @@
 /// Phase 6.2: LINE Webhook実装
 
 use axum::{extract::State, http::StatusCode, Json};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 use crate::models::line::{
-    Message, ReplyMessage, ReplyRequest, WebhookEvent, WebhookRequest,
+    Message, PushRequest, ReplyMessage, ReplyRequest, WebhookEvent, WebhookRequest,
 };
 use crate::services::github::GitHubService;
 use crate::services::nlp::NlpService;
@@ -1106,6 +1106,88 @@ async fn send_reply_message(
 
     debug!("Reply message sent successfully");
     Ok(())
+}
+
+/// Push Message API でメッセージを送信
+///
+/// ## 機能
+/// Agent実行の進捗通知をユーザーに送信するために使用
+///
+/// ## パラメータ
+/// - `state`: アプリケーション状態
+/// - `user_id`: 送信先のLINE User ID
+/// - `messages`: 送信するメッセージ（最大5件）
+///
+/// ## 戻り値
+/// - `Ok(())`: 送信成功
+/// - `Err(WebhookError)`: 送信失敗
+///
+/// Reference: https://developers.line.biz/ja/reference/messaging-api/#send-push-message
+pub async fn send_push_message(
+    state: &AppState,
+    user_id: &str,
+    messages: Vec<ReplyMessage>,
+) -> Result<(), WebhookError> {
+    let request = PushRequest {
+        to: user_id.to_string(),
+        messages,
+    };
+
+    info!("Sending push message to user: {}", user_id);
+
+    let response = state
+        .http_client
+        .post("https://api.line.me/v2/bot/message/push")
+        .header(
+            "Authorization",
+            format!("Bearer {}", state.line_channel_access_token),
+        )
+        .header("Content-Type", "application/json")
+        .json(&request)
+        .send()
+        .await?;
+
+    if !response.status().is_success() {
+        let status = response.status().as_u16();
+        let body = response.text().await.unwrap_or_default();
+        error!("LINE Push API error: {} - {}", status, body);
+        return Err(WebhookError::LineApiError { status, body });
+    }
+
+    info!("Push message sent successfully to user: {}", user_id);
+    Ok(())
+}
+
+/// Agent実行進捗をプッシュ通知
+///
+/// ## 使用例
+/// ```rust
+/// // Agent実行開始時
+/// notify_agent_progress(&state, "U1234567890", "task-001", "running", 0).await?;
+///
+/// // Agent実行中（50%完了）
+/// notify_agent_progress(&state, "U1234567890", "task-001", "running", 50).await?;
+///
+/// // Agent実行完了
+/// notify_agent_progress(&state, "U1234567890", "task-001", "completed", 100).await?;
+/// ```
+pub async fn notify_agent_progress(
+    state: &AppState,
+    user_id: &str,
+    task_name: &str,
+    status: &str,
+    progress: u8,
+) -> Result<(), WebhookError> {
+    let ai_worker = match status {
+        "running" => "コード作成AI (しきるん)",
+        "completed" => "処理完了",
+        "failed" => "エラー処理",
+        _ => "AI処理中",
+    };
+
+    let progress_card = create_task_progress_card(task_name, ai_worker, progress, status);
+
+    send_push_message(state, user_id, vec![progress_card]).await
 }
 
 #[cfg(test)]

@@ -1,8 +1,8 @@
 //! Parallel command - Execute agents in parallel worktrees
 
 use crate::{
+    config::ConfigLoader,
     error::{CliError, Result},
-    worktree::default_worktree_base_dir,
 };
 use colored::Colorize;
 use miyabi_agents::BaseAgent;
@@ -265,114 +265,7 @@ impl ParallelCommand {
     }
 
     fn load_config(&self) -> Result<AgentConfig> {
-        // Get GitHub token
-        let github_token = self.get_github_token()?;
-
-        // Get device identifier
-        let device_identifier = std::env::var("DEVICE_IDENTIFIER")
-            .unwrap_or_else(|_| hostname::get().unwrap().to_string_lossy().to_string());
-
-        // Parse repository owner and name from git remote
-        let (repo_owner, repo_name) = self.parse_git_remote()?;
-
-        Ok(AgentConfig {
-            device_identifier,
-            github_token,
-            repo_owner: Some(repo_owner),
-            repo_name: Some(repo_name),
-            use_task_tool: false,
-            use_worktree: true,
-            worktree_base_path: Some(default_worktree_base_dir()),
-            log_directory: "./logs".to_string(),
-            report_directory: "./reports".to_string(),
-            tech_lead_github_username: None,
-            ciso_github_username: None,
-            po_github_username: None,
-            firebase_production_project: None,
-            firebase_staging_project: None,
-            production_url: None,
-            staging_url: None,
-        })
-    }
-
-    fn get_github_token(&self) -> Result<String> {
-        // Try environment variable first
-        if let Ok(token) = std::env::var("GITHUB_TOKEN") {
-            if !token.trim().is_empty() {
-                return Ok(token.trim().to_string());
-            }
-        }
-
-        // Try gh CLI
-        if let Ok(output) = std::process::Command::new("gh")
-            .args(["auth", "token"])
-            .output()
-        {
-            if output.status.success() {
-                let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !token.is_empty()
-                    && (token.starts_with("ghp_")
-                        || token.starts_with("gho_")
-                        || token.starts_with("ghu_")
-                        || token.starts_with("ghs_")
-                        || token.starts_with("ghr_"))
-                {
-                    return Ok(token);
-                }
-            }
-        }
-
-        Err(CliError::GitConfig(
-            "GitHub token not found. Set GITHUB_TOKEN or run 'gh auth login'".to_string(),
-        ))
-    }
-
-    fn parse_git_remote(&self) -> Result<(String, String)> {
-        let output = std::process::Command::new("git")
-            .args(["remote", "get-url", "origin"])
-            .output()
-            .map_err(|e| CliError::GitConfig(format!("Failed to run git command: {}", e)))?;
-
-        if !output.status.success() {
-            return Err(CliError::GitConfig(
-                "Failed to get git remote URL".to_string(),
-            ));
-        }
-
-        let remote_url = String::from_utf8_lossy(&output.stdout).trim().to_string();
-
-        // Parse HTTPS format
-        if remote_url.starts_with("http") && remote_url.contains("github.com/") {
-            let parts: Vec<&str> = remote_url
-                .split("github.com/")
-                .nth(1)
-                .ok_or_else(|| CliError::GitConfig("Invalid GitHub URL".to_string()))?
-                .trim_end_matches(".git")
-                .split('/')
-                .collect();
-
-            if parts.len() >= 2 {
-                return Ok((parts[0].to_string(), parts[1].to_string()));
-            }
-        }
-
-        // Parse SSH format
-        if remote_url.starts_with("git@github.com:") {
-            let repo_part = remote_url
-                .strip_prefix("git@github.com:")
-                .ok_or_else(|| CliError::GitConfig("Invalid SSH URL".to_string()))?
-                .trim_end_matches(".git");
-
-            let parts: Vec<&str> = repo_part.split('/').collect();
-            if parts.len() >= 2 {
-                return Ok((parts[0].to_string(), parts[1].to_string()));
-            }
-        }
-
-        Err(CliError::GitConfig(format!(
-            "Could not parse GitHub owner/repo from: {}",
-            remote_url
-        )))
+        ConfigLoader::global().load()
     }
 }
 

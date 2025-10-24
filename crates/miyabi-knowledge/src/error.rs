@@ -33,6 +33,10 @@ pub enum KnowledgeError {
     #[error("Entry not found: {0}")]
     NotFound(String),
 
+    /// サーバーエラー
+    #[error("Server error: {0}")]
+    Server(String),
+
     /// その他のエラー
     #[error("Other error: {0}")]
     Other(#[from] anyhow::Error),

@@ -53,16 +53,22 @@ pub mod collector;
 pub mod config;
 pub mod embeddings;
 pub mod error;
+pub mod exporter;
 pub mod hasher;
 pub mod hybrid_context;
 pub mod indexer;
 pub mod prompt_augmenter;
 pub mod qdrant;
+pub mod retention;
 pub mod searcher;
 pub mod types;
 
 // Integrated from miyabi-potpie
 pub mod potpie;
+
+// HTTP Server (optional, enabled with "server" feature)
+#[cfg(feature = "server")]
+pub mod server;
 
 pub use ast_context::{
     AstError, CodeSymbol, FileContext, FileContextTracker, SymbolKind, Visibility,
@@ -71,6 +77,7 @@ pub use cache::IndexCache;
 pub use collector::{KnowledgeCollector, LogCollector};
 pub use config::{AutoIndexConfig, KnowledgeConfig};
 pub use error::{KnowledgeError, Result};
+pub use exporter::{ExportFilter, ExportFormat, KnowledgeExporter};
 pub use hasher::{hash_bytes, hash_file, hash_string};
 pub use hybrid_context::{ContextPiece, ContextSource, HybridContextError, HybridContextSearcher};
 pub use indexer::{KnowledgeIndexer, QdrantIndexer};
@@ -78,6 +85,7 @@ pub use prompt_augmenter::{
     AugmentationStrategy, PromptAugmenter, StandardPromptAugmenter, DEFAULT_MAX_CONTEXT_PIECES,
     DEFAULT_RELEVANCE_THRESHOLD,
 };
+pub use retention::{CleanupStats, RetentionManager, RetentionPolicy};
 pub use searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter};
 pub use types::{
     IndexStats, KnowledgeEntry, KnowledgeId, KnowledgeMetadata, KnowledgeResult, WorkspaceInfo,

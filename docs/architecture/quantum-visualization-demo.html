@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 MIYABI QUANTUM VISUALIZATION - Ultimate Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #000000;
+            color: #00ff00;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #viewport {
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 14, 20, 0.95);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 18px;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .layer-toggle:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .layer-toggle input {
+            margin-right: 10px;
+        }
+
+        .layer-toggle label {
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .layer-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        #status {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(10, 14, 20, 0.95);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            z-index: 1000;
+            font-size: 12px;
+            max-width: 350px;
+        }
+
+        #brainwave {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 14, 20, 0.95);
+            border: 2px solid #ffff00;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 0 30px rgba(255, 255, 0, 0.5);
+            z-index: 1000;
+            width: 300px;
+        }
+
+        #brainwave-canvas {
+            width: 100%;
+            height: 80px;
+            background: #000;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .warning-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.95);
+            border: 3px solid #ff00ff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 50px rgba(255, 0, 255, 0.8);
+            z-index: 2000;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .warning-box h2 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .warning-box p {
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .status-item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .metric-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #00ff00);
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="viewport"></canvas>
+
+        <!-- UI Panel -->
+        <div id="ui-panel">
+            <h1>🌌 MIYABI QUANTUM VISUALIZATION</h1>
+            <p style="font-size: 12px; color: #888; margin-bottom: 15px;">
+                5次元メタファー統合システム
+            </p>
+
+            <div class="layer-toggle" onclick="toggleLayer('molecular')">
+                <input type="checkbox" id="molecular" checked>
+                <span class="layer-icon">🧬</span>
+                <label for="molecular">Molecular Biology (分子生物学)</label>
+            </div>
+
+            <div class="layer-toggle" onclick="toggleLayer('quantum')">
+                <input type="checkbox" id="quantum" checked>
+                <span class="layer-icon">⚛️</span>
+                <label for="quantum">Quantum Mechanics (量子力学)</label>
+            </div>
+
+            <div class="layer-toggle" onclick="toggleLayer('cosmology')">
+                <input type="checkbox" id="cosmology" checked>
+                <span class="layer-icon">🌌</span>
+                <label for="cosmology">Cosmology (宇宙物理学)</label>
+            </div>
+
+            <div class="layer-toggle" onclick="toggleLayer('neural')">
+                <input type="checkbox" id="neural" checked>
+                <span class="layer-icon">🧠</span>
+                <label for="neural">Neuroscience (神経科学)</label>
+            </div>
+
+            <div class="layer-toggle" onclick="toggleLayer('fluid')">
+                <input type="checkbox" id="fluid">
+                <span class="layer-icon">🌊</span>
+                <label for="fluid">Fluid Dynamics (流体力学)</label>
+            </div>
+        </div>
+
+        <!-- Status Panel -->
+        <div id="status">
+            <div class="status-item">
+                <span class="status-icon">⚡</span>
+                <span id="agent-status">Agent: Coordinator (Executing)</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">🔥</span>
+                <span>B-factor: <span id="bfactor">55.2</span> (Active)</span>
+            </div>
+            <div class="metric-bar">
+                <div class="metric-fill" id="bfactor-bar" style="width: 55%"></div>
+            </div>
+            <div class="status-item" style="margin-top: 10px;">
+                <span class="status-icon">🔗</span>
+                <span id="entanglement">Quantum Entanglement: 3 pairs</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">⚫</span>
+                <span id="blackhole" style="color: #ff0000;">BLACK HOLE: miyabi-agents (23 deps)</span>
+            </div>
+        </div>
+
+        <!-- Brain Wave Monitor -->
+        <div id="brainwave">
+            <h3 style="color: #ffff00; font-size: 14px; margin-bottom: 5px;">🧠 Brain Activity Monitor</h3>
+            <div style="font-size: 12px; color: #888;">
+                State: <span id="brain-state" style="color: #ffff00;">Beta (Focused)</span><br>
+                Frequency: <span id="brain-freq">18.5</span> Hz
+            </div>
+            <canvas id="brainwave-canvas"></canvas>
+        </div>
+
+        <!-- Warning Box -->
+        <div id="warning" class="warning-box">
+            <h2>⚠️ BLACK HOLE DETECTED</h2>
+            <p>
+                <strong>miyabi-agents</strong> has become a black hole!<br><br>
+                <strong>23 dependencies</strong> are trapped in its event horizon.<br><br>
+                <span style="color: #ffff00;">⚡ Gravitational lensing effect active</span><br>
+                <span style="color: #ff00ff;">💫 Hawking radiation detected</span>
+            </p>
+            <button onclick="document.getElementById('warning').style.display='none'"
+                    style="margin-top: 15px; padding: 10px 20px; background: #ff00ff; border: none; color: #fff; border-radius: 5px; cursor: pointer;">
+                ACKNOWLEDGE
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('viewport');
+        const ctx = canvas.getContext('2d');
+        const brainwaveCanvas = document.getElementById('brainwave-canvas');
+        const brainwaveCtx = brainwaveCanvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        brainwaveCanvas.width = brainwaveCanvas.offsetWidth;
+        brainwaveCanvas.height = 80;
+
+        let time = 0;
+        let layers = {
+            molecular: true,
+            quantum: true,
+            cosmology: true,
+            neural: true,
+            fluid: false
+        };
+
+        // Crate data (Miyabi workspace)
+        const crates = [
+            // Chain A - Core (Blue)
+            { name: 'miyabi-core', x: 400, y: 300, size: 40, chain: 'A', bfactor: 45.2, deps: 5 },
+            { name: 'miyabi-types', x: 500, y: 280, size: 30, chain: 'A', bfactor: 32.1, deps: 2 },
+            { name: 'miyabi-llm', x: 450, y: 350, size: 35, chain: 'A', bfactor: 38.5, deps: 3 },
+
+            // Chain B - Agents (Orange) - BLACK HOLE
+            { name: 'miyabi-agents', x: 800, y: 400, size: 60, chain: 'B', bfactor: 75.1, deps: 23, blackhole: true },
+            { name: 'coordinator', x: 700, y: 350, size: 25, chain: 'B', bfactor: 55.0, deps: 4 },
+            { name: 'codegen', x: 900, y: 350, size: 25, chain: 'B', bfactor: 60.2, deps: 5 },
+
+            // Chain C - Infrastructure (Green)
+            { name: 'miyabi-github', x: 400, y: 500, size: 35, chain: 'C', bfactor: 40.0, deps: 4 },
+            { name: 'miyabi-worktree', x: 500, y: 520, size: 30, chain: 'C', bfactor: 35.5, deps: 3 },
+
+            // Chain D - Tools (Purple)
+            { name: 'miyabi-cli', x: 700, y: 600, size: 30, chain: 'D', bfactor: 28.0, deps: 6 },
+        ];
+
+        // Connections (dependencies)
+        const connections = [
+            [0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [3, 5], [4, 3], // Circular dependency!
+            [6, 0], [7, 0], [8, 0], [8, 3]
+        ];
+
+        // Quantum entanglement pairs
+        const entanglements = [
+            [0, 1], // miyabi-core <-> miyabi-types
+            [3, 4], // miyabi-agents <-> coordinator
+            [3, 5]  // miyabi-agents <-> codegen
+        ];
+
+        function toggleLayer(layer) {
+            layers[layer] = !layers[layer];
+            document.getElementById(layer).checked = layers[layer];
+        }
+
+        function getChainColor(chain) {
+            const colors = {
+                'A': [0, 100, 255],    // Blue
+                'B': [255, 100, 0],    // Orange
+                'C': [0, 255, 100],    // Green
+                'D': [200, 0, 255]     // Purple
+            };
+            return colors[chain] || [255, 255, 255];
+        }
+
+        function getBfactorColor(bfactor) {
+            // Blue -> Cyan -> Green -> Yellow -> Red
+            const normalized = Math.min(bfactor / 100, 1);
+            if (normalized < 0.25) {
+                const t = normalized * 4;
+                return `rgb(0, ${Math.floor(t * 255)}, 255)`;
+            } else if (normalized < 0.5) {
+                const t = (normalized - 0.25) * 4;
+                return `rgb(0, 255, ${Math.floor((1 - t) * 255)})`;
+            } else if (normalized < 0.75) {
+                const t = (normalized - 0.5) * 4;
+                return `rgb(${Math.floor(t * 255)}, 255, 0)`;
+            } else {
+                const t = (normalized - 0.75) * 4;
+                return `rgb(255, ${Math.floor((1 - t) * 255)}, 0)`;
+            }
+        }
+
+        // Draw molecular layer (protein ribbons)
+        function drawMolecularLayer() {
+            if (!layers.molecular) return;
+
+            // Draw connections (bonds)
+            ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+            ctx.lineWidth = 2;
+            connections.forEach(([i, j]) => {
+                ctx.beginPath();
+                ctx.moveTo(crates[i].x, crates[i].y);
+                ctx.lineTo(crates[j].x, crates[j].y);
+                ctx.stroke();
+            });
+
+            // Draw crates (atoms)
+            crates.forEach(crate => {
+                const color = getBfactorColor(crate.bfactor);
+
+                // Glow effect
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = color;
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(crate.x, crate.y, crate.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Consolas';
+                ctx.textAlign = 'center';
+                ctx.fillText(crate.name, crate.x, crate.y + crate.size + 15);
+            });
+        }
+
+        // Draw quantum layer (electron orbitals)
+        function drawQuantumLayer() {
+            if (!layers.quantum) return;
+
+            crates.forEach((crate, i) => {
+                // Draw electron orbital
+                const orbitalRadius = crate.size + 20 + Math.sin(time + i) * 5;
+
+                ctx.strokeStyle = `rgba(0, 255, 255, ${0.3 + Math.sin(time * 2 + i) * 0.2})`;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+
+                // s-orbital (n=1)
+                ctx.beginPath();
+                ctx.arc(crate.x, crate.y, orbitalRadius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // p-orbital (n=2)
+                if (crate.chain === 'B') {
+                    ctx.beginPath();
+                    ctx.ellipse(crate.x, crate.y, orbitalRadius + 15, orbitalRadius / 2, time, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.ellipse(crate.x, crate.y, orbitalRadius / 2, orbitalRadius + 15, time, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.setLineDash([]);
+
+                // Electron (rotating particle)
+                const electronAngle = time * 2 + i;
+                const electronX = crate.x + Math.cos(electronAngle) * orbitalRadius;
+                const electronY = crate.y + Math.sin(electronAngle) * orbitalRadius;
+
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(electronX, electronY, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Quantum entanglement lines
+            entanglements.forEach(([i, j]) => {
+                const c1 = crates[i];
+                const c2 = crates[j];
+
+                // Wave interference pattern
+                ctx.strokeStyle = `rgba(255, 0, 255, ${0.6 + Math.sin(time * 3) * 0.3})`;
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(c1.x, c1.y);
+
+                const steps = 20;
+                for (let k = 0; k <= steps; k++) {
+                    const t = k / steps;
+                    const x = c1.x + (c2.x - c1.x) * t;
+                    const y = c1.y + (c2.y - c1.y) * t;
+                    const offset = Math.sin(t * Math.PI * 4 + time * 5) * 10;
+                    ctx.lineTo(x, y + offset);
+                }
+
+                ctx.stroke();
+            });
+        }
+
+        // Draw cosmology layer (galaxy structure)
+        function drawCosmologyLayer() {
+            if (!layers.cosmology) return;
+
+            // Black hole (God Crate)
+            const blackhole = crates.find(c => c.blackhole);
+            if (blackhole) {
+                // Event horizon
+                const eventHorizon = blackhole.size * 1.5;
+
+                // Accretion disk
+                for (let i = 0; i < 5; i++) {
+                    const radius = eventHorizon + i * 15;
+                    const alpha = (5 - i) / 5 * 0.3;
+
+                    ctx.strokeStyle = `rgba(255, 100, 0, ${alpha})`;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(blackhole.x, blackhole.y, radius + Math.sin(time * 2 - i) * 5,
+                           time + i, time + i + Math.PI);
+                    ctx.stroke();
+                }
+
+                // Event horizon glow
+                const gradient = ctx.createRadialGradient(
+                    blackhole.x, blackhole.y, 0,
+                    blackhole.x, blackhole.y, eventHorizon
+                );
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+                gradient.addColorStop(0.7, 'rgba(255, 0, 255, 0.5)');
+                gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(blackhole.x, blackhole.y, eventHorizon, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Gravitational lensing effect
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(blackhole.x, blackhole.y, eventHorizon + 50 + i * 30, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+            }
+
+            // Stars
+            crates.forEach(crate => {
+                if (crate.blackhole) return;
+
+                // Star glow
+                const gradient = ctx.createRadialGradient(crate.x, crate.y, 0, crate.x, crate.y, crate.size * 2);
+                const color = getChainColor(crate.chain);
+                gradient.addColorStop(0, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.8)`);
+                gradient.addColorStop(1, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(crate.x, crate.y, crate.size * 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // Draw neural layer (neurons and synapses)
+        function drawNeuralLayer() {
+            if (!layers.neural) return;
+
+            // Draw synaptic connections with pulses
+            connections.forEach(([i, j], idx) => {
+                const c1 = crates[i];
+                const c2 = crates[j];
+
+                // Neurotransmitter pulse
+                const pulsePhase = (time * 2 + idx) % 1;
+                const pulseX = c1.x + (c2.x - c1.x) * pulsePhase;
+                const pulseY = c1.y + (c2.y - c1.y) * pulsePhase;
+
+                // Determine neurotransmitter type
+                const types = [
+                    { color: [0, 255, 0], name: 'Glutamate' },     // Green (excitatory)
+                    { color: [255, 0, 0], name: 'GABA' },          // Red (inhibitory)
+                    { color: [255, 255, 0], name: 'Dopamine' },    // Yellow (reward)
+                    { color: [0, 100, 255], name: 'Serotonin' }    // Blue (modulation)
+                ];
+                const type = types[idx % types.length];
+
+                ctx.fillStyle = `rgb(${type.color[0]}, ${type.color[1]}, ${type.color[2]})`;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = `rgb(${type.color[0]}, ${type.color[1]}, ${type.color[2]})`;
+                ctx.beginPath();
+                ctx.arc(pulseX, pulseY, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw neurons with dendrites
+            crates.forEach(crate => {
+                // Dendrites
+                for (let i = 0; i < 5; i++) {
+                    const angle = (Math.PI * 2 / 5) * i;
+                    const length = 30 + Math.sin(time + i) * 5;
+
+                    ctx.strokeStyle = 'rgba(255, 200, 0, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(crate.x, crate.y);
+                    ctx.lineTo(
+                        crate.x + Math.cos(angle) * length,
+                        crate.y + Math.sin(angle) * length
+                    );
+                    ctx.stroke();
+                }
+            });
+        }
+
+        // Draw fluid layer (turbulence)
+        function drawFluidLayer() {
+            if (!layers.fluid) return;
+
+            // Vector field
+            const gridSize = 50;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                for (let y = 0; y < canvas.height; y += gridSize) {
+                    // Calculate velocity vector
+                    let vx = Math.sin(x * 0.01 + time) * Math.cos(y * 0.01);
+                    let vy = Math.cos(x * 0.01) * Math.sin(y * 0.01 + time);
+
+                    // Check proximity to crates (turbulence)
+                    crates.forEach(crate => {
+                        const dx = x - crate.x;
+                        const dy = y - crate.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 100) {
+                            // Add vorticity
+                            const vortexStrength = (100 - dist) / 100 * (crate.bfactor / 100);
+                            vx += -dy / dist * vortexStrength;
+                            vy += dx / dist * vortexStrength;
+                        }
+                    });
+
+                    // Draw arrow
+                    const length = Math.sqrt(vx * vx + vy * vy) * 20;
+                    const angle = Math.atan2(vy, vx);
+
+                    ctx.strokeStyle = `rgba(0, 200, 255, 0.4)`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+                    ctx.stroke();
+
+                    // Arrow head
+                    ctx.beginPath();
+                    ctx.moveTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+                    ctx.lineTo(
+                        x + Math.cos(angle - 0.5) * (length - 5),
+                        y + Math.sin(angle - 0.5) * (length - 5)
+                    );
+                    ctx.lineTo(
+                        x + Math.cos(angle + 0.5) * (length - 5),
+                        y + Math.sin(angle + 0.5) * (length - 5)
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Draw brain wave
+        function drawBrainwave() {
+            brainwaveCtx.fillStyle = '#000';
+            brainwaveCtx.fillRect(0, 0, brainwaveCanvas.width, brainwaveCanvas.height);
+
+            const centerY = brainwaveCanvas.height / 2;
+            const amplitude = 30;
+            const frequency = 18.5; // Beta wave
+
+            brainwaveCtx.strokeStyle = '#ffff00';
+            brainwaveCtx.lineWidth = 2;
+            brainwaveCtx.beginPath();
+
+            for (let x = 0; x < brainwaveCanvas.width; x++) {
+                const t = (x / brainwaveCanvas.width) * 4 - time * 2;
+                const y = centerY + Math.sin(t * frequency) * amplitude;
+
+                if (x === 0) {
+                    brainwaveCtx.moveTo(x, y);
+                } else {
+                    brainwaveCtx.lineTo(x, y);
+                }
+            }
+
+            brainwaveCtx.stroke();
+        }
+
+        // Animation loop
+        function animate() {
+            time += 0.01;
+
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw layers
+            drawCosmologyLayer();
+            drawFluidLayer();
+            drawMolecularLayer();
+            drawQuantumLayer();
+            drawNeuralLayer();
+
+            // Draw brainwave
+            drawBrainwave();
+
+            // Update metrics
+            const bfactor = 50 + Math.sin(time) * 20;
+            document.getElementById('bfactor').textContent = bfactor.toFixed(1);
+            document.getElementById('bfactor-bar').style.width = bfactor + '%';
+
+            requestAnimationFrame(animate);
+        }
+
+        // Show warning after 3 seconds
+        setTimeout(() => {
+            document.getElementById('warning').style.display = 'block';
+        }, 3000);
+
+        // Start animation
+        animate();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

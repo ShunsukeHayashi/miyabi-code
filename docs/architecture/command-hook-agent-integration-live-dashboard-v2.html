@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miyabi Live Dashboard v2 - Enhanced Real-time Monitoring</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e5e5e5;
+      overflow: hidden;
+    }
+
+    .container {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      height: 100vh;
+      padding: 15px;
+      gap: 15px;
+    }
+
+    /* Header */
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 20px;
+      padding: 15px 25px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+      border-radius: 12px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      backdrop-filter: blur(20px);
+    }
+
+    .header-title h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-title p {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #e5e5e5;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .btn.active {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      border-color: #6366f1;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.connected { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .status-dot.disconnected { background: #ef4444; animation: none; }
+    .status-dot.demo { background: #f59e0b; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 15px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .stat-card:hover::before {
+      opacity: 1;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--accent-color, #6366f1);
+    }
+
+    .stat-change {
+      font-size: 0.7rem;
+      margin-top: 5px;
+      color: #10b981;
+    }
+
+    .stat-change.negative {
+      color: #ef4444;
+    }
+
+    /* Main Layout */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 450px;
+      gap: 15px;
+      overflow: hidden;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      overflow: hidden;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      overflow-y: auto;
+    }
+
+    /* Architecture Visualization */
+    .arch-viz-container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .arch-section {
+      margin-bottom: 25px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .section-count {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+    }
+
+    .components-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+
+    .component-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .component-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .component-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .component-card:hover::before {
+      left: 100%;
+    }
+
+    .component-card.active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+      border-color: #6366f1;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+      animation: glow 2s infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+      }
+    }
+
+    .component-name {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .component-status {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .component-card.active .component-status {
+      color: #a5b4fc;
+    }
+
+    .component-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4b5563;
+    }
+
+    .component-card.active .component-indicator {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Timeline Visualization */
+    .timeline-container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      height: 200px;
+    }
+
+    .timeline-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #888;
+    }
+
+    .timeline-track {
+      display: flex;
+      gap: 10px;
+      height: 100px;
+      align-items: flex-end;
+      padding: 10px 0;
+    }
+
+    .timeline-bar {
+      flex: 1;
+      min-width: 20px;
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.6) 0%, rgba(99, 102, 241, 0.2) 100%);
+      border-radius: 4px 4px 0 0;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .timeline-bar:hover {
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.8) 0%, rgba(99, 102, 241, 0.3) 100%);
+      transform: translateY(-4px);
+    }
+
+    .timeline-bar::after {
+      content: attr(data-value);
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      color: #666;
+    }
+
+    /* Execution Flow Panel */
+    .flow-panel {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .flow-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #888;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .flow-step.active {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .flow-step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .flow-step.active .flow-step-number {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    }
+
+    .flow-step.completed .flow-step-number {
+      background: #10b981;
+    }
+
+    .flow-step-content {
+      flex: 1;
+    }
+
+    .flow-step-title {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .flow-step-desc {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .flow-step-time {
+      font-size: 0.7rem;
+      color: #666;
+      font-family: 'SF Mono', monospace;
+    }
+
+    /* Charts */
+    .chart-container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      height: 220px;
+    }
+
+    .chart-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 15px;
+      font-size: 0.7rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Activity Log */
+    .activity-panel {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .activity-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .clear-btn {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #888;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .activity-log {
+      flex: 1;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Monaco', monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      animation: slideIn 0.3s ease;
+      display: flex;
+      gap: 10px;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .log-time {
+      color: #666;
+      flex-shrink: 0;
+    }
+
+    .log-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .log-badge.info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .log-badge.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .log-badge.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .log-badge.error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    .log-message {
+      flex: 1;
+      color: #b0b0b0;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #888;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #e5e5e5;
+    }
+
+    .modal-body {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #b0b0b0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+
+      .right-panel {
+        max-height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <h1>🎯 Miyabi Live Dashboard v2</h1>
+        <p>Real-time Agent Monitoring & Performance Analytics</p>
+      </div>
+      <div class="header-controls">
+        <button class="btn active" onclick="switchView('architecture')">Architecture</button>
+        <button class="btn" onclick="switchView('timeline')">Timeline</button>
+        <button class="btn" onclick="switchView('analytics')">Analytics</button>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Connecting...</span>
+      </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card" style="--accent-color: #6366f1">
+        <div class="stat-label">Active Agents</div>
+        <div class="stat-value" id="activeAgents">0</div>
+        <div class="stat-change" id="activeChange">+0</div>
+      </div>
+      <div class="stat-card" style="--accent-color: #10b981">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" id="completed">0</div>
+        <div class="stat-change">Today</div>
+      </div>
+      <div class="stat-card" style="--accent-color: #f59e0b">
+        <div class="stat-label">Avg Time</div>
+        <div class="stat-value" id="avgTime">0s</div>
+        <div class="stat-change" id="timeChange">-</div>
+      </div>
+      <div class="stat-card" style="--accent-color: #8b5cf6">
+        <div class="stat-label">Success Rate</div>
+        <div class="stat-value" id="successRate">87%</div>
+        <div class="stat-change">Last 24h</div>
+      </div>
+      <div class="stat-card" style="--accent-color: #06b6d4">
+        <div class="stat-label">Queue Size</div>
+        <div class="stat-value" id="queueSize">0</div>
+        <div class="stat-change" id="queueChange">+0</div>
+      </div>
+      <div class="stat-card" style="--accent-color: #ec4899">
+        <div class="stat-label">LLM Calls</div>
+        <div class="stat-value" id="llmCalls">0</div>
+        <div class="stat-change">Per hour</div>
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <!-- Architecture Visualization -->
+        <div class="arch-viz-container" id="archView">
+          <!-- Commands -->
+          <div class="arch-section">
+            <div class="section-header">
+              <span class="section-title">🎯 Commands</span>
+              <span class="section-count">18</span>
+            </div>
+            <div class="components-grid" id="commandsGrid"></div>
+          </div>
+
+          <!-- Git Hooks -->
+          <div class="arch-section">
+            <div class="section-header">
+              <span class="section-title">🪝 Git Hooks</span>
+              <span class="section-count">5</span>
+            </div>
+            <div class="components-grid" id="hooksGrid"></div>
+          </div>
+
+          <!-- Coding Agents -->
+          <div class="arch-section">
+            <div class="section-header">
+              <span class="section-title">🤖 Coding Agents</span>
+              <span class="section-count">7</span>
+            </div>
+            <div class="components-grid" id="agentsGrid"></div>
+          </div>
+
+          <!-- Core Systems -->
+          <div class="arch-section">
+            <div class="section-header">
+              <span class="section-title">⚙️ Core Systems</span>
+              <span class="section-count">5</span>
+            </div>
+            <div class="components-grid" id="systemsGrid"></div>
+          </div>
+        </div>
+
+        <!-- Timeline View (hidden by default) -->
+        <div class="timeline-container" id="timelineView" style="display: none;">
+          <div class="timeline-header">Execution Timeline - Last 20 Events</div>
+          <div class="timeline-track" id="timelineTrack"></div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <!-- Current Execution Flow -->
+        <div class="flow-panel">
+          <div class="flow-header">Current Execution Flow</div>
+          <div class="flow-steps" id="flowSteps">
+            <div class="flow-step">
+              <div class="flow-step-number">-</div>
+              <div class="flow-step-content">
+                <div class="flow-step-title">Waiting for execution...</div>
+                <div class="flow-step-desc">No active agent execution</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <span>Performance Metrics</span>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #6366f1"></span>
+                <span>Latency</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #10b981"></span>
+                <span>Throughput</span>
+              </div>
+            </div>
+          </div>
+          <canvas id="performanceChart" height="150"></canvas>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="activity-panel">
+          <div class="activity-header">
+            <span>Activity Log</span>
+            <button class="clear-btn" onclick="clearLog()">Clear</button>
+          </div>
+          <div class="activity-log" id="activityLog"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component Detail Modal -->
+  <div class="modal" id="componentModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Component Details</h3>
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // Data
+    const components = {
+      commands: [
+        'create-issue', 'test', 'verify', 'review', 'agent-run', 'miyabi-auto',
+        'miyabi-infinity', 'miyabi-todos', 'deploy', 'generate-docs', 'generate-lp',
+        'daily-update', 'check-benchmark', 'session-end', 'voicevox', 'narrate',
+        'watch-sprint', 'security-scan'
+      ],
+      hooks: ['pre-commit', 'commit-msg', 'post-commit', 'pre-push', 'post-merge'],
+      agents: [
+        { name: 'Coordinator', jp: 'しきるん', desc: 'Task decomposition & orchestration' },
+        { name: 'Issue', jp: 'みつけるん', desc: 'AI-powered label inference' },
+        { name: 'CodeGen', jp: 'つくるん', desc: 'Code generation with LLM' },
+        { name: 'Review', jp: 'めだまん', desc: 'Quality review & scoring' },
+        { name: 'PR', jp: 'まとめるん', desc: 'Pull request automation' },
+        { name: 'Deployment', jp: 'はこぶん', desc: 'CI/CD deployment' },
+        { name: 'Refresher', jp: 'つなぐん', desc: 'Issue monitoring' }
+      ],
+      systems: [
+        'Orchestrator', 'Worktree', 'LLM Gateway', 'Knowledge', 'MCP Server'
+      ]
+    };
+
+    // State
+    let wsConnection = null;
+    let activityLogEntries = [];
+    let metrics = {
+      activeAgents: 0,
+      completed: 0,
+      avgTime: 0,
+      successRate: 87,
+      queueSize: 0,
+      llmCalls: 0
+    };
+    let performanceData = {
+      labels: [],
+      latency: [],
+      throughput: []
+    };
+    let performanceChart = null;
+    let currentView = 'architecture';
+
+    // Initialize
+    function init() {
+      renderComponents();
+      initPerformanceChart();
+      connectWebSocket();
+    }
+
+    // Render Components
+    function renderComponents() {
+      // Commands
+      document.getElementById('commandsGrid').innerHTML = components.commands.map(cmd => `
+        <div class="component-card" data-type="command" data-id="${cmd}" onclick="showComponentDetail('command', '${cmd}')">
+          <div class="component-indicator"></div>
+          <div class="component-name">/${cmd}</div>
+          <div class="component-status">Idle</div>
+        </div>
+      `).join('');
+
+      // Hooks
+      document.getElementById('hooksGrid').innerHTML = components.hooks.map(hook => `
+        <div class="component-card" data-type="hook" data-id="${hook}" onclick="showComponentDetail('hook', '${hook}')">
+          <div class="component-indicator"></div>
+          <div class="component-name">${hook}</div>
+          <div class="component-status">Ready</div>
+        </div>
+      `).join('');
+
+      // Agents
+      document.getElementById('agentsGrid').innerHTML = components.agents.map(agent => `
+        <div class="component-card" data-type="agent" data-id="${agent.name.toLowerCase()}" onclick="showComponentDetail('agent', '${agent.name}')">
+          <div class="component-indicator"></div>
+          <div class="component-name">${agent.name}</div>
+          <div class="component-status">${agent.jp}</div>
+        </div>
+      `).join('');
+
+      // Systems
+      document.getElementById('systemsGrid').innerHTML = components.systems.map(sys => `
+        <div class="component-card" data-type="system" data-id="${sys.toLowerCase().replace(' ', '-')}" onclick="showComponentDetail('system', '${sys}')">
+          <div class="component-indicator"></div>
+          <div class="component-name">${sys}</div>
+          <div class="component-status">Online</div>
+        </div>
+      `).join('');
+    }
+
+    // Performance Chart
+    function initPerformanceChart() {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      performanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Latency (ms)',
+              data: [],
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Throughput',
+              data: [],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#666', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#666', font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    function updatePerformanceChart() {
+      const now = new Date().toLocaleTimeString();
+      performanceData.labels.push(now);
+      performanceData.latency.push(2000 + Math.random() * 4000);
+      performanceData.throughput.push(50 + Math.random() * 30);
+
+      if (performanceData.labels.length > 20) {
+        performanceData.labels.shift();
+        performanceData.latency.shift();
+        performanceData.throughput.shift();
+      }
+
+      performanceChart.data.labels = performanceData.labels;
+      performanceChart.data.datasets[0].data = performanceData.latency;
+      performanceChart.data.datasets[1].data = performanceData.throughput;
+      performanceChart.update('none');
+    }
+
+    // WebSocket
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//localhost:3001/ws?events=true`;
+
+      addLog('info', 'Connecting to WebSocket...');
+
+      try {
+        wsConnection = new WebSocket(wsUrl);
+
+        wsConnection.onopen = () => {
+          updateStatus('connected');
+          addLog('success', 'WebSocket connected successfully');
+        };
+
+        wsConnection.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleEvent(data);
+          } catch (e) {
+            console.error('Failed to parse message:', e);
+          }
+        };
+
+        wsConnection.onerror = () => {
+          addLog('error', 'WebSocket connection error');
+        };
+
+        wsConnection.onclose = () => {
+          updateStatus('disconnected');
+          addLog('warning', 'WebSocket disconnected');
+          setTimeout(() => connectWebSocket(), 5000);
+        };
+      } catch (e) {
+        console.error('WebSocket initialization failed:', e);
+        updateStatus('demo');
+        setTimeout(startDemoMode, 2000);
+      }
+    }
+
+    function updateStatus(status) {
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+
+      dot.className = `status-dot ${status}`;
+      text.textContent = status === 'connected' ? 'Connected' :
+                         status === 'demo' ? 'Demo Mode' : 'Disconnected';
+    }
+
+    // Event Handling
+    function handleEvent(event) {
+      switch (event.type) {
+        case 'execution_started':
+          activateComponent('agent', event.agent_type?.toLowerCase());
+          updateFlowSteps(event);
+          addLog('info', `Started: ${event.agent_type} for Issue #${event.issue_number}`);
+          metrics.activeAgents++;
+          break;
+
+        case 'execution_completed':
+          deactivateComponent('agent', event.agent_type?.toLowerCase());
+          addLog('success', `Completed: PR #${event.pr_number} (Quality: ${event.quality_score}/100)`);
+          metrics.activeAgents = Math.max(0, metrics.activeAgents - 1);
+          metrics.completed++;
+          break;
+
+        case 'execution_failed':
+          deactivateComponent('agent', event.agent_type?.toLowerCase());
+          addLog('error', `Failed: ${event.error}`);
+          metrics.activeAgents = Math.max(0, metrics.activeAgents - 1);
+          break;
+
+        case 'metrics_update':
+          Object.assign(metrics, event);
+          break;
+      }
+
+      updateMetrics();
+    }
+
+    // Component Activation
+    function activateComponent(type, id) {
+      const card = document.querySelector(`.component-card[data-type="${type}"][data-id="${id}"]`);
+      if (card) {
+        card.classList.add('active');
+        const status = card.querySelector('.component-status');
+        if (status) status.textContent = 'Running';
+      }
+    }
+
+    function deactivateComponent(type, id) {
+      const card = document.querySelector(`.component-card[data-type="${type}"][data-id="${id}"]`);
+      if (card) {
+        card.classList.remove('active');
+        const status = card.querySelector('.component-status');
+        if (status && type === 'agent') {
+          const agent = components.agents.find(a => a.name.toLowerCase() === id);
+          status.textContent = agent?.jp || 'Idle';
+        }
+      }
+    }
+
+    // Flow Steps
+    function updateFlowSteps(event) {
+      const steps = [
+        { title: 'Issue Created', desc: `#${event.issue_number}`, status: 'completed' },
+        { title: 'Agent Started', desc: event.agent_type, status: 'active' },
+        { title: 'Code Generation', desc: 'In progress...', status: 'pending' },
+        { title: 'Quality Review', desc: 'Waiting...', status: 'pending' },
+        { title: 'PR Creation', desc: 'Waiting...', status: 'pending' }
+      ];
+
+      document.getElementById('flowSteps').innerHTML = steps.map((step, i) => `
+        <div class="flow-step ${step.status}">
+          <div class="flow-step-number">${i + 1}</div>
+          <div class="flow-step-content">
+            <div class="flow-step-title">${step.title}</div>
+            <div class="flow-step-desc">${step.desc}</div>
+          </div>
+          <div class="flow-step-time">${new Date().toLocaleTimeString()}</div>
+        </div>
+      `).join('');
+    }
+
+    // Metrics
+    function updateMetrics() {
+      document.getElementById('activeAgents').textContent = metrics.activeAgents;
+      document.getElementById('completed').textContent = metrics.completed;
+      document.getElementById('avgTime').textContent = `${metrics.avgTime}s`;
+      document.getElementById('successRate').textContent = `${metrics.successRate}%`;
+      document.getElementById('queueSize').textContent = metrics.queueSize;
+      document.getElementById('llmCalls').textContent = metrics.llmCalls;
+    }
+
+    // Activity Log
+    function addLog(type, message) {
+      const timestamp = new Date().toLocaleTimeString();
+      activityLogEntries.unshift({ timestamp, type, message });
+
+      if (activityLogEntries.length > 100) {
+        activityLogEntries.pop();
+      }
+
+      renderLog();
+    }
+
+    function renderLog() {
+      document.getElementById('activityLog').innerHTML = activityLogEntries.map(entry => `
+        <div class="log-entry">
+          <span class="log-time">${entry.timestamp}</span>
+          <span class="log-badge ${entry.type}">${entry.type.toUpperCase()}</span>
+          <span class="log-message">${entry.message}</span>
+        </div>
+      `).join('');
+    }
+
+    function clearLog() {
+      activityLogEntries = [];
+      renderLog();
+    }
+
+    // View Switching
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('archView').style.display = view === 'architecture' ? 'block' : 'none';
+      document.getElementById('timelineView').style.display = view === 'timeline' ? 'block' : 'none';
+    }
+
+    // Component Detail Modal
+    function showComponentDetail(type, id) {
+      const modal = document.getElementById('componentModal');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+
+      let details = '';
+      if (type === 'agent') {
+        const agent = components.agents.find(a => a.name === id);
+        details = `
+          <h4>${agent.name} (${agent.jp})</h4>
+          <p>${agent.desc}</p>
+          <br>
+          <h5>Metrics:</h5>
+          <ul>
+            <li>Avg execution time: 3-5 min</li>
+            <li>Success rate: 87%</li>
+            <li>Total executions: 150</li>
+          </ul>
+        `;
+      } else {
+        details = `<p>Details for ${type}: ${id}</p>`;
+      }
+
+      title.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)} Details`;
+      body.innerHTML = details;
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('componentModal').classList.remove('active');
+    }
+
+    // Demo Mode
+    function startDemoMode() {
+      addLog('warning', 'Running in demo mode - simulated events');
+
+      let step = 0;
+      setInterval(() => {
+        const scenarios = [
+          () => handleEvent({
+            type: 'execution_started',
+            execution_id: '12345',
+            issue_number: 500,
+            agent_type: 'Coordinator',
+            timestamp: new Date().toISOString()
+          }),
+          () => handleEvent({
+            type: 'execution_started',
+            execution_id: '12346',
+            issue_number: 500,
+            agent_type: 'CodeGen',
+            timestamp: new Date().toISOString()
+          }),
+          () => handleEvent({
+            type: 'execution_completed',
+            execution_id: '12346',
+            agent_type: 'CodeGen',
+            pr_number: 501,
+            quality_score: 95,
+            timestamp: new Date().toISOString()
+          })
+        ];
+
+        if (step < scenarios.length) {
+          scenarios[step]();
+          step++;
+        } else {
+          step = 0;
+        }
+
+        metrics.llmCalls += Math.floor(Math.random() * 3);
+        updateMetrics();
+        updatePerformanceChart();
+      }, 5000);
+    }
+
+    // Fallback to demo
+    setTimeout(() => {
+      if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+        updateStatus('demo');
+        startDemoMode();
+      }
+    }, 5000);
+
+    // Initialize
+    init();
+  </script>
+</body>
+</html>

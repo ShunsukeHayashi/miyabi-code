@@ -89,6 +89,17 @@ pub enum KnowledgeCommand {
         #[arg(long)]
         yes: bool,
     },
+
+    /// Start Web UI dashboard server
+    Serve {
+        /// Port to listen on
+        #[arg(long, default_value = "8080")]
+        port: u16,
+
+        /// Open browser automatically
+        #[arg(long)]
+        open: bool,
+    },
 }
 
 impl KnowledgeCommand {
@@ -139,6 +150,7 @@ impl KnowledgeCommand {
             Self::ClearCache { workspace, yes } => {
                 clear_cache(workspace.clone(), *yes, json_output).await
             }
+            Self::Serve { port, open } => serve_dashboard(*port, *open, json_output).await,
         }
     }
 }
@@ -547,5 +559,63 @@ async fn clear_cache(
         println!("{} No cache files found", "ℹ️".cyan());
     }
 
+    Ok(())
+}
+
+#[cfg(feature = "server")]
+async fn serve_dashboard(port: u16, open: bool, json_output: bool) -> Result<()> {
+    use miyabi_knowledge::server::KnowledgeServer;
+
+    // Load config
+    let config = KnowledgeConfig::default();
+
+    if !json_output {
+        println!("{}", "🚀 Starting Knowledge Dashboard...".cyan());
+        println!("   Port: {}", port.to_string().bold());
+        println!("   URL: {}", format!("http://localhost:{}", port).cyan());
+        println!();
+        println!("{}", "   Press Ctrl+C to stop".dimmed());
+        println!();
+    }
+
+    // Open browser if requested
+    if open {
+        let url = format!("http://localhost:{}", port);
+        if !json_output {
+            println!("{} Opening browser: {}", "🌐".cyan(), url.bold());
+        }
+        if let Err(e) = open::that(&url) {
+            if !json_output {
+                println!("{} Failed to open browser: {}", "⚠️".yellow(), e);
+            }
+        }
+    }
+
+    // Initialize and start server
+    let server = KnowledgeServer::new(config).await?;
+    server.serve(port).await?;
+
+    Ok(())
+}
+
+#[cfg(not(feature = "server"))]
+async fn serve_dashboard(_port: u16, _open: bool, json_output: bool) -> Result<()> {
+    if json_output {
+        let json = serde_json::json!({
+            "error": "Server feature not enabled",
+            "message": "Please rebuild with --features server to enable the Web UI dashboard"
+        });
+        println!("{}", serde_json::to_string_pretty(&json)?);
+    } else {
+        println!("{}", "❌ Server feature not enabled".red());
+        println!();
+        println!(
+            "The Web UI dashboard requires the 'server' feature to be enabled."
+        );
+        println!("Please rebuild with:");
+        println!();
+        println!("  {}", "cargo build --release --features server".cyan());
+        println!();
+    }
     Ok(())
 }

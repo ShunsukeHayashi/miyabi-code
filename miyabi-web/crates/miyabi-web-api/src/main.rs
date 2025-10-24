@@ -1,5 +1,4 @@
 use axum::{
-    middleware::from_fn,
     routing::{get, post},
     Router,
 };
@@ -8,12 +7,12 @@ use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod handlers;
+mod integrations;
 mod middleware;
 mod models;
 mod services;
 
 use handlers::line::{handle_webhook, AppState};
-use middleware::line_signature::verify_line_signature;
 
 #[tokio::main]
 async fn main() {

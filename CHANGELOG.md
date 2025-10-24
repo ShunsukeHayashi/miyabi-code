@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **[#519]** Deduplicated configuration loading across CLI commands
+  - Created `ConfigLoader` singleton with thread-safe caching (`once_cell` + `Mutex`)
+  - Refactored `agent.rs` and `parallel.rs` to use centralized config loader
+  - Eliminated ~250 lines of duplicate code (removed duplicate `get_github_token` and `parse_git_remote` implementations)
+  - Configuration now loaded once and cached for subsequent calls
+  - Improved maintainability: 2 locations → 1 location for config management
+
 ### Planned for v0.2.0
 - Business Agents implementation (14 agents)
 - Potpie AI integration (awaiting miyabi-potpie crate)

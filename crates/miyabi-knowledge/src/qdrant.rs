@@ -5,7 +5,7 @@ use crate::error::{KnowledgeError, Result};
 use crate::types::{KnowledgeEntry, KnowledgeId};
 use qdrant_client::qdrant::vectors_config::Config;
 use qdrant_client::qdrant::{
-    CollectionInfo, CreateCollectionBuilder, Distance, PointStruct, ScoredPoint,
+    CollectionInfo, CreateCollectionBuilder, Distance, PointStruct, RetrievedPoint, ScoredPoint,
     SearchPointsBuilder, UpsertPointsBuilder, VectorParams, VectorsConfig,
 };
 use serde_json::json;
@@ -177,19 +177,134 @@ impl QdrantClient {
     }
 
     /// IDでエントリを取得
-    pub async fn get_by_id(&self, id: &KnowledgeId) -> Result<Option<PointStruct>> {
-        // TODO: Implement using correct Qdrant API
-        // Current version is placeholder
-        debug!("Getting entry {} from Qdrant (TODO)", id);
-        Ok(None)
+    pub async fn get_by_id(&self, id: &KnowledgeId) -> Result<Option<RetrievedPoint>> {
+        use qdrant_client::qdrant::{GetPointsBuilder, PointId};
+
+        let collection_name = &self.config.vector_db.collection;
+        let point_id = PointId::from(id.as_str());
+
+        let result = self
+            .client
+            .get_points(
+                GetPointsBuilder::new(collection_name, vec![point_id])
+                    .with_payload(true)
+                    .with_vectors(true)
+                    .build(),
+            )
+            .await
+            .map_err(|e| KnowledgeError::Qdrant(format!("Failed to get point: {}", e)))?;
+
+        Ok(result.result.first().cloned())
     }
 
     /// エントリを削除
-    pub async fn delete(&self, id: &KnowledgeId) -> Result<()> {
-        // TODO: Implement using correct Qdrant API
-        // Current version is placeholder
-        debug!("Deleting entry {} from Qdrant (TODO)", id);
+    pub async fn delete_by_id(&self, id: &KnowledgeId) -> Result<()> {
+        use qdrant_client::qdrant::{DeletePointsBuilder, PointId};
+
+        let collection_name = &self.config.vector_db.collection;
+        let point_id = PointId::from(id.as_str());
+
+        self.client
+            .delete_points(DeletePointsBuilder::new(collection_name).points(vec![point_id]))
+            .await
+            .map_err(|e| KnowledgeError::Qdrant(format!("Failed to delete point: {}", e)))?;
+
+        debug!("Deleted entry {} from Qdrant", id);
         Ok(())
+    }
+
+    /// 全エントリをリスト
+    pub async fn list_all_entries(&self) -> Result<Vec<KnowledgeEntry>> {
+        use qdrant_client::qdrant::ScrollPointsBuilder;
+        use chrono::DateTime;
+        use crate::types::KnowledgeMetadata;
+
+        let collection_name = &self.config.vector_db.collection;
+        let mut all_entries = Vec::new();
+        let mut offset = None;
+
+        // Scroll through all points
+        loop {
+            let mut builder = ScrollPointsBuilder::new(collection_name)
+                .with_payload(true)
+                .limit(100);
+
+            if let Some(offset_id) = offset {
+                builder = builder.offset(offset_id);
+            }
+
+            let result = self
+                .client
+                .scroll(builder.build())
+                .await
+                .map_err(|e| KnowledgeError::Qdrant(format!("Failed to scroll points: {}", e)))?;
+
+            for point in &result.result {
+                let payload = &point.payload;
+                // Extract metadata from payload
+                let workspace = payload
+                    .get("workspace")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| "default".to_string());
+
+                let content = payload
+                    .get("content")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+                    .unwrap_or_default();
+
+                let timestamp_str = payload
+                    .get("timestamp")
+                    .and_then(|v| v.as_str())
+                    .map_or("", |v| v);
+
+                let timestamp = DateTime::parse_from_rfc3339(timestamp_str)
+                    .map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(|_| chrono::Utc::now());
+
+                // Convert point.id to string
+                let id_string = match &point.id {
+                    Some(pid) => match &pid.point_id_options {
+                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(n)) => n.to_string(),
+                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(u)) => u.clone(),
+                        None => String::new(),
+                    },
+                    None => String::new(),
+                };
+
+                let metadata = KnowledgeMetadata {
+                    workspace,
+                    worktree: payload.get("worktree").and_then(|v| v.as_str()).map(String::from),
+                    agent: payload.get("agent").and_then(|v| v.as_str()).map(String::from),
+                    issue_number: payload.get("issue_number").and_then(|v| v.as_integer()).map(|i| i as u32),
+                    task_type: payload.get("task_type").and_then(|v| v.as_str()).map(String::from),
+                    outcome: payload.get("outcome").and_then(|v| v.as_str()).map(String::from),
+                    tools_used: None,
+                    files_changed: None,
+                    extra: serde_json::Map::new(),
+                };
+
+                let entry = KnowledgeEntry {
+                    id: KnowledgeId::from_string(&id_string).unwrap_or_else(|_| KnowledgeId::new()),
+                    content,
+                    metadata,
+                    timestamp,
+                    embedding: None,
+                };
+
+                all_entries.push(entry);
+            }
+
+            // Check if there are more results
+            if result.next_page_offset.is_none() || result.result.is_empty() {
+                break;
+            }
+            offset = result.next_page_offset;
+        }
+
+        info!("Listed {} entries from Qdrant", all_entries.len());
+        Ok(all_entries)
     }
 
     /// Collection統計を取得

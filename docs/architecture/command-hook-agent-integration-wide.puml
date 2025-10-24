@@ -1,0 +1,313 @@
+@startuml command-hook-agent-integration-wide
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica Neue"
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 80
+
+title Miyabi Complete Integration - Commands, Hooks, and 21 Agents (16:9 Wide Layout)
+
+' ============================================
+' Legend (Top Right)
+' ============================================
+legend top right
+  |= Symbol |= Meaning |
+  | 🎯 | Command |
+  | 🪝 | Git Hook |
+  | 🤖 | Coding Agent |
+  | 💼 | Business Agent |
+  | ⚙️ | Core System |
+  | 📊 | Data Store |
+endlegend
+
+' ============================================
+' Top Row: External Systems & Entry Points
+' ============================================
+together {
+  actor "Developer" as dev #FFE0B2
+  cloud "GitHub" as github #B3E5FC
+  cloud "Anthropic\nAPI" as anthropic #E1BEE7
+  cloud "VoiceVox" as voicevox #C5E1A5
+}
+
+' ============================================
+' Second Row: Commands (Left) + Hooks (Right)
+' ============================================
+together {
+  package "🎯 Commands (18)" as commands #E3F2FD {
+    rectangle "/create-issue" as cmd_create #90CAF9
+    rectangle "/test" as cmd_test #90CAF9
+    rectangle "/verify" as cmd_verify #90CAF9
+    rectangle "/review" as cmd_review #90CAF9
+    rectangle "/agent-run" as cmd_agent #81C784
+    rectangle "/miyabi-auto" as cmd_auto #66BB6A
+    rectangle "/miyabi-infinity" as cmd_infinity #66BB6A
+    rectangle "/miyabi-todos" as cmd_todos #81C784
+    rectangle "/deploy" as cmd_deploy #FFB74D
+    rectangle "/generate-docs" as cmd_docs #CE93D8
+    rectangle "/generate-lp" as cmd_lp #CE93D8
+    rectangle "/daily-update" as cmd_daily #FFEB3B
+    rectangle "/check-benchmark" as cmd_benchmark #FFEB3B
+    rectangle "/session-end" as cmd_session #FF8A65
+    rectangle "/voicevox" as cmd_voice #AED581
+    rectangle "/narrate" as cmd_narrate #AED581
+    rectangle "/watch-sprint" as cmd_watch #AED581
+    rectangle "/security-scan" as cmd_security #EF5350
+  }
+
+  package "🪝 Hooks (5)" as hooks #FFF8E1 {
+    rectangle "pre-commit" as hook_pre #FFD54F
+    rectangle "commit-msg" as hook_msg #FBC02D
+    rectangle "post-commit" as hook_post #F9A825
+    rectangle "pre-push" as hook_push #FFD54F
+    rectangle "post-merge" as hook_merge #F9A825
+  }
+}
+
+' ============================================
+' Third Row: Coding Agents (7)
+' ============================================
+package "🤖 Coding Agents (7)" as coding_agents #E8F5E9 {
+  together {
+    rectangle "Coordinator\n(しきるん)" as agent_coord #66BB6A
+    rectangle "Issue\n(みつけるん)" as agent_issue #81C784
+    rectangle "CodeGen\n(つくるん)" as agent_codegen #4CAF50
+    rectangle "Review\n(めだまん)" as agent_review #66BB6A
+    rectangle "PR\n(まとめるん)" as agent_pr #81C784
+    rectangle "Deployment\n(はこぶん)" as agent_deploy #66BB6A
+    rectangle "Refresher\n(つなぐん)" as agent_refresh #AED581
+  }
+}
+
+' ============================================
+' Fourth Row: Business Agents (14) - Horizontal Layout
+' ============================================
+package "💼 Business Agents (14)" as business_agents #F3E5F5 {
+  together {
+    ' Strategy
+    rectangle "AIEntrepreneur" as agent_entrepreneur #BA68C8
+    rectangle "ProductConcept" as agent_concept #BA68C8
+    rectangle "ProductDesign" as agent_design #BA68C8
+    rectangle "Persona" as agent_persona #CE93D8
+    rectangle "SelfAnalysis" as agent_self #CE93D8
+    rectangle "FunnelDesign" as agent_funnel #CE93D8
+
+    ' Marketing
+    rectangle "MarketResearch" as agent_market #AB47BC
+    rectangle "Marketing" as agent_marketing #AB47BC
+    rectangle "Content" as agent_content #BA68C8
+    rectangle "SNS" as agent_sns #BA68C8
+    rectangle "YouTube" as agent_youtube #BA68C8
+
+    ' Sales & CRM
+    rectangle "Sales" as agent_sales #9C27B0
+    rectangle "CRM" as agent_crm #9C27B0
+    rectangle "Analytics" as agent_analytics #9C27B0
+  }
+}
+
+' ============================================
+' Fifth Row: Core Systems (5)
+' ============================================
+together {
+  package "⚙️ Core Systems (5)" as core #FFEBEE {
+    rectangle "Orchestrator" as orchestrator #EF5350
+    rectangle "Worktree" as worktree #F44336
+    rectangle "LLM Gateway" as llm #E53935
+    rectangle "Knowledge" as knowledge #EF5350
+    rectangle "MCP Server" as mcp #EF9A9A
+  }
+
+  package "📊 Data Stores (3)" as datastores #ECEFF1 {
+    database "GitHub\nIssues" as gh_issues #78909C
+    database "Qdrant" as qdrant #78909C
+    database "SQLite" as sqlite #78909C
+  }
+}
+
+' ============================================
+' Bottom Row: Outputs (6)
+' ============================================
+package "📤 Outputs (6)" as outputs #FFF9C4 {
+  together {
+    rectangle "Pull Request" as out_pr #FFF176
+    rectangle "Documentation" as out_docs #FFF176
+    rectangle "Deployment" as out_deploy #FFF176
+    rectangle "Voice" as out_voice #FFF176
+    rectangle "Report" as out_report #FFF176
+    rectangle "Notification" as out_macos #FFF176
+  }
+}
+
+' ============================================
+' Key Flows (Simplified for Wide Layout)
+' ============================================
+
+' Entry Flow
+dev --> cmd_create
+dev --> cmd_agent
+dev --> cmd_auto
+
+' Command → Core
+cmd_create --> github
+cmd_agent --> orchestrator
+cmd_auto --> orchestrator
+cmd_infinity --> orchestrator
+cmd_test --> hook_pre
+cmd_deploy --> agent_deploy
+
+' GitHub → Orchestrator
+github --> orchestrator
+
+' Orchestrator → Agents
+orchestrator --> agent_issue
+orchestrator --> agent_coord
+agent_issue --> github
+
+' Agent Flow (Simplified)
+agent_coord --> worktree
+agent_coord --> agent_codegen
+agent_codegen --> llm
+agent_codegen --> hook_pre
+llm --> anthropic
+
+' Hook Flow
+hook_pre --> cmd_test
+hook_pre --> cmd_security
+hook_pre --> agent_review
+hook_msg --> agent_review
+hook_post --> voicevox
+hook_push --> cmd_test
+hook_merge --> agent_deploy
+
+' Review Flow
+agent_review --> agent_codegen : feedback
+agent_review --> github
+
+' PR & Deploy Flow
+agent_codegen --> agent_pr
+agent_pr --> github
+agent_pr --> out_pr
+agent_deploy --> out_deploy
+
+' VoiceVox Flow
+cmd_voice --> voicevox
+cmd_narrate --> voicevox
+cmd_watch --> voicevox
+voicevox --> out_voice
+
+' Business Agents (On-Demand)
+cmd_agent --> agent_persona
+cmd_agent --> agent_market
+agent_persona --> out_docs
+agent_market --> out_report
+
+' Knowledge & Data
+agent_codegen --> knowledge
+agent_review --> knowledge
+agent_issue --> knowledge
+knowledge --> qdrant
+knowledge --> mcp
+
+agent_coord --> sqlite
+agent_codegen --> sqlite
+agent_review --> sqlite
+
+agent_issue --> gh_issues
+agent_refresh --> gh_issues
+
+' Output Flow
+agent_deploy --> out_docs
+agent_analytics --> out_report
+cmd_session --> out_macos
+
+' Monitoring
+agent_refresh --> orchestrator : re-trigger
+
+' ============================================
+' Notes (Compact for Wide Layout)
+' ============================================
+note top of commands
+  **18 Commands**
+  Dev(4) Agent(4) Deploy(1)
+  Docs(2) Reports(2)
+  Notify(1) Voice(3) Security(1)
+
+  **Metrics**
+  Success: 95% | Daily: ~50 calls
+end note
+
+note top of hooks
+  **5 Hooks**
+  Pre(2) Val(1) Post(2)
+
+  **Metrics**
+  Trigger: 100% | Abort: 5%
+  Avg: 15-45s
+end note
+
+note bottom of coding_agents
+  **7 Coding Agents**
+  Planning: Coordinator, Issue
+  Impl: CodeGen, Review
+  Delivery: PR, Deployment
+  Monitor: Refresher
+
+  **Metrics**
+  Avg resolution: 15-25min
+  Success: 87% | Parallel: 3x
+end note
+
+note bottom of business_agents
+  **14 Business Agents**
+  Strategy(6) Marketing(5) Sales/CRM(3)
+
+  **Metrics**
+  Avg: 5-15min | Usage: 2-3x/week
+  ROI: High (strategic)
+end note
+
+note left of orchestrator
+  **Water Spider**
+  Uptime: 99.9%
+  Queue: 2-5 avg
+  Memory: ~200MB
+end note
+
+note right of llm
+  **LLM Gateway**
+  Response: 2-8s
+  Cost/Issue: $0.15-0.40
+  Calls/day: 200-500
+end note
+
+note left of knowledge
+  **Knowledge**
+  Embeddings: ~15K
+  Latency: <100ms
+  Storage: ~2GB
+end note
+
+note bottom of datastores
+  **3 Data Stores**
+  GitHub: 500+ Issues
+  Qdrant: 15K vectors, 2GB
+  SQLite: 10K+ records, 50MB
+
+  **Performance**
+  GitHub: 5K req/h limit
+  Qdrant: <100ms
+  SQLite: <10ms
+end note
+
+note bottom of outputs
+  **6 Outputs**
+  PR: 100+/month (85% merge)
+  Deployment: 30+/month (95% success)
+  Voice: 200+ msgs/month (<1s delay)
+  Report: 30/month (2-3min gen)
+end note
+
+@enduml

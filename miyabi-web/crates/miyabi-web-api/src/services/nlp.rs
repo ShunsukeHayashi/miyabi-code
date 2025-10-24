@@ -2,6 +2,7 @@
 ///
 /// Phase 6.3: ユーザーメッセージからタスク要件を抽出
 
+use crate::integrations::claude::{ClaudeClient, ParsedIssue};
 use serde::{Deserialize, Serialize};
 
 /// タスク解析結果
@@ -54,16 +55,14 @@ impl TaskCategory {
 /// 自然言語処理サービス
 #[derive(Clone)]
 pub struct NlpService {
-    api_key: String,
-    http_client: reqwest::Client,
+    claude_client: ClaudeClient,
 }
 
 impl NlpService {
     /// 新しいNLPサービスを作成
     pub fn new(api_key: String) -> Self {
         Self {
-            api_key,
-            http_client: reqwest::Client::new(),
+            claude_client: ClaudeClient::new(api_key),
         }
     }
 
@@ -76,27 +75,59 @@ impl NlpService {
     /// - `Ok(TaskAnalysis)`: 解析成功
     /// - `Err(...)`: API呼び出し失敗
     pub async fn analyze_task(&self, user_message: &str) -> anyhow::Result<TaskAnalysis> {
-        // Phase 6.3: Claude API統合予定
-        // 現在はモックレスポンスを返す
+        tracing::info!("Analyzing user message with Claude API: {}", user_message);
 
-        tracing::info!("Analyzing user message: {}", user_message);
+        // Claude APIでメッセージを解析
+        let parsed = self.claude_client.analyze_message(user_message).await
+            .map_err(|e| anyhow::anyhow!("Claude API error: {}", e))?;
 
-        // TODO: Claude API呼び出し実装
-        // let response = self.call_claude_api(user_message).await?;
+        // ParsedIssue を TaskAnalysis に変換
+        let analysis = self.convert_parsed_issue(parsed, user_message);
 
-        // モックレスポンス（開発用）
-        let analysis = TaskAnalysis {
-            title: format!("ユーザー依頼: {}", user_message.chars().take(50).collect::<String>()),
-            description: format!(
-                "## ユーザーからの依頼\n\n{}\n\n## 対応方針\n\nAIが自動で処理を進めます。",
-                user_message
-            ),
-            category: self.infer_category(user_message),
-            priority: 3,
-            estimated_hours: Some(2.0),
-        };
+        tracing::info!(
+            "Task analysis completed: category={:?}, priority={}",
+            analysis.category,
+            analysis.priority
+        );
 
         Ok(analysis)
+    }
+
+    /// ParsedIssueをTaskAnalysisに変換
+    fn convert_parsed_issue(&self, parsed: ParsedIssue, original_message: &str) -> TaskAnalysis {
+        // CategoryをTaskCategoryに変換
+        let category = if let Some(issue_type) = &parsed.issue_type {
+            match issue_type.to_lowercase().as_str() {
+                "bug" => TaskCategory::Bug,
+                "feature" => TaskCategory::Feature,
+                "docs" | "documentation" => TaskCategory::Documentation,
+                "refactor" | "refactoring" => TaskCategory::Refactoring,
+                _ => TaskCategory::Feature,
+            }
+        } else {
+            self.infer_category(original_message)
+        };
+
+        // 優先度を数値に変換
+        let priority = if let Some(p) = &parsed.priority {
+            match p.as_str() {
+                "P0-Critical" => 0,
+                "P1-High" => 1,
+                "P2-Medium" => 2,
+                "P3-Low" => 3,
+                _ => 2,
+            }
+        } else {
+            2 // デフォルトはMedium
+        };
+
+        TaskAnalysis {
+            title: parsed.title,
+            description: parsed.description,
+            category,
+            priority,
+            estimated_hours: Some(2.0), // デフォルト見積もり
+        }
     }
 
     /// メッセージからカテゴリを推測（シンプルなキーワードマッチング）
@@ -124,8 +155,12 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore] // Requires valid ANTHROPIC_API_KEY
     async fn test_analyze_task() {
-        let service = NlpService::new("test_key".to_string());
+        // This test requires a valid Claude API key
+        // Run with: cargo test test_analyze_task -- --ignored
+        let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+        let service = NlpService::new(api_key);
         let result = service.analyze_task("ログイン機能を追加してほしい").await;
 
         assert!(result.is_ok());
