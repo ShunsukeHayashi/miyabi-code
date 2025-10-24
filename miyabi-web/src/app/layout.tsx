@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+// Toaster temporarily disabled due to import resolution issue
+// import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Miyabi Web Platform",
@@ -16,7 +17,7 @@ export default function RootLayout({
     <html lang="ja">
       <body>
         {children}
-        <Toaster />
+        {/* <Toaster /> */}
       </body>
     </html>
   );

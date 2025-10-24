@@ -16,7 +16,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { AgentPalette } from '@/components/workflow/AgentPalette';
+import AgentPalette from '@/components/workflow/AgentPalette';
 import AgentNode from '@/components/workflow/AgentNode';
 import { Button } from '@/components/ui/button';
 
