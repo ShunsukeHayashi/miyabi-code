@@ -11,10 +11,13 @@ pub use crate::task::{TaskStatus, TaskType};
 /// Agent card for A2A Protocol
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentCard {
+    /// Name of the resource
     pub name: String,
     pub description: Option<String>,
+    /// Version
     pub version: String,
     pub capabilities: Vec<String>,
+    /// Auth methods
     pub auth_methods: Vec<String>,
     pub url: String,
 }
@@ -22,12 +25,16 @@ pub struct AgentCard {
 /// Task representation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
+    /// Unique identifier
     pub id: String,
     pub status: TaskStatus,
+    /// Input data
     pub input: TaskInput,
     pub output: Option<TaskOutput>,
+    /// Context id
     pub context_id: Option<String>,
     pub created_at: DateTime<Utc>,
+    /// Last update timestamp
     pub updated_at: DateTime<Utc>,
 }
 
@@ -64,6 +71,7 @@ impl Task {
 /// Task input
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskInput {
+    /// Prompt text
     pub prompt: String,
     pub params: serde_json::Value,
 }
@@ -71,6 +79,7 @@ pub struct TaskInput {
 /// Task output
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskOutput {
+    /// Result data
     pub result: serde_json::Value,
     pub error: Option<String>,
 }
@@ -87,6 +96,7 @@ pub enum Role {
 /// Message representation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
+    /// Role type
     pub role: Role,
     pub parts: Vec<Part>,
 }
@@ -124,8 +134,10 @@ pub enum ArtifactType {
 /// Artifact representation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Artifact {
+    /// Unique identifier
     pub id: String,
     pub artifact_type: ArtifactType,
+    /// Message content
     pub content: String,
     pub metadata: Option<serde_json::Value>,
 }

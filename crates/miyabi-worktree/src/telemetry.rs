@@ -199,12 +199,16 @@ impl Default for TelemetryCollector {
 /// テレメトリ統計
 #[derive(Debug, Clone, Default)]
 pub struct TelemetryStats {
+    /// Creates
     pub creates: usize,
     pub executions: usize,
+    /// Successful executions
     pub successful_executions: usize,
     pub failed_executions: usize,
+    /// Cleanups
     pub cleanups: usize,
     pub errors: usize,
+    /// Total execution time
     pub total_execution_time: Duration,
 }
 

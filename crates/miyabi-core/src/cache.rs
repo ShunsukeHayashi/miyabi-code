@@ -12,11 +12,14 @@ use tokio::sync::RwLock;
 /// Cache entry with TTL support
 #[derive(Debug, Clone)]
 pub struct CacheEntry<T> {
+    /// Cached value
     pub value: T,
+    /// Expiration timestamp
     pub expires_at: Instant,
 }
 
 impl<T> CacheEntry<T> {
+    /// Create a new cache entry with the given TTL
     pub fn new(value: T, ttl: Duration) -> Self {
         Self {
             value,
@@ -24,6 +27,7 @@ impl<T> CacheEntry<T> {
         }
     }
 
+    /// Check if the cache entry has expired
     pub fn is_expired(&self) -> bool {
         Instant::now() > self.expires_at
     }
@@ -115,16 +119,20 @@ where
 /// Cache statistics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheStats {
+    /// Total entries
     pub total_entries: usize,
     pub expired_entries: usize,
+    /// Active entries
     pub active_entries: usize,
 }
 
 /// LLM response cache key
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct LLMCacheKey {
+    /// Prompt hash
     pub prompt_hash: String,
     pub model: String,
+    /// Temperature parameter
     pub temperature: Option<u32>, // Store as u32 to avoid f32 Hash/Eq issues
 }
 
@@ -159,8 +167,10 @@ pub fn create_llm_cache() -> LLMCache {
 /// Business Agent result cache key
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct BusinessAgentCacheKey {
+    /// Agent type
     pub agent_type: String,
     pub task_id: String,
+    /// Task hash
     pub task_hash: String,
 }
 

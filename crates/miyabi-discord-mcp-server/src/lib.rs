@@ -30,11 +30,17 @@
 //! }
 //! ```
 
+/// Discord API client and operations
 pub mod discord;
+/// Error types for Discord MCP server
 pub mod error;
+/// Feedback system for issue tracking
 pub mod feedback;
+/// Request and response models for Discord API
 pub mod models;
+/// Progress reporting for long-running operations
 pub mod progress_reporter;
+/// JSON-RPC 2.0 server implementation
 pub mod rpc;
 
 pub use discord::DiscordClient;

@@ -101,6 +101,7 @@ pub enum ErrorSeverity {
 /// Shared state for WebSocket broadcasting
 #[derive(Clone)]
 pub struct WsState {
+    /// Tx
     pub tx: broadcast::Sender<DashboardUpdate>,
 }
 

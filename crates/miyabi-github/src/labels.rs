@@ -9,8 +9,10 @@ use serde::{Deserialize, Serialize};
 /// Label definition
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Label {
+    /// Name of the resource
     pub name: String,
     pub color: String,
+    /// Description text
     pub description: Option<String>,
 }
 

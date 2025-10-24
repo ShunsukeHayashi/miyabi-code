@@ -27,16 +27,20 @@ use thiserror::Error;
 /// Prompt template rendering error
 #[derive(Error, Debug)]
 pub enum PromptError {
+    /// A required template variable was not provided
     #[error("Missing variable: {0}")]
     MissingVariable(String),
 
+    /// Template contains invalid syntax
     #[error("Invalid template syntax: {0}")]
     InvalidSyntax(String),
 
+    /// JSON serialization failed
     #[error("JSON serialization error: {0}")]
     JsonError(#[from] serde_json::Error),
 }
 
+/// Result type for prompt operations
 pub type Result<T> = std::result::Result<T, PromptError>;
 
 /// Response format specification
@@ -48,6 +52,7 @@ pub enum ResponseFormat {
 
     /// JSON response with optional schema
     Json {
+        /// Optional JSON schema for validation
         #[serde(skip_serializing_if = "Option::is_none")]
         schema: Option<serde_json::Value>,
     },
@@ -56,7 +61,10 @@ pub enum ResponseFormat {
     Markdown,
 
     /// Code response with language specification
-    Code { language: String },
+    Code {
+        /// Programming language (e.g., "rust", "python", "javascript")
+        language: String
+    },
 }
 
 impl Default for ResponseFormat {

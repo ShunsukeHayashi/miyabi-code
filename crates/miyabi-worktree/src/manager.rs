@@ -19,10 +19,13 @@ use uuid::Uuid;
 /// Worktree information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorktreeInfo {
+    /// Unique identifier
     pub id: String,
     pub issue_number: u64,
+    /// File path
     pub path: PathBuf,
     pub branch_name: String,
+    /// Creation timestamp
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub status: WorktreeStatus,
 }
@@ -621,12 +624,16 @@ impl WorktreeManager {
 /// Worktree statistics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorktreeStats {
+    /// Total
     pub total: usize,
     pub active: usize,
+    /// Idle
     pub idle: usize,
     pub completed: usize,
+    /// Failed
     pub failed: usize,
     pub max_concurrency: usize,
+    /// Available slots
     pub available_slots: usize,
 }
 

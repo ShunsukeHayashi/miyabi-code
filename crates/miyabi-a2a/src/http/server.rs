@@ -28,6 +28,7 @@ pub struct AppState {
 /// HTTP server configuration
 #[derive(Debug, Clone)]
 pub struct HttpServerConfig {
+    /// Host
     pub host: String,
     pub port: u16,
 }
