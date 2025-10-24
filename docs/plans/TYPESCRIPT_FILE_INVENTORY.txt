@@ -1,0 +1,244 @@
+# TypeScript File Inventory - Complete Listing
+# Generated: 2025-10-24
+# Total Files: 367 (excluding node_modules/dist/target)
+
+## CATEGORY 1: ARCHIVED (Already Moved) - 173 files ✅
+
+archive/typescript-legacy/packages/business-agents/
+archive/typescript-legacy/packages/cli/
+archive/typescript-legacy/packages/coding-agents/
+archive/typescript-legacy/packages/context-engineering/
+archive/typescript-legacy/packages/core/
+archive/typescript-legacy/packages/doc-generator/
+archive/typescript-legacy/packages/github-projects/
+archive/typescript-legacy/packages/miyabi-agent-sdk/
+archive/typescript-legacy/packages/shared-utils/
+
+See: git log b70e341 (Phase 1-3 Crate Consolidation)
+
+## CATEGORY 2: ACTIVE SCRIPTS - 75 files 🔄
+
+### GitHub Integration (11 files)
+scripts/github/ai-label-issue.ts
+scripts/github/auto-convert-ideas.ts
+scripts/github/convert-idea-to-issue.ts
+scripts/github/discussion-bot.ts
+scripts/github/discussion-digest.ts
+scripts/github/github-project-api.ts
+scripts/github/knowledge-base-sync.ts
+scripts/github/projects-graphql.ts
+
+### Operations (13 files)
+scripts/operations/agentic.ts
+scripts/operations/benchmark-agents.ts
+scripts/operations/check-status.ts
+scripts/operations/demo-rich-cli.ts
+scripts/operations/execute-task.ts
+scripts/operations/github-token-helper.ts
+scripts/operations/label-state-machine.ts
+scripts/operations/parallel-agent-runner.ts
+scripts/operations/parallel-executor.ts
+scripts/operations/task-grouper.ts
+scripts/operations/task-tool-executor.ts
+scripts/operations/verify-agents.ts
+scripts/operations/workflow-orchestrator.ts
+
+### Reporting (13 files)
+scripts/reporting/dashboard-events.ts
+scripts/reporting/doc-generator.ts
+scripts/reporting/generate-dashboard-data.ts
+scripts/reporting/generate-demo.test.ts
+scripts/reporting/generate-demo.ts
+scripts/reporting/generate-realtime-metrics.ts
+scripts/reporting/generate-session-graph.ts
+scripts/reporting/generate-weekly-report.ts
+scripts/reporting/performance-report.ts
+scripts/reporting/training-material-generator.ts
+scripts/reporting/update-readme-with-demos.test.ts
+scripts/reporting/update-readme-with-demos.ts
+
+### Security (3 files)
+scripts/security/security-manager.ts
+scripts/security/security-report.ts
+scripts/security/webhook-security.ts
+
+### Setup (7 files)
+scripts/setup/github-token-helper.ts
+scripts/setup/local-env-collector.ts
+scripts/setup/parallel-checks.ts
+scripts/setup/register-claude-plugin.ts
+scripts/setup/setup-agentic-os.ts
+scripts/setup/setup-github-project.ts
+scripts/setup/setup-github-token.ts
+
+### Integration Tests (10 files)
+scripts/integrated/demo-feedback-loop.ts
+scripts/integrated/integrated-demo-simple.ts
+scripts/integrated/integrated-system.ts
+scripts/integrated/issue-100-execution.ts
+scripts/integrated/issue-101-execution.ts
+scripts/integrated/issue-102-execution.ts
+scripts/integrated/issue-99-execution.ts
+scripts/integrated/test-metrics-collector.ts
+scripts/integrated/test-parallel-execution.ts
+scripts/integrated/test-water-spider.ts
+scripts/integrated/test-worktree-manager.ts
+
+### Tools (8 files)
+scripts/tools/claude-headless-example.ts
+scripts/tools/claude-headless.ts
+scripts/tools/claude-parallel-demo.ts
+scripts/tools/generate-i2v.ts
+scripts/tools/generate-image.ts
+scripts/tools/generate-speech.ts
+scripts/tools/generate-video.ts
+scripts/tools/get-claude-token.ts
+
+### Miscellaneous (10 files)
+scripts/cicd/cicd-integration.ts
+scripts/cicd/performance-optimizer.ts
+scripts/cicd/webhook-router.ts
+scripts/migration/migrate-claude-to-agents.ts
+scripts/migration/post-migration-validator.ts
+scripts/migration/run-migration.test.ts
+scripts/migration/run-migration.ts
+scripts/local-env-collector.ts
+scripts/projects-graphql.ts
+scripts/upload-to-portal.ts
+scripts/water-spider-main.ts
+scripts/webhook/webhook-server.ts
+
+## CATEGORY 3: API BACKEND - 12 files 🔄
+
+api/index.ts
+api/lib/types.ts
+api/middleware/auth.ts
+api/middleware/rate-limit.ts
+api/routes/auth.ts
+api/routes/licenses.ts
+api/routes/marketplace.ts
+api/routes/usage.ts
+api/services/license-manager.ts
+api/services/usage-tracker.ts
+api/services/user-service.ts
+api/test-auth-server.ts
+
+## CATEGORY 4: TEST FILES - 34 files 🔄
+
+tests/BaseAgent.test.ts
+tests/CodeGenAgent.test.ts
+tests/DAGManager.test.ts
+tests/ReviewAgent.test.ts
+tests/SecurityScanner.test.ts
+tests/agent-verification.test.ts
+tests/coordinator.test.ts
+tests/coordinator/task-scheduler.test.ts
+tests/agents/FileMigrationAgent.test.ts
+tests/fixtures/github-responses.ts
+tests/fixtures/test-data.ts
+tests/integration/agent-coordination.test.ts
+tests/integration/cli-integration.test.ts
+tests/integration/parallel-execution.test.ts
+tests/performance/benchmark.test.ts
+tests/utils/test-helpers.ts
+
+### E2E Tests (Keep - Web UI Testing)
+tests/e2e/demo/dashboard-quick-check.spec.ts
+tests/e2e/demo/dashboard-ui-ux.spec.ts
+tests/e2e/demo/miyabi-demo.spec.ts
+tests/e2e/workflow.test.ts
+
+## CATEGORY 5: WEB UI - KEEP (Next.js) - 45 files ✅
+
+miyabi-web/src/app/page.tsx
+miyabi-web/src/app/layout.tsx
+miyabi-web/src/app/login/page.tsx
+miyabi-web/src/app/dashboard/page.tsx
+miyabi-web/src/app/dashboard/layout.tsx
+miyabi-web/src/app/dashboard/analytics/page.tsx
+miyabi-web/src/app/dashboard/repositories/page.tsx
+miyabi-web/src/app/dashboard/repositories/[id]/issues/page.tsx
+miyabi-web/src/app/dashboard/repositories/[id]/issues/[issueNumber]/page.tsx
+miyabi-web/src/app/dashboard/workflows/page.tsx
+miyabi-web/src/app/dashboard/workflows/create/page.tsx
+miyabi-web/src/app/dashboard/workflows/[id]/edit/page.tsx
+miyabi-web/src/app/dashboard/executions/[id]/page.tsx
+miyabi-web/src/components/Header.tsx
+miyabi-web/src/components/agent/AgentBadge.tsx
+miyabi-web/src/components/agent/AgentExecutionCard.tsx
+miyabi-web/src/components/agent/AgentProgressBar.tsx
+miyabi-web/src/components/agent/AgentStatusIndicator.tsx
+miyabi-web/src/components/agent/ExecuteAgentDialog.tsx
+miyabi-web/src/components/workflow/AgentNode.tsx
+miyabi-web/src/components/workflow/AgentPalette.tsx
+miyabi-web/src/components/workflow/ConditionNode.tsx
+miyabi-web/src/components/workflow/IssueNode.tsx
+miyabi-web/src/components/ui/alert-dialog.tsx
+miyabi-web/src/components/ui/alert.tsx
+miyabi-web/src/components/ui/badge.tsx
+miyabi-web/src/components/ui/button.tsx
+miyabi-web/src/components/ui/card.tsx
+miyabi-web/src/components/ui/input.tsx
+miyabi-web/src/components/ui/separator.tsx
+miyabi-web/src/components/ui/sheet.tsx
+miyabi-web/src/components/ui/tabs.tsx
+miyabi-web/src/components/ui/textarea.tsx
+miyabi-web/src/components/ui/toast.tsx
+miyabi-web/src/components/ui/toaster.tsx
+
+## CATEGORY 6: A2A DASHBOARD - KEEP (React + Vite) - 48 files ✅
+
+crates/miyabi-a2a/dashboard/src/App.tsx
+crates/miyabi-a2a/dashboard/src/main.tsx
+crates/miyabi-a2a/dashboard/src/components/dashboard.tsx
+crates/miyabi-a2a/dashboard/src/components/dashboard-realtime.tsx
+crates/miyabi-a2a/dashboard/src/components/dashboard-realtime-enhanced.tsx
+crates/miyabi-a2a/dashboard/src/components/live-dashboard.tsx
+crates/miyabi-a2a/dashboard/src/components/admin-overview.tsx
+crates/miyabi-a2a/dashboard/src/components/admin-overview-enhanced.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-card.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-collaboration.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-detail-modal.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-error-indicator.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-filters.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-progress-bar.tsx
+crates/miyabi-a2a/dashboard/src/components/agent-status-overview.tsx
+crates/miyabi-a2a/dashboard/src/components/control-panel.tsx
+crates/miyabi-a2a/dashboard/src/components/dag-visualizer.tsx
+crates/miyabi-a2a/dashboard/src/components/error-dashboard.tsx
+crates/miyabi-a2a/dashboard/src/components/event-timeline.tsx
+crates/miyabi-a2a/dashboard/src/components/header.tsx
+crates/miyabi-a2a/dashboard/src/components/loading-fallback.tsx
+crates/miyabi-a2a/dashboard/src/components/logs-viewer.tsx
+crates/miyabi-a2a/dashboard/src/components/metrics-chart.tsx
+crates/miyabi-a2a/dashboard/src/components/notification-history.tsx
+crates/miyabi-a2a/dashboard/src/components/performance-analytics.tsx
+crates/miyabi-a2a/dashboard/src/components/theme-toggle.tsx
+crates/miyabi-a2a/dashboard/src/components/vector-space-universe.tsx
+crates/miyabi-a2a/dashboard/src/components/virtualized-agent-grid.tsx
+crates/miyabi-a2a/dashboard/src/components/voice-command.tsx
+crates/miyabi-a2a/dashboard/src/contexts/notification-context.tsx
+crates/miyabi-a2a/dashboard/src/contexts/refresh-context.tsx
+crates/miyabi-a2a/dashboard/src/contexts/theme-context.tsx
+crates/miyabi-a2a/dashboard/src/contexts/websocket-context.tsx
+crates/miyabi-a2a/dashboard/src/components/__tests__/agent-error-indicator.test.tsx
+crates/miyabi-a2a/dashboard/src/components/__tests__/agent-progress-bar.test.tsx
+
+## CATEGORY 7: EXTERNAL TOOLS - 2 files ⚠️
+
+external/scripts/integrate-with-agent.ts
+external/tools/example-fetcher.ts
+
+## SUMMARY
+
+Total TypeScript Files: 367
+- Already Archived: 173 ✅
+- To Remove (Scripts): 75 🔄
+- To Remove (API): 12 🔄
+- To Remove (Tests): 34 🔄
+- To Keep (Web UI): 45 ✅
+- To Keep (A2A Dashboard): 48 ✅
+- To Evaluate (External): 2 ⚠️
+
+Backend/CLI TypeScript to Remove: 121 files
+Frontend TypeScript to Keep: 93 files
