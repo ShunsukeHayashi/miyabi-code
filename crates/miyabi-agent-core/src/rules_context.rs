@@ -196,8 +196,8 @@ impl Default for RulesContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use miyabi_core::rules::{AgentPreferences, MiyabiRules, Rule};
-    use std::collections::HashMap;
+    
+    
     use std::fs;
     use tempfile::TempDir;
 
