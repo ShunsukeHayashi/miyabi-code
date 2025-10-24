@@ -378,6 +378,84 @@ impl BaseAgent for DiscordCommunityAgent {
 mod tests {
     use super::*;
 
+    fn create_test_config() -> DiscordCommunityAgentConfig {
+        DiscordCommunityAgentConfig {
+            bot_token: Some("test_token_12345".to_string()),
+            guild_id: Some("1234567890".to_string()),
+            mcp_server_path: "echo".to_string(), // Use echo for testing
+        }
+    }
+
+    fn create_test_task(guild_id: &str, task_type: &str) -> Task {
+        use miyabi_types::task::TaskType as TType;
+        use std::collections::HashMap;
+
+        let mut metadata = HashMap::new();
+        metadata.insert("guild_id".to_string(), serde_json::json!(guild_id));
+        metadata.insert("task_type".to_string(), serde_json::json!(task_type));
+
+        Task {
+            id: "test-task-1".to_string(),
+            title: "Test Discord Setup".to_string(),
+            description: "Test task".to_string(),
+            task_type: TType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::DiscordCommunity),
+            dependencies: vec![],
+            estimated_duration: Some(60),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: Some(metadata),
+        }
+    }
+
+    #[test]
+    fn test_config_default() {
+        let config = DiscordCommunityAgentConfig::default();
+        assert_eq!(config.mcp_server_path, "miyabi-discord-mcp-server");
+    }
+
+    #[test]
+    fn test_config_from_env() {
+        std::env::set_var("DISCORD_BOT_TOKEN", "env_token_123");
+        std::env::set_var("DISCORD_GUILD_ID", "9876543210");
+
+        let config = DiscordCommunityAgentConfig::default();
+
+        assert_eq!(config.bot_token, Some("env_token_123".to_string()));
+        assert_eq!(config.guild_id, Some("9876543210".to_string()));
+
+        std::env::remove_var("DISCORD_BOT_TOKEN");
+        std::env::remove_var("DISCORD_GUILD_ID");
+    }
+
+    #[test]
+    fn test_agent_creation() {
+        let config = create_test_config();
+        let agent = DiscordCommunityAgent::new(config.clone());
+
+        assert_eq!(agent.config.bot_token, config.bot_token);
+        assert_eq!(agent.config.guild_id, config.guild_id);
+    }
+
+    #[test]
+    fn test_agent_with_defaults() {
+        let agent = DiscordCommunityAgent::with_defaults();
+        assert_eq!(
+            agent.config.mcp_server_path,
+            "miyabi-discord-mcp-server"
+        );
+    }
+
+    #[test]
+    fn test_agent_type() {
+        let agent = DiscordCommunityAgent::with_defaults();
+        assert_eq!(agent.agent_type(), AgentType::DiscordCommunity);
+    }
+
     #[test]
     fn test_generate_welcome_message() {
         let agent = DiscordCommunityAgent::with_defaults();
@@ -387,10 +465,20 @@ mod tests {
         assert!(message.contains("ようこそ"));
         assert!(message.contains("#rules"));
         assert!(message.contains("#faq"));
+        assert!(message.contains("#introductions"));
+        assert!(message.contains("#help-general"));
     }
 
     #[test]
-    #[ignore = "Discord Community feature not included in v0.1.0 release"]
+    fn test_generate_welcome_message_immutable() {
+        let agent = DiscordCommunityAgent::with_defaults();
+        let message1 = agent.generate_welcome_message();
+        let message2 = agent.generate_welcome_message();
+
+        assert_eq!(message1, message2);
+    }
+
+    #[test]
     fn test_generate_setup_report() {
         let agent = DiscordCommunityAgent::with_defaults();
         let report = agent.generate_setup_report("1234567890", "Test Community");
@@ -398,6 +486,171 @@ mod tests {
         assert!(report.contains("Miyabiちゃん"));
         assert!(report.contains("1234567890"));
         assert!(report.contains("Test Community"));
-        assert!(report.contains("セットアップ完了"));
+        assert!(report.contains("完了した作業")); // Changed assertion
+        assert!(report.contains("カテゴリ作成（8個）"));
+        assert!(report.contains("チャンネル作成（42個）"));
+        assert!(report.contains("ロール作成（7個）"));
+    }
+
+    #[test]
+    fn test_generate_setup_report_categories() {
+        let agent = DiscordCommunityAgent::with_defaults();
+        let report = agent.generate_setup_report("1234567890", "Test Community");
+
+        // Check all 8 categories
+        assert!(report.contains("📢 WELCOME & RULES"));
+        assert!(report.contains("💬 GENERAL"));
+        assert!(report.contains("🔧 CODING AGENTS"));
+        assert!(report.contains("💼 BUSINESS AGENTS"));
+        assert!(report.contains("🆘 SUPPORT"));
+        assert!(report.contains("🎨 SHOWCASE"));
+        assert!(report.contains("🛠️ DEVELOPMENT"));
+        assert!(report.contains("🎉 COMMUNITY"));
+    }
+
+    #[test]
+    fn test_generate_setup_report_roles() {
+        let agent = DiscordCommunityAgent::with_defaults();
+        let report = agent.generate_setup_report("1234567890", "Test Community");
+
+        // Check all 7 roles
+        assert!(report.contains("@Admin"));
+        assert!(report.contains("@Moderator"));
+        assert!(report.contains("@Core Contributor"));
+        assert!(report.contains("@Contributor"));
+        assert!(report.contains("@Active Member"));
+        assert!(report.contains("@Member"));
+        assert!(report.contains("@New Member"));
+    }
+
+    #[test]
+    fn test_generate_setup_report_initial_content() {
+        let agent = DiscordCommunityAgent::with_defaults();
+        let report = agent.generate_setup_report("1234567890", "Test Community");
+
+        // Check initial content
+        assert!(report.contains("#rules - ルール投稿"));
+        assert!(report.contains("#faq - よくある質問"));
+        assert!(report.contains("#announcements - ウェルカムメッセージ"));
+        assert!(report.contains("#links-resources - リソースリンク"));
+    }
+
+    #[tokio::test]
+    async fn test_execute_missing_bot_token() {
+        let config = DiscordCommunityAgentConfig {
+            bot_token: None,
+            guild_id: Some("1234567890".to_string()),
+            mcp_server_path: "echo".to_string(),
+        };
+        let agent = DiscordCommunityAgent::new(config);
+        let task = create_test_task("1234567890", "setup_server");
+
+        let result = agent.execute(&task).await;
+
+        assert!(result.is_err());
+        match result {
+            Err(MiyabiError::Config(msg)) => {
+                assert!(msg.contains("DISCORD_BOT_TOKEN"));
+            }
+            _ => panic!("Expected Config error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_execute_missing_guild_id() {
+        use miyabi_types::task::TaskType as TType;
+
+        let config = DiscordCommunityAgentConfig {
+            bot_token: Some("test_token".to_string()),
+            guild_id: None,
+            mcp_server_path: "echo".to_string(),
+        };
+        let agent = DiscordCommunityAgent::new(config);
+
+        // Task without guild_id in metadata
+        let task = Task {
+            id: "test-task-1".to_string(),
+            title: "Test".to_string(),
+            description: "Test".to_string(),
+            task_type: TType::Feature,
+            priority: 1,
+            severity: None,
+            impact: None,
+            assigned_agent: Some(AgentType::DiscordCommunity),
+            dependencies: vec![],
+            estimated_duration: Some(60),
+            status: None,
+            start_time: None,
+            end_time: None,
+            metadata: None,
+        };
+
+        let result = agent.execute(&task).await;
+
+        assert!(result.is_err());
+        match result {
+            Err(MiyabiError::Config(msg)) => {
+                assert!(msg.contains("Guild ID not provided"));
+            }
+            _ => panic!("Expected Config error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_execute_unknown_task_type() {
+        let config = create_test_config();
+        let agent = DiscordCommunityAgent::new(config);
+        let task = create_test_task("1234567890", "unknown_task");
+
+        std::env::set_var("DISCORD_BOT_TOKEN", "test_token");
+
+        let result = agent.execute(&task).await;
+
+        std::env::remove_var("DISCORD_BOT_TOKEN");
+
+        // Note: This will fail during MCP server call, not at task type validation
+        // The unknown task type check happens AFTER setup_server logic
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_execute_send_welcome() {
+        let config = create_test_config();
+        let agent = DiscordCommunityAgent::new(config);
+        let task = create_test_task("1234567890", "send_welcome");
+
+        std::env::set_var("DISCORD_BOT_TOKEN", "test_token");
+
+        let result = agent.execute(&task).await;
+
+        std::env::remove_var("DISCORD_BOT_TOKEN");
+
+        // This task type doesn't call MCP server, so it should succeed
+        assert!(result.is_ok());
+        let agent_result = result.unwrap();
+        assert_eq!(agent_result.status, ResultStatus::Success);
+
+        let data = agent_result.data.unwrap();
+        assert_eq!(data["task_type"], "send_welcome");
+        assert_eq!(data["agent"], "Miyabiちゃん");
+        assert!(data["message"].as_str().unwrap().contains("Miyabiちゃん"));
+    }
+
+    #[test]
+    fn test_config_serialization() {
+        let config = DiscordCommunityAgentConfig {
+            bot_token: Some("test_token".to_string()),
+            guild_id: Some("1234567890".to_string()),
+            mcp_server_path: "/path/to/server".to_string(),
+        };
+
+        let json = serde_json::to_value(&config).unwrap();
+        assert_eq!(json["bot_token"], "test_token");
+        assert_eq!(json["guild_id"], "1234567890");
+        assert_eq!(json["mcp_server_path"], "/path/to/server");
+
+        let deserialized: DiscordCommunityAgentConfig = serde_json::from_value(json).unwrap();
+        assert_eq!(deserialized.bot_token, config.bot_token);
+        assert_eq!(deserialized.guild_id, config.guild_id);
     }
 }

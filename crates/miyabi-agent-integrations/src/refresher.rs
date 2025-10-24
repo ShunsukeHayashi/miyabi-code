@@ -314,13 +314,19 @@ impl RefresherAgent {
             IssueState::Done
         } else if status.has_pr {
             IssueState::Reviewing
-        } else if status.build_success && status.tests_passing {
-            IssueState::Done
-        } else if !status.build_success || status.tests_passed > 0 {
-            // Implementing if: build failed OR (build succeeded but tests exist)
-            IssueState::Implementing
-        } else {
+        } else if status.tests_passed > 0 {
+            // If any tests exist, we're either done or implementing
+            if status.build_success && status.tests_passing {
+                IssueState::Done
+            } else {
+                IssueState::Implementing
+            }
+        } else if status.build_success {
+            // Build succeeds but no tests - still pending
             IssueState::Pending
+        } else {
+            // Build failed
+            IssueState::Implementing
         }
     }
 
@@ -680,5 +686,342 @@ mod tests {
 
         let deserialized: IssueUpdate = serde_json::from_value(json).unwrap();
         assert_eq!(deserialized.issue_number, 117);
+    }
+
+    #[test]
+    fn test_issue_state_all_variants() {
+        let states = vec![
+            (IssueState::Pending, "📥 state:pending"),
+            (IssueState::Analyzing, "🔍 state:analyzing"),
+            (IssueState::Implementing, "🏗️ state:implementing"),
+            (IssueState::Reviewing, "👀 state:reviewing"),
+            (IssueState::Done, "✅ state:done"),
+            (IssueState::Paused, "⏸️ state:paused"),
+            (IssueState::Blocked, "🔴 state:blocked"),
+            (IssueState::Failed, "🛑 state:failed"),
+        ];
+
+        for (state, label) in states {
+            assert_eq!(state.to_label(), label);
+            assert_eq!(IssueState::from_label(label), Some(state));
+        }
+    }
+
+    #[test]
+    fn test_issue_state_case_insensitive() {
+        assert_eq!(
+            IssueState::from_label("STATE:PENDING"),
+            Some(IssueState::Pending)
+        );
+        assert_eq!(
+            IssueState::from_label("State:Done"),
+            Some(IssueState::Done)
+        );
+    }
+
+    #[test]
+    fn test_implementation_status_serialization() {
+        let status = ImplementationStatus {
+            phase: Some("Phase 3".to_string()),
+            build_success: true,
+            tests_passing: true,
+            tests_passed: 170,
+            tests_failed: 0,
+            has_pr: true,
+            pr_merged: false,
+        };
+
+        let json = serde_json::to_value(&status).unwrap();
+        assert_eq!(json["phase"], "Phase 3");
+        assert_eq!(json["build_success"], true);
+        assert_eq!(json["tests_passed"], 170);
+
+        let deserialized: ImplementationStatus = serde_json::from_value(json).unwrap();
+        assert_eq!(deserialized.phase, Some("Phase 3".to_string()));
+        assert_eq!(deserialized.tests_passed, 170);
+    }
+
+    #[test]
+    fn test_determine_correct_state_pr_merged() {
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let status = ImplementationStatus {
+            phase: Some("Phase 3".to_string()),
+            build_success: false, // Even if build fails
+            tests_passing: false,
+            tests_passed: 0,
+            tests_failed: 10,
+            has_pr: true,
+            pr_merged: true, // PR merged takes precedence
+        };
+
+        let state = agent.determine_correct_state(&status);
+        assert_eq!(state, IssueState::Done);
+    }
+
+    #[test]
+    fn test_determine_correct_state_has_pr() {
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let status = ImplementationStatus {
+            phase: Some("Phase 4".to_string()),
+            build_success: true,
+            tests_passing: true,
+            tests_passed: 50,
+            tests_failed: 0,
+            has_pr: true,
+            pr_merged: false,
+        };
+
+        let state = agent.determine_correct_state(&status);
+        assert_eq!(state, IssueState::Reviewing);
+    }
+
+    #[test]
+    fn test_determine_correct_state_build_failed() {
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let status = ImplementationStatus {
+            phase: Some("Phase 5".to_string()),
+            build_success: false,
+            tests_passing: false,
+            tests_passed: 0,
+            tests_failed: 0,
+            has_pr: false,
+            pr_merged: false,
+        };
+
+        let state = agent.determine_correct_state(&status);
+        assert_eq!(state, IssueState::Implementing);
+    }
+
+    #[test]
+    fn test_determine_correct_state_pending() {
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let status = ImplementationStatus {
+            phase: None,
+            build_success: true,
+            tests_passing: true,
+            tests_passed: 0, // No tests
+            tests_failed: 0,
+            has_pr: false,
+            pr_merged: false,
+        };
+
+        let state = agent.determine_correct_state(&status);
+        assert_eq!(state, IssueState::Pending);
+    }
+
+    #[test]
+    fn test_extract_current_state_multiple_labels() {
+        use miyabi_types::issue::IssueStateGithub;
+
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let issue = Issue {
+            number: 123,
+            title: "Test Issue".to_string(),
+            body: "Test body".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![
+                "🐛 type:bug".to_string(),
+                "🏗️ state:implementing".to_string(),
+                "🔥 priority:P1-High".to_string(),
+            ],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/test/repo/issues/123".to_string(),
+        };
+
+        let state = agent.extract_current_state(&issue);
+        assert_eq!(state, Some(IssueState::Implementing));
+    }
+
+    #[test]
+    fn test_extract_current_state_no_state_label() {
+        use miyabi_types::issue::IssueStateGithub;
+
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let issue = Issue {
+            number: 123,
+            title: "Test Issue".to_string(),
+            body: "Test body".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec!["🐛 type:bug".to_string(), "🔥 priority:P1-High".to_string()],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/test/repo/issues/123".to_string(),
+        };
+
+        let state = agent.extract_current_state(&issue);
+        assert_eq!(state, None);
+    }
+
+    #[test]
+    fn test_generate_summary_all_states() {
+        let config = create_test_config();
+        let agent = RefresherAgent::new(config);
+
+        let issues = vec![
+            create_test_issue(1, "✅ state:done"),
+            create_test_issue(2, "✅ state:done"),
+            create_test_issue(3, "👀 state:reviewing"),
+            create_test_issue(4, "👀 state:reviewing"),
+            create_test_issue(5, "👀 state:reviewing"),
+            create_test_issue(6, "🏗️ state:implementing"),
+            create_test_issue(7, "🏗️ state:implementing"),
+            create_test_issue(8, "🏗️ state:implementing"),
+            create_test_issue(9, "⏸️ state:paused"),
+            create_test_issue(10, "📥 state:pending"),
+            create_test_issue(11, "📥 state:pending"),
+            create_test_issue(12, "🔴 state:blocked"),
+            create_test_issue(13, "🛑 state:failed"),
+        ];
+
+        let summary = agent.generate_summary(&issues);
+
+        assert_eq!(summary.total_issues, 13);
+        assert_eq!(summary.done, 2);
+        assert_eq!(summary.reviewing, 3);
+        assert_eq!(summary.implementing, 3);
+        assert_eq!(summary.paused, 1);
+        assert_eq!(summary.pending, 2);
+        assert_eq!(summary.blocked, 1);
+        assert_eq!(summary.failed, 1);
+    }
+
+    fn create_test_issue(number: u64, state_label: &str) -> Issue {
+        use miyabi_types::issue::IssueStateGithub;
+
+        Issue {
+            number,
+            title: format!("Test Issue {}", number),
+            body: format!("Test body for issue {}", number),
+            state: IssueStateGithub::Open,
+            labels: vec![state_label.to_string()],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: format!("https://github.com/test/repo/issues/{}", number),
+        }
+    }
+
+    #[test]
+    fn test_parse_test_counts_zero() {
+        let output = "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out";
+        let (passed, failed) = RefresherAgent::parse_test_counts(output);
+        assert_eq!(passed, 0);
+        assert_eq!(failed, 0);
+    }
+
+    #[test]
+    fn test_parse_test_counts_mixed() {
+        let output =
+            "test result: FAILED. 120 passed; 30 failed; 5 ignored; 0 measured; 2 filtered out";
+        let (passed, failed) = RefresherAgent::parse_test_counts(output);
+        assert_eq!(passed, 120);
+        assert_eq!(failed, 30);
+    }
+
+    #[test]
+    fn test_parse_test_counts_no_match() {
+        let output = "Some random output without test results";
+        let (passed, failed) = RefresherAgent::parse_test_counts(output);
+        assert_eq!(passed, 0);
+        assert_eq!(failed, 0);
+    }
+
+    #[test]
+    fn test_issue_update_clone() {
+        let update = IssueUpdate {
+            issue_number: 100,
+            from_state: IssueState::Pending,
+            to_state: IssueState::Implementing,
+            reason: "Started work".to_string(),
+        };
+
+        let cloned = update.clone();
+        assert_eq!(cloned.issue_number, update.issue_number);
+        assert_eq!(cloned.from_state, update.from_state);
+        assert_eq!(cloned.to_state, update.to_state);
+        assert_eq!(cloned.reason, update.reason);
+    }
+
+    #[test]
+    fn test_status_summary_clone() {
+        let summary = StatusSummary {
+            total_issues: 100,
+            done: 20,
+            reviewing: 15,
+            implementing: 30,
+            paused: 10,
+            pending: 20,
+            blocked: 3,
+            failed: 2,
+        };
+
+        let cloned = summary.clone();
+        assert_eq!(cloned.total_issues, summary.total_issues);
+        assert_eq!(cloned.done, summary.done);
+        assert_eq!(cloned.blocked, summary.blocked);
+    }
+
+    #[test]
+    fn test_implementation_status_clone() {
+        let status = ImplementationStatus {
+            phase: Some("Phase 6".to_string()),
+            build_success: true,
+            tests_passing: false,
+            tests_passed: 80,
+            tests_failed: 20,
+            has_pr: true,
+            pr_merged: false,
+        };
+
+        let cloned = status.clone();
+        assert_eq!(cloned.phase, status.phase);
+        assert_eq!(cloned.tests_passed, status.tests_passed);
+        assert_eq!(cloned.has_pr, status.has_pr);
+    }
+
+    #[test]
+    fn test_issue_state_equality() {
+        assert_eq!(IssueState::Pending, IssueState::Pending);
+        assert_ne!(IssueState::Pending, IssueState::Done);
+        assert_ne!(IssueState::Implementing, IssueState::Reviewing);
+    }
+
+    #[test]
+    fn test_issue_state_debug_format() {
+        let state = IssueState::Implementing;
+        let debug_str = format!("{:?}", state);
+        assert!(debug_str.contains("Implementing"));
+    }
+
+    #[test]
+    fn test_implementation_status_debug_format() {
+        let status = ImplementationStatus {
+            phase: Some("Test Phase".to_string()),
+            build_success: true,
+            tests_passing: true,
+            tests_passed: 50,
+            tests_failed: 0,
+            has_pr: false,
+            pr_merged: false,
+        };
+
+        let debug_str = format!("{:?}", status);
+        assert!(debug_str.contains("Test Phase"));
+        assert!(debug_str.contains("build_success"));
     }
 }
