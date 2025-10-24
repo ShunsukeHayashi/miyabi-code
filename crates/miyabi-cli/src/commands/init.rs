@@ -1568,4 +1568,80 @@ mod tests {
         let invalid_cmd = InitCommand::with_interactive("my@project".to_string(), false, false);
         assert!(invalid_cmd.validate_project_name().is_err());
     }
+
+    #[test]
+    fn test_validate_project_name_valid_cases() {
+        let valid_names = vec![
+            "project",
+            "my-project",
+            "my_project",
+            "Project123",
+            "test-app-v2",
+            "api_backend_service",
+            "web-app-2024",
+        ];
+
+        for name in valid_names {
+            let cmd = InitCommand::with_interactive(name.to_string(), false, false);
+            assert!(
+                cmd.validate_project_name().is_ok(),
+                "Should be valid: {}",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_project_name_invalid_cases() {
+        let invalid_names = vec![
+            "",                // empty
+            "my project",      // space
+            "project!",        // special char
+            "project@home",    // @ symbol
+            "project.name",    // dot
+            "project/name",    // slash
+            "project\\name",   // backslash
+            "project name 2",  // multiple spaces
+            "project#1",       // hash
+        ];
+
+        for name in invalid_names {
+            let cmd = InitCommand::with_interactive(name.to_string(), false, false);
+            assert!(
+                cmd.validate_project_name().is_err(),
+                "Should be invalid: {}",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_init_command_creation() {
+        let cmd = InitCommand::with_interactive("test".to_string(), false, false);
+        assert_eq!(cmd.name, "test");
+        assert!(!cmd.private);
+        assert!(!cmd.interactive);
+
+        let cmd = InitCommand::with_interactive("test".to_string(), true, true);
+        assert_eq!(cmd.name, "test");
+        assert!(cmd.private);
+        assert!(cmd.interactive);
+    }
+
+    #[test]
+    fn test_project_type_as_str() {
+        assert_eq!(
+            ProjectType::WebApp.as_str(),
+            "Web App (React/Next.js/SvelteKit)"
+        );
+        assert_eq!(
+            ProjectType::ApiBackend.as_str(),
+            "API Backend (Rust/Node.js/Python)"
+        );
+        assert_eq!(ProjectType::CliTool.as_str(), "CLI Tool (Rust/Go)");
+        assert_eq!(
+            ProjectType::Library.as_str(),
+            "Library/SDK (Rust/TypeScript)"
+        );
+    }
 }

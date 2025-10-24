@@ -1089,4 +1089,119 @@ mod tests {
         assert_eq!(cmd.agent_type, "codegen");
         assert_eq!(cmd.issue, None);
     }
+
+    #[test]
+    fn test_parse_agent_type_case_insensitive() {
+        let cmd = AgentCommand::new("COORDINATOR".to_string(), None);
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CoordinatorAgent
+        ));
+
+        let cmd = AgentCommand::new("CoDeGen".to_string(), None);
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CodeGenAgent
+        ));
+    }
+
+    #[test]
+    fn test_parse_agent_type_all_coding_agents() {
+        let test_cases = vec![
+            ("coordinator", AgentType::CoordinatorAgent),
+            ("codegen", AgentType::CodeGenAgent),
+            ("code-gen", AgentType::CodeGenAgent),
+            ("review", AgentType::ReviewAgent),
+            ("issue", AgentType::IssueAgent),
+            ("pr", AgentType::PRAgent),
+            ("deployment", AgentType::DeploymentAgent),
+            ("deploy", AgentType::DeploymentAgent),
+        ];
+
+        for (input, expected) in test_cases {
+            let cmd = AgentCommand::new(input.to_string(), None);
+            let result = cmd.parse_agent_type().unwrap();
+            assert_eq!(
+                std::mem::discriminant(&result),
+                std::mem::discriminant(&expected),
+                "Failed for input: {}",
+                input
+            );
+        }
+    }
+
+    #[test]
+    fn test_parse_agent_type_all_business_agents() {
+        let test_cases = vec![
+            ("ai-entrepreneur", AgentType::AIEntrepreneurAgent),
+            ("entrepreneur", AgentType::AIEntrepreneurAgent),
+            ("product-concept", AgentType::ProductConceptAgent),
+            ("concept", AgentType::ProductConceptAgent),
+            ("product-design", AgentType::ProductDesignAgent),
+            ("design", AgentType::ProductDesignAgent),
+            ("funnel-design", AgentType::FunnelDesignAgent),
+            ("funnel", AgentType::FunnelDesignAgent),
+            ("persona", AgentType::PersonaAgent),
+            ("self-analysis", AgentType::SelfAnalysisAgent),
+            ("analysis", AgentType::SelfAnalysisAgent),
+            ("market-research", AgentType::MarketResearchAgent),
+            ("research", AgentType::MarketResearchAgent),
+            ("marketing", AgentType::MarketingAgent),
+            ("content-creation", AgentType::ContentCreationAgent),
+            ("content", AgentType::ContentCreationAgent),
+            ("sns-strategy", AgentType::SNSStrategyAgent),
+            ("sns", AgentType::SNSStrategyAgent),
+            ("youtube", AgentType::YouTubeAgent),
+            ("sales", AgentType::SalesAgent),
+            ("crm", AgentType::CRMAgent),
+            ("analytics", AgentType::AnalyticsAgent),
+        ];
+
+        for (input, expected) in test_cases {
+            let cmd = AgentCommand::new(input.to_string(), None);
+            let result = cmd.parse_agent_type().unwrap();
+            assert_eq!(
+                std::mem::discriminant(&result),
+                std::mem::discriminant(&expected),
+                "Failed for input: {}",
+                input
+            );
+        }
+    }
+
+    #[test]
+    fn test_parse_agent_type_invalid_types() {
+        let invalid_types = vec![
+            "invalid",
+            "unknown-agent",
+            "test",
+            "",
+            "coordinator-invalid",
+            "123",
+            "agent",
+        ];
+
+        for input in invalid_types {
+            let cmd = AgentCommand::new(input.to_string(), None);
+            let result = cmd.parse_agent_type();
+            assert!(result.is_err(), "Should fail for input: {}", input);
+            assert!(matches!(result.unwrap_err(), CliError::InvalidAgentType(_)));
+        }
+    }
+
+    #[test]
+    fn test_create_business_task() {
+        let cmd = AgentCommand::new("marketing".to_string(), Some(42));
+        let task = cmd.create_business_task(42, "Test Title", "Test Description");
+
+        assert_eq!(task.id, "business-issue-42");
+        assert_eq!(task.title, "Test Title");
+        assert_eq!(task.description, "Test Description");
+        assert_eq!(task.priority, 1);
+        assert_eq!(task.estimated_duration, Some(60));
+        assert!(task.metadata.is_some());
+
+        let metadata = task.metadata.unwrap();
+        assert_eq!(metadata.get("issue_number"), Some(&serde_json::json!(42)));
+    }
 }

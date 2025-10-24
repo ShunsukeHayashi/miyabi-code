@@ -278,12 +278,12 @@ fn recover_from_directory_error() -> bool {
         }
     }
 
-    // Fallback: Try to go to home directory
-    if let Ok(home) = std::env::var("HOME") {
+    // Fallback: Try to go to home directory (cross-platform)
+    if let Some(home) = dirs::home_dir() {
         if std::env::set_current_dir(&home).is_ok() {
             eprintln!(
                 "{}",
-                format!("  ✓ Changed directory to home: {}", home).green()
+                format!("  ✓ Changed directory to home: {}", home.display()).green()
             );
             return true;
         }

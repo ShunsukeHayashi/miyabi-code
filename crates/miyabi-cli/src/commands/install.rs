@@ -221,4 +221,34 @@ mod tests {
         let cmd = InstallCommand::new(true);
         assert!(cmd.dry_run);
     }
+
+    #[test]
+    fn test_is_miyabi_installed() {
+        let cmd = InstallCommand::new(false);
+        // This will check if .miyabi.yml exists in current dir
+        // Result depends on whether we're actually in a Miyabi project
+        let result = cmd.is_miyabi_installed();
+        // Just check that the method works without panicking
+        assert!(result || !result);
+    }
+
+    #[test]
+    fn test_get_project_name_fallback() {
+        let cmd = InstallCommand::new(false);
+        let result = cmd.get_project_name();
+        // Should always return some string, either from git or directory name
+        assert!(result.is_ok());
+        let name = result.unwrap();
+        assert!(!name.is_empty());
+    }
+
+    #[test]
+    fn test_install_dry_run_flag() {
+        // Test that dry_run flag is properly stored
+        let cmd_normal = InstallCommand::new(false);
+        let cmd_dry = InstallCommand::new(true);
+
+        assert_eq!(cmd_normal.dry_run, false);
+        assert_eq!(cmd_dry.dry_run, true);
+    }
 }

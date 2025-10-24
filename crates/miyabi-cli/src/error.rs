@@ -45,3 +45,103 @@ pub enum CliError {
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_invalid_project_name_error() {
+        let error = CliError::InvalidProjectName("test-project".to_string());
+        assert_eq!(
+            error.to_string(),
+            "Invalid project name: test-project"
+        );
+    }
+
+    #[test]
+    fn test_project_exists_error() {
+        let error = CliError::ProjectExists("my-project".to_string());
+        assert_eq!(
+            error.to_string(),
+            "Project directory already exists: my-project"
+        );
+    }
+
+    #[test]
+    fn test_not_git_repository_error() {
+        let error = CliError::NotGitRepository;
+        assert_eq!(error.to_string(), "Not in a git repository");
+    }
+
+    #[test]
+    fn test_invalid_agent_type_error() {
+        let error = CliError::InvalidAgentType("unknown".to_string());
+        assert_eq!(error.to_string(), "Invalid agent type: unknown");
+    }
+
+    #[test]
+    fn test_missing_issue_number_error() {
+        let error = CliError::MissingIssueNumber;
+        assert_eq!(
+            error.to_string(),
+            "Issue number required for agent execution"
+        );
+    }
+
+    #[test]
+    fn test_git_config_error() {
+        let error = CliError::GitConfig("remote not found".to_string());
+        assert_eq!(error.to_string(), "Git configuration error: remote not found");
+    }
+
+    #[test]
+    fn test_invalid_input_error() {
+        let error = CliError::InvalidInput("bad input".to_string());
+        assert_eq!(error.to_string(), "Invalid input: bad input");
+    }
+
+    #[test]
+    fn test_execution_error() {
+        let error = CliError::ExecutionError("command failed".to_string());
+        assert_eq!(error.to_string(), "Execution error: command failed");
+    }
+
+    #[test]
+    fn test_serialization_error() {
+        let error = CliError::Serialization("invalid JSON".to_string());
+        assert_eq!(error.to_string(), "Serialization error: invalid JSON");
+    }
+
+    #[test]
+    fn test_io_error_conversion() {
+        let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file not found");
+        let cli_err: CliError = io_err.into();
+        assert!(cli_err.to_string().contains("file not found"));
+    }
+
+    #[test]
+    fn test_json_error_conversion() {
+        let json_str = "{invalid json}";
+        let json_err = serde_json::from_str::<serde_json::Value>(json_str).unwrap_err();
+        let cli_err: CliError = json_err.into();
+        assert!(matches!(cli_err, CliError::Json(_)));
+    }
+
+    #[test]
+    fn test_result_type_ok() {
+        let result: Result<i32> = Ok(42);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 42);
+    }
+
+    #[test]
+    fn test_result_type_err() {
+        let result: Result<i32> = Err(CliError::NotGitRepository);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Not in a git repository"
+        );
+    }
+}
