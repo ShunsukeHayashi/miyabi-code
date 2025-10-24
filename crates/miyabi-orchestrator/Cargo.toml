@@ -36,3 +36,6 @@ axum = { version = "0.7", features = ["macros", "json"] }
 
 # UUID for task IDs
 uuid = { version = "1.11", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }

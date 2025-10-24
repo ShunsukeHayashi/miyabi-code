@@ -48,6 +48,7 @@ sha2 = "0.10"
 
 # パス操作
 walkdir = "2.4"
+dirs = { workspace = true }
 
 # Markdown パース
 pulldown-cmark = "0.9"

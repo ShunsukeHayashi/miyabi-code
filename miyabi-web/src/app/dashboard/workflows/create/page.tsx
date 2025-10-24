@@ -29,6 +29,7 @@ import {
 import { nodeTypes } from '@/components/workflow';
 import AgentPalette from '@/components/workflow/AgentPalette';
 import type { AgentNodeData, IssueNodeData, ConditionNodeData } from '@/components/workflow';
+import { validateDAG, wouldCreateCycle } from '@/lib/dag-validator';
 
 /**
  * ワークフローエディタページ
@@ -57,10 +58,25 @@ export default function WorkflowCreatePage() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
-  // エッジ接続ハンドラ
+  // エッジ接続ハンドラ (with DAG validation)
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      // Validate that the connection doesn't create a cycle
+      if (params.source && params.target) {
+        const wouldCycle = wouldCreateCycle(nodes, edges, {
+          source: params.source,
+          target: params.target,
+        });
+
+        if (wouldCycle) {
+          alert('エラー: この接続は循環依存を作成します。ワークフローは非巡回グラフ(DAG)である必要があります。');
+          return;
+        }
+      }
+
+      setEdges((eds) => addEdge(params, eds));
+    },
+    [nodes, edges, setEdges]
   );
 
   // ドロップハンドラ
@@ -166,6 +182,16 @@ export default function WorkflowCreatePage() {
       return;
     }
 
+    // Validate DAG before saving
+    const validation = validateDAG(nodes, edges);
+    if (!validation.valid) {
+      const errorMessages = validation.errors
+        .map((err) => `- ${err.message}`)
+        .join('\n');
+      alert(`ワークフローにエラーがあります:\n\n${errorMessages}`);
+      return;
+    }
+
     const workflow = {
       name: workflowName,
       description: workflowDescription,
@@ -179,6 +205,7 @@ export default function WorkflowCreatePage() {
     try {
       // TODO: API統合 (Phase 2.4)
       console.log('Saving workflow:', workflow);
+      console.log('Topological sort:', validation.sortedNodes);
 
       // モック保存（ローカルストレージ）
       const existingWorkflows = JSON.parse(

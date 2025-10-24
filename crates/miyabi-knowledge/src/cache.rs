@@ -125,13 +125,13 @@ impl IndexCache {
 
     /// キャッシュファイルパスを取得
     ///
-    /// パス: `~/.cache/miyabi/knowledge/{workspace}.json`
+    /// パス: `~/.cache/miyabi/knowledge/{workspace}.json` (Unix)
+    ///       `%LOCALAPPDATA%\miyabi\knowledge\{workspace}.json` (Windows)
     fn cache_path(workspace: &str) -> Result<PathBuf> {
-        let home = std::env::var("HOME")
-            .map_err(|_| KnowledgeError::Config("HOME environment variable not set".into()))?;
+        let cache_dir = dirs::cache_dir()
+            .ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
 
-        let path = PathBuf::from(home)
-            .join(".cache")
+        let path = cache_dir
             .join("miyabi")
             .join("knowledge")
             .join(format!("{}.json", workspace));
@@ -145,11 +145,10 @@ impl IndexCache {
     ///
     /// * `workspace` - ワークスペース名（Noneの場合は全ワークスペース）
     pub fn delete_cache(workspace: Option<&str>) -> Result<usize> {
-        let home = std::env::var("HOME")
-            .map_err(|_| KnowledgeError::Config("HOME environment variable not set".into()))?;
+        let base_cache_dir = dirs::cache_dir()
+            .ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
 
-        let cache_dir = PathBuf::from(home)
-            .join(".cache")
+        let cache_dir = base_cache_dir
             .join("miyabi")
             .join("knowledge");
 

@@ -366,3 +366,73 @@ jobs:
         with:
           name: miyabi-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/miyabi
+
+  # ========================================
+  # Windows Cross-Platform Support
+  # ========================================
+  test-windows:
+    name: Test (Windows)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: windows-test
+          shared-key: stable
+          cache-on-failure: true
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Run tests
+        run: cargo test --workspace --all-targets
+        env:
+          RUST_BACKTRACE: 1
+
+  build-windows:
+    name: Build Release (Windows)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: windows-build
+          shared-key: stable
+          cache-on-failure: true
+
+      - name: Build release binary
+        run: cargo build --release -p miyabi-cli
+
+      - name: Verify binary exists
+        shell: bash
+        run: |
+          if [ -f target/release/miyabi.exe ]; then
+            echo "✅ miyabi.exe built successfully"
+            ls -lh target/release/miyabi.exe
+          else
+            echo "❌ miyabi.exe not found"
+            exit 1
+          fi
+
+      - name: Upload Windows binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: miyabi-x86_64-pc-windows-msvc
+          path: target/release/miyabi.exe
