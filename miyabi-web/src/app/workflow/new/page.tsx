@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -12,10 +12,12 @@ import {
   Connection,
   Edge,
   BackgroundVariant,
+  NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { AgentPalette } from '@/components/workflow/AgentPalette';
+import AgentNode from '@/components/workflow/AgentNode';
 import { Button } from '@/components/ui/button';
 
 export default function WorkflowEditorPage() {
@@ -23,9 +25,55 @@ export default function WorkflowEditorPage() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
 
+  // Register custom node types
+  const nodeTypes: NodeTypes = useMemo(
+    () => ({
+      agentNode: AgentNode,
+    }),
+    []
+  );
+
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
+  );
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow');
+      const agentDataString = event.dataTransfer.getData('agentData');
+
+      if (!type) return;
+
+      const reactFlowBounds = event.currentTarget.getBoundingClientRect();
+      const position = {
+        x: event.clientX - reactFlowBounds.left - 100,
+        y: event.clientY - reactFlowBounds.top - 50,
+      };
+
+      if (type === 'agent' && agentDataString) {
+        try {
+          const agentData = JSON.parse(agentDataString);
+          const newNode = {
+            id: `${agentData.id}-${Date.now()}`,
+            type: 'agentNode',
+            position,
+            data: agentData,
+          };
+          setNodes((nds) => nds.concat(newNode));
+        } catch (error) {
+          console.error('Error parsing agent data:', error);
+        }
+      }
+    },
+    [setNodes]
   );
 
   const handleSave = async () => {
@@ -106,13 +154,14 @@ export default function WorkflowEditorPage() {
         </div>
 
         {/* React Flow Canvas */}
-        <div className="flex-1">
+        <div className="flex-1" onDrop={onDrop} onDragOver={onDragOver}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            nodeTypes={nodeTypes}
             fitView
             className="bg-gray-50"
           >
