@@ -1,0 +1,470 @@
+@startuml command-hook-agent-integration
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica Neue"
+skinparam shadowing false
+skinparam linetype ortho
+
+title Miyabi Complete Integration - Commands, Hooks, and 21 Agents
+
+' ============================================
+' Legend
+' ============================================
+legend top
+  |= Symbol |= Meaning |
+  | 🎯 | Slash Command (Entry Point) |
+  | 🪝 | Git Hook (Pre/Post Event) |
+  | 🤖 | Coding Agent (7) |
+  | 💼 | Business Agent (14) |
+  | ⚙️ | Core System |
+  | 📊 | Data Store |
+  | 🔔 | Notification |
+endlegend
+
+' ============================================
+' Actors & External Systems
+' ============================================
+actor "Developer" as dev #FFE0B2
+cloud "GitHub" as github #B3E5FC
+cloud "Anthropic API\n(Claude)" as anthropic #E1BEE7
+cloud "VoiceVox" as voicevox #C5E1A5
+
+' ============================================
+' Slash Commands (18)
+' ============================================
+package "🎯 Slash Commands (18)" as commands #E8F4F8 {
+  ' Development
+  rectangle "/create-issue" as cmd_create #90CAF9
+  rectangle "/test" as cmd_test #90CAF9
+  rectangle "/verify" as cmd_verify #90CAF9
+  rectangle "/review" as cmd_review #90CAF9
+
+  ' Agent Execution
+  rectangle "/agent-run" as cmd_agent #81C784
+  rectangle "/miyabi-auto" as cmd_auto #81C784
+  rectangle "/miyabi-infinity" as cmd_infinity #81C784
+  rectangle "/miyabi-todos" as cmd_todos #81C784
+
+  ' Deployment
+  rectangle "/deploy" as cmd_deploy #FFB74D
+
+  ' Documentation
+  rectangle "/generate-docs" as cmd_docs #CE93D8
+  rectangle "/generate-lp" as cmd_lp #CE93D8
+
+  ' Reports
+  rectangle "/daily-update" as cmd_daily #FFCC80
+  rectangle "/check-benchmark" as cmd_benchmark #FFCC80
+
+  ' Notifications
+  rectangle "/session-end" as cmd_session #FFAB91
+
+  ' VoiceVox
+  rectangle "/voicevox" as cmd_voice #AED581
+  rectangle "/narrate" as cmd_narrate #AED581
+  rectangle "/watch-sprint" as cmd_watch #AED581
+
+  ' Security
+  rectangle "/security-scan" as cmd_security #EF9A9A
+}
+
+' ============================================
+' Git Hooks (5)
+' ============================================
+package "🪝 Git Hooks (5)" as hooks #FFF4E6 {
+  rectangle "pre-commit" as hook_pre #FFE082
+  rectangle "commit-msg" as hook_msg #FFE082
+  rectangle "post-commit" as hook_post #FFE082
+  rectangle "pre-push" as hook_push #FFE082
+  rectangle "post-merge" as hook_merge #FFE082
+}
+
+' ============================================
+' Coding Agents (7)
+' ============================================
+package "🤖 Coding Agents (7)" as coding_agents #E8F5E9 {
+  rectangle "CoordinatorAgent\n(しきるん)\nDAG分解・統括" as agent_coord #66BB6A
+  rectangle "IssueAgent\n(みつけるん)\nAI Label推論" as agent_issue #66BB6A
+  rectangle "CodeGenAgent\n(つくるん)\nコード生成" as agent_codegen #66BB6A
+  rectangle "ReviewAgent\n(めだまん)\n品質レビュー\n100点満点" as agent_review #66BB6A
+  rectangle "PRAgent\n(まとめるん)\nPR自動作成" as agent_pr #66BB6A
+  rectangle "DeploymentAgent\n(はこぶん)\nCI/CDデプロイ" as agent_deploy #66BB6A
+  rectangle "RefresherAgent\n(つなぐん)\nIssue状態監視" as agent_refresh #66BB6A
+}
+
+' ============================================
+' Business Agents (14)
+' ============================================
+package "💼 Business Agents (14)" as business_agents #F3E5F5 {
+
+  package "Strategy (6)" as strategy #EDE7F6 {
+    rectangle "AIEntrepreneurAgent\n起業家支援" as agent_entrepreneur #BA68C8
+    rectangle "ProductConceptAgent\nプロダクト構想" as agent_concept #BA68C8
+    rectangle "ProductDesignAgent\nサービス詳細設計" as agent_design #BA68C8
+    rectangle "PersonaAgent\nペルソナ設定" as agent_persona #BA68C8
+    rectangle "SelfAnalysisAgent\n自己分析" as agent_self #BA68C8
+    rectangle "FunnelDesignAgent\n導線設計" as agent_funnel #BA68C8
+  }
+
+  package "Marketing (5)" as marketing #E1BEE7 {
+    rectangle "MarketResearchAgent\n市場調査20社+" as agent_market #AB47BC
+    rectangle "MarketingAgent\n広告・SEO戦略" as agent_marketing #AB47BC
+    rectangle "ContentCreationAgent\nコンテンツ制作" as agent_content #AB47BC
+    rectangle "SNSStrategyAgent\nSNS戦略" as agent_sns #AB47BC
+    rectangle "YouTubeAgent\nYouTube運用" as agent_youtube #AB47BC
+  }
+
+  package "Sales & CRM (3)" as sales #CE93D8 {
+    rectangle "SalesAgent\nセールス最適化" as agent_sales #9C27B0
+    rectangle "CRMAgent\n顧客管理" as agent_crm #9C27B0
+    rectangle "AnalyticsAgent\nデータ分析\nPDCA実行" as agent_analytics #9C27B0
+  }
+}
+
+' ============================================
+' Core Systems
+' ============================================
+package "⚙️ Core Systems" as core #FFEBEE {
+  rectangle "Water Spider\nOrchestrator\n24/7 Daemon" as orchestrator #EF5350
+  rectangle "Git Worktree\nManager\n並列実行" as worktree #EF5350
+  rectangle "LLM Gateway\nGPT-OSS-20B\nGroq/vLLM/Ollama" as llm #EF5350
+  rectangle "Knowledge\nManager\nRAG System" as knowledge #EF5350
+  rectangle "MCP Server\nJSON-RPC 2.0" as mcp #EF5350
+}
+
+' ============================================
+' Data Stores
+' ============================================
+package "📊 Data Stores" as datastores #ECEFF1 {
+  database "GitHub Issues\nGitHub OS" as gh_issues #78909C
+  database "Qdrant\nVector Store" as qdrant #78909C
+  database "SQLite\nState DB" as sqlite #78909C
+}
+
+' ============================================
+' Outputs & Notifications
+' ============================================
+package "📤 Outputs & Notifications" as outputs #FFF9C4 {
+  rectangle "Pull Request" as out_pr #FFF176
+  rectangle "Documentation" as out_docs #FFF176
+  rectangle "Deployment" as out_deploy #FFF176
+  rectangle "Voice Narration" as out_voice #FFF176
+  rectangle "Daily Report" as out_report #FFF176
+  rectangle "macOS Notification" as out_macos #FFF176
+}
+
+' ============================================
+' Flow 1: Developer → Commands
+' ============================================
+dev --> cmd_create : "1. Issue作成"
+dev --> cmd_agent : "2. Agent実行"
+dev --> cmd_auto : "3. 全自動モード"
+dev --> cmd_infinity : "4. 無限Sprint"
+dev --> cmd_test : "5. テスト"
+dev --> cmd_deploy : "6. デプロイ"
+
+' ============================================
+' Flow 2: Commands → GitHub
+' ============================================
+cmd_create --> github : "Issue作成"
+cmd_agent --> orchestrator : "Agent起動"
+cmd_auto --> orchestrator : "全自動開始"
+cmd_infinity --> orchestrator : "Infinity Sprint"
+cmd_test --> hook_pre : "テスト実行"
+cmd_deploy --> agent_deploy : "デプロイ"
+
+' ============================================
+' Flow 3: GitHub → Orchestrator
+' ============================================
+github --> orchestrator : "Webhook\n(issue.opened)"
+github --> agent_refresh : "Issue監視"
+
+' ============================================
+' Flow 4: Orchestrator → IssueAgent
+' ============================================
+orchestrator --> agent_issue : "Issue分析"
+agent_issue --> anthropic : "AI推論"
+agent_issue --> github : "Label付与"
+agent_issue --> orchestrator : "分析結果"
+
+' ============================================
+' Flow 5: Orchestrator → CoordinatorAgent
+' ============================================
+orchestrator --> agent_coord : "タスク統括"
+agent_coord --> anthropic : "DAG分解"
+agent_coord --> worktree : "Worktree作成"
+agent_coord --> sqlite : "Task保存"
+
+' ============================================
+' Flow 6: CoordinatorAgent → CodeGenAgent
+' ============================================
+agent_coord --> agent_codegen : "並列実行\n(3並列)"
+agent_codegen --> llm : "コード生成"
+agent_codegen --> hook_pre : "git add"
+
+' ============================================
+' Flow 7: Git Hooks → Agents
+' ============================================
+hook_pre --> cmd_test : "cargo test"
+hook_pre --> cmd_security : "セキュリティスキャン"
+hook_pre --> agent_review : "Clippy check"
+
+hook_msg --> agent_review : "Conventional\nCommits検証"
+
+hook_post --> voicevox : "音声通知"
+hook_post --> out_voice
+
+hook_push --> cmd_test : "Full test suite"
+hook_push --> agent_review : "最終品質チェック"
+
+hook_merge --> agent_deploy : "マージ後\nデプロイ"
+
+' ============================================
+' Flow 8: ReviewAgent → Feedback
+' ============================================
+agent_review --> anthropic : "品質分析"
+agent_review --> agent_codegen : "Feedback\n(score < 80)"
+agent_review --> github : "コメント投稿"
+
+' ============================================
+' Flow 9: CodeGenAgent → PRAgent
+' ============================================
+agent_codegen --> agent_pr : "タスク完了"
+agent_pr --> github : "PR作成"
+agent_pr --> out_pr
+
+' ============================================
+' Flow 10: DeploymentAgent
+' ============================================
+agent_pr --> hook_merge : "PR merge"
+hook_merge --> agent_deploy
+agent_deploy --> out_deploy : "Firebase/Cloud Run"
+
+' ============================================
+' Flow 11: Documentation Commands
+' ============================================
+cmd_docs --> agent_codegen : "ドキュメント生成"
+agent_codegen --> out_docs : "Markdown生成"
+
+cmd_lp --> agent_marketing : "LP生成"
+agent_marketing --> out_docs : "HTML生成"
+
+' ============================================
+' Flow 12: Report Commands
+' ============================================
+cmd_daily --> agent_analytics : "進捗レポート"
+agent_analytics --> qdrant : "データ収集"
+agent_analytics --> out_report : "note.com投稿用"
+
+' ============================================
+' Flow 13: VoiceVox Commands
+' ============================================
+cmd_voice --> voicevox : "単発読み上げ"
+cmd_narrate --> voicevox : "Git commitナレーション"
+cmd_watch --> voicevox : "Sprintログ監視"
+
+voicevox --> out_voice
+
+' ============================================
+' Flow 14: Notification Commands
+' ============================================
+cmd_session --> out_macos : "セッション終了通知"
+out_macos --> dev : "🐮音声通知"
+
+' ============================================
+' Flow 15: Business Agents (On-Demand)
+' ============================================
+cmd_agent --> agent_persona : "/agent-run persona"
+cmd_agent --> agent_market : "/agent-run market-research"
+cmd_agent --> agent_entrepreneur : "/agent-run ai-entrepreneur"
+cmd_agent --> agent_sales : "/agent-run sales"
+
+agent_persona --> anthropic
+agent_market --> anthropic
+agent_entrepreneur --> anthropic
+agent_sales --> anthropic
+
+agent_persona --> out_docs : "ペルソナ定義書"
+agent_market --> out_report : "市場調査レポート"
+agent_entrepreneur --> out_docs : "ビジネスプラン"
+agent_sales --> out_report : "セールス戦略"
+
+' ============================================
+' Flow 16: Knowledge & MCP Integration
+' ============================================
+agent_codegen --> knowledge : "Context検索"
+agent_review --> knowledge : "パターン検索"
+agent_issue --> knowledge : "類似Issue検索"
+
+knowledge --> qdrant : "Vector検索"
+knowledge --> mcp : "MCP Server経由"
+mcp --> knowledge : "Context7等"
+
+' ============================================
+' Flow 17: RefresherAgent Monitoring
+' ============================================
+agent_refresh --> gh_issues : "Issue状態監視"
+agent_refresh --> orchestrator : "再トリガー\n(stale時)"
+
+' ============================================
+' Flow 18: All Agents → Data Stores
+' ============================================
+agent_coord --> sqlite : "Task状態保存"
+agent_codegen --> sqlite : "実行ログ"
+agent_review --> sqlite : "品質スコア"
+agent_deploy --> sqlite : "デプロイ履歴"
+
+agent_issue --> qdrant : "Issue Embedding"
+agent_codegen --> qdrant : "Code Embedding"
+agent_review --> qdrant : "Review Embedding"
+
+' ============================================
+' Notes
+' ============================================
+note right of commands
+  **18 Slash Commands**
+
+  Development: 4
+  Agent: 4
+  Deployment: 1
+  Documentation: 2
+  Reports: 2
+  Notifications: 1
+  VoiceVox: 3
+  Security: 1
+
+  **Metrics**
+  • Avg execution: 30s-5min
+  • Success rate: 95%
+  • Daily usage: ~50 calls
+end note
+
+note right of hooks
+  **5 Git Hooks**
+
+  • pre-commit: Test + Security
+  • commit-msg: Conventional Commits
+  • post-commit: Voice notification
+  • pre-push: Full test + Review
+  • post-merge: Deploy
+
+  **Metrics**
+  • Trigger rate: 100% (commits)
+  • Abort rate: 5% (pre-commit fail)
+  • Avg hook time: 15-45s
+end note
+
+note bottom of coding_agents
+  **7 Coding Agents**
+
+  1. Coordinator: DAG分解 (1-2min)
+  2. Issue: AI Label推論 (30s)
+  3. CodeGen: コード生成 (3-5min)
+  4. Review: 品質チェック (2-3min)
+  5. PR: PR自動作成 (1min)
+  6. Deployment: CI/CD (5-10min)
+  7. Refresher: 監視・再実行 (10s)
+
+  **Metrics**
+  • Avg issue resolution: 15-25min
+  • Success rate: 87%
+  • Retry rate: 13%
+  • Parallel capacity: 3 concurrent
+  • Quality threshold: 80/100
+end note
+
+note bottom of business_agents
+  **14 Business Agents**
+
+  Strategy (6):
+  - AIEntrepreneur, ProductConcept,
+    ProductDesign, Persona,
+    SelfAnalysis, FunnelDesign
+
+  Marketing (5):
+  - MarketResearch, Marketing,
+    ContentCreation, SNSStrategy,
+    YouTube
+
+  Sales & CRM (3):
+  - Sales, CRM, Analytics
+
+  **実行トリガー**: /agent-run 明示的実行
+  **用途**: ビジネス戦略・成長支援
+end note
+
+note left of orchestrator
+  **Water Spider Orchestrator**
+
+  • 24/7 Daemon動作
+  • GitHub Webhook受信
+  • Agent並列実行制御
+  • Worktree管理
+  • 状態DB管理
+  • 失敗時リトライ
+end note
+
+note right of worktree
+  **Git Worktree並列実行**
+
+  Issue #270 → .worktrees/issue-270
+  Issue #271 → .worktrees/issue-271
+  Issue #272 → .worktrees/issue-272
+
+  各Worktree独立
+  → ファイル競合なし
+  → 完全並列実行可能
+end note
+
+note left of llm
+  **LLM Gateway**
+
+  Primary: GPT-OSS-20B
+  Fallback:
+  - Groq (速度優先)
+  - vLLM (コスト優先)
+  - Ollama (ローカル)
+
+  自動Retry + Fallback
+end note
+
+note right of knowledge
+  **Knowledge Manager**
+
+  • RAG System
+  • Vector Search (Qdrant)
+  • Similar Issue検索
+  • Code Pattern検索
+  • Context7統合 (MCP)
+end note
+
+note bottom of datastores
+  **3つのデータストア**
+
+  1. GitHub Issues: GitHub OS
+     - タスク管理
+     - Label体系 (53個)
+
+  2. Qdrant: Vector Store
+     - Issue Embedding
+     - Code Embedding
+     - RAG検索
+
+  3. SQLite: State DB
+     - Task状態
+     - 実行ログ
+     - 品質スコア
+end note
+
+note bottom of outputs
+  **5つの出力**
+
+  1. Pull Request
+  2. Documentation (Markdown/HTML)
+  3. Deployment (Firebase/Cloud)
+  4. Voice Narration (VoiceVox)
+  5. Daily Report (note.com)
+  6. macOS Notification (🐮音声)
+end note
+
+@enduml

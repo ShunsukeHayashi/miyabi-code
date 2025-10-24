@@ -1,0 +1,40 @@
+[package]
+name = "miyabi-claudable"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Claudable API client for Next.js frontend generation"
+keywords = ["claudable", "ai", "nextjs", "frontend", "api-client"]
+categories = ["web-programming::http-client", "development-tools"]
+
+[dependencies]
+# Miyabi crates
+miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Error handling
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+
+# Async trait
+async-trait = "0.1"
+
+[dev-dependencies]
+mockito = "1.2"
+tokio-test = "0.4"
+tempfile = "3.13"

@@ -1,133 +1,212 @@
-//! WebSocket connection management
-
-use axum::extract::ws::{Message, WebSocket};
+use axum::{
+    extract::ws::{Message, WebSocket, WebSocketUpgrade},
+    response::Response,
+};
 use futures::{sink::SinkExt, stream::StreamExt};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use uuid::Uuid;
+use tokio::sync::broadcast;
+use tracing::{info, warn};
 
-/// WebSocket connection manager
-pub struct WebSocketManager {
-    connections:
-        Arc<RwLock<std::collections::HashMap<Uuid, tokio::sync::mpsc::UnboundedSender<Message>>>>,
+/// WebSocket events that can be broadcasted to all connected clients
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum WsEvent {
+    /// Agent status update
+    AgentStatus {
+        agent_type: String,
+        status: String,
+        issue_number: Option<u32>,
+        timestamp: String,
+    },
+    /// New log entry
+    LogEntry {
+        id: String,
+        timestamp: String,
+        level: String,
+        agent_type: Option<String>,
+        message: String,
+        context: Option<String>,
+        issue_number: Option<u32>,
+        session_id: String,
+        file: Option<String>,
+        line: Option<u32>,
+    },
+    /// Issue status update
+    IssueUpdate {
+        number: u32,
+        state: String,
+        title: String,
+        updated_at: String,
+    },
+    /// PR status update
+    PrUpdate {
+        number: u32,
+        state: String,
+        title: String,
+        draft: bool,
+        updated_at: String,
+    },
+    /// Deployment status update
+    DeploymentUpdate {
+        id: String,
+        version: String,
+        environment: String,
+        status: String,
+        health_check_status: String,
+        updated_at: String,
+    },
+    /// Worktree status update
+    WorktreeUpdate {
+        id: String,
+        status: String,
+        branch: String,
+        agent_type: Option<String>,
+        updated_at: String,
+    },
+    /// System notification
+    Notification {
+        level: String,
+        message: String,
+        timestamp: String,
+    },
 }
 
-impl WebSocketManager {
-    /// Creates a new WebSocket manager
+/// WebSocket connection state
+pub struct WsState {
+    pub tx: broadcast::Sender<WsEvent>,
+}
+
+impl WsState {
     pub fn new() -> Self {
-        Self {
-            connections: Arc::new(RwLock::new(std::collections::HashMap::new())),
-        }
+        let (tx, _rx) = broadcast::channel(100);
+        Self { tx }
     }
 
-    /// Handles a new WebSocket connection
-    ///
-    /// # Arguments
-    ///
-    /// * `socket` - WebSocket connection
-    /// * `user_id` - User ID
-    pub async fn handle_connection(&self, socket: WebSocket, user_id: Uuid) {
-        let (mut sender, mut receiver) = socket.split();
-        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+    /// Broadcast an event to all connected clients
+    pub fn broadcast(&self, event: WsEvent) {
+        let _ = self.tx.send(event);
+    }
+}
 
-        // Store connection
-        self.connections.write().await.insert(user_id, tx);
+/// WebSocket upgrade handler
+pub async fn ws_handler(
+    ws: WebSocketUpgrade,
+    state: Arc<WsState>,
+) -> Response {
+    ws.on_upgrade(|socket| handle_socket(socket, state))
+}
 
-        // Spawn task to forward messages from channel to WebSocket
-        let connections = self.connections.clone();
-        tokio::spawn(async move {
-            while let Some(msg) = rx.recv().await {
-                if sender.send(msg).await.is_err() {
+/// Handle individual WebSocket connection
+async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
+    let (mut sender, mut receiver) = socket.split();
+    let mut rx = state.tx.subscribe();
+
+    info!("WebSocket client connected");
+
+    // Send initial connection confirmation
+    let welcome = WsEvent::Notification {
+        level: "info".to_string(),
+        message: "Connected to Miyabi WebSocket".to_string(),
+        timestamp: chrono::Utc::now().to_rfc3339(),
+    };
+
+    if let Ok(json) = serde_json::to_string(&welcome) {
+        let _ = sender.send(Message::Text(json)).await;
+    }
+
+    // Spawn a task to send broadcasts to this client
+    let mut send_task = tokio::spawn(async move {
+        while let Ok(event) = rx.recv().await {
+            if let Ok(json) = serde_json::to_string(&event) {
+                if sender.send(Message::Text(json)).await.is_err() {
                     break;
                 }
             }
-            // Remove connection when done
-            connections.write().await.remove(&user_id);
-        });
+        }
+    });
 
-        // Handle incoming messages
+    // Handle incoming messages from client (e.g., ping/pong)
+    let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(msg)) = receiver.next().await {
             match msg {
-                Message::Text(text) => {
-                    tracing::debug!("Received text message from {}: {}", user_id, text);
-                    // Handle text message
-                }
-                Message::Binary(_) => {
-                    tracing::debug!("Received binary message from {}", user_id);
-                    // Handle binary message
-                }
-                Message::Ping(ping) => {
-                    tracing::debug!("Received ping from {}", user_id);
-                    // Respond with pong
-                    if let Some(tx) = self.connections.read().await.get(&user_id) {
-                        let _ = tx.send(Message::Pong(ping));
-                    }
+                Message::Close(_) => break,
+                Message::Ping(data) => {
+                    // Echo back pong
+                    info!("Received ping");
                 }
                 Message::Pong(_) => {
-                    tracing::debug!("Received pong from {}", user_id);
+                    info!("Received pong");
                 }
-                Message::Close(_) => {
-                    tracing::info!("WebSocket connection closed for user {}", user_id);
-                    break;
+                Message::Text(text) => {
+                    info!("Received text message: {}", text);
                 }
+                _ => {}
             }
         }
+    });
+
+    // Wait for either task to finish
+    tokio::select! {
+        _ = (&mut send_task) => recv_task.abort(),
+        _ = (&mut recv_task) => send_task.abort(),
     }
 
-    /// Sends a message to a specific user
-    ///
-    /// # Arguments
-    ///
-    /// * `user_id` - User ID
-    /// * `message` - Message to send
-    pub async fn send_to_user(&self, user_id: Uuid, message: Message) -> bool {
-        if let Some(tx) = self.connections.read().await.get(&user_id) {
-            tx.send(message).is_ok()
-        } else {
-            false
-        }
-    }
-
-    /// Broadcasts a message to all connected users
-    ///
-    /// # Arguments
-    ///
-    /// * `message` - Message to broadcast
-    pub async fn broadcast(&self, message: Message) {
-        let connections = self.connections.read().await;
-        for tx in connections.values() {
-            let _ = tx.send(message.clone());
-        }
-    }
-
-    /// Gets the count of active connections
-    pub async fn connection_count(&self) -> usize {
-        self.connections.read().await.len()
-    }
+    info!("WebSocket client disconnected");
 }
 
-impl Default for WebSocketManager {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+/// Helper function to start a background task that simulates real-time events
+pub fn start_event_simulator(state: Arc<WsState>) {
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(5));
+        let agent_types = vec!["CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "PRAgent", "DeploymentAgent"];
+        let log_levels = vec!["INFO", "DEBUG", "WARN", "ERROR"];
+        let mut counter = 0;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+        loop {
+            interval.tick().await;
+            counter += 1;
 
-    #[tokio::test]
-    async fn test_websocket_manager_creation() {
-        let manager = WebSocketManager::new();
-        assert_eq!(manager.connection_count().await, 0);
-    }
+            // Simulate agent status update every 5 seconds
+            if counter % 2 == 0 {
+                let agent_type = agent_types[counter % agent_types.len()].to_string();
+                let status = if counter % 3 == 0 { "Running" } else { "Idle" };
 
-    #[tokio::test]
-    async fn test_connection_count() {
-        let manager = WebSocketManager::new();
-        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
+                state.broadcast(WsEvent::AgentStatus {
+                    agent_type: agent_type.clone(),
+                    status: status.to_string(),
+                    issue_number: Some(270 + (counter % 5) as u32),
+                    timestamp: chrono::Utc::now().to_rfc3339(),
+                });
+            }
 
-        manager.connections.write().await.insert(Uuid::new_v4(), tx);
-        assert_eq!(manager.connection_count().await, 1);
-    }
+            // Simulate log entry every 5 seconds
+            if counter % 1 == 0 {
+                let level = log_levels[counter % log_levels.len()];
+                let agent_type = agent_types[counter % agent_types.len()];
+
+                state.broadcast(WsEvent::LogEntry {
+                    id: format!("log-{}", counter),
+                    timestamp: chrono::Utc::now().to_rfc3339(),
+                    level: level.to_string(),
+                    agent_type: Some(agent_type.to_string()),
+                    message: format!("[{}] Processing task #{}", agent_type, counter),
+                    context: Some(format!("Simulated event {}", counter)),
+                    issue_number: Some(270 + (counter % 5) as u32),
+                    session_id: "ws-session-001".to_string(),
+                    file: Some(format!("agent/{}.rs", agent_type.to_lowercase())),
+                    line: Some(42 + counter as u32),
+                });
+            }
+
+            // Simulate notification every 15 seconds
+            if counter % 3 == 0 {
+                state.broadcast(WsEvent::Notification {
+                    level: "info".to_string(),
+                    message: format!("System update: {} agents active", counter % 5),
+                    timestamp: chrono::Utc::now().to_rfc3339(),
+                });
+            }
+        }
+    });
 }

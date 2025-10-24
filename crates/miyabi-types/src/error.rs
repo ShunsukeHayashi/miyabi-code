@@ -54,6 +54,14 @@ pub enum MiyabiError {
     #[error("Timeout error: operation timed out after {0}ms")]
     Timeout(u64),
 
+    /// Tool execution error
+    #[error("Tool error: {0}")]
+    ToolError(String),
+
+    /// Permission denied error
+    #[error("Permission denied: {0}")]
+    PermissionDenied(String),
+
     /// Unknown or unclassified error
     #[error("Unknown error: {0}")]
     Unknown(String),

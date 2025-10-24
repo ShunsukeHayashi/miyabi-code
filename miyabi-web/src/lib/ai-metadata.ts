@@ -48,6 +48,7 @@ export type AIAction =
   | 'scroll'
   | 'focus'
   | 'hover'
+  | 'mock-login'
   | 'none';
 
 /**

@@ -28,16 +28,39 @@ use uuid::Uuid;
     )
 )]
 pub async fn create_workflow(
-    State(_state): State<AppState>,
-    Json(_request): Json<CreateWorkflowRequest>,
+    State(state): State<AppState>,
+    Json(request): Json<CreateWorkflowRequest>,
 ) -> Result<(StatusCode, Json<Workflow>)> {
-    // TODO: Implement workflow creation
-    // 1. Validate DAG definition
-    // 2. Create workflow in database
+    // Validate DAG definition structure
+    if !request.dag_definition.is_object() {
+        return Err(crate::error::AppError::Validation(
+            "Invalid DAG definition: must be a JSON object".to_string(),
+        ));
+    }
 
-    Err(crate::error::AppError::Internal(
-        "Not implemented".to_string(),
-    ))
+    // Create workflow in database
+    let workflow = sqlx::query_as::<_, Workflow>(
+        r#"
+        INSERT INTO workflows (repository_id, name, description, dag_definition, is_active)
+        VALUES ($1, $2, $3, $4, true)
+        RETURNING id, repository_id, name, description, dag_definition, is_active, created_at, updated_at
+        "#,
+    )
+    .bind(request.repository_id)
+    .bind(&request.name)
+    .bind(request.description.as_ref())
+    .bind(&request.dag_definition)
+    .fetch_one(&state.db)
+    .await?;
+
+    tracing::info!(
+        "Workflow created: id={}, name={}, repository={}",
+        workflow.id,
+        workflow.name,
+        workflow.repository_id
+    );
+
+    Ok((StatusCode::CREATED, Json(workflow)))
 }
 
 /// List workflows
@@ -53,12 +76,21 @@ pub async fn create_workflow(
         (status = 500, description = "Internal server error")
     )
 )]
-pub async fn list_workflows(State(_state): State<AppState>) -> Result<Json<Vec<Workflow>>> {
-    // TODO: Implement workflow listing
-    // 1. Get user repositories
-    // 2. Query workflows from database
+pub async fn list_workflows(State(state): State<AppState>) -> Result<Json<Vec<Workflow>>> {
+    // Query all workflows (in future, filter by user repositories)
+    let workflows = sqlx::query_as::<_, Workflow>(
+        r#"
+        SELECT id, repository_id, name, description, dag_definition, is_active, created_at, updated_at
+        FROM workflows
+        WHERE is_active = true
+        ORDER BY created_at DESC
+        LIMIT 100
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await?;
 
-    Ok(Json(vec![]))
+    Ok(Json(workflows))
 }
 
 /// Get workflow by ID
@@ -79,14 +111,21 @@ pub async fn list_workflows(State(_state): State<AppState>) -> Result<Json<Vec<W
     )
 )]
 pub async fn get_workflow(
-    State(_state): State<AppState>,
-    Path(_id): Path<Uuid>,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<Workflow>> {
-    // TODO: Implement workflow retrieval
-    // 1. Query workflow from database
-    // 2. Verify user has access
+    // Query workflow from database
+    let workflow = sqlx::query_as::<_, Workflow>(
+        r#"
+        SELECT id, repository_id, name, description, dag_definition, is_active, created_at, updated_at
+        FROM workflows
+        WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| crate::error::AppError::NotFound("Workflow not found".to_string()))?;
 
-    Err(crate::error::AppError::NotFound(
-        "Workflow not found".to_string(),
-    ))
+    Ok(Json(workflow))
 }

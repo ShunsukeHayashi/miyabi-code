@@ -29,6 +29,8 @@ export default function WorkflowEditorPage() {
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       agentNode: AgentNode,
+      issueNode: require('@/components/workflow/IssueNode').default,
+      conditionNode: require('@/components/workflow/ConditionNode').default,
     }),
     []
   );
@@ -71,6 +73,32 @@ export default function WorkflowEditorPage() {
         } catch (error) {
           console.error('Error parsing agent data:', error);
         }
+      } else if (type === 'issue') {
+        const newNode = {
+          id: `issue-${Date.now()}`,
+          type: 'issueNode',
+          position,
+          data: {
+            issueNumber: 0,
+            title: 'New Issue',
+            state: 'open' as const,
+            labels: [],
+          },
+        };
+        setNodes((nds) => nds.concat(newNode));
+      } else if (type === 'condition') {
+        const newNode = {
+          id: `condition-${Date.now()}`,
+          type: 'conditionNode',
+          position,
+          data: {
+            condition: 'status === "success"',
+            description: 'Branch condition',
+            trueLabel: 'True',
+            falseLabel: 'False',
+          },
+        };
+        setNodes((nds) => nds.concat(newNode));
       }
     },
     [setNodes]

@@ -1,239 +1,112 @@
-//! GitHub Issues route handlers
+use axum::{routing::get, Router, Json};
+use serde::Serialize;
 
-use crate::{
-    error::{AppError, Result},
-    middleware::AuthenticatedUser,
-    models::Repository,
-    AppState,
-};
-use axum::{
-    extract::{Extension, Path, Query, State},
-    Json,
-};
-use miyabi_github::GitHubClient;
-use miyabi_types::issue::{Issue, IssueStateGithub};
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
-use uuid::Uuid;
-
-/// Query parameters for listing issues
-#[derive(Debug, Deserialize)]
-pub struct ListIssuesQuery {
-    /// Filter by state (open, closed, all)
-    #[serde(default)]
-    pub state: Option<String>,
-    /// Filter by labels (comma-separated)
-    #[serde(default)]
-    pub labels: Option<String>,
-    /// Limit number of results
-    #[serde(default = "default_limit")]
-    pub limit: usize,
+#[derive(Serialize)]
+pub struct Label {
+    pub name: String,
+    pub color: String,
 }
 
-fn default_limit() -> usize {
-    100
+#[derive(Serialize)]
+pub struct Issue {
+    pub number: u32,
+    pub title: String,
+    pub state: String,
+    pub labels: Vec<Label>,
+    pub assignees: Vec<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub body: Option<String>,
 }
 
-/// Issue response with repository information
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct IssueWithRepository {
-    /// Issue details
-    #[serde(flatten)]
-    pub issue: Issue,
-    /// Repository owner
-    pub repository_owner: String,
-    /// Repository name
-    pub repository_name: String,
+#[derive(Serialize)]
+pub struct IssuesListResponse {
+    pub issues: Vec<Issue>,
+    pub total: u32,
 }
 
-/// List issues for a repository
-///
-/// Fetches issues from GitHub for the specified repository
-///
-/// Query parameters:
-/// - state: Filter by state (open, closed, all). Default: open
-/// - labels: Comma-separated list of labels to filter by
-/// - limit: Maximum number of results. Default: 100
-#[utoipa::path(
-    get,
-    path = "/api/v1/repositories/{repository_id}/issues",
-    tag = "issues",
-    params(
-        ("repository_id" = Uuid, Path, description = "Repository ID")
-    ),
-    responses(
-        (status = 200, description = "List of issues", body = Vec<IssueWithRepository>),
-        (status = 401, description = "Unauthorized"),
-        (status = 404, description = "Repository not found"),
-        (status = 500, description = "Internal server error")
-    )
-)]
-pub async fn list_repository_issues(
-    Extension(auth_user): Extension<AuthenticatedUser>,
-    State(state): State<AppState>,
-    Path(repository_id): Path<Uuid>,
-    Query(query): Query<ListIssuesQuery>,
-) -> Result<Json<Vec<IssueWithRepository>>> {
-    // Get repository and verify user access
-    let repository = sqlx::query_as::<_, Repository>(
-        r#"
-        SELECT id, user_id, github_repo_id, owner, name, full_name, is_active, created_at, updated_at
-        FROM repositories
-        WHERE id = $1 AND user_id = $2
-        "#,
-    )
-    .bind(repository_id)
-    .bind(auth_user.user_id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Repository not found".to_string()))?;
-
-    // Get user's GitHub token
-    let user_token = sqlx::query_scalar::<_, String>(
-        r#"
-        SELECT access_token
-        FROM users
-        WHERE id = $1
-        "#,
-    )
-    .bind(auth_user.user_id)
-    .fetch_one(&state.db)
-    .await?;
-
-    // Create GitHub client
-    let gh_client = GitHubClient::new(&user_token, &repository.owner, &repository.name)
-        .map_err(|e| AppError::Internal(format!("Failed to create GitHub client: {}", e)))?;
-
-    // Parse state filter - use None to let miyabi-github handle it with octocrab's State enum
-    // We validate the string and pass labels that miyabi-github will interpret
-    let state_str = match query.state.as_deref() {
-        Some("open") | None | Some("") => "open", // Default to open
-        Some("closed") => "closed",
-        Some("all") => "all",
-        Some(s) => {
-            return Err(AppError::Validation(format!(
-                "Invalid state filter: {}. Use 'open', 'closed', or 'all'",
-                s
-            )))
-        }
-    };
-
-    // Parse labels filter
-    let labels_filter: Vec<String> = query
-        .labels
-        .as_ref()
-        .map(|l| l.split(',').map(|s| s.trim().to_string()).collect())
-        .unwrap_or_default();
-
-    // Create a custom list_issues call that handles the State enum conversion internally
-    // This avoids depending on octocrab version in web-api
-    let issues = fetch_github_issues(&gh_client, state_str, labels_filter)
-        .await
-        .map_err(|e| AppError::Internal(format!("Failed to fetch issues from GitHub: {}", e)))?;
-
-    // Convert to response format
-    let issues_with_repo: Vec<IssueWithRepository> = issues
-        .into_iter()
-        .take(query.limit)
-        .map(|issue| IssueWithRepository {
-            issue,
-            repository_owner: repository.owner.clone(),
-            repository_name: repository.name.clone(),
-        })
-        .collect();
-
-    Ok(Json(issues_with_repo))
+async fn list_issues() -> Json<IssuesListResponse> {
+    Json(IssuesListResponse {
+        total: 5,
+        issues: vec![
+            Issue {
+                number: 490,
+                title: "Phase 13 完全自律実行システム構築".to_string(),
+                state: "open".to_string(),
+                labels: vec![
+                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
+                    Label { name: "priority:high".to_string(), color: "D93F0B".to_string() },
+                    Label { name: "agent:coordinator".to_string(), color: "FF69B4".to_string() },
+                    Label { name: "phase:implementation".to_string(), color: "BFD4F2".to_string() },
+                ],
+                assignees: vec!["CoordinatorAgent".to_string()],
+                created_at: "2025-01-15T10:30:00Z".to_string(),
+                updated_at: "2025-01-20T14:22:00Z".to_string(),
+                body: Some("完全自律実行システムの構築を行います".to_string()),
+            },
+            Issue {
+                number: 431,
+                title: "LINE Messaging API integration".to_string(),
+                state: "closed".to_string(),
+                labels: vec![
+                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
+                    Label { name: "component:core".to_string(), color: "006B75".to_string() },
+                    Label { name: "size:M".to_string(), color: "FEF2C0".to_string() },
+                ],
+                assignees: vec!["CodeGenAgent".to_string()],
+                created_at: "2025-01-10T08:15:00Z".to_string(),
+                updated_at: "2025-01-18T16:45:00Z".to_string(),
+                body: Some("LINE Messaging API統合の実装".to_string()),
+            },
+            Issue {
+                number: 355,
+                title: "logger.rs memory leak fix".to_string(),
+                state: "closed".to_string(),
+                labels: vec![
+                    Label { name: "type:bug".to_string(), color: "D73A4A".to_string() },
+                    Label { name: "priority:critical".to_string(), color: "B60205".to_string() },
+                    Label { name: "component:core".to_string(), color: "006B75".to_string() },
+                    Label { name: "size:S".to_string(), color: "BFD4F2".to_string() },
+                ],
+                assignees: vec!["CodeGenAgent".to_string(), "ReviewAgent".to_string()],
+                created_at: "2025-01-05T11:20:00Z".to_string(),
+                updated_at: "2025-01-06T09:30:00Z".to_string(),
+                body: Some("mem::forget によるメモリリークを OnceCell で修正".to_string()),
+            },
+            Issue {
+                number: 270,
+                title: "CoordinatorAgent DAG分解機能実装".to_string(),
+                state: "open".to_string(),
+                labels: vec![
+                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
+                    Label { name: "agent:coordinator".to_string(), color: "FF69B4".to_string() },
+                    Label { name: "difficulty:hard".to_string(), color: "E99695".to_string() },
+                    Label { name: "size:L".to_string(), color: "F9C5D4".to_string() },
+                ],
+                assignees: vec!["CoordinatorAgent".to_string()],
+                created_at: "2024-12-20T15:00:00Z".to_string(),
+                updated_at: "2025-01-15T12:10:00Z".to_string(),
+                body: Some("Issue を Task に分解する DAG 生成機能".to_string()),
+            },
+            Issue {
+                number: 164,
+                title: "Windows CI/CD サポート追加".to_string(),
+                state: "open".to_string(),
+                labels: vec![
+                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
+                    Label { name: "tech:infrastructure".to_string(), color: "326CE5".to_string() },
+                    Label { name: "good-first-issue".to_string(), color: "7057FF".to_string() },
+                    Label { name: "difficulty:easy".to_string(), color: "7057FF".to_string() },
+                ],
+                assignees: vec![],
+                created_at: "2024-11-28T09:45:00Z".to_string(),
+                updated_at: "2024-12-15T14:20:00Z".to_string(),
+                body: Some("GitHub Actions で Windows ビルドとテストを実行".to_string()),
+            },
+        ],
+    })
 }
 
-/// Get single issue details
-///
-/// Fetches a specific issue from GitHub
-#[utoipa::path(
-    get,
-    path = "/api/v1/repositories/{repository_id}/issues/{issue_number}",
-    tag = "issues",
-    params(
-        ("repository_id" = Uuid, Path, description = "Repository ID"),
-        ("issue_number" = u64, Path, description = "Issue number")
-    ),
-    responses(
-        (status = 200, description = "Issue details", body = IssueWithRepository),
-        (status = 401, description = "Unauthorized"),
-        (status = 404, description = "Repository or issue not found"),
-        (status = 500, description = "Internal server error")
-    )
-)]
-pub async fn get_repository_issue(
-    Extension(auth_user): Extension<AuthenticatedUser>,
-    State(state): State<AppState>,
-    Path((repository_id, issue_number)): Path<(Uuid, u64)>,
-) -> Result<Json<IssueWithRepository>> {
-    // Get repository and verify user access
-    let repository = sqlx::query_as::<_, Repository>(
-        r#"
-        SELECT id, user_id, github_repo_id, owner, name, full_name, is_active, created_at, updated_at
-        FROM repositories
-        WHERE id = $1 AND user_id = $2
-        "#,
-    )
-    .bind(repository_id)
-    .bind(auth_user.user_id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Repository not found".to_string()))?;
-
-    // Get user's GitHub token
-    let user_token = sqlx::query_scalar::<_, String>(
-        r#"
-        SELECT access_token
-        FROM users
-        WHERE id = $1
-        "#,
-    )
-    .bind(auth_user.user_id)
-    .fetch_one(&state.db)
-    .await?;
-
-    // Create GitHub client
-    let gh_client = GitHubClient::new(&user_token, &repository.owner, &repository.name)
-        .map_err(|e| AppError::Internal(format!("Failed to create GitHub client: {}", e)))?;
-
-    // Fetch issue from GitHub
-    let issue = gh_client
-        .get_issue(issue_number)
-        .await
-        .map_err(|e| AppError::Internal(format!("Failed to fetch issue from GitHub: {}", e)))?;
-
-    Ok(Json(IssueWithRepository {
-        issue,
-        repository_owner: repository.owner,
-        repository_name: repository.name,
-    }))
-}
-
-/// Helper function to fetch issues from GitHub
-///
-/// Uses miyabi-github's get_issues_by_state which handles the octocrab State enum internally
-async fn fetch_github_issues(
-    client: &GitHubClient,
-    state_str: &str,
-    labels: Vec<String>,
-) -> Result<Vec<Issue>> {
-    use miyabi_types::error::Result as MiyabiResult;
-
-    // Use list_issues with None state to get all issues, then filter
-    // This avoids the octocrab version mismatch issue
-    let result: MiyabiResult<Vec<Issue>> = client.list_issues(None, labels).await;
-
-    let mut issues = result.map_err(|e| AppError::Internal(e.to_string()))?;
-
-    // Filter by state if needed
-    match state_str {
-        "open" => issues.retain(|issue| issue.state == IssueStateGithub::Open),
-        "closed" => issues.retain(|issue| issue.state == IssueStateGithub::Closed),
-        "all" => {} // No filtering needed
-        _ => issues.retain(|issue| issue.state == IssueStateGithub::Open), // Default to open
-    }
-
-    Ok(issues)
+pub fn routes() -> Router {
+    Router::new().route("/", get(list_issues))
 }

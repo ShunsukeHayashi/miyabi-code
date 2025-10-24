@@ -1,59 +1,22 @@
-//! LLM abstraction layer for Miyabi
+//! Miyabi LLM - LLM Integration for Autonomous Agents
 //!
-//! Provides a unified interface for interacting with different LLM providers
-//! (vLLM, Ollama, Groq) with OpenAI GPT-OSS-20B model.
-//!
-//! # Features
-//!
-//! - **Provider abstraction**: Unified trait for all LLM providers
-//! - **GPT-OSS-20B support**: Native support for OpenAI's open-source model
-//! - **Multiple backends**: vLLM, Ollama, Groq
-//! - **Async/await**: Built on tokio for high performance
-//! - **Function calling**: Support for structured function calls
-//! - **Reasoning levels**: Low, Medium, High reasoning effort
-//!
-//! # Example
-//!
-//! ```rust,no_run
-//! use miyabi_llm::{LLMProvider, GPTOSSProvider, LLMRequest, ReasoningEffort};
-//!
-//! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     // Initialize Groq provider
-//!     let provider = GPTOSSProvider::new_groq("gsk_xxxxx")?;
-//!
-//!     // Create request
-//!     let request = LLMRequest {
-//!         prompt: "Write a Rust function to calculate factorial".to_string(),
-//!         temperature: 0.2,
-//!         max_tokens: 512,
-//!         reasoning_effort: ReasoningEffort::Medium,
-//!     };
-//!
-//!     // Generate response
-//!     let response = provider.generate(&request).await?;
-//!     println!("Generated: {}", response.text);
-//!
-//!     Ok(())
-//! }
-//! ```
+//! Provides a unified interface for multiple LLM providers:
+//! - Anthropic Claude (Claude 3.5 Sonnet)
+//! - OpenAI GPT (GPT-4o, GPT-4 Turbo)
+//! - Ollama (Local LLM - GPT-OSS-20B)
+//! - Groq (Ultra-fast inference - Llama 3)
 
-pub mod context;
-pub mod conversation;
-mod error;
-pub mod prompt;
-mod provider;
-mod types;
+pub mod client;
+pub mod error;
+pub mod message;
+pub mod providers;
+pub mod tools;
 
-pub use context::{LLMContext, TestResults};
-pub use conversation::LLMConversation;
-pub use error::{LLMError, Result};
-pub use prompt::{LLMPromptTemplate, PromptError, ResponseFormat};
-pub use provider::{GPTOSSProvider, LLMProvider};
-pub use types::{
-    ChatMessage, ChatRole, FunctionCall, FunctionDefinition, FunctionParameter, LLMRequest,
-    LLMResponse, ReasoningEffort,
-};
+pub use client::{LlmClient, ToolCallResponse};
+pub use error::{LlmError, Result};
+pub use message::{Message, Role};
+pub use tools::{ToolCall, ToolDefinition};
 
-/// Re-export common types
-pub use miyabi_types::error::MiyabiError;
+// Re-export provider implementations
+pub use providers::anthropic::AnthropicClient;
+pub use providers::openai::OpenAIClient;

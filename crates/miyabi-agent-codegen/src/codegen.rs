@@ -4,10 +4,11 @@
 //! Integrates with GitHub for repository context and Claude Code for implementation.
 
 pub use crate::documentation::DocumentationGenerationResult;
-use crate::{documentation, prompt, worktree};
+use crate::{documentation, frontend, prompt, worktree};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use miyabi_agent_core::BaseAgent;
+use miyabi_claudable::ClaudableClient;
 use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
@@ -20,6 +21,8 @@ pub struct CodeGenAgent {
     config: AgentConfig,
     /// LLM provider for code generation
     llm_provider: Option<GPTOSSProvider>,
+    /// Claudable client for frontend generation
+    claudable_client: Option<ClaudableClient>,
 }
 
 impl CodeGenAgent {
@@ -27,6 +30,7 @@ impl CodeGenAgent {
         Self {
             config,
             llm_provider: None,
+            claudable_client: None,
         }
     }
 
@@ -39,6 +43,38 @@ impl CodeGenAgent {
         Ok(Self {
             config,
             llm_provider: Some(llm_provider),
+            claudable_client: None,
+        })
+    }
+
+    /// Create CodeGenAgent with Claudable integration
+    pub fn new_with_claudable(config: AgentConfig) -> Result<Self> {
+        let claudable_url = std::env::var("CLAUDABLE_API_URL")
+            .unwrap_or_else(|_| "http://localhost:8080".to_string());
+
+        let claudable_client = ClaudableClient::new(claudable_url).map_err(|e| {
+            MiyabiError::Unknown(format!("Failed to create Claudable client: {}", e))
+        })?;
+
+        Ok(Self {
+            config,
+            llm_provider: None,
+            claudable_client: Some(claudable_client),
+        })
+    }
+
+    /// Create CodeGenAgent with both Ollama and Claudable
+    pub fn new_with_all(config: AgentConfig) -> Result<Self> {
+        let llm_provider = GPTOSSProvider::new_mac_mini_tailscale().ok();
+
+        let claudable_url = std::env::var("CLAUDABLE_API_URL")
+            .unwrap_or_else(|_| "http://localhost:8080".to_string());
+        let claudable_client = ClaudableClient::new(claudable_url).ok();
+
+        Ok(Self {
+            config,
+            llm_provider,
+            claudable_client,
         })
     }
 
@@ -65,6 +101,80 @@ impl CodeGenAgent {
         }
     }
 
+    /// Generate frontend using Claudable
+    async fn generate_frontend_with_claudable(
+        &self,
+        task: &Task,
+        worktree_path: Option<&Path>,
+    ) -> Result<CodeGenerationResult> {
+        tracing::info!("🎨 Frontend task detected, using Claudable for generation");
+
+        let claudable = self
+            .claudable_client
+            .as_ref()
+            .ok_or_else(|| MiyabiError::Validation("Claudable client not configured".to_string()))?;
+
+        // Build request
+        let description = frontend::extract_frontend_description(task);
+        let request = miyabi_claudable::GenerateRequest::new(description);
+
+        tracing::debug!("Sending request to Claudable API");
+
+        // Call Claudable API
+        let response = claudable.generate(request).await.map_err(|e| {
+            tracing::error!("Claudable generation failed: {}", e);
+            MiyabiError::Unknown(format!("Claudable generation failed: {}", e))
+        })?;
+
+        tracing::info!("✅ Claudable generated project: {}", response.project_id);
+        tracing::debug!("Files: {}, Dependencies: {}", response.files.len(), response.dependencies.len());
+
+        // If worktree provided, write files and build
+        if let Some(worktree) = worktree_path {
+            use miyabi_claudable::worktree as claudable_worktree;
+
+            // Write files
+            let summary = claudable_worktree::write_files_to_worktree(worktree, &response)
+                .await
+                .map_err(|e| MiyabiError::Unknown(format!("Failed to write files: {}", e)))?;
+
+            tracing::info!("  📝 Wrote {} files ({} lines)", summary.files_written, summary.total_lines);
+
+            // Install dependencies
+            tracing::info!("  📦 Running npm install...");
+            claudable_worktree::install_dependencies(worktree)
+                .await
+                .map_err(|e| MiyabiError::Unknown(format!("npm install failed: {}", e)))?;
+
+            // Build app
+            tracing::info!("  🔨 Building Next.js app...");
+            claudable_worktree::build_nextjs_app(worktree)
+                .await
+                .map_err(|e| MiyabiError::Unknown(format!("Next.js build failed: {}", e)))?;
+
+            tracing::info!("✅ Frontend generation complete!");
+
+            Ok(CodeGenerationResult {
+                files_created: response.files.iter().map(|f| f.path.clone()).collect(),
+                files_modified: vec![],
+                lines_added: summary.total_lines as u32,
+                lines_removed: 0,
+                tests_added: 0,
+                commit_sha: None,
+            })
+        } else {
+            // Return result without worktree
+            Ok(CodeGenerationResult {
+                files_created: response.files.iter().map(|f| f.path.clone()).collect(),
+                files_modified: vec![],
+                lines_added: response.files.iter().map(|f| f.content.lines().count()).sum::<usize>() as u32,
+                lines_removed: 0,
+                tests_added: 0,
+                commit_sha: None,
+            })
+        }
+    }
+
     /// Generate code based on task requirements
     pub async fn generate_code(
         &self,
@@ -72,6 +182,12 @@ impl CodeGenAgent {
         worktree_path: Option<&Path>,
     ) -> Result<CodeGenerationResult> {
         tracing::info!("Generating code for task: {}", task.title);
+
+        // NEW: Frontend task detection
+        if frontend::is_frontend_task(task) && self.claudable_client.is_some() {
+            tracing::info!("Frontend task detected, delegating to Claudable");
+            return self.generate_frontend_with_claudable(task, worktree_path).await;
+        }
 
         // Validate task type
         if !matches!(

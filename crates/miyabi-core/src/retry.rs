@@ -197,6 +197,8 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
         MiyabiError::Config(_) => false,
         MiyabiError::Validation(_) => false,
         MiyabiError::Json(_) => false,
+        MiyabiError::ToolError(_) => false,        // Tool errors are permanent
+        MiyabiError::PermissionDenied(_) => false, // Permission errors are permanent
         MiyabiError::Unknown(_) => false,
     }
 }

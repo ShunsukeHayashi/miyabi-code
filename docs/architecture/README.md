@@ -74,6 +74,15 @@ Complete workflow from Issue to Production:
 - Parallel execution with worktree isolation
 - Quality-driven decision making (threshold: 80/100)
 
+### Command-Hook-Agent Integration
+**NEW**: Complete integration diagram
+
+18 Slash Commands + 5 Git Hooks + 21 Agents:
+- All commands connected to agents
+- Git hook triggers and workflows
+- 7 Coding Agents + 14 Business Agents
+- VoiceVox, MCP, and Knowledge integration
+
 ### Deployment Architecture
 **Documentation**: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 
@@ -129,6 +138,7 @@ Production deployment infrastructure:
 | Diagram | File | Size | Type |
 |---------|------|------|------|
 | Complete Workflow | `Miyabi End-to-End Workflow - Complete Sequence.png` | 414 KB | Sequence |
+| Command-Hook-Agent Integration | `command-hook-agent-integration.png` | 193 KB | Component |
 
 ### Deployment Architecture
 
@@ -299,10 +309,10 @@ These diagrams complement the following documentation:
 | Water Spider | 4 | ~0.9 MB | Medium-High |
 | Cline Analysis | 4 | ~0.9 MB | Medium |
 | Entity-Relation | 4 | ~0.8 MB | Medium-High |
-| End-to-End Workflow | 1 | ~0.4 MB | Very High |
+| End-to-End Workflow | 2 | ~0.6 MB | Very High |
 | Deployment Architecture | 1 | ~0.5 MB | High |
 | Documentation Map | 1 | ~0.5 MB | High |
-| **Total** | **20** | **~5.0 MB** | **Medium-High** |
+| **Total** | **21** | **~5.2 MB** | **Medium-High** |
 
 **Node Count**: 280+ components/actors across all diagrams
 **Relationship Count**: 550+ arrows/connections
@@ -343,8 +353,8 @@ These diagrams complement the following documentation:
 ---
 
 **Last Updated**: 2025-10-24
-**Diagram Count**: 20 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 1 E2E + 1 Deployment + 1 Map)
-**Total Size**: ~5.0 MB
+**Diagram Count**: 21 diagrams (5 Crates + 4 Water Spider + 4 Cline + 4 Entity-Relation + 2 E2E + 1 Deployment + 1 Map)
+**Total Size**: ~5.2 MB
 **Format**: PlantUML → PNG (1200+ DPI)
 **Documentation**: 7 comprehensive guides (NAVIGATION_GUIDE.md, README.md, 5 collection guides)
 **User Journeys**: 5 personas (Developer, Stakeholder, DevOps, Partner, Writer)
@@ -353,4 +363,5 @@ These diagrams complement the following documentation:
 **Cline Analysis**: v3.34.0 (analyzed)
 **Cline Integration**: Roadmap v1.0.0 (6-month, $129K budget)
 **End-to-End Workflow**: v1.0.0 (9 phases, 45 min avg, 100% autonomous)
+**Command-Hook-Agent**: v1.0.0 (18 Commands + 5 Hooks + 21 Agents)
 **Deployment**: v1.0.0 (AWS/GCP/Azure, K8s, $358-458/month production)

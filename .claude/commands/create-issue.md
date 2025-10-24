@@ -1,15 +1,16 @@
 ---
-description: Agent実行用Issueを対話的に作成
+description: GitHub Issue作成支援（Agent実行用・汎用Issue両対応）
 ---
 
 # Create Issue Command
 
-Agent実行用のIssueをテンプレートベースで対話的に作成します。
+GitHub Issueを対話的に作成します。Agent実行用の詳細Issueから、シンプルな汎用Issueまで柔軟に対応。
 
 ## 使用方法
 
 ```bash
-/create-issue
+/create-issue              # Agent実行用の詳細Issue作成
+/create-issue --simple     # シンプルなIssue作成
 ```
 
 このコマンドを実行すると、対話的にIssue作成のための情報を収集します。

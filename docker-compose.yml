@@ -211,6 +211,54 @@ services:
     profiles:
       - monitoring
 
+  # ===========================================================================
+  # Optional: Claudable (AI-driven Next.js app builder)
+  # ===========================================================================
+  claudable:
+    build:
+      context: .
+      dockerfile: docker/claudable/Dockerfile
+    image: miyabi-claudable:latest
+    container_name: miyabi-claudable
+    restart: unless-stopped
+
+    environment:
+      # Claude Code API (used by Claudable)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+      # Optional: Claudable API authentication
+      - CLAUDABLE_API_KEY=${CLAUDABLE_API_KEY:-}
+
+      # Node.js environment
+      - NODE_ENV=development
+
+    volumes:
+      # Persist generated projects
+      - claudable-generated:/app/generated
+
+      # Persist SQLite database
+      - claudable-data:/app/apps/api/data
+
+    ports:
+      # Frontend (Next.js) - Using 3001 to avoid conflict with Grafana
+      - "3001:3000"
+
+      # Backend API (FastAPI)
+      - "8080:8080"
+
+    networks:
+      - miyabi-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    profiles:
+      - claudable
+
 # =============================================================================
 # Networks
 # =============================================================================
@@ -234,6 +282,10 @@ volumes:
   prometheus-data:
     driver: local
   grafana-data:
+    driver: local
+  claudable-generated:
+    driver: local
+  claudable-data:
     driver: local
   # Development caches
   cargo-cache:
@@ -261,22 +313,32 @@ volumes:
 # 5. モニタリング付き起動:
 #    docker-compose --profile monitoring up -d
 #
-# 6. 全サービス起動:
-#    docker-compose --profile with-database --profile with-cache --profile monitoring up -d
+# 6. Claudable起動（フロントエンド生成）:
+#    docker-compose --profile claudable up -d
+#    # Frontend: http://localhost:3001
+#    # API: http://localhost:8080
+#    # API Docs: http://localhost:8080/docs
 #
-# 7. SSH経由での起動（Mac mini）:
+# 7. 全サービス起動:
+#    docker-compose --profile with-database --profile with-cache --profile monitoring --profile claudable up -d
+#
+# 8. SSH経由での起動（Mac mini）:
 #    ssh user@mac-mini "cd /path/to/miyabi && docker-compose up -d"
 #
-# 8. ログ確認:
+# 9. ログ確認:
 #    docker-compose logs -f miyabi-agent
+#    docker-compose logs -f claudable
 #
-# 9. Agent実行（ワンショット）:
-#    docker-compose run --rm miyabi-agent miyabi agent run coordinator --issue 270
+# 10. Agent実行（ワンショット）:
+#     docker-compose run --rm miyabi-agent miyabi agent run coordinator --issue 270
 #
-# 10. 停止:
+# 11. Claudable API疎通テスト:
+#     curl http://localhost:8080/health
+#
+# 12. 停止:
 #     docker-compose down
 #
-# 11. 完全クリーンアップ（ボリューム削除）:
+# 13. 完全クリーンアップ（ボリューム削除）:
 #     docker-compose down -v
 #
 # =============================================================================

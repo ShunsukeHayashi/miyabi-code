@@ -40,8 +40,10 @@
 
 pub mod aggregator;
 pub mod dag;
+pub mod dynamic_scaling;
 pub mod error;
 pub mod feedback;
+pub mod five_worlds_executor;
 pub mod launcher;
 pub mod load_balancer;
 pub mod milestone_updater;
@@ -55,7 +57,12 @@ pub mod ssh;
 // Re-export key types
 pub use aggregator::{AggregatedResult, ResultAggregator};
 pub use dag::{DAGOperations, TaskId};
+pub use dynamic_scaling::{DynamicScaler, DynamicScalerConfig, ResourceMonitor, ResourceStats};
 pub use error::{Result, SchedulerError};
+pub use five_worlds_executor::{
+    ExecutionStatus, ExecutorStatistics, FiveWorldsExecutor, FiveWorldsExecutorConfig,
+    WorldExecutionStatus,
+};
 pub use load_balancer::{LoadBalancer, LoadBalancerStats};
 pub use milestone_updater::{Milestone, MilestoneConfig, MilestoneState, MilestoneUpdater};
 pub use parser::AgentResult;

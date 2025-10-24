@@ -35,6 +35,7 @@ mod prompt;
 mod worktree;
 
 pub mod codegen;
+pub mod frontend;
 
 pub use codegen::CodeGenAgent;
 pub use documentation::DocumentationGenerationResult;

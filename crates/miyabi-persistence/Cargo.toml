@@ -1,0 +1,28 @@
+[package]
+name = "miyabi-persistence"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "SQLite persistence layer for Miyabi 5-Worlds execution tracking"
+keywords = ["persistence", "sqlite", "checkpoint", "recovery", "database"]
+categories = ["database"]
+
+[dependencies]
+# Workspace dependencies
+miyabi-types = { path = "../miyabi-types" }
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+
+# SQLite
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono", "json"] }
+
+[dev-dependencies]
+tempfile.workspace = true

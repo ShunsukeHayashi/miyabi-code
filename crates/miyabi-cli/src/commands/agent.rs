@@ -238,10 +238,26 @@ impl AgentCommand {
 
         println!("  Issue: #{}", issue_number);
         println!("  Type: CodeGenAgent (Code generation)");
+
+        // Check if Claudable integration is available
+        let claudable_enabled = std::env::var("CLAUDABLE_API_URL").is_ok();
+        if claudable_enabled {
+            println!("  Mode: Claudable + GPT-OSS-20B (auto-detect frontend)");
+        } else {
+            println!("  Mode: GPT-OSS-20B only");
+        }
         println!();
 
+        // Create agent with Claudable support if available
+        let codegen_agent = if claudable_enabled {
+            CodeGenAgent::new_with_all(config.clone())
+                .map_err(|e| CliError::AgentExecution(e.to_string()))?
+        } else {
+            CodeGenAgent::new(config.clone())
+        };
+
         // Create agent with lifecycle hooks
-        let mut agent = HookedAgent::new(CodeGenAgent::new(config.clone()));
+        let mut agent = HookedAgent::new(codegen_agent);
         self.register_standard_hooks(&mut agent, &config);
 
         // Create task for codegen
