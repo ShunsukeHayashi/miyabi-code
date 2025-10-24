@@ -69,8 +69,8 @@ pub async fn execute_agent(
     .fetch_one(&state.db)
     .await?;
 
-    // Trigger agent execution in background
-    let executor = AgentExecutor::new(state.db.clone());
+    // Trigger agent execution in background with event broadcasting
+    let executor = AgentExecutor::with_events(state.db.clone(), state.event_broadcaster.clone());
     executor
         .execute_agent(
             execution.id,

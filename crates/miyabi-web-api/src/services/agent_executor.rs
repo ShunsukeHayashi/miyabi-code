@@ -8,6 +8,7 @@
 
 use crate::{
     error::{AppError, Result},
+    events::EventBroadcaster,
     models::{ExecutionLog, ExecutionOptions},
 };
 use chrono::Utc;
@@ -23,12 +24,24 @@ use uuid::Uuid;
 /// Agent executor service
 pub struct AgentExecutor {
     pub(crate) db: PgPool,
+    event_broadcaster: Option<EventBroadcaster>,
 }
 
 impl AgentExecutor {
     /// Create a new agent executor
     pub fn new(db: PgPool) -> Self {
-        Self { db }
+        Self {
+            db,
+            event_broadcaster: None,
+        }
+    }
+
+    /// Create a new agent executor with event broadcasting
+    pub fn with_events(db: PgPool, event_broadcaster: EventBroadcaster) -> Self {
+        Self {
+            db,
+            event_broadcaster: Some(event_broadcaster),
+        }
     }
 
     /// Execute an agent asynchronously
@@ -38,6 +51,7 @@ impl AgentExecutor {
     /// 2. Spawns the miyabi CLI process
     /// 3. Streams logs to database in real-time
     /// 4. Updates execution status on completion
+    /// 5. Broadcasts events for real-time monitoring
     pub async fn execute_agent(
         &self,
         execution_id: Uuid,
@@ -47,12 +61,30 @@ impl AgentExecutor {
         options: Option<ExecutionOptions>,
     ) -> Result<()> {
         let db = self.db.clone();
+        let event_broadcaster = self.event_broadcaster.clone();
+
+        // Broadcast execution started event
+        if let Some(ref broadcaster) = event_broadcaster {
+            broadcaster.execution_started(
+                execution_id,
+                repository_id,
+                issue_number,
+                agent_type.clone(),
+            );
+        }
 
         // Spawn background task for agent execution
         tokio::spawn(async move {
-            if let Err(e) =
-                Self::run_agent_execution(db, execution_id, repository_id, issue_number, &agent_type, options)
-                    .await
+            if let Err(e) = Self::run_agent_execution(
+                db,
+                execution_id,
+                repository_id,
+                issue_number,
+                &agent_type,
+                options,
+                event_broadcaster,
+            )
+            .await
             {
                 error!("Agent execution failed: {}", e);
             }
@@ -69,6 +101,7 @@ impl AgentExecutor {
         issue_number: i32,
         agent_type: &str,
         options: Option<ExecutionOptions>,
+        event_broadcaster: Option<EventBroadcaster>,
     ) -> Result<()> {
         // Update status to running
         sqlx::query(
@@ -199,6 +232,11 @@ impl AgentExecutor {
             )
             .await?;
 
+            // Broadcast completion event
+            if let Some(ref broadcaster) = event_broadcaster {
+                broadcaster.execution_completed(execution_id, None, None);
+            }
+
             info!("Agent execution completed: id={}", execution_id);
         } else {
             let error_message = format!("Agent process exited with code: {:?}", output.code());
@@ -214,6 +252,11 @@ impl AgentExecutor {
             .bind(&error_message)
             .execute(&db)
             .await?;
+
+            // Broadcast failure event
+            if let Some(ref broadcaster) = event_broadcaster {
+                broadcaster.execution_failed(execution_id, error_message.clone());
+            }
 
             Self::log_message(&db, execution_id, "ERROR", &error_message, None).await?;
 

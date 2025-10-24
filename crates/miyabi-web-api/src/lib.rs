@@ -24,6 +24,7 @@ pub mod auth;
 pub mod config;
 pub mod database;
 pub mod error;
+pub mod events;
 pub mod middleware;
 pub mod models;
 pub mod routes;
@@ -112,6 +113,8 @@ pub struct AppState {
     pub jwt_secret: String,
     /// WebSocket manager
     pub ws_manager: Arc<websocket::WebSocketManager>,
+    /// Event broadcaster for real-time updates
+    pub event_broadcaster: events::EventBroadcaster,
 }
 
 /// Creates the Axum application with all routes and middleware
@@ -139,12 +142,16 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // Create WebSocket manager
     let ws_manager = Arc::new(websocket::WebSocketManager::new());
 
+    // Create event broadcaster
+    let event_broadcaster = events::EventBroadcaster::new();
+
     // Create shared state
     let state = AppState {
         db,
         config: Arc::new(config.clone()),
         jwt_secret: config.jwt_secret.clone(),
         ws_manager,
+        event_broadcaster,
     };
 
     // Configure CORS
