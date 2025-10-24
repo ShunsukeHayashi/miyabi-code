@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Stars, Text, Line } from "@react-three/drei";
-import * as THREE from "three";
+import React, { useMemo, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Stars, Text, Line, Html } from '@react-three/drei';
+import * as THREE from 'three';
 
 // Task data type
 interface Task {
@@ -218,6 +218,7 @@ function TaskStar({
   onSelect: () => void;
 }) {
   const { task, position } = taskVector;
+  const [isHovered, setIsHovered] = useState(false);
 
   // Size calculation (extra large)
   const baseSize = Math.log(task.estimatedMinutes + 1) * 0.3 + 1.5; // More than 2x scale
@@ -269,7 +270,13 @@ function TaskStar({
       </Text>
 
       {/* 🎌 中央に大きな球体（タスクの核心・意味の惑星） */}
-      <mesh>
+      <mesh
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setIsHovered(true);
+        }}
+        onPointerOut={() => setIsHovered(false)}
+      >
         <sphereGeometry args={[size * 0.5, 32, 32]} />
         <meshStandardMaterial
           color={color}
@@ -289,6 +296,51 @@ function TaskStar({
           opacity={0.03 * opacity} // 関連度に応じて透明化
         />
       </mesh>
+
+      {/* 🎯 Hover Tooltip */}
+      {isHovered && (
+        <Html position={[0, size * 2, 0]} center distanceFactor={10}>
+          <div
+            style={{
+              background: 'rgba(0, 0, 0, 0.85)',
+              color: '#fff',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: `2px solid ${color}`,
+              minWidth: '220px',
+              maxWidth: '320px',
+              fontSize: '13px',
+              fontFamily: '"Noto Sans JP", sans-serif',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '14px', color }}>
+              {task.title}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '6px' }}>
+              <span style={{ opacity: 0.7 }}>Status:</span> {STATUS_NAMES[task.status]}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '6px' }}>
+              <span style={{ opacity: 0.7 }}>Priority:</span> {task.priority}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '6px' }}>
+              <span style={{ opacity: 0.7 }}>Time:</span> {task.estimatedMinutes}min
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '6px' }}>
+              <span style={{ opacity: 0.7 }}>Module:</span> {task.module}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '6px' }}>
+              <span style={{ opacity: 0.7 }}>Layer:</span> {task.layer}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9 }}>
+              <span style={{ opacity: 0.7 }}>Links:</span> {taskVector.semanticLinks.length}
+            </div>
+          </div>
+        </Html>
+      )}
 
     </group>
   );
