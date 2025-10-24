@@ -57,7 +57,7 @@ pulldown-cmark = "0.9"
 regex = "1.10"
 
 # AST parsing
-tree-sitter = "0.20"
+tree-sitter = "0.22"
 tree-sitter-rust = "0.20"
 
 # HTTP Server (optional, for Web UI dashboard)
