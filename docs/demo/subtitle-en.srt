@@ -1,0 +1,144 @@
+1
+00:00:00,000 --> 00:00:05,000
+Hello developers!
+Are you tired of daily issue management?
+
+2
+00:00:05,000 --> 00:00:12,000
+Miyabi is a fully autonomous development framework
+that automatically writes code, runs tests,
+
+3
+00:00:12,000 --> 00:00:18,000
+and creates Pull Requests -
+just by creating a GitHub Issue.
+
+4
+00:00:18,000 --> 00:00:23,000
+Today, I'll show you the power of Miyabi
+in just 3 minutes.
+
+5
+00:00:30,000 --> 00:00:35,000
+Installation is incredibly simple.
+
+6
+00:00:35,000 --> 00:00:42,000
+First, install Rust.
+Then, clone Miyabi,
+
+7
+00:00:42,000 --> 00:00:48,000
+and run cargo build.
+
+8
+00:00:48,000 --> 00:00:54,000
+That's it! 21 specialized agents
+join your development team.
+
+9
+00:01:00,000 --> 00:01:05,000
+Let's see it in action.
+
+10
+00:01:05,000 --> 00:01:12,000
+We create Issue #270:
+"Enable TypeScript strict mode"
+
+11
+00:01:12,000 --> 00:01:18,000
+Then, we run just one command:
+miyabi work-on 270
+
+12
+00:01:18,000 --> 00:01:24,000
+Four specialized agents
+start working in sequence.
+
+13
+00:01:24,000 --> 00:01:30,000
+First, "Coordinator" decomposes the task.
+
+14
+00:01:30,000 --> 00:01:36,000
+Then, "CodeGen" implements the code.
+
+15
+00:01:36,000 --> 00:01:42,000
+Next, "Review" checks the quality.
+
+16
+00:01:42,000 --> 00:01:48,000
+Finally, "PR" creates the Pull Request.
+
+17
+00:01:48,000 --> 00:01:54,000
+In just 10 minutes,
+a review-ready PR is complete.
+
+18
+00:02:00,000 --> 00:02:06,000
+Miyabi includes 21 unique
+specialized agents.
+
+19
+00:02:06,000 --> 00:02:12,000
+The coding team consists of:
+Coordinator - Task orchestration
+
+20
+00:02:12,000 --> 00:02:18,000
+CodeGen - Code generation
+Review - Quality review
+
+21
+00:02:18,000 --> 00:02:24,000
+Issue - Issue analysis
+PR - Pull request creation
+
+22
+00:02:24,000 --> 00:02:30,000
+Deployment - Deployment automation
+Refresher - State monitoring
+
+23
+00:02:30,000 --> 00:02:36,000
+Additionally, the business team has 14 agents
+automating everything from strategic planning
+
+24
+00:02:36,000 --> 00:02:42,000
+to marketing and sales.
+
+25
+00:02:42,000 --> 00:02:48,000
+With Miyabi, your team's productivity
+improves dramatically.
+
+26
+00:02:48,000 --> 00:02:54,000
+From issue creation to deployment,
+fully automated.
+
+27
+00:02:54,000 --> 00:03:00,000
+Developers can focus on
+truly important decisions.
+
+28
+00:03:00,000 --> 00:03:06,000
+Miyabi is completely open source.
+
+29
+00:03:06,000 --> 00:03:12,000
+Star us on GitHub
+and start for free today.
+
+30
+00:03:12,000 --> 00:03:18,000
+Ready to revolutionize
+your development workflow?
+
+31
+00:03:18,000 --> 00:03:24,000
+Thank you for watching!
