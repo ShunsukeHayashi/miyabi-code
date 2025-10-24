@@ -13,3 +13,21 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all
       - run: cargo build --release
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run E2E Tests
+        run: cargo test --package miyabi-e2e-tests
+        env:
+          RUST_LOG: info
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-reports
+          path: |
+            **/logs/
+            **/reports/

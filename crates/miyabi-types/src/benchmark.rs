@@ -509,4 +509,275 @@ mod tests {
         assert_eq!(result.resolve_rate(), 0.0);
         assert_eq!(result.error, Some("Timeout".to_string()));
     }
+
+    #[test]
+    fn test_swebench_instance_serialization() {
+        let instance = SWEBenchInstance {
+            instance_id: "test__test-1".to_string(),
+            repo: "test/test".to_string(),
+            base_commit: "abc123def456".to_string(),
+            problem_statement: "Fix bug".to_string(),
+            patch: "diff --git".to_string(),
+            test_patch: "test diff".to_string(),
+            fail_to_pass: vec!["test1".to_string()],
+            pass_to_pass: vec!["test2".to_string()],
+            repo_language: Some("python".to_string()),
+            requirements: Some("Django>=3.0".to_string()),
+        };
+
+        let json = serde_json::to_string(&instance).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["instance_id"], "test__test-1");
+        assert_eq!(parsed["repo"], "test/test");
+    }
+
+    #[test]
+    fn test_swebench_instance_roundtrip() {
+        let instance = SWEBenchInstance {
+            instance_id: "django__django-12345".to_string(),
+            repo: "django/django".to_string(),
+            base_commit: "abc123".to_string(),
+            problem_statement: "Fix auth".to_string(),
+            patch: "diff".to_string(),
+            test_patch: "test".to_string(),
+            fail_to_pass: vec!["t1".to_string()],
+            pass_to_pass: vec!["t2".to_string()],
+            repo_language: Some("python".to_string()),
+            requirements: None,
+        };
+
+        let json = serde_json::to_string(&instance).unwrap();
+        let deserialized: SWEBenchInstance = serde_json::from_str(&json).unwrap();
+        assert_eq!(instance.instance_id, deserialized.instance_id);
+        assert_eq!(instance.repo, deserialized.repo);
+    }
+
+    #[test]
+    fn test_patch_output_serialization() {
+        let patch = PatchOutput {
+            instance_id: "test-123".to_string(),
+            model_patch: "diff --git a/file.py".to_string(),
+            model_name_or_path: "miyabi-v1".to_string(),
+        };
+
+        let json = serde_json::to_string(&patch).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["instance_id"], "test-123");
+        assert_eq!(parsed["model_name_or_path"], "miyabi-v1");
+    }
+
+    #[test]
+    fn test_patch_output_roundtrip() {
+        let patch = PatchOutput {
+            instance_id: "id-456".to_string(),
+            model_patch: "patch content".to_string(),
+            model_name_or_path: "model-v2".to_string(),
+        };
+
+        let json = serde_json::to_string(&patch).unwrap();
+        let deserialized: PatchOutput = serde_json::from_str(&json).unwrap();
+        assert_eq!(patch.instance_id, deserialized.instance_id);
+        assert_eq!(patch.model_patch, deserialized.model_patch);
+    }
+
+    #[test]
+    fn test_evaluation_result_partial_success() {
+        let result = EvaluationResult::success("test-789".to_string(), 3, 5, 10, 10, 150.0);
+        assert!(!result.resolved); // Not fully resolved
+        assert_eq!(result.resolve_rate(), 0.0);
+        assert_eq!(result.fail_to_pass_count, 3);
+        assert_eq!(result.fail_to_pass_total, 5);
+    }
+
+    #[test]
+    fn test_evaluation_result_roundtrip() {
+        let result = EvaluationResult {
+            instance_id: "test-1".to_string(),
+            resolved: true,
+            fail_to_pass_count: 5,
+            fail_to_pass_total: 5,
+            pass_to_pass_count: 10,
+            pass_to_pass_total: 10,
+            error: None,
+            execution_time: 120.5,
+        };
+
+        let json = serde_json::to_string(&result).unwrap();
+        let deserialized: EvaluationResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(result.instance_id, deserialized.instance_id);
+        assert_eq!(result.resolved, deserialized.resolved);
+    }
+
+    #[test]
+    fn test_language_stats_serialization() {
+        let stats = LanguageStats {
+            total: 100,
+            resolved: 75,
+            resolve_rate: 0.75,
+        };
+
+        let json = serde_json::to_string(&stats).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["total"], 100);
+        assert_eq!(parsed["resolved"], 75);
+    }
+
+    #[test]
+    fn test_repository_stats_serialization() {
+        let stats = RepositoryStats {
+            total: 50,
+            resolved: 40,
+            resolve_rate: 0.8,
+        };
+
+        let json = serde_json::to_string(&stats).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["total"], 50);
+        assert_eq!(parsed["resolve_rate"], 0.8);
+    }
+
+    #[test]
+    fn test_benchmark_summary_from_results() {
+        let instances = vec![
+            SWEBenchInstance {
+                instance_id: "test1".to_string(),
+                repo: "repo1/repo1".to_string(),
+                base_commit: "abc".to_string(),
+                problem_statement: "Fix".to_string(),
+                patch: "patch".to_string(),
+                test_patch: "test".to_string(),
+                fail_to_pass: vec![],
+                pass_to_pass: vec![],
+                repo_language: Some("python".to_string()),
+                requirements: None,
+            },
+            SWEBenchInstance {
+                instance_id: "test2".to_string(),
+                repo: "repo2/repo2".to_string(),
+                base_commit: "def".to_string(),
+                problem_statement: "Fix".to_string(),
+                patch: "patch".to_string(),
+                test_patch: "test".to_string(),
+                fail_to_pass: vec![],
+                pass_to_pass: vec![],
+                repo_language: Some("go".to_string()),
+                requirements: None,
+            },
+        ];
+
+        let results = vec![
+            EvaluationResult::success("test1".to_string(), 5, 5, 10, 10, 100.0),
+            EvaluationResult::failure("test2".to_string(), "Error".to_string(), 50.0),
+        ];
+
+        let summary = BenchmarkSummary::from_results(
+            "miyabi".to_string(),
+            "swe-bench".to_string(),
+            "test".to_string(),
+            &results,
+            &instances,
+        );
+
+        assert_eq!(summary.total_instances, 2);
+        assert_eq!(summary.resolved_count, 1);
+        assert_eq!(summary.resolve_rate, 0.5);
+        assert_eq!(summary.errors, 1);
+        assert!(summary.by_language.contains_key("python"));
+        assert!(summary.by_language.contains_key("go"));
+    }
+
+    #[test]
+    fn test_benchmark_summary_serialization() {
+        use std::collections::HashMap;
+
+        let summary = BenchmarkSummary {
+            model: "miyabi-v1".to_string(),
+            dataset: "swe-bench".to_string(),
+            split: "test".to_string(),
+            total_instances: 100,
+            resolved_count: 75,
+            resolve_rate: 0.75,
+            fail_to_pass_total: 300,
+            pass_to_pass_total: 500,
+            errors: 5,
+            avg_execution_time: 120.5,
+            by_language: HashMap::new(),
+            by_repository: HashMap::new(),
+        };
+
+        let json = serde_json::to_string(&summary).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["model"], "miyabi-v1");
+        assert_eq!(parsed["total_instances"], 100);
+        assert_eq!(parsed["resolve_rate"], 0.75);
+    }
+
+    #[test]
+    fn test_deserialize_fail_to_pass_as_array() {
+        let json = r#"{
+            "instance_id": "test",
+            "repo": "test/test",
+            "base_commit": "abc",
+            "problem_statement": "Fix",
+            "patch": "patch",
+            "test_patch": "test",
+            "fail_to_pass": ["test1", "test2"],
+            "pass_to_pass": ["test3"],
+            "repo_language": "python"
+        }"#;
+
+        let instance: SWEBenchInstance = serde_json::from_str(json).unwrap();
+        assert_eq!(instance.fail_to_pass.len(), 2);
+        assert_eq!(instance.pass_to_pass.len(), 1);
+    }
+
+    #[test]
+    fn test_deserialize_fail_to_pass_as_escaped_string() {
+        let json = r#"{
+            "instance_id": "test",
+            "repo": "test/test",
+            "base_commit": "abc",
+            "problem_statement": "Fix",
+            "patch": "patch",
+            "test_patch": "test",
+            "fail_to_pass": "[\"test1\", \"test2\"]",
+            "pass_to_pass": "[\"test3\"]",
+            "repo_language": "python"
+        }"#;
+
+        let instance: SWEBenchInstance = serde_json::from_str(json).unwrap();
+        assert_eq!(instance.fail_to_pass.len(), 2);
+        assert_eq!(instance.fail_to_pass[0], "test1");
+    }
+
+    #[test]
+    fn test_swebench_instance_equality() {
+        let instance1 = SWEBenchInstance {
+            instance_id: "test".to_string(),
+            repo: "test/test".to_string(),
+            base_commit: "abc".to_string(),
+            problem_statement: "Fix".to_string(),
+            patch: "patch".to_string(),
+            test_patch: "test".to_string(),
+            fail_to_pass: vec![],
+            pass_to_pass: vec![],
+            repo_language: Some("python".to_string()),
+            requirements: None,
+        };
+
+        let instance2 = instance1.clone();
+        assert_eq!(instance1, instance2);
+    }
+
+    #[test]
+    fn test_patch_output_equality() {
+        let patch1 = PatchOutput {
+            instance_id: "test".to_string(),
+            model_patch: "patch".to_string(),
+            model_name_or_path: "model".to_string(),
+        };
+
+        let patch2 = patch1.clone();
+        assert_eq!(patch1, patch2);
+    }
 }

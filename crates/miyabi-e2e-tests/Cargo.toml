@@ -1,0 +1,67 @@
+[package]
+name = "miyabi-e2e-tests"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "End-to-end test framework and utilities for Miyabi"
+
+[lib]
+path = "src/lib.rs"
+
+[[test]]
+name = "full_agent_workflow"
+path = "tests/full_agent_workflow.rs"
+harness = true
+
+[dependencies]
+# Workspace dependencies
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
+miyabi-github = { path = "../miyabi-github" }
+miyabi-agents = { path = "../miyabi-agents" }
+miyabi-agent-core = { path = "../miyabi-agent-core" }
+miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator" }
+miyabi-agent-codegen = { path = "../miyabi-agent-codegen" }
+miyabi-agent-review = { path = "../miyabi-agent-review" }
+miyabi-agent-workflow = { path = "../miyabi-agent-workflow" }
+miyabi-worktree = { path = "../miyabi-worktree" }
+
+# Async runtime
+tokio = { workspace = true, features = ["test-util"] }
+async-trait.workspace = true
+
+# HTTP server for mocking
+axum = "0.7"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace"] }
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Error handling
+anyhow.workspace = true
+thiserror.workspace = true
+
+# Testing utilities
+tempfile.workspace = true
+wiremock = "0.6"
+
+# Logging
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# Date/Time
+chrono.workspace = true
+
+# File system
+walkdir.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+serial_test.workspace = true
+tokio-test = "0.4"

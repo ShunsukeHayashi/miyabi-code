@@ -27,6 +27,7 @@ members = [
     "crates/miyabi-orchestrator",  # Merged: miyabi-scheduler + miyabi-feedback-loop
     # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
+    "crates/miyabi-e2e-tests",  # E2E test framework
 ]
 
 [workspace.package]

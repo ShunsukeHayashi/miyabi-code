@@ -856,4 +856,330 @@ mod tests {
         assert!(plan.set_concurrency(0).is_err());
         assert_eq!(plan.concurrency, 10); // Concurrency unchanged
     }
+
+    // ========================================================================
+    // DAG Validation Tests
+    // ========================================================================
+
+    #[test]
+    fn test_dag_validate_success() {
+        use crate::task::{Task, TaskType};
+
+        let task = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let dag = DAG {
+            nodes: vec![task],
+            edges: vec![],
+            levels: vec![vec!["task-1".to_string()]],
+        };
+
+        assert!(dag.validate().is_ok());
+    }
+
+    #[test]
+    fn test_dag_validate_empty_nodes() {
+        let dag = DAG {
+            nodes: vec![],
+            edges: vec![],
+            levels: vec![],
+        };
+
+        let result = dag.validate();
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("cannot have zero nodes"));
+    }
+
+    #[test]
+    fn test_dag_validate_cycle_detected() {
+        use crate::task::{Task, TaskType};
+
+        let task1 = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let task2 = Task::new(
+            "task-2".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        // Create invalid DAG: 2 nodes but only 1 in levels (simulating cycle)
+        let dag = DAG {
+            nodes: vec![task1, task2],
+            edges: vec![],
+            levels: vec![vec!["task-1".to_string()]],
+        };
+
+        let result = dag.validate();
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Circular dependency"));
+    }
+
+    #[test]
+    fn test_dag_validate_edge_from_nonexistent() {
+        use crate::task::{Task, TaskType};
+
+        let task = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let dag = DAG {
+            nodes: vec![task],
+            edges: vec![Edge {
+                from: "nonexistent".to_string(),
+                to: "task-1".to_string(),
+            }],
+            levels: vec![vec!["task-1".to_string()]],
+        };
+
+        let result = dag.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("non-existent 'from' node"));
+        assert!(err_msg.contains("nonexistent"));
+    }
+
+    #[test]
+    fn test_dag_validate_edge_to_nonexistent() {
+        use crate::task::{Task, TaskType};
+
+        let task = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let dag = DAG {
+            nodes: vec![task],
+            edges: vec![Edge {
+                from: "task-1".to_string(),
+                to: "nonexistent".to_string(),
+            }],
+            levels: vec![vec!["task-1".to_string()]],
+        };
+
+        let result = dag.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("non-existent 'to' node"));
+        assert!(err_msg.contains("nonexistent"));
+    }
+
+    #[test]
+    fn test_dag_validate_node_not_in_levels() {
+        use crate::task::{Task, TaskType};
+
+        let task1 = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let task2 = Task::new(
+            "task-2".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let dag = DAG {
+            nodes: vec![task1, task2],
+            edges: vec![],
+            levels: vec![vec!["task-1".to_string()]], // task-2 missing
+        };
+
+        let result = dag.validate();
+        assert!(result.is_err());
+        // Note: This may trigger cycle detection since task-2 is not in levels
+        // Both "Circular dependency" and "not assigned to any level" are valid errors
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("Circular dependency") || err_msg.contains("not assigned to any level")
+        );
+    }
+
+    #[test]
+    fn test_dag_validate_duplicate_in_levels() {
+        use crate::task::{Task, TaskType};
+
+        let task = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let dag = DAG {
+            nodes: vec![task],
+            edges: vec![],
+            levels: vec![
+                vec!["task-1".to_string()],
+                vec!["task-1".to_string()], // Duplicate
+            ],
+        };
+
+        let result = dag.validate();
+        assert!(result.is_err());
+        // This may trigger cycle detection due to having more level entries than nodes
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("Duplicate nodes found") || err_msg.contains("Circular dependency")
+        );
+    }
+
+    #[test]
+    fn test_dag_validate_complex_valid_dag() {
+        use crate::task::{Task, TaskType};
+
+        let task1 = Task::new(
+            "task-1".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let task2 = Task::new(
+            "task-2".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let task3 = Task::new(
+            "task-3".to_string(),
+            "Test".to_string(),
+            "Desc".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let dag = DAG {
+            nodes: vec![task1, task2, task3],
+            edges: vec![
+                Edge {
+                    from: "task-1".to_string(),
+                    to: "task-2".to_string(),
+                },
+                Edge {
+                    from: "task-1".to_string(),
+                    to: "task-3".to_string(),
+                },
+            ],
+            levels: vec![
+                vec!["task-1".to_string()],
+                vec!["task-2".to_string(), "task-3".to_string()],
+            ],
+        };
+
+        assert!(dag.validate().is_ok());
+    }
+
+    // ========================================================================
+    // Additional Edge Case Tests
+    // ========================================================================
+
+    #[test]
+    fn test_progress_status_from_counts_all_zero() {
+        let progress = ProgressStatus::from_counts(0, 0, 0, 0);
+        assert_eq!(progress.total, 0);
+        assert_eq!(progress.percentage, 0.0);
+    }
+
+    #[test]
+    fn test_progress_status_from_counts_all_completed() {
+        let progress = ProgressStatus::from_counts(10, 0, 0, 0);
+        assert_eq!(progress.total, 10);
+        assert_eq!(progress.percentage, 100.0);
+    }
+
+    #[test]
+    fn test_execution_summary_roundtrip() {
+        let summary = ExecutionSummary {
+            total: 100,
+            completed: 90,
+            failed: 5,
+            escalated: 5,
+            success_rate: 90.0,
+        };
+
+        let json = serde_json::to_string(&summary).unwrap();
+        let deserialized: ExecutionSummary = serde_json::from_str(&json).unwrap();
+        assert_eq!(summary.total, deserialized.total);
+        assert_eq!(summary.completed, deserialized.completed);
+    }
+
+    #[test]
+    fn test_worker_pool_roundtrip() {
+        let pool = WorkerPool {
+            max_concurrency: 10,
+            active_workers: 5,
+            queue: vec![],
+            running: vec![],
+            completed: vec![],
+            failed: vec![],
+        };
+
+        let json = serde_json::to_string(&pool).unwrap();
+        let deserialized: WorkerPool = serde_json::from_str(&json).unwrap();
+        assert_eq!(pool.max_concurrency, deserialized.max_concurrency);
+        assert_eq!(pool.active_workers, deserialized.active_workers);
+    }
+
+    #[test]
+    fn test_progress_status_roundtrip() {
+        let progress = ProgressStatus {
+            total: 50,
+            completed: 25,
+            running: 10,
+            waiting: 10,
+            failed: 5,
+            percentage: 50.0,
+        };
+
+        let json = serde_json::to_string(&progress).unwrap();
+        let deserialized: ProgressStatus = serde_json::from_str(&json).unwrap();
+        assert_eq!(progress.total, deserialized.total);
+        assert_eq!(progress.percentage, deserialized.percentage);
+    }
 }

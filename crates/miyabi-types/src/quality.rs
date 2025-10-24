@@ -648,4 +648,292 @@ mod tests {
         assert_eq!(parsed["approved"], false);
         assert_eq!(parsed["escalation_target"], "TechLead");
     }
+
+    // ========================================================================
+    // QualityReport Validation Tests
+    // ========================================================================
+
+    #[test]
+    fn test_quality_report_validate_success() {
+        let report = QualityReport {
+            score: 85,
+            passed: true,
+            issues: vec![],
+            recommendations: vec![],
+            breakdown: QualityBreakdown {
+                clippy_score: 85,
+                rustc_score: 85,
+                security_score: 85,
+                test_coverage_score: 85,
+            },
+        };
+        assert!(report.validate().is_ok());
+    }
+
+    #[test]
+    fn test_quality_report_validate_score_too_high() {
+        let report = QualityReport {
+            score: 101,
+            passed: true,
+            issues: vec![],
+            recommendations: vec![],
+            breakdown: QualityBreakdown {
+                clippy_score: 100,
+                rustc_score: 100,
+                security_score: 100,
+                test_coverage_score: 100,
+            },
+        };
+        let result = report.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("out of range"));
+    }
+
+    #[test]
+    fn test_quality_report_validate_passed_inconsistency() {
+        let report = QualityReport {
+            score: 85,
+            passed: false, // Should be true when score >= 80
+            issues: vec![],
+            recommendations: vec![],
+            breakdown: QualityBreakdown {
+                clippy_score: 85,
+                rustc_score: 85,
+                security_score: 85,
+                test_coverage_score: 85,
+            },
+        };
+        let result = report.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Inconsistent passed flag"));
+    }
+
+    #[test]
+    fn test_quality_report_validate_passed_inconsistency_below_threshold() {
+        let report = QualityReport {
+            score: 75,
+            passed: true, // Should be false when score < 80
+            issues: vec![],
+            recommendations: vec![],
+            breakdown: QualityBreakdown {
+                clippy_score: 75,
+                rustc_score: 75,
+                security_score: 75,
+                test_coverage_score: 75,
+            },
+        };
+        let result = report.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Inconsistent passed flag"));
+    }
+
+    #[test]
+    fn test_quality_report_validate_breakdown_invalid() {
+        let report = QualityReport {
+            score: 85,
+            passed: true,
+            issues: vec![],
+            recommendations: vec![],
+            breakdown: QualityBreakdown {
+                clippy_score: 101, // Invalid
+                rustc_score: 85,
+                security_score: 85,
+                test_coverage_score: 85,
+            },
+        };
+        let result = report.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("out of range"));
+    }
+
+    // ========================================================================
+    // QualityBreakdown Validation Tests
+    // ========================================================================
+
+    #[test]
+    fn test_quality_breakdown_validate_success() {
+        let breakdown = QualityBreakdown {
+            clippy_score: 90,
+            rustc_score: 85,
+            security_score: 95,
+            test_coverage_score: 80,
+        };
+        assert!(breakdown.validate().is_ok());
+    }
+
+    #[test]
+    fn test_quality_breakdown_validate_clippy_too_high() {
+        let breakdown = QualityBreakdown {
+            clippy_score: 101,
+            rustc_score: 85,
+            security_score: 95,
+            test_coverage_score: 80,
+        };
+        let result = breakdown.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("clippy_score"));
+    }
+
+    #[test]
+    fn test_quality_breakdown_validate_rustc_too_high() {
+        let breakdown = QualityBreakdown {
+            clippy_score: 90,
+            rustc_score: 105,
+            security_score: 95,
+            test_coverage_score: 80,
+        };
+        let result = breakdown.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("rustc_score"));
+    }
+
+    #[test]
+    fn test_quality_breakdown_validate_security_too_high() {
+        let breakdown = QualityBreakdown {
+            clippy_score: 90,
+            rustc_score: 85,
+            security_score: 110,
+            test_coverage_score: 80,
+        };
+        let result = breakdown.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("security_score"));
+    }
+
+    #[test]
+    fn test_quality_breakdown_validate_coverage_too_high() {
+        let breakdown = QualityBreakdown {
+            clippy_score: 90,
+            rustc_score: 85,
+            security_score: 95,
+            test_coverage_score: 150,
+        };
+        let result = breakdown.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("test_coverage_score"));
+    }
+
+    #[test]
+    fn test_quality_breakdown_validate_boundary_values() {
+        // Test boundary values (0 and 100)
+        let breakdown = QualityBreakdown {
+            clippy_score: 0,
+            rustc_score: 100,
+            security_score: 50,
+            test_coverage_score: 100,
+        };
+        assert!(breakdown.validate().is_ok());
+    }
+
+    #[test]
+    fn test_quality_breakdown_average_score_edge_cases() {
+        // All zeros
+        let breakdown = QualityBreakdown {
+            clippy_score: 0,
+            rustc_score: 0,
+            security_score: 0,
+            test_coverage_score: 0,
+        };
+        assert_eq!(breakdown.average_score(), 0);
+
+        // All 100s
+        let breakdown = QualityBreakdown {
+            clippy_score: 100,
+            rustc_score: 100,
+            security_score: 100,
+            test_coverage_score: 100,
+        };
+        assert_eq!(breakdown.average_score(), 100);
+
+        // Rounding test
+        let breakdown = QualityBreakdown {
+            clippy_score: 91,
+            rustc_score: 92,
+            security_score: 93,
+            test_coverage_score: 94,
+        };
+        assert_eq!(breakdown.average_score(), 92); // (91+92+93+94)/4 = 92.5 -> 92
+    }
+
+    // ========================================================================
+    // Additional Serialization Tests
+    // ========================================================================
+
+    #[test]
+    fn test_quality_issue_roundtrip() {
+        let issue = QualityIssue {
+            issue_type: QualityIssueType::Typescript,
+            severity: QualitySeverity::High,
+            message: "Type error".to_string(),
+            file: Some("test.ts".to_string()),
+            line: Some(10),
+            column: Some(5),
+            score_impact: 10,
+        };
+
+        let json = serde_json::to_string(&issue).unwrap();
+        let deserialized: QualityIssue = serde_json::from_str(&json).unwrap();
+        assert_eq!(issue.issue_type, deserialized.issue_type);
+        assert_eq!(issue.severity, deserialized.severity);
+        assert_eq!(issue.message, deserialized.message);
+    }
+
+    #[test]
+    fn test_review_comment_roundtrip() {
+        let comment = ReviewComment {
+            file: "src/main.rs".to_string(),
+            line: 42,
+            severity: QualitySeverity::Medium,
+            message: "Consider refactoring".to_string(),
+            suggestion: Some("Use match instead".to_string()),
+        };
+
+        let json = serde_json::to_string(&comment).unwrap();
+        let deserialized: ReviewComment = serde_json::from_str(&json).unwrap();
+        assert_eq!(comment.file, deserialized.file);
+        assert_eq!(comment.line, deserialized.line);
+    }
+
+    #[test]
+    fn test_review_request_roundtrip() {
+        let request = ReviewRequest {
+            files: vec!["a.rs".to_string(), "b.rs".to_string()],
+            branch: "feature/test".to_string(),
+            context: "Testing".to_string(),
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        let deserialized: ReviewRequest = serde_json::from_str(&json).unwrap();
+        assert_eq!(request.files, deserialized.files);
+        assert_eq!(request.branch, deserialized.branch);
+    }
+
+    #[test]
+    fn test_review_result_roundtrip() {
+        let report = QualityReport {
+            score: 90,
+            passed: true,
+            issues: vec![],
+            recommendations: vec![],
+            breakdown: QualityBreakdown {
+                clippy_score: 90,
+                rustc_score: 90,
+                security_score: 90,
+                test_coverage_score: 90,
+            },
+        };
+
+        let result = ReviewResult {
+            quality_report: report,
+            approved: true,
+            escalation_required: false,
+            escalation_target: None,
+            comments: vec![],
+        };
+
+        let json = serde_json::to_string(&result).unwrap();
+        let deserialized: ReviewResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(result.approved, deserialized.approved);
+        assert_eq!(result.escalation_required, deserialized.escalation_required);
+    }
 }
