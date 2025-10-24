@@ -1,1 +1,2 @@
-// Data models will go here
+/// LINE Messaging API models
+pub mod line;

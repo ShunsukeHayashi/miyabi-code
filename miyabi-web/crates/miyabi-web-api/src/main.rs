@@ -1,4 +1,5 @@
 use axum::{
+    middleware::from_fn,
     routing::{get, post},
     Router,
 };
@@ -10,6 +11,9 @@ mod handlers;
 mod middleware;
 mod models;
 mod services;
+
+use handlers::line::{handle_webhook, AppState};
+use middleware::line_signature::verify_line_signature;
 
 #[tokio::main]
 async fn main() {
@@ -25,6 +29,13 @@ async fn main() {
     // Load environment variables
     dotenvy::dotenv().ok();
 
+    // Initialize LINE Bot state
+    let line_channel_access_token = std::env::var("LINE_CHANNEL_ACCESS_TOKEN")
+        .expect("LINE_CHANNEL_ACCESS_TOKEN must be set");
+    let line_app_state = AppState::new(line_channel_access_token);
+
+    tracing::info!("LINE Bot initialized with channel access token");
+
     // Build application router
     let app = Router::new()
         .route("/health", get(health_check))
@@ -36,6 +47,10 @@ async fn main() {
         .route("/api/auth/me", get(handlers::auth::get_current_user))
         .route("/api/auth/logout", post(handlers::auth::logout))
         .route("/api/auth/mock", post(handlers::auth::mock_auth))
+        // LINE Webhook (署名検証ミドルウェア付き)
+        .route("/api/line/webhook", post(handle_webhook))
+        .layer(from_fn(verify_line_signature))
+        .with_state(line_app_state)
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
