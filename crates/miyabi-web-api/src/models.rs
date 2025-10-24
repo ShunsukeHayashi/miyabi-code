@@ -206,6 +206,24 @@ pub struct WebSocketConnection {
     pub last_ping_at: DateTime<Utc>,
 }
 
+/// Execution log model
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct ExecutionLog {
+    /// Unique log ID
+    pub id: Uuid,
+    /// Execution ID
+    pub execution_id: Uuid,
+    /// Log level (DEBUG, INFO, WARN, ERROR)
+    pub log_level: String,
+    /// Log message
+    pub message: String,
+    /// Log timestamp
+    pub timestamp: DateTime<Utc>,
+    /// Additional metadata (JSON)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+}
+
 // DTOs (Data Transfer Objects)
 
 /// Create repository request
@@ -224,6 +242,23 @@ pub struct ExecuteAgentRequest {
     pub issue_number: i32,
     /// Agent type
     pub agent_type: AgentType,
+    /// Execution options
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub options: Option<ExecutionOptions>,
+}
+
+/// Execution options
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct ExecutionOptions {
+    /// Use Worktree for parallel execution
+    #[serde(default)]
+    pub use_worktree: bool,
+    /// Automatically create PR after completion
+    #[serde(default)]
+    pub auto_pr: bool,
+    /// Send Slack notification on completion
+    #[serde(default)]
+    pub slack_notify: bool,
 }
 
 /// Create workflow request

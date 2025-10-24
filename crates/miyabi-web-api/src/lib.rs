@@ -27,6 +27,7 @@ pub mod error;
 pub mod middleware;
 pub mod models;
 pub mod routes;
+pub mod services;
 pub mod websocket;
 
 use axum::{
@@ -100,6 +101,8 @@ pub struct AppState {
     pub config: Arc<AppConfig>,
     /// JWT secret for token signing
     pub jwt_secret: String,
+    /// WebSocket manager
+    pub ws_manager: Arc<websocket::WebSocketManager>,
 }
 
 /// Creates the Axum application with all routes and middleware
@@ -124,11 +127,15 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // Run migrations
     database::run_migrations(&db).await?;
 
+    // Create WebSocket manager
+    let ws_manager = Arc::new(websocket::WebSocketManager::new());
+
     // Create shared state
     let state = AppState {
         db,
         config: Arc::new(config.clone()),
         jwt_secret: config.jwt_secret.clone(),
+        ws_manager,
     };
 
     // Configure CORS
@@ -167,6 +174,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/agents/execute", post(routes::agents::execute_agent))
         .route("/agents/executions", get(routes::agents::list_executions))
         .route("/agents/executions/:id", get(routes::agents::get_execution))
+        .route("/agents/executions/:id/logs", get(routes::agents::get_execution_logs))
         // Workflow routes
         .route("/workflows", post(routes::workflows::create_workflow))
         .route("/workflows", get(routes::workflows::list_workflows))
