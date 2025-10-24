@@ -14,13 +14,10 @@ categories.workspace = true
 [dependencies]
 # Merged from miyabi-scheduler + miyabi-feedback-loop
 miyabi-types = { path = "../miyabi-types" }
-miyabi-agent-core = { path = "../miyabi-agent-core" }
 
 # Core dependencies
-anyhow.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-async-trait.workspace = true
 
 # Serialization
 serde.workspace = true
@@ -28,11 +25,6 @@ serde_json.workspace = true
 
 # Logging
 tracing.workspace = true
-tracing-subscriber.workspace = true
-
-# CLI & HTTP (from original orchestrator)
-clap.workspace = true
-axum = { version = "0.7", features = ["macros", "json"] }
 
 # UUID for task IDs
 uuid = { version = "1.11", features = ["v4", "serde"] }

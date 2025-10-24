@@ -13,7 +13,6 @@ sha2 = "0.10"
 hex = "0.4"
 subtle = "2.5"  # Constant-time comparison
 chrono = { workspace = true, features = ["serde"] }
-serde = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
 [dev-dependencies]

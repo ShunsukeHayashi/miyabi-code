@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useWebSocket, type AgentEvent } from '@/hooks/useWebSocket';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Wifi, WifiOff, Activity, CheckCircle2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -23,6 +24,7 @@ interface ExecutionState {
 
 export default function LiveDashboardPage() {
   const { status, lastEvent } = useWebSocket({ autoReconnect: true });
+  const { toast } = useToast();
   const [executions, setExecutions] = useState<Map<string, ExecutionState>>(new Map());
 
   // Update executions based on events
@@ -43,6 +45,12 @@ export default function LiveDashboardPage() {
             progress: 0,
             last_message: 'Starting execution...',
             started_at: lastEvent.timestamp,
+          });
+
+          // Show toast notification
+          toast({
+            title: 'Agent Started',
+            description: `${lastEvent.agent_type} started for issue #${lastEvent.issue_number}`,
           });
           break;
 
@@ -69,6 +77,14 @@ export default function LiveDashboardPage() {
               pr_number: lastEvent.pr_number,
               last_message: 'Execution completed successfully',
             });
+
+            // Show success toast
+            toast({
+              title: 'Agent Completed',
+              description: `${completedExec.agent_type} completed for issue #${completedExec.issue_number}${
+                lastEvent.quality_score ? ` (Score: ${lastEvent.quality_score}/100)` : ''
+              }`,
+            });
           }
           break;
 
@@ -81,6 +97,13 @@ export default function LiveDashboardPage() {
               completed_at: lastEvent.timestamp,
               error: lastEvent.error,
               last_message: `Failed: ${lastEvent.error}`,
+            });
+
+            // Show error toast
+            toast({
+              variant: 'destructive',
+              title: 'Agent Failed',
+              description: `${failedExec.agent_type} failed for issue #${failedExec.issue_number}: ${lastEvent.error}`,
             });
           }
           break;
@@ -98,7 +121,7 @@ export default function LiveDashboardPage() {
 
       return updated;
     });
-  }, [lastEvent]);
+  }, [lastEvent, toast]);
 
   const executionsList = Array.from(executions.values()).sort(
     (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime()

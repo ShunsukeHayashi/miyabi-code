@@ -13,7 +13,6 @@ readme = "../README.md"
 [dependencies]
 # Core dependencies
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
-miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
 
 # Async runtime
 tokio = { workspace = true }
@@ -32,9 +31,6 @@ reqwest = { workspace = true }
 
 # Logging
 tracing = { workspace = true }
-
-# Date/Time
-chrono = { workspace = true }
 
 # Regex for template variable extraction
 regex = "1.10"

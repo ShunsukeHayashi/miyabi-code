@@ -112,8 +112,10 @@ pub struct AppState {
     pub db: sqlx::PgPool,
     /// Application configuration
     pub config: Arc<AppConfig>,
-    /// JWT secret for token signing
+    /// JWT secret for token signing (deprecated, use jwt_manager instead)
     pub jwt_secret: String,
+    /// JWT manager for token creation and validation
+    pub jwt_manager: Arc<auth::JwtManager>,
     /// WebSocket manager
     pub ws_manager: Arc<websocket::WebSocketManager>,
     /// Event broadcaster for real-time updates
@@ -148,11 +150,18 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // Create event broadcaster
     let event_broadcaster = events::EventBroadcaster::new();
 
+    // Create JWT manager
+    let jwt_manager = Arc::new(auth::JwtManager::new(
+        &config.jwt_secret,
+        3600 * 24 * 7, // 7 days
+    ));
+
     // Create shared state
     let state = AppState {
         db,
         config: Arc::new(config.clone()),
         jwt_secret: config.jwt_secret.clone(),
+        jwt_manager,
         ws_manager,
         event_broadcaster,
     };

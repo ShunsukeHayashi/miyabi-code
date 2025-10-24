@@ -30,15 +30,12 @@ miyabi-orchestrator = { version = "0.1.1", path = "../miyabi-orchestrator" }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
-indicatif = { workspace = true }
-console = { workspace = true }
 dialoguer = { workspace = true }
 colored = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
 hostname = { workspace = true }
 async-trait = "0.1"
 dirs = "6.0"

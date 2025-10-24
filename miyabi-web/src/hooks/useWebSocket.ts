@@ -115,16 +115,24 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     setStatus('connecting');
 
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
-    let url = `${wsUrl}/api/v1/ws`;
+    let url = `${wsUrl}/ws`;
+    const params = new URLSearchParams();
 
     // Add execution ID as query parameter if provided
     if (executionId) {
-      url += `?execution_id=${executionId}`;
+      params.append('execution_id', executionId);
+    } else {
+      // Subscribe to all agent events for live dashboard
+      params.append('events', 'true');
     }
 
     // Add auth token as query parameter
     if (accessToken) {
-      url += `${executionId ? '&' : '?'}token=${accessToken}`;
+      params.append('token', accessToken);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
     }
 
     const ws = new WebSocket(url);

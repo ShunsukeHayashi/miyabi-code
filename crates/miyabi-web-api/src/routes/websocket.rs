@@ -18,35 +18,137 @@ use uuid::Uuid;
 pub struct WebSocketQuery {
     /// Optional execution ID to subscribe to logs
     pub execution_id: Option<Uuid>,
+    /// Subscribe to agent events (real-time monitoring)
+    #[serde(default)]
+    pub events: bool,
+    /// Optional JWT authentication token
+    pub token: Option<String>,
 }
 
 /// WebSocket handler
 ///
 /// Upgrades HTTP connection to WebSocket
-/// Supports real-time log streaming for agent executions
+/// Supports:
+/// - Real-time log streaming for agent executions (`execution_id` param)
+/// - Real-time agent event broadcasting (`events=true` param)
+/// - JWT authentication via `token` query parameter
 pub async fn websocket_handler(
     ws: WebSocketUpgrade,
     Query(query): Query<WebSocketQuery>,
     State(state): State<AppState>,
 ) -> Response {
-    // TODO: Implement WebSocket authentication
-    // For MVP, we'll accept connections without auth
-    let user_id = Uuid::new_v4(); // Placeholder
+    // Validate JWT token if provided
+    let user_id = if let Some(token) = &query.token {
+        match state.jwt_manager.validate_token(token) {
+            Ok(claims) => {
+                // Parse user_id from claims.sub
+                match Uuid::parse_str(&claims.sub) {
+                    Ok(id) => id,
+                    Err(e) => {
+                        tracing::warn!("Invalid user_id in JWT claims: {}", e);
+                        return axum::response::Response::builder()
+                            .status(401)
+                            .body("Invalid user_id in token".into())
+                            .unwrap();
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::warn!("WebSocket authentication failed: {}", e);
+                return axum::response::Response::builder()
+                    .status(401)
+                    .body("Authentication failed".into())
+                    .unwrap();
+            }
+        }
+    } else {
+        // For development/testing, allow connections without auth
+        // In production, you might want to make authentication mandatory
+        tracing::debug!("WebSocket connection without authentication (dev mode)");
+        Uuid::new_v4()
+    };
 
     ws.on_upgrade(move |socket| async move {
         tracing::info!(
-            "WebSocket connection established for user {}, execution_id: {:?}",
+            "WebSocket connection established for user {}, execution_id: {:?}, events: {}",
             user_id,
-            query.execution_id
+            query.execution_id,
+            query.events
         );
 
-        if let Some(execution_id) = query.execution_id {
+        if query.events {
+            // Subscribe to agent events (for live dashboard)
+            handle_agent_events(socket, state).await;
+        } else if let Some(execution_id) = query.execution_id {
+            // Subscribe to execution logs
             handle_execution_logs(socket, state, execution_id).await;
         } else {
             // General WebSocket connection
             state.ws_manager.handle_connection(socket, user_id).await;
         }
     })
+}
+
+/// Handle agent event broadcasting
+async fn handle_agent_events(socket: WebSocket, state: AppState) {
+    let (mut sender, mut receiver) = socket.split();
+
+    // Subscribe to event broadcaster
+    let mut event_rx = state.event_broadcaster.subscribe();
+
+    // Spawn task to forward events to WebSocket
+    let forward_task = tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                // Receive agent events and forward to WebSocket
+                Ok(event) = event_rx.recv() => {
+                    let event_json = match serde_json::to_string(&event) {
+                        Ok(json) => json,
+                        Err(e) => {
+                            tracing::error!("Failed to serialize event: {}", e);
+                            continue;
+                        }
+                    };
+
+                    if sender.send(Message::Text(event_json)).await.is_err() {
+                        tracing::info!("WebSocket connection closed");
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
+    // Handle incoming messages (ping/pong, close)
+    let receive_task = tokio::spawn(async move {
+        while let Some(Ok(msg)) = receiver.next().await {
+            match msg {
+                Message::Close(_) => {
+                    tracing::info!("WebSocket close message received");
+                    break;
+                }
+                Message::Ping(ping) => {
+                    // Pongs are handled automatically by axum
+                    tracing::debug!("Received ping: {:?}", ping);
+                }
+                Message::Text(text) => {
+                    tracing::debug!("Received text message: {}", text);
+                    // Could handle client commands here in the future
+                }
+                _ => {}
+            }
+        }
+    });
+
+    // Wait for either task to complete
+    tokio::select! {
+        _ = forward_task => {
+            tracing::info!("Event forwarding task completed");
+        }
+        _ = receive_task => {
+            tracing::info!("Message receiving task completed");
+        }
+    }
 }
 
 /// Handle execution log streaming
