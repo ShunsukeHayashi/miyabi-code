@@ -71,6 +71,8 @@ pub use error::{AppError, Result};
         routes::workflows::create_workflow,
         routes::workflows::list_workflows,
         routes::workflows::get_workflow,
+        routes::dashboard::get_dashboard_summary,
+        routes::dashboard::get_recent_executions,
     ),
     components(
         schemas(
@@ -80,6 +82,8 @@ pub use error::{AppError, Result};
             models::Workflow,
             models::AgentType,
             models::ExecutionStatus,
+            routes::dashboard::DashboardSummary,
+            routes::dashboard::RecentExecution,
         )
     ),
     tags(
@@ -87,6 +91,7 @@ pub use error::{AppError, Result};
         (name = "repositories", description = "Repository management"),
         (name = "agents", description = "Agent execution"),
         (name = "workflows", description = "Workflow management"),
+        (name = "dashboard", description = "Dashboard statistics"),
         (name = "health", description = "Health check"),
     )
 )]
@@ -179,6 +184,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/workflows", post(routes::workflows::create_workflow))
         .route("/workflows", get(routes::workflows::list_workflows))
         .route("/workflows/:id", get(routes::workflows::get_workflow))
+        // Dashboard routes
+        .route("/dashboard/summary", get(routes::dashboard::get_dashboard_summary))
+        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions))
         // WebSocket endpoint
         .route("/ws", get(routes::websocket::websocket_handler));
 
