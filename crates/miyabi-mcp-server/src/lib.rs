@@ -65,14 +65,25 @@
 //! }
 //! ```
 
+pub mod cache;
 pub mod config;
 pub mod error;
+pub mod metrics;
+pub mod registry;
 pub mod rpc;
 pub mod server;
+pub mod service;
 
+pub use cache::{CacheKey, ToolResultCache};
 pub use config::{ServerArgs, ServerConfig, TransportMode};
 pub use error::{Result, ServerError};
+pub use metrics::{ToolExecutionMetrics, ToolMetrics};
+pub use registry::{
+    DiscoveryStats, McpServerConnection, RegistryError, RegistryResult, ServerStatus,
+    ToolDefinition, ToolRegistry,
+};
 pub use server::McpServer;
+pub use service::{ServiceConfig, ServiceStats, ToolRegistryService};
 
 // Re-export RPC types for convenience
 pub use rpc::{

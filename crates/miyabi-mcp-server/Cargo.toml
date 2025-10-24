@@ -48,6 +48,12 @@ tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 
+# Caching
+lru = "0.12"
+
+# DateTime
+chrono = { workspace = true }
+
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
 
