@@ -18,8 +18,8 @@ miyabi-github = { path = "../miyabi-github" }
 
 # Web framework
 axum = { version = "0.7", features = ["ws"] }
-tower = { version = "0.4", features = ["util"] }
-tower-http = { version = "0.5", features = ["cors", "trace"] }
+tower = { workspace = true }
+tower-http = { workspace = true }
 
 # Database
 sqlx = { version = "0.8.1", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono"] }
@@ -38,7 +38,7 @@ async-trait = { workspace = true }
 futures = "0.3"
 
 # WebSocket
-tokio-tungstenite = "0.21"
+tokio-tungstenite = { workspace = true }
 
 # Error handling
 anyhow = { workspace = true }

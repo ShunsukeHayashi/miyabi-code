@@ -90,6 +90,13 @@ hostname = "0.4"
 insta = "1.40"
 serial_test = "3.2"
 
+# Web framework (unified versions to resolve duplicates - Issue #462)
+tower = { version = "0.5", features = ["util", "timeout", "load-shed"] }
+tower-http = { version = "0.6", features = ["trace", "fs", "cors"] }
+tokio-tungstenite = "0.24"
+tungstenite = "0.24"
+hyper-util = { version = "0.1", features = ["tokio", "client", "server"] }
+
 [profile.release]
 opt-level = 3
 lto = "fat"
