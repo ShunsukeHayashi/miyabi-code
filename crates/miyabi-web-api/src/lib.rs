@@ -66,6 +66,7 @@ pub use error::{AppError, Result};
         routes::repositories::list_repositories,
         routes::repositories::get_repository,
         routes::repositories::create_repository,
+        routes::agents::list_agents,
         routes::agents::execute_agent,
         routes::agents::list_executions,
         routes::agents::get_execution,
@@ -85,6 +86,8 @@ pub use error::{AppError, Result};
             models::Workflow,
             models::AgentType,
             models::ExecutionStatus,
+            routes::agents::AgentMetadata,
+            routes::agents::AgentCategory,
             routes::dashboard::DashboardSummary,
             routes::dashboard::RecentExecution,
             routes::issues::IssueWithRepository,
@@ -187,6 +190,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
             post(routes::repositories::create_repository),
         )
         // Agent execution routes
+        .route("/agents", get(routes::agents::list_agents))
         .route("/agents/execute", post(routes::agents::execute_agent))
         .route("/agents/executions", get(routes::agents::list_executions))
         .route("/agents/executions/:id", get(routes::agents::get_execution))
