@@ -232,8 +232,24 @@ cargo test --package miyabi-knowledge test_collect_empty_directory
 
 - **miyabi-agents**: Agent implementations
 - **miyabi-llm**: LLM integration
-- **miyabi-potpie**: Neo4j knowledge graph (future integration)
+- **miyabi-knowledge/potpie**: Potpie AI integration (Neo4j knowledge graph) - **Integrated in v0.1.1**
 - **miyabi-cli**: CLI tool
+
+## 📦 Potpie Integration (v0.1.1+)
+
+The Potpie AI integration is now part of this crate as a submodule:
+
+```rust
+use miyabi_knowledge::potpie::{PotpieClient, PotpieConfig};
+
+let config = PotpieConfig::default();
+let client = PotpieClient::new(config)?;
+
+// Use 8 Potpie tools: search_nodes, get_code_graph, detect_changes, etc.
+let nodes = client.search_nodes("function", None).await?;
+```
+
+See [potpie module documentation](src/potpie/mod.rs) for details.
 
 ## 📄 License
 

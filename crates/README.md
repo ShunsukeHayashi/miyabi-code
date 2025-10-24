@@ -41,14 +41,19 @@
 | **miyabi-orchestrator** | Claude session control plane (WIP) | 0.1.1 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-orchestrator) | — | — | 🚧 Planning |
 | **miyabi-knowledge** | Vector knowledge management | 0.1.1 | [![Crates.io](https://img.shields.io/badge/crates.io-Coming%20Soon-blue)](https://crates.io/search?q=miyabi-knowledge) | 2,500 | 45 | ✅ 100% |
 
-**Additional Crates** (18個):
-- Layer 2: `miyabi-llm`, `miyabi-potpie`
+**Additional Crates** (15個):
+- Layer 2: `miyabi-llm`, `miyabi-knowledge` (includes potpie module)
 - Layer 3: `miyabi-agent-core`, `miyabi-agent-integrations`
-- Layer 4: `miyabi-agent-coordinator`, `miyabi-agent-codegen`, `miyabi-agent-review`, `miyabi-agent-workflow`, `miyabi-agent-business`, `miyabi-business-agents`
+- Layer 4: `miyabi-agent-coordinator`, `miyabi-agent-codegen`, `miyabi-agent-review`, `miyabi-agent-workflow`, `miyabi-agent-business`
 - Layer 5: `miyabi-mcp-server`, `miyabi-discord-mcp-server`, `miyabi-a2a`, `miyabi-webhook`
-- Layer 6: `miyabi-web-api`, `miyabi-benchmark`, `miyabi-integration`, `codex-miyabi`
+- Layer 6: `miyabi-web-api`, `miyabi-benchmark`
 
-**Total**: **26 crates**, **~13,412 lines**, **392 tests** (100% passing) ✅
+**Total**: **23 crates** (after Phase 1-3 consolidation), **~13,412 lines**, **392 tests** (100% passing) ✅
+
+> **Note**: Consolidated in v0.1.1:
+> - `miyabi-scheduler` + `miyabi-feedback-loop` → `miyabi-orchestrator`
+> - `miyabi-potpie` → `miyabi-knowledge/potpie` module
+> - `miyabi-business-agents` → `miyabi-agents/business` module (deprecated)
 
 ## Architecture
 
