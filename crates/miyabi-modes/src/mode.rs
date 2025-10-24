@@ -39,9 +39,13 @@ pub struct MiyabiMode {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 
-    /// Optional custom template arguments
+    /// Optional custom template arguments (Phase 2.1)
     #[serde(rename = "systemPromptArgs", default, skip_serializing_if = "Option::is_none")]
     pub system_prompt_args: Option<HashMap<String, String>>,
+
+    /// Optional tool configurations (Phase 2.2)
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tools: Vec<crate::tool_config::ToolConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -105,6 +109,29 @@ impl MiyabiMode {
             ..self.clone()
         })
     }
+
+    /// Get a tool configuration by name
+    pub fn get_tool(&self, name: &str) -> Option<&crate::tool_config::ToolConfig> {
+        self.tools.iter().find(|t| t.name == name)
+    }
+
+    /// Check if a tool is enabled
+    pub fn is_tool_enabled(&self, name: &str) -> bool {
+        self.get_tool(name).map(|t| t.enabled).unwrap_or(false)
+    }
+
+    /// Get all enabled tools
+    pub fn enabled_tools(&self) -> Vec<&crate::tool_config::ToolConfig> {
+        self.tools.iter().filter(|t| t.enabled).collect()
+    }
+
+    /// Validate all tool configurations
+    pub fn validate_tools(&self) -> crate::error::ModeResult<()> {
+        for tool in &self.tools {
+            tool.validate()?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -125,6 +152,7 @@ mod tests {
             file_regex: None,
             description: None,
             system_prompt_args: None,
+            tools: vec![],
         };
 
         assert!(mode.allows_tool(&ToolGroup::Read));
@@ -146,6 +174,7 @@ mod tests {
             file_regex: Some(r".*\.rs$".into()),
             description: None,
             system_prompt_args: None,
+            tools: vec![],
         };
 
         assert!(mode.matches_file("main.rs").unwrap());
@@ -167,6 +196,7 @@ mod tests {
             file_regex: None,
             description: None,
             system_prompt_args: None,
+            tools: vec![],
         };
 
         assert!(system_mode.is_system_mode());
@@ -198,6 +228,7 @@ mod tests {
             file_regex: None,
             description: None,
             system_prompt_args: None,
+            tools: vec![],
         };
 
         let renderer = TemplateRenderer::new(env::current_dir().unwrap());

@@ -2,6 +2,7 @@
 
 mod commands;
 mod config;
+mod display;
 mod error;
 mod service;
 mod startup;

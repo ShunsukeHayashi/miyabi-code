@@ -1,6 +1,7 @@
 //! Agent command - Run agents
 
 use crate::config::ConfigLoader;
+use crate::display::ResultFormatter;
 use crate::error::{CliError, Result};
 use colored::Colorize;
 use miyabi_agents::{
@@ -224,18 +225,10 @@ impl AgentCommand {
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
 
-        // Display results
+        // Display results using ResultFormatter
+        let formatter = ResultFormatter::new();
         println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
-
-        if let Some(metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-        }
-
-        if let Some(data) = result.data {
-            println!("    Data: {}", serde_json::to_string_pretty(&data)?);
-        }
+        println!("{}", formatter.format_result(AgentType::CoordinatorAgent, &task.id, &result));
 
         Ok(())
     }
@@ -276,20 +269,10 @@ impl AgentCommand {
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
 
-        // Display results
+        // Display results using ResultFormatter
+        let formatter = ResultFormatter::new();
         println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
-
-        if let Some(metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-            if let Some(lines_changed) = metrics.lines_changed {
-                println!("    Lines changed: {}", lines_changed);
-            }
-            if let Some(tests_added) = metrics.tests_added {
-                println!("    Tests added: {}", tests_added);
-            }
-        }
+        println!("{}", formatter.format_result(AgentType::CodeGenAgent, &task.id, &result));
 
         Ok(())
     }
@@ -334,16 +317,9 @@ impl AgentCommand {
         println!("  Results:");
         println!("    Status: {:?}", result.status);
 
-        if let Some(ref metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-            if let Some(score) = metrics.quality_score {
-                println!("    Quality Score: {}", score);
-            }
-        }
-
-        if let Some(ref data) = result.data {
-            println!("    Data: {}", serde_json::to_string_pretty(data)?);
-        }
+        // Display results using ResultFormatter
+        let formatter = ResultFormatter::new();
+        println!("{}", formatter.format_result(AgentType::ReviewAgent, &task.id, &result));
 
         Ok(())
     }
@@ -384,31 +360,10 @@ impl AgentCommand {
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
 
-        // Display results
+        // Display results using ResultFormatter
+        let formatter = ResultFormatter::new().with_verbose(true);
         println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
-
-        if let Some(metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-        }
-
-        if let Some(data) = result.data {
-            // Try to parse as IssueAnalysis
-            if let Ok(analysis) = serde_json::from_value::<miyabi_types::IssueAnalysis>(data) {
-                println!("  Analysis:");
-                println!("    Issue Type: {:?}", analysis.issue_type);
-                println!("    Severity: {:?}", analysis.severity);
-                println!("    Impact: {:?}", analysis.impact);
-                println!("    Assigned Agent: {:?}", analysis.assigned_agent);
-                println!(
-                    "    Estimated Duration: {} minutes",
-                    analysis.estimated_duration
-                );
-                println!("    Dependencies: {}", analysis.dependencies.join(", "));
-                println!("    Applied Labels: {}", analysis.labels.join(", "));
-            }
-        }
+        println!("{}", formatter.format_result(AgentType::IssueAgent, &task.id, &result));
 
         Ok(())
     }
@@ -457,16 +412,12 @@ impl AgentCommand {
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
 
+        // Display results using ResultFormatter
+        let formatter = ResultFormatter::new();
         println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
-
-        if let Some(ref data) = result.data {
-            println!("    Data: {}", serde_json::to_string_pretty(data)?);
-        }
-
-        println!("    Branch: {}", branch);
-        println!("    Base Branch: {}", base_branch);
+        println!("{}", formatter.format_result(AgentType::PRAgent, &task.id, &result));
+        println!("  Branch: {}", branch);
+        println!("  Base Branch: {}", base_branch);
 
         Ok(())
     }
@@ -528,24 +479,10 @@ impl AgentCommand {
         println!("{}", "  Executing...".dimmed());
         let result = agent.execute(&task).await?;
 
+        // Display results using ResultFormatter
+        let formatter = ResultFormatter::new();
         println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
-
-        if let Some(ref metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-        }
-
-        if let Some(ref data) = result.data {
-            println!("    Data: {}", serde_json::to_string_pretty(data)?);
-        }
-
-        if let Some(ref escalation) = result.escalation {
-            println!(
-                "    Escalation: {:?} ({})",
-                escalation.target, escalation.reason
-            );
-        }
+        println!("{}", formatter.format_result(AgentType::DeploymentAgent, &task.id, &result));
 
         Ok(())
     }
@@ -869,25 +806,12 @@ impl AgentCommand {
     }
 
     fn display_business_result(&self, result: miyabi_types::AgentResult) -> Result<()> {
+        let formatter = ResultFormatter::new();
+        let task_id = format!("task-{}", self.issue.unwrap_or(0));
+        let agent_type = self.parse_agent_type()?;
+
         println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
-
-        if let Some(metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-            if let Some(quality_score) = metrics.quality_score {
-                println!("    Quality Score: {}/100", quality_score);
-            }
-        }
-
-        if let Some(data) = result.data {
-            println!(
-                "    Summary: {}",
-                data.get("summary").unwrap_or(&serde_json::Value::String(
-                    "No summary available".to_string()
-                ))
-            );
-        }
+        println!("{}", formatter.format_result(agent_type, &task_id, &result));
 
         Ok(())
     }

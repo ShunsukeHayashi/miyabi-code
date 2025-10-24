@@ -155,6 +155,7 @@ mod tests {
             file_regex: None,
             description: None,
             system_prompt_args: None,
+            tools: vec![],
         }
     }
 

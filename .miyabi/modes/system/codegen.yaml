@@ -57,3 +57,48 @@ customInstructions: |-
 source: "miyabi-core"
 fileRegex: ".*\\.(rs|toml)$"
 description: "AI-driven Rust code generation with quality enforcement"
+
+# Phase 2.2: Tool Configuration System
+tools:
+  - name: "read"
+    module: "file_operations"
+    enabled: true
+    config:
+      timeout_ms: 30000
+      max_file_size: 10485760  # 10MB
+
+  - name: "write"
+    module: "file_operations"
+    enabled: true
+    config:
+      timeout_ms: 45000
+      max_file_size: 10485760  # 10MB
+
+  - name: "edit"
+    module: "file_operations"
+    enabled: true
+    config:
+      timeout_ms: 45000
+      max_file_size: 5242880  # 5MB
+
+  - name: "bash"
+    module: "command_execution"
+    enabled: true
+    config:
+      timeout_ms: 120000  # 2 minutes for cargo build
+      allowed_commands: ["cargo", "git", "rustc", "rustfmt", "clippy"]
+      blacklist_patterns: ["rm -rf /", "sudo", "chmod 777"]
+
+  - name: "grep"
+    module: "search"
+    enabled: true
+    config:
+      timeout_ms: 15000
+      max_results: 500
+
+  - name: "glob"
+    module: "search"
+    enabled: true
+    config:
+      timeout_ms: 10000
+      max_results: 1000

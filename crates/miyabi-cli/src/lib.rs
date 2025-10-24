@@ -4,11 +4,13 @@
 
 pub mod commands;
 pub mod config;
+pub mod display;
 pub mod error;
 pub mod service;
 pub mod worktree;
 
 pub use commands::{AgentCommand, InitCommand, InstallCommand, ModeCommand, StatusCommand};
 pub use config::ConfigLoader;
+pub use display::{OutputFormat, ResultFormatter};
 pub use error::{CliError, Result};
 pub use service::{CommandMetadata, CommandService};

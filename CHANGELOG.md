@@ -15,6 +15,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration now loaded once and cached for subsequent calls
   - Improved maintainability: 2 locations → 1 location for config management
 
+### Added
+- **[#520]** Progress tracking infrastructure for Observable Agent pattern
+  - Added `ProgressObserver` trait for real-time agent monitoring
+  - Implemented thread-safe observer management with `Arc<RwLock<Vec<...>>>`
+  - Created CLI progress observer example with `indicatif` progress bars
+  - Added comprehensive documentation: `PROGRESS_TRACKING.md` (350+ lines)
+  - Supports multiple observer types: CLI, WebSocket, Metrics
+  - Zero breaking changes to existing agent implementations
+
+- **[#521]** Enhanced result display with rich formatting
+  - Created `ResultFormatter` for agent execution results
+  - Added table-based display using `comfy-table` with UTF8 borders
+  - Implemented JSON output format for AI/automation integration
+  - Colorized terminal output (green=success, red=fail, yellow=escalation)
+  - Detailed metrics display: quality scores, lines changed, tests added, errors found
+  - Integrated into all 6 coding agent commands (Coordinator, CodeGen, Review, Issue, PR, Deployment)
+  - Added verbose mode for detailed data inspection
+  - 8 comprehensive unit tests covering all display formats
+  - Improved readability: simple text → rich formatted tables with icons
+
 ### Planned for v0.2.0
 - Business Agents implementation (14 agents)
 - Potpie AI integration (awaiting miyabi-potpie crate)

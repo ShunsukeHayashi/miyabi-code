@@ -58,6 +58,16 @@ enum ModeSubcommand {
         instructions: bool,
     },
 
+    /// List and manage tool configurations
+    Tools {
+        /// Mode slug
+        mode: String,
+
+        /// Show specific tool configuration
+        #[arg(long)]
+        tool: Option<String>,
+    },
+
     /// Create new custom mode from template
     Create {
         /// Mode slug
@@ -80,6 +90,9 @@ impl ModeCommand {
             }
             ModeSubcommand::Render { mode, role, instructions } => {
                 self.render_mode(mode, *role, *instructions).await
+            }
+            ModeSubcommand::Tools { mode, tool } => {
+                self.show_tools(mode, tool.as_deref()).await
             }
             ModeSubcommand::Create { slug } => self.create_mode(slug).await,
             ModeSubcommand::Validate => self.validate_modes().await,
@@ -401,6 +414,85 @@ source: "user"
 
             println!("{}\n", "Custom Instructions:".bold());
             println!("{}\n", rendered_mode.custom_instructions.dimmed());
+        }
+
+        Ok(())
+    }
+
+    async fn show_tools(&self, mode_slug: &str, tool_name: Option<&str>) -> Result<()> {
+        let current_dir = env::current_dir()?;
+        let loader = ModeLoader::new(&current_dir);
+        let registry = ModeRegistry::new();
+
+        let modes = loader.load_all()?;
+        registry.register_all(modes)?;
+
+        let mode = registry.get(mode_slug).ok_or_else(|| {
+            crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug))
+        })?;
+
+        if let Some(tool) = tool_name {
+            // Show specific tool configuration
+            if let Some(tool_config) = mode.get_tool(tool) {
+                println!("\n{}\n", format!("🔧 Tool: {}", tool_config.name).bold().cyan());
+                println!("{} {}", "Module:".bold(), tool_config.module);
+                println!("{} {}\n", "Enabled:".bold(), if tool_config.enabled { "✅ Yes".green() } else { "❌ No".red() });
+
+                println!("{}", "Configuration:".bold());
+                println!("{}\n", serde_json::to_string_pretty(&tool_config.config).unwrap().dimmed());
+
+                // Show common config values
+                if let Some(timeout) = tool_config.timeout_ms() {
+                    println!("{} {}ms", "Timeout:".bold(), timeout);
+                }
+                if let Some(size) = tool_config.max_file_size() {
+                    println!("{} {} bytes", "Max File Size:".bold(), size);
+                }
+                if let Some(results) = tool_config.max_results() {
+                    println!("{} {}", "Max Results:".bold(), results);
+                }
+                if let Some(commands) = tool_config.allowed_commands() {
+                    println!("{} {:?}", "Allowed Commands:".bold(), commands);
+                }
+                if let Some(patterns) = tool_config.blacklist_patterns() {
+                    println!("{} {:?}", "Blacklist Patterns:".bold(), patterns);
+                }
+            } else {
+                println!("{} Tool '{}' not found in mode '{}'", "❌".red(), tool, mode_slug);
+            }
+        } else {
+            // List all tools
+            println!("\n{}\n", format!("🔧 Tools for Mode: {}", mode.name).bold().cyan());
+
+            if mode.tools.is_empty() {
+                println!("  {}", "No tool configurations defined.".yellow());
+                println!("  {}", "This mode uses default tool settings.".dimmed());
+            } else {
+                println!("{} {} tool(s) configured\n", "Total:".bold(), mode.tools.len());
+
+                for tool in &mode.tools {
+                    let status = if tool.enabled {
+                        "✅".green()
+                    } else {
+                        "❌".red()
+                    };
+
+                    println!("  {} {} ({})", status, tool.name.bold(), tool.module.dimmed());
+
+                    if let Some(timeout) = tool.timeout_ms() {
+                        println!("    ⏱  Timeout: {}ms", timeout);
+                    }
+                    if let Some(size) = tool.max_file_size() {
+                        println!("    📦 Max file size: {} bytes", size);
+                    }
+                    if let Some(results) = tool.max_results() {
+                        println!("    🔍 Max results: {}", results);
+                    }
+                    println!();
+                }
+
+                println!("\n{} miyabi mode tools {} --tool <name>", "Use:".dimmed(), mode_slug);
+            }
         }
 
         Ok(())

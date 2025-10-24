@@ -38,6 +38,7 @@ pub mod loader;
 pub mod mode;
 pub mod registry;
 pub mod template;
+pub mod tool_config;
 pub mod validator;
 
 // Re-exports for convenience
@@ -46,6 +47,7 @@ pub use loader::ModeLoader;
 pub use mode::{MiyabiMode, ToolGroup};
 pub use registry::ModeRegistry;
 pub use template::TemplateRenderer;
+pub use tool_config::{ToolConfig, ToolConfigSet};
 pub use validator::ModeValidator;
 
 #[cfg(test)]
