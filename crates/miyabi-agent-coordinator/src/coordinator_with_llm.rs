@@ -675,9 +675,7 @@ mod tests {
         let plans_files: Vec<_> = entries
             .filter_map(|e| e.ok())
             .filter(|e| {
-                e.file_name()
-                    .to_string_lossy()
-                    .starts_with("Plans-")
+                e.file_name().to_string_lossy().starts_with("Plans-")
                     && e.file_name().to_string_lossy().ends_with(".md")
             })
             .collect();

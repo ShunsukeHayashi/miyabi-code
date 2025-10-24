@@ -4,7 +4,7 @@
 //! 各種コンテキストを構築し、ファイルへ書き出す。
 
 use miyabi_agent_integrations::PotpieIntegration;
-use miyabi_potpie::PotpieConfig;
+use miyabi_knowledge::potpie::PotpieConfig;
 use miyabi_types::error::MiyabiError;
 use miyabi_types::{AgentConfig, Task};
 use std::path::Path;

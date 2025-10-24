@@ -713,10 +713,7 @@ mod tests {
             IssueState::from_label("STATE:PENDING"),
             Some(IssueState::Pending)
         );
-        assert_eq!(
-            IssueState::from_label("State:Done"),
-            Some(IssueState::Done)
-        );
+        assert_eq!(IssueState::from_label("State:Done"), Some(IssueState::Done));
     }
 
     #[test]

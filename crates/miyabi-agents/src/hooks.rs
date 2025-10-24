@@ -3,9 +3,9 @@
 //! Provides reusable hook traits and a wrapper that executes hooks around
 //! agent lifecycle operations (pre-execute, post-execute, error handling).
 
-use miyabi_agent_core::BaseAgent;
 use async_trait::async_trait;
 use chrono::Utc;
+use miyabi_agent_core::BaseAgent;
 use miyabi_types::agent::AgentType;
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::{AgentResult, Task};
@@ -282,33 +282,28 @@ impl AuditLogHook {
 
         for attempt in 1..=retry_count {
             match KnowledgeManager::new(config.clone()).await {
-                Ok(manager) => {
-                    match manager.index_workspace(&workspace).await {
-                        Ok(stats) => {
-                            tracing::info!(
-                                "Auto-indexing completed: {} entries indexed",
-                                stats.total
+                Ok(manager) => match manager.index_workspace(&workspace).await {
+                    Ok(stats) => {
+                        tracing::info!("Auto-indexing completed: {} entries indexed", stats.total);
+                        return Ok(());
+                    }
+                    Err(e) => {
+                        if attempt < retry_count {
+                            tracing::warn!(
+                                "Auto-indexing attempt {}/{} failed: {}. Retrying...",
+                                attempt,
+                                retry_count,
+                                e
                             );
-                            return Ok(());
-                        }
-                        Err(e) => {
-                            if attempt < retry_count {
-                                tracing::warn!(
-                                    "Auto-indexing attempt {}/{} failed: {}. Retrying...",
-                                    attempt,
-                                    retry_count,
-                                    e
-                                );
-                                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                            } else {
-                                return Err(MiyabiError::Unknown(format!(
-                                    "Auto-indexing failed after {} attempts: {}",
-                                    retry_count, e
-                                )));
-                            }
+                            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                        } else {
+                            return Err(MiyabiError::Unknown(format!(
+                                "Auto-indexing failed after {} attempts: {}",
+                                retry_count, e
+                            )));
                         }
                     }
-                }
+                },
                 Err(e) => {
                     return Err(MiyabiError::Unknown(format!(
                         "Failed to initialize KnowledgeManager: {}",
@@ -435,9 +430,7 @@ impl StructuredLogHook {
         let json_str = serde_json::to_string_pretty(&entry)
             .map_err(|e| MiyabiError::Unknown(format!("Failed to serialize JSON: {}", e)))?;
 
-        fs::write(&path, json_str)
-            .await
-            .map_err(MiyabiError::Io)?;
+        fs::write(&path, json_str).await.map_err(MiyabiError::Io)?;
 
         tracing::debug!("Structured log written to: {:?}", path);
         Ok(())
@@ -795,8 +788,8 @@ mod tests {
     #[cfg(feature = "knowledge-integration")]
     #[test]
     fn test_audit_log_hook_with_auto_index_config() {
+        use miyabi_knowledge::{AutoIndexConfig, KnowledgeConfig};
         use tempfile::TempDir;
-        use miyabi_knowledge::{KnowledgeConfig, AutoIndexConfig};
 
         let temp_dir = TempDir::new().unwrap();
         let log_dir = temp_dir.path().to_path_buf();
@@ -838,8 +831,8 @@ mod tests {
     #[cfg(feature = "knowledge-integration")]
     #[tokio::test]
     async fn test_audit_log_hook_auto_index_disabled() {
+        use miyabi_knowledge::{AutoIndexConfig, KnowledgeConfig};
         use tempfile::TempDir;
-        use miyabi_knowledge::{KnowledgeConfig, AutoIndexConfig};
 
         let temp_dir = TempDir::new().unwrap();
         let log_dir = temp_dir.path().to_path_buf();
@@ -881,7 +874,9 @@ mod tests {
         };
 
         // Execute hook (should not trigger auto-indexing)
-        let hook_result = hook.on_post_execute(AgentType::CodeGenAgent, &task, &result).await;
+        let hook_result = hook
+            .on_post_execute(AgentType::CodeGenAgent, &task, &result)
+            .await;
 
         // Should succeed even if auto-indexing is disabled
         assert!(hook_result.is_ok());
@@ -1017,15 +1012,18 @@ mod tests {
         assert_eq!(json["agent_type"], "ReviewAgent");
         assert_eq!(json["task_id"], "error-task");
         assert_eq!(json["status"], "Failed");
-        assert!(json["error"].as_str().unwrap().contains("Test error message"));
+        assert!(json["error"]
+            .as_str()
+            .unwrap()
+            .contains("Test error message"));
     }
 
     #[tokio::test]
     async fn test_structured_log_hook_with_escalation() {
-        use tempfile::TempDir;
-        use tokio::fs;
         use miyabi_types::agent::{EscalationTarget, Severity};
         use std::collections::HashMap;
+        use tempfile::TempDir;
+        use tokio::fs;
 
         let temp_dir = TempDir::new().unwrap();
         let log_dir = temp_dir.path().to_path_buf();

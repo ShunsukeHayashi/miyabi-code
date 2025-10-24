@@ -321,7 +321,10 @@ mod tests {
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Generate error handling code";
-        let augmented = augmenter.augment(base_prompt, None, None, None).await.unwrap();
+        let augmented = augmenter
+            .augment(base_prompt, None, None, None)
+            .await
+            .unwrap();
 
         assert!(augmented.contains("Relevant Context"));
         assert!(augmented.contains("thiserror"));
@@ -356,7 +359,10 @@ mod tests {
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Generate code";
-        let augmented = augmenter.augment(base_prompt, None, None, None).await.unwrap();
+        let augmented = augmenter
+            .augment(base_prompt, None, None, None)
+            .await
+            .unwrap();
 
         // Should return original prompt (no relevant context)
         assert_eq!(augmented, base_prompt);

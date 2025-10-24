@@ -209,10 +209,7 @@ impl WorktreeCommand {
     }
 
     async fn remove_worktree(&self, id: &str) -> Result<()> {
-        println!(
-            "{}",
-            format!("🗑️  Removing worktree: {}", id).cyan().bold()
-        );
+        println!("{}", format!("🗑️  Removing worktree: {}", id).cyan().bold());
         println!();
 
         let base = std::env::var("MIYABI_WORKTREE_BASE_PATH")
@@ -231,7 +228,10 @@ impl WorktreeCommand {
                 crate::error::CliError::InvalidInput(format!("Worktree not found: {}", id))
             })?;
 
-        println!("  Issue #{}: {}", worktree.issue_number, worktree.branch_name);
+        println!(
+            "  Issue #{}: {}",
+            worktree.issue_number, worktree.branch_name
+        );
         println!("  Path: {}", worktree.path.to_string_lossy());
         println!();
 

@@ -15,7 +15,7 @@ members = [
     "crates/miyabi-github",
     "crates/miyabi-worktree",
     "crates/miyabi-llm",
-    "crates/miyabi-potpie",
+    # "crates/miyabi-potpie",  # MERGED into miyabi-knowledge/potpie module
     "crates/miyabi-knowledge",
     # "crates/miyabi-business-agents",  # DEPRECATED: Replaced by miyabi-agents/business module
     "crates/miyabi-mcp-server",
@@ -24,7 +24,9 @@ members = [
     "crates/miyabi-webhook",
     "crates/miyabi-benchmark",
     "crates/miyabi-web-api",
-    "crates/miyabi-orchestrator", "crates/miyabi-feedback-loop", "crates/miyabi-scheduler",
+    "crates/miyabi-orchestrator",  # Merged: miyabi-scheduler + miyabi-feedback-loop
+    # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
+    # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
 ]
 
 [workspace.package]

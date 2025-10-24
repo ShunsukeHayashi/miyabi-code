@@ -433,11 +433,7 @@ pub async fn mock_login(
         },
     };
 
-    tracing::info!(
-        "Mock login successful: {} ({})",
-        request.username,
-        user_id
-    );
+    tracing::info!("Mock login successful: {} ({})", request.username, user_id);
 
     Ok((StatusCode::OK, Json(response)))
 }

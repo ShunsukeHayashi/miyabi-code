@@ -1550,7 +1550,6 @@ checksum = "46fdb647ebde000f43b5b53f773c30cf9b0cb4300453208713fa38b2c70935a0"
 dependencies = [
  "console 0.15.11",
  "once_cell",
- "serde",
  "similar",
 ]
 
@@ -1977,8 +1976,8 @@ dependencies = [
  "miyabi-agent-core",
  "miyabi-agent-integrations",
  "miyabi-core",
+ "miyabi-knowledge",
  "miyabi-llm",
- "miyabi-potpie",
  "miyabi-types",
  "serde",
  "serde_json",
@@ -2037,7 +2036,7 @@ dependencies = [
  "miyabi-agent-core",
  "miyabi-core",
  "miyabi-github",
- "miyabi-potpie",
+ "miyabi-knowledge",
  "miyabi-types",
  "octocrab",
  "serde",
@@ -2137,29 +2136,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "miyabi-business-agents"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "insta",
- "miyabi-core",
- "miyabi-github",
- "miyabi-types",
- "mockito",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tokio",
- "tokio-test",
- "tracing",
- "tracing-subscriber",
- "validator",
-]
-
-[[package]]
 name = "miyabi-cli"
 version = "0.1.1"
 dependencies = [
@@ -2175,9 +2151,9 @@ dependencies = [
  "indicatif",
  "miyabi-agents",
  "miyabi-core",
- "miyabi-feedback-loop",
  "miyabi-github",
  "miyabi-knowledge",
+ "miyabi-orchestrator",
  "miyabi-types",
  "miyabi-worktree",
  "rand 0.9.2",
@@ -2247,22 +2223,6 @@ dependencies = [
  "twilight-gateway",
  "twilight-http",
  "twilight-model",
-]
-
-[[package]]
-name = "miyabi-feedback-loop"
-version = "0.1.1"
-dependencies = [
- "async-trait",
- "miyabi-agent-core",
- "miyabi-types",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tokio-test",
- "tracing",
 ]
 
 [[package]]
@@ -2346,7 +2306,6 @@ dependencies = [
  "jsonrpc-http-server",
  "jsonrpc-stdio-server",
  "miyabi-agents",
- "miyabi-business-agents",
  "miyabi-core",
  "miyabi-github",
  "miyabi-knowledge",
@@ -2368,43 +2327,17 @@ name = "miyabi-orchestrator"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "async-trait",
  "axum",
  "clap",
+ "miyabi-agent-core",
+ "miyabi-types",
  "serde",
  "serde_json",
+ "thiserror 2.0.17",
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "miyabi-potpie"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "chrono",
- "miyabi-core",
- "miyabi-types",
- "mockito",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "miyabi-scheduler"
-version = "0.1.1"
-dependencies = [
- "miyabi-types",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
  "uuid",
 ]
 

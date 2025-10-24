@@ -444,10 +444,7 @@ mod tests {
     #[test]
     fn test_agent_with_defaults() {
         let agent = DiscordCommunityAgent::with_defaults();
-        assert_eq!(
-            agent.config.mcp_server_path,
-            "miyabi-discord-mcp-server"
-        );
+        assert_eq!(agent.config.mcp_server_path, "miyabi-discord-mcp-server");
     }
 
     #[test]

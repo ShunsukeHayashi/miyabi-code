@@ -61,6 +61,9 @@ pub mod qdrant;
 pub mod searcher;
 pub mod types;
 
+// Integrated from miyabi-potpie
+pub mod potpie;
+
 pub use ast_context::{
     AstError, CodeSymbol, FileContext, FileContextTracker, SymbolKind, Visibility,
 };

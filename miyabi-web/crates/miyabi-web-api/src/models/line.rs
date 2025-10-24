@@ -97,6 +97,8 @@ pub enum Message {
     Image(ImageMessage),
     /// 動画メッセージ
     Video(VideoMessage),
+    /// 音声メッセージ
+    Audio(AudioMessage),
     /// スタンプメッセージ
     Sticker(StickerMessage),
 }
@@ -122,6 +124,15 @@ pub struct ImageMessage {
 pub struct VideoMessage {
     /// メッセージID
     pub id: String,
+}
+
+/// 音声メッセージ
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AudioMessage {
+    /// メッセージID
+    pub id: String,
+    /// 音声ファイルの長さ（ミリ秒）
+    pub duration: u64,
 }
 
 /// スタンプメッセージ

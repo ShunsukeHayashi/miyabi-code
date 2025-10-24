@@ -147,10 +147,14 @@ impl MiyabiBot {
             }
 
             // Send warning (twilight v0.16: builder pattern, call .await directly)
-            let _ = self.http.create_message(msg.channel_id).content(&format!(
+            let _ = self
+                .http
+                .create_message(msg.channel_id)
+                .content(&format!(
                 "⚠️ {}さん、メッセージを送信するペースが速すぎます。\n少しゆっくりお願いします。",
                 msg.author.name
-            )).await;
+            ))
+                .await;
 
             // Report to progress channel
             if let Some(ref reporter) = self.progress_reporter {
@@ -184,11 +188,15 @@ impl MiyabiBot {
         }
 
         // Send warning (twilight v0.16: builder pattern, call .await directly)
-        let _ = self.http.create_message(msg.channel_id).content(&format!(
-            "🚫 {}さん、不適切な言葉が含まれていたため、メッセージを削除しました。\n\
+        let _ = self
+            .http
+            .create_message(msg.channel_id)
+            .content(&format!(
+                "🚫 {}さん、不適切な言葉が含まれていたため、メッセージを削除しました。\n\
                  コミュニティルールを守って、みんなが楽しめる環境を作りましょう！",
-            msg.author.name
-        )).await;
+                msg.author.name
+            ))
+            .await;
 
         // Report to progress channel
         if let Some(ref reporter) = self.progress_reporter {

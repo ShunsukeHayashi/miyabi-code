@@ -4,8 +4,8 @@
 //! Agents can opt-in to prompt enhancement without modifying the BaseAgent trait.
 
 use miyabi_knowledge::{
-    AugmentationStrategy, PromptAugmenter, StandardPromptAugmenter, DEFAULT_MAX_CONTEXT_PIECES,
-    DEFAULT_RELEVANCE_THRESHOLD, KnowledgeConfig, QdrantSearcher, SearchFilter,
+    AugmentationStrategy, KnowledgeConfig, PromptAugmenter, QdrantSearcher, SearchFilter,
+    StandardPromptAugmenter, DEFAULT_MAX_CONTEXT_PIECES, DEFAULT_RELEVANCE_THRESHOLD,
 };
 use miyabi_types::error::{MiyabiError, Result};
 use std::sync::Arc;
@@ -107,10 +107,8 @@ impl AgentPromptEnhancer {
             .await
             .map_err(|e| MiyabiError::Config(format!("Failed to create Qdrant searcher: {}", e)))?;
 
-        let augmenter = StandardPromptAugmenter::with_strategy(
-            searcher,
-            enhancement_config.strategy.clone(),
-        );
+        let augmenter =
+            StandardPromptAugmenter::with_strategy(searcher, enhancement_config.strategy.clone());
 
         Ok(Self {
             augmenter: Arc::new(RwLock::new(augmenter)),
@@ -136,38 +134,37 @@ impl AgentPromptEnhancer {
         let augmenter = self.augmenter.read().await;
 
         // Build search filter if specified
-        let result = if self.config.filter_by_agent.is_some()
-            || self.config.filter_by_outcome.is_some()
-        {
-            let mut filter = SearchFilter::default();
+        let result =
+            if self.config.filter_by_agent.is_some() || self.config.filter_by_outcome.is_some() {
+                let mut filter = SearchFilter::default();
 
-            if let Some(ref agent) = self.config.filter_by_agent {
-                filter.agent = Some(agent.clone());
-            }
+                if let Some(ref agent) = self.config.filter_by_agent {
+                    filter.agent = Some(agent.clone());
+                }
 
-            if let Some(ref outcome) = self.config.filter_by_outcome {
-                filter.outcome = Some(outcome.clone());
-            }
+                if let Some(ref outcome) = self.config.filter_by_outcome {
+                    filter.outcome = Some(outcome.clone());
+                }
 
-            augmenter
-                .augment_filtered(
-                    base_prompt,
-                    query,
-                    filter,
-                    Some(self.config.max_context_pieces),
-                    Some(self.config.relevance_threshold),
-                )
-                .await
-        } else {
-            augmenter
-                .augment(
-                    base_prompt,
-                    query,
-                    Some(self.config.max_context_pieces),
-                    Some(self.config.relevance_threshold),
-                )
-                .await
-        };
+                augmenter
+                    .augment_filtered(
+                        base_prompt,
+                        query,
+                        filter,
+                        Some(self.config.max_context_pieces),
+                        Some(self.config.relevance_threshold),
+                    )
+                    .await
+            } else {
+                augmenter
+                    .augment(
+                        base_prompt,
+                        query,
+                        Some(self.config.max_context_pieces),
+                        Some(self.config.relevance_threshold),
+                    )
+                    .await
+            };
 
         result.map_err(|e| MiyabiError::Config(format!("Prompt enhancement failed: {}", e)))
     }
@@ -234,12 +231,7 @@ impl PromptTemplate {
     /// * `task_description` - Task description
     /// * `task_id` - Task ID
     /// * `agent_type` - Agent type
-    pub fn render(
-        &self,
-        task_description: &str,
-        task_id: &str,
-        agent_type: &str,
-    ) -> String {
+    pub fn render(&self, task_description: &str, task_id: &str, agent_type: &str) -> String {
         self.template
             .replace("{{TASK_DESCRIPTION}}", task_description)
             .replace("{{TASK_ID}}", task_id)
@@ -247,10 +239,7 @@ impl PromptTemplate {
     }
 
     /// Render with custom variables
-    pub fn render_with_vars(
-        &self,
-        vars: &std::collections::HashMap<String, String>,
-    ) -> String {
+    pub fn render_with_vars(&self, vars: &std::collections::HashMap<String, String>) -> String {
         let mut result = self.template.clone();
         for (key, value) in vars {
             result = result.replace(&format!("{{{{{}}}}}", key), value);

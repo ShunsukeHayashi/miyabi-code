@@ -165,7 +165,8 @@ impl StatusCommand {
 
             // Try to create WorktreeManager
             WorktreeManager::new(repo_path.clone(), base.clone(), 10).ok()
-        }.await;
+        }
+        .await;
 
         if let Some(manager) = detailed_stats {
             // Get statistics
@@ -212,10 +213,7 @@ impl StatusCommand {
                         wt.issue_number,
                         wt.branch_name.dimmed(),
                     );
-                    println!(
-                        "       Path: {}",
-                        wt.path.to_string_lossy().dimmed()
-                    );
+                    println!("       Path: {}", wt.path.to_string_lossy().dimmed());
                 }
                 println!();
             }

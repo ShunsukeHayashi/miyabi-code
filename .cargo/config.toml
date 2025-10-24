@@ -1,41 +1,23 @@
-# Cargo build configuration for Miyabi workspace
-
+# Miyabi - Cargo Build Configuration
 [build]
-# Use all available CPU cores for parallel compilation
-jobs = 4
+incremental = true
+pipelining = true
 
-# Incremental compilation for faster rebuilds in development
+[profile.dev]
+opt-level = 1
+debug = 1
 incremental = true
 
-[alias]
-# Convenient aliases for common operations
-b = "build"
-c = "check"
-t = "test"
-r = "run"
-br = "build --release"
-rr = "run --release"
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
 
-# Build with optimized profile
-build-opt = "build --profile dev-opt"
+[profile.test]
+opt-level = 1
+debug = 1
 
-# Build small binary
-build-small = "build --profile release-small"
-
-# Run all tests with output
-test-all = "test --workspace -- --nocapture"
-
-# Run tests in release mode
-test-release = "test --workspace --release"
-
-# Check all targets
-check-all = "check --workspace --all-targets"
-
-# Clippy with strict lints
-clippy-strict = "clippy --workspace --all-targets -- -D warnings"
-
-# Format check
-fmt-check = "fmt --all -- --check"
-
-# Security audit
-audit-check = "audit --deny warnings"
+[net]
+retry = 2
+git-fetch-with-cli = true

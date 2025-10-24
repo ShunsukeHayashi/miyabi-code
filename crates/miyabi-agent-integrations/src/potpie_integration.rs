@@ -3,7 +3,8 @@
 //! Provides utility functions for Agents to leverage Potpie's knowledge graph
 //! and semantic search capabilities.
 
-use miyabi_potpie::{PotpieClient, PotpieConfig, PotpieError, SemanticSearchResult};
+use miyabi_knowledge::potpie::{PotpieClient, PotpieConfig, PotpieError};
+use miyabi_knowledge::potpie::knowledge_graph::SemanticSearchResult;
 use miyabi_types::error::{MiyabiError, Result};
 use tracing::{debug, info, warn};
 
@@ -210,7 +211,10 @@ mod tests {
     #[tokio::test]
     async fn test_semantic_search_with_default_top_k() {
         let integration = PotpieIntegration::new(None);
-        let results = integration.semantic_search("test query", None).await.unwrap();
+        let results = integration
+            .semantic_search("test query", None)
+            .await
+            .unwrap();
         assert!(results.is_empty());
     }
 
@@ -327,8 +331,14 @@ mod tests {
         let integration = PotpieIntegration::new(None);
 
         // Multiple searches should all return empty for disabled integration
-        let results1 = integration.semantic_search("query1", Some(5)).await.unwrap();
-        let results2 = integration.semantic_search("query2", Some(3)).await.unwrap();
+        let results1 = integration
+            .semantic_search("query1", Some(5))
+            .await
+            .unwrap();
+        let results2 = integration
+            .semantic_search("query2", Some(3))
+            .await
+            .unwrap();
         let results3 = integration.semantic_search("query3", None).await.unwrap();
 
         assert!(results1.is_empty());

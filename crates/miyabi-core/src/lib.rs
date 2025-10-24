@@ -32,6 +32,6 @@ pub use git::{
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
 pub use rules::{
-    AgentPreferences, MiyabiRules, Rule, RulesError, RulesLoader, Result as RulesResult,
+    AgentPreferences, MiyabiRules, Result as RulesResult, Rule, RulesError, RulesLoader,
 };
 pub use security::{run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity};

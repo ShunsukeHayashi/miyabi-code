@@ -3,7 +3,7 @@
 use crate::error::{CliError, Result};
 use clap::Subcommand;
 use colored::Colorize;
-use miyabi_feedback_loop::{InfiniteLoopOrchestrator, LoopConfig, LoopStatus};
+use miyabi_orchestrator::feedback::{InfiniteLoopOrchestrator, LoopConfig, LoopStatus};
 
 /// Loop command for infinite feedback loop orchestration
 #[derive(Debug, Subcommand)]
@@ -98,9 +98,9 @@ impl LoopCommand {
             format!("🔄 Starting feedback loop for {} issue(s)...", issues.len()).cyan()
         );
 
-        config.validate().map_err(|e| {
-            CliError::InvalidInput(format!("Invalid loop configuration: {}", e))
-        })?;
+        config
+            .validate()
+            .map_err(|e| CliError::InvalidInput(format!("Invalid loop configuration: {}", e)))?;
 
         let mut orchestrator = InfiniteLoopOrchestrator::new(config);
 
@@ -164,17 +164,13 @@ impl LoopCommand {
     async fn execute_status(goal_id: Option<&str>) -> Result<()> {
         match goal_id {
             Some(id) => {
-                println!(
-                    "{}",
-                    format!("📊 Status for goal: {}", id).bright_cyan()
-                );
+                println!("{}", format!("📊 Status for goal: {}", id).bright_cyan());
                 // Note: Status retrieval requires orchestrator instance
                 // For now, print placeholder message
                 println!("{}", "⚠️  Status retrieval not yet implemented".yellow());
                 println!(
                     "{}",
-                    "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop"
-                        .bright_blue()
+                    "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop".bright_blue()
                 );
             }
             None => {

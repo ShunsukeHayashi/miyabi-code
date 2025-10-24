@@ -14,7 +14,8 @@ miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
 miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
 miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
-miyabi-potpie = { version = "0.1.0", path = "../miyabi-potpie" }
+# miyabi-potpie MERGED into miyabi-knowledge/potpie - use miyabi-knowledge instead
+miyabi-knowledge = { version = "0.1.1", path = "../miyabi-knowledge" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

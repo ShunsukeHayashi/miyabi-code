@@ -200,12 +200,21 @@ async fn main() -> Result<()> {
 
         // Attempt directory recovery if error is related to working directory
         if is_directory_related_error(e) {
-            eprintln!("{}", "⚠️  Attempting to recover from directory error...".yellow());
+            eprintln!(
+                "{}",
+                "⚠️  Attempting to recover from directory error...".yellow()
+            );
             if recover_from_directory_error() {
-                eprintln!("{}", "✅ Directory recovered. Please retry the command.".green());
+                eprintln!(
+                    "{}",
+                    "✅ Directory recovered. Please retry the command.".green()
+                );
                 std::process::exit(2); // Exit with recoverable error code
             } else {
-                eprintln!("{}", "❌ Failed to recover directory. Please manually cd to project root.".red());
+                eprintln!(
+                    "{}",
+                    "❌ Failed to recover directory. Please manually cd to project root.".red()
+                );
             }
         }
 
@@ -222,12 +231,18 @@ fn ensure_valid_working_directory() {
         Ok(current) => {
             // Check if current directory exists
             if !current.exists() {
-                eprintln!("{}", "⚠️  Current directory no longer exists (possibly deleted worktree)".yellow());
+                eprintln!(
+                    "{}",
+                    "⚠️  Current directory no longer exists (possibly deleted worktree)".yellow()
+                );
                 recover_from_directory_error();
             }
         }
         Err(e) => {
-            eprintln!("{}", format!("⚠️  Cannot read current directory: {}", e).yellow());
+            eprintln!(
+                "{}",
+                format!("⚠️  Cannot read current directory: {}", e).yellow()
+            );
             recover_from_directory_error();
         }
     }
@@ -253,7 +268,10 @@ fn recover_from_directory_error() -> bool {
             if let Ok(repo_root) = String::from_utf8(output.stdout) {
                 let repo_root = repo_root.trim();
                 if std::env::set_current_dir(repo_root).is_ok() {
-                    eprintln!("{}", format!("  ✓ Changed directory to: {}", repo_root).green());
+                    eprintln!(
+                        "{}",
+                        format!("  ✓ Changed directory to: {}", repo_root).green()
+                    );
                     return true;
                 }
             }
@@ -263,7 +281,10 @@ fn recover_from_directory_error() -> bool {
     // Fallback: Try to go to home directory
     if let Ok(home) = std::env::var("HOME") {
         if std::env::set_current_dir(&home).is_ok() {
-            eprintln!("{}", format!("  ✓ Changed directory to home: {}", home).green());
+            eprintln!(
+                "{}",
+                format!("  ✓ Changed directory to home: {}", home).green()
+            );
             return true;
         }
     }
