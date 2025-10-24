@@ -939,4 +939,609 @@ mod tests {
         assert_eq!(parsed["total_tasks"], 5);
         assert_eq!(parsed["completed_tasks"], 2);
     }
+
+    // ========================================================================
+    // Issue::validate() Tests
+    // ========================================================================
+
+    #[test]
+    fn test_issue_validate_success() {
+        let issue = Issue {
+            number: 123,
+            title: "Valid issue title".to_string(),
+            body: "Valid body content".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/owner/repo/issues/123".to_string(),
+        };
+
+        assert!(issue.validate().is_ok());
+    }
+
+    #[test]
+    fn test_issue_validate_zero_number() {
+        let issue = Issue {
+            number: 0,
+            title: "Test".to_string(),
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/owner/repo/issues/0".to_string(),
+        };
+
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Issue number must be > 0"));
+    }
+
+    #[test]
+    fn test_issue_validate_empty_title() {
+        let issue = Issue {
+            number: 123,
+            title: "".to_string(),
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/owner/repo/issues/123".to_string(),
+        };
+
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("title cannot be empty"));
+    }
+
+    #[test]
+    fn test_issue_validate_title_too_long() {
+        let long_title = "a".repeat(257);
+        let issue = Issue {
+            number: 123,
+            title: long_title,
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/owner/repo/issues/123".to_string(),
+        };
+
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("title too long"));
+    }
+
+    #[test]
+    fn test_issue_validate_invalid_url_format() {
+        let issue = Issue {
+            number: 123,
+            title: "Test".to_string(),
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "http://example.com/issues/123".to_string(),
+        };
+
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid GitHub URL format"));
+    }
+
+    #[test]
+    fn test_issue_validate_url_number_mismatch() {
+        let issue = Issue {
+            number: 123,
+            title: "Test".to_string(),
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/owner/repo/issues/456".to_string(),
+        };
+
+        let result = issue.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("does not match issue number"));
+    }
+
+    #[test]
+    fn test_issue_validate_invalid_timestamps() {
+        let now = chrono::Utc::now();
+        let future = now + chrono::Duration::hours(1);
+
+        let issue = Issue {
+            number: 123,
+            title: "Test".to_string(),
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: future,
+            updated_at: now,
+            url: "https://github.com/owner/repo/issues/123".to_string(),
+        };
+
+        let result = issue.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("updated_at") && err_msg.contains("created_at"));
+    }
+
+    #[test]
+    fn test_issue_validate_title_max_length() {
+        let title = "a".repeat(256);
+        let issue = Issue {
+            number: 123,
+            title,
+            body: "Test".to_string(),
+            state: IssueStateGithub::Open,
+            labels: vec![],
+            assignee: None,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            url: "https://github.com/owner/repo/issues/123".to_string(),
+        };
+
+        assert!(issue.validate().is_ok());
+    }
+
+    // ========================================================================
+    // IssueTraceLog::validate() Tests
+    // ========================================================================
+
+    fn create_test_metadata() -> IssueMetadata {
+        IssueMetadata {
+            device_identifier: "test-device".to_string(),
+            session_ids: vec!["session-1".to_string()],
+            total_duration_ms: Some(60000),
+            last_updated: chrono::Utc::now(),
+        }
+    }
+
+    #[test]
+    fn test_trace_log_validate_success() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test issue".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Implementing,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 5,
+            completed_tasks: 2,
+            failed_tasks: 1,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: Some(85),
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        assert!(trace_log.validate().is_ok());
+    }
+
+    #[test]
+    fn test_trace_log_validate_zero_issue_number() {
+        let trace_log = IssueTraceLog {
+            issue_number: 0,
+            issue_title: "Test".to_string(),
+            issue_url: "https://github.com/user/repo/issues/0".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Pending,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 0,
+            completed_tasks: 0,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: None,
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let result = trace_log.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Issue number must be > 0"));
+    }
+
+    #[test]
+    fn test_trace_log_validate_empty_title() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Pending,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 0,
+            completed_tasks: 0,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: None,
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let result = trace_log.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("title cannot be empty"));
+    }
+
+    #[test]
+    fn test_trace_log_validate_invalid_url() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test".to_string(),
+            issue_url: "http://example.com".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Pending,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 0,
+            completed_tasks: 0,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: None,
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let result = trace_log.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid GitHub URL format"));
+    }
+
+    #[test]
+    fn test_trace_log_validate_invalid_timestamps() {
+        let now = chrono::Utc::now();
+        let past = now - chrono::Duration::hours(2);
+
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: now,
+            closed_at: Some(past),
+            current_state: IssueState::Done,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 0,
+            completed_tasks: 0,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: None,
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let result = trace_log.validate();
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("closed_at") && err_msg.contains("created_at"));
+    }
+
+    #[test]
+    fn test_trace_log_validate_task_count_inconsistency() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Implementing,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 5,
+            completed_tasks: 4,
+            failed_tasks: 3,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: None,
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let result = trace_log.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Task count inconsistency"));
+    }
+
+    #[test]
+    fn test_trace_log_validate_quality_score_too_high() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Done,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 0,
+            completed_tasks: 0,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: Some(101),
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let result = trace_log.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("quality score out of range"));
+    }
+
+    #[test]
+    fn test_trace_log_validate_quality_score_boundary() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Done,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 0,
+            completed_tasks: 0,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec![],
+            quality_reports: vec![],
+            final_quality_score: Some(100),
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        assert!(trace_log.validate().is_ok());
+    }
+
+    // ========================================================================
+    // Additional Struct Tests
+    // ========================================================================
+
+    #[test]
+    fn test_agent_execution_roundtrip() {
+        let execution = AgentExecution {
+            agent_type: AgentType::CodeGenAgent,
+            task_id: Some("task-001".to_string()),
+            start_time: chrono::Utc::now(),
+            end_time: Some(chrono::Utc::now()),
+            duration_ms: Some(5000),
+            status: AgentStatus::Completed,
+            result: None,
+            error: None,
+        };
+
+        let json = serde_json::to_string(&execution).unwrap();
+        let deserialized: AgentExecution = serde_json::from_str(&json).unwrap();
+        assert_eq!(execution.agent_type, deserialized.agent_type);
+        assert_eq!(execution.duration_ms, deserialized.duration_ms);
+    }
+
+    #[test]
+    fn test_label_change_roundtrip() {
+        let change = LabelChange {
+            timestamp: chrono::Utc::now(),
+            action: LabelAction::Added,
+            label: "bug".to_string(),
+            performed_by: "IssueAgent".to_string(),
+        };
+
+        let json = serde_json::to_string(&change).unwrap();
+        let deserialized: LabelChange = serde_json::from_str(&json).unwrap();
+        assert_eq!(change.action, deserialized.action);
+        assert_eq!(change.label, deserialized.label);
+    }
+
+    #[test]
+    fn test_pr_result_roundtrip() {
+        let pr = PRResult {
+            number: 42,
+            url: "https://github.com/user/repo/pull/42".to_string(),
+            state: PRState::Open,
+            created_at: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&pr).unwrap();
+        let deserialized: PRResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(pr.number, deserialized.number);
+        assert_eq!(pr.state, deserialized.state);
+    }
+
+    #[test]
+    fn test_deployment_result_roundtrip() {
+        let deployment = DeploymentResult {
+            environment: Environment::Production,
+            version: "v1.2.3".to_string(),
+            project_id: "project-123".to_string(),
+            deployment_url: "https://app.example.com".to_string(),
+            deployed_at: chrono::Utc::now(),
+            duration_ms: 30000,
+            status: DeploymentStatus::Success,
+        };
+
+        let json = serde_json::to_string(&deployment).unwrap();
+        let deserialized: DeploymentResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(deployment.environment, deserialized.environment);
+        assert_eq!(deployment.version, deserialized.version);
+    }
+
+    #[test]
+    fn test_trace_note_roundtrip() {
+        let note = TraceNote {
+            timestamp: chrono::Utc::now(),
+            author: "user123".to_string(),
+            content: "This is a note".to_string(),
+            tags: Some(vec!["important".to_string()]),
+        };
+
+        let json = serde_json::to_string(&note).unwrap();
+        let deserialized: TraceNote = serde_json::from_str(&json).unwrap();
+        assert_eq!(note.author, deserialized.author);
+        assert_eq!(note.content, deserialized.content);
+    }
+
+    #[test]
+    fn test_issue_metadata_roundtrip() {
+        let metadata = IssueMetadata {
+            device_identifier: "MacBook-Pro".to_string(),
+            session_ids: vec!["session-1".to_string(), "session-2".to_string()],
+            total_duration_ms: Some(120000),
+            last_updated: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&metadata).unwrap();
+        let deserialized: IssueMetadata = serde_json::from_str(&json).unwrap();
+        assert_eq!(metadata.device_identifier, deserialized.device_identifier);
+        assert_eq!(metadata.session_ids, deserialized.session_ids);
+    }
+
+    #[test]
+    fn test_issue_analysis_serialization() {
+        use crate::agent::Severity;
+        use crate::task::TaskType;
+
+        let analysis = IssueAnalysis {
+            issue_number: 123,
+            issue_type: TaskType::Feature,
+            severity: Severity::Medium,
+            impact: ImpactLevel::High,
+            assigned_agent: AgentType::CodeGenAgent,
+            estimated_duration: 120,
+            dependencies: vec!["#100".to_string(), "#101".to_string()],
+            labels: vec!["type:feature".to_string(), "priority:high".to_string()],
+        };
+
+        let json = serde_json::to_string(&analysis).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["issue_number"], 123);
+        assert_eq!(parsed["estimated_duration"], 120);
+        assert_eq!(parsed["dependencies"][0], "#100");
+    }
+
+    #[test]
+    fn test_issue_trace_log_roundtrip() {
+        let trace_log = IssueTraceLog {
+            issue_number: 100,
+            issue_title: "Test issue".to_string(),
+            issue_url: "https://github.com/user/repo/issues/100".to_string(),
+            created_at: chrono::Utc::now(),
+            closed_at: None,
+            current_state: IssueState::Implementing,
+            state_transitions: vec![],
+            agent_executions: vec![],
+            total_tasks: 5,
+            completed_tasks: 2,
+            failed_tasks: 0,
+            label_changes: vec![],
+            current_labels: vec!["bug".to_string()],
+            quality_reports: vec![],
+            final_quality_score: None,
+            pull_requests: vec![],
+            deployments: vec![],
+            escalations: vec![],
+            notes: vec![],
+            metadata: create_test_metadata(),
+        };
+
+        let json = serde_json::to_string(&trace_log).unwrap();
+        let deserialized: IssueTraceLog = serde_json::from_str(&json).unwrap();
+        assert_eq!(trace_log.issue_number, deserialized.issue_number);
+        assert_eq!(trace_log.total_tasks, deserialized.total_tasks);
+    }
+
+    #[test]
+    fn test_environment_roundtrip() {
+        let environments = vec![Environment::Staging, Environment::Production];
+
+        for env in environments {
+            let json = serde_json::to_string(&env).unwrap();
+            let deserialized: Environment = serde_json::from_str(&json).unwrap();
+            assert_eq!(env, deserialized);
+        }
+    }
+
+    #[test]
+    fn test_trace_note_optional_tags() {
+        let note = TraceNote {
+            timestamp: chrono::Utc::now(),
+            author: "user123".to_string(),
+            content: "Note without tags".to_string(),
+            tags: None,
+        };
+
+        let json = serde_json::to_string(&note).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("tags").is_none());
+    }
+
+    #[test]
+    fn test_issue_metadata_optional_duration() {
+        let metadata = IssueMetadata {
+            device_identifier: "test-device".to_string(),
+            session_ids: vec![],
+            total_duration_ms: None,
+            last_updated: chrono::Utc::now(),
+        };
+
+        let json = serde_json::to_string(&metadata).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("total_duration_ms").is_none());
+    }
 }
