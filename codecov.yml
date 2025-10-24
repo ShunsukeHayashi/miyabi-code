@@ -1,0 +1,54 @@
+# Codecov Configuration for Miyabi Rust Project
+# Documentation: https://docs.codecov.com/docs/codecov-yaml
+
+# Coverage target and thresholds
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 2%
+        if_ci_failed: error
+
+    patch:
+      default:
+        target: 70%
+        threshold: 5%
+
+  precision: 2
+  round: down
+  range: 70..100
+
+# Ignore patterns
+ignore:
+  - "target/**"
+  - "*/tests/**"
+  - "*/examples/**"
+  - "*/benches/**"
+  - "**/*_test.rs"
+  - "**/main.rs"
+
+# Comment configuration
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+# Flags for different parts of the codebase
+flags:
+  rust:
+    paths:
+      - crates/
+
+# GitHub checks configuration
+github_checks:
+  annotations: true
+
+# Codecov CLI
+codecov:
+  notify:
+    # Wait for all coverage uploads before posting status
+    after_n_builds: 1
+    require_ci_to_pass: yes

@@ -10,6 +10,7 @@
 [![Downloads](https://img.shields.io/npm/dm/miyabi?style=for-the-badge&logo=npm&color=2C8EBB)](https://www.npmjs.com/package/miyabi)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge&logo=apache)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub Stars](https://img.shields.io/github/stars/ShunsukeHayashi/Miyabi?style=for-the-badge&logo=github&color=yellow)](https://github.com/ShunsukeHayashi/Miyabi/stargazers)
+[![codecov](https://codecov.io/gh/ShunsukeHayashi/miyabi-private/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/ShunsukeHayashi/miyabi-private)
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -31,6 +32,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/ShunsukeHayashi/miyabi-private?include_prereleases&style=for-the-badge&logo=github&label=Rust%20Edition)](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v0.1.1)
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![crates.io](https://img.shields.io/badge/crates.io-v0.1.1-blue?style=for-the-badge&logo=rust)](https://crates.io/crates/miyabi-cli)
+[![codecov](https://codecov.io/gh/ShunsukeHayashi/miyabi-private/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/ShunsukeHayashi/miyabi-private)
 
 **🚀 New Commands • 📚 39KB Docs • 📦 Single Binary (8.0MB) • ✅ 577 Tests • 🎯 UX Score: 10.5/10**
 
@@ -643,8 +645,8 @@ A ──┤      ├─ F         (26時間)
 <td align="center" width="25%">
 
 #### 🧪 **テストカバレッジ**
-### 83.78%
-<sup>目標: 80%+</sup>
+### 80%+
+<sup>目標: 80%+ | CI強制適用</sup>
 
 </td>
 <td align="center" width="25%">

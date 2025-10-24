@@ -120,6 +120,10 @@ jobs:
     name: Code Coverage
     runs-on: [self-hosted, macOS, arm64, miyabi-light]
     steps:
+      - name: Start time tracking
+        id: start-time
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -137,19 +141,106 @@ jobs:
       - name: Install cargo-tarpaulin
         run: |
           if ! command -v cargo-tarpaulin &> /dev/null; then
+            echo "📦 Installing cargo-tarpaulin..." >> $GITHUB_STEP_SUMMARY
             cargo install cargo-tarpaulin
           else
-            echo "cargo-tarpaulin already installed"
+            echo "✅ cargo-tarpaulin already installed" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Generate coverage
-        run: cargo tarpaulin --workspace --out Xml --output-dir ./coverage
+      - name: Generate coverage report
+        run: |
+          echo "### 📊 Generating Code Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Generate coverage with multiple output formats
+          cargo tarpaulin \
+            --workspace \
+            --all-features \
+            --timeout 300 \
+            --out Xml \
+            --out Html \
+            --out Json \
+            --output-dir ./coverage \
+            --exclude-files 'target/*' \
+            --exclude-files '*/tests/*' \
+            --exclude-files '*/examples/*' \
+            -- --test-threads 1
+
+          echo "✅ Coverage report generated" >> $GITHUB_STEP_SUMMARY
+
+      - name: Parse coverage percentage
+        id: coverage
+        run: |
+          # Extract coverage percentage from JSON report
+          if [ -f "./coverage/tarpaulin-report.json" ]; then
+            COVERAGE=$(jq -r '.files | map(.covered | length) | add' ./coverage/tarpaulin-report.json 2>/dev/null || echo "0")
+            TOTAL=$(jq -r '.files | map(.coverable | length) | add' ./coverage/tarpaulin-report.json 2>/dev/null || echo "1")
+            PERCENTAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERAGE / $TOTAL) * 100}")
+            echo "percentage=$PERCENTAGE" >> $GITHUB_OUTPUT
+            echo "covered=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          else
+            echo "percentage=0.00" >> $GITHUB_OUTPUT
+            echo "covered=0" >> $GITHUB_OUTPUT
+            echo "total=1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check coverage threshold
+        run: |
+          COVERAGE="${{ steps.coverage.outputs.percentage }}"
+          THRESHOLD=80.0
+
+          echo "### 🎯 Coverage Threshold Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Current Coverage**: ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Required Threshold**: ${THRESHOLD}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "❌ **Status**: FAILED - Coverage below threshold" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Please add more tests to reach ${THRESHOLD}% coverage" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ **Status**: PASSED - Coverage meets threshold" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/cobertura.xml
-          fail_ci_if_error: false
+          flags: rust
+          name: miyabi-rust-coverage
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-html
+          path: coverage/
+          retention-days: 30
+
+      - name: Generate coverage summary
+        if: always()
+        run: |
+          end_time=$(date +%s)
+          duration=$((end_time - ${{ steps.start-time.outputs.start_time }}))
+          minutes=$((duration / 60))
+          seconds=$((duration % 60))
+
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📈 Coverage Report Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Coverage**: ${{ steps.coverage.outputs.percentage }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines Covered**: ${{ steps.coverage.outputs.covered }} / ${{ steps.coverage.outputs.total }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Duration**: ${minutes}m ${seconds}s" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner**: Mac mini 1 (miyabi-light)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 View detailed report: [Codecov Dashboard](https://codecov.io/gh/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY
 
       - name: Show sccache statistics
         if: always()
