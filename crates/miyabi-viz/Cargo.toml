@@ -1,0 +1,54 @@
+[package]
+name = "miyabi-viz"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Molecular visualization system for Miyabi codebase architecture"
+keywords = ["visualization", "dependency-graph", "architecture", "molecular"]
+categories = ["visualization", "development-tools"]
+
+[dependencies]
+# Core dependencies
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Cargo metadata parsing
+cargo_metadata = "0.18"
+
+# Git analysis
+git2 = { workspace = true }
+
+# Graph algorithms
+petgraph = "0.6"
+
+# CLI (for standalone binary)
+clap = { workspace = true, optional = true }
+
+# Web server (Phase 2)
+axum = { version = "0.7", optional = true }
+tokio = { workspace = true, optional = true, features = ["full"] }
+tower = { workspace = true, optional = true }
+tower-http = { workspace = true, optional = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+insta = { workspace = true }
+
+[features]
+default = []
+cli = ["clap"]
+server = ["axum", "tokio", "tower", "tower-http"]
+
+[[bin]]
+name = "miyabi-viz"
+path = "src/bin/main.rs"
+required-features = ["cli"]

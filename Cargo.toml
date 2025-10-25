@@ -28,7 +28,7 @@ members = [
     # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
     "crates/miyabi-e2e-tests", "crates/miyabi-modes", "crates/miyabi-line", "crates/miyabi-historical-ai", "crates/miyabi-historical-api",  # E2E test framework
-    # "crates/miyabi-viz",  # Molecular visualization system (TODO: not yet created)
+    "crates/miyabi-viz",  # Molecular visualization system
 ]
 
 [workspace.package]
