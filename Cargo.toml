@@ -27,7 +27,7 @@ members = [
     "crates/miyabi-orchestrator",  # Merged: miyabi-scheduler + miyabi-feedback-loop
     # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
-    "crates/miyabi-e2e-tests", "crates/miyabi-modes",  # E2E test framework
+    "crates/miyabi-e2e-tests", "crates/miyabi-modes", "shinyu-ai", "crates/miyabi-line",  # E2E test framework
     # "crates/miyabi-viz",  # Molecular visualization system (TODO: not yet created)
 ]
 
@@ -76,6 +76,7 @@ ignore = "0.4"
 tempfile = "3.13"
 dunce = "1.0"
 dirs = "5.0"  # Cross-platform home directory and config paths
+uuid = { version = "1.11", features = ["v4", "serde"] }
 
 # Logging
 tracing = "0.1"
