@@ -3,10 +3,12 @@
 mod cargo_parser;
 mod git_analyzer;
 mod graph_builder;
+mod module_analyzer;
 
 pub use cargo_parser::CargoParser;
 pub use git_analyzer::GitAnalyzer;
 pub use graph_builder::GraphBuilder;
+pub use module_analyzer::ModuleAnalyzer;
 
 use crate::{models::MiyabiGraph, Result};
 use std::path::Path;

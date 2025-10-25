@@ -27,6 +27,11 @@ git2 = { workspace = true }
 # Graph algorithms
 petgraph = "0.6"
 
+# Rust syntax parsing (Phase 2 - Module Analysis)
+syn = { version = "2.0", features = ["full", "visit", "parsing"] }
+quote = "1.0"
+walkdir = "2.4"
+
 # CLI (for standalone binary)
 clap = { workspace = true, optional = true }
 

@@ -26,7 +26,7 @@ pub mod analyzer;
 pub mod exporter;
 pub mod models;
 
-pub use analyzer::MiyabiAnalyzer;
+pub use analyzer::{MiyabiAnalyzer, ModuleAnalyzer};
 pub use models::{
     CrateCategory, CrateNode, Dependency, DependencyKind, MiyabiGraph,
     ModuleNode, ModuleDependency, ModuleGraph,
