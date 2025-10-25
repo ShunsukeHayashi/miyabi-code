@@ -18,6 +18,7 @@ pub mod config;
 pub mod documentation;
 pub mod error_policy;
 pub mod executor;
+pub mod feature_flags;
 pub mod git;
 pub mod logger;
 pub mod output;
@@ -38,6 +39,8 @@ pub use documentation::{
 };
 pub use error_policy::{CircuitBreaker, CircuitState, FallbackStrategy};
 // Re-export all git utilities from consolidated git module
+pub use executor::TaskExecutor;
+pub use feature_flags::{FeatureFlag, FeatureFlagManager};
 pub use git::{
     find_git_root, get_current_branch, get_main_branch, has_uncommitted_changes, is_in_git_repo,
     is_valid_repository,
@@ -50,7 +53,6 @@ pub use rules::{
     AgentPreferences, MiyabiRules, Result as RulesResult, Rule, RulesError, RulesLoader,
 };
 pub use security::{run_cargo_audit, SecurityAuditResult, Vulnerability, VulnerabilitySeverity};
-pub use executor::TaskExecutor;
 pub use session::{
     Action, ExecutionMode, ReasoningStep, Session, SessionContext, SessionStatus, SessionSummary,
     Turn, TurnStatus,
