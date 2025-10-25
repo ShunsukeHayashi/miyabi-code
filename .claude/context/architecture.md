@@ -1,5 +1,8 @@
 # Architecture - Miyabi System Design
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+
 **Priority**: ⭐⭐⭐⭐
 
 ## 🦀 Rust Edition - 高速・安全・並列実行

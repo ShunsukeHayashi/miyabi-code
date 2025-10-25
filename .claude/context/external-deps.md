@@ -1,5 +1,8 @@
 # External Dependencies - Context7 & MCP
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+
 **Priority**: ⭐⭐
 
 ## 📚 Context7

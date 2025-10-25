@@ -1,5 +1,8 @@
 # Core Rules - 絶対に守るべき3つのルール
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+
 **Priority**: ⭐⭐⭐⭐⭐ (最重要 - 全タスク実行前に必読)
 
 ## 🔄 Rule 1: MCP First Approach

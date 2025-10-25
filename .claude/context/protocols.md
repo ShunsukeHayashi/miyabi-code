@@ -1,5 +1,8 @@
 # Protocols - タスク管理・報告プロトコル
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+
 **Priority**: ⭐⭐
 
 ## 📋 タスク管理プロトコル

@@ -1,5 +1,8 @@
 # Development Guidelines
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+
 **Priority**: ⭐⭐⭐
 
 ## 🦀 Rust Development

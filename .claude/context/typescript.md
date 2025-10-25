@@ -1,5 +1,8 @@
 # TypeScript (レガシー - 参考)
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+
 **Priority**: ⭐ (レガシー参考のみ)
 
 ## ⚠️ 注意
