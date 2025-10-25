@@ -22,6 +22,7 @@ pub mod feature_flags;
 pub mod git;
 pub mod logger;
 pub mod output;
+pub mod plugin;
 pub mod resource_limits;
 pub mod retry;
 pub mod rules;
@@ -47,6 +48,7 @@ pub use git::{
 };
 pub use logger::{init_logger, init_logger_with_config, LogFormat, LogLevel, LoggerConfig};
 pub use output::{ExecutionEvent, JsonlWriter};
+pub use plugin::{Plugin, PluginContext, PluginManager, PluginMetadata, PluginResult, PluginState};
 pub use resource_limits::{HardwareLimits, PerWorktreeLimits, ResourceType};
 pub use retry::{is_retryable, retry_with_backoff, RetryConfig};
 pub use rules::{

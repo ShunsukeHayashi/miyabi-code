@@ -19,6 +19,7 @@ serde_yaml = "0.9"
 toml = "0.9"
 config = "0.14"  # Unified configuration management (ENV/TOML/YAML)
 tokio = { workspace = true }
+anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
