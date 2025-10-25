@@ -204,3 +204,7 @@ historical-ai-frontend/
 
 # Temporary build outputs
 *.profraw
+
+# Legacy build artifacts (cleanup #542)
+dist/
+coverage/
