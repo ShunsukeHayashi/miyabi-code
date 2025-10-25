@@ -324,5 +324,7 @@ miyabi agent run lp-gen --reference-url "https://example.com"
 ---
 
 **バージョン**: v1.0.0
+**ステータス**: 📋 Planning (実装予定)
+**Target Release**: v1.3.0
 **最終更新**: 2025-10-22
 **ステータス**: Active

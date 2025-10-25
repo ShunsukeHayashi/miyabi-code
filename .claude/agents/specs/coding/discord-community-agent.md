@@ -3,6 +3,8 @@
 **Agent名**: DiscordCommunityAgent
 **キャラクター名**: まとめるん（コミュニティマネージャー）
 **バージョン**: 1.0.0
+**ステータス**: 📋 Planning (実装予定)
+**Target Release**: v1.2.0
 **作成日**: 2025-10-18
 **カテゴリ**: Coding Agent
 **色**: 🟡 サポート役
