@@ -3,8 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import type { MiyabiGraphData, CrateNode, DAGMode } from '@/types/graph';
-import ControlPanel from '@/components/ControlPanel';
+import ControlPanel, { type HighlightMode } from '@/components/ControlPanel';
 import InfoPanel from '@/components/InfoPanel';
+import StatsPanel from '@/components/StatsPanel';
 
 // Dynamically import MiyabiViewer to avoid SSR issues with 3d-force-graph
 const MiyabiViewer = dynamic(() => import('@/components/MiyabiViewer'), {
@@ -21,6 +22,8 @@ export default function Home() {
   const [dagMode, setDagMode] = useState<DAGMode>('bu'); // Bottom-up: base layers at bottom
   const [selectedNode, setSelectedNode] = useState<CrateNode | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [highlightMode, setHighlightMode] = useState<HighlightMode>('none');
+  const [searchQuery, setSearchQuery] = useState<string>(''); // Initialize with empty string
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,13 +55,59 @@ export default function Home() {
     return Array.from(cats).sort();
   }, [graphData]);
 
-  // Filter graph data by selected categories
+  // Calculate statistics
+  const stats = useMemo(() => {
+    if (!graphData) return null;
+
+    const totalCrates = graphData.nodes.length;
+    const totalDeps = graphData.links.length;
+
+    // Calculate average LOC
+    const totalLOC = graphData.nodes.reduce((sum, n) => sum + Math.round(Math.pow(10, n.val) * 100), 0);
+    const avgLOC = Math.round(totalLOC / totalCrates);
+
+    // Calculate average coverage
+    const avgCoverage = graphData.nodes.reduce((sum, n) => sum + n.opacity, 0) / totalCrates;
+
+    // Count God Crates (LOC > 5000)
+    const godCrates = graphData.nodes.filter(n => Math.round(Math.pow(10, n.val) * 100) > 5000).length;
+
+    // Count Unstable Hubs (opacity corresponds to B-factor, assuming high opacity = high B-factor)
+    // Actually, in the current implementation, opacity = coverage, not B-factor
+    // So we'll use a heuristic: larger nodes with low coverage might be unstable
+    const unstableHubs = graphData.nodes.filter(n => n.val > 1.5 && n.opacity < 0.7).length;
+
+    // Count Low Coverage (< 50%)
+    const lowCoverage = graphData.nodes.filter(n => n.opacity < 0.5).length;
+
+    return {
+      totalCrates,
+      totalDeps,
+      avgLOC,
+      avgCoverage: Math.round(avgCoverage * 100),
+      godCrates,
+      unstableHubs,
+      lowCoverage,
+      cyclicDeps: 0, // Would need cycle detection algorithm
+    };
+  }, [graphData]);
+
+  // Filter graph data by selected categories and search query
   const filteredData = useMemo(() => {
     if (!graphData) return null;
 
-    const filteredNodes = graphData.nodes.filter((node) =>
+    let filteredNodes = graphData.nodes.filter((node) =>
       selectedCategories.has(node.group)
     );
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filteredNodes = filteredNodes.filter(node =>
+        node.id.toLowerCase().includes(query)
+      );
+    }
+
     const nodeIds = new Set(filteredNodes.map((n) => n.id));
     const filteredLinks = graphData.links.filter(
       (link) => nodeIds.has(link.source) && nodeIds.has(link.target)
@@ -68,7 +117,7 @@ export default function Home() {
       nodes: filteredNodes,
       links: filteredLinks,
     };
-  }, [graphData, selectedCategories]);
+  }, [graphData, selectedCategories, searchQuery]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) => {
@@ -138,6 +187,10 @@ export default function Home() {
         categories={categories}
         selectedCategories={selectedCategories}
         onCategoryToggle={handleCategoryToggle}
+        highlightMode={highlightMode}
+        onHighlightModeChange={setHighlightMode}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
       {/* Info Panel */}
@@ -145,6 +198,9 @@ export default function Home() {
         selectedNode={selectedNode}
         onClose={() => setSelectedNode(null)}
       />
+
+      {/* Stats Panel */}
+      <StatsPanel stats={stats} />
 
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 text-xs text-gray-400 max-w-xs">

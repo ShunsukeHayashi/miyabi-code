@@ -2,12 +2,18 @@
 
 import type { DAGMode } from '@/types/graph';
 
+export type HighlightMode = 'none' | 'god-crates' | 'unstable-hubs' | 'low-coverage';
+
 interface ControlPanelProps {
   dagMode: DAGMode;
   onDagModeChange: (mode: DAGMode) => void;
   categories: string[];
   selectedCategories: Set<string>;
   onCategoryToggle: (category: string) => void;
+  highlightMode: HighlightMode;
+  onHighlightModeChange: (mode: HighlightMode) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export default function ControlPanel({
@@ -16,6 +22,10 @@ export default function ControlPanel({
   categories,
   selectedCategories,
   onCategoryToggle,
+  highlightMode,
+  onHighlightModeChange,
+  searchQuery,
+  onSearchChange,
 }: ControlPanelProps) {
   const dagModes: { value: DAGMode; label: string }[] = [
     { value: 'td', label: 'Top-Down' },
@@ -30,6 +40,20 @@ export default function ControlPanel({
   return (
     <div className="absolute top-4 left-4 bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 shadow-xl max-w-xs">
       <h3 className="text-white font-bold text-lg mb-4">🧬 Controls</h3>
+
+      {/* Search */}
+      <div className="mb-4">
+        <label className="text-gray-300 text-sm font-medium block mb-2">
+          🔍 Search Crates
+        </label>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="e.g., miyabi-cli"
+          className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
       {/* DAG Mode */}
       <div className="mb-4">
@@ -46,6 +70,23 @@ export default function ControlPanel({
               {mode.label}
             </option>
           ))}
+        </select>
+      </div>
+
+      {/* Highlight Mode */}
+      <div className="mb-4">
+        <label className="text-gray-300 text-sm font-medium block mb-2">
+          ⚠️ Highlight Issues
+        </label>
+        <select
+          value={highlightMode}
+          onChange={(e) => onHighlightModeChange(e.target.value as HighlightMode)}
+          className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="none">None</option>
+          <option value="god-crates">🔴 God Crates (LOC &gt; 5000)</option>
+          <option value="unstable-hubs">🟡 Unstable Hubs (Large + Low Coverage)</option>
+          <option value="low-coverage">🟠 Low Coverage (&lt; 50%)</option>
         </select>
       </div>
 
