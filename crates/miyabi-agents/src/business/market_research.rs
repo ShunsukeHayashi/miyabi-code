@@ -29,7 +29,8 @@ impl MarketResearchAgent {
     /// Generate comprehensive market research using LLM
     async fn generate_market_research(&self, task: &Task) -> Result<MarketResearch> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback()?;
+        let provider = GPTOSSProvider::new_with_fallback()
+            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
 
         // Create context from task
         let context = LLMContext::from_task(task);

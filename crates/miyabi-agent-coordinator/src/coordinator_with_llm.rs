@@ -65,7 +65,10 @@ impl CoordinatorAgentWithLLM {
                     .with_reasoning_effort(ReasoningEffort::High);
 
                 // Generate task decomposition
-                let response = llm.generate(&request).await?;
+                let response = llm
+                    .generate(&request)
+                    .await
+                    .map_err(|e| MiyabiError::Unknown(format!("LLM generation failed: {}", e)))?;
 
                 // Parse LLM response into tasks
                 let tasks = self.parse_llm_response(&response.text, issue)?;

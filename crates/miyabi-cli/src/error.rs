@@ -45,6 +45,18 @@ pub enum CliError {
 
     #[error("Mode error: {0}")]
     Mode(#[from] miyabi_modes::error::ModeError),
+
+    #[error("Unknown error: {0}")]
+    Unknown(String),
+
+    #[error("{0}")]
+    Other(String),
+
+    #[error("Session error: {0}")]
+    SessionError(String),
+
+    #[error("Agent execution error: {0}")]
+    AgentExecution(String),
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;
@@ -56,10 +68,7 @@ mod tests {
     #[test]
     fn test_invalid_project_name_error() {
         let error = CliError::InvalidProjectName("test-project".to_string());
-        assert_eq!(
-            error.to_string(),
-            "Invalid project name: test-project"
-        );
+        assert_eq!(error.to_string(), "Invalid project name: test-project");
     }
 
     #[test]
@@ -95,7 +104,10 @@ mod tests {
     #[test]
     fn test_git_config_error() {
         let error = CliError::GitConfig("remote not found".to_string());
-        assert_eq!(error.to_string(), "Git configuration error: remote not found");
+        assert_eq!(
+            error.to_string(),
+            "Git configuration error: remote not found"
+        );
     }
 
     #[test]
@@ -142,9 +154,6 @@ mod tests {
     fn test_result_type_err() {
         let result: Result<i32> = Err(CliError::NotGitRepository);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Not in a git repository"
-        );
+        assert_eq!(result.unwrap_err().to_string(), "Not in a git repository");
     }
 }
