@@ -218,6 +218,11 @@ reports/
 miyabi-web/dist/
 miyabi-web/.next/
 
-# Tools cache (refactoring #544)
+# Tools cache and output (refactoring #544)
 tools/.cache/
 tools/tmp/
+tools/output/
+tools/audio/
+tools/__pycache__/
+tools/*.wav
+tools/*.mp4
