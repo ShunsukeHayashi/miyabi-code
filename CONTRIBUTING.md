@@ -571,6 +571,119 @@ What other approaches were considered?
 - [docs/REPOSITORY_OVERVIEW.md](docs/REPOSITORY_OVERVIEW.md) - Architecture overview
 - [Organizational Design Principles](https://en.wikipedia.org/wiki/Organizational) - Management philosophy
 
+## 📚 Documentation Guidelines
+
+### ドキュメント更新ルール
+
+ドキュメントを更新する際は、以下のルールに従ってください。
+
+#### 1. メタデータ更新
+
+**ドキュメント更新時は必ずメタデータを更新**
+
+```markdown
+**Last Updated**: YYYY-MM-DD
+**Version**: X.X.X
+**Status**: ✅ Active / 📋 Planning / 🚧 WIP
+```
+
+#### 2. バージョニングルール
+
+| 変更内容 | Version更新 | 例 |
+|---------|-----------|-----|
+| **Patch** (軽微な修正) | x.x.X | 誤字修正、リンク修正 |
+| **Minor** (機能追加) | x.X.0 | 新セクション追加、大幅な改善 |
+| **Major** (破壊的変更) | X.0.0 | 構造変更、互換性のない変更 |
+
+#### 3. 対象ドキュメント
+
+**メタデータ必須**:
+- Context modules (`.claude/context/*.md`)
+- Core docs (`docs/*.md`)
+- Agent specs (`.claude/agents/specs/**/*.md`)
+- CLAUDE.md
+
+**メタデータ推奨**:
+- README.md
+- その他主要ドキュメント
+
+#### 4. 更新チェックリスト
+
+ドキュメント更新時は以下を確認:
+
+- [ ] `Last Updated` を今日の日付に更新
+- [ ] `Version` を適切にインクリメント (Patch/Minor/Major)
+- [ ] `Status` を適切に設定 (Active/Planning/WIP)
+- [ ] 変更内容をコミットメッセージに記載
+- [ ] 関連ドキュメントのリンク切れチェック
+
+#### 5. コミットメッセージ規約
+
+ドキュメント更新時は `docs:` prefixを使用:
+
+```bash
+# 良い例
+docs(CLAUDE.md): Agent数を実態に合わせて更新
+docs(context): バージョン情報を追加
+docs(README): インストール手順を改善
+
+# 悪い例
+Update CLAUDE.md  # prefixなし
+Fix docs  # 具体性なし
+```
+
+#### 6. サンプルテンプレート
+
+**Context Module Template**:
+```markdown
+# Module Title
+
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+**Priority**: ⭐⭐⭐⭐
+
+## Content...
+```
+
+**Core Doc Template**:
+```markdown
+# Document Title
+
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+**Status**: ✅ Active
+
+## Content...
+```
+
+**Agent Spec Template**:
+```markdown
+# Agent Name
+
+**Agent名**: AgentName
+**バージョン**: 1.0.0
+**ステータス**: ✅ 実装済み / 📋 Planning
+**Target Release**: vX.X.X (計画中の場合)
+
+## Content...
+```
+
+#### 7. よくある質問
+
+**Q: 小さな誤字修正でもVersionを上げる？**
+A: はい。Patch versionを上げてください (例: 2.0.1 → 2.0.2)
+
+**Q: Last Updatedのみ変更すればいい？**
+A: いいえ。Versionも必ず更新してください。
+
+**Q: 複数ファイルを一度に更新した場合は？**
+A: 各ファイルのVersionとLast Updatedを個別に更新してください。
+
+**Q: Statusはいつ変更する？**
+A: Planning → WIP (作業開始時)、WIP → Active (完成時)
+
+---
+
 ## 💡 Tips
 
 - **Start small**: Begin with documentation or test improvements
