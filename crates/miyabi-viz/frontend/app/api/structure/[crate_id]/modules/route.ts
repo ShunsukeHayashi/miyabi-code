@@ -10,12 +10,40 @@ const execAsync = promisify(exec);
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// Transform backend ModuleGraph to frontend ModuleGraphData format
+function transformModuleData(backendData: any): any {
+  return {
+    crate_id: backendData.crate_id,
+    nodes: backendData.nodes.map((node: any) => ({
+      // Frontend-required fields
+      id: node.id,
+      val: Math.log10(Math.max(node.loc, 10)) * 0.5, // Log scale for visual size
+      color: node.is_public ? '#4CAF50' : '#9E9E9E', // Green for public, gray for private
+      opacity: node.coverage, // Test coverage
+      group: node.is_public ? 'Public' : 'Private', // Category
+
+      // Additional data fields
+      loc: node.loc,
+      complexity: node.complexity,
+      is_public: node.is_public,
+    })),
+    links: backendData.links.map((link: any) => ({
+      source: link.source,
+      target: link.target,
+      strength: link.strength || 1,
+      color: link.is_cross_boundary ? '#FF9800' : '#2196F3', // Orange for cross-boundary
+      width: Math.min(link.strength || 1, 5), // Cap width at 5
+      dashed: (link.strength || 1) < 2, // Dashed for weak dependencies
+    })),
+  };
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { crate_id: string } }
+  { params }: { params: Promise<{ crate_id: string }> }
 ) {
   try {
-    const { crate_id } = params;
+    const { crate_id } = await params;
 
     // Validate crate_id
     if (!crate_id || !/^[a-zA-Z0-9_-]+$/.test(crate_id)) {
@@ -36,22 +64,24 @@ export async function GET(
 
     if (fs.existsSync(publicPath)) {
       const data = JSON.parse(fs.readFileSync(publicPath, 'utf-8'));
+      const transformedData = transformModuleData(data);
 
       // Update cache
-      cache.set(crate_id, { data, timestamp: Date.now() });
+      cache.set(crate_id, { data: transformedData, timestamp: Date.now() });
 
-      return NextResponse.json(data);
+      return NextResponse.json(transformedData);
     }
 
     // Try to read from /tmp
     const tmpPath = `/tmp/miyabi-modules-${crate_id}.json`;
     if (fs.existsSync(tmpPath)) {
       const data = JSON.parse(fs.readFileSync(tmpPath, 'utf-8'));
+      const transformedData = transformModuleData(data);
 
       // Update cache
-      cache.set(crate_id, { data, timestamp: Date.now() });
+      cache.set(crate_id, { data: transformedData, timestamp: Date.now() });
 
-      return NextResponse.json(data);
+      return NextResponse.json(transformedData);
     }
 
     // If not found, try to generate on-demand (if CLI is available)
@@ -81,11 +111,12 @@ export async function GET(
 
         if (fs.existsSync(outputPath)) {
           const data = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
+          const transformedData = transformModuleData(data);
 
           // Update cache
-          cache.set(crate_id, { data, timestamp: Date.now() });
+          cache.set(crate_id, { data: transformedData, timestamp: Date.now() });
 
-          return NextResponse.json(data);
+          return NextResponse.json(transformedData);
         }
       }
     } catch (error) {

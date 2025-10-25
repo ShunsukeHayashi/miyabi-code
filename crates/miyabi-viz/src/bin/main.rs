@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use miyabi_viz::{exporter::JsonExporter, MiyabiAnalyzer};
+use miyabi_viz::{analyzer::ModuleAnalyzer, exporter::JsonExporter, MiyabiAnalyzer};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -47,6 +47,21 @@ enum Commands {
         /// Quick mode (skip Git history analysis)
         #[arg(short, long)]
         quick: bool,
+    },
+
+    /// Analyze modules within a specific crate (Phase 2)
+    AnalyzeModules {
+        /// Crate name (e.g., "miyabi-core")
+        #[arg(short, long)]
+        crate_name: String,
+
+        /// Output file path
+        #[arg(short, long)]
+        output: PathBuf,
+
+        /// Workspace root directory
+        #[arg(short, long, default_value = ".")]
+        workspace: PathBuf,
     },
 }
 
@@ -170,6 +185,80 @@ fn main() -> Result<()> {
             for node in sorted_nodes.iter().take(5) {
                 println!("   {} ({} dependents)", node.id, node.dependents_count);
             }
+        }
+
+        Commands::AnalyzeModules {
+            crate_name,
+            output,
+            workspace,
+        } => {
+            println!("📦 Analyzing modules for crate: {}", crate_name);
+            println!("   Workspace: {}", workspace.display());
+
+            // Construct crate path
+            let crate_path = workspace.join("crates").join(&crate_name);
+
+            if !crate_path.exists() {
+                anyhow::bail!("Crate not found: {}", crate_path.display());
+            }
+
+            // Analyze modules
+            let analyzer = ModuleAnalyzer::new(&crate_path, &crate_name)?;
+            let module_graph = analyzer.analyze()?;
+
+            println!("✅ Analysis complete!");
+            println!("   Modules: {}", module_graph.nodes.len());
+            println!("   Dependencies: {}", module_graph.links.len());
+
+            // Show module breakdown
+            println!("\n📊 Module breakdown:");
+            let public_count = module_graph
+                .nodes
+                .iter()
+                .filter(|n| n.is_public)
+                .count();
+            let private_count = module_graph.nodes.len() - public_count;
+            println!("   Public: {}", public_count);
+            println!("   Private: {}", private_count);
+
+            // Top 5 largest modules
+            println!("\n📈 Top 5 largest modules (by LOC):");
+            let mut sorted_modules = module_graph.nodes.clone();
+            sorted_modules.sort_by(|a, b| b.loc.cmp(&a.loc));
+            for module in sorted_modules.iter().take(5) {
+                println!(
+                    "   {} ({} LOC, complexity: {:.1})",
+                    module.id, module.loc, module.complexity
+                );
+            }
+
+            // Top 5 most complex modules
+            println!("\n🔥 Top 5 most complex modules:");
+            sorted_modules.sort_by(|a, b| {
+                b.complexity
+                    .partial_cmp(&a.complexity)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            for module in sorted_modules.iter().take(5) {
+                println!(
+                    "   {} (complexity: {:.1}, LOC: {})",
+                    module.id, module.complexity, module.loc
+                );
+            }
+
+            // Export to JSON
+            println!("\n💾 Exporting to {}...", output.display());
+
+            // Create parent directory if needed
+            if let Some(parent) = output.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+
+            let json = serde_json::to_string_pretty(&module_graph)?;
+            std::fs::write(&output, json)?;
+
+            println!("✅ Export complete!");
+            println!("\n📊 Module data saved for frontend drill-down");
         }
     }
 
