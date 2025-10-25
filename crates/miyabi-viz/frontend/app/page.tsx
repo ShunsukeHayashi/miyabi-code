@@ -18,7 +18,7 @@ const MiyabiViewer = dynamic(() => import('@/components/MiyabiViewer'), {
 
 export default function Home() {
   const [graphData, setGraphData] = useState<MiyabiGraphData | null>(null);
-  const [dagMode, setDagMode] = useState<DAGMode>('td');
+  const [dagMode, setDagMode] = useState<DAGMode>('bu'); // Bottom-up: base layers at bottom
   const [selectedNode, setSelectedNode] = useState<CrateNode | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);

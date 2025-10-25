@@ -100,19 +100,26 @@ export default function ControlPanel({
             </div>
           </div>
 
-          <div className="font-medium text-gray-300 mt-3 mb-2">Link Colors (Type)</div>
+          <div className="font-medium text-gray-300 mt-3 mb-2">Link Colors (Dependency Type)</div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-[#88CCFF]" />
-              <span className="text-gray-400">Runtime</span>
+              <div className="w-8 h-1 bg-[#00BFFF] rounded" />
+              <span className="text-gray-400 font-medium">Runtime</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-[#666666]" />
+              <div className="w-8 h-1 bg-[#999999] rounded" />
               <span className="text-gray-400">Dev</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-[#FFD700]" />
+              <div className="w-8 h-1 bg-[#FFD700] rounded" />
               <span className="text-gray-400">Build</span>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-500">
+            <div className="space-y-1">
+              <div>💡 <strong>Bottom-Up View</strong>: Base layers (types, core) at bottom → High-level layers (cli, agents) at top</div>
+              <div>🔵 Arrows show dependency direction</div>
             </div>
           </div>
         </div>
