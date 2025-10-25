@@ -3,6 +3,14 @@ node_modules/
 **/node_modules/
 package-lock.json
 
+# Python virtual environments
+venv/
+**/venv/
+.venv/
+**/.venv/
+env/
+**/env/
+
 # Build outputs
 dist/
 build/
