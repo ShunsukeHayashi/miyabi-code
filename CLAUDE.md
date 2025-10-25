@@ -1,7 +1,7 @@
 # Miyabi - Claude Code Project Context
 
-**Last Updated**: 2025-10-24
-**Version**: 2.0.0 (Context Index System)
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1 (Agent数整合性修正)
 
 このファイルは、Claude Codeが自動的に参照するプロジェクトコンテキストファイルです。
 
@@ -26,7 +26,7 @@
 | Category | File | Priority | Description |
 |----------|------|----------|-------------|
 | **Core Rules** | [core-rules.md](.claude/context/core-rules.md) | ⭐⭐⭐⭐⭐ | MCP First, Benchmark Protocol, Context7 |
-| **Agents** | [agents.md](.claude/context/agents.md) | ⭐⭐⭐⭐ | 21 Agents概要（7 Coding + 14 Business） |
+| **Agents** | [agents.md](.claude/context/agents.md) | ⭐⭐⭐⭐ | 14 Agents実装済み + 10 Agents計画中 |
 | **Architecture** | [architecture.md](.claude/context/architecture.md) | ⭐⭐⭐⭐ | Cargo Workspace, GitHub OS, Worktree |
 | **Development** | [development.md](.claude/context/development.md) | ⭐⭐⭐ | Rust/TypeScript規約、テスト、CI/CD |
 | **Entity-Relation** | [entity-relation.md](.claude/context/entity-relation.md) | ⭐⭐⭐ | 12 Entities, 27 Relations, N1/N2/N3記法 |
@@ -86,7 +86,7 @@ crates/
 ├── miyabi-types/          # コア型定義（Agent, Task, Issue等）
 ├── miyabi-core/           # 共通ユーティリティ（config, logger）
 ├── miyabi-cli/            # CLIツール (bin)
-├── miyabi-agents/         # Agent実装（21個: 7 Coding + 14 Business）
+├── miyabi-agents/         # Agent実装（14個実装済み + 10個計画中）
 ├── miyabi-github/         # GitHub API統合（octocrab wrapper）
 ├── miyabi-worktree/       # Git Worktree管理
 ├── miyabi-llm/            # LLM抽象化層（GPT-OSS-20B、Groq/vLLM/Ollama）
@@ -98,21 +98,34 @@ crates/
 
 ---
 
-## 🤖 21 Agents - 自律型実行Agent
+## 🤖 Agents - 自律型実行Agent
 
-### 🔧 Coding Agents (7個)
-- **CoordinatorAgent** (しきるん): タスク統括・DAG分解
-- **CodeGenAgent** (つくるん): AI駆動コード生成
-- **ReviewAgent** (めだまん): コード品質レビュー (100点満点スコアリング)
-- **IssueAgent** (みつけるん): Issue分析・ラベリング (AI推論)
-- **PRAgent** (まとめるん): Pull Request自動作成 (Conventional Commits)
-- **DeploymentAgent** (はこぶん): CI/CDデプロイ自動化
-- **RefresherAgent** (つなぐん): Issue状態監視・更新
+### ✅ 実装済みAgent (14個)
 
-### 💼 Business Agents (14個)
+**💼 Business Agents (14個) - Rust実装完了**
 - **戦略・企画系** (6個): AIEntrepreneur, ProductConcept, ProductDesign, FunnelDesign, Persona, SelfAnalysis
 - **マーケティング系** (5個): MarketResearch, Marketing, ContentCreation, SNSStrategy, YouTube
 - **営業・顧客管理系** (3個): Sales, CRM, Analytics
+
+### 📋 計画中Agent (10個 - Spec fileのみ)
+
+**🔧 Coding Agents (3個)**
+- **DiscordCommunityAgent**: Discordコミュニティ管理
+- **HooksIntegrationAgent**: Git Hooks統合
+- **ImageGenAgent**: 画像生成Agent
+
+**💼 Business Agents (7個)**
+- **HonokaAgent**: AI秘書Agent
+- **JonathanIveDesignAgent**: デザイン戦略Agent
+- **LPGenAgent**: ランディングページ生成
+- **NoteAgent**: note.com記事生成
+- **SlideGenAgent**: スライド生成
+- **NarrationAgent**: 音声ナレーション生成
+- **ImageGenAgent**: ビジネス向け画像生成
+
+### 🎯 参考: 過去の7 Coding Agents構想
+- CoordinatorAgent, CodeGenAgent, ReviewAgent, IssueAgent, PRAgent, DeploymentAgent, RefresherAgent
+- **現状**: 個別crateではなく、統合Agent設計に移行中
 
 **詳細**: [agents.md](.claude/context/agents.md) | [AGENT_CHARACTERS.md](.claude/agents/AGENT_CHARACTERS.md)
 
@@ -155,8 +168,8 @@ cargo fmt
 - [LABEL_SYSTEM_GUIDE.md](docs/LABEL_SYSTEM_GUIDE.md) - 53ラベル体系完全ガイド
 
 **Agent Specs**:
-- Coding: `.claude/agents/specs/coding/*.md` (7ファイル)
-- Business: `.claude/agents/specs/business/*.md` (14ファイル)
+- Coding: `.claude/agents/specs/coding/*.md` (10 specs: 7基本 + 3計画中)
+- Business: `.claude/agents/specs/business/*.md` (21 specs: 14実装済み + 7計画中)
 
 **Agent Prompts**:
 - `.claude/agents/prompts/coding/*.md` (6ファイル)
