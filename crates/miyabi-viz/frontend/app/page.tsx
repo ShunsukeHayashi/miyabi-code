@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import type { MiyabiGraphData, CrateNode, DAGMode } from '@/types/graph';
+import type { MiyabiGraphData, ModuleGraphData, CrateNode, ModuleNode, DAGMode, ViewLevel } from '@/types/graph';
 import ControlPanel, { type HighlightMode } from '@/components/ControlPanel';
 import InfoPanel from '@/components/InfoPanel';
 import StatsPanel from '@/components/StatsPanel';
+import Breadcrumb from '@/components/Breadcrumb';
 
 // Dynamically import MiyabiViewer to avoid SSR issues with 3d-force-graph
 const MiyabiViewer = dynamic(() => import('@/components/MiyabiViewer'), {
@@ -18,9 +19,19 @@ const MiyabiViewer = dynamic(() => import('@/components/MiyabiViewer'), {
 });
 
 export default function Home() {
+  // View level state
+  const [currentLevel, setCurrentLevel] = useState<ViewLevel>('crate');
+  const [currentCrateId, setCurrentCrateId] = useState<string | null>(null);
+
+  // Crate level data
   const [graphData, setGraphData] = useState<MiyabiGraphData | null>(null);
+
+  // Module level data
+  const [moduleData, setModuleData] = useState<ModuleGraphData | null>(null);
+
+  // Common state
   const [dagMode, setDagMode] = useState<DAGMode>('bu'); // Bottom-up: base layers at bottom
-  const [selectedNode, setSelectedNode] = useState<CrateNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<CrateNode | ModuleNode | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [highlightMode, setHighlightMode] = useState<HighlightMode>('none');
   const [searchQuery, setSearchQuery] = useState<string>(''); // Initialize with empty string
@@ -48,12 +59,63 @@ export default function Home() {
       });
   }, []);
 
-  // Get unique categories
+  // Handle drill-down: Navigate from crate to module level
+  const handleDrillDown = async (crateId: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/structure/${crateId}/modules`);
+      if (!response.ok) {
+        throw new Error(`Failed to load module data: ${response.statusText}`);
+      }
+
+      const data: ModuleGraphData = await response.json();
+      setModuleData(data);
+      setCurrentCrateId(crateId);
+      setCurrentLevel('module');
+
+      // Initialize categories for modules
+      const cats = new Set(data.nodes.map((n) => n.group));
+      setSelectedCategories(cats);
+
+      setIsLoading(false);
+    } catch (err: any) {
+      console.error('Error loading module data:', err);
+      setError(err.message);
+      setIsLoading(false);
+    }
+  };
+
+  // Handle navigation between levels
+  const handleNavigate = (level: ViewLevel) => {
+    if (level === 'crate') {
+      setCurrentLevel('crate');
+      setCurrentCrateId(null);
+      setModuleData(null);
+      setSelectedNode(null);
+      setSearchQuery('');
+
+      // Restore crate categories
+      if (graphData) {
+        const cats = new Set(graphData.nodes.map((n) => n.group));
+        setSelectedCategories(cats);
+      }
+    }
+  };
+
+  // Get unique categories based on current level
   const categories = useMemo(() => {
-    if (!graphData) return [];
-    const cats = new Set(graphData.nodes.map((n) => n.group));
-    return Array.from(cats).sort();
-  }, [graphData]);
+    if (currentLevel === 'crate') {
+      if (!graphData) return [];
+      const cats = new Set(graphData.nodes.map((n) => n.group));
+      return Array.from(cats).sort();
+    } else {
+      if (!moduleData) return [];
+      const cats = new Set(moduleData.nodes.map((n) => n.group));
+      return Array.from(cats).sort();
+    }
+  }, [graphData, moduleData, currentLevel]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -92,32 +154,33 @@ export default function Home() {
     };
   }, [graphData]);
 
-  // Filter graph data by selected categories and search query
+  // Filter graph data by selected categories and search query (level-aware)
   const filteredData = useMemo(() => {
-    if (!graphData) return null;
+    const sourceData = currentLevel === 'crate' ? graphData : moduleData;
+    if (!sourceData) return null;
 
-    let filteredNodes = graphData.nodes.filter((node) =>
+    let filteredNodes = sourceData.nodes.filter((node: any) =>
       selectedCategories.has(node.group)
     );
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filteredNodes = filteredNodes.filter(node =>
+      filteredNodes = filteredNodes.filter((node: any) =>
         node.id.toLowerCase().includes(query)
       );
     }
 
-    const nodeIds = new Set(filteredNodes.map((n) => n.id));
-    const filteredLinks = graphData.links.filter(
-      (link) => nodeIds.has(link.source) && nodeIds.has(link.target)
+    const nodeIds = new Set(filteredNodes.map((n: any) => n.id));
+    const filteredLinks = sourceData.links.filter(
+      (link: any) => nodeIds.has(link.source) && nodeIds.has(link.target)
     );
 
     return {
       nodes: filteredNodes,
       links: filteredLinks,
     };
-  }, [graphData, selectedCategories, searchQuery]);
+  }, [graphData, moduleData, currentLevel, selectedCategories, searchQuery]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) => {
@@ -161,23 +224,43 @@ export default function Home() {
     );
   }
 
+  // Handle node click with drill-down support
+  const handleNodeClick = (node: any) => {
+    setSelectedNode(node);
+
+    // If clicking on a crate node in crate view, drill down to module view
+    if (currentLevel === 'crate' && node && node.id) {
+      handleDrillDown(node.id);
+    }
+  };
+
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-gray-900">
       {/* Title */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <h1 className="text-white text-2xl font-bold text-center">
-          🧬 Miyabi Molecular Visualization
+          {currentLevel === 'crate' ? '🧬 Miyabi Molecular Visualization' : `📦 ${currentCrateId} - Module View`}
         </h1>
         <p className="text-gray-400 text-sm text-center mt-1">
-          {filteredData.nodes.length} crates · {filteredData.links.length} dependencies
+          {currentLevel === 'crate'
+            ? `${filteredData.nodes.length} crates · ${filteredData.links.length} dependencies`
+            : `${filteredData.nodes.length} modules · ${filteredData.links.length} dependencies`
+          }
         </p>
       </div>
+
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb
+        currentLevel={currentLevel}
+        currentCrateId={currentCrateId}
+        onNavigate={handleNavigate}
+      />
 
       {/* 3D Viewer */}
       <MiyabiViewer
         data={filteredData}
         dagMode={dagMode}
-        onNodeClick={setSelectedNode}
+        onNodeClick={handleNodeClick}
       />
 
       {/* Control Panel */}
@@ -209,7 +292,10 @@ export default function Home() {
           <li>🖱️ <strong>Left-drag</strong>: Rotate camera</li>
           <li>🖱️ <strong>Right-drag</strong>: Pan camera</li>
           <li>🖱️ <strong>Scroll</strong>: Zoom in/out</li>
-          <li>🖱️ <strong>Click node</strong>: View details</li>
+          <li>🖱️ <strong>Click crate</strong>: {currentLevel === 'crate' ? 'Drill down to modules' : 'View details'}</li>
+          {currentLevel === 'module' && (
+            <li>🔙 <strong>Breadcrumb</strong>: Back to crate view</li>
+          )}
         </ul>
       </div>
     </main>
