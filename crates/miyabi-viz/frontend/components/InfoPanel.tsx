@@ -52,8 +52,23 @@ export default function InfoPanel({ selectedNode, onClose }: InfoPanelProps) {
           <div className="text-gray-400 text-xs uppercase tracking-wide mb-1">
             Category
           </div>
-          <div className="text-white">
-            {selectedNode.group}
+          <div className="flex items-center space-x-2">
+            <div
+              className="w-4 h-4 rounded-full"
+              style={{
+                backgroundColor: {
+                  'Core': '#FF6B6B',
+                  'Agent': '#4ECDC4',
+                  'Integration': '#45B7D1',
+                  'Infrastructure': '#96CEB4',
+                  'Tool': '#FFEAA7',
+                  'Test': '#DFE6E9',
+                  'Business': '#A29BFE',
+                  'Other': '#636E72',
+                }[selectedNode.group] || '#636E72'
+              }}
+            />
+            <span className="text-white">{selectedNode.group}</span>
           </div>
         </div>
 
@@ -73,14 +88,21 @@ export default function InfoPanel({ selectedNode, onClose }: InfoPanelProps) {
             B-factor (Code Volatility)
           </div>
           <div className="flex items-center space-x-2">
-            <div
-              className="w-4 h-4 rounded-full"
-              style={{ backgroundColor: selectedNode.color }}
-            />
-            <span className="text-white">{getBFactorLevel(selectedNode.color)}</span>
+            <div className="flex-1 bg-gray-700 rounded-full h-2">
+              <div
+                className="h-2 rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, (selectedNode.opacity * 100))}%`,
+                  backgroundColor: selectedNode.color,
+                }}
+              />
+            </div>
+            <span className="text-white font-mono text-sm">
+              {getBFactorLevel(selectedNode.color)}
+            </span>
           </div>
           <div className="text-gray-500 text-xs mt-1">
-            Recent commit activity
+            Recent commit activity (high = more volatile)
           </div>
         </div>
 

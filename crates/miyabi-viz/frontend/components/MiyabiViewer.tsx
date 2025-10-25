@@ -43,16 +43,45 @@ export default function MiyabiViewer({ data, dagMode = 'td', onNodeClick }: Miya
           </div>
         `;
       })
-      .nodeColor((node: any) => (node as CrateNode).color)
-      .nodeOpacity((node: any) => (node as CrateNode).opacity)
-      .nodeVal((node: any) => (node as CrateNode).val * 3) // Scale up for visibility
-      .nodeResolution(16)
+      .nodeColor((node: any) => {
+        const n = node as CrateNode;
+        // Use category colors for better visibility
+        const categoryColors: { [key: string]: string } = {
+          'Core': '#FF6B6B',        // Red
+          'Agent': '#4ECDC4',       // Cyan
+          'Integration': '#45B7D1', // Light Blue
+          'Infrastructure': '#96CEB4', // Green
+          'Tool': '#FFEAA7',        // Yellow
+          'Test': '#DFE6E9',        // Gray
+          'Business': '#A29BFE',    // Purple
+          'Other': '#636E72',       // Dark Gray
+        };
+        return categoryColors[n.group] || n.color;
+      })
+      .nodeOpacity((node: any) => {
+        const n = node as CrateNode;
+        // Use opacity to show code volatility (B-factor)
+        // High B-factor = more opaque (more active)
+        return Math.max(0.5, n.opacity);
+      })
+      .nodeVal((node: any) => (node as CrateNode).val * 5) // Larger nodes for visibility
+      .nodeResolution(32) // Higher resolution for smoother spheres
       // Link configuration
-      .linkColor((link: any) => link.color || '#ffffff')
-      .linkWidth((link: any) => link.width || 1)
-      .linkOpacity(0.6)
-      .linkDirectionalArrowLength(3.5)
+      .linkColor((link: any) => {
+        // Make links more visible with better colors
+        const typeColors: { [key: string]: string } = {
+          'Runtime': '#88CCFF',    // Light blue for runtime
+          'Dev': '#666666',        // Dark gray for dev
+          'Build': '#FFD700',      // Gold for build
+        };
+        return typeColors[link.type] || '#88CCFF';
+      })
+      .linkWidth((link: any) => (link.width || 1) * 1.5) // Thicker links
+      .linkOpacity(0.4) // More transparent for less clutter
+      .linkDirectionalArrowLength(6) // Larger arrows
       .linkDirectionalArrowRelPos(1)
+      .linkDirectionalParticles(2) // Add particles for direction
+      .linkDirectionalParticleWidth(2)
       // Interaction
       .onNodeClick((node: any) => {
         if (onNodeClick) {

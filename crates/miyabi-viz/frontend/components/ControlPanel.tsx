@@ -71,14 +71,49 @@ export default function ControlPanel({
 
       {/* Legend */}
       <div className="mt-4 pt-4 border-t border-gray-700">
-        <div className="text-gray-400 text-xs space-y-1">
-          <div>🔵 Blue: Stable (low B-factor)</div>
-          <div>🟡 Yellow: Moderate activity</div>
-          <div>🔴 Red: Volatile (high B-factor)</div>
-          <div className="mt-2 pt-2 border-t border-gray-700">
-            <div>⚪ White line: Runtime dep</div>
-            <div>⚫ Gray line: Dev dep</div>
-            <div>🟡 Gold line: Build dep</div>
+        <div className="text-xs space-y-2">
+          <div className="font-medium text-gray-300 mb-2">Node Colors (Category)</div>
+          <div className="grid grid-cols-2 gap-1">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-[#FF6B6B]" />
+              <span className="text-gray-400">Core</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-[#4ECDC4]" />
+              <span className="text-gray-400">Agent</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-[#45B7D1]" />
+              <span className="text-gray-400">Integration</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-[#96CEB4]" />
+              <span className="text-gray-400">Infra</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-[#FFEAA7]" />
+              <span className="text-gray-400">Tool</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-[#A29BFE]" />
+              <span className="text-gray-400">Business</span>
+            </div>
+          </div>
+
+          <div className="font-medium text-gray-300 mt-3 mb-2">Link Colors (Type)</div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-0.5 bg-[#88CCFF]" />
+              <span className="text-gray-400">Runtime</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-0.5 bg-[#666666]" />
+              <span className="text-gray-400">Dev</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-0.5 bg-[#FFD700]" />
+              <span className="text-gray-400">Build</span>
+            </div>
           </div>
         </div>
       </div>
