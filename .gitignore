@@ -33,9 +33,12 @@ build/
 # Configuration files with secrets
 .webhook-config.json
 
-# Claude Code local settings
+# Claude Code local settings (user-specific)
 .claude/settings.local.json
 .claude/.env*
+
+# Claude Code hooks (project-specific, tracked)
+# .claude/hooks/ is intentionally tracked for team consistency
 
 # Logs
 logs/
