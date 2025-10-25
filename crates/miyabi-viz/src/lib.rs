@@ -27,7 +27,10 @@ pub mod exporter;
 pub mod models;
 
 pub use analyzer::MiyabiAnalyzer;
-pub use models::{CrateCategory, CrateNode, Dependency, DependencyKind, MiyabiGraph};
+pub use models::{
+    CrateCategory, CrateNode, Dependency, DependencyKind, MiyabiGraph,
+    ModuleNode, ModuleDependency, ModuleGraph,
+};
 
 /// Result type for this crate
 pub type Result<T> = anyhow::Result<T>;
