@@ -36,6 +36,7 @@ anyhow = { workspace = true }
 
 # ロギング
 tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 # 日時
 chrono = { workspace = true }
@@ -57,7 +58,7 @@ pulldown-cmark = "0.9"
 regex = "1.10"
 
 # AST parsing
-tree-sitter = "0.22"
+tree-sitter = "0.20"
 tree-sitter-rust = "0.20"
 
 # HTTP Server (optional, for Web UI dashboard)
@@ -69,6 +70,11 @@ futures-util = { version = "0.3", optional = true }
 tokio = { workspace = true, features = ["test-util"] }
 mockito = "1.5"
 tempfile = "3.8"
+
+[[bin]]
+name = "miyabi-knowledge-server"
+path = "bin/server.rs"
+required-features = ["server"]
 
 [features]
 default = []

@@ -183,6 +183,53 @@ cargo test --package miyabi-knowledge -- --nocapture
 cargo test --package miyabi-knowledge test_collect_empty_directory
 ```
 
+## 🌐 Web UI Dashboard
+
+**miyabi-knowledge** includes a built-in web dashboard for knowledge base visualization, search, and statistics.
+
+### Running the Server
+
+```bash
+# Start Qdrant (required)
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+
+# Run the server
+cargo run --package miyabi-knowledge --features server --bin miyabi-knowledge-server
+
+# Or with custom port
+PORT=3000 cargo run --package miyabi-knowledge --features server --bin miyabi-knowledge-server
+```
+
+### Accessing the Dashboard
+
+Open your browser to: **http://localhost:8080**
+
+### API Endpoints
+
+- **GET /api/search?q=query** - Search knowledge base
+  - Query params: `q`, `agent`, `workspace`, `issue`, `task_type`, `outcome`, `limit`
+- **GET /api/stats** - Get dashboard statistics
+- **GET /api/agents** - List all agents
+- **GET /api/timeline?days=30** - Get timeline data
+- **WS /ws** - WebSocket for real-time updates
+- **GET /health** - Health check
+
+### Example API Usage
+
+```bash
+# Search
+curl "http://localhost:8080/api/search?q=cargo+build&limit=10"
+
+# Get stats
+curl http://localhost:8080/api/stats
+
+# List agents
+curl http://localhost:8080/api/agents
+
+# Timeline
+curl "http://localhost:8080/api/timeline?days=7"
+```
+
 ## 🚧 Development Status
 
 ### ✅ Completed
@@ -194,6 +241,11 @@ cargo test --package miyabi-knowledge test_collect_empty_directory
 - [x] Log collector implementation (Markdown parsing)
 - [x] Indexer skeleton (placeholder)
 - [x] Searcher skeleton (placeholder)
+- [x] **Web UI Dashboard** (Issue #423) ✨
+  - [x] Axum HTTP Server
+  - [x] API endpoints (search, stats, agents, timeline)
+  - [x] WebSocket real-time updates
+  - [x] HTML/CSS/JS dashboard UI
 
 ### 🔄 In Progress
 
@@ -206,7 +258,6 @@ cargo test --package miyabi-knowledge test_collect_empty_directory
 
 - [ ] CLI integration (`miyabi knowledge` command)
 - [ ] MCP integration (Claude Code)
-- [ ] Web UI integration (miyabi-a2a dashboard)
 - [ ] Performance optimization
 - [ ] Comprehensive documentation
 
