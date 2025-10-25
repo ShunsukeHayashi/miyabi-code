@@ -4,16 +4,16 @@
 //! Git worktrees for the 5-Worlds execution strategy. Each world runs
 //! independently in its own worktree with different LLM parameters.
 
-use crate::manager::WorktreeInfo;
 use crate::git::GitError;
-use miyabi_types::world::WorldId;
+use crate::manager::WorktreeInfo;
 use miyabi_types::error::MiyabiError;
+use miyabi_types::world::WorldId;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use tokio::process::Command;
-use tracing::{info, warn, error, debug};
+use tokio::sync::Mutex;
+use tracing::{debug, error, info, warn};
 
 /// Handle to a World's worktree
 #[derive(Debug, Clone)]
@@ -144,7 +144,8 @@ impl FiveWorldsManager {
         );
 
         // Generate worktree path: worktrees/world-alpha/issue-270/implement_feature
-        let worktree_path = self.base_path
+        let worktree_path = self
+            .base_path
             .join(format!("world-{}", world_id.to_string().to_lowercase()))
             .join(format!("issue-{}", issue_number))
             .join(task_name);
@@ -157,7 +158,8 @@ impl FiveWorldsManager {
         );
 
         // Create the worktree using direct Git command
-        self.create_worktree_direct(&worktree_path, &branch_name).await
+        self.create_worktree_direct(&worktree_path, &branch_name)
+            .await
             .map_err(|e| GitError::CommandFailed(e.to_string()))?;
 
         // Create WorktreeInfo manually
@@ -178,7 +180,10 @@ impl FiveWorldsManager {
         };
 
         // Register in active worlds
-        self.active_worlds.lock().await.insert(world_id, handle.clone());
+        self.active_worlds
+            .lock()
+            .await
+            .insert(world_id, handle.clone());
 
         Ok(handle)
     }
@@ -191,7 +196,8 @@ impl FiveWorldsManager {
     ) -> Result<(), MiyabiError> {
         // Create parent directories if they don't exist
         if let Some(parent) = worktree_path.parent() {
-            tokio::fs::create_dir_all(parent).await
+            tokio::fs::create_dir_all(parent)
+                .await
                 .map_err(|e| MiyabiError::Git(format!("Failed to create parent dirs: {}", e)))?;
         }
 
@@ -236,7 +242,8 @@ impl FiveWorldsManager {
                 "Cleaning up world worktree"
             );
 
-            self.remove_worktree_direct(&handle.path).await
+            self.remove_worktree_direct(&handle.path)
+                .await
                 .map_err(|e| GitError::CommandFailed(e.to_string()))?;
 
             info!(world_id = ?world_id, "World worktree cleaned up");
@@ -257,7 +264,9 @@ impl FiveWorldsManager {
             .current_dir(&self.repo_path)
             .output()
             .await
-            .map_err(|e| MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e)))?;
+            .map_err(|e| {
+                MiyabiError::Git(format!("Failed to execute git worktree remove: {}", e))
+            })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -270,44 +279,128 @@ impl FiveWorldsManager {
         Ok(())
     }
 
-    /// Cleans up multiple worlds at once
+    /// Cleans up multiple worlds at once (parallel)
     ///
     /// # Arguments
     /// * `handles` - HashMap of world handles to cleanup
     async fn cleanup_worlds(&self, handles: &HashMap<WorldId, WorldWorktreeHandle>) {
+        use futures::stream::{FuturesUnordered, StreamExt};
+
+        // Parallelize cleanup operations for better performance
+        let mut cleanup_futures = FuturesUnordered::new();
+
         for (world_id, handle) in handles {
-            if let Err(e) = self.remove_worktree_direct(&handle.path).await {
-                error!(
-                    world_id = ?world_id,
-                    path = ?handle.path,
-                    error = %e,
-                    "Failed to cleanup world worktree"
-                );
-            }
+            let world_id = *world_id;
+            let path = handle.path.clone();
+            let repo_path = self.repo_path.clone();
+
+            cleanup_futures.push(async move {
+                // Execute git worktree remove directly
+                let result = Command::new("git")
+                    .arg("worktree")
+                    .arg("remove")
+                    .arg("--force")
+                    .arg(&path)
+                    .current_dir(&repo_path)
+                    .output()
+                    .await;
+
+                match result {
+                    Ok(output) if output.status.success() => {
+                        debug!(world_id = ?world_id, path = ?path, "World worktree cleaned up");
+                    }
+                    Ok(output) => {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        error!(
+                            world_id = ?world_id,
+                            path = ?path,
+                            error = %stderr,
+                            "Failed to cleanup world worktree"
+                        );
+                    }
+                    Err(e) => {
+                        error!(
+                            world_id = ?world_id,
+                            path = ?path,
+                            error = %e,
+                            "Failed to execute git worktree remove"
+                        );
+                    }
+                }
+            });
         }
+
+        // Execute all cleanup operations in parallel
+        while cleanup_futures.next().await.is_some() {}
     }
 
-    /// Cleans up all active worlds for a specific issue
+    /// Cleans up all active worlds for a specific issue (parallel)
     ///
     /// # Arguments
     /// * `issue_number` - GitHub issue number
     pub async fn cleanup_all_worlds_for_issue(&self, issue_number: u64) -> Result<(), GitError> {
-        info!(issue_number = issue_number, "Cleaning up all worlds for issue");
+        use futures::stream::{FuturesUnordered, StreamExt};
 
-        let worlds_to_cleanup: Vec<WorldId> = {
-            let active = self.active_worlds.lock().await;
-            active.keys().copied().collect()
+        info!(
+            issue_number = issue_number,
+            "Cleaning up all worlds for issue"
+        );
+
+        let worlds_to_cleanup: Vec<(WorldId, Option<WorldWorktreeHandle>)> = {
+            let mut active = self.active_worlds.lock().await;
+            WorldId::all()
+                .into_iter()
+                .map(|world_id| {
+                    let handle = active.remove(&world_id);
+                    (world_id, handle)
+                })
+                .collect()
         };
 
-        for world_id in worlds_to_cleanup {
-            if let Err(e) = self.cleanup_world(world_id).await {
-                warn!(
-                    world_id = ?world_id,
-                    error = %e,
-                    "Failed to cleanup world"
-                );
+        // Parallelize cleanup operations
+        let mut cleanup_futures = FuturesUnordered::new();
+
+        for (world_id, handle_opt) in worlds_to_cleanup {
+            if let Some(handle) = handle_opt {
+                let path = handle.path.clone();
+                let repo_path = self.repo_path.clone();
+
+                cleanup_futures.push(async move {
+                    let result = Command::new("git")
+                        .arg("worktree")
+                        .arg("remove")
+                        .arg("--force")
+                        .arg(&path)
+                        .current_dir(&repo_path)
+                        .output()
+                        .await;
+
+                    match result {
+                        Ok(output) if output.status.success() => {
+                            debug!(world_id = ?world_id, "World cleaned up");
+                        }
+                        Ok(output) => {
+                            let stderr = String::from_utf8_lossy(&output.stderr);
+                            warn!(
+                                world_id = ?world_id,
+                                error = %stderr,
+                                "Failed to cleanup world"
+                            );
+                        }
+                        Err(e) => {
+                            warn!(
+                                world_id = ?world_id,
+                                error = %e,
+                                "Failed to execute git worktree remove"
+                            );
+                        }
+                    }
+                });
             }
         }
+
+        // Execute all cleanup operations in parallel
+        while cleanup_futures.next().await.is_some() {}
 
         info!(issue_number = issue_number, "All worlds cleaned up");
         Ok(())
@@ -355,7 +448,9 @@ impl FiveWorldsManager {
         world_id: WorldId,
         target_branch: &str,
     ) -> Result<(), GitError> {
-        let handle = self.get_world_handle(world_id).await
+        let handle = self
+            .get_world_handle(world_id)
+            .await
             .ok_or_else(|| GitError::InvalidPath(format!("World {:?} not found", world_id)))?;
 
         info!(
@@ -424,15 +519,8 @@ mod tests {
             index.write_tree().unwrap()
         };
         let tree = repo.find_tree(tree_id).unwrap();
-        repo.commit(
-            Some("HEAD"),
-            &sig,
-            &sig,
-            "Initial commit",
-            &tree,
-            &[],
-        )
-        .unwrap();
+        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[])
+            .unwrap();
 
         let manager = FiveWorldsManager::new(
             worktree_dir.path().to_path_buf(),
