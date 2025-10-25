@@ -208,3 +208,16 @@ historical-ai-frontend/
 # Legacy build artifacts (cleanup #542)
 dist/
 coverage/
+
+# Runtime logs and reports (refactoring #544)
+logs/
+reports/
+*.log
+
+# Web build artifacts (refactoring #544)
+miyabi-web/dist/
+miyabi-web/.next/
+
+# Tools cache (refactoring #544)
+tools/.cache/
+tools/tmp/
