@@ -1,26 +1,18 @@
-# Agent System - 21 Autonomous Agents
+# Agent System - Autonomous Agents
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
 **Priority**: ⭐⭐⭐⭐
 
 ## 🤖 Agent概要
 
-Miyabiは21個の自律型Agentを提供します：
-- **Coding Agents** (7個): 開発運用・自動化
-- **Business Agents** (14個): ビジネス戦略・マーケティング・営業
+Miyabiは自律型Agentシステムを提供します：
+- **✅ 実装済み** (14個): Business Agents - Rust実装完了
+- **📋 計画中** (10個): Spec fileのみ、今後実装予定
 
-## 🔧 Coding Agents (7個)
+## ✅ 実装済みAgent (14個)
 
-| Agent | キャラクター名 | 役割 | 並列実行 |
-|-------|---------------|------|---------|
-| **CoordinatorAgent** | しきるん | タスク統括・DAG分解 | ❌ (リーダー) |
-| **CodeGenAgent** | つくるん | AI駆動コード生成 | ✅ (実行役) |
-| **ReviewAgent** | めだまん | コード品質レビュー | ✅ (実行役) |
-| **IssueAgent** | みつけるん | Issue分析・ラベリング | ✅ (分析役) |
-| **PRAgent** | まとめるん | Pull Request自動作成 | ⚠️ (サポート役) |
-| **DeploymentAgent** | はこぶん | CI/CDデプロイ自動化 | ⚠️ (サポート役) |
-| **RefresherAgent** | つなぐん | Issue状態監視・更新 | ✅ (分析役) |
-
-## 💼 Business Agents (14個)
+### 💼 Business Agents (14個) - Rust実装完了
 
 ### 🎯 戦略・企画系 (6個)
 - **AIEntrepreneurAgent** (あきんどさん): 包括的ビジネスプラン作成 ❌
@@ -42,20 +34,64 @@ Miyabiは21個の自律型Agentを提供します：
 - **CRMAgent** (ささえるん): 顧客満足度向上 ✅
 - **AnalyticsAgent** (かぞえるん): データ分析・PDCA ✅
 
+---
+
+## 📋 計画中Agent (10個 - Spec fileのみ)
+
+### 🔧 Coding Agents (3個)
+
+| Agent | 役割 | ステータス |
+|-------|------|-----------|
+| **DiscordCommunityAgent** | Discordコミュニティ管理・運営 | 📋 Spec作成済み |
+| **HooksIntegrationAgent** | Git Hooks統合・自動化 | 📋 Spec作成済み |
+| **ImageGenAgent** | 画像生成（開発用） | 📋 Spec作成済み |
+
+### 💼 Business Agents (7個)
+
+| Agent | 役割 | ステータス |
+|-------|------|-----------|
+| **HonokaAgent** | AI秘書・タスク管理支援 | 📋 Spec作成済み |
+| **JonathanIveDesignAgent** | デザイン戦略・UI/UX設計 | 📋 Spec作成済み |
+| **LPGenAgent** | ランディングページ生成 | 📋 Spec作成済み |
+| **NoteAgent** | note.com記事生成 | 📋 Spec作成済み |
+| **SlideGenAgent** | プレゼンスライド生成 | 📋 Spec作成済み |
+| **NarrationAgent** | 音声ナレーション生成（VOICEVOX） | 📋 Spec作成済み |
+| **ImageGenAgent** | 画像生成（ビジネス用） | 📋 Spec作成済み |
+
+### 🎯 参考: 過去の7 Coding Agents構想
+
+従来は7個のCoding Agentsを個別crateとして開発する予定でした：
+
+| Agent | 役割 | 現状 |
+|-------|------|------|
+| CoordinatorAgent (しきるん) | タスク統括・DAG分解 | 🔄 統合Agent設計に移行中 |
+| CodeGenAgent (つくるん) | AI駆動コード生成 | 🔄 統合Agent設計に移行中 |
+| ReviewAgent (めだまん) | コード品質レビュー | 🔄 統合Agent設計に移行中 |
+| IssueAgent (みつけるん) | Issue分析・ラベリング | 🔄 統合Agent設計に移行中 |
+| PRAgent (まとめるん) | PR自動作成 | 🔄 統合Agent設計に移行中 |
+| DeploymentAgent (はこぶん) | CI/CDデプロイ | 🔄 統合Agent設計に移行中 |
+| RefresherAgent (つなぐん) | Issue状態監視 | 🔄 統合Agent設計に移行中 |
+
+**設計変更の理由**:
+- 個別crateよりも統合Agentの方が柔軟性が高い
+- 役割の境界が曖昧で、統合した方が効率的
+- Business Agentsの成功パターンを適用
+
+---
+
 ## 🎮 キャラクター名システム
 
-技術的な名前の代わりに、親しみやすい日本語のキャラクター名で呼び出せます。
+実装済みのBusiness Agentsは、親しみやすい日本語のキャラクター名で呼び出せます。
 
 **色分けルール**:
-- 🔴 **リーダー** (2キャラ): しきるん、あきんどさん → 同時実行NG
-- 🟢 **実行役** (12キャラ): つくるん、めだまん等 → 並列実行OK ✅
-- 🔵 **分析役** (5キャラ): みつけるん、しらべるん等 → 並列実行OK ✅
-- 🟡 **サポート役** (3キャラ): まとめるん、はこぶん等 → 条件付き実行 ⚠️
+- 🔴 **リーダー** (1キャラ): あきんどさん → 同時実行NG
+- 🟢 **実行役** (10キャラ): けいかくん、つくるん2号、かくちゃん等 → 並列実行OK ✅
+- 🔵 **分析役** (3キャラ): しらべるん、しらべるん2号、かぞえるん → 並列実行OK ✅
 
 **使用例**:
 ```
-「しきるん で Issue #270 を処理」
-「つくるん と めだまん を並列実行して」
+「あきんどさん でビジネスプラン作成」
+「かくちゃん と どうがくん を並列実行してコンテンツ制作」
 ```
 
 **詳細**: [AGENT_CHARACTERS.md](../agents/AGENT_CHARACTERS.md)
@@ -80,13 +116,14 @@ impl BaseAgent for MyAgent {
 
 ## 📚 Agent仕様ドキュメント
 
-**Coding Agents仕様**: `.claude/agents/specs/coding/*.md` (7ファイル)
-- `coordinator-agent.md`, `codegen-agent.md`, `review-agent.md`, etc.
+**実装済みAgent仕様**: `.claude/agents/specs/business/*.md` (14ファイル)
+- `ai-entrepreneur-agent.md`, `product-concept-agent.md`, `analytics-agent.md`, etc.
 
-**Business Agents仕様**: `.claude/agents/specs/business/*.md` (14ファイル)
-- `ai-entrepreneur-agent.md`, `product-concept-agent.md`, etc.
+**計画中Agent仕様**:
+- Coding: `.claude/agents/specs/coding/*.md` (10 specs: 7基本 + 3計画中)
+- Business: `.claude/agents/specs/business/*.md` (7 specs: 追加Agent)
 
-**実行プロンプト**: `.claude/agents/prompts/coding/*.md` (6ファイル)
+**実行プロンプト**: `.claude/agents/prompts/` (Business/Coding)
 - Worktree内での実行ガイド
 - ステップバイステップ手順
 - 成功基準とチェックリスト
@@ -95,25 +132,26 @@ impl BaseAgent for MyAgent {
 
 ### CLI実行
 ```bash
-# 単一Agent実行
-miyabi agent run coordinator --issue 270
+# Business Agent実行
+miyabi agent run ai-entrepreneur --issue 270
 
 # 並列実行（Worktreeベース）
-miyabi agent run coordinator --issues 270,271,272 --concurrency 3
+miyabi agent run market-research --issues 270,271,272 --concurrency 3
 ```
 
 ### Rust API
 ```rust
-use miyabi_agents::CoordinatorAgent;
+use miyabi_agent_business::AIEntrepreneurAgent;
+use miyabi_agent_core::BaseAgent;
 
-let agent = CoordinatorAgent::new(config);
+let agent = AIEntrepreneurAgent::new(config);
 let result = agent.execute(&task).await?;
 ```
 
 ### MCP Server経由
 ```json
 {
-  "method": "agents/coordinator/execute",
+  "method": "agents/ai-entrepreneur/execute",
   "params": { "issue_number": 270 }
 }
 ```
@@ -127,5 +165,21 @@ let result = agent.execute(&task).await?;
 ## 📖 Detailed Documentation
 
 - **Agent Operations Manual**: `docs/AGENT_OPERATIONS_MANUAL.md`
-- **Rust Implementation**: `crates/miyabi-agents/src/`
+- **Rust Implementation**:
+  - Business Agents: `crates/miyabi-agent-business/src/`
+  - Agent Core: `crates/miyabi-agent-core/src/`
 - **Type Definitions**: `crates/miyabi-types/src/agent.rs`
+
+## 📊 実装ロードマップ
+
+**Phase 1: Business Agents** (✅ 完了 v1.0.0)
+- 14個のBusiness Agents実装完了
+- Rust crateとして提供
+
+**Phase 2: Coding Agents** (📋 計画中 v1.2.0)
+- 統合Agent設計に移行
+- 3個の追加Agent（Discord, Hooks, ImageGen）
+
+**Phase 3: Advanced Business Agents** (📋 計画中 v1.3.0)
+- 7個の高度なBusiness Agents
+- AI秘書、デザイン戦略、コンテンツ生成等
