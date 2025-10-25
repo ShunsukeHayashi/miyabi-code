@@ -1,5 +1,9 @@
 # Miyabi Label System - 完全ガイド
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+**Status**: ✅ Active
+
 **自律型開発フレームワークの心臓部 - 53ラベル体系の完全理解**
 
 ---

@@ -1,5 +1,9 @@
 # Miyabi Template Master Index - 一周テンプレート統合マップ
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+**Status**: ✅ Active
+
 **すべてのテンプレートをEntity-Relationで繋ぐ統合インデックス**
 
 ---

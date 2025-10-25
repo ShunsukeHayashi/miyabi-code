@@ -1,5 +1,9 @@
 # Miyabi Entity-Relation Model - 統合データモデル
 
+**Last Updated**: 2025-10-26
+**Version**: 2.0.1
+**Status**: ✅ Active
+
 **すべてのIssueテンプレートを繋ぐ統合Entity-Relationshipモデル**
 
 ---
