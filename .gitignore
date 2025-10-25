@@ -191,3 +191,16 @@ archive/temp/
 # Benchmarks - external repositories
 benchmarks/agentbench/AgentBench/
 benchmarks/swe-bench-pro/
+.env.local
+
+# Project-specific ignores
+# miyabi-dashboard - separate Next.js project
+miyabi-dashboard/
+
+# Build artifacts from frontend projects
+historical-ai-frontend/
+*-frontend/.next/
+*-frontend/out/
+
+# Temporary build outputs
+*.profraw

@@ -27,6 +27,11 @@ validator = { version = "0.20", features = ["derive"] }
 dirs = "6.0"
 hostname = "0.4"
 git2 = { workspace = true }
+colored = "2.1"
+similar = "2.4"
+chrono = { workspace = true }
+sysinfo = "0.33"
+uuid = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3.8"
