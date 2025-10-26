@@ -36,7 +36,7 @@ async fn post_progress(
     channel_id: Id<ChannelMarker>,
     message: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    client.create_message(channel_id).content(message)?.await?;
+    client.create_message(channel_id).content(message).await?;
     println!("📤 投稿: {}", message);
     Ok(())
 }

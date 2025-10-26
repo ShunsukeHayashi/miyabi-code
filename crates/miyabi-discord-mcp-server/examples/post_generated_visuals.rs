@@ -91,7 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[summary_embed])?
+        .embeds(&[summary_embed])
         .await?;
     println!("  ✅ Summary posted");
 
@@ -106,7 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     client
         .create_message(progress_channel)
-        .content(&miyabi_message)?
+        .content(&miyabi_message)
         .await?;
     println!("  ✅ Miyabiちゃん URL posted");
 
@@ -121,7 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     client
         .create_message(progress_channel)
-        .content(&agent_message)?
+        .content(&agent_message)
         .await?;
     println!("  ✅ Agent characters URL posted");
 
@@ -136,7 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     client
         .create_message(progress_channel)
-        .content(&banner_message)?
+        .content(&banner_message)
         .await?;
     println!("  ✅ Banner URL posted");
 

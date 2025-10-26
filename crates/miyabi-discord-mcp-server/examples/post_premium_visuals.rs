@@ -89,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[header_embed])?
+        .embeds(&[header_embed])
         .await?;
     println!("  ✅ Header embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -129,7 +129,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[miyabi_embed])?
+        .embeds(&[miyabi_embed])
         .await?;
     println!("  ✅ Miyabiちゃん embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -170,7 +170,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[design_embed])?
+        .embeds(&[design_embed])
         .await?;
     println!("  ✅ Design System embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -211,7 +211,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[banner_embed])?
+        .embeds(&[banner_embed])
         .await?;
     println!("  ✅ Banner embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -257,7 +257,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[agent_embed])?
+        .embeds(&[agent_embed])
         .await?;
     println!("  ✅ Agent Icon Set embed posted");
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -296,7 +296,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client
         .create_message(progress_channel)
-        .embeds(&[next_steps_embed])?
+        .embeds(&[next_steps_embed])
         .await?;
     println!("  ✅ Next Steps embed posted");
 
