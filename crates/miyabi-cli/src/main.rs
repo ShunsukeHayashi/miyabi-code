@@ -12,8 +12,9 @@ use clap::{Parser, Subcommand};
 use colored::Colorize;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 use commands::{
-    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ModeCommand,
-    ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, ExecCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand,
+    ModeCommand, ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand,
+    WorktreeSubcommand,
 };
 use error::Result;
 
@@ -95,6 +96,29 @@ enum Commands {
     WorkOn {
         /// Issue description or number
         task: String,
+    },
+    /// Execute autonomous task with LLM
+    Exec {
+        /// Task description (e.g., "count lines of code")
+        task: String,
+        /// Allow file edits
+        #[arg(long)]
+        file_edits: bool,
+        /// Allow full access (commands, GitHub API)
+        #[arg(long)]
+        full_access: bool,
+        /// Full auto mode (no confirmations, full access)
+        #[arg(long)]
+        full_auto: bool,
+        /// Output as JSON Lines
+        #[arg(long)]
+        json: bool,
+        /// Resume from session ID
+        #[arg(long)]
+        resume: Option<String>,
+        /// Resume from last session
+        #[arg(long)]
+        resume_last: bool,
     },
     /// Knowledge management (search, index, stats)
     Knowledge {
@@ -256,6 +280,51 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
+        Some(Commands::Exec {
+            task,
+            file_edits,
+            full_access,
+            full_auto,
+            json,
+            resume,
+            resume_last,
+        }) => {
+            use miyabi_core::ExecutionMode;
+
+            // Determine execution mode
+            let mode = if full_auto {
+                ExecutionMode::FullAccess
+            } else if full_access {
+                ExecutionMode::FullAccess
+            } else if file_edits {
+                ExecutionMode::FileEdits
+            } else {
+                ExecutionMode::ReadOnly
+            };
+
+            // Create ExecCommand
+            let mut cmd = ExecCommand::new(task);
+            cmd = match mode {
+                ExecutionMode::FullAccess => cmd.with_full_access(),
+                ExecutionMode::FileEdits => cmd.with_full_auto(),
+                ExecutionMode::ReadOnly => cmd,
+                _ => cmd,
+            };
+
+            if json {
+                cmd = cmd.with_json_output();
+            }
+
+            if let Some(session_id) = resume {
+                cmd = cmd.with_resume(session_id);
+            }
+
+            if resume_last {
+                cmd = cmd.with_resume_last();
+            }
+
+            cmd.execute().await
+        }
         #[allow(unused_variables)]
         Some(Commands::Chat { prompt, tui }) => {
             #[cfg(feature = "tui")]
