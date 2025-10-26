@@ -5,8 +5,10 @@
 
 use crate::hooks::AgentHook;
 use async_trait::async_trait;
+use miyabi_knowledge::cache::IndexCache;
 use miyabi_knowledge::collector::{KnowledgeCollector, LogCollector};
 use miyabi_knowledge::config::KnowledgeConfig;
+use miyabi_knowledge::hasher::hash_file;
 use miyabi_knowledge::indexer::{KnowledgeIndexer, QdrantIndexer};
 use miyabi_types::agent::AgentType;
 use miyabi_types::error::{MiyabiError, Result};
@@ -98,11 +100,33 @@ impl AutoIndexHook {
         }
     }
 
-    /// Try to index a single log file
+    /// Try to index a single log file with deduplication
     async fn try_index_file(
         config: Arc<KnowledgeConfig>,
         log_file: &PathBuf,
     ) -> Result<usize> {
+        // Calculate file hash for deduplication
+        let file_hash = hash_file(log_file)
+            .map_err(|e| MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+
+        // Load cache
+        let mut cache = IndexCache::load_or_default(&config.workspace.name)
+            .map_err(|e| MiyabiError::Config(format!("Failed to load cache: {}", e)))?;
+
+        // Check if file is already indexed
+        if cache.is_indexed(log_file, &file_hash) {
+            debug!(
+                "Skipping already indexed file: {:?} (hash: {})",
+                log_file, file_hash
+            );
+            return Ok(0);
+        }
+
+        info!(
+            "Indexing changed file: {:?} (hash: {})",
+            log_file, file_hash
+        );
+
         // Initialize collector
         let collector = LogCollector::new((*config).clone())
             .map_err(|e| MiyabiError::Config(format!("Failed to create collector: {}", e)))?;
@@ -115,6 +139,11 @@ impl AutoIndexHook {
 
         if entries.is_empty() {
             debug!("No entries to index from {:?}", log_file);
+            // Still mark as indexed to avoid re-checking empty files
+            cache.mark_indexed(log_file.clone(), file_hash);
+            cache
+                .save()
+                .map_err(|e| MiyabiError::Config(format!("Failed to save cache: {}", e)))?;
             return Ok(0);
         }
 
@@ -128,6 +157,17 @@ impl AutoIndexHook {
             .index_batch(&entries)
             .await
             .map_err(|e| MiyabiError::Config(format!("Failed to index entries: {}", e)))?;
+
+        // Update cache
+        cache.mark_indexed(log_file.clone(), file_hash);
+        cache
+            .save()
+            .map_err(|e| MiyabiError::Config(format!("Failed to save cache: {}", e)))?;
+
+        info!(
+            "Successfully indexed {} entries from {:?}",
+            stats.success, log_file
+        );
 
         Ok(stats.success)
     }
