@@ -5,7 +5,7 @@ use clap::Subcommand;
 use colored::Colorize;
 use miyabi_knowledge::{
     searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter},
-    IndexCache, KnowledgeConfig,
+    ExportFilter, ExportFormat, IndexCache, KnowledgeConfig, KnowledgeExporter,
 };
 
 #[derive(Subcommand)]
@@ -100,6 +100,49 @@ pub enum KnowledgeCommand {
         #[arg(long)]
         open: bool,
     },
+
+    /// Export knowledge base to file
+    Export {
+        /// Export format (csv, json, markdown/md)
+        #[arg(long, default_value = "json")]
+        format: String,
+
+        /// Output file path
+        #[arg(long)]
+        output: String,
+
+        /// Filter by agent name
+        #[arg(long)]
+        agent: Option<String>,
+
+        /// Filter by issue number
+        #[arg(long)]
+        issue: Option<u32>,
+
+        /// Filter by task type
+        #[arg(long)]
+        task_type: Option<String>,
+
+        /// Filter by outcome (success/failed)
+        #[arg(long)]
+        outcome: Option<String>,
+
+        /// Filter by workspace
+        #[arg(long)]
+        workspace: Option<String>,
+
+        /// Date range start (YYYY-MM-DD)
+        #[arg(long)]
+        date_from: Option<String>,
+
+        /// Date range end (YYYY-MM-DD)
+        #[arg(long)]
+        date_to: Option<String>,
+
+        /// Maximum number of entries to export (0 = unlimited)
+        #[arg(long, default_value = "0")]
+        limit: usize,
+    },
 }
 
 impl KnowledgeCommand {
@@ -151,6 +194,33 @@ impl KnowledgeCommand {
                 clear_cache(workspace.clone(), *yes, json_output).await
             }
             Self::Serve { port, open } => serve_dashboard(*port, *open, json_output).await,
+            Self::Export {
+                format,
+                output,
+                agent,
+                issue,
+                task_type,
+                outcome,
+                workspace,
+                date_from,
+                date_to,
+                limit,
+            } => {
+                export_knowledge(
+                    format,
+                    output,
+                    agent.clone(),
+                    *issue,
+                    task_type.clone(),
+                    outcome.clone(),
+                    workspace.clone(),
+                    date_from.clone(),
+                    date_to.clone(),
+                    *limit,
+                    json_output,
+                )
+                .await
+            }
         }
     }
 }
@@ -560,6 +630,151 @@ async fn clear_cache(
     }
 
     Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn export_knowledge(
+    format: &str,
+    output: &str,
+    agent: Option<String>,
+    issue: Option<u32>,
+    task_type: Option<String>,
+    outcome: Option<String>,
+    workspace: Option<String>,
+    date_from: Option<String>,
+    date_to: Option<String>,
+    limit: usize,
+    json_output: bool,
+) -> Result<()> {
+    // Parse export format
+    let export_format: ExportFormat = format.parse().map_err(|e: String| {
+        crate::error::CliError::InvalidInput(format!("Invalid export format: {}", e))
+    })?;
+
+    // Parse date filters
+    let date_from_parsed = if let Some(ref date_str) = date_from {
+        Some(parse_date(date_str)?)
+    } else {
+        None
+    };
+
+    let date_to_parsed = if let Some(ref date_str) = date_to {
+        Some(parse_date(date_str)?)
+    } else {
+        None
+    };
+
+    // Build export filter
+    let filter = ExportFilter {
+        agent,
+        issue_number: issue,
+        task_type,
+        outcome,
+        workspace,
+        date_from: date_from_parsed,
+        date_to: date_to_parsed,
+        limit,
+    };
+
+    if !json_output {
+        println!("{} Exporting knowledge base...", "📦".cyan());
+        println!("  Format: {}", format.cyan().bold());
+        println!("  Output: {}", output.yellow());
+
+        if let Some(ref a) = filter.agent {
+            println!("  Filter - Agent: {}", a.cyan());
+        }
+        if let Some(i) = filter.issue_number {
+            println!("  Filter - Issue: #{}", i);
+        }
+        if let Some(ref t) = filter.task_type {
+            println!("  Filter - Task Type: {}", t.cyan());
+        }
+        if let Some(ref o) = filter.outcome {
+            println!("  Filter - Outcome: {}", o.cyan());
+        }
+        if let Some(ref w) = filter.workspace {
+            println!("  Filter - Workspace: {}", w.cyan());
+        }
+        if filter.date_from.is_some() || filter.date_to.is_some() {
+            println!(
+                "  Filter - Date Range: {} to {}",
+                date_from.as_ref().unwrap_or(&"*".to_string()),
+                date_to.as_ref().unwrap_or(&"*".to_string())
+            );
+        }
+        if filter.limit > 0 {
+            println!("  Limit: {} entries", filter.limit);
+        }
+        println!();
+    }
+
+    // Load config
+    let config = KnowledgeConfig::default();
+
+    // Initialize searcher
+    let searcher = QdrantSearcher::new(config).await?;
+
+    // Create exporter
+    let exporter = KnowledgeExporter::new(searcher);
+
+    // Export to file
+    let count = exporter
+        .export(export_format, output, Some(filter))
+        .await?;
+
+    if json_output {
+        let json = serde_json::json!({
+            "status": "success",
+            "format": format,
+            "output": output,
+            "entries_exported": count,
+        });
+        println!("{}", serde_json::to_string_pretty(&json)?);
+    } else {
+        println!("{} Export complete!", "✅".green());
+        println!("  {} entries exported to {}", count, output.bold());
+        println!();
+
+        // Show format-specific tips
+        match export_format {
+            ExportFormat::Csv => {
+                println!("  {} Open with Excel or run:", "💡".cyan());
+                println!("    csvlook {}", output.dimmed());
+            }
+            ExportFormat::Json => {
+                println!("  {} Parse with jq:", "💡".cyan());
+                println!("    cat {} | jq '.[] | .content'", output.dimmed());
+            }
+            ExportFormat::Markdown => {
+                println!("  {} View with:", "💡".cyan());
+                println!("    cat {}", output.dimmed());
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Parse date string in YYYY-MM-DD format
+fn parse_date(date_str: &str) -> Result<chrono::DateTime<chrono::Utc>> {
+    use chrono::NaiveDate;
+
+    let naive_date = NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_err(|e| {
+        crate::error::CliError::InvalidInput(format!(
+            "Invalid date format '{}' (expected YYYY-MM-DD): {}",
+            date_str, e
+        ))
+    })?;
+
+    let naive_datetime = naive_date.and_hms_opt(0, 0, 0).ok_or_else(|| {
+        crate::error::CliError::InvalidInput(format!("Invalid date: {}", date_str))
+    })?;
+
+    Ok(chrono::DateTime::from_naive_utc_and_offset(
+        naive_datetime,
+        chrono::Utc,
+    ))
 }
 
 #[cfg(feature = "server")]

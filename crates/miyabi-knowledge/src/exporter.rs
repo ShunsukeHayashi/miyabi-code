@@ -279,7 +279,6 @@ mod tests {
     use super::*;
     use crate::types::{KnowledgeId, KnowledgeMetadata};
     use async_trait::async_trait;
-    use std::collections::HashMap;
 
     struct MockSearcher {
         entries: Vec<KnowledgeResult>,
