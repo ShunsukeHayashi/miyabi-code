@@ -900,6 +900,19 @@ mod tests {
         .expect("Failed to create test task")
     }
 
+    /// Cleanup test worktree branches
+    fn cleanup_test_branches(issue_number: u64, task_id: &str) {
+        use std::process::Command;
+
+        // Delete any existing test worktree branches
+        for world in ["alpha", "beta", "gamma", "delta", "epsilon"] {
+            let branch_name = format!("world-{}-issue-{}-{}", world, issue_number, task_id);
+            let _ = Command::new("git")
+                .args(&["branch", "-D", &branch_name])
+                .output();
+        }
+    }
+
     #[tokio::test]
     async fn test_prepare_world_configs() {
         let executor = FiveWorldsExecutor::new(FiveWorldsExecutorConfig::default());
@@ -923,6 +936,9 @@ mod tests {
     #[tokio::test]
     #[ignore] // Integration test: requires worktree cleanup after execution
     async fn test_execute_task_with_five_worlds_parallel() {
+        // Cleanup any leftover branches from previous runs
+        cleanup_test_branches(270, "task-1");
+
         let config = FiveWorldsExecutorConfig {
             parallel_execution: true,
             ..Default::default()
@@ -948,6 +964,9 @@ mod tests {
     #[tokio::test]
     #[ignore] // Integration test: requires worktree cleanup after execution
     async fn test_execute_task_with_five_worlds_sequential() {
+        // Cleanup any leftover branches from previous runs
+        cleanup_test_branches(270, "task-1");
+
         let config = FiveWorldsExecutorConfig {
             parallel_execution: false,
             ..Default::default()
