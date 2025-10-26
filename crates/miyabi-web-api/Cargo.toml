@@ -51,7 +51,7 @@ chrono = { workspace = true }
 urlencoding = "2.1"
 
 # API documentation
-utoipa = { version = "4.2", features = ["axum_extras", "chrono", "uuid"] }
+utoipa = { version = "5.4", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
 
 # Environment variables

@@ -4,7 +4,7 @@ use axum::{http::StatusCode, Json};
 use serde::Serialize;
 
 /// Health check response
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub struct HealthResponse {
     status: String,
     version: String,

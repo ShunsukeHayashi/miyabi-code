@@ -51,7 +51,7 @@ struct GitHubUser {
 }
 
 /// Token response
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub struct TokenResponse {
     access_token: String,
     refresh_token: String,
@@ -60,7 +60,7 @@ pub struct TokenResponse {
 }
 
 /// User response
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub struct UserResponse {
     id: String,
     github_id: i64,
@@ -281,7 +281,7 @@ async fn create_or_update_user(
 }
 
 /// Refresh token request
-#[derive(Deserialize)]
+#[derive(Deserialize, utoipa::ToSchema)]
 pub struct RefreshTokenRequest {
     refresh_token: String,
 }
@@ -365,20 +365,20 @@ pub async fn logout(State(_state): State<AppState>) -> Result<StatusCode> {
 }
 
 /// Mock login request (development only)
-#[derive(Deserialize)]
+#[derive(Deserialize, utoipa::ToSchema)]
 pub struct MockLoginRequest {
     username: String,
 }
 
 /// Mock login response
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub struct MockLoginResponse {
     token: String,
     user: MockUserResponse,
 }
 
 /// Mock user response
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub struct MockUserResponse {
     id: String,
     email: String,
