@@ -2,13 +2,14 @@
 # Multi-stage build for optimal image size
 
 # Stage 1: Builder
-FROM rust:1.75-slim-bookworm AS builder
+FROM rust:1-slim-bookworm AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -53,9 +54,9 @@ USER miyabi
 # Expose port (Cloud Run uses PORT env var)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD ["/usr/local/bin/miyabi-web-api", "--version"] || exit 1
+# Health check (TEMPORARY: Disabled for Telegram-only deployment)
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#     CMD ["/usr/local/bin/miyabi-web-api", "--version"] || exit 1
 
 # Set default environment variables
 ENV RUST_LOG=info

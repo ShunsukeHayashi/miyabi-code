@@ -44,7 +44,7 @@ steps:
       - '--min-instances=0' # Scale to zero when idle
       - '--timeout=300' # 5 minutes timeout
       - '--concurrency=80'
-      - '--set-env-vars=RUST_LOG=info,SERVER_ADDRESS=0.0.0.0:8080'
+      - '--set-env-vars=RUST_LOG=info,SERVER_ADDRESS=0.0.0.0:8080,GITHUB_CLIENT_ID=placeholder,GITHUB_CLIENT_SECRET=placeholder,FRONTEND_URL=https://miyabi-web-api.run.app'
       - '--set-secrets=DATABASE_URL=miyabi-database-url:latest,TELEGRAM_BOT_TOKEN=telegram-bot-token:latest,OPENAI_API_KEY=openai-api-key:latest,GITHUB_TOKEN=github-token:latest,JWT_SECRET=jwt-secret:latest,AUTHORIZED_CHAT_IDS=authorized-chat-ids:latest'
       - '--labels=app=miyabi,component=web-api,env=production'
 
