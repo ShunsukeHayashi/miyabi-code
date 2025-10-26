@@ -3070,6 +3070,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-telegram"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "miyabi-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "miyabi-tui"
 version = "0.1.1"
 dependencies = [
