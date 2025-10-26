@@ -34,25 +34,8 @@ pub struct TaskExecutor {
 impl TaskExecutor {
     /// Create a new task executor
     pub fn new(session: Session) -> Result<Self> {
-        // Select LLM provider based on environment variable
-        let provider = std::env::var("LLM_PROVIDER")
-            .unwrap_or_else(|_| "anthropic".to_string())
-            .to_lowercase();
-
-        let llm_client: Box<dyn LlmClient> = match provider.as_str() {
-            "openai" => {
-                let client = OpenAIClient::from_env().map_err(|e| {
-                    MiyabiError::Config(format!("Failed to create OpenAI client: {}", e))
-                })?;
-                Box::new(client)
-            }
-            _  => {
-                let client = AnthropicClient::from_env().map_err(|e| {
-                    MiyabiError::Config(format!("Failed to create Anthropic client: {}", e))
-                })?;
-                Box::new(client)
-            }
-        };
+        // Try to create LLM client with fallback chain
+        let llm_client = Self::create_llm_client_with_fallback()?;
 
         let tool_registry =
             ToolRegistry::new(session.mode.clone()).with_working_dir(session.context.cwd.clone());
@@ -93,6 +76,75 @@ impl TaskExecutor {
     pub fn with_working_dir(mut self, dir: PathBuf) -> Self {
         self.working_dir = dir;
         self
+    }
+
+    /// Create LLM client with fallback chain
+    ///
+    /// Attempts to create clients in the following order:
+    /// 1. Provider specified by LLM_PROVIDER environment variable
+    /// 2. Anthropic (default, highest quality)
+    /// 3. OpenAI (fallback)
+    ///
+    /// Future providers (Groq, GptOss) can be added here when implemented.
+    fn create_llm_client_with_fallback() -> Result<Box<dyn LlmClient>> {
+        // Check if user specified a provider
+        if let Ok(provider) = std::env::var("LLM_PROVIDER") {
+            let provider = provider.to_lowercase();
+            debug!("LLM_PROVIDER specified: {}", provider);
+
+            match provider.as_str() {
+                "anthropic" | "claude" => {
+                    if let Ok(client) = AnthropicClient::from_env() {
+                        info!("Using Anthropic (Claude) LLM provider");
+                        return Ok(Box::new(client));
+                    }
+                    warn!("Failed to create Anthropic client, trying fallback");
+                }
+                "openai" | "gpt" => {
+                    if let Ok(client) = OpenAIClient::from_env() {
+                        info!("Using OpenAI (GPT) LLM provider");
+                        return Ok(Box::new(client));
+                    }
+                    warn!("Failed to create OpenAI client, trying fallback");
+                }
+                unknown => {
+                    warn!("Unknown LLM provider: {}, trying default chain", unknown);
+                }
+            }
+        }
+
+        // Fallback chain: Anthropic → OpenAI
+        debug!("Attempting fallback chain: Anthropic → OpenAI");
+
+        // Try Anthropic first (highest quality)
+        if let Ok(client) = AnthropicClient::from_env() {
+            info!("Using Anthropic (Claude) LLM provider (fallback)");
+            return Ok(Box::new(client));
+        }
+        debug!("Anthropic client unavailable, trying OpenAI");
+
+        // Try OpenAI as fallback
+        if let Ok(client) = OpenAIClient::from_env() {
+            info!("Using OpenAI (GPT) LLM provider (fallback)");
+            return Ok(Box::new(client));
+        }
+        debug!("OpenAI client unavailable");
+
+        // TODO: Add Groq and GptOss providers when implemented
+        // if let Ok(client) = GroqClient::from_env() {
+        //     info!("Using Groq LLM provider (fallback)");
+        //     return Ok(Box::new(client));
+        // }
+        //
+        // if let Ok(client) = GptOssClient::from_env() {
+        //     info!("Using GptOss (Ollama) LLM provider (fallback)");
+        //     return Ok(Box::new(client));
+        // }
+
+        // All providers failed
+        Err(MiyabiError::Config(
+            "No LLM provider available. Please set ANTHROPIC_API_KEY or OPENAI_API_KEY environment variable.".to_string()
+        ))
     }
 
     /// Build system prompt for autonomous execution
