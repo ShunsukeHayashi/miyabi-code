@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **[2025-10-27]** FANZA new releases tracking system
+  - DMM Web API v3 integration with bash scripts
+  - Automated content tracking with Markdown + JSON export
+  - `/track-fanza` slash command for easy execution
+  - Complete setup guide: `docs/FANZA_TRACKING_SETUP.md`
+  - cron/GitHub Actions support for daily automation
+  - VOICEVOX narration integration (optional)
+  - Security: API credentials in `.env.fanza` (gitignored)
+
+### Fixed
+- **[2025-10-27]** Discord MCP Server example compilation errors
+  - Fixed incorrect `?` operators in Twilight HTTP API builder calls
+  - Pattern: `.content(msg)?` → `.content(msg)` (builder, not Result)
+  - Affected files: create_channels, setup_miyabi_server, post_initial_content, post_premium_visuals, post_generated_visuals
+  - All 9 Discord example files now compile successfully
+
+- **[2025-10-27]** Multiple clippy warnings resolved across codebase
+  - Modernized error handling: `std::io::Error::new()` → `std::io::Error::other()`
+  - Removed unused imports in miyabi-web-api and miyabi-agent-codegen
+  - Simplified redundant closures: `.map_err(|e| F(e))` → `.map_err(F)`
+  - Added `#[allow(deprecated)]` for backwards compatibility tests
+  - Improved code quality: 7 files updated, 20+ warnings resolved
+
+### Improved
+- **[2025-10-27]** miyabi-knowledge integration test quality
+  - Replaced manual struct initialization with `KnowledgeEntry::new()`
+  - Updated API usage to use `serde_json::Map` instead of `HashMap`
+  - Removed unused imports and variables
+  - Better RetentionManager API usage
+
+### Documentation
+- **[2025-10-27]** Comprehensive system verification report
+  - 96.4% test pass rate (54/56 tests passing)
+  - All 37 crates compiling successfully
+  - 14 business agents + 4 coding agents operational
+  - Production ready status confirmed
+  - Complete metrics: build times, test coverage, code size
+
 ### Changed
 - **[#519]** Deduplicated configuration loading across CLI commands
   - Created `ConfigLoader` singleton with thread-safe caching (`once_cell` + `Mutex`)
