@@ -7,7 +7,8 @@
 //! Run with: `cargo test --package miyabi-agent-codegen --test claudable_integration -- --ignored`
 
 use miyabi_agent_codegen::CodeGenAgent;
-use miyabi_types::{AgentConfig, AgentType, Task, TaskType};
+use miyabi_types::{AgentConfig, AgentType, Task};
+use miyabi_types::task::TaskType;
 use std::path::Path;
 use tempfile::TempDir;
 
@@ -64,7 +65,10 @@ async fn test_frontend_task_detection() {
 
     // Verify frontend detection
     use miyabi_agent_codegen::frontend::is_frontend_task;
-    assert!(is_frontend_task(&task), "Task should be detected as frontend");
+    assert!(
+        is_frontend_task(&task),
+        "Task should be detected as frontend"
+    );
 }
 
 #[tokio::test]
@@ -88,10 +92,7 @@ async fn test_claudable_code_generation() {
         !code_result.files_created.is_empty(),
         "Should create at least one file"
     );
-    assert!(
-        code_result.lines_added > 0,
-        "Should add some lines of code"
-    );
+    assert!(code_result.lines_added > 0, "Should add some lines of code");
 }
 
 #[tokio::test]
@@ -111,7 +112,10 @@ async fn test_worktree_file_writing() {
     // Generate code with worktree
     let result = agent.generate_code(&task, Some(worktree_path)).await;
 
-    assert!(result.is_ok(), "Code generation with worktree should succeed");
+    assert!(
+        result.is_ok(),
+        "Code generation with worktree should succeed"
+    );
 
     let code_result = result.unwrap();
 
@@ -140,10 +144,7 @@ async fn test_npm_install() {
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
 
-    let task = create_frontend_task(
-        "Create simple app",
-        "Build a minimal Next.js application",
-    );
+    let task = create_frontend_task("Create simple app", "Build a minimal Next.js application");
 
     // Generate code with worktree (includes npm install)
     let result = agent.generate_code(&task, Some(worktree_path)).await;
@@ -217,7 +218,10 @@ async fn test_e2e_dashboard_generation() {
         !code_result.files_created.is_empty(),
         "Should create Next.js files"
     );
-    assert!(code_result.lines_added > 50, "Should generate substantial code");
+    assert!(
+        code_result.lines_added > 50,
+        "Should generate substantial code"
+    );
 
     // 4. Verify Next.js structure
     assert!(
@@ -262,10 +266,7 @@ async fn test_e2e_landing_page_generation() {
     let package_json_path = worktree_path.join("package.json");
     if package_json_path.exists() {
         let package_json = std::fs::read_to_string(package_json_path).unwrap();
-        assert!(
-            package_json.contains("tailwind"),
-            "Should use Tailwind CSS"
-        );
+        assert!(package_json.contains("tailwind"), "Should use Tailwind CSS");
     }
 }
 
