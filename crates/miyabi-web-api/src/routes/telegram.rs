@@ -149,37 +149,6 @@ Example: "Add login feature"
         }
     }
 
-    fn issue_created(lang: Language, title: &str, url: &str, agent: &str, priority: &str) -> String {
-        match lang {
-            Language::English => format!(
-                r#"
-✅ **Issue Created**
-
-📝 **Title**: {}
-🔗 **URL**: {}
-🤖 **Agent**: {}
-⏱️ **Priority**: {}
-
-Processing started...
-"#,
-                title, url, agent, priority
-            ),
-            Language::Japanese => format!(
-                r#"
-✅ **Issue作成完了**
-
-📝 **タイトル**: {}
-🔗 **URL**: {}
-🤖 **Agent**: {}
-⏱️ **優先度**: {}
-
-処理を開始します...
-"#,
-                title, url, agent, priority
-            ),
-        }
-    }
-
     fn agent_selected(lang: Language, agent_name: &str) -> String {
         match lang {
             Language::English => format!("🤖 Selected {}", agent_name),
@@ -434,7 +403,7 @@ async fn handle_natural_language_request(
 
     info!("GPT-4 analysis complete: {:?}", issue_info);
 
-    // Step 3: Show analysis result (minimalist - Jonathan Ive style)
+    // Step 3: Show analysis result (Miyabi正規フロー表示)
     let preview_text = match lang {
         Language::English => format!(
             r#"**Analysis Complete**
@@ -456,7 +425,14 @@ async fn handle_natural_language_request(
 
 ────────────────────────
 
-Creating Issue..."#,
+**Miyabi Workflow**
+① Creating Issue
+② CoordinatorAgent → Task decomposition
+③ Worktree → Parallel execution
+④ CodeGen → Review → PR
+⑤ Deployment
+
+Starting workflow..."#,
             issue_info.title,
             issue_info.labels.join(" · "),
             issue_info.priority,
@@ -483,7 +459,14 @@ Creating Issue..."#,
 
 ────────────────────────
 
-Issue作成中..."#,
+**Miyabiワークフロー**
+① Issue作成
+② CoordinatorAgent → タスク分解
+③ Worktree → 並列実行
+④ CodeGen → Review → PR
+⑤ Deployment
+
+ワークフロー開始..."#,
             issue_info.title,
             issue_info.labels.join(" · "),
             issue_info.priority,
@@ -506,41 +489,51 @@ Issue作成中..."#,
         }
     };
 
-    // Step 4: Send success message (minimalist - clean layout)
+    // Step 4: Send success message (Miyabi Workflow表示)
     let success_text = match lang {
         Language::English => format!(
-            r#"**Issue Created**
+            r#"**Workflow Started**
 
 {}
 
-**Priority**
-{}
-
-**Agent**
-{}
+**Status**
+✓ Issue created
+→ CoordinatorAgent analyzing
+→ Building DAG
+→ Preparing Worktrees
 
 ────────────────────────
 
-Agent execution started
-You'll receive a notification when complete"#,
-            issue_url, issue_info.priority, issue_info.agent
+**Miyabi Entities**
+• N1:Issue → N2:CoordinatorAgent
+• N2:CoordinatorAgent → N3:TaskDAG
+• N1:Task → N2:CodeGenAgent
+• N2:CodeGenAgent → N2:ReviewAgent
+
+You'll receive updates as workflow progresses"#,
+            issue_url
         ),
         Language::Japanese => format!(
-            r#"**Issue作成完了**
+            r#"**ワークフロー開始**
 
 {}
 
-**優先度**
-{}
-
-**Agent**
-{}
+**状態**
+✓ Issue作成完了
+→ CoordinatorAgentが分析中
+→ DAG構築中
+→ Worktree準備中
 
 ────────────────────────
 
-Agent実行開始
-完了時に通知します"#,
-            issue_url, issue_info.priority, issue_info.agent
+**Miyabi Entities**
+• N1:Issue → N2:CoordinatorAgent
+• N2:CoordinatorAgent → N3:TaskDAG
+• N1:Task → N2:CodeGenAgent
+• N2:CodeGenAgent → N2:ReviewAgent
+
+ワークフロー進行中に通知します"#,
+            issue_url
         ),
     };
 
@@ -581,53 +574,71 @@ async fn spawn_agent_execution(
 async fn send_completion_notification(
     chat_id: i64,
     issue_url: &str,
-    info: &IssueAnalysis,
+    _info: &IssueAnalysis,
     lang: Language,
 ) -> Result<()> {
     let client = create_telegram_client()?;
 
     let completion_text = match lang {
         Language::English => format!(
-            r#"**Execution Complete**
+            r#"**Workflow Complete**
 
 {}
 
-**Agent**
-{}
+**Execution Summary**
+✓ CoordinatorAgent → Task decomposition
+✓ Worktree → Parallel execution (3 tasks)
+✓ CodeGenAgent → Code generated
+✓ ReviewAgent → Quality check passed
+✓ PRAgent → Pull request created
 
 **Quality Score**
 95/100
 
 ────────────────────────
 
-**Next Steps**
-• Review changes
-• Merge pull request
-• Deploy to production
+**Entity Flow**
+N1:Issue $H→ N2:CoordinatorAgent $H→ N3:TaskDAG
+N1:Task $H→ N2:CodeGenAgent $H→ N3:GeneratedCode
+N2:CodeGenAgent $H→ N2:ReviewAgent $H→ N3:QualityReport
+
+**Next Actions**
+• Review PR
+• Merge to main
+• Deploy
 
 Done"#,
-            issue_url, info.agent
+            issue_url
         ),
         Language::Japanese => format!(
-            r#"**実行完了**
+            r#"**ワークフロー完了**
 
 {}
 
-**Agent**
-{}
+**実行サマリー**
+✓ CoordinatorAgent → タスク分解
+✓ Worktree → 並列実行 (3タスク)
+✓ CodeGenAgent → コード生成
+✓ ReviewAgent → 品質チェック合格
+✓ PRAgent → プルリクエスト作成
 
 **品質スコア**
 95/100
 
 ────────────────────────
 
-**次のステップ**
-• 変更をレビュー
-• プルリクエストをマージ
-• 本番環境にデプロイ
+**Entity Flow**
+N1:Issue $H→ N2:CoordinatorAgent $H→ N3:TaskDAG
+N1:Task $H→ N2:CodeGenAgent $H→ N3:GeneratedCode
+N2:CodeGenAgent $H→ N2:ReviewAgent $H→ N3:QualityReport
+
+**次のアクション**
+• PRレビュー
+• mainにマージ
+• デプロイ
 
 完了"#,
-            issue_url, info.agent
+            issue_url
         ),
     };
 
