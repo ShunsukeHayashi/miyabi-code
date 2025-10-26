@@ -10,7 +10,6 @@ use miyabi_knowledge::{
     KnowledgeConfig, KnowledgeEntry, KnowledgeManager, KnowledgeMetadata, RetentionManager,
     RetentionPolicy,
 };
-use std::collections::HashMap;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -35,10 +34,10 @@ fn create_test_config(workspace: &str) -> KnowledgeConfig {
 }
 
 /// Create a test knowledge entry
-fn create_test_entry(id: &str, content: &str, agent: &str, issue: u32) -> KnowledgeEntry {
-    KnowledgeEntry {
-        content: content.to_string(),
-        metadata: KnowledgeMetadata {
+fn create_test_entry(_id: &str, content: &str, agent: &str, issue: u32) -> KnowledgeEntry {
+    KnowledgeEntry::new(
+        content.to_string(),
+        KnowledgeMetadata {
             workspace: "test-workspace".to_string(),
             worktree: Some("test-worktree".to_string()),
             agent: Some(agent.to_string()),
@@ -47,10 +46,9 @@ fn create_test_entry(id: &str, content: &str, agent: &str, issue: u32) -> Knowle
             outcome: Some("success".to_string()),
             tools_used: Some(vec!["cargo build".to_string(), "cargo test".to_string()]),
             files_changed: Some(vec!["src/main.rs".to_string()]),
-            extra: HashMap::new(),
+            extra: serde_json::Map::new(),
         },
-        timestamp: Utc::now(),
-    }
+    )
 }
 
 #[tokio::test]
@@ -140,12 +138,12 @@ async fn test_full_flow_index_search_cleanup() {
 
     // Test cleanup (retention)
     let retention_manager = RetentionManager::new(
+        config.clone(),
         RetentionPolicy {
             max_days: 0, // Delete all entries older than 0 days (for testing)
             max_entries: 1000,
             cleanup_interval_hours: 24,
         },
-        config.clone(),
     )
     .await
     .expect("Failed to create RetentionManager");
@@ -333,12 +331,12 @@ async fn test_retention_policy_cleanup() {
 
     // Test dry-run cleanup
     let retention = RetentionManager::new(
+        config.clone(),
         RetentionPolicy {
             max_days: 0,   // Delete all
             max_entries: 0, // Force cleanup
             cleanup_interval_hours: 24,
         },
-        config.clone(),
     )
     .await
     .expect("Failed to create RetentionManager");
