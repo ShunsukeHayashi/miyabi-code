@@ -47,7 +47,7 @@ async fn post_embed(
     channel_id: Id<ChannelMarker>,
     embed: Embed,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    client.create_message(channel_id).embeds(&[embed])?.await?;
+    client.create_message(channel_id).embeds(&[embed]).await?;
     Ok(())
 }
 

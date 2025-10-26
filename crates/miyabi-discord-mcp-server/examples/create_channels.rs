@@ -172,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("  Creating channel: {}", channel_name);
 
                 match client
-                    .create_guild_channel(guild_id, channel_name)?
+                    .create_guild_channel(guild_id, channel_name)
                     .kind(channel_type)
                     .parent_id(parent_id)
                     .await

@@ -96,7 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Creating category: {}", category_name);
 
         match client
-            .create_guild_channel(guild_id, category_name)?
+            .create_guild_channel(guild_id, category_name)
             .kind(ChannelType::GuildCategory)
             .await
         {
