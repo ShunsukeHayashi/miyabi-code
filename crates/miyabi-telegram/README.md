@@ -250,6 +250,39 @@ tokio = { version = "1", features = ["full"] }
 
 Same as Miyabi project.
 
+## Miyabi Bot Server
+
+This crate also includes a complete bot server binary for Miyabi integration:
+
+### Quick Start (Bot Server)
+
+```bash
+# 1. Configure environment
+cp ../../.env.telegram.example ../../.env.telegram
+# Edit with your tokens
+
+# 2. Build bot server
+cargo build --release --bin miyabi-telegram-bot --features bot-server
+
+# 3. Setup ngrok (local development)
+ngrok http 3000
+
+# 4. Update WEBHOOK_URL in .env.telegram with ngrok URL
+
+# 5. Run bot
+set -a && source ../../.env.telegram && set +a
+../../target/release/miyabi-telegram-bot
+```
+
+### Bot Features
+
+- 🤖 Natural language input → GitHub Issue creation
+- 📡 Real-time progress notifications
+- ⚡ Agent execution integration (pending)
+- 🔐 Secure webhook handling
+
+See [TELEGRAM_BOT_SETUP.md](../../docs/TELEGRAM_BOT_SETUP.md) for complete documentation.
+
 ## Related
 
 - Issue #563: Telegram Bot Integration
