@@ -270,6 +270,19 @@ impl ChatCommand {
                 self.execute_session_end().await?;
                 Ok(false)
             }
+            "history" => {
+                self.execute_history(session).await?;
+                Ok(false)
+            }
+            "search" => {
+                if parts.len() < 2 {
+                    println!("{} Usage: /search <query>", "Error:".red());
+                    return Ok(false);
+                }
+                let query = parts[1..].join(" ");
+                self.execute_search(&query, session).await?;
+                Ok(false)
+            }
             _ => {
                 println!("{} Unknown command: {}", "Error:".red(), parts[0]);
                 println!("Type {} for help", "/help".green());
@@ -301,6 +314,10 @@ impl ChatCommand {
         println!("  {}  - Verify system setup", "/verify".green());
         println!("  {}  - Generate daily report", "/daily-update".green());
         println!("  {}  - End session notification", "/session-end".green());
+
+        println!("\n{}", "History Commands:".yellow());
+        println!("  {}  - Show conversation history", "/history".green());
+        println!("  {}  - Search past conversations", "/search <query>".green());
 
         println!("\n{}", "Execution Modes:".cyan().bold());
         println!("  {} - Can read files, search code", "ReadOnly".blue());
@@ -462,6 +479,76 @@ impl ChatCommand {
         // For now, show placeholder
         println!("{}", "Session end notification sent".green());
         println!("  🐮 Cow sound notification via macOS");
+
+        Ok(())
+    }
+
+    /// Execute /history command
+    async fn execute_history(&self, session: &Option<Session>) -> Result<()> {
+        println!("\n{} Conversation History", "📜".cyan());
+
+        if let Some(sess) = session {
+            if sess.turns.is_empty() {
+                println!("{}", "No history in current session".yellow());
+                return Ok(());
+            }
+
+            println!("{}", "─".repeat(50).cyan());
+            for (i, turn) in sess.turns.iter().enumerate() {
+                println!("\n{} Turn {}", "▸".green(), i + 1);
+                println!("  Task: {}", turn.prompt.lines().next().unwrap_or(""));
+                if let Some(started) = &turn.started_at {
+                    println!("  Time: {}", started);
+                }
+                println!("  Status: {:?}", turn.status);
+                if turn.actions.len() > 0 {
+                    println!("  Actions: {} tool calls", turn.actions.len());
+                }
+            }
+            println!("\n{}", "─".repeat(50).cyan());
+            println!("Total turns: {}", sess.turns.len());
+        } else {
+            println!("{}", "No active session. Start a conversation first.".yellow());
+        }
+
+        Ok(())
+    }
+
+    /// Execute /search command
+    async fn execute_search(&self, query: &str, session: &Option<Session>) -> Result<()> {
+        println!("\n{} Searching for: \"{}\"", "🔍".cyan(), query);
+
+        if let Some(sess) = session {
+            let matches: Vec<(usize, &str)> = sess
+                .turns
+                .iter()
+                .enumerate()
+                .filter(|(_, turn)| {
+                    turn.prompt.to_lowercase().contains(&query.to_lowercase())
+                })
+                .map(|(i, turn)| (i + 1, turn.prompt.as_str()))
+                .collect();
+
+            if matches.is_empty() {
+                println!("{}", "No matches found in current session".yellow());
+            } else {
+                println!("{}", "─".repeat(50).cyan());
+                for (turn_num, prompt) in &matches {
+                    println!("\n{} Turn {}", "▸".green(), turn_num);
+                    let preview = prompt.lines().next().unwrap_or("");
+                    let preview = if preview.len() > 80 {
+                        format!("{}...", &preview[..77])
+                    } else {
+                        preview.to_string()
+                    };
+                    println!("  {}", preview);
+                }
+                println!("\n{}", "─".repeat(50).cyan());
+                println!("Found {} matches", matches.len());
+            }
+        } else {
+            println!("{}", "No active session. Start a conversation first.".yellow());
+        }
 
         Ok(())
     }

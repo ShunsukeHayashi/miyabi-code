@@ -3167,6 +3167,7 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "miyabi-github",
+ "miyabi-llm",
  "miyabi-telegram",
  "miyabi-types",
  "reqwest",

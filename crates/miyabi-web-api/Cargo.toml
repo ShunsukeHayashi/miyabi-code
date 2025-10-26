@@ -16,6 +16,7 @@ categories.workspace = true
 miyabi-types = { path = "../miyabi-types" }
 miyabi-github = { path = "../miyabi-github" }
 miyabi-telegram = { path = "../miyabi-telegram" }
+miyabi-llm = { path = "../miyabi-llm" }
 
 # Web framework
 axum = { version = "0.7", features = ["ws"] }

@@ -44,6 +44,12 @@ enum Commands {
         /// Use TUI mode (Terminal UI)
         #[arg(long)]
         tui: bool,
+        /// Resume from session ID
+        #[arg(long)]
+        resume: Option<String>,
+        /// Resume from last session
+        #[arg(long)]
+        resume_last: bool,
     },
     /// Initialize new project
     Init {
@@ -326,7 +332,7 @@ async fn main() -> Result<()> {
             cmd.execute().await
         }
         #[allow(unused_variables)]
-        Some(Commands::Chat { prompt, tui }) => {
+        Some(Commands::Chat { prompt, tui, resume, resume_last }) => {
             #[cfg(feature = "tui")]
             {
                 if tui {
@@ -337,6 +343,13 @@ async fn main() -> Result<()> {
                 } else {
                     // Regular REPL mode
                     let chat_cmd = commands::ChatCommand::new();
+                    // TODO: Implement resume/resume_last functionality in ChatCommand
+                    if let Some(_session_id) = resume {
+                        eprintln!("⚠️  Resume functionality not yet implemented");
+                    }
+                    if resume_last {
+                        eprintln!("⚠️  Resume-last functionality not yet implemented");
+                    }
                     chat_cmd.run().await
                 }
             }
@@ -344,6 +357,13 @@ async fn main() -> Result<()> {
             {
                 // REPL mode works without TUI feature
                 let chat_cmd = commands::ChatCommand::new();
+                // TODO: Implement resume/resume_last functionality in ChatCommand
+                if let Some(_session_id) = resume {
+                    eprintln!("⚠️  Resume functionality not yet implemented");
+                }
+                if resume_last {
+                    eprintln!("⚠️  Resume-last functionality not yet implemented");
+                }
                 chat_cmd.run().await
             }
         }
