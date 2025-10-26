@@ -1,0 +1,20 @@
+[package]
+name = "miyabi-voice-guide"
+version = "0.1.0"
+edition = "2021"
+authors = ["Shunsuke Hayashi <supernovasyun@gmail.com>"]
+license = "Apache-2.0"
+description = "Voice-First Onboarding system for Miyabi - automatic voice guidance"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { version = "0.12", features = ["json"] }
+thiserror = "2.0"
+tracing = "0.1"
+once_cell = "1.19"
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio-test = "0.4"

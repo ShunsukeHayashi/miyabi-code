@@ -23,11 +23,13 @@ miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
 miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
 miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
 miyabi-agents = { version = "0.1.0", path = "../miyabi-agents" }
+miyabi-voice-guide = { version = "0.1.0", path = "../miyabi-voice-guide" }
 miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" }
 miyabi-knowledge = { version = "0.1.1", path = "../miyabi-knowledge" }
 miyabi-modes = { version = "0.1.0", path = "../miyabi-modes" }
 # miyabi-feedback-loop MERGED into miyabi-orchestrator/feedback
 miyabi-orchestrator = { version = "0.1.1", path = "../miyabi-orchestrator" }
+miyabi-tui = { version = "0.1.1", path = "../miyabi-tui", optional = true }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
@@ -50,6 +52,7 @@ rustyline = "14.0"  # For interactive REPL/chat interface
 [features]
 default = ["server"]
 server = ["miyabi-knowledge/server"]
+tui = ["miyabi-tui"]
 
 [dev-dependencies]
 tokio-test = "0.4"

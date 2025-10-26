@@ -28,7 +28,8 @@ members = [
     # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
     "crates/miyabi-e2e-tests", "crates/miyabi-modes", "crates/miyabi-line", "crates/miyabi-historical-ai", "crates/miyabi-historical-api",  # E2E test framework
-    "crates/miyabi-viz",  # Molecular visualization system
+    "crates/miyabi-viz", "crates/miyabi-tui",  # Molecular visualization system
+    "crates/miyabi-voice-guide",  # Voice-First Onboarding system
 ]
 
 [workspace.package]
@@ -62,7 +63,7 @@ colored = "3.0"
 
 # GitHub API
 octocrab = "0.47"
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
 
 # Git operations
 git2 = "0.20"

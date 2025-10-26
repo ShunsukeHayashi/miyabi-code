@@ -10,6 +10,7 @@ mod worktree;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
+use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 use commands::{
     AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ModeCommand,
     ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
@@ -35,6 +36,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Interactive chat REPL
+    Chat {
+        /// Initial prompt message
+        prompt: Option<String>,
+        /// Use TUI mode (Terminal UI)
+        #[arg(long)]
+        tui: bool,
+    },
     /// Initialize new project
     Init {
         /// Project name
@@ -121,6 +130,9 @@ async fn main() -> Result<()> {
     };
     miyabi_core::init_logger(log_level);
 
+    // Initialize Voice Guide (Voice-First Onboarding)
+    let voice_guide = VoiceGuide::new();
+
     // Perform startup checks (non-fatal warnings)
     startup::perform_startup_checks();
 
@@ -134,8 +146,29 @@ async fn main() -> Result<()> {
             private,
             interactive,
         }) => {
-            let cmd = InitCommand::with_interactive(name, private, interactive);
-            cmd.execute().await
+            // Voice Guide: Processing started
+            voice_guide.speak(VoiceMessage::ProcessingStarted {
+                task_name: format!("Project '{}'", name),
+            }).await;
+
+            let cmd = InitCommand::with_interactive(name.clone(), private, interactive);
+            let result = cmd.execute().await;
+
+            // Voice Guide: Success or Error feedback
+            match &result {
+                Ok(_) => {
+                    voice_guide.speak(VoiceMessage::SuccessProjectCreated {
+                        project_name: name,
+                    }).await;
+                }
+                Err(_) => {
+                    voice_guide.speak(VoiceMessage::ErrorProjectExists {
+                        project_name: name,
+                    }).await;
+                }
+            }
+
+            result
         }
         Some(Commands::Install { dry_run }) => {
             let cmd = InstallCommand::new(dry_run);
@@ -168,8 +201,30 @@ async fn main() -> Result<()> {
             // Try to parse as issue number
             if let Ok(issue_num) = task.parse::<u64>() {
                 println!("  {} Issue #{}", "📋".green(), issue_num);
+
+                // Voice Guide: Processing started
+                voice_guide.speak(VoiceMessage::ProcessingStarted {
+                    task_name: format!("Issue #{}", issue_num),
+                }).await;
+
                 let cmd = AgentCommand::new("coordinator".to_string(), Some(issue_num));
-                cmd.execute().await
+                let result = cmd.execute().await;
+
+                // Voice Guide: Success or Error feedback
+                match &result {
+                    Ok(_) => {
+                        voice_guide.speak(VoiceMessage::SuccessIssueProcessed {
+                            issue_number: issue_num,
+                        }).await;
+                    }
+                    Err(_) => {
+                        voice_guide.speak(VoiceMessage::ErrorIssueNotFound {
+                            issue_number: issue_num,
+                        }).await;
+                    }
+                }
+
+                result
             } else {
                 // Task description - suggest creating an issue
                 println!("  {} Task: {}", "✨".yellow(), task.bold());
@@ -183,6 +238,10 @@ async fn main() -> Result<()> {
                     "  {}",
                     format!("gh issue create --title \"{}\" --label type:feature", task).yellow()
                 );
+
+                // Voice Guide: Next step guidance
+                voice_guide.speak(VoiceMessage::NextStepGitHubAuth).await;
+
                 Ok(())
             }
         }
@@ -193,11 +252,41 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
+        Some(Commands::Chat { prompt, tui }) => {
+            #[cfg(feature = "tui")]
+            {
+                if tui {
+                    // Launch TUI mode
+                    miyabi_tui::run_tui()
+                        .await
+                        .map_err(|e| error::CliError::Other(format!("TUI error: {}", e)))
+                } else {
+                    // Regular REPL mode (not yet implemented)
+                    println!("{}", "💬 Chat mode (REPL)".cyan().bold());
+                    println!();
+                    println!("{}", "TUI mode available with --tui flag".dimmed());
+                    println!("  Example: miyabi chat --tui");
+                    Ok(())
+                }
+            }
+            #[cfg(not(feature = "tui"))]
+            {
+                println!("{}", "❌ TUI feature not enabled".red().bold());
+                println!();
+                println!("Rebuild with: cargo build --features tui");
+                Ok(())
+            }
+        }
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());
             println!();
             println!("Use --help to see available commands");
+            println!();
+
+            // Voice-First Onboarding: Welcome message
+            voice_guide.speak(VoiceMessage::Welcome).await;
+
             Ok(())
         }
     };
