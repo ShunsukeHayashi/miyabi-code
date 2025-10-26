@@ -232,7 +232,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         //     get(routes::issues::get_repository_issue),
         // )
         // WebSocket endpoint
-        .route("/ws", get(routes::websocket::websocket_handler));
+        .route("/ws", get(routes::websocket::websocket_handler))
+        // Telegram Bot Webhook
+        .route("/telegram/webhook", post(routes::telegram::handle_webhook));
 
     // Build main router
     let app = Router::new()

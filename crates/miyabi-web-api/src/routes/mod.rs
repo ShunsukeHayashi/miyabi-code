@@ -14,6 +14,7 @@ pub mod logs;
 pub mod prs;
 pub mod tasks;
 pub mod worktrees;
+pub mod telegram;
 
 pub fn api_routes() -> Router {
     Router::new()

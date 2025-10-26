@@ -3082,6 +3082,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -3166,6 +3167,7 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "miyabi-github",
+ "miyabi-telegram",
  "miyabi-types",
  "reqwest",
  "serde",

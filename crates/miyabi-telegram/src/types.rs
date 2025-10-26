@@ -63,6 +63,10 @@ pub struct User {
     /// Optional. User's or bot's username
     #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
+
+    /// Optional. IETF language tag of the user's language
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_code: Option<String>,
 }
 
 /// Telegram Chat object

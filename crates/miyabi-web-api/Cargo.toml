@@ -15,6 +15,7 @@ categories.workspace = true
 # Internal crates
 miyabi-types = { path = "../miyabi-types" }
 miyabi-github = { path = "../miyabi-github" }
+miyabi-telegram = { path = "../miyabi-telegram" }
 
 # Web framework
 axum = { version = "0.7", features = ["ws"] }

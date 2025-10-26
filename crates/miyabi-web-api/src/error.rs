@@ -41,9 +41,19 @@ pub enum AppError {
     /// JSON Web Token error
     #[error("JWT error: {0}")]
     Jwt(#[from] jsonwebtoken::errors::Error),
+    /// Telegram error
+    #[error("Telegram error: {0}")]
+    Telegram(String),
     /// Generic internal error
     #[error("Internal error: {0}")]
     Internal(String),
+}
+
+// Implement From<TelegramError> for AppError
+impl From<miyabi_telegram::TelegramError> for AppError {
+    fn from(err: miyabi_telegram::TelegramError) -> Self {
+        AppError::Telegram(err.to_string())
+    }
 }
 
 /// Error response for API clients
@@ -111,6 +121,12 @@ impl IntoResponse for AppError {
                 "jwt_error",
                 "Invalid or expired token",
                 Some(e.to_string()),
+            ),
+            AppError::Telegram(ref msg) => (
+                StatusCode::BAD_GATEWAY,
+                "telegram_error",
+                "Telegram API error",
+                Some(msg.clone()),
             ),
             AppError::Internal(ref msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
