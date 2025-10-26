@@ -29,10 +29,7 @@ pub enum LoopError {
 
     /// Timeout occurred
     #[error("Iteration {iteration} timed out after {timeout_ms}ms")]
-    Timeout {
-        iteration: usize,
-        timeout_ms: u64,
-    },
+    Timeout { iteration: usize, timeout_ms: u64 },
 
     /// Convergence check failed
     #[error("Convergence check failed: {0}")]

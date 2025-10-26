@@ -36,9 +36,7 @@ async fn test_websocket_event_flow() {
     let addr = listener.local_addr().expect("Failed to get local address");
 
     tokio::spawn(async move {
-        axum::serve(listener, app)
-            .await
-            .expect("Server failed");
+        axum::serve(listener, app).await.expect("Server failed");
     });
 
     // Wait for server to start
@@ -52,15 +50,12 @@ async fn test_websocket_event_flow() {
             println!("✅ WebSocket connected successfully");
 
             // Test receiving messages (timeout after 1 second)
-            let timeout = tokio::time::timeout(
-                Duration::from_secs(1),
-                async {
-                    use futures::StreamExt;
-                    if let Some(Ok(msg)) = ws_stream.next().await {
-                        println!("Received message: {:?}", msg);
-                    }
+            let timeout = tokio::time::timeout(Duration::from_secs(1), async {
+                use futures::StreamExt;
+                if let Some(Ok(msg)) = ws_stream.next().await {
+                    println!("Received message: {:?}", msg);
                 }
-            );
+            });
 
             match timeout.await {
                 Ok(_) => println!("✅ Received WebSocket message"),
@@ -119,9 +114,7 @@ async fn test_websocket_authentication() {
     let addr = listener.local_addr().expect("Failed to get local address");
 
     tokio::spawn(async move {
-        axum::serve(listener, app)
-            .await
-            .expect("Server failed");
+        axum::serve(listener, app).await.expect("Server failed");
     });
 
     sleep(Duration::from_millis(100)).await;
@@ -210,7 +203,8 @@ fn test_agent_event_serialization() {
         "timestamp": Utc::now().to_rfc3339(),
     });
 
-    let completed_serialized = serde_json::to_string(&completed_event).expect("Failed to serialize");
+    let completed_serialized =
+        serde_json::to_string(&completed_event).expect("Failed to serialize");
     println!("✅ Completed event serialized: {}", completed_serialized);
 
     // Test execution_failed event

@@ -3,8 +3,8 @@
 //! Provides utility functions for Agents to leverage Potpie's knowledge graph
 //! and semantic search capabilities.
 
-use miyabi_knowledge::potpie::{PotpieClient, PotpieConfig, PotpieError};
 use miyabi_knowledge::potpie::knowledge_graph::SemanticSearchResult;
+use miyabi_knowledge::potpie::{PotpieClient, PotpieConfig, PotpieError};
 use miyabi_types::error::{MiyabiError, Result};
 use tracing::{debug, info, warn};
 

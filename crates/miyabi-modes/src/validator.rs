@@ -27,7 +27,10 @@ impl ModeValidator {
         }
 
         // Slug must be URL-safe: lowercase alphanumeric with hyphens
-        if !slug.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+        if !slug
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        {
             return Err(ModeError::ValidationFailed(
                 "Slug must contain only lowercase letters, numbers, and hyphens".into(),
             ));

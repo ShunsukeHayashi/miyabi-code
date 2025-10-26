@@ -54,11 +54,7 @@ impl ToolConfig {
     }
 
     /// Create a tool configuration with custom config
-    pub fn with_config(
-        name: impl Into<String>,
-        module: impl Into<String>,
-        config: Value,
-    ) -> Self {
+    pub fn with_config(name: impl Into<String>, module: impl Into<String>, config: Value) -> Self {
         Self {
             name: name.into(),
             module: module.into(),
@@ -75,16 +71,12 @@ impl ToolConfig {
 
     /// Get timeout in milliseconds from config
     pub fn timeout_ms(&self) -> Option<u64> {
-        self.config
-            .get("timeout_ms")
-            .and_then(|v| v.as_u64())
+        self.config.get("timeout_ms").and_then(|v| v.as_u64())
     }
 
     /// Get max file size from config (for file operations)
     pub fn max_file_size(&self) -> Option<u64> {
-        self.config
-            .get("max_file_size")
-            .and_then(|v| v.as_u64())
+        self.config.get("max_file_size").and_then(|v| v.as_u64())
     }
 
     /// Get max results from config (for search operations)

@@ -1,0 +1,24 @@
+{
+  "name": "sdk-wrapper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "d1": "tsx src/d1-label-check.ts",
+    "d2": "tsx src/d2-complexity-check.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.27",
+    "@types/node": "^24.9.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.67.0"
+  }
+}

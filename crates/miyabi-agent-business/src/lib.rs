@@ -70,3 +70,12 @@ pub use sales::SalesAgent;
 pub use self_analysis::SelfAnalysisAgent;
 pub use sns_strategy::SNSStrategyAgent;
 pub use youtube::YouTubeAgent;
+
+/// Convert LLMError to MiyabiError
+///
+/// This is a helper function for business agents to convert LLM errors
+/// into MiyabiError, wrapping them in an Unknown variant with context.
+#[inline]
+pub(crate) fn llm_error_to_miyabi(error: miyabi_llm::LLMError) -> miyabi_types::error::MiyabiError {
+    miyabi_types::error::MiyabiError::Unknown(format!("LLM error: {}", error))
+}

@@ -114,7 +114,12 @@ impl JsonlWriter {
     }
 
     /// Write session start event
-    pub fn session_start(&mut self, session_id: String, task: String, mode: String) -> io::Result<()> {
+    pub fn session_start(
+        &mut self,
+        session_id: String,
+        task: String,
+        mode: String,
+    ) -> io::Result<()> {
         self.write_event(&ExecutionEvent::SessionStart {
             session_id,
             task,
@@ -132,7 +137,12 @@ impl JsonlWriter {
     }
 
     /// Write tool call event
-    pub fn tool_call(&mut self, tool_name: String, tool_id: String, arguments: Value) -> io::Result<()> {
+    pub fn tool_call(
+        &mut self,
+        tool_name: String,
+        tool_id: String,
+        arguments: Value,
+    ) -> io::Result<()> {
         self.write_event(&ExecutionEvent::ToolCall {
             tool_name,
             tool_id,
@@ -171,7 +181,12 @@ impl JsonlWriter {
     }
 
     /// Write conclusion event
-    pub fn conclusion(&mut self, summary: String, total_turns: usize, duration_ms: u64) -> io::Result<()> {
+    pub fn conclusion(
+        &mut self,
+        summary: String,
+        total_turns: usize,
+        duration_ms: u64,
+    ) -> io::Result<()> {
         self.write_event(&ExecutionEvent::Conclusion {
             summary,
             total_turns,
@@ -181,7 +196,12 @@ impl JsonlWriter {
     }
 
     /// Write failure event
-    pub fn failure(&mut self, error: String, resumable: bool, total_turns: usize) -> io::Result<()> {
+    pub fn failure(
+        &mut self,
+        error: String,
+        resumable: bool,
+        total_turns: usize,
+    ) -> io::Result<()> {
         self.write_event(&ExecutionEvent::Failure {
             error,
             resumable,

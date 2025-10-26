@@ -185,18 +185,16 @@ impl CircuitBreaker {
                 warn!("Circuit breaker is open - blocking request");
                 Err(MiyabiError::Unknown("Circuit breaker is open".to_string()))
             }
-            CircuitState::Closed | CircuitState::HalfOpen => {
-                match operation().await {
-                    Ok(result) => {
-                        self.on_success().await;
-                        Ok(result)
-                    }
-                    Err(e) => {
-                        self.on_failure().await;
-                        Err(MiyabiError::Unknown(e.to_string()))
-                    }
+            CircuitState::Closed | CircuitState::HalfOpen => match operation().await {
+                Ok(result) => {
+                    self.on_success().await;
+                    Ok(result)
                 }
-            }
+                Err(e) => {
+                    self.on_failure().await;
+                    Err(MiyabiError::Unknown(e.to_string()))
+                }
+            },
         }
     }
 

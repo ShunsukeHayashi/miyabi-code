@@ -129,13 +129,12 @@ impl AgentExecutor {
         .await?;
 
         // Get repository information
-        let repo = sqlx::query_as::<_, (String,)>(
-            "SELECT full_name FROM repositories WHERE id = $1",
-        )
-        .bind(repository_id)
-        .fetch_optional(&db)
-        .await?
-        .ok_or_else(|| AppError::NotFound("Repository not found".to_string()))?;
+        let repo =
+            sqlx::query_as::<_, (String,)>("SELECT full_name FROM repositories WHERE id = $1")
+                .bind(repository_id)
+                .fetch_optional(&db)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Repository not found".to_string()))?;
 
         let repo_full_name = repo.0;
 
@@ -203,9 +202,10 @@ impl AgentExecutor {
         });
 
         // Wait for process to complete
-        let output = child.wait().await.map_err(|e| {
-            AppError::Internal(format!("Failed to wait for agent process: {}", e))
-        })?;
+        let output = child
+            .wait()
+            .await
+            .map_err(|e| AppError::Internal(format!("Failed to wait for agent process: {}", e)))?;
 
         // Wait for log streaming tasks to complete
         let _ = tokio::join!(stdout_task, stderr_task);
@@ -260,7 +260,10 @@ impl AgentExecutor {
 
             Self::log_message(&db, execution_id, "ERROR", &error_message, None).await?;
 
-            warn!("Agent execution failed: id={}, error={}", execution_id, error_message);
+            warn!(
+                "Agent execution failed: id={}, error={}",
+                execution_id, error_message
+            );
         }
 
         Ok(())

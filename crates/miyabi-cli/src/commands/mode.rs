@@ -81,19 +81,15 @@ enum ModeSubcommand {
 impl ModeCommand {
     pub async fn execute(&self) -> Result<()> {
         match &self.command {
-            ModeSubcommand::List { system, custom } => {
-                self.list_modes(*system, *custom).await
-            }
+            ModeSubcommand::List { system, custom } => self.list_modes(*system, *custom).await,
             ModeSubcommand::Info { mode } => self.show_mode_info(mode).await,
-            ModeSubcommand::Run { mode, issue, args } => {
-                self.run_mode(mode, *issue, args).await
-            }
-            ModeSubcommand::Render { mode, role, instructions } => {
-                self.render_mode(mode, *role, *instructions).await
-            }
-            ModeSubcommand::Tools { mode, tool } => {
-                self.show_tools(mode, tool.as_deref()).await
-            }
+            ModeSubcommand::Run { mode, issue, args } => self.run_mode(mode, *issue, args).await,
+            ModeSubcommand::Render {
+                mode,
+                role,
+                instructions,
+            } => self.render_mode(mode, *role, *instructions).await,
+            ModeSubcommand::Tools { mode, tool } => self.show_tools(mode, tool.as_deref()).await,
             ModeSubcommand::Create { slug } => self.create_mode(slug).await,
             ModeSubcommand::Validate => self.validate_modes().await,
         }
@@ -110,7 +106,11 @@ impl ModeCommand {
             }
             Err(e) => {
                 eprintln!("{} {}", "Error loading modes:".red(), e);
-                eprintln!("\n{}", "Make sure .miyabi/modes/system/ directory exists with mode definitions.".yellow());
+                eprintln!(
+                    "\n{}",
+                    "Make sure .miyabi/modes/system/ directory exists with mode definitions."
+                        .yellow()
+                );
                 return Ok(());
             }
         }
@@ -164,7 +164,10 @@ impl ModeCommand {
         }
 
         println!("\n{} miyabi mode info <slug>", "Use".dimmed());
-        println!("{} miyabi mode run <slug> --issue <number>\n", "Or".dimmed());
+        println!(
+            "{} miyabi mode run <slug> --issue <number>\n",
+            "Or".dimmed()
+        );
 
         Ok(())
     }
@@ -182,10 +185,16 @@ impl ModeCommand {
             .get(mode_identifier)
             .or_else(|| registry.get_by_character(mode_identifier))
             .ok_or_else(|| {
-                crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_identifier))
+                crate::error::CliError::InvalidInput(format!(
+                    "Mode '{}' not found",
+                    mode_identifier
+                ))
             })?;
 
-        println!("\n{}\n", format!("{} Mode Information", mode.name).bold().cyan());
+        println!(
+            "\n{}\n",
+            format!("{} Mode Information", mode.name).bold().cyan()
+        );
         println!("{} {}", "Slug:".bold(), mode.slug);
         println!("{} {}", "Character:".bold(), mode.character);
         println!("{} {}\n", "Source:".bold(), mode.source);
@@ -224,16 +233,20 @@ impl ModeCommand {
             crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug))
         })?;
 
-        println!("{} {} for Issue #{}", 
-            "🚀 Running".green().bold(), 
-            mode.name, 
+        println!(
+            "{} {} for Issue #{}",
+            "🚀 Running".green().bold(),
+            mode.name,
             issue
         );
         println!("{} {}\n", "Character:".bold(), mode.character.cyan());
 
         // TODO: Integrate with actual agent execution
         println!("{}", "⚠️  Agent execution integration pending".yellow());
-        println!("{}", "This will be implemented in Phase 1 completion.".dimmed());
+        println!(
+            "{}",
+            "This will be implemented in Phase 1 completion.".dimmed()
+        );
 
         Ok(())
     }
@@ -241,23 +254,24 @@ impl ModeCommand {
     async fn create_mode(&self, slug: &str) -> Result<()> {
         let current_dir = env::current_dir()?;
         let custom_dir = current_dir.join(".miyabi/modes/custom");
-        
+
         // Create custom directory if it doesn't exist
         std::fs::create_dir_all(&custom_dir)?;
 
         let file_path = custom_dir.join(format!("{}.yaml", slug));
-        
+
         if file_path.exists() {
-            eprintln!("{} Mode '{}' already exists at {:?}", 
-                "Error:".red(), 
-                slug, 
+            eprintln!(
+                "{} Mode '{}' already exists at {:?}",
+                "Error:".red(),
+                slug,
                 file_path
             );
             return Ok(());
         }
 
         let template = format!(
-r#"slug: {}
+            r#"slug: {}
 name: "📝 My Custom Mode"
 character: "かすたむん"
 roleDefinition: |-
@@ -300,10 +314,7 @@ source: "user"
 
         std::fs::write(&file_path, template)?;
 
-        println!("{} Created custom mode at {:?}", 
-            "✅".green(), 
-            file_path
-        );
+        println!("{} Created custom mode at {:?}", "✅".green(), file_path);
         println!("\n{} Edit the file to customize your mode.", "Next:".bold());
         println!("{} miyabi mode validate\n", "Then run:".bold());
 
@@ -330,16 +341,13 @@ source: "user"
         for mode in &modes {
             match ModeValidator::validate(mode) {
                 Ok(_) => {
-                    println!("{} {} ({})", 
-                        "✅".green(), 
-                        mode.name, 
-                        mode.slug.dimmed()
-                    );
+                    println!("{} {} ({})", "✅".green(), mode.name, mode.slug.dimmed());
                 }
                 Err(e) => {
-                    println!("{} {} ({}): {}", 
-                        "❌".red(), 
-                        mode.name, 
+                    println!(
+                        "{} {} ({}): {}",
+                        "❌".red(),
+                        mode.name,
                         mode.slug.dimmed(),
                         e
                     );
@@ -360,15 +368,12 @@ source: "user"
         }
 
         println!();
-        println!("{} {} modes validated", 
-            "Summary:".bold(), 
-            modes.len()
-        );
-        
+        println!("{} {} modes validated", "Summary:".bold(), modes.len());
+
         if errors > 0 {
             println!("{} {} errors", "❌".red(), errors);
         }
-        
+
         if warnings > 0 {
             println!("{} {} warnings", "⚠️".yellow(), warnings);
         }
@@ -381,7 +386,12 @@ source: "user"
         Ok(())
     }
 
-    async fn render_mode(&self, mode_slug: &str, show_role: bool, show_instructions: bool) -> Result<()> {
+    async fn render_mode(
+        &self,
+        mode_slug: &str,
+        show_role: bool,
+        show_instructions: bool,
+    ) -> Result<()> {
         use miyabi_modes::TemplateRenderer;
 
         let current_dir = env::current_dir()?;
@@ -397,10 +407,16 @@ source: "user"
 
         // Create template renderer
         let renderer = TemplateRenderer::new(current_dir);
-        let rendered_mode = mode.render_templates(&renderer)
-            .map_err(|e| crate::error::CliError::InvalidInput(format!("Template rendering failed: {}", e)))?;
+        let rendered_mode = mode.render_templates(&renderer).map_err(|e| {
+            crate::error::CliError::InvalidInput(format!("Template rendering failed: {}", e))
+        })?;
 
-        println!("\n{}\n", format!("📝 Rendered Mode: {}", rendered_mode.name).bold().cyan());
+        println!(
+            "\n{}\n",
+            format!("📝 Rendered Mode: {}", rendered_mode.name)
+                .bold()
+                .cyan()
+        );
 
         if show_role {
             println!("{}\n", "Role Definition:".bold());
@@ -434,12 +450,28 @@ source: "user"
         if let Some(tool) = tool_name {
             // Show specific tool configuration
             if let Some(tool_config) = mode.get_tool(tool) {
-                println!("\n{}\n", format!("🔧 Tool: {}", tool_config.name).bold().cyan());
+                println!(
+                    "\n{}\n",
+                    format!("🔧 Tool: {}", tool_config.name).bold().cyan()
+                );
                 println!("{} {}", "Module:".bold(), tool_config.module);
-                println!("{} {}\n", "Enabled:".bold(), if tool_config.enabled { "✅ Yes".green() } else { "❌ No".red() });
+                println!(
+                    "{} {}\n",
+                    "Enabled:".bold(),
+                    if tool_config.enabled {
+                        "✅ Yes".green()
+                    } else {
+                        "❌ No".red()
+                    }
+                );
 
                 println!("{}", "Configuration:".bold());
-                println!("{}\n", serde_json::to_string_pretty(&tool_config.config).unwrap().dimmed());
+                println!(
+                    "{}\n",
+                    serde_json::to_string_pretty(&tool_config.config)
+                        .unwrap()
+                        .dimmed()
+                );
 
                 // Show common config values
                 if let Some(timeout) = tool_config.timeout_ms() {
@@ -458,17 +490,29 @@ source: "user"
                     println!("{} {:?}", "Blacklist Patterns:".bold(), patterns);
                 }
             } else {
-                println!("{} Tool '{}' not found in mode '{}'", "❌".red(), tool, mode_slug);
+                println!(
+                    "{} Tool '{}' not found in mode '{}'",
+                    "❌".red(),
+                    tool,
+                    mode_slug
+                );
             }
         } else {
             // List all tools
-            println!("\n{}\n", format!("🔧 Tools for Mode: {}", mode.name).bold().cyan());
+            println!(
+                "\n{}\n",
+                format!("🔧 Tools for Mode: {}", mode.name).bold().cyan()
+            );
 
             if mode.tools.is_empty() {
                 println!("  {}", "No tool configurations defined.".yellow());
                 println!("  {}", "This mode uses default tool settings.".dimmed());
             } else {
-                println!("{} {} tool(s) configured\n", "Total:".bold(), mode.tools.len());
+                println!(
+                    "{} {} tool(s) configured\n",
+                    "Total:".bold(),
+                    mode.tools.len()
+                );
 
                 for tool in &mode.tools {
                     let status = if tool.enabled {
@@ -477,7 +521,12 @@ source: "user"
                         "❌".red()
                     };
 
-                    println!("  {} {} ({})", status, tool.name.bold(), tool.module.dimmed());
+                    println!(
+                        "  {} {} ({})",
+                        status,
+                        tool.name.bold(),
+                        tool.module.dimmed()
+                    );
 
                     if let Some(timeout) = tool.timeout_ms() {
                         println!("    ⏱  Timeout: {}ms", timeout);
@@ -491,7 +540,11 @@ source: "user"
                     println!();
                 }
 
-                println!("\n{} miyabi mode tools {} --tool <name>", "Use:".dimmed(), mode_slug);
+                println!(
+                    "\n{} miyabi mode tools {} --tool <name>",
+                    "Use:".dimmed(),
+                    mode_slug
+                );
             }
         }
 

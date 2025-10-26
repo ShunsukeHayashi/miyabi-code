@@ -7,16 +7,13 @@ mod models;
 mod routes;
 mod state;
 
-use axum::{
-    routing::post,
-    Router,
-};
+use axum::{routing::post, Router};
 use state::AppState;
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
-use tracing::{info, error};
+use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -74,12 +71,13 @@ async fn main() -> anyhow::Result<()> {
     info!("Example request:");
     info!(r#"  curl -X POST http://{}/api/chat \"#, addr);
     info!(r#"    -H "Content-Type: application/json" \"#);
-    info!(r#"    -d '{{"figure": "oda_nobunaga", "message": "経営戦略について教えて", "user_id": "test_user"}}'"#);
+    info!(
+        r#"    -d '{{"figure": "oda_nobunaga", "message": "経営戦略について教えて", "user_id": "test_user"}}'"#
+    );
     info!("");
 
     // Start server
-    axum::serve(listener, app)
-        .await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

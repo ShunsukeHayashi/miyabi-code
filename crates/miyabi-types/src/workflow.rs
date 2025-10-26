@@ -1028,7 +1028,8 @@ mod tests {
         // Both "Circular dependency" and "not assigned to any level" are valid errors
         let err_msg = result.unwrap_err().to_string();
         assert!(
-            err_msg.contains("Circular dependency") || err_msg.contains("not assigned to any level")
+            err_msg.contains("Circular dependency")
+                || err_msg.contains("not assigned to any level")
         );
     }
 

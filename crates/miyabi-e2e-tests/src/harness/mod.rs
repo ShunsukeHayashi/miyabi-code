@@ -121,7 +121,10 @@ impl TestHarness {
             }
         }
 
-        info!("Initialized git repository at {:?}", self.context.root_path());
+        info!(
+            "Initialized git repository at {:?}",
+            self.context.root_path()
+        );
         Ok(())
     }
 
@@ -197,7 +200,11 @@ impl TestHarnessBuilder {
 
         // Create mock GitHub server if requested
         let mock_github = if self.use_mock_github {
-            Some(MockGitHub::start().await.expect("Failed to start mock GitHub"))
+            Some(
+                MockGitHub::start()
+                    .await
+                    .expect("Failed to start mock GitHub"),
+            )
         } else {
             None
         };

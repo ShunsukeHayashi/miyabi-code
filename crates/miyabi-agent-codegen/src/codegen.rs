@@ -109,10 +109,9 @@ impl CodeGenAgent {
     ) -> Result<CodeGenerationResult> {
         tracing::info!("🎨 Frontend task detected, using Claudable for generation");
 
-        let claudable = self
-            .claudable_client
-            .as_ref()
-            .ok_or_else(|| MiyabiError::Validation("Claudable client not configured".to_string()))?;
+        let claudable = self.claudable_client.as_ref().ok_or_else(|| {
+            MiyabiError::Validation("Claudable client not configured".to_string())
+        })?;
 
         // Build request
         let description = frontend::extract_frontend_description(task);
@@ -127,7 +126,11 @@ impl CodeGenAgent {
         })?;
 
         tracing::info!("✅ Claudable generated project: {}", response.project_id);
-        tracing::debug!("Files: {}, Dependencies: {}", response.files.len(), response.dependencies.len());
+        tracing::debug!(
+            "Files: {}, Dependencies: {}",
+            response.files.len(),
+            response.dependencies.len()
+        );
 
         // If worktree provided, write files and build
         if let Some(worktree) = worktree_path {
@@ -138,7 +141,11 @@ impl CodeGenAgent {
                 .await
                 .map_err(|e| MiyabiError::Unknown(format!("Failed to write files: {}", e)))?;
 
-            tracing::info!("  📝 Wrote {} files ({} lines)", summary.files_written, summary.total_lines);
+            tracing::info!(
+                "  📝 Wrote {} files ({} lines)",
+                summary.files_written,
+                summary.total_lines
+            );
 
             // Install dependencies
             tracing::info!("  📦 Running npm install...");
@@ -167,7 +174,11 @@ impl CodeGenAgent {
             Ok(CodeGenerationResult {
                 files_created: response.files.iter().map(|f| f.path.clone()).collect(),
                 files_modified: vec![],
-                lines_added: response.files.iter().map(|f| f.content.lines().count()).sum::<usize>() as u32,
+                lines_added: response
+                    .files
+                    .iter()
+                    .map(|f| f.content.lines().count())
+                    .sum::<usize>() as u32,
                 lines_removed: 0,
                 tests_added: 0,
                 commit_sha: None,
@@ -186,7 +197,9 @@ impl CodeGenAgent {
         // NEW: Frontend task detection
         if frontend::is_frontend_task(task) && self.claudable_client.is_some() {
             tracing::info!("Frontend task detected, delegating to Claudable");
-            return self.generate_frontend_with_claudable(task, worktree_path).await;
+            return self
+                .generate_frontend_with_claudable(task, worktree_path)
+                .await;
         }
 
         // Validate task type

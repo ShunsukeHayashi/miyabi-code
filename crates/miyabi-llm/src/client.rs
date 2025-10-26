@@ -1,6 +1,6 @@
 //! LLM Client trait and response types
 
-use crate::{Message, ToolCall, ToolDefinition, Result};
+use crate::{Message, Result, ToolCall, ToolDefinition};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
@@ -32,8 +32,5 @@ pub enum ToolCallResponse {
 
     /// Need user approval (for interactive mode)
     #[serde(rename = "need_approval")]
-    NeedApproval {
-        action: String,
-        reason: String,
-    },
+    NeedApproval { action: String, reason: String },
 }

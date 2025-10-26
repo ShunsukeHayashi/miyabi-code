@@ -438,12 +438,12 @@ mod tests {
     #[test]
     fn test_evaluation_score_calculate_perfect() {
         let score = EvaluationScore::calculate(
-            true,  // build success
-            10,    // tests passed
-            10,    // tests total
-            0,     // clippy warnings
-            1.0,   // code quality
-            1.0,   // security
+            true, // build success
+            10,   // tests passed
+            10,   // tests total
+            0,    // clippy warnings
+            1.0,  // code quality
+            1.0,  // security
         );
 
         assert_eq!(score.compilation_success, 30.0);
@@ -532,8 +532,8 @@ mod tests {
 
     #[test]
     fn test_world_config_with_issue_task_path() {
-        let config = WorldConfig::default_for(WorldId::Alpha)
-            .with_issue_task_path(270, "implement_feature");
+        let config =
+            WorldConfig::default_for(WorldId::Alpha).with_issue_task_path(270, "implement_feature");
 
         assert_eq!(
             config.worktree_path,

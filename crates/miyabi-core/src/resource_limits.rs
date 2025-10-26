@@ -45,7 +45,7 @@ impl HardwareLimits {
     /// println!("System has {} GB RAM", limits.total_memory_gb);
     /// ```
     pub fn detect() -> Result<Self, MiyabiError> {
-        use sysinfo::{System, Disks};
+        use sysinfo::{Disks, System};
 
         let mut sys = System::new_all();
         sys.refresh_all();
@@ -113,9 +113,7 @@ impl HardwareLimits {
     /// assert_eq!(max_concurrent, 4); // min(32/2, 8/2, 500/5) = min(16, 4, 100) = 4
     /// ```
     pub fn max_concurrent_worktrees(&self, per_worktree: &PerWorktreeLimits) -> usize {
-        if per_worktree.memory_gb == 0
-            || per_worktree.cpu_threads == 0
-            || per_worktree.disk_gb == 0
+        if per_worktree.memory_gb == 0 || per_worktree.cpu_threads == 0 || per_worktree.disk_gb == 0
         {
             warn!("Invalid per-worktree limits (contains zero) - returning 1");
             return 1;
@@ -147,9 +145,7 @@ impl HardwareLimits {
 
     /// Gets the bottleneck resource (which resource limits concurrency)
     pub fn bottleneck_resource(&self, per_worktree: &PerWorktreeLimits) -> ResourceType {
-        if per_worktree.memory_gb == 0
-            || per_worktree.cpu_threads == 0
-            || per_worktree.disk_gb == 0
+        if per_worktree.memory_gb == 0 || per_worktree.cpu_threads == 0 || per_worktree.disk_gb == 0
         {
             return ResourceType::Unknown;
         }
@@ -263,7 +259,10 @@ mod tests {
 
         let limits = result.unwrap();
         assert!(limits.total_memory_gb > 0, "Should detect non-zero memory");
-        assert!(limits.total_cpu_cores > 0, "Should detect non-zero CPU cores");
+        assert!(
+            limits.total_cpu_cores > 0,
+            "Should detect non-zero CPU cores"
+        );
         // Note: disk_gb might be 0 on some systems, so we don't assert it
     }
 

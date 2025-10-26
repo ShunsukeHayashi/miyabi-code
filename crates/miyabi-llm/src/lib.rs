@@ -7,16 +7,29 @@
 //! - Groq (Ultra-fast inference - Llama 3)
 
 pub mod client;
+pub mod context;
+pub mod conversation;
 pub mod error;
 pub mod message;
+pub mod prompt;
+pub mod provider;
 pub mod providers;
 pub mod tools;
+pub mod types;
 
+// New API (modern trait-based interface)
 pub use client::{LlmClient, ToolCallResponse};
-pub use error::{LlmError, Result};
+pub use error::{LlmError, LLMError, Result};
 pub use message::{Message, Role};
 pub use tools::{ToolCall, ToolDefinition};
 
 // Re-export provider implementations
 pub use providers::anthropic::AnthropicClient;
 pub use providers::openai::OpenAIClient;
+
+// Legacy API (for backward compatibility with existing agents)
+pub use context::LLMContext;
+pub use conversation::LLMConversation;
+pub use prompt::{LLMPromptTemplate, PromptError, ResponseFormat};
+pub use provider::{GPTOSSProvider, LLMProvider};
+pub use types::{ChatMessage, LLMRequest, LLMResponse, ReasoningEffort};

@@ -44,6 +44,7 @@ pub mod dynamic_scaling;
 pub mod error;
 pub mod feedback;
 pub mod five_worlds_executor;
+pub mod hooks;
 pub mod launcher;
 pub mod load_balancer;
 pub mod milestone_updater;

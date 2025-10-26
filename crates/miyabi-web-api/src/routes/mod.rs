@@ -1,13 +1,19 @@
 use axum::Router;
 
-mod agents;
-mod codegen;
-mod deployments;
-mod issues;
-mod logs;
-mod prs;
-mod tasks;
-mod worktrees;
+pub mod health;
+pub mod auth;
+pub mod repositories;
+pub mod workflows;
+pub mod dashboard;
+pub mod websocket;
+pub mod agents;
+pub mod codegen;
+pub mod deployments;
+pub mod issues;
+pub mod logs;
+pub mod prs;
+pub mod tasks;
+pub mod worktrees;
 
 pub fn api_routes() -> Router {
     Router::new()

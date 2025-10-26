@@ -1,4 +1,4 @@
-use axum::{routing::get, Router, Json};
+use axum::{routing::get, Json, Router};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -34,10 +34,22 @@ async fn list_issues() -> Json<IssuesListResponse> {
                 title: "Phase 13 完全自律実行システム構築".to_string(),
                 state: "open".to_string(),
                 labels: vec![
-                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
-                    Label { name: "priority:high".to_string(), color: "D93F0B".to_string() },
-                    Label { name: "agent:coordinator".to_string(), color: "FF69B4".to_string() },
-                    Label { name: "phase:implementation".to_string(), color: "BFD4F2".to_string() },
+                    Label {
+                        name: "type:feature".to_string(),
+                        color: "0052CC".to_string(),
+                    },
+                    Label {
+                        name: "priority:high".to_string(),
+                        color: "D93F0B".to_string(),
+                    },
+                    Label {
+                        name: "agent:coordinator".to_string(),
+                        color: "FF69B4".to_string(),
+                    },
+                    Label {
+                        name: "phase:implementation".to_string(),
+                        color: "BFD4F2".to_string(),
+                    },
                 ],
                 assignees: vec!["CoordinatorAgent".to_string()],
                 created_at: "2025-01-15T10:30:00Z".to_string(),
@@ -49,9 +61,18 @@ async fn list_issues() -> Json<IssuesListResponse> {
                 title: "LINE Messaging API integration".to_string(),
                 state: "closed".to_string(),
                 labels: vec![
-                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
-                    Label { name: "component:core".to_string(), color: "006B75".to_string() },
-                    Label { name: "size:M".to_string(), color: "FEF2C0".to_string() },
+                    Label {
+                        name: "type:feature".to_string(),
+                        color: "0052CC".to_string(),
+                    },
+                    Label {
+                        name: "component:core".to_string(),
+                        color: "006B75".to_string(),
+                    },
+                    Label {
+                        name: "size:M".to_string(),
+                        color: "FEF2C0".to_string(),
+                    },
                 ],
                 assignees: vec!["CodeGenAgent".to_string()],
                 created_at: "2025-01-10T08:15:00Z".to_string(),
@@ -63,10 +84,22 @@ async fn list_issues() -> Json<IssuesListResponse> {
                 title: "logger.rs memory leak fix".to_string(),
                 state: "closed".to_string(),
                 labels: vec![
-                    Label { name: "type:bug".to_string(), color: "D73A4A".to_string() },
-                    Label { name: "priority:critical".to_string(), color: "B60205".to_string() },
-                    Label { name: "component:core".to_string(), color: "006B75".to_string() },
-                    Label { name: "size:S".to_string(), color: "BFD4F2".to_string() },
+                    Label {
+                        name: "type:bug".to_string(),
+                        color: "D73A4A".to_string(),
+                    },
+                    Label {
+                        name: "priority:critical".to_string(),
+                        color: "B60205".to_string(),
+                    },
+                    Label {
+                        name: "component:core".to_string(),
+                        color: "006B75".to_string(),
+                    },
+                    Label {
+                        name: "size:S".to_string(),
+                        color: "BFD4F2".to_string(),
+                    },
                 ],
                 assignees: vec!["CodeGenAgent".to_string(), "ReviewAgent".to_string()],
                 created_at: "2025-01-05T11:20:00Z".to_string(),
@@ -78,10 +111,22 @@ async fn list_issues() -> Json<IssuesListResponse> {
                 title: "CoordinatorAgent DAG分解機能実装".to_string(),
                 state: "open".to_string(),
                 labels: vec![
-                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
-                    Label { name: "agent:coordinator".to_string(), color: "FF69B4".to_string() },
-                    Label { name: "difficulty:hard".to_string(), color: "E99695".to_string() },
-                    Label { name: "size:L".to_string(), color: "F9C5D4".to_string() },
+                    Label {
+                        name: "type:feature".to_string(),
+                        color: "0052CC".to_string(),
+                    },
+                    Label {
+                        name: "agent:coordinator".to_string(),
+                        color: "FF69B4".to_string(),
+                    },
+                    Label {
+                        name: "difficulty:hard".to_string(),
+                        color: "E99695".to_string(),
+                    },
+                    Label {
+                        name: "size:L".to_string(),
+                        color: "F9C5D4".to_string(),
+                    },
                 ],
                 assignees: vec!["CoordinatorAgent".to_string()],
                 created_at: "2024-12-20T15:00:00Z".to_string(),
@@ -93,10 +138,22 @@ async fn list_issues() -> Json<IssuesListResponse> {
                 title: "Windows CI/CD サポート追加".to_string(),
                 state: "open".to_string(),
                 labels: vec![
-                    Label { name: "type:feature".to_string(), color: "0052CC".to_string() },
-                    Label { name: "tech:infrastructure".to_string(), color: "326CE5".to_string() },
-                    Label { name: "good-first-issue".to_string(), color: "7057FF".to_string() },
-                    Label { name: "difficulty:easy".to_string(), color: "7057FF".to_string() },
+                    Label {
+                        name: "type:feature".to_string(),
+                        color: "0052CC".to_string(),
+                    },
+                    Label {
+                        name: "tech:infrastructure".to_string(),
+                        color: "326CE5".to_string(),
+                    },
+                    Label {
+                        name: "good-first-issue".to_string(),
+                        color: "7057FF".to_string(),
+                    },
+                    Label {
+                        name: "difficulty:easy".to_string(),
+                        color: "7057FF".to_string(),
+                    },
                 ],
                 assignees: vec![],
                 created_at: "2024-11-28T09:45:00Z".to_string(),

@@ -228,7 +228,10 @@ impl AgentCommand {
         // Display results using ResultFormatter
         let formatter = ResultFormatter::new();
         println!();
-        println!("{}", formatter.format_result(AgentType::CoordinatorAgent, &task.id, &result));
+        println!(
+            "{}",
+            formatter.format_result(AgentType::CoordinatorAgent, &task.id, &result)
+        );
 
         Ok(())
     }
@@ -288,7 +291,10 @@ impl AgentCommand {
         // Display results using ResultFormatter
         let formatter = ResultFormatter::new();
         println!();
-        println!("{}", formatter.format_result(AgentType::CodeGenAgent, &task.id, &result));
+        println!(
+            "{}",
+            formatter.format_result(AgentType::CodeGenAgent, &task.id, &result)
+        );
 
         Ok(())
     }
@@ -335,7 +341,10 @@ impl AgentCommand {
 
         // Display results using ResultFormatter
         let formatter = ResultFormatter::new();
-        println!("{}", formatter.format_result(AgentType::ReviewAgent, &task.id, &result));
+        println!(
+            "{}",
+            formatter.format_result(AgentType::ReviewAgent, &task.id, &result)
+        );
 
         Ok(())
     }
@@ -379,7 +388,10 @@ impl AgentCommand {
         // Display results using ResultFormatter
         let formatter = ResultFormatter::new().with_verbose(true);
         println!();
-        println!("{}", formatter.format_result(AgentType::IssueAgent, &task.id, &result));
+        println!(
+            "{}",
+            formatter.format_result(AgentType::IssueAgent, &task.id, &result)
+        );
 
         Ok(())
     }
@@ -431,7 +443,10 @@ impl AgentCommand {
         // Display results using ResultFormatter
         let formatter = ResultFormatter::new();
         println!();
-        println!("{}", formatter.format_result(AgentType::PRAgent, &task.id, &result));
+        println!(
+            "{}",
+            formatter.format_result(AgentType::PRAgent, &task.id, &result)
+        );
         println!("  Branch: {}", branch);
         println!("  Base Branch: {}", base_branch);
 
@@ -498,7 +513,10 @@ impl AgentCommand {
         // Display results using ResultFormatter
         let formatter = ResultFormatter::new();
         println!();
-        println!("{}", formatter.format_result(AgentType::DeploymentAgent, &task.id, &result));
+        println!(
+            "{}",
+            formatter.format_result(AgentType::DeploymentAgent, &task.id, &result)
+        );
 
         Ok(())
     }

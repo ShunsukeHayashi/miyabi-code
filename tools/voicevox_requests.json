@@ -9,15 +9,31 @@
   },
   {
     "speaker_id": 0,
-    "text": "ドキュメントを更新したわ。具体的には、add Water Spider Orchestrator complete designよ。"
+    "text": "toolsモジュールで新機能を追加したわ。具体的には、complete Stream Deck 32-button integration with Clよ。"
   },
   {
     "speaker_id": 1,
-    "text": "ドキュメント整備は重要だぜ！"
+    "text": "新機能が追加されたのか！すごいぜ！"
   },
   {
     "speaker_id": 0,
-    "text": "docsモジュールで変更を加えたわ。具体的には、add automatic API documentation generation and Gitよ。"
+    "text": "voice-guideモジュールで新機能を追加したわ。具体的には、implement Voice-First Onboarding with full auto-seよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "新機能が追加されたのか！すごいぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "voice-guideモジュールで新機能を追加したわ。具体的には、add Voice-First Onboarding system with VOICEVOX inよ。"
+  },
+  {
+    "speaker_id": 1,
+    "text": "新機能が追加されたのか！すごいぜ！"
+  },
+  {
+    "speaker_id": 0,
+    "text": "streamdeckモジュールでリファクタリングをしたわ。具体的には、renumber scripts from 01-32 for 8x4 layoutよ。"
   },
   {
     "speaker_id": 1,
@@ -25,23 +41,7 @@
   },
   {
     "speaker_id": 0,
-    "text": "npmモジュールでドキュメントを更新したわ。具体的には、add deprecation notice for TypeScript CLIよ。"
-  },
-  {
-    "speaker_id": 1,
-    "text": "ドキュメント整備は重要だぜ！"
-  },
-  {
-    "speaker_id": 0,
-    "text": "ドキュメントを更新したわ。具体的には、add error handling section to CLAUDE.mdよ。"
-  },
-  {
-    "speaker_id": 1,
-    "text": "ドキュメント整備は重要だぜ！"
-  },
-  {
-    "speaker_id": 0,
-    "text": "バグを修正したわ。具体的には、make demo workflow flexible for all runnersよ。"
+    "text": "streamdeckモジュールでバグを修正したわ。具体的には、add argument-free button scripts for Stream Deck Mよ。"
   },
   {
     "speaker_id": 1,

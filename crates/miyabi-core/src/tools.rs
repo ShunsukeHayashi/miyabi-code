@@ -277,9 +277,9 @@ impl ToolRegistry {
             .ok_or_else(|| MiyabiError::ToolError("Missing 'path' parameter".to_string()))?;
 
         let full_path = self.resolve_path(path)?;
-        let content = fs::read_to_string(&full_path).await.map_err(|e| {
-            MiyabiError::ToolError(format!("Failed to read file {}: {}", path, e))
-        })?;
+        let content = fs::read_to_string(&full_path)
+            .await
+            .map_err(|e| MiyabiError::ToolError(format!("Failed to read file {}: {}", path, e)))?;
 
         Ok(ToolResult::success(json!({
             "path": path,
@@ -324,14 +324,20 @@ impl ToolRegistry {
                     // Continue with execution
                 }
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown("User rejected file change".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "User rejected file change".to_string(),
+                    ));
                 }
                 ApprovalDecision::Details => {
                     // Show details and prompt again
-                    return Err(MiyabiError::Unknown("Details view not yet implemented".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "Details view not yet implemented".to_string(),
+                    ));
                 }
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "Edit mode not yet implemented".to_string(),
+                    ));
                 }
             }
         }
@@ -343,9 +349,9 @@ impl ToolRegistry {
             })?;
         }
 
-        fs::write(&full_path, content).await.map_err(|e| {
-            MiyabiError::ToolError(format!("Failed to write file {}: {}", path, e))
-        })?;
+        fs::write(&full_path, content)
+            .await
+            .map_err(|e| MiyabiError::ToolError(format!("Failed to write file {}: {}", path, e)))?;
 
         Ok(ToolResult::success(json!({
             "path": path,
@@ -371,9 +377,9 @@ impl ToolRegistry {
             .ok_or_else(|| MiyabiError::ToolError("Missing 'new_text' parameter".to_string()))?;
 
         let full_path = self.resolve_path(path)?;
-        let content = fs::read_to_string(&full_path).await.map_err(|e| {
-            MiyabiError::ToolError(format!("Failed to read file {}: {}", path, e))
-        })?;
+        let content = fs::read_to_string(&full_path)
+            .await
+            .map_err(|e| MiyabiError::ToolError(format!("Failed to read file {}: {}", path, e)))?;
 
         if !content.contains(old_text) {
             return Err(MiyabiError::ToolError(format!(
@@ -386,31 +392,34 @@ impl ToolRegistry {
 
         // Request approval if in Interactive mode
         if matches!(self.mode, ExecutionMode::Interactive) {
-            let approval = FileChangeApproval::modify(
-                path.to_string(),
-                content.clone(),
-                new_content.clone(),
-            );
+            let approval =
+                FileChangeApproval::modify(path.to_string(), content.clone(), new_content.clone());
 
             match self.approval_system.request_file_change(&approval)? {
                 ApprovalDecision::Approve => {
                     // Continue with execution
                 }
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown("User rejected file change".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "User rejected file change".to_string(),
+                    ));
                 }
                 ApprovalDecision::Details => {
-                    return Err(MiyabiError::Unknown("Details view not yet implemented".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "Details view not yet implemented".to_string(),
+                    ));
                 }
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "Edit mode not yet implemented".to_string(),
+                    ));
                 }
             }
         }
 
-        fs::write(&full_path, &new_content).await.map_err(|e| {
-            MiyabiError::ToolError(format!("Failed to write file {}: {}", path, e))
-        })?;
+        fs::write(&full_path, &new_content)
+            .await
+            .map_err(|e| MiyabiError::ToolError(format!("Failed to write file {}: {}", path, e)))?;
 
         Ok(ToolResult::success(json!({
             "path": path,
@@ -428,12 +437,15 @@ impl ToolRegistry {
         })?;
 
         let mut files = Vec::new();
-        while let Some(entry) = entries.next_entry().await.map_err(|e| {
-            MiyabiError::ToolError(format!("Failed to read directory entry: {}", e))
-        })? {
-            let metadata = entry.metadata().await.map_err(|e| {
-                MiyabiError::ToolError(format!("Failed to read metadata: {}", e))
-            })?;
+        while let Some(entry) = entries
+            .next_entry()
+            .await
+            .map_err(|e| MiyabiError::ToolError(format!("Failed to read directory entry: {}", e)))?
+        {
+            let metadata = entry
+                .metadata()
+                .await
+                .map_err(|e| MiyabiError::ToolError(format!("Failed to read metadata: {}", e)))?;
 
             files.push(json!({
                 "name": entry.file_name().to_string_lossy(),
@@ -472,9 +484,7 @@ impl ToolRegistry {
                     .arg(pattern)
                     .arg(path)
                     .output()
-                    .map_err(|e| {
-                        MiyabiError::ToolError(format!("Search command failed: {}", e))
-                    })?
+                    .map_err(|e| MiyabiError::ToolError(format!("Search command failed: {}", e)))?
             }
         };
 
@@ -521,13 +531,19 @@ impl ToolRegistry {
                     // Continue with execution
                 }
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown("User rejected command execution".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "User rejected command execution".to_string(),
+                    ));
                 }
                 ApprovalDecision::Details => {
-                    return Err(MiyabiError::Unknown("Details view not yet implemented".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "Details view not yet implemented".to_string(),
+                    ));
                 }
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
+                    return Err(MiyabiError::Unknown(
+                        "Edit mode not yet implemented".to_string(),
+                    ));
                 }
             }
         }
@@ -537,9 +553,9 @@ impl ToolRegistry {
             cmd.arg(arg);
         }
 
-        let output = cmd.output().map_err(|e| {
-            MiyabiError::ToolError(format!("Command execution failed: {}", e))
-        })?;
+        let output = cmd
+            .output()
+            .map_err(|e| MiyabiError::ToolError(format!("Command execution failed: {}", e)))?;
 
         Ok(ToolResult::success(json!({
             "command": command,

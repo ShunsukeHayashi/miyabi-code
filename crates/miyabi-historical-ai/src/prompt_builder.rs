@@ -16,13 +16,19 @@ impl PromptBuilder {
         let character = HistoricalCharacter::load(character_name)?;
         let template = Self::load_template()?;
 
-        Ok(Self { character, template })
+        Ok(Self {
+            character,
+            template,
+        })
     }
 
     /// Create from an existing character
     pub fn from_character(character: HistoricalCharacter) -> Result<Self, HistoricalAiError> {
         let template = Self::load_template()?;
-        Ok(Self { character, template })
+        Ok(Self {
+            character,
+            template,
+        })
     }
 
     /// Load the system prompt template
@@ -40,7 +46,10 @@ impl PromptBuilder {
     }
 
     /// Build the system prompt with optional RAG context
-    pub fn build_system_prompt(&self, rag_context: Option<&str>) -> Result<String, HistoricalAiError> {
+    pub fn build_system_prompt(
+        &self,
+        rag_context: Option<&str>,
+    ) -> Result<String, HistoricalAiError> {
         let mut prompt = self.template.clone();
 
         // Replace placeholders
@@ -49,10 +58,7 @@ impl PromptBuilder {
         prompt = prompt.replace("{era}", &self.character.era);
         prompt = prompt.replace("{title}", &self.character.title);
         prompt = prompt.replace("{core_personality}", &self.character.format_personality());
-        prompt = prompt.replace(
-            "{personality_traits}",
-            &self.character.format_personality(),
-        );
+        prompt = prompt.replace("{personality_traits}", &self.character.format_personality());
         prompt = prompt.replace("{speaking_style}", &self.character.format_speaking_style());
         prompt = prompt.replace("{tone_examples}", &self.character.format_tone_examples());
         prompt = prompt.replace("{specialties}", &self.character.format_specialties());
@@ -192,11 +198,19 @@ mod tests {
     fn test_all_characters() {
         for character_name in &["oda_nobunaga", "sakamoto_ryoma", "tokugawa_ieyasu"] {
             let builder = PromptBuilder::new(character_name);
-            assert!(builder.is_ok(), "Failed to create builder for {}", character_name);
+            assert!(
+                builder.is_ok(),
+                "Failed to create builder for {}",
+                character_name
+            );
 
             let builder = builder.unwrap();
             let prompt = builder.build_system_prompt(None);
-            assert!(prompt.is_ok(), "Failed to build prompt for {}", character_name);
+            assert!(
+                prompt.is_ok(),
+                "Failed to build prompt for {}",
+                character_name
+            );
         }
     }
 }

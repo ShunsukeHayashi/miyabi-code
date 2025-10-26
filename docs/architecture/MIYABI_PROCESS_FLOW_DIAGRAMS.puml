@@ -1,0 +1,1033 @@
+@startuml Miyabi Complete Autonomous Operation Flow
+!theme cerulean-outline
+title Miyabi 完全自律化プロセスフロー - End-to-End
+
+' スタイル定義
+skinparam activity {
+  BackgroundColor<<Interactive>> LightBlue
+  BackgroundColor<<Headless>> LightGreen
+  BackgroundColor<<Script>> LightYellow
+  BackgroundColor<<Error>> LightPink
+  BackgroundColor<<AI>> LightCyan
+  BackgroundColor<<Human>> LightSalmon
+}
+
+|Issue作成|
+start
+:Issue作成 by User;
+note right
+  **Trigger**:
+  - GitHub UI
+  - gh CLI
+  - API
+end note
+
+|Issue分析|
+:D1: Label確認 <<Script>>;
+note right
+  scripts/decision-trees/
+  d1-check-label.sh
+
+  Check: trigger:agent-execute
+end note
+
+if (trigger:agent-execute ラベルあり?) then (yes)
+  :IssueAgent 実行 <<Headless>>;
+  note right
+    tools/claude-headless/
+    01-process-issue.sh
+
+    - Issue内容分析
+    - 意図理解
+    - Label推薦
+  end note
+
+  :Label自動付与 <<Script>>;
+
+  :D2: 複雑度判定 <<AI>>;
+  note right
+    scripts/decision-trees/
+    d2-complexity-check.sh
+
+    Complexity: Low/Medium/High
+  end note
+
+  if (複雑度は?) then (Low)
+    :自動承認 <<Script>>;
+  elseif (Medium) then
+    :AI判断 <<Headless>>;
+    note right
+      Claude Code Headless:
+      "Should we auto-approve?"
+    end note
+
+    if (AI承認?) then (yes)
+      :自動承認 <<Script>>;
+    else (no)
+      :人間レビュー待機 <<Interactive>>;
+      note right
+        Stream Deck通知
+        VOICEVOX音声通知
+      end note
+
+      if (人間承認?) then (yes)
+        :承認完了 <<Script>>;
+      else (no)
+        #Pink:エスカレーション <<Script>>;
+        stop
+      endif
+    endif
+  else (High)
+    :人間レビュー必須 <<Interactive>>;
+    if (人間承認?) then (yes)
+      :承認完了 <<Script>>;
+    else (no)
+      #Pink:エスカレーション <<Script>>;
+      stop
+    endif
+  endif
+else (no)
+  :手動Label付与待機 <<Interactive>>;
+  note right
+    Stream Deck:
+    - 01-next.sh
+    - Manual label
+  end note
+
+  stop
+endif
+
+|タスク分解|
+:CoordinatorAgent 実行 <<Headless>>;
+note right
+  tools/claude-headless/
+  coordinator-decompose.sh
+
+  - Issue → Tasks分解
+  - DAG構築
+  - 依存関係分析
+end note
+
+:D3: 循環依存チェック <<Script>>;
+note right
+  scripts/decision-trees/
+  d3-dag-validation.sh
+
+  トポロジカルソート
+end note
+
+if (循環依存あり?) then (yes)
+  #Pink:エラー通知 <<Script>>;
+  #Pink:エスカレーション(TechLead) <<Script>>;
+  stop
+else (no)
+  :D4: タスク数チェック <<Script>>;
+  note right
+    scripts/decision-trees/
+    d4-task-count-check.sh
+
+    Limit: <= 7 tasks
+  end note
+
+  if (タスク数 > 7?) then (yes)
+    :人間レビュー <<Interactive>>;
+    note right
+      Stream Deck通知
+      Label: needs-review
+    end note
+
+    if (再分解?) then (yes)
+      :CoordinatorAgent 再実行 <<Headless>>;
+    else (no - 承認)
+      :DAG構築 <<Script>>;
+    endif
+  else (no)
+    :DAG構築 <<Script>>;
+  endif
+endif
+
+|並列実装|
+fork
+  :Task 1処理;
+fork again
+  :Task 2処理;
+fork again
+  :Task 3処理;
+end fork
+
+partition "Task処理ループ" {
+  :D5: Worktree作成可否 <<Script>>;
+  note right
+    scripts/decision-trees/
+    d5-worktree-check.sh
+
+    - ディスク空き容量
+    - Worktree数制限
+  end note
+
+  if (作成OK?) then (yes)
+    :Worktree作成 <<Script>>;
+    note right
+      git worktree add
+      .worktrees/issue-270
+    end note
+
+    :D6: Agent種別選択 <<Script>>;
+    note right
+      Task type → Agent
+      - feature → CodeGenAgent
+      - test → TestAgent
+      - deployment → DeploymentAgent
+    end note
+
+    switch (Agent種別)
+    case (CodeGenAgent)
+      :コード生成 <<Headless>>;
+      note right
+        tools/claude-headless/
+        codegen-agent.sh
+      end note
+    case (TestAgent)
+      :テスト作成 <<Headless>>;
+    case (DeploymentAgent)
+      :デプロイ準備 <<Headless>>;
+    endswitch
+
+    :D7: コンパイルチェック <<Script>>;
+    note right
+      cargo build
+    end note
+
+    if (ビルド成功?) then (yes)
+      :次へ;
+    else (no)
+      :D8: 自動修正可能? <<AI>>;
+      note right
+        AI判断:
+        エラーの自動修正可能性
+      end note
+
+      if (自動修正可能?) then (yes)
+        :自動修正 <<Headless>>;
+        :D7へ戻る;
+      else (no)
+        #Pink:エスカレーション(TechLead) <<Script>>;
+        stop
+      endif
+    endif
+
+    :D9: テスト実行 <<Script>>;
+    note right
+      cargo test --all
+    end note
+
+    if (テスト成功?) then (yes)
+      :次へ;
+    else (no)
+      :D10: リトライ回数チェック <<Script>>;
+      note right
+        Max: 3回
+      end note
+
+      if (リトライ < 3?) then (yes)
+        :テスト修正 <<Headless>>;
+        :D9へ戻る;
+      else (no)
+        #Pink:エスカレーション(TechLead) <<Script>>;
+        stop
+      endif
+    endif
+
+  else (no - リソース不足)
+    #Pink:エラー通知 <<Script>>;
+    #Pink:エスカレーション(DevOps) <<Script>>;
+    stop
+  endif
+}
+
+:全Task完了;
+:Worktree統合 <<Script>>;
+
+|PR作成|
+:D11: PR作成可否 <<Script>>;
+note right
+  - ビルド成功確認
+  - テスト成功確認
+end note
+
+if (PR作成OK?) then (yes)
+  :PR作成 <<Script>>;
+  note right
+    gh pr create
+    - Title: Conventional Commits
+    - Body: Summary
+    - Draft: true
+  end note
+else (no)
+  #Pink:PR作成不可 <<Script>>;
+  #Pink:エスカレーション <<Script>>;
+  stop
+endif
+
+|レビュー|
+:ReviewAgent 実行 <<Headless>>;
+note right
+  tools/claude-headless/
+  review-agent.sh
+
+  - Clippy
+  - Security scan
+  - Test coverage
+  - Quality score算出
+end note
+
+:D12: 品質スコア判定 <<Script>>;
+note right
+  scripts/decision-trees/
+  d12-quality-score-check.sh
+
+  Threshold: 80点
+end note
+
+if (Score >= 90?) then (yes - Excellent)
+  :自動マージ承認 <<Script>>;
+elseif (Score >= 80?) then (yes - Good)
+  :D13: セキュリティリスク評価 <<AI>>;
+  note right
+    AI判断:
+    - Auth変更?
+    - 外部API変更?
+    - 暗号化変更?
+  end note
+
+  if (リスクなし?) then (yes)
+    :自動マージ承認 <<Script>>;
+  else (no)
+    :人間レビュー <<Interactive>>;
+    if (承認?) then (yes)
+      :D15: マージ可否 <<Script>>;
+    else (no - 修正依頼)
+      :修正適用 <<Headless>>;
+      :ReviewAgent 再実行;
+    endif
+  endif
+else (no - Score < 80)
+  :D14: 人間レビュー必要性 <<AI>>;
+  note right
+    AI判断:
+    修正可能性評価
+  end note
+
+  if (修正可能?) then (yes)
+    :修正適用 <<Headless>>;
+    :ReviewAgent 再実行;
+  else (no)
+    :人間レビュー必須 <<Interactive>>;
+    note right
+      Stream Deck通知
+      Label: needs-review
+    end note
+
+    if (承認?) then (yes)
+      :D15: マージ可否 <<Script>>;
+    else (no)
+      :修正適用 <<Headless>>;
+      :ReviewAgent 再実行;
+    endif
+  endif
+endif
+
+:D15: マージ実行 <<Script>>;
+note right
+  gh pr merge --auto
+end note
+
+if (マージ成功?) then (yes)
+  :マージ完了;
+else (no)
+  #Pink:マージブロック <<Script>>;
+  stop
+endif
+
+|デプロイ|
+:D16: デプロイLabel確認 <<Script>>;
+note right
+  scripts/decision-trees/
+  d16-deploy-check.sh
+
+  Labels:
+  - deploy:staging
+  - deploy:production
+end note
+
+if (デプロイLabel?) then (deploy:staging)
+  :DeploymentAgent(Staging) <<Headless>>;
+  note right
+    tools/claude-headless/
+    deployment-agent.sh
+
+    Environment: staging
+  end note
+
+  :Staging デプロイ実行 <<Script>>;
+
+  :D17: Staging ヘルスチェック <<Script>>;
+  note right
+    curl /health
+    - Status check
+    - Error rate check
+  end note
+
+  if (ヘルスOK?) then (yes)
+    :D18: Production承認 <<Human>>;
+    note right
+      必ず人間承認必須
+
+      Notifications:
+      - Stream Deck
+      - VOICEVOX
+      - Discord
+    end note
+
+    if (承認?) then (yes)
+      :次へ;
+    else (no)
+      :デプロイ中止;
+      stop
+    endif
+  else (no)
+    #Pink:Staging ロールバック <<Script>>;
+    #Pink:エスカレーション(DevOps) <<Script>>;
+    stop
+  endif
+
+elseif (deploy:production) then
+  :D18: Production承認 <<Human>>;
+
+  if (承認?) then (yes)
+    :次へ;
+  else (no)
+    :デプロイ中止;
+    stop
+  endif
+else (Labelなし)
+  :完了;
+  stop
+endif
+
+:DeploymentAgent(Production) <<Headless>>;
+note right
+  Environment: production
+end note
+
+:Production デプロイ実行 <<Script>>;
+
+:D19: Production ヘルスチェック <<Script>>;
+note right
+  - /health endpoint
+  - Error rate監視
+  - Response time監視
+end note
+
+if (ヘルスOK?) then (yes)
+  :デプロイ成功;
+  :完了通知 <<Script>>;
+  note right
+    - GitHub comment
+    - Discord notification
+    - VOICEVOX
+  end note
+
+  #LightGreen:完了;
+  stop
+else (no)
+  :D20: ロールバック判定 <<Script>>;
+  note right
+    scripts/decision-trees/
+    d20-rollback-decision.sh
+
+    - Error rate > 10%?
+    - Status: critical?
+  end note
+
+  if (重大障害?) then (yes - Critical)
+    #Pink:自動ロールバック <<Script>>;
+    note right
+      前バージョンに即座復旧
+    end note
+
+    #Pink:緊急エスカレーション(CTO) <<Script>>;
+    stop
+  else (no - Degraded)
+    #Pink:手動判断 <<Human>>;
+    note right
+      緊急エスカレーション
+      DevOps判断待ち
+    end note
+
+    stop
+  endif
+endif
+
+@enduml
+
+' ============================================
+' 図2: Interactive vs Headless モード分離
+' ============================================
+
+@startuml Miyabi Interactive vs Headless Mode Separation
+!theme cerulean-outline
+title Miyabi モード分離アーキテクチャ
+
+package "User Interface Layer" {
+  component [Stream Deck\n32 Buttons] as StreamDeck #LightBlue
+  component [VS Code\nClaude Code UI] as VSCode #LightBlue
+  component [GitHub Web UI] as GitHubUI #LightBlue
+}
+
+package "Interactive Mode\n(人間の判断が必要)" #LightSalmon {
+  component [戦略的判断] as Strategy
+  component [アーキテクチャレビュー] as ArchReview
+  component [セキュリティ評価] as SecReview
+  component [Production承認] as ProdApproval
+
+  note right of Strategy
+    - 新機能の設計方針
+    - ビジネス要件解釈
+    - 複雑なリファクタリング
+  end note
+}
+
+package "Headless Mode\n(完全自動実行)" #LightGreen {
+  component [Issue分析Agent] as IssueAgent
+  component [CoordinatorAgent] as Coordinator
+  component [CodeGenAgent] as CodeGen
+  component [ReviewAgent] as Review
+  component [DeploymentAgent] as Deploy
+
+  note right of IssueAgent
+    claude -p "Analyze Issue"
+    --output-format json
+  end note
+}
+
+package "Script Layer\n(確定プロセス)" #LightYellow {
+  component [Label管理] as Labels
+  component [Git操作] as Git
+  component [Build/Test] as Build
+  component [ヘルスチェック] as Health
+  component [ロールバック] as Rollback
+
+  note right of Labels
+    gh issue edit
+    --add-label
+  end note
+}
+
+package "Decision Engine\n(条件分岐)" #LightCyan {
+  component [20個の決定ポイント] as DecisionPoints
+  database [decision-trees/*.sh] as Scripts
+
+  note right of DecisionPoints
+    D1-D20
+    - 自動化率: 91.25%
+    - Script: 60%
+    - AI: 25%
+    - Human: 15%
+  end note
+}
+
+package "Safety Layer\n(6層防御)" #Pink {
+  component [入力検証] as Validation
+  component [実行監視] as Monitor
+  component [エラー検出] as ErrorDetect
+  component [ロールバック制御] as RollbackCtrl
+  component [エスカレーション] as Escalation
+}
+
+' 接続関係
+StreamDeck --> VSCode
+StreamDeck --> Strategy
+GitHubUI --> IssueAgent
+
+VSCode --> Strategy
+VSCode --> ArchReview
+VSCode --> SecReview
+
+Strategy --> DecisionPoints
+ArchReview --> DecisionPoints
+SecReview --> DecisionPoints
+ProdApproval --> Deploy
+
+IssueAgent --> DecisionPoints
+Coordinator --> DecisionPoints
+CodeGen --> DecisionPoints
+Review --> DecisionPoints
+
+DecisionPoints --> Scripts
+DecisionPoints --> Labels
+DecisionPoints --> Git
+DecisionPoints --> Build
+
+Labels --> Validation
+Git --> Monitor
+Build --> ErrorDetect
+Deploy --> Health
+
+ErrorDetect --> RollbackCtrl
+Health --> RollbackCtrl
+RollbackCtrl --> Rollback
+RollbackCtrl --> Escalation
+
+Escalation --> StreamDeck : "通知"
+
+@enduml
+
+' ============================================
+' 図3: Phase別詳細決定木
+' ============================================
+
+@startuml Miyabi Decision Tree Phase 1-2
+!theme cerulean-outline
+title Phase 1-2: Issue分析 → タスク分解
+
+|Issue作成|
+start
+
+:Issue作成;
+
+|決定ポイント|
+:D1: Label確認;
+note right
+  **Script**: 100% automated
+  **Input**: issue_number
+  **Check**: trigger:agent-execute
+  **Output**: proceed | wait
+end note
+
+if (Label?) then (あり)
+  |Headless Mode|
+  :IssueAgent実行;
+  note right
+    **Mode**: Headless
+    **Duration**: 2-5秒
+    **Cost**: $0.002-0.005
+
+    **Tasks**:
+    1. Issue内容分析
+    2. 意図理解
+    3. Label推薦
+    4. 複雑度推定
+  end note
+
+  |Script|
+  :Label自動付与;
+
+  |決定ポイント|
+  :D2: 複雑度判定;
+  note right
+    **AI + Rule**: 80% automated
+    **Input**: complexity (Low/Medium/High)
+    **Criteria**:
+    - Low: tasks <= 3, no deps
+    - Medium: tasks <= 7, simple deps
+    - High: tasks > 7 or complex deps
+  end note
+
+  if (複雑度) then (Low)
+    |Script|
+    :自動承認;
+  elseif (Medium) then
+    |Headless Mode|
+    :AI判断;
+    note right
+      **Prompt**:
+      "Should we auto-approve?"
+
+      **Criteria**:
+      - Duration <= 60min
+      - No external APIs
+      - No breaking changes
+    end note
+
+    if (AI承認) then (yes)
+      |Script|
+      :自動承認;
+    else (no)
+      |Interactive Mode|
+      #Salmon:人間レビュー;
+      note right
+        **Notification**:
+        - Stream Deck
+        - VOICEVOX
+
+        **Wait**: Manual approval
+      end note
+
+      if (人間承認) then (yes)
+        |Script|
+        :承認;
+      else (no)
+        #Pink:エスカレーション;
+        stop
+      endif
+    endif
+  else (High)
+    |Interactive Mode|
+    #Salmon:人間レビュー必須;
+
+    if (承認) then (yes)
+      |Script|
+      :承認;
+    else (no)
+      #Pink:エスカレーション;
+      stop
+    endif
+  endif
+else (なし)
+  |Interactive Mode|
+  #Salmon:手動Label待機;
+  stop
+endif
+
+|Headless Mode|
+:CoordinatorAgent実行;
+note right
+  **Mode**: Headless
+  **Duration**: 3-7秒
+  **Cost**: $0.003-0.007
+
+  **Tasks**:
+  1. Issue → Tasks分解
+  2. DAG構築
+  3. 依存関係分析
+  4. Agent割り当て
+end note
+
+|決定ポイント|
+:D3: 循環依存チェック;
+note right
+  **Script**: 100% automated
+  **Algorithm**: トポロジカルソート
+  **Check**: Cycles in DAG
+end note
+
+if (循環依存) then (あり)
+  #Pink:エラー通知;
+  #Pink:エスカレーション(TechLead);
+  stop
+else (なし)
+  |決定ポイント|
+  :D4: タスク数チェック;
+  note right
+    **Script**: 100% automated
+    **Limit**: <= 7 tasks
+  end note
+
+  if (タスク数) then (> 7)
+    |Interactive Mode|
+    #Salmon:人間レビュー;
+    note right
+      **Reason**: 複雑すぎる
+      **Action**:
+      - タスク再分解
+      - または承認
+    end note
+
+    if (判断) then (再分解)
+      :CoordinatorAgent再実行;
+    else (承認)
+      |Script|
+      :DAG構築;
+    endif
+  else (<= 7)
+    |Script|
+    :DAG構築;
+  endif
+endif
+
+:並列実行準備完了;
+stop
+
+@enduml
+
+' ============================================
+' 図4: Safety Mechanisms - 6層防御
+' ============================================
+
+@startuml Miyabi Safety Mechanisms
+!theme cerulean-outline
+title Miyabi セーフティメカニズム - 6層防御アーキテクチャ
+
+package "Layer 1: 入力検証" #LightYellow {
+  component [Issue番号検証] as ValidateIssue
+  component [Label検証] as ValidateLabel
+  component [環境変数検証] as ValidateEnv
+
+  note right of ValidateIssue
+    - 数値形式チェック
+    - Issue存在確認
+    - 状態チェック(open/closed)
+  end note
+}
+
+package "Layer 2: 実行前チェック" #LightCyan {
+  component [依存関係確認] as CheckDeps
+  component [APIキー確認] as CheckAPI
+  component [Git状態確認] as CheckGit
+  component [リソース確認] as CheckResource
+
+  note right of CheckDeps
+    - claude CLI存在確認
+    - gh CLI存在確認
+    - cargo存在確認
+  end note
+
+  note right of CheckResource
+    - ディスク空き容量 >= 1GB
+    - 並列Agent数 <= 5
+    - メモリ使用率 < 80%
+  end note
+}
+
+package "Layer 3: 実行監視" #LightGreen {
+  component [タイムアウト監視] as MonitorTimeout
+  component [メモリ監視] as MonitorMemory
+  component [プロセス監視] as MonitorProcess
+
+  note right of MonitorTimeout
+    - デフォルト: 1800秒(30分)
+    - SIGTERM → SIGKILL
+  end note
+
+  note right of MonitorMemory
+    - 制限: 4GB
+    - 超過時: プロセス強制終了
+  end note
+}
+
+package "Layer 4: 結果検証" #LightBlue {
+  component [出力形式検証] as ValidateOutput
+  component [JSON検証] as ValidateJSON
+  component [エラーフラグ確認] as CheckError
+  component [ファイルサイズ確認] as CheckSize
+
+  note right of ValidateJSON
+    - jq . で構文チェック
+    - 必須フィールド確認
+    - 値の範囲チェック
+  end note
+}
+
+package "Layer 5: ロールバック" #Orange {
+  component [Git ロールバック] as GitRollback
+  component [デプロイロールバック] as DeployRollback
+  component [状態復元] as StateRestore
+
+  note right of GitRollback
+    **失敗時の復旧**:
+    - Build失敗 → git checkout .
+    - Test失敗 → git reset HEAD~1
+    - PR失敗 → ブランチ削除
+  end note
+
+  note right of DeployRollback
+    **デプロイ失敗時**:
+    - 前バージョンに即座復旧
+    - ヘルスチェック確認
+    - 通知送信
+  end note
+}
+
+package "Layer 6: エスカレーション" #Pink {
+  component [TechLead] as EscalateTech
+  component [CISO] as EscalateCISO
+  component [PO] as EscalatePO
+  component [CTO] as EscalateCTO
+  component [DevOps] as EscalateDevOps
+
+  note right of EscalateTech
+    **条件**:
+    - アーキテクチャ問題
+    - 複雑度超過
+    - ビルドエラー(自動修正不可)
+  end note
+
+  note right of EscalateCISO
+    **条件**:
+    - セキュリティ脆弱性(Sev.1-2)
+    - 認証・認可変更
+    - 暗号化変更
+  end note
+
+  note right of EscalateDevOps
+    **条件**:
+    - デプロイ失敗
+    - インフラ問題
+    - リソース不足
+  end note
+}
+
+' 処理フロー
+[Agent実行要求] --> ValidateIssue
+ValidateIssue --> ValidateLabel
+ValidateLabel --> ValidateEnv
+ValidateEnv --> CheckDeps
+
+CheckDeps --> CheckAPI
+CheckAPI --> CheckGit
+CheckGit --> CheckResource
+
+CheckResource --> MonitorTimeout
+MonitorTimeout --> MonitorMemory
+MonitorMemory --> MonitorProcess
+
+MonitorProcess --> ValidateOutput
+ValidateOutput --> ValidateJSON
+ValidateJSON --> CheckError
+CheckError --> CheckSize
+
+CheckSize -right-> [成功]
+
+' エラーフロー
+ValidateIssue -down-> [エラー検出] #Red
+ValidateEnv -down-> [エラー検出] #Red
+CheckResource -down-> [エラー検出] #Red
+MonitorTimeout -down-> [エラー検出] #Red
+ValidateJSON -down-> [エラー検出] #Red
+
+[エラー検出] --> GitRollback
+GitRollback --> DeployRollback
+DeployRollback --> StateRestore
+
+StateRestore --> EscalateTech
+StateRestore --> EscalateCISO
+StateRestore --> EscalatePO
+StateRestore --> EscalateCTO
+StateRestore --> EscalateDevOps
+
+' 通知フロー
+EscalateTech --> [GitHub Comment]
+EscalateTech --> [Discord通知]
+EscalateTech --> [VOICEVOX]
+EscalateTech --> [Stream Deck]
+
+@enduml
+
+' ============================================
+' 図5: Claude Agent SDK統合アーキテクチャ
+' ============================================
+
+@startuml Miyabi Claude Agent SDK Integration
+!theme cerulean-outline
+title Claude Agent SDK統合アーキテクチャ
+
+package "Miyabi Orchestrator (Rust)" {
+  component [CLI Command] as CLI
+  component [Agent Executor] as Executor
+  component [Session Manager] as SessionMgr
+  component [Result Parser] as Parser
+}
+
+package "SDK Bridge (Rust → TypeScript)" {
+  component [miyabi-agent-sdk\n(Rust crate)] as SDKCrate
+  component [Process Bridge\n(std::process::Command)] as ProcessBridge
+
+  note right of SDKCrate
+    pub async fn execute_agent_sdk(
+      request: &AgentRequest
+    ) -> Result<AgentResponse>
+  end note
+}
+
+package "TypeScript SDK Wrapper" {
+  component [agent-runner.ts] as AgentRunner
+  component [session-manager.ts] as TSSessionMgr
+  component [context-builder.ts] as ContextBuilder
+  component [output-parser.ts] as OutputParser
+
+  note right of AgentRunner
+    import { Claude } from
+    '@anthropic-ai/claude-agent-sdk'
+
+    - createSession()
+    - query()
+    - getResult()
+  end note
+}
+
+package "Claude Agent SDK\n(@anthropic-ai/claude-agent-sdk)" {
+  component [Session API] as SessionAPI
+  component [Tools API] as ToolsAPI
+  component [Context API] as ContextAPI
+
+  note right of SessionAPI
+    const session = await claude.createSession({
+      systemPrompt: agentPrompt,
+      tools: ['Read', 'Write', 'Edit', 'Bash'],
+      contextLimit: 200000
+    })
+  end note
+}
+
+package "Anthropic API" {
+  cloud [Claude Sonnet 4.5] as Claude
+}
+
+database "Agent Prompts\n.claude/agents/prompts/" as Prompts
+database "Session Store\n.miyabi/sessions.json" as Sessions
+database "Result Cache\n/tmp/agent-*.json" as Cache
+
+' フロー
+CLI --> Executor : "実行要求"
+Executor --> SDKCrate : "Agent呼び出し"
+SDKCrate --> ProcessBridge : "node agent-runner.js"
+
+ProcessBridge --> AgentRunner : "spawn process"
+AgentRunner --> Prompts : "プロンプト読み込み"
+AgentRunner --> TSSessionMgr : "セッション作成"
+
+TSSessionMgr --> SessionAPI : "createSession()"
+SessionAPI --> Claude : "API呼び出し"
+
+Claude --> ToolsAPI : "Tool実行"
+ToolsAPI --> AgentRunner : "結果返却"
+
+AgentRunner --> OutputParser : "JSON整形"
+OutputParser --> Cache : "結果保存"
+OutputParser --> ProcessBridge : "stdout出力"
+
+ProcessBridge --> SDKCrate : "JSON parse"
+SDKCrate --> Parser : "Result変換"
+Parser --> Executor : "AgentResponse"
+
+TSSessionMgr --> Sessions : "セッション保存"
+
+' 使用パターン
+note bottom of CLI
+  **Pattern 1: One-Shot**
+  miyabi agent sdk \\
+    --agent coordinator \\
+    --issue 270 \\
+    --mode headless
+
+  **Pattern 2: Session**
+  SESSION_ID=$(miyabi agent sdk \\
+    --create-session \\
+    --agent codegen)
+
+  miyabi agent sdk \\
+    --session $SESSION_ID \\
+    --prompt "Continue"
+
+  **Pattern 3: Resume**
+  miyabi agent sdk \\
+    --resume-from $MAIN_SESSION \\
+    --agent codegen
+end note
+
+@enduml
+
+@startuml Diagram End Marker
+' このファイルの終端マーカー
+@enduml

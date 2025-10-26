@@ -34,10 +34,7 @@ mod tests {
             std::env::set_var("LOCALAPPDATA", test_path);
 
             let base_dir = default_worktree_base_dir();
-            assert_eq!(
-                base_dir,
-                PathBuf::from(test_path).join("Miyabi").join("wt")
-            );
+            assert_eq!(base_dir, PathBuf::from(test_path).join("Miyabi").join("wt"));
 
             // Clean up
             std::env::remove_var("LOCALAPPDATA");

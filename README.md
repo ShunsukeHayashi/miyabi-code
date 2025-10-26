@@ -324,6 +324,59 @@ miyabi knowledge stats --json
 
 ---
 
+### 🔊 **完全挙動可視化システム（NEW - VOICEVOX統合）**
+
+<div align="center">
+
+![VOICEVOX Integration](https://img.shields.io/badge/VOICEVOX-Audio%20Narration-00D9FF?style=for-the-badge&logo=audio-technica)
+
+</div>
+
+**"エージェントを完璧にコントロールすることで初めて、正確にこのプロジェクトの価値が発生する"**
+
+オーケストレーター層の全45イベントを音声でリアルタイム通知し、完全な挙動透明性を実現：
+
+- 🎤 **音声ナレーション** - ずんだもん音声による全イベント通知
+- 📊 **100%透明性** - 5-Worlds実行、動的スケーリング、フィードバックループの全挙動を可視化
+- 🎯 **教育的デザイン** - 初心者でもシステム動作を理解可能な詳細説明
+- ⚡ **ゼロコスト** - パフォーマンス影響ほぼゼロ（<1% CPU、非ブロッキング実行）
+
+**カバレッジ**:
+- ✅ 5-Worlds並列実行: 13イベント
+- ✅ サーキットブレーカー: 8イベント
+- ✅ 動的スケーリング: 9イベント
+- ✅ フィードバックループ: 15イベント
+
+```bash
+# VOICEVOX Engine起動
+curl http://localhost:50021/version
+
+# 環境変数設定
+export VOICEVOX_NARRATION_ENABLED=true
+export VOICEVOX_SPEAKER=3  # ずんだもん
+export VOICEVOX_SPEED=1.1
+
+# テスト実行（ナレーション付き）
+cargo test --package miyabi-orchestrator -- --nocapture
+```
+
+**ナレーション例**:
+```
+🔊 "5つの並行世界での実行を開始するのだ！Issue #443のタスクを、
+   異なるパラメータで5回実行して、最高の結果を選ぶのだ！"
+
+🔊 "Winner決定なのだ！World Betaが最高スコア95点で勝利！"
+
+🔊 "スケールアップなのだ！並行実行数を5から6に増やすのだ！"
+```
+
+**詳細ドキュメント**:
+- [クイックスタート](docs/VOICEVOX_HOOKS_QUICKSTART.md) - 3ステップセットアップ
+- [実装サマリー](docs/HOOKS_INTEGRATION_COMPLETE.md) - 全45イベント詳細
+- [アーキテクチャ](docs/WATER_SPIDER_ORCHESTRATOR_DESIGN.md#完全挙動可視化システムvoicevox) - 設計思想
+
+---
+
 ## 📦 インストール
 
 ### 方法1: npx（推奨）

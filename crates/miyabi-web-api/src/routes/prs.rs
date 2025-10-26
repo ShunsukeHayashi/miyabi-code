@@ -1,4 +1,4 @@
-use axum::{routing::get, Router, Json};
+use axum::{routing::get, Json, Router};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -49,7 +49,8 @@ async fn list_prs() -> Json<PRsListResponse> {
             },
             PullRequest {
                 number: 132,
-                title: "fix(miyabi-core): eliminate memory leak in logger.rs using OnceCell".to_string(),
+                title: "fix(miyabi-core): eliminate memory leak in logger.rs using OnceCell"
+                    .to_string(),
                 state: "merged".to_string(),
                 author: "CodeGenAgent".to_string(),
                 created_at: "2025-01-06T08:20:00Z".to_string(),

@@ -148,9 +148,7 @@ impl IndexCache {
         let base_cache_dir = dirs::cache_dir()
             .ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
 
-        let cache_dir = base_cache_dir
-            .join("miyabi")
-            .join("knowledge");
+        let cache_dir = base_cache_dir.join("miyabi").join("knowledge");
 
         if !cache_dir.exists() {
             return Ok(0);

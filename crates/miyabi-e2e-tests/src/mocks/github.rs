@@ -4,7 +4,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::Json,
-    routing::{get, post, patch},
+    routing::{get, patch, post},
     Router,
 };
 use serde::{Deserialize, Serialize};
@@ -228,10 +228,7 @@ async fn update_issue(
     debug!("PATCH /issues/{}", number);
     let mut state = state.write().await;
 
-    let issue = state
-        .issues
-        .get_mut(&number)
-        .ok_or(StatusCode::NOT_FOUND)?;
+    let issue = state.issues.get_mut(&number).ok_or(StatusCode::NOT_FOUND)?;
 
     if let Some(title) = payload.title {
         issue.title = title;
@@ -298,10 +295,7 @@ async fn add_labels(
     debug!("POST /issues/{}/labels", number);
     let mut state = state.write().await;
 
-    let issue = state
-        .issues
-        .get_mut(&number)
-        .ok_or(StatusCode::NOT_FOUND)?;
+    let issue = state.issues.get_mut(&number).ok_or(StatusCode::NOT_FOUND)?;
 
     for label in payload.labels {
         if !issue.labels.iter().any(|l| l.name == label) {

@@ -164,7 +164,11 @@ async fn generate_code(
 async fn get_history(
     Query(query): Query<HistoryQuery>,
 ) -> Result<Json<Vec<GenerationHistoryItem>>, (StatusCode, String)> {
-    tracing::debug!("Fetching generation history (limit: {}, offset: {})", query.limit, query.offset);
+    tracing::debug!(
+        "Fetching generation history (limit: {}, offset: {})",
+        query.limit,
+        query.offset
+    );
 
     // TODO: Fetch from database
     // For now, return empty list
@@ -228,7 +232,9 @@ fn detect_frontend_task(description: &str) -> bool {
     ];
 
     let desc_lower = description.to_lowercase();
-    FRONTEND_KEYWORDS.iter().any(|keyword| desc_lower.contains(keyword))
+    FRONTEND_KEYWORDS
+        .iter()
+        .any(|keyword| desc_lower.contains(keyword))
 }
 
 #[cfg(test)]

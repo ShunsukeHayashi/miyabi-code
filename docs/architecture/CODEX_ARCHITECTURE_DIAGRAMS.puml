@@ -1,0 +1,786 @@
+@startuml Codex_Overall_Architecture
+!theme plain
+title Codex プロジェクト全体アーキテクチャ
+
+' ユーザー層
+actor User as "ユーザー"
+
+' Node.js CLI層
+package "codex-cli (Node.js)" {
+  [bin/codex.js] as CLI
+}
+
+' Rust TUI層
+package "codex-tui (Rust)" {
+  [Terminal UI] as TUI
+  [Crossterm] as Cross
+  [Ratatui] as Rata
+}
+
+' Rust Core層
+package "codex-core (Rust)" {
+  [Codex] as Core
+  [ConversationManager] as Conv
+  [Tools Registry] as Tools
+  [Auth Manager] as Auth
+  [Config Loader] as Config
+  [MCP Manager] as MCP
+}
+
+' Backend層
+package "backend-client (Rust)" {
+  [Model Client] as Client
+  [SSE Stream] as SSE
+}
+
+' サンドボックス層
+package "Sandbox" {
+  [Linux Sandbox\n(Landlock/Seccomp)] as LinuxSB
+  [macOS Seatbelt] as MacSB
+}
+
+' 外部サービス
+cloud "OpenAI" {
+  [ChatGPT API] as ChatGPT
+}
+
+database "ローカルストレージ" {
+  folder "~/.codex/" {
+    [config.toml] as ConfigFile
+    [sessions/] as Sessions
+    [AGENTS.md] as AgentsMD
+  }
+}
+
+' 関係性
+User --> CLI : $ codex "fix bug"
+CLI --> TUI : spawn binary
+TUI --> Cross : terminal control
+TUI --> Rata : UI rendering
+TUI --> Core : user input
+Core --> Conv : manage conversation
+Core --> Tools : execute tools
+Core --> Auth : authenticate
+Core --> Config : load config
+Core --> MCP : manage MCP servers
+Core --> Client : send prompt
+Client --> SSE : stream events
+Client --> ChatGPT : HTTPS POST
+Tools --> LinuxSB : execute (Linux)
+Tools --> MacSB : execute (macOS)
+Config --> ConfigFile : read/write
+Conv --> Sessions : save/load
+Core --> AgentsMD : read instructions
+
+note right of TUI
+  **ターミナルUI**
+  - リアルタイム表示
+  - Markdown rendering
+  - Syntax highlighting
+end note
+
+note right of Core
+  **中核ロジック**
+  - 会話管理
+  - ツール実行
+  - 認証
+  - 設定読み込み
+end note
+
+note right of Client
+  **OpenAI通信**
+  - Server-Sent Events
+  - ストリーミング受信
+  - エラーハンドリング
+end note
+
+@enduml
+
+@startuml Codex_Execution_Flow
+!theme plain
+title Codex コマンド実行フロー（詳細版）
+
+participant "ユーザー" as User
+participant "codex-cli\n(Node.js)" as CLI
+participant "codex-tui\n(Rust)" as TUI
+participant "codex-core\n(Rust)" as Core
+participant "Tools Router" as Router
+participant "Shell Runtime" as Shell
+participant "Sandbox" as SB
+participant "backend-client" as Client
+participant "OpenAI API" as API
+
+User -> CLI: $ codex "fix bug"
+activate CLI
+
+CLI -> TUI: spawn Rust binary
+activate TUI
+
+TUI -> Core: initialize
+activate Core
+
+Core -> Core: load ~/.codex/config.toml
+Core -> Core: read AGENTS.md
+Core -> TUI: ready
+
+TUI -> User: 表示: Codex CLI起動
+deactivate Core
+
+User -> TUI: 入力: "fix the bug in utils.ts"
+activate Core
+
+TUI -> Core: user_turn("fix the bug...")
+
+Core -> Core: build prompt
+note right
+  プロンプト構築:
+  - システムプロンプト
+  - AGENTS.md内容
+  - ユーザー入力
+  - 利用可能ツール一覧
+end note
+
+Core -> Client: send_message(prompt)
+activate Client
+
+Client -> API: POST /v1/chat/completions\n(stream=true)
+activate API
+
+API --> Client: SSE: response.created
+Client --> Core: Event: ResponseCreated
+
+API --> Client: SSE: content.delta "わかりました..."
+Client --> Core: Event: ContentDelta
+Core --> TUI: display text
+TUI --> User: 表示: "わかりました..."
+
+API --> Client: SSE: function_call\n{"name":"read_file","path":"utils.ts"}
+Client --> Core: Event: FunctionCall
+Core -> Router: route_tool("read_file", args)
+activate Router
+
+Router -> Router: ファイル読み込み
+Router --> Core: result: "export function..."
+deactivate Router
+
+Core -> Client: POST /responses\n{result: "export function..."}
+Client -> API: POST result
+
+API --> Client: SSE: content.delta "バグを発見..."
+Client --> Core: Event: ContentDelta
+Core --> TUI: display text
+TUI --> User: 表示: "バグを発見しました"
+
+API --> Client: SSE: function_call\n{"name":"shell","command":"npm test"}
+Client --> Core: Event: FunctionCall(shell)
+Core -> Router: route_tool("shell", "npm test")
+activate Router
+
+Router -> Shell: execute("npm test")
+activate Shell
+
+Shell -> SB: run in sandbox
+activate SB
+note right of SB
+  サンドボックス制限:
+  - ネットワーク禁止
+  - ファイル書き込み制限
+  - 危険なシステムコール禁止
+end note
+
+SB --> Shell: stdout/stderr
+deactivate SB
+
+Shell --> Router: ExecutionResult
+deactivate Shell
+
+Router --> Core: result: "✓ 10 tests passed"
+deactivate Router
+
+Core -> Client: POST /responses\n{result: "10 tests passed"}
+Client -> API: POST result
+
+API --> Client: SSE: content.delta "修正完了..."
+Client --> Core: Event: ContentDelta
+Core --> TUI: display text
+TUI --> User: 表示: "修正完了しました！"
+
+API --> Client: SSE: response.completed
+Client --> Core: Event: ResponseCompleted
+
+deactivate API
+deactivate Client
+
+Core -> Core: save to ~/.codex/sessions/
+Core --> TUI: conversation complete
+deactivate Core
+
+TUI --> User: 表示: セッション完了
+deactivate TUI
+deactivate CLI
+
+@enduml
+
+@startuml Codex_Crate_Dependencies
+!theme plain
+title Codex Rust Crates 依存関係図
+
+package "CLI & TUI" {
+  [codex-cli] as CLI
+  [codex-tui] as TUI
+}
+
+package "Core Logic" {
+  [codex-core] as Core
+  [codex-common] as Common
+}
+
+package "Backend Communication" {
+  [backend-client] as Backend
+  [codex-chatgpt] as ChatGPT
+  [codex-login] as Login
+}
+
+package "Protocol & Types" {
+  [codex-protocol] as Protocol
+  [app-server-protocol] as AppProto
+  [mcp-types] as MCPTypes
+}
+
+package "MCP Integration" {
+  [codex-mcp-server] as MCPServer
+  [codex-rmcp-client] as RMCPClient
+}
+
+package "Tools & Execution" {
+  [codex-exec] as Exec
+  [codex-apply-patch] as Patch
+  [git-apply] as GitApply
+  [codex-file-search] as FileSearch
+  [codex-git-tooling] as GitTool
+}
+
+package "Security & Sandbox" {
+  [linux-sandbox] as LinuxSB
+  [execpolicy] as ExecPolicy
+  [process-hardening] as Hardening
+}
+
+package "Utilities" {
+  [codex-ansi-escape] as ANSI
+  [codex-utils-string] as UtilStr
+  [codex-utils-pty] as UtilPTY
+  [codex-utils-tokenizer] as UtilToken
+}
+
+' 依存関係
+CLI --> TUI
+TUI --> Core
+TUI --> Common
+
+Core --> Protocol
+Core --> Backend
+Core --> MCPServer
+Core --> Exec
+Core --> Patch
+Core --> FileSearch
+Core --> GitTool
+Core --> UtilStr
+Core --> UtilPTY
+Core --> UtilToken
+
+Backend --> Protocol
+Backend --> ChatGPT
+Backend --> Login
+
+MCPServer --> MCPTypes
+MCPServer --> RMCPClient
+
+Exec --> LinuxSB : Linux
+Exec --> ExecPolicy
+Exec --> Hardening
+
+TUI --> ANSI
+
+note right of Core
+  **codex-core**
+  中心的なクレート
+  すべての主要機能を統合
+end note
+
+note right of Backend
+  **backend-client**
+  OpenAI APIとの通信
+  ストリーミング対応
+end note
+
+note right of TUI
+  **codex-tui**
+  ターミナルUI
+  ratatui + crossterm
+end note
+
+@enduml
+
+@startuml Codex_Tool_Execution_Flow
+!theme plain
+title Codex ツール実行フロー
+
+participant "Core" as Core
+participant "Tools Registry" as Registry
+participant "Router" as Router
+participant "Shell Runtime" as Shell
+participant "Edit Runtime" as Edit
+participant "Read Runtime" as Read
+participant "Sandbox" as SB
+
+Core -> Registry: get_available_tools()
+activate Registry
+Registry --> Core: [shell, read, write, edit, ...]
+deactivate Registry
+
+Core -> Router: execute_tool("shell", args)
+activate Router
+
+alt tool = shell
+  Router -> Shell: execute(command)
+  activate Shell
+
+  Shell -> Shell: parse command
+  Shell -> Shell: safety check
+  note right
+    危険コマンドチェック:
+    - rm -rf /
+    - dd if=/dev/zero
+    - :(){ :|:& };:
+  end note
+
+  Shell -> SB: run_in_sandbox(command)
+  activate SB
+
+  SB -> SB: apply Landlock/Seccomp
+  SB -> SB: set env vars
+  note right
+    CODEX_SANDBOX=1
+    CODEX_SANDBOX_NETWORK_DISABLED=1
+  end note
+
+  SB -> SB: spawn process
+  SB --> Shell: stdout/stderr/exit_code
+  deactivate SB
+
+  Shell --> Router: ExecutionResult
+  deactivate Shell
+
+else tool = read
+  Router -> Read: read_file(path)
+  activate Read
+  Read -> Read: check file exists
+  Read -> Read: read contents
+  Read --> Router: FileContents
+  deactivate Read
+
+else tool = edit
+  Router -> Edit: edit_file(path, old, new)
+  activate Edit
+  Edit -> Edit: read file
+  Edit -> Edit: find old_string
+  Edit -> Edit: replace with new_string
+  Edit -> Edit: write file
+  Edit --> Router: EditResult
+  deactivate Edit
+
+end
+
+Router --> Core: ToolResult
+deactivate Router
+
+@enduml
+
+@startuml Codex_MCP_Integration
+!theme plain
+title Codex MCP (Model Context Protocol) 統合
+
+participant "codex-core" as Core
+participant "MCP Manager" as MCPMgr
+participant "MCP Server\n(External)" as MCPServer
+participant "rmcp-client" as RMCP
+
+Core -> MCPMgr: initialize_mcp_servers()
+activate MCPMgr
+
+MCPMgr -> MCPMgr: read ~/.codex/config.toml
+note right
+  [mcp_servers.my-db]
+  command = "/usr/local/bin/db-server"
+  args = ["--port", "5432"]
+end note
+
+MCPMgr -> RMCP: connect(command, args)
+activate RMCP
+
+RMCP -> MCPServer: spawn process
+activate MCPServer
+
+RMCP <-> MCPServer: JSON-RPC handshake
+note right
+  initialize request/response
+  exchange capabilities
+end note
+
+MCPServer --> RMCP: initialized
+RMCP --> MCPMgr: connection ready
+deactivate RMCP
+
+MCPMgr --> Core: MCP servers ready
+deactivate MCPMgr
+
+... ユーザーがツール使用 ...
+
+Core -> MCPMgr: call_mcp_tool("query_db", args)
+activate MCPMgr
+
+MCPMgr -> RMCP: send JSON-RPC request
+activate RMCP
+
+RMCP -> MCPServer: {"method":"query_db","params":{...}}
+MCPServer -> MCPServer: execute query
+MCPServer --> RMCP: {"result": [...]}
+
+RMCP --> MCPMgr: result
+deactivate RMCP
+
+MCPMgr --> Core: tool result
+deactivate MCPMgr
+
+@enduml
+
+@startuml Codex_Configuration_Hierarchy
+!theme plain
+title Codex 設定ファイル階層
+
+object "グローバル設定" as Global {
+  **場所**: ~/.codex/config.toml
+  --
+  model = "gpt-4o"
+  ask_for_approval = true
+  sandbox_disabled = false
+}
+
+object "グローバルAGENTS" as GlobalAgents {
+  **場所**: ~/.codex/AGENTS.md
+  --
+  個人的なグローバル指示
+  すべてのプロジェクトで適用
+}
+
+object "プロジェクトルートAGENTS" as RootAgents {
+  **場所**: /project/AGENTS.md
+  --
+  プロジェクト全体の指示
+}
+
+object "サブディレクトリAGENTS" as SubAgents {
+  **場所**: /project/src/AGENTS.md
+  --
+  特定ディレクトリの指示
+}
+
+object "オーバーライドAGENTS" as Override {
+  **場所**: /project/src/AGENTS.override.md
+  --
+  親の指示を上書き
+}
+
+object "セッション履歴" as Session {
+  **場所**: ~/.codex/sessions/\n<session-id>/
+  --
+  会話履歴
+  ツール実行結果
+}
+
+Global ..> GlobalAgents : 参照
+GlobalAgents <|-- RootAgents : 継承
+RootAgents <|-- SubAgents : 継承
+SubAgents <.. Override : 上書き
+
+note right of Global
+  TOMLフォーマット
+  モデル、承認、サンドボックス等
+end note
+
+note right of GlobalAgents
+  Markdownフォーマット
+  コーディング規約、好み等
+end note
+
+note right of Override
+  .override.md は親を完全上書き
+  通常の .md は親に追加
+end note
+
+@enduml
+
+@startuml Codex_Security_Layers
+!theme plain
+title Codex セキュリティ多層防御
+
+rectangle "ユーザー入力" as Input
+
+rectangle "Layer 1: コマンド安全性チェック" as L1 {
+  rectangle "is_safe_command()" as SafeCheck
+  note right
+    危険コマンドブロック:
+    - rm -rf /
+    - dd if=/dev/zero
+    - :(){ :|:& };:
+    - etc.
+  end note
+}
+
+rectangle "Layer 2: サンドボックス実行" as L2 {
+  rectangle "Linux" as Linux {
+    rectangle "Landlock" as LL
+    rectangle "Seccomp" as SC
+  }
+  rectangle "macOS" as Mac {
+    rectangle "Seatbelt" as SB
+  }
+
+  note right of Linux
+    **Landlock**
+    - ファイルアクセス制限
+    - 特定ディレクトリのみ許可
+
+    **Seccomp**
+    - システムコール制限
+    - 危険な呼び出しブロック
+  end note
+
+  note right of Mac
+    **Seatbelt**
+    - Appleのサンドボックス
+    - ファイル/ネットワーク制限
+  end note
+}
+
+rectangle "Layer 3: ユーザー承認" as L3 {
+  rectangle "ask_for_approval" as Approval
+  note right
+    config.toml:
+    ask_for_approval = true
+
+    実行前にユーザーに確認
+  end note
+}
+
+rectangle "Layer 4: 環境変数設定" as L4 {
+  rectangle "CODEX_SANDBOX=1" as Env1
+  rectangle "CODEX_SANDBOX_NETWORK_DISABLED=1" as Env2
+  note right
+    子プロセスに環境変数設定
+    テストで検出可能
+  end note
+}
+
+Input --> L1
+L1 --> L2 : ✓ 安全
+L2 --> L3
+L3 --> L4 : ✓ ユーザー承認
+L4 --> "コマンド実行" : ✓ 制限付き実行
+
+L1 -right-> "ブロック❌" : 危険コマンド
+L3 -right-> "キャンセル❌" : ユーザー拒否
+
+@enduml
+
+@startuml Codex_File_Structure
+!theme plain
+title Codex プロジェクトファイル構造
+
+folder "codex/" {
+  folder "codex-rs/" {
+    file "Cargo.toml" as CargoRoot
+
+    folder "core/" {
+      file "Cargo.toml" as CoreCargo
+      folder "src/" {
+        file "lib.rs" as CoreLib
+        file "codex.rs" as Codex
+        folder "tools/" {
+          file "mod.rs" as ToolsMod
+          file "registry.rs" as Registry
+          file "router.rs" as Router
+          folder "runtimes/" {
+            file "shell.rs" as ShellRT
+            file "apply_patch.rs" as PatchRT
+          }
+        }
+      }
+    }
+
+    folder "tui/" {
+      file "Cargo.toml" as TUICargo
+      folder "src/" {
+        file "main.rs" as TUIMain
+        file "lib.rs" as TUILib
+        file "app.rs" as App
+      }
+    }
+
+    folder "backend-client/" {
+      folder "src/" {
+        file "lib.rs" as ClientLib
+      }
+    }
+
+    folder "mcp-server/" {
+      folder "src/" {
+        file "lib.rs" as MCPLib
+      }
+    }
+  }
+
+  folder "codex-cli/" {
+    folder "bin/" {
+      file "codex.js" as CLIMain
+    }
+    file "package.json" as CLIPKG
+  }
+
+  folder "docs/" {
+    file "README.md"
+    file "getting-started.md"
+    file "config.md"
+    file "sandbox.md"
+  }
+
+  file "README.md" as RootREADME
+  file "AGENTS.md" as RootAgents
+  file "package.json" as RootPKG
+  file "pnpm-workspace.yaml"
+}
+
+note right of CargoRoot
+  Workspace定義
+  40個のクレート管理
+end note
+
+note right of CoreLib
+  codex-core の
+  エントリーポイント
+end note
+
+note right of TUIMain
+  バイナリエントリー
+  $ codex で実行
+end note
+
+note right of CLIMain
+  Node.js wrapper
+  Rustバイナリ呼び出し
+end note
+
+@enduml
+
+@startuml Codex_Data_Model
+!theme plain
+title Codex データモデル
+
+class User {
+  +id: String
+  +name: String
+  +email: String
+}
+
+class Session {
+  +id: UUID
+  +created_at: DateTime
+  +updated_at: DateTime
+  +model: String
+  +conversation: Vec<Message>
+  --
+  +save()
+  +load(id)
+  +resume()
+}
+
+class Message {
+  +role: MessageRole
+  +content: String
+  +function_calls: Vec<FunctionCall>
+  +timestamp: DateTime
+}
+
+enum MessageRole {
+  User
+  Assistant
+  System
+  Function
+}
+
+class FunctionCall {
+  +id: String
+  +name: String
+  +arguments: serde_json::Value
+  +result: Option<String>
+}
+
+class Config {
+  +model: String
+  +ask_for_approval: bool
+  +sandbox_disabled: bool
+  +mcp_servers: HashMap<String, MCPServerConfig>
+  --
+  +load()
+  +save()
+}
+
+class MCPServerConfig {
+  +command: String
+  +args: Vec<String>
+  +env: HashMap<String, String>
+}
+
+class Tool {
+  +name: String
+  +description: String
+  +parameters: serde_json::Value
+  --
+  +execute(args) : Result
+}
+
+User "1" --> "*" Session : owns
+Session "1" --> "*" Message : contains
+Message "1" --> "*" FunctionCall : contains
+Message --> MessageRole : has
+Config "1" --> "*" MCPServerConfig : configures
+Tool --> FunctionCall : executes
+
+note right of Session
+  保存場所:
+  ~/.codex/sessions/<id>/
+
+  ファイル構成:
+  - conversation.json
+  - metadata.json
+end note
+
+note right of Config
+  保存場所:
+  ~/.codex/config.toml
+
+  TOML形式
+end note
+
+note right of Tool
+  利用可能ツール:
+  - shell
+  - read_file
+  - write_file
+  - edit_file
+  - apply_patch
+  - mcp_*
+end note
+
+@enduml

@@ -139,10 +139,13 @@ fn test_clear_cache_cross_platform() {
 #[test]
 fn test_load_or_default_nonexistent() {
     // Use a unique workspace name to avoid conflicts
-    let workspace = format!("nonexistent-{}", std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis());
+    let workspace = format!(
+        "nonexistent-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+    );
 
     // Should create new cache if not exists
     let cache = IndexCache::load_or_default(&workspace);

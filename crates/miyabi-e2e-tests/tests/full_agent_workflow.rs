@@ -14,9 +14,7 @@
 
 use miyabi_agent_coordinator::CoordinatorAgent;
 use miyabi_agent_workflow::IssueAgent;
-use miyabi_e2e_tests::{
-    create_test_commit, create_test_file, TestHarness,
-};
+use miyabi_e2e_tests::{create_test_commit, create_test_file, TestHarness};
 use serial_test::serial;
 
 #[tokio::test]
@@ -117,7 +115,10 @@ async fn test_e2e_issue_to_plans_workflow() {
 
     println!("  Plans.md Length: {} bytes", plans_md.len());
     assert!(plans_md.contains(&format!("# Plans for Issue #{}", issue.number)));
-    assert!(plans_md.contains("```mermaid"), "Should contain Mermaid diagram");
+    assert!(
+        plans_md.contains("```mermaid"),
+        "Should contain Mermaid diagram"
+    );
     assert!(plans_md.contains("graph TD"), "Should contain task graph");
 
     // Save Plans.md to test directory

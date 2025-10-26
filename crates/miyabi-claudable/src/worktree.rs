@@ -139,7 +139,7 @@ pub struct WriteSummary {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{GeneratedFile, GenerateResponse, ProjectStructure};
+    use crate::types::{GenerateResponse, GeneratedFile, ProjectStructure};
     use tempfile::TempDir;
 
     fn create_test_response() -> GenerateResponse {

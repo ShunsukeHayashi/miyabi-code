@@ -2,7 +2,7 @@
 //!
 //! This module provides high-level API for searching historical figure knowledge
 
-use crate::{TextEmbedder, VectorStore, Document};
+use crate::{Document, TextEmbedder, VectorStore};
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 
@@ -31,11 +31,7 @@ use std::collections::HashMap;
 ///     Ok(())
 /// }
 /// ```
-pub async fn search_knowledge(
-    query: &str,
-    figure: &str,
-    top_k: usize,
-) -> Result<Vec<Document>> {
+pub async fn search_knowledge(query: &str, figure: &str, top_k: usize) -> Result<Vec<Document>> {
     // Initialize embedder and vector store
     let embedder = TextEmbedder::default();
     let vector_store = VectorStore::new("historical_figures".to_string(), embedder.embedding_dim())
@@ -69,10 +65,7 @@ pub async fn search_knowledge(
 ///
 /// # Returns
 /// The number of documents ingested
-pub async fn ingest_figure_data(
-    figure_name: &str,
-    vector_store: &VectorStore,
-) -> Result<usize> {
+pub async fn ingest_figure_data(figure_name: &str, vector_store: &VectorStore) -> Result<usize> {
     use crate::WikipediaCollector;
 
     // Step 1: Fetch Wikipedia article
@@ -82,11 +75,7 @@ pub async fn ingest_figure_data(
         .await
         .context("Failed to fetch and chunk Wikipedia article")?;
 
-    tracing::info!(
-        "Fetched {} chunks for {}",
-        chunks.len(),
-        figure_name
-    );
+    tracing::info!("Fetched {} chunks for {}", chunks.len(), figure_name);
 
     // Step 2: Generate embeddings
     let embedder = TextEmbedder::new(
@@ -108,14 +97,10 @@ pub async fn ingest_figure_data(
         .zip(embeddings)
         .enumerate()
         .map(|(i, (text, embedding))| {
-            Document::new(
-                format!("{}-chunk-{}", figure_name, i),
-                text,
-                embedding,
-            )
-            .with_metadata("figure".to_string(), figure_name.to_string())
-            .with_metadata("source".to_string(), "wikipedia".to_string())
-            .with_metadata("chunk_id".to_string(), i.to_string())
+            Document::new(format!("{}-chunk-{}", figure_name, i), text, embedding)
+                .with_metadata("figure".to_string(), figure_name.to_string())
+                .with_metadata("source".to_string(), "wikipedia".to_string())
+                .with_metadata("chunk_id".to_string(), i.to_string())
         })
         .collect();
 
@@ -143,9 +128,10 @@ mod tests {
     async fn test_search_knowledge_empty() {
         // Test search on empty vector store
         let embedder = TextEmbedder::default();
-        let vector_store = VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
-            .await
-            .unwrap();
+        let vector_store =
+            VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
+                .await
+                .unwrap();
 
         let query_embedding = embedder.embed_text("test query").await.unwrap();
 
@@ -163,9 +149,10 @@ mod tests {
     #[tokio::test]
     async fn test_ingest_figure_data_mock() {
         let embedder = TextEmbedder::default();
-        let vector_store = VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
-            .await
-            .unwrap();
+        let vector_store =
+            VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
+                .await
+                .unwrap();
 
         // Note: This would normally call Wikipedia API
         // For unit tests, we skip if SKIP_INTEGRATION_TESTS is set
@@ -205,9 +192,10 @@ mod tests {
     async fn test_search_with_manual_data() {
         // Test with manually inserted data (no network required)
         let embedder = TextEmbedder::default();
-        let vector_store = VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
-            .await
-            .unwrap();
+        let vector_store =
+            VectorStore::new("test_collection".to_string(), embedder.embedding_dim())
+                .await
+                .unwrap();
 
         // Insert some test documents
         let texts = vec![
@@ -219,12 +207,8 @@ mod tests {
         let embeddings = embedder.embed_batch(&texts).await.unwrap();
 
         for (i, (text, embedding)) in texts.iter().zip(embeddings).enumerate() {
-            let doc = Document::new(
-                format!("doc-{}", i),
-                text.clone(),
-                embedding,
-            )
-            .with_metadata("figure".to_string(), "織田信長".to_string());
+            let doc = Document::new(format!("doc-{}", i), text.clone(), embedding)
+                .with_metadata("figure".to_string(), "織田信長".to_string());
 
             vector_store.insert(doc).await.unwrap();
         }

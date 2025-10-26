@@ -39,7 +39,10 @@ async fn create_test_file(
 }
 
 /// Helper to commit changes in worktree
-async fn commit_changes(path: &std::path::Path, message: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn commit_changes(
+    path: &std::path::Path,
+    message: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Stage all changes
     let output = tokio::process::Command::new("git")
         .arg("add")
@@ -205,7 +208,10 @@ async fn test_e2e_parallel_worktree_creation() {
                     // Commit changes
                     commit_changes(
                         &worktree_info.path,
-                        &format!("feat(e2e): add {} for issue #{}", filename, task.issue_number),
+                        &format!(
+                            "feat(e2e): add {} for issue #{}",
+                            filename, task.issue_number
+                        ),
                     )
                     .await
                     .map_err(|e| {
@@ -361,12 +367,13 @@ async fn test_e2e_worktree_isolation() {
 
                     // Verify file content
                     let file_path = worktree_info.path.join("SHARED.md");
-                    let read_content = tokio::fs::read_to_string(&file_path).await.map_err(|e| {
-                        miyabi_types::error::MiyabiError::Unknown(format!(
-                            "Failed to read file: {}",
-                            e
-                        ))
-                    })?;
+                    let read_content =
+                        tokio::fs::read_to_string(&file_path).await.map_err(|e| {
+                            miyabi_types::error::MiyabiError::Unknown(format!(
+                                "Failed to read file: {}",
+                                e
+                            ))
+                        })?;
 
                     // Store for later verification
                     {
@@ -376,7 +383,10 @@ async fn test_e2e_worktree_isolation() {
 
                     commit_changes(
                         &worktree_info.path,
-                        &format!("feat: add SHARED.md version {} for issue #{}", version, task.issue_number),
+                        &format!(
+                            "feat: add SHARED.md version {} for issue #{}",
+                            version, task.issue_number
+                        ),
                     )
                     .await
                     .map_err(|e| {
@@ -388,7 +398,10 @@ async fn test_e2e_worktree_isolation() {
 
                     tokio::time::sleep(Duration::from_millis(300)).await;
 
-                    println!("   ✅ Task #{}: Version {} committed", task.issue_number, version);
+                    println!(
+                        "   ✅ Task #{}: Version {} committed",
+                        task.issue_number, version
+                    );
 
                     Ok(serde_json::json!({
                         "issue": task.issue_number,
@@ -473,7 +486,10 @@ async fn test_e2e_failure_handling() {
         },
     ];
 
-    println!("📋 Created {} tasks (1 will fail intentionally)", tasks.len());
+    println!(
+        "📋 Created {} tasks (1 will fail intentionally)",
+        tasks.len()
+    );
 
     let result = pool
         .execute_parallel(tasks, move |worktree_info, task| async move {
@@ -609,7 +625,10 @@ async fn test_e2e_completion_tracking() {
                         times.push((task.issue_number, std::time::Instant::now()));
                     }
 
-                    println!("   ✅ Task #{}: Completed ({}ms)", task.issue_number, duration_ms);
+                    println!(
+                        "   ✅ Task #{}: Completed ({}ms)",
+                        task.issue_number, duration_ms
+                    );
 
                     Ok(serde_json::json!({
                         "issue": task.issue_number,
@@ -624,11 +643,17 @@ async fn test_e2e_completion_tracking() {
     println!("   Total tasks: {}", result.total_tasks);
     println!("   Successful: {}", result.success_count);
     println!("   Total duration: {}ms", result.total_duration_ms);
-    println!("   Avg task duration: {:.1}ms", result.average_duration_ms());
+    println!(
+        "   Avg task duration: {:.1}ms",
+        result.average_duration_ms()
+    );
     println!("   Min duration: {}ms", result.min_duration_ms());
     println!("   Max duration: {}ms", result.max_duration_ms());
     println!("   Throughput: {:.2} tasks/sec", result.throughput());
-    println!("   Effective concurrency: {:.2}x", result.effective_concurrency());
+    println!(
+        "   Effective concurrency: {:.2}x",
+        result.effective_concurrency()
+    );
 
     assert_eq!(result.success_count, 5);
 
@@ -638,7 +663,10 @@ async fn test_e2e_completion_tracking() {
 
     // Manual cleanup
     println!("\n🧹 Cleaning up worktrees");
-    pool.manager().cleanup_all().await.expect("Cleanup should succeed");
+    pool.manager()
+        .cleanup_all()
+        .await
+        .expect("Cleanup should succeed");
 
     let final_stats = pool.stats().await;
     println!("📊 Final Stats:");
@@ -737,7 +765,10 @@ async fn test_e2e_fail_fast_mode() {
                     tokio::time::sleep(Duration::from_millis(delay_ms)).await;
 
                     if should_fail {
-                        println!("   ❌ Task #{}: Failing (triggering fail-fast)", task.issue_number);
+                        println!(
+                            "   ❌ Task #{}: Failing (triggering fail-fast)",
+                            task.issue_number
+                        );
                         return Err(miyabi_types::error::MiyabiError::Unknown(
                             "Fail-fast test failure".to_string(),
                         ));
@@ -772,10 +803,7 @@ async fn test_e2e_fail_fast_mode() {
     let started = execution_started.lock().unwrap();
     println!("\n🔍 Execution Analysis:");
     println!("   Tasks that started: {:?}", *started);
-    println!(
-        "   Tasks that were cancelled: {}",
-        result.cancelled_count
-    );
+    println!("   Tasks that were cancelled: {}", result.cancelled_count);
 
     println!("\n✅ E2E test passed: Fail-fast mode");
 }

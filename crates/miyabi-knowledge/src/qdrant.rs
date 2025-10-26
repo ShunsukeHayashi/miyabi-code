@@ -215,9 +215,9 @@ impl QdrantClient {
 
     /// 全エントリをリスト
     pub async fn list_all_entries(&self) -> Result<Vec<KnowledgeEntry>> {
-        use qdrant_client::qdrant::ScrollPointsBuilder;
-        use chrono::DateTime;
         use crate::types::KnowledgeMetadata;
+        use chrono::DateTime;
+        use qdrant_client::qdrant::ScrollPointsBuilder;
 
         let collection_name = &self.config.vector_db.collection;
         let mut all_entries = Vec::new();
@@ -233,11 +233,10 @@ impl QdrantClient {
                 builder = builder.offset(offset_id);
             }
 
-            let result = self
-                .client
-                .scroll(builder.build())
-                .await
-                .map_err(|e| KnowledgeError::Qdrant(format!("Failed to scroll points: {}", e)))?;
+            let result =
+                self.client.scroll(builder.build()).await.map_err(|e| {
+                    KnowledgeError::Qdrant(format!("Failed to scroll points: {}", e))
+                })?;
 
             for point in &result.result {
                 let payload = &point.payload;
@@ -266,7 +265,9 @@ impl QdrantClient {
                 // Convert point.id to string
                 let id_string = match &point.id {
                     Some(pid) => match &pid.point_id_options {
-                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(n)) => n.to_string(),
+                        Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(n)) => {
+                            n.to_string()
+                        }
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(u)) => u.clone(),
                         None => String::new(),
                     },
@@ -275,11 +276,26 @@ impl QdrantClient {
 
                 let metadata = KnowledgeMetadata {
                     workspace,
-                    worktree: payload.get("worktree").and_then(|v| v.as_str()).map(String::from),
-                    agent: payload.get("agent").and_then(|v| v.as_str()).map(String::from),
-                    issue_number: payload.get("issue_number").and_then(|v| v.as_integer()).map(|i| i as u32),
-                    task_type: payload.get("task_type").and_then(|v| v.as_str()).map(String::from),
-                    outcome: payload.get("outcome").and_then(|v| v.as_str()).map(String::from),
+                    worktree: payload
+                        .get("worktree")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
+                    agent: payload
+                        .get("agent")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
+                    issue_number: payload
+                        .get("issue_number")
+                        .and_then(|v| v.as_integer())
+                        .map(|i| i as u32),
+                    task_type: payload
+                        .get("task_type")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
+                    outcome: payload
+                        .get("outcome")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
                     tools_used: None,
                     files_changed: None,
                     extra: serde_json::Map::new(),

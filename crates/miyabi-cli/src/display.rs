@@ -189,7 +189,8 @@ impl ResultFormatter {
         if let Some(ref escalation) = result.escalation {
             table.add_row(vec![
                 Cell::new("Escalation").set_alignment(CellAlignment::Right),
-                Cell::new(format!("{:?}: {}", escalation.target, escalation.reason)).fg(Color::Yellow),
+                Cell::new(format!("{:?}: {}", escalation.target, escalation.reason))
+                    .fg(Color::Yellow),
             ]);
         }
 
@@ -233,13 +234,12 @@ impl ResultFormatter {
             agent_type: format!("{:?}", agent_type),
             task_id: task_id.to_string(),
             status: format!("{:?}", result.status),
-            duration_ms: result
-                .metrics
-                .as_ref()
-                .map(|m| m.duration_ms)
-                .unwrap_or(0),
+            duration_ms: result.metrics.as_ref().map(|m| m.duration_ms).unwrap_or(0),
             metrics,
-            escalation: result.escalation.as_ref().map(|e| format!("{:?}: {}", e.target, e.reason)),
+            escalation: result
+                .escalation
+                .as_ref()
+                .map(|e| format!("{:?}: {}", e.target, e.reason)),
             raw_data: if self.verbose {
                 result.data.clone()
             } else {
@@ -247,9 +247,8 @@ impl ResultFormatter {
             },
         };
 
-        serde_json::to_string_pretty(&formatted).unwrap_or_else(|e| {
-            format!("{{\"error\": \"Failed to serialize result: {}\"}}", e)
-        })
+        serde_json::to_string_pretty(&formatted)
+            .unwrap_or_else(|e| format!("{{\"error\": \"Failed to serialize result: {}\"}}", e))
     }
 
     /// Format duration in human-readable form
@@ -372,9 +371,18 @@ mod tests {
 
     #[test]
     fn test_format_duration() {
-        assert_eq!(ResultFormatter::format_duration(Duration::from_millis(500)), "500ms");
-        assert_eq!(ResultFormatter::format_duration(Duration::from_secs(5)), "5.000s");
-        assert_eq!(ResultFormatter::format_duration(Duration::from_secs(90)), "1m 30s");
+        assert_eq!(
+            ResultFormatter::format_duration(Duration::from_millis(500)),
+            "500ms"
+        );
+        assert_eq!(
+            ResultFormatter::format_duration(Duration::from_secs(5)),
+            "5.000s"
+        );
+        assert_eq!(
+            ResultFormatter::format_duration(Duration::from_secs(90)),
+            "1m 30s"
+        );
         assert_eq!(
             ResultFormatter::format_duration(Duration::from_secs(3700)),
             "1h 1m"

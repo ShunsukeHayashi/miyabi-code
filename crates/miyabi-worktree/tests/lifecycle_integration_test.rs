@@ -38,8 +38,7 @@ fn init_test_repo() -> (TempDir, PathBuf) {
         .expect("Failed to configure git email");
 
     // Create initial commit
-    std::fs::write(repo_path.join("README.md"), "# Test Repo\n")
-        .expect("Failed to write README");
+    std::fs::write(repo_path.join("README.md"), "# Test Repo\n").expect("Failed to write README");
 
     std::process::Command::new("git")
         .args(["add", "README.md"])
@@ -62,8 +61,8 @@ async fn test_worktree_creation_and_deletion() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     // Create worktree
     let worktree = manager
@@ -99,8 +98,8 @@ async fn test_worktree_status_transitions() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     let worktree = manager
         .create_worktree(200)
@@ -146,8 +145,8 @@ async fn test_multiple_worktrees_creation() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 5)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 5).expect("Failed to create manager");
 
     // Create 3 worktrees
     let _w1 = manager
@@ -188,8 +187,8 @@ async fn test_worktree_manager_stats() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 4)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 4).expect("Failed to create manager");
 
     // Initial stats
     let stats = manager.stats().await;
@@ -217,7 +216,7 @@ async fn test_worktree_manager_stats() {
     assert!(stats.active >= 1); // At least w1
     assert!(stats.completed >= 1); // At least w2
     assert!(stats.failed >= 1); // At least w3
-    // Note: available_slots depends on semaphore state
+                                // Note: available_slots depends on semaphore state
 
     // Cleanup
     manager.cleanup_all().await.expect("Failed to cleanup");
@@ -229,8 +228,8 @@ async fn test_worktree_cleanup_all() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     // Create multiple worktrees
     manager.create_worktree(501).await.expect("Failed");
@@ -254,8 +253,8 @@ async fn test_worktree_get_operations() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     let worktree = manager.create_worktree(600).await.expect("Failed");
 
@@ -287,8 +286,8 @@ async fn test_worktree_error_handling_nonexistent() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     // Try to get non-existent worktree
     let result = manager.get_worktree("nonexistent-id").await;
@@ -311,15 +310,12 @@ async fn test_worktree_telemetry_tracking() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     // Create and remove worktree (generates telemetry events)
     let worktree = manager.create_worktree(700).await.expect("Failed");
-    manager
-        .remove_worktree(&worktree.id)
-        .await
-        .expect("Failed");
+    manager.remove_worktree(&worktree.id).await.expect("Failed");
 
     // Get telemetry stats
     let stats = manager.telemetry_stats().await;
@@ -338,8 +334,8 @@ async fn test_worktree_concurrent_creation_limit() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 2)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 2).expect("Failed to create manager");
 
     // Create 2 worktrees (at limit)
     let _w1 = manager.create_worktree(801).await.expect("Failed");
@@ -365,8 +361,8 @@ async fn test_worktree_branch_management() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     let worktree = manager.create_worktree(900).await.expect("Failed");
 
@@ -403,17 +399,14 @@ async fn test_worktree_path_structure() {
     let (_temp_dir, repo_path) = init_test_repo();
     let worktree_base = repo_path.join(".worktrees");
 
-    let manager = WorktreeManager::new(&repo_path, &worktree_base, 3)
-        .expect("Failed to create manager");
+    let manager =
+        WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     let worktree = manager.create_worktree(1000).await.expect("Failed");
 
     // Verify path structure
     assert!(worktree.path.starts_with(&worktree_base));
-    assert!(worktree
-        .path
-        .to_string_lossy()
-        .contains("issue-1000-"));
+    assert!(worktree.path.to_string_lossy().contains("issue-1000-"));
 
     // Verify worktree is a valid git directory
     assert!(worktree.path.join(".git").exists());
@@ -437,10 +430,7 @@ async fn test_worktree_manager_with_discovery() {
         .unwrap_or(false)
     {
         let manager = WorktreeManager::new_with_discovery(Some(".worktrees-test"), 3);
-        assert!(
-            manager.is_ok(),
-            "Failed to create manager with discovery"
-        );
+        assert!(manager.is_ok(), "Failed to create manager with discovery");
 
         if let Ok(mgr) = manager {
             // Test basic operations
@@ -468,8 +458,7 @@ async fn test_worktree_info_serialization() {
     };
 
     let json = serde_json::to_string(&info).expect("Failed to serialize");
-    let deserialized: WorktreeInfo =
-        serde_json::from_str(&json).expect("Failed to deserialize");
+    let deserialized: WorktreeInfo = serde_json::from_str(&json).expect("Failed to deserialize");
 
     assert_eq!(info.id, deserialized.id);
     assert_eq!(info.issue_number, deserialized.issue_number);
@@ -493,8 +482,7 @@ async fn test_worktree_stats_serialization() {
     };
 
     let json = serde_json::to_string(&stats).expect("Failed to serialize");
-    let deserialized: WorktreeStats =
-        serde_json::from_str(&json).expect("Failed to deserialize");
+    let deserialized: WorktreeStats = serde_json::from_str(&json).expect("Failed to deserialize");
 
     assert_eq!(stats.total, deserialized.total);
     assert_eq!(stats.active, deserialized.active);

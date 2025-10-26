@@ -200,9 +200,7 @@ mod tests {
     async fn test_assert_file_contains() {
         let temp_dir = TempDir::new().unwrap();
         let file_path = temp_dir.path().join("test.txt");
-        tokio::fs::write(&file_path, "Hello, World!")
-            .await
-            .unwrap();
+        tokio::fs::write(&file_path, "Hello, World!").await.unwrap();
 
         assert_file_contains(&file_path, "World").await.unwrap();
     }

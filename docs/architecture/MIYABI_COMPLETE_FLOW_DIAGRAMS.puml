@@ -1,0 +1,1332 @@
+' ==============================================================================
+' MIYABI COMPLETE FLOW DIAGRAMS
+' ==============================================================================
+'
+' This file contains 8 comprehensive PlantUML diagrams showing all flows
+' in the Miyabi Autonomous Operation System.
+'
+' Created: 2025-10-26
+' Version: 1.0.0
+'
+' ==============================================================================
+
+'==============================================================================
+' Diagram 1: Complete End-to-End Flow (D1-D20 All Decision Points)
+'==============================================================================
+
+@startuml D1-D20 Complete Decision Tree Flow
+
+!define SCRIPT_COLOR #90EE90
+!define HEADLESS_COLOR #87CEEB
+!define INTERACTIVE_COLOR #FFB6C1
+!define SAFETY_COLOR #FFA500
+!define ERROR_COLOR #FF6B6B
+
+title Miyabi Autonomous Operation - D1-D20 Complete Decision Tree
+
+skinparam backgroundColor #FAFAFA
+skinparam activity {
+  BackgroundColor<<Script>> SCRIPT_COLOR
+  BackgroundColor<<Headless>> HEADLESS_COLOR
+  BackgroundColor<<Interactive>> INTERACTIVE_COLOR
+  BackgroundColor<<Safety>> SAFETY_COLOR
+  BackgroundColor<<Error>> ERROR_COLOR
+  BorderColor Black
+  FontSize 11
+}
+
+start
+
+:Issue Created/Selected;
+note right
+  **Input**: GitHub Issue #XXX
+  **Trigger**: Manual or automated
+end note
+
+'--- PHASE 0: Safety Pre-flight ---
+partition "Phase 0: Safety Pre-flight" #SAFETY_COLOR {
+  :Git Safety Check<<Script>>;
+  note right
+    - No uncommitted changes
+    - Not on main/master
+    - Not in detached HEAD
+  end note
+
+  if (Git Safe?) then (yes)
+    :API Key Validation<<Script>>;
+    :GitHub Auth Check<<Script>>;
+  else (no)
+    :Escalate: DevOps<<Error>>;
+    stop
+  endif
+}
+
+'--- D1: Label Validation ---
+partition "D1: Label Validation (Script)" {
+  :Check Miyabi Labels<<Script>>;
+  note right
+    **Required Labels**:
+    - type:*
+    - priority:*
+
+    **Script**: D1-label-check.sh
+  end note
+
+  if (Labels Valid?) then (yes)
+    :✅ Continue;
+  else (no)
+    :❌ Escalate to PO<<Error>>;
+    note right
+      **Action**: Add required labels
+      **Channel**: GitHub comment
+    end note
+    stop
+  endif
+}
+
+'--- D2: Complexity Estimation ---
+partition "D2: Complexity Check (Headless AI)" {
+  :Fetch Issue Data<<Script>>;
+  :Claude Headless Analysis<<Headless>>;
+  note right
+    **Prompt**: Analyze complexity
+    **Criteria**:
+    - File count (1-3 / 4-10 / 10+)
+    - Duration (< 30 / 30-90 / > 90 min)
+    - Dependencies
+    - Risk level
+
+    **Cost**: $0.002-0.005
+  end note
+
+  if (Complexity?) then (Low)
+    :✅ Auto-approve;
+    note right: < 30 min, 1-3 files
+  elseif (Medium) then
+    :⚠️ AI-assisted mode;
+    note right: 30-90 min, 4-10 files
+  else (High)
+    :🚨 Escalate to TechLead<<Error>>;
+    note right
+      **Action**: Manual review required
+      **Reason**: > 90 min, 10+ files
+    end note
+    stop
+  endif
+}
+
+'--- D3: Task Decomposition ---
+partition "D3: Task Decomposition (Headless AI)" {
+  :Decompose into Subtasks<<Headless>>;
+  note right
+    **Output**: JSON task list
+    - Task ID
+    - Description
+    - Dependencies
+    - Estimated duration
+  end note
+
+  if (Task Count?) then (1-5 tasks)
+    :Single worktree;
+  else (6+ tasks)
+    :Parallel worktrees;
+  endif
+}
+
+'--- D4: Implementation Planning ---
+partition "D4: Implementation Plan (Headless AI)" {
+  :Generate Implementation Plan<<Headless>>;
+  note right
+    **Plan Includes**:
+    - File changes
+    - Code patterns
+    - Test strategy
+    - Migration steps
+  end note
+
+  if (Breaking Changes?) then (yes)
+    :Human approval required<<Interactive>>;
+    if (Approved?) then (no)
+      stop
+    endif
+  else (no)
+    :Auto-proceed;
+  endif
+}
+
+'--- D5: Code Generation Strategy ---
+partition "D5: Code Generation (Headless AI)" {
+  :Generate Code<<Headless>>;
+  note right
+    **Mode**: Headless execution
+    **Tools**: Read, Write, Edit, Grep
+    **Output**: Modified files
+  end note
+
+  if (Syntax Valid?) then (yes)
+    :✅ Syntax check passed;
+  else (no)
+    :Auto-fix attempt<<Script>>;
+    if (Fixed?) then (no)
+      :Escalate to TechLead<<Error>>;
+      stop
+    endif
+  endif
+}
+
+'--- D6: Build Validation ---
+partition "D6: Build Check (Script)" {
+  :cargo build<<Script>>;
+  note right
+    **Timeout**: 10 minutes
+    **Log**: /tmp/build-output.log
+  end note
+
+  if (Build Success?) then (yes)
+    :✅ Build passed;
+  else (no)
+    :Parse build errors<<Script>>;
+
+    '--- D7: Auto-fix Decision ---
+    partition "D7: Auto-fix Decision (Headless AI)" {
+      :Analyze Error Type<<Headless>>;
+      note right
+        **Auto-fixable**:
+        - Unused imports
+        - Type coercion
+        - Formatting
+
+        **Not auto-fixable**:
+        - Logic errors
+        - Missing dependencies
+        - API changes
+      end note
+
+      if (Auto-fixable?) then (yes)
+        :cargo fix<<Script>>;
+        :Rebuild<<Script>>;
+        if (Build Success?) then (yes)
+          :✅ Auto-fix succeeded;
+        else (no)
+          :Escalate to TechLead<<Error>>;
+          stop
+        endif
+      else (no)
+        :Escalate to TechLead<<Error>>;
+        stop
+      endif
+    }
+  endif
+}
+
+'--- D8: Test Execution ---
+partition "D8: Test Execution (Script)" {
+  :cargo test --all<<Script>>;
+  note right
+    **Timeout**: 10 minutes
+    **Script**: run-tests.sh
+  end note
+
+  if (Tests Pass?) then (yes)
+    :✅ All tests passed;
+  else (no)
+    '--- D9: Test Failure Analysis ---
+    partition "D9: Test Failure Analysis (Headless AI)" {
+      :Analyze Test Failures<<Headless>>;
+
+      if (Failure Type?) then (Flaky)
+        :Retry tests (max 3)<<Script>>;
+      elseif (Related to changes) then
+        :Escalate to TechLead<<Error>>;
+        stop
+      else (Unrelated)
+        :Escalate to DevOps<<Error>>;
+        note right: Pre-existing failures
+        stop
+      endif
+    }
+  endif
+}
+
+'--- D10: Clippy Lint ---
+partition "D10: Clippy Validation (Script)" {
+  :cargo clippy<<Script>>;
+
+  if (Clippy Pass?) then (yes)
+    :✅ Lint passed;
+  else (no)
+    :Auto-fix clippy suggestions<<Script>>;
+    if (Fixed?) then (yes)
+      :✅ Clippy fixed;
+    else (no)
+      :⚠️ Manual review required;
+    endif
+  endif
+}
+
+'--- D11: Security Scan ---
+partition "D11: Security Scan (Script)" {
+  :cargo audit<<Script>>;
+
+  if (Vulnerabilities?) then (Critical)
+    :Escalate to CISO<<Error>>;
+    stop
+  elseif (High/Medium) then
+    :Log for review;
+  else (None)
+    :✅ Security passed;
+  endif
+}
+
+'--- D12: Git Commit ---
+partition "D12: Commit Decision (Script)" {
+  :git add modified files<<Script>>;
+  :Generate commit message<<Headless>>;
+  note right
+    **Format**: Conventional Commits
+    - feat: New feature
+    - fix: Bug fix
+    - refactor: Code refactoring
+    - test: Test additions
+  end note
+
+  :git commit -m "..."<<Script>>;
+
+  if (Commit Success?) then (yes)
+    :✅ Changes committed;
+  else (no)
+    :Escalate to DevOps<<Error>>;
+    stop
+  endif
+}
+
+'--- D13: PR Creation ---
+partition "D13: PR Creation Decision (Headless AI)" {
+  :Analyze change scope<<Headless>>;
+
+  if (Auto-create PR?) then (yes)
+    :Generate PR description<<Headless>>;
+    note right
+      **Includes**:
+      - Summary of changes
+      - Test results
+      - Breaking changes
+      - Review checklist
+    end note
+    :gh pr create<<Script>>;
+  else (no)
+    :Human creates PR<<Interactive>>;
+  endif
+}
+
+'--- D14: CI/CD Checks ---
+partition "D14: CI/CD Validation (Script)" {
+  :Wait for GitHub Actions<<Script>>;
+  note right
+    **Checks**:
+    - Build (Linux/macOS/Windows)
+    - Tests (all platforms)
+    - Clippy
+    - Security scan
+  end note
+
+  if (All Checks Pass?) then (yes)
+    :✅ CI/CD passed;
+  else (no)
+    :Escalate to DevOps<<Error>>;
+    stop
+  endif
+}
+
+'--- D15: Code Review ---
+partition "D15: Code Review Decision (Interactive)" {
+  if (Review Required?) then (yes)
+    :Request human review<<Interactive>>;
+    note right
+      **Reviewers**:
+      - TechLead (architecture)
+      - Security (if security changes)
+      - Domain expert (if needed)
+    end note
+
+    :Wait for approval;
+
+    if (Approved?) then (yes)
+      :✅ Review approved;
+    else (no)
+      :Address feedback;
+      note right
+        **Action**: Re-generate code
+        **Returns to**: D5 (Code Generation)
+        **Mode**: Headless AI
+      end note
+      stop
+    endif
+  else (no)
+    :✅ Auto-approved (Low risk);
+  endif
+}
+
+'--- D16: Merge Decision ---
+partition "D16: Merge Strategy (Script)" {
+  :Determine merge strategy<<Script>>;
+  note right
+    **Strategies**:
+    - Squash (feature branches)
+    - Rebase (clean history)
+    - Merge commit (preserving history)
+  end note
+
+  if (Conflicts?) then (yes)
+    :Escalate to TechLead<<Error>>;
+    note right: Manual conflict resolution
+    stop
+  else (no)
+    :Auto-merge<<Script>>;
+  endif
+
+  :gh pr merge<<Script>>;
+}
+
+'--- D17: Deployment Decision ---
+partition "D17: Deploy Decision (Interactive)" {
+  :Analyze deployment risk<<Headless>>;
+
+  if (Risk Level?) then (Low)
+    :Auto-deploy to staging<<Script>>;
+  elseif (Medium) then
+    :Request deploy approval<<Interactive>>;
+    if (Approved?) then (yes)
+      :Deploy to staging<<Script>>;
+    else (no)
+      stop
+    endif
+  else (High)
+    :Escalate to CTO<<Error>>;
+    note right: Manual deploy required
+    stop
+  endif
+}
+
+'--- D18: Staging Validation ---
+partition "D18: Staging Tests (Script)" {
+  :Run integration tests<<Script>>;
+  :Health check<<Script>>;
+  :Performance test<<Script>>;
+
+  if (All Tests Pass?) then (yes)
+    :✅ Staging validated;
+  else (no)
+    :Rollback staging<<Script>>;
+    :Escalate to DevOps<<Error>>;
+    stop
+  endif
+}
+
+'--- D19: Production Deploy ---
+partition "D19: Prod Deploy Decision (Interactive)" {
+  if (Auto-deploy Prod?) then (yes)
+    note right
+      **Criteria**:
+      - Low risk changes
+      - Off-peak hours
+      - Rollback plan ready
+    end note
+    :Deploy to production<<Script>>;
+  else (no)
+    :Request prod deploy approval<<Interactive>>;
+
+    if (Approved?) then (yes)
+      :Deploy to production<<Script>>;
+    else (no)
+      :Schedule deploy<<Interactive>>;
+      stop
+    endif
+  endif
+}
+
+'--- D20: Production Validation ---
+partition "D20: Prod Validation (Script)" {
+  :Health check<<Script>>;
+  :Monitor metrics<<Script>>;
+  note right
+    **Monitoring**:
+    - Error rate
+    - Response time
+    - Resource usage
+    **Duration**: 5 minutes
+  end note
+
+  if (Healthy?) then (yes)
+    :✅ Deploy successful;
+  else (no)
+    :🚨 Auto-rollback<<Script>>;
+    :Escalate to DevOps<<Error>>;
+    note right
+      **Rollback**:
+      - Revert to previous version
+      - Notify team
+      - Create incident
+    end note
+    stop
+  endif
+}
+
+:✅ Complete Success;
+:Close Issue<<Script>>;
+:Generate report<<Headless>>;
+note right
+  **Report Includes**:
+  - Total duration
+  - Cost breakdown
+  - Decision points summary
+  - Performance metrics
+end note
+
+stop
+
+@enduml
+
+'==============================================================================
+' Diagram 2: Human Intervention Mode Switching
+'==============================================================================
+
+@startuml Human Intervention Mode Switching Matrix
+
+skinparam backgroundColor #FAFAFA
+
+title Human Intervention Mode Switching Decision Matrix
+
+start
+
+:Task/Error Occurs;
+
+if (Urgency Level?) then (🚨 Critical)
+  partition "Phase 1: Real-time Interactive" #FFB6C1 {
+    :Activate Interactive Mode IMMEDIATELY;
+    note right
+      **Response Time**: 0-30 seconds
+      **Engagement**: 100%
+      **Triggers**:
+      - Security vulnerabilities
+      - Production outages
+      - Data loss risk
+
+      **Channels**:
+      - macOS alert (instant)
+      - VOICEVOX alarm
+      - Stream Deck flash RED
+      - Auto-open Claude Code Interactive
+    end note
+
+    :Operator at PC;
+    :Real-time conversation;
+    :Immediate decision;
+  }
+
+elseif (Medium) then
+  if (Operator Availability?) then (Available within 5 min)
+    partition "Phase 2: Alert-based Sync" #87CEEB {
+      :Send Multi-channel Alert;
+      note right
+        **Response Time**: 1-5 minutes
+        **Engagement**: 20-30%
+        **Triggers**:
+        - Build errors
+        - Test failures
+        - High complexity tasks
+
+        **Channels**:
+        - macOS notification
+        - VOICEVOX message
+        - Stream Deck flash YELLOW
+        - GitHub comment
+      end note
+
+      :Operator responds to alert;
+      :Switch to Interactive Mode;
+      :Resolve issue;
+    }
+  else (Not immediately available)
+    :Switch to Phase 3;
+    partition "Phase 3: Async Push" #90EE90 {
+      :Send Push Notification;
+      :Continue non-blocking work;
+      :Operator responds later;
+    }
+  endif
+
+else (Low)
+  partition "Phase 3: Async Push Notification" #90EE90 {
+    :Create GitHub Issue Comment;
+    note right
+      **Response Time**: 1-24 hours
+      **Engagement**: 10-20%
+      **Triggers**:
+      - Non-urgent reviews
+      - Background processing
+      - Batch operations
+
+      **Channels**:
+      - GitHub comment
+      - Discord/Slack (future)
+      - Email digest
+    end note
+
+    :Continue automated workflow;
+    :Operator reviews when available;
+  }
+endif
+
+:Issue Resolved;
+
+stop
+
+@enduml
+
+'==============================================================================
+' Diagram 3: Error Handling & Escalation Flow
+'==============================================================================
+
+@startuml Error Handling and Escalation Flow
+
+skinparam backgroundColor #FAFAFA
+
+title Error Handling, Rollback & Escalation Flow
+
+start
+
+:Error Detected;
+note right
+  **Error Types**:
+  - Build failure
+  - Test failure
+  - Security issue
+  - Deploy failure
+  - Invalid state
+end note
+
+partition "Layer 1: Error Classification" {
+  if (Error Severity?) then (🔴 Critical)
+    :Set Priority: P0;
+    :Immediate escalation;
+  elseif (🟠 High) then
+    :Set Priority: P1;
+    :Alert within 5 min;
+  elseif (🟡 Medium) then
+    :Set Priority: P2;
+    :Notify within 1 hour;
+  else (🟢 Low)
+    :Set Priority: P3;
+    :Log only;
+  endif
+}
+
+partition "Layer 2: Rollback Decision" {
+  if (Rollback Required?) then (yes)
+    :Execute rollback stack;
+    note right
+      **Rollback Stack** (LIFO):
+      1. Revert deployment
+      2. Git reset changes
+      3. Clean worktrees
+      4. Restore state
+
+      **Script**: Automatic (trap ERR)
+    end note
+
+    if (Rollback Success?) then (yes)
+      :✅ State restored;
+    else (no)
+      :🚨 Manual intervention;
+      :Escalate to DevOps;
+    endif
+  else (no)
+    :Continue to escalation;
+  endif
+}
+
+partition "Layer 3: Escalation Routing" {
+  if (Error Type?) then (Build/Test)
+    :Escalate to **TechLead**;
+    note right
+      **Responsibilities**:
+      - Code quality
+      - Architecture
+      - Build system
+      - Test infrastructure
+    end note
+
+  elseif (Security) then
+    :Escalate to **CISO**;
+    note right
+      **Responsibilities**:
+      - Vulnerabilities
+      - Security audit
+      - Compliance
+      - Access control
+    end note
+
+  elseif (Product/Requirements) then
+    :Escalate to **ProductOwner**;
+    note right
+      **Responsibilities**:
+      - Requirements
+      - Labels
+      - Priorities
+      - Roadmap
+    end note
+
+  elseif (Deploy/Infra) then
+    :Escalate to **DevOps**;
+    note right
+      **Responsibilities**:
+      - Deployment
+      - Infrastructure
+      - CI/CD
+      - Monitoring
+    end note
+
+  else (Strategic)
+    :Escalate to **CTO**;
+    note right
+      **Responsibilities**:
+      - Architecture decisions
+      - Technology choices
+      - Strategic direction
+    end note
+  endif
+}
+
+partition "Layer 4: Notification Dispatch" {
+  :Send multi-channel notification;
+
+  fork
+    :macOS Notification;
+    note right: Instant popup
+  fork again
+    :VOICEVOX Alert;
+    note right: Audio announcement
+  fork again
+    :Stream Deck Flag;
+    note right: Visual indicator
+  fork again
+    :GitHub Comment;
+    note right: Async record
+  fork again
+    :Log to file;
+    note right: logs/escalations.log
+  end fork
+}
+
+partition "Layer 5: Human Response" {
+  if (Human Intervention Mode?) then (Phase 1)
+    :Immediate conversation;
+    :Real-time resolution;
+  elseif (Phase 2) then
+    :Respond within 5 min;
+    :Switch to Interactive;
+  else (Phase 3)
+    :Async response;
+    :Review & plan;
+  endif
+}
+
+partition "Layer 6: Resolution Tracking" {
+  :Log resolution;
+  note right
+    **Logged Data**:
+    - Error type & severity
+    - Escalation role
+    - Response time
+    - Resolution steps
+    - Time to resolve
+  end note
+
+  :Update metrics;
+  :Generate incident report;
+}
+
+:Error Resolved;
+
+stop
+
+@enduml
+
+'==============================================================================
+' Diagram 4: Parallel Execution with Worktrees
+'==============================================================================
+
+@startuml Parallel Execution with Git Worktrees
+
+skinparam backgroundColor #FAFAFA
+
+title Parallel Task Execution using Git Worktrees
+
+start
+
+:Issue with Multiple Tasks;
+note right
+  **Example**: Issue #270
+  - Task 1: Update logger
+  - Task 2: Add tests
+  - Task 3: Update docs
+end note
+
+partition "Worktree Initialization" {
+  :Parse task dependencies;
+  note right
+    **Dependency Graph**:
+    Task1 → Task2 (tests depend on code)
+    Task3 (independent)
+  end note
+
+  :Identify parallel tasks;
+
+  fork
+    :Create worktree-task1;
+    note right
+      git worktree add \
+        ../worktrees/issue-270-task1 \
+        -b issue-270-task1
+    end note
+  fork again
+    :Create worktree-task3;
+    note right: Independent task
+  end fork
+}
+
+partition "Parallel Execution" {
+  fork
+    partition "Worktree 1: Task 1" #HEADLESS_COLOR {
+      :Execute in worktree-task1;
+      :Update logger.rs;
+      :Run tests (local);
+      :Commit changes;
+    }
+  fork again
+    partition "Worktree 3: Task 3" #HEADLESS_COLOR {
+      :Execute in worktree-task3;
+      :Update README.md;
+      :No tests needed;
+      :Commit changes;
+    }
+  end fork
+
+  :Task 1 complete;
+  :Task 3 complete;
+
+  partition "Worktree 2: Task 2 (Sequential)" #HEADLESS_COLOR {
+    :Create worktree-task2;
+    note right: Depends on Task 1
+    :Cherry-pick Task 1 changes;
+    :Add new tests;
+    :Run full test suite;
+    :Commit changes;
+  }
+}
+
+partition "Integration & Merge" {
+  :Switch to main worktree;
+
+  fork
+    :Merge task1 → main;
+  fork again
+    :Merge task2 → main;
+  fork again
+    :Merge task3 → main;
+  end fork
+
+  :Resolve conflicts (if any);
+  :Run full integration tests;
+}
+
+partition "Cleanup" {
+  fork
+    :Remove worktree-task1;
+  fork again
+    :Remove worktree-task2;
+  fork again
+    :Remove worktree-task3;
+  end fork
+
+  :Delete remote branches;
+}
+
+:Parallel execution complete;
+
+stop
+
+@enduml
+
+'==============================================================================
+' Diagram 5: Cost & Performance Tracking
+'==============================================================================
+
+@startuml Cost and Performance Tracking Flow
+
+skinparam backgroundColor #FAFAFA
+
+title Cost Tracking & Performance Monitoring
+
+start
+
+:Task Execution Start;
+:Record start timestamp;
+
+partition "Execution Tracking" {
+  repeat
+    :Execute decision point;
+
+    if (Decision Mode?) then (Headless AI)
+      :Record API call;
+      note right
+        **Tracked Metrics**:
+        - Prompt tokens
+        - Completion tokens
+        - Total cost ($)
+        - Model used
+        - Duration (ms)
+      end note
+
+      :claude -p "..." --output-format json;
+      :Parse cost from response;
+      :Accumulate total cost;
+
+    elseif (Script) then
+      :Record execution time;
+      note right
+        **Tracked Metrics**:
+        - Script name
+        - Exit code
+        - Duration (ms)
+        - Resource usage
+      end note
+    else (Interactive)
+      :Record human time;
+      note right
+        **Tracked Metrics**:
+        - Wait time
+        - Interaction duration
+        - Operator ID
+      end note
+    endif
+
+    :Log to metrics file;
+
+  repeat while (More decisions?) is (yes)
+  ->no;
+}
+
+partition "Performance Metrics" {
+  :Calculate total duration;
+  :Calculate automation rate;
+  note right
+    **Automation Rate**:
+    (Headless + Script time) / Total time
+  end note
+
+  :Calculate cost breakdown;
+  note right
+    **Cost Breakdown**:
+    - D2 Complexity: $0.002
+    - D3 Decomposition: $0.003
+    - D5 Code Gen: $0.025
+    - D9 Test Analysis: $0.005
+    - D13 PR Description: $0.003
+    **Total**: $0.038
+  end note
+}
+
+partition "Report Generation" {
+  :Generate JSON report;
+  note right
+    {
+      "issue": 270,
+      "total_duration_sec": 180,
+      "total_cost_usd": 0.038,
+      "decision_points": 12,
+      "automation_rate": 0.85,
+      "human_intervention": 2,
+      "errors": 0,
+      "rollbacks": 0
+    }
+  end note
+
+  :Update cumulative metrics;
+
+  fork
+    :Write to /tmp/miyabi-metrics.json;
+  fork again
+    :Append to metrics database;
+  fork again
+    :Update dashboard data;
+  end fork
+}
+
+:Performance tracking complete;
+
+stop
+
+@enduml
+
+'==============================================================================
+' Diagram 6: Safety Layers Architecture
+'==============================================================================
+
+@startuml 6-Layer Safety Architecture
+
+skinparam backgroundColor #FAFAFA
+
+title 6-Layer Safety Mechanisms
+
+rectangle "Layer 1: Input Validation" #SAFETY_COLOR {
+  [Issue Number Valid?]
+  [Labels Present?]
+  [Environment Variables Set?]
+  [Repository Exists?]
+
+  note right of [Issue Number Valid?]
+    **Validates**:
+    - Issue number is numeric
+    - Issue exists in GitHub
+    - Issue is not closed
+    - Issue has description
+  end note
+}
+
+rectangle "Layer 2: Pre-flight Checks" #SAFETY_COLOR {
+  [Git Repository Safe?]
+  [No Uncommitted Changes?]
+  [Not on main/master?]
+  [Dependencies Installed?]
+  [API Keys Valid?]
+
+  note right of [Git Repository Safe?]
+    **Validates**:
+    - Working directory clean
+    - No merge conflicts
+    - Remote accessible
+    - Correct branch
+  end note
+}
+
+rectangle "Layer 3: Execution Monitoring" #SAFETY_COLOR {
+  [Timeout Guards]
+  [Resource Limits]
+  [Process Health Checks]
+  [Deadlock Detection]
+
+  note right of [Timeout Guards]
+    **Monitors**:
+    - Build: 10 min max
+    - Tests: 10 min max
+    - Headless: 5 min max
+    - Deploy: 15 min max
+  end note
+}
+
+rectangle "Layer 4: Result Validation" #SAFETY_COLOR {
+  [Output Format Correct?]
+  [Exit Codes Valid?]
+  [Files Created?]
+  [Tests Pass?]
+
+  note right of [Output Format Correct?]
+    **Validates**:
+    - JSON parseable
+    - Required fields present
+    - No error flags set
+    - Logs captured
+  end note
+}
+
+rectangle "Layer 5: Rollback Mechanisms" #SAFETY_COLOR {
+  [Git Reset]
+  [Worktree Cleanup]
+  [Deployment Rollback]
+  [State Restoration]
+
+  note right of [Git Reset]
+    **Rollback Actions**:
+    - git reset --hard HEAD
+    - git clean -fd
+    - Remove worktrees
+    - Revert deploys
+    **Trigger**: trap ERR
+  end note
+}
+
+rectangle "Layer 6: Escalation Routes" #SAFETY_COLOR {
+  [TechLead]
+  [CISO]
+  [ProductOwner]
+  [CTO]
+  [DevOps]
+
+  note right of [TechLead]
+    **Escalation Criteria**:
+    - Error type mapping
+    - Severity level
+    - Urgency assessment
+    - Availability check
+  end note
+}
+
+[Layer 1: Input Validation] -down-> [Layer 2: Pre-flight Checks]
+[Layer 2: Pre-flight Checks] -down-> [Layer 3: Execution Monitoring]
+[Layer 3: Execution Monitoring] -down-> [Layer 4: Result Validation]
+[Layer 4: Result Validation] -down-> [Layer 5: Rollback Mechanisms]
+[Layer 5: Rollback Mechanisms] -down-> [Layer 6: Escalation Routes]
+
+note bottom
+  **Safety First Principle**:
+  Every layer can trigger rollback and escalation.
+  Failing fast is better than silent corruption.
+  All actions are logged for post-mortem analysis.
+end note
+
+@enduml
+
+'==============================================================================
+' Diagram 7: Complete System Architecture
+'==============================================================================
+
+@startuml Complete System Architecture Overview
+
+skinparam backgroundColor #FAFAFA
+
+!define EXTERNAL #E6F3FF
+!define MIYABI #FFE6F0
+!define CLAUDE #E6FFE6
+
+title Miyabi Autonomous Operation System - Complete Architecture
+
+package "External Systems" <<EXTERNAL>> {
+  [GitHub Issues]
+  [GitHub Actions CI/CD]
+  [GitHub API]
+  database "GitHub Repository" {
+    [main branch]
+    [feature branches]
+    [worktrees]
+  }
+  [Claude API]
+}
+
+package "Miyabi Core" <<MIYABI>> {
+  package "scripts/" {
+    folder "primitives/" {
+      [check-label.sh]
+      [run-tests.sh]
+      [escalate.sh]
+      [git-safety-check.sh]
+    }
+
+    folder "decision-trees/" {
+      [D1-label-check.sh]
+      [D2-complexity-check.sh]
+      [D3-D20.sh (planned)]
+    }
+
+    folder "orchestrators/" {
+      [autonomous-issue-processor.sh]
+    }
+
+    folder "safety/" {
+      [input-validator.sh (planned)]
+      [rollback-manager.sh (planned)]
+    }
+  }
+
+  package "crates/" {
+    [miyabi-core]
+    [miyabi-cli]
+    [miyabi-agents]
+    [miyabi-agent-sdk (planned)]
+    [miyabi-worktree]
+  }
+
+  database "Logs" {
+    [/tmp/miyabi-automation/]
+    [logs/escalations.log]
+    [logs/metrics.json]
+  }
+}
+
+package "Claude Code Integration" <<CLAUDE>> {
+  [Interactive Mode]
+  [Headless Mode]
+  [Agent SDK (planned)]
+
+  note right of [Headless Mode]
+    **Current**: claude -p "..." --output-format json
+    **Future**: TypeScript SDK programmatic control
+  end note
+}
+
+package "Notification Channels" {
+  [macOS Notification Center]
+  [VOICEVOX Engine]
+  [Stream Deck]
+  [Discord/Slack (planned)]
+}
+
+package "Human Operators" {
+  actor TechLead
+  actor CISO
+  actor ProductOwner
+  actor CTO
+  actor DevOps
+}
+
+' Connections
+[GitHub Issues] --> [autonomous-issue-processor.sh] : Issue #XXX
+[autonomous-issue-processor.sh] --> [decision-trees/] : Execute D1-D20
+[decision-trees/] --> [primitives/] : Use building blocks
+[decision-trees/] --> [Headless Mode] : AI judgment
+[Headless Mode] --> [Claude API] : API calls
+
+[autonomous-issue-processor.sh] --> [miyabi-worktree] : Parallel execution
+[miyabi-worktree] --> [GitHub Repository] : Git operations
+
+[primitives/] --> [Notification Channels] : Escalations
+[Notification Channels] --> [Human Operators] : Alerts
+
+[Human Operators] --> [Interactive Mode] : Respond
+[Interactive Mode] --> [Claude API] : Real-time
+
+[decision-trees/] --> [Logs] : Metrics & tracking
+[Logs] --> [GitHub Actions CI/CD] : Performance data
+
+note right of [autonomous-issue-processor.sh]
+  **Main Orchestrator**:
+  - Executes D1-D20 decision flow
+  - 3 human intervention modes
+  - Automatic rollback on error
+  - Multi-channel notifications
+  - Comprehensive logging
+end note
+
+@enduml
+
+'==============================================================================
+' Diagram 8: Issue Lifecycle State Machine
+'==============================================================================
+
+@startuml Issue Lifecycle State Machine
+
+skinparam backgroundColor #FAFAFA
+
+title GitHub Issue Lifecycle State Machine
+
+[*] --> Created : Issue opened
+
+Created --> Labeled : add labels
+Created --> Invalid : missing labels
+Invalid --> [*] : close
+
+Labeled --> Analyzed : D1 pass
+Analyzed --> Complexity_Low : D2: Low
+Analyzed --> Complexity_Medium : D2: Medium
+Analyzed --> Complexity_High : D2: High
+
+Complexity_High --> Manual_Review : escalate
+Manual_Review --> In_Progress : approved
+Manual_Review --> [*] : rejected
+
+Complexity_Low --> In_Progress : auto-approve
+Complexity_Medium --> In_Progress : AI-assisted
+
+In_Progress --> Building : code generated
+Building --> Build_Failed : build error
+Building --> Testing : build success
+
+Build_Failed --> Auto_Fixing : attempt fix
+Auto_Fixing --> Building : retry
+Auto_Fixing --> Manual_Fix : escalate
+Manual_Fix --> In_Progress : fixed
+
+Testing --> Test_Failed : test error
+Testing --> Linting : tests pass
+
+Test_Failed --> Test_Analysis : analyze
+Test_Analysis --> Testing : retry (flaky)
+Test_Analysis --> Manual_Fix : escalate
+
+Linting --> Security_Scan : clippy pass
+Security_Scan --> Committing : no vulnerabilities
+Security_Scan --> Security_Review : vulnerabilities found
+
+Security_Review --> Manual_Fix : CISO review
+Security_Review --> Committing : approved
+
+Committing --> PR_Created : commit success
+PR_Created --> CI_Running : PR opened
+
+CI_Running --> CI_Failed : checks fail
+CI_Running --> Code_Review : checks pass
+
+CI_Failed --> Manual_Fix : escalate
+
+Code_Review --> Changes_Requested : feedback
+Code_Review --> Approved : LGTM
+
+Changes_Requested --> In_Progress : revise
+
+Approved --> Merging : merge approved
+Merging --> Staging : merged to main
+
+Staging --> Staging_Failed : staging tests fail
+Staging --> Production : staging pass
+
+Staging_Failed --> Manual_Fix : escalate
+
+Production --> Deployed : deploy success
+Production --> Deploy_Failed : deploy error
+
+Deploy_Failed --> Rollback : auto-rollback
+Rollback --> Manual_Fix : escalate
+
+Deployed --> Monitoring : health checks
+Monitoring --> Verified : metrics OK
+Monitoring --> Incident : metrics degraded
+
+Incident --> Rollback : auto-rollback
+
+Verified --> Closed : close issue
+Closed --> [*] : complete
+
+note right of Created
+  **Initial State**:
+  Issue created manually or automatically
+  Requires Miyabi labels to proceed
+end note
+
+note right of In_Progress
+  **Active Development**:
+  Headless AI generates code
+  Worktrees may be created for parallel tasks
+end note
+
+note right of Deployed
+  **Production**:
+  Monitoring for 5 minutes
+  Auto-rollback if issues detected
+end note
+
+@enduml
+
+' ==============================================================================
+' End of Miyabi Complete Flow Diagrams
+' ==============================================================================
+' Total: 8 comprehensive PlantUML diagrams
+' - Diagram 1: D1-D20 Complete Decision Tree Flow
+' - Diagram 2: Human Intervention Mode Switching Matrix
+' - Diagram 3: Error Handling and Escalation Flow
+' - Diagram 4: Parallel Execution with Git Worktrees
+' - Diagram 5: Cost and Performance Tracking Flow
+' - Diagram 6: 6-Layer Safety Architecture
+' - Diagram 7: Complete System Architecture Overview
+' - Diagram 8: Issue Lifecycle State Machine
+' ==============================================================================

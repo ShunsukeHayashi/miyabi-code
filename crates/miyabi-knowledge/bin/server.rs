@@ -27,7 +27,10 @@ async fn main() -> anyhow::Result<()> {
         .and_then(|p| p.parse().ok())
         .unwrap_or(8080);
 
-    tracing::info!("📊 Knowledge Dashboard starting on http://localhost:{}", port);
+    tracing::info!(
+        "📊 Knowledge Dashboard starting on http://localhost:{}",
+        port
+    );
     tracing::info!("📡 API endpoints:");
     tracing::info!("  - GET /api/search?q=query");
     tracing::info!("  - GET /api/stats");

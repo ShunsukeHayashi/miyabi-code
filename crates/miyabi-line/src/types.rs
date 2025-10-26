@@ -114,7 +114,11 @@ pub enum ReplyMessage {
     #[serde(rename = "text")]
     Text { text: String },
     #[serde(rename = "flex")]
-    Flex { #[serde(rename = "altText")] alt_text: String, contents: FlexContainer },
+    Flex {
+        #[serde(rename = "altText")]
+        alt_text: String,
+        contents: FlexContainer,
+    },
 }
 
 /// Flex Container
@@ -140,7 +144,7 @@ pub struct FlexBubble {
 pub struct FlexBox {
     #[serde(rename = "type")]
     pub box_type: String, // "vertical" or "horizontal"
-    pub layout: String,   // "vertical" or "horizontal"
+    pub layout: String, // "vertical" or "horizontal"
     pub contents: Vec<FlexComponent>,
 }
 

@@ -35,7 +35,8 @@ impl ProductDesignAgent {
             .or_else(|_| {
                 let groq_key = env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey)?;
                 GPTOSSProvider::new_groq(&groq_key)
-            })?;
+            })
+            .map_err(crate::llm_error_to_miyabi)?;
 
         // Create context from task
         let context = LLMContext::from_task(task);

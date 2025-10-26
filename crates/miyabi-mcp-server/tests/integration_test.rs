@@ -3,9 +3,7 @@
 //! These tests verify the end-to-end functionality of the unified
 //! tool registry service, including discovery, caching, and execution.
 
-use miyabi_mcp_server::{
-    McpServerConnection, ServiceConfig, ToolDefinition, ToolRegistryService,
-};
+use miyabi_mcp_server::{McpServerConnection, ServiceConfig, ToolDefinition, ToolRegistryService};
 use serde_json::json;
 use std::time::Duration;
 
@@ -96,7 +94,10 @@ async fn test_cache_disabled_flow() {
 
     // Execute twice with same args
     let args = json!({"param": "value1"});
-    service.execute_tool("test.nocache", args.clone()).await.unwrap();
+    service
+        .execute_tool("test.nocache", args.clone())
+        .await
+        .unwrap();
     service.execute_tool("test.nocache", args).await.unwrap();
 
     // Cache should be empty (disabled)
@@ -141,9 +142,7 @@ async fn test_tool_not_found_error() {
     let mut service = ToolRegistryService::new(ServiceConfig::default());
 
     // Try to execute non-existent tool
-    let result = service
-        .execute_tool("nonexistent.tool", json!({}))
-        .await;
+    let result = service.execute_tool("nonexistent.tool", json!({})).await;
 
     // Should return error
     assert!(result.is_err());

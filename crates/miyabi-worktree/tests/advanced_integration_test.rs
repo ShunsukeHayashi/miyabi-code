@@ -38,8 +38,7 @@ fn init_test_repo() -> (TempDir, PathBuf) {
         .expect("Failed to configure git email");
 
     // Create initial commit
-    std::fs::write(repo_path.join("README.md"), "# Test Repo\n")
-        .expect("Failed to write README");
+    std::fs::write(repo_path.join("README.md"), "# Test Repo\n").expect("Failed to write README");
 
     std::process::Command::new("git")
         .args(["add", "README.md"])
@@ -532,8 +531,7 @@ async fn test_task_result_all_status_types() {
 
         // Verify serialization works for all status types
         let json = serde_json::to_string(&result).expect("Failed to serialize");
-        let deserialized: TaskResult =
-            serde_json::from_str(&json).expect("Failed to deserialize");
+        let deserialized: TaskResult = serde_json::from_str(&json).expect("Failed to deserialize");
 
         assert_eq!(result.status, deserialized.status);
     }

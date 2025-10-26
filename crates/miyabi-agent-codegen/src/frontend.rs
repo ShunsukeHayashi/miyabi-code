@@ -82,9 +82,9 @@ pub fn is_frontend_task(task: &Task) -> bool {
     let title_lower = task.title.to_lowercase();
     let desc_lower = task.description.to_lowercase();
 
-    FRONTEND_KEYWORDS.iter().any(|keyword| {
-        title_lower.contains(keyword) || desc_lower.contains(keyword)
-    })
+    FRONTEND_KEYWORDS
+        .iter()
+        .any(|keyword| title_lower.contains(keyword) || desc_lower.contains(keyword))
 }
 
 /// Extract frontend description from task
@@ -117,7 +117,7 @@ pub fn frontend_confidence_score(task: &Task) -> f64 {
     let desc_lower = task.description.to_lowercase();
 
     let mut matches = 0;
-    let mut total_keywords = FRONTEND_KEYWORDS.len();
+    let total_keywords = FRONTEND_KEYWORDS.len();
 
     for keyword in FRONTEND_KEYWORDS {
         if title_lower.contains(keyword) || desc_lower.contains(keyword) {
@@ -134,7 +134,8 @@ pub fn frontend_confidence_score(task: &Task) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use miyabi_types::{AgentType, Task, TaskType};
+    use miyabi_types::{AgentType, Task};
+    use miyabi_types::task::TaskType;
 
     fn create_test_task(title: &str, description: &str) -> Task {
         Task {

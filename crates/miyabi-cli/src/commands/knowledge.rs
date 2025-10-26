@@ -609,9 +609,7 @@ async fn serve_dashboard(_port: u16, _open: bool, json_output: bool) -> Result<(
     } else {
         println!("{}", "❌ Server feature not enabled".red());
         println!();
-        println!(
-            "The Web UI dashboard requires the 'server' feature to be enabled."
-        );
+        println!("The Web UI dashboard requires the 'server' feature to be enabled.");
         println!("Please rebuild with:");
         println!();
         println!("  {}", "cargo build --release --features server".cyan());

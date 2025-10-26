@@ -61,9 +61,12 @@ impl GoalManager {
 
     /// Create and register a new goal
     pub fn create_goal(&mut self, id: impl Into<String>, description: impl Into<String>) -> Goal {
+        let goal_id = id.into();
+        let goal_desc = description.into();
+
         let goal = Goal {
-            id: id.into(),
-            description: description.into(),
+            id: goal_id.clone(),
+            description: goal_desc.clone(),
             criteria: HashMap::new(),
             iteration: 0,
             refinements: Vec::new(),
@@ -71,6 +74,15 @@ impl GoalManager {
         };
 
         self.goals.insert(goal.id.clone(), goal.clone());
+
+        // Hook: Goal created
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("GOAL_ID".to_string(), goal_id);
+            params.insert("GOAL_DESCRIPTION".to_string(), goal_desc);
+            crate::hooks::notify_loop_event("goal_created", params);
+        }
+
         goal
     }
 
@@ -93,6 +105,15 @@ impl GoalManager {
         let goal = self.get_goal_mut(id)?;
         goal.status = status;
         tracing::info!("Goal {} status updated to {:?}", id, status);
+
+        // Hook: Goal status updated
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("GOAL_ID".to_string(), id.to_string());
+            params.insert("LOOP_STATUS".to_string(), format!("{:?}", status));
+            crate::hooks::notify_loop_event("goal_status_updated", params);
+        }
+
         Ok(())
     }
 
@@ -108,11 +129,25 @@ impl GoalManager {
         let goal = self.get_goal_mut(id)?;
         goal.refinements.push(feedback.to_string());
         tracing::info!("Goal {} refined: {}", id, feedback);
+
+        // Hook: Goal refined
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("GOAL_ID".to_string(), id.to_string());
+            params.insert("REFINEMENT_REASON".to_string(), feedback.to_string());
+            crate::hooks::notify_loop_event("goal_refined", params);
+        }
+
         Ok(())
     }
 
     /// Add or update goal criterion
-    pub fn set_criterion(&mut self, id: &str, key: impl Into<String>, value: f64) -> LoopResult<()> {
+    pub fn set_criterion(
+        &mut self,
+        id: &str,
+        key: impl Into<String>,
+        value: f64,
+    ) -> LoopResult<()> {
         let goal = self.get_goal_mut(id)?;
         goal.criteria.insert(key.into(), value);
         Ok(())
@@ -199,12 +234,8 @@ mod tests {
         let mut manager = GoalManager::new();
         manager.create_goal("test-1", "Test goal");
 
-        manager
-            .refine_goal("test-1", "First refinement")
-            .unwrap();
-        manager
-            .refine_goal("test-1", "Second refinement")
-            .unwrap();
+        manager.refine_goal("test-1", "First refinement").unwrap();
+        manager.refine_goal("test-1", "Second refinement").unwrap();
 
         let goal = manager.get_goal("test-1").unwrap();
         assert_eq!(goal.refinements.len(), 2);

@@ -67,10 +67,7 @@ pub async fn chat_handler(
         })
         .collect();
 
-    let context_docs: Vec<String> = search_results
-        .iter()
-        .map(|doc| doc.text.clone())
-        .collect();
+    let context_docs: Vec<String> = search_results.iter().map(|doc| doc.text.clone()).collect();
 
     // Step 4: Build prompt using PromptBuilder
     let prompt_builder = PromptBuilder::from_character(character.clone()).map_err(|e| {
@@ -92,22 +89,19 @@ pub async fn chat_handler(
             ApiError::InternalError(format!("Failed to build prompt: {}", e))
         })?;
 
-    info!("Built prompts - system: {} chars, user: {} chars", system_prompt.len(), user_prompt.len());
+    info!(
+        "Built prompts - system: {} chars, user: {} chars",
+        system_prompt.len(),
+        user_prompt.len()
+    );
 
     // Step 5: Call LLM
-    let messages = vec![
-        Message::system(system_prompt),
-        Message::user(user_prompt),
-    ];
+    let messages = vec![Message::system(system_prompt), Message::user(user_prompt)];
 
-    let reply = app_state
-        .llm_client
-        .chat(messages)
-        .await
-        .map_err(|e| {
-            error!("LLM API call failed: {}", e);
-            ApiError::InternalError(format!("AI service error: {}", e))
-        })?;
+    let reply = app_state.llm_client.chat(messages).await.map_err(|e| {
+        error!("LLM API call failed: {}", e);
+        ApiError::InternalError(format!("AI service error: {}", e))
+    })?;
 
     info!("Received LLM response: {} chars", reply.len());
 
@@ -130,18 +124,12 @@ pub enum ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_response) = match self {
-            ApiError::BadRequest(msg) => (
-                StatusCode::BAD_REQUEST,
-                ErrorResponse::bad_request(msg),
-            ),
+            ApiError::BadRequest(msg) => (StatusCode::BAD_REQUEST, ErrorResponse::bad_request(msg)),
             ApiError::InternalError(msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 ErrorResponse::internal_error(msg),
             ),
-            ApiError::Timeout => (
-                StatusCode::GATEWAY_TIMEOUT,
-                ErrorResponse::timeout(),
-            ),
+            ApiError::Timeout => (StatusCode::GATEWAY_TIMEOUT, ErrorResponse::timeout()),
         };
 
         (status, Json(error_response)).into_response()

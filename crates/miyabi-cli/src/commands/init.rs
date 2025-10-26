@@ -1594,15 +1594,15 @@ mod tests {
     #[test]
     fn test_validate_project_name_invalid_cases() {
         let invalid_names = vec![
-            "",                // empty
-            "my project",      // space
-            "project!",        // special char
-            "project@home",    // @ symbol
-            "project.name",    // dot
-            "project/name",    // slash
-            "project\\name",   // backslash
-            "project name 2",  // multiple spaces
-            "project#1",       // hash
+            "",               // empty
+            "my project",     // space
+            "project!",       // special char
+            "project@home",   // @ symbol
+            "project.name",   // dot
+            "project/name",   // slash
+            "project\\name",  // backslash
+            "project name 2", // multiple spaces
+            "project#1",      // hash
         ];
 
         for name in invalid_names {
