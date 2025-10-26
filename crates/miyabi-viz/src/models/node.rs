@@ -130,7 +130,7 @@ impl CrateNode {
 /// Type of dependency between crates
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DependencyKind {
-    /// Runtime dependency ([dependencies])
+    /// Runtime dependency (dependencies)
     Runtime,
     /// Development dependency ([dev-dependencies])
     Dev,

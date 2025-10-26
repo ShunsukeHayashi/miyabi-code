@@ -412,7 +412,7 @@ impl FiveWorldsManager {
     /// * `world_id` - The WorldId to get
     ///
     /// # Returns
-    /// Option<WorldWorktreeHandle> - The handle if the world is active
+    /// `Option<WorldWorktreeHandle>` - The handle if the world is active
     pub async fn get_world_handle(&self, world_id: WorldId) -> Option<WorldWorktreeHandle> {
         self.active_worlds.lock().await.get(&world_id).cloned()
     }
