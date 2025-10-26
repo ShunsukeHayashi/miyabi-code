@@ -173,7 +173,7 @@ impl VoiceMessage {
             }
 
             VoiceMessage::Tip { tip_number } => {
-                let tips = vec![
+                let tips = [
                     "豆知識なのだ！`miyabi --help` で\n全コマンドを確認できるのだ！",
                     "豆知識なのだ！複数のIssueを並列処理できるのだ！\n`miyabi work-on 1,2,3 --concurrency 3` を試すのだ！",
                     "豆知識なのだ！VOICEVOX_SPEAKER環境変数で\n話者を変更できるのだ！デフォルトはずんだもん（ID=3）なのだ！",

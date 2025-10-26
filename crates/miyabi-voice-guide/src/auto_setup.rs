@@ -1,7 +1,7 @@
-///! Automatic VOICEVOX setup on first run
-///!
-///! This module handles automatic setup of VOICEVOX Engine and Worker
-///! when Miyabi starts for the first time.
+//! Automatic VOICEVOX setup on first run
+//!
+//! This module handles automatic setup of VOICEVOX Engine and Worker
+//! when Miyabi starts for the first time.
 
 use std::process::Command;
 use tracing::{info, warn};

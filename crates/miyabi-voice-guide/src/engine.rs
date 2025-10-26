@@ -123,7 +123,7 @@ impl VoiceEngine {
 
         // Start VOICEVOX Engine container
         let output = Command::new("docker")
-            .args(&[
+            .args([
                 "run",
                 "-d",
                 "--rm",

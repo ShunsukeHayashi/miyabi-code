@@ -3,11 +3,12 @@
 use serde::{Deserialize, Serialize};
 
 /// VOICEVOX Speaker
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Speaker {
     /// 四国めたん (ID: 2)
     ShikokuMetan = 2,
     /// ずんだもん (ID: 3) - Default
+    #[default]
     Zundamon = 3,
     /// 春日部つむぎ (ID: 8)
     KasukabeTsumugi = 8,
@@ -39,12 +40,6 @@ impl Speaker {
             Speaker::KasukabeTsumugi => "女性、明るい",
             Speaker::NamineRitsu => "女性、落ち着き",
         }
-    }
-}
-
-impl Default for Speaker {
-    fn default() -> Self {
-        Speaker::Zundamon
     }
 }
 
