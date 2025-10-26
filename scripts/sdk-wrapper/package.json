@@ -6,6 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "d1": "tsx src/d1-label-check.ts",
     "d2": "tsx src/d2-complexity-check.ts",
+    "d8": "tsx src/d8-test-analysis.ts",
     "build": "tsc"
   },
   "keywords": [],
