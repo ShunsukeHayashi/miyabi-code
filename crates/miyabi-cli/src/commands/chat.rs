@@ -497,11 +497,9 @@ impl ChatCommand {
             for (i, turn) in sess.turns.iter().enumerate() {
                 println!("\n{} Turn {}", "▸".green(), i + 1);
                 println!("  Task: {}", turn.prompt.lines().next().unwrap_or(""));
-                if let Some(started) = &turn.started_at {
-                    println!("  Time: {}", started);
-                }
+                println!("  Time: {}", turn.started_at);
                 println!("  Status: {:?}", turn.status);
-                if turn.actions.len() > 0 {
+                if !turn.actions.is_empty() {
                     println!("  Actions: {} tool calls", turn.actions.len());
                 }
             }
