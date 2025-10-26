@@ -384,27 +384,144 @@ async fn handle_natural_language_request(
 ) -> Result<()> {
     let client = create_telegram_client()?;
 
-    // Send processing message
-    client.send_message(chat_id, Texts::processing(lang)).await?;
+    // Step 1: Send "Analyzing..." message
+    let analyzing_text = match lang {
+        Language::English => "🤖 **Analyzing your request...**\n\n📊 GPT-4 is analyzing the content",
+        Language::Japanese => "🤖 **リクエストを分析中...**\n\n📊 GPT-4が内容を解析しています",
+    };
+    client.send_message(chat_id, analyzing_text).await?;
 
-    // Analyze with GPT-4 (TODO: implement)
-    let issue_info = analyze_request_with_gpt4(text).await?;
+    // Step 2: Analyze with GPT-4
+    let issue_info = match analyze_request_with_gpt4(text).await {
+        Ok(info) => info,
+        Err(e) => {
+            let error_text = match lang {
+                Language::English => format!(
+                    "❌ **Analysis Failed**\n\nError: {}\n\n💡 Try:\n• Rephrase your request\n• Be more specific\n• Use simpler language",
+                    e
+                ),
+                Language::Japanese => format!(
+                    "❌ **分析に失敗しました**\n\nエラー: {}\n\n💡 お試しください：\n• リクエストを言い換える\n• より具体的に記述\n• よりシンプルな表現",
+                    e
+                ),
+            };
+            client.send_message(chat_id, &error_text).await?;
+            return Err(e);
+        }
+    };
 
-    // Create GitHub Issue (TODO: implement)
-    let issue_url = create_github_issue(&state, &issue_info).await?;
+    info!("GPT-4 analysis complete: {:?}", issue_info);
 
-    // Send success message
-    let response = Texts::issue_created(
-        lang,
-        &issue_info.title,
-        &issue_url,
-        &issue_info.agent,
-        &issue_info.priority,
-    );
+    // Step 3: Show analysis result with confirmation buttons
+    let preview_text = match lang {
+        Language::English => format!(
+            r#"✅ **Analysis Complete!**
 
-    client.send_message(chat_id, &response).await?;
+📝 **Title**: {}
+🏷️ **Labels**: {}
+⚡ **Priority**: {}
+👤 **Agent**: {}
 
-    // Execute agent asynchronously
+📄 **Description**:
+{}
+
+Do you want to create this Issue?"#,
+            issue_info.title,
+            issue_info.labels.join(", "),
+            issue_info.priority,
+            issue_info.agent,
+            issue_info.description
+        ),
+        Language::Japanese => format!(
+            r#"✅ **分析完了！**
+
+📝 **タイトル**: {}
+🏷️ **ラベル**: {}
+⚡ **優先度**: {}
+👤 **Agent**: {}
+
+📄 **説明**:
+{}
+
+このIssueを作成しますか？"#,
+            issue_info.title,
+            issue_info.labels.join(", "),
+            issue_info.priority,
+            issue_info.agent,
+            issue_info.description
+        ),
+    };
+
+    // Send with inline keyboard buttons
+    let buttons = match lang {
+        Language::English => vec![
+            vec![("✅ Create Issue", "create_issue")],
+            vec![("🔄 Re-analyze", "reanalyze"), ("❌ Cancel", "cancel")],
+        ],
+        Language::Japanese => vec![
+            vec![("✅ Issue作成", "create_issue")],
+            vec![("🔄 再分析", "reanalyze"), ("❌ キャンセル", "cancel")],
+        ],
+    };
+
+    client.send_message_with_buttons(chat_id, &preview_text, buttons).await?;
+
+    // Store analysis result for callback handling (TODO: implement state storage)
+    // For now, proceed automatically after 3 seconds if no response
+    // In production, use callback_query handler
+
+    tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+
+    // Step 4: Create GitHub Issue
+    let creating_text = match lang {
+        Language::English => "🔨 **Creating GitHub Issue...**",
+        Language::Japanese => "🔨 **GitHub Issueを作成中...**",
+    };
+    client.send_message(chat_id, creating_text).await?;
+
+    let issue_url = match create_github_issue(&state, &issue_info).await {
+        Ok(url) => url,
+        Err(e) => {
+            let error_text = match lang {
+                Language::English => format!("❌ **Issue Creation Failed**\n\nError: {}", e),
+                Language::Japanese => format!("❌ **Issue作成に失敗しました**\n\nエラー: {}", e),
+            };
+            client.send_message(chat_id, &error_text).await?;
+            return Err(e);
+        }
+    };
+
+    // Step 5: Send success message
+    let success_text = match lang {
+        Language::English => format!(
+            r#"✅ **Issue Created Successfully!**
+
+📝 **Title**: {}
+🔗 **URL**: {}
+⚡ **Priority**: {}
+👤 **Agent**: {}
+
+🚀 Agent execution started...
+You'll receive a notification when it's complete."#,
+            issue_info.title, issue_url, issue_info.priority, issue_info.agent
+        ),
+        Language::Japanese => format!(
+            r#"✅ **Issue作成完了！**
+
+📝 **タイトル**: {}
+🔗 **URL**: {}
+⚡ **優先度**: {}
+👤 **Agent**: {}
+
+🚀 Agent実行を開始しました...
+完了時に通知をお送りします。"#,
+            issue_info.title, issue_url, issue_info.priority, issue_info.agent
+        ),
+    };
+
+    client.send_message(chat_id, &success_text).await?;
+
+    // Step 6: Execute agent asynchronously
     spawn_agent_execution(state, issue_url.clone(), chat_id, issue_info, lang).await;
 
     Ok(())

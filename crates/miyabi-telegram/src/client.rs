@@ -128,6 +128,56 @@ impl TelegramClient {
         self.send_message_full(request).await
     }
 
+    /// Send a message with buttons (convenience method)
+    ///
+    /// Creates an inline keyboard from a simple button spec
+    ///
+    /// # Arguments
+    /// * `chat_id` - Target chat ID
+    /// * `text` - Message text
+    /// * `buttons` - Vector of button rows, each containing (text, callback_data) tuples
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use miyabi_telegram::TelegramClient;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = TelegramClient::from_env()?;
+    ///
+    /// let buttons = vec![
+    ///     vec![("✅ Yes", "yes"), ("❌ No", "no")],
+    ///     vec![("ℹ️ Info", "info")],
+    /// ];
+    ///
+    /// client.send_message_with_buttons(123456789, "Choose an option:", buttons).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn send_message_with_buttons(
+        &self,
+        chat_id: i64,
+        text: &str,
+        buttons: Vec<Vec<(&str, &str)>>,
+    ) -> Result<Message> {
+        let keyboard_buttons: Vec<Vec<InlineKeyboardButton>> = buttons
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|(text, callback_data)| {
+                        InlineKeyboardButton::callback(text, callback_data)
+                    })
+                    .collect()
+            })
+            .collect();
+
+        let keyboard = InlineKeyboard {
+            inline_keyboard: keyboard_buttons,
+        };
+
+        self.send_message_with_keyboard(chat_id, text, keyboard)
+            .await
+    }
+
     /// Answer a callback query
     ///
     /// This method should be called when the user clicks an inline keyboard button.
