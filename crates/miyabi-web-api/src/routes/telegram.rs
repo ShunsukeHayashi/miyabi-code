@@ -15,9 +15,19 @@ use axum::{
 };
 use miyabi_telegram::{CallbackQuery, Message, Update, User};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::sync::{Arc, OnceLock};
+use tokio::sync::Mutex;
 use tracing::{info, warn};
 
 use crate::{AppError, AppState, Result};
+
+// Global cache for processed update IDs (in-memory, simple solution)
+static PROCESSED_UPDATES: OnceLock<Arc<Mutex<HashSet<i64>>>> = OnceLock::new();
+
+fn get_processed_updates() -> &'static Arc<Mutex<HashSet<i64>>> {
+    PROCESSED_UPDATES.get_or_init(|| Arc::new(Mutex::new(HashSet::new())))
+}
 
 // Re-export AppState for type annotations
 use crate::AppState as State_;
@@ -45,44 +55,36 @@ struct Texts;
 impl Texts {
     fn welcome(lang: Language) -> &'static str {
         match lang {
-            Language::English => r#"
-🌸 **Welcome to Miyabi Bot!**
+            Language::English => r#"**Miyabi Bot**
 
-You can control Miyabi using natural language.
+Natural language control for autonomous development
 
-**How to use**:
-Just send a message, and it will automatically:
-1. Analyze with GPT-4
-2. Create GitHub Issue
-3. Execute Agent
-4. Send completion notification
+**How it works**
+Send a message → GPT-4 analyzes → Issue created → Agent executes → Notification sent
 
-**Examples**:
-"Add Google OAuth to login"
-"Improve dashboard design"
-"Add performance tests"
+**Examples**
+Add Google OAuth to login
+Improve dashboard design
+Add performance tests
 
-**/help** - Show this help
-"#,
-            Language::Japanese => r#"
-🌸 **Miyabi Bot へようこそ！**
+────────────────────────
 
-自然言語でMiyabiを操作できます。
+/help for more information"#,
+            Language::Japanese => r#"**Miyabi Bot**
 
-**使い方**:
-メッセージを送信するだけで、自動的に：
-1. GPT-4が内容を解析
-2. GitHub Issueを作成
-3. Agentが自動実行
-4. 完了通知を送信
+自然言語で自律開発を制御
 
-**例**:
-「ログイン機能にGoogle OAuth追加して」
-「ダッシュボードのデザインを改善」
-「パフォーマンステストを追加」
+**仕組み**
+メッセージ送信 → GPT-4解析 → Issue作成 → Agent実行 → 通知送信
 
-**/help** - このヘルプを表示
-"#,
+**例**
+ログイン機能にGoogle OAuth追加
+ダッシュボードのデザインを改善
+パフォーマンステストを追加
+
+────────────────────────
+
+詳細は /help"#,
         }
     }
 
@@ -206,6 +208,26 @@ pub async fn handle_webhook(
     Json(update): Json<Update>,
 ) -> Result<Response> {
     info!("Received Telegram update: {:?}", update.update_id);
+
+    // Check if this update was already processed (prevent duplicate processing)
+    {
+        let processed_cache = get_processed_updates();
+        let mut processed = processed_cache.lock().await;
+        if processed.contains(&update.update_id) {
+            info!("Update {} already processed, skipping", update.update_id);
+            return Ok((StatusCode::OK, "OK").into_response());
+        }
+        processed.insert(update.update_id);
+
+        // Keep cache size manageable (only keep last 1000 update IDs)
+        if processed.len() > 1000 {
+            // Remove oldest entries (simple approach: clear half)
+            let to_remove: Vec<i64> = processed.iter().take(500).copied().collect();
+            for id in to_remove {
+                processed.remove(&id);
+            }
+        }
+    }
 
     // Handle different update types
     if let Some(message) = update.message {
@@ -384,10 +406,10 @@ async fn handle_natural_language_request(
 ) -> Result<()> {
     let client = create_telegram_client()?;
 
-    // Step 1: Send "Analyzing..." message
+    // Step 1: Send "Analyzing..." message (minimalist design - Jonathan Ive style)
     let analyzing_text = match lang {
-        Language::English => "🤖 **Analyzing your request...**\n\n📊 GPT-4 is analyzing the content",
-        Language::Japanese => "🤖 **リクエストを分析中...**\n\n📊 GPT-4が内容を解析しています",
+        Language::English => "**Analyzing**\n\nGPT-4 is processing your request",
+        Language::Japanese => "**分析中**\n\nGPT-4が処理しています",
     };
     client.send_message(chat_id, analyzing_text).await?;
 
@@ -397,11 +419,11 @@ async fn handle_natural_language_request(
         Err(e) => {
             let error_text = match lang {
                 Language::English => format!(
-                    "❌ **Analysis Failed**\n\nError: {}\n\n💡 Try:\n• Rephrase your request\n• Be more specific\n• Use simpler language",
+                    "**Analysis Failed**\n\n{}\n\n**Suggestions**\n• Rephrase your request\n• Be more specific\n• Use simpler language",
                     e
                 ),
                 Language::Japanese => format!(
-                    "❌ **分析に失敗しました**\n\nエラー: {}\n\n💡 お試しください：\n• リクエストを言い換える\n• より具体的に記述\n• よりシンプルな表現",
+                    "**分析失敗**\n\n{}\n\n**提案**\n• リクエストを言い換える\n• より具体的に記述\n• シンプルな表現を使用",
                     e
                 ),
             };
@@ -412,110 +434,113 @@ async fn handle_natural_language_request(
 
     info!("GPT-4 analysis complete: {:?}", issue_info);
 
-    // Step 3: Show analysis result with confirmation buttons
+    // Step 3: Show analysis result (minimalist - Jonathan Ive style)
     let preview_text = match lang {
         Language::English => format!(
-            r#"✅ **Analysis Complete!**
+            r#"**Analysis Complete**
 
-📝 **Title**: {}
-🏷️ **Labels**: {}
-⚡ **Priority**: {}
-👤 **Agent**: {}
-
-📄 **Description**:
+**Title**
 {}
 
-Do you want to create this Issue?"#,
+**Labels**
+{}
+
+**Priority**
+{}
+
+**Agent**
+{}
+
+**Description**
+{}
+
+────────────────────────
+
+Creating Issue..."#,
             issue_info.title,
-            issue_info.labels.join(", "),
+            issue_info.labels.join(" · "),
             issue_info.priority,
             issue_info.agent,
             issue_info.description
         ),
         Language::Japanese => format!(
-            r#"✅ **分析完了！**
+            r#"**分析完了**
 
-📝 **タイトル**: {}
-🏷️ **ラベル**: {}
-⚡ **優先度**: {}
-👤 **Agent**: {}
-
-📄 **説明**:
+**タイトル**
 {}
 
-このIssueを作成しますか？"#,
+**ラベル**
+{}
+
+**優先度**
+{}
+
+**Agent**
+{}
+
+**説明**
+{}
+
+────────────────────────
+
+Issue作成中..."#,
             issue_info.title,
-            issue_info.labels.join(", "),
+            issue_info.labels.join(" · "),
             issue_info.priority,
             issue_info.agent,
             issue_info.description
         ),
     };
 
-    // Send with inline keyboard buttons
-    let buttons = match lang {
-        Language::English => vec![
-            vec![("✅ Create Issue", "create_issue")],
-            vec![("🔄 Re-analyze", "reanalyze"), ("❌ Cancel", "cancel")],
-        ],
-        Language::Japanese => vec![
-            vec![("✅ Issue作成", "create_issue")],
-            vec![("🔄 再分析", "reanalyze"), ("❌ キャンセル", "cancel")],
-        ],
-    };
-
-    client.send_message_with_buttons(chat_id, &preview_text, buttons).await?;
-
-    // Store analysis result for callback handling (TODO: implement state storage)
-    // For now, proceed automatically after 3 seconds if no response
-    // In production, use callback_query handler
-
-    tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
-
-    // Step 4: Create GitHub Issue
-    let creating_text = match lang {
-        Language::English => "🔨 **Creating GitHub Issue...**",
-        Language::Japanese => "🔨 **GitHub Issueを作成中...**",
-    };
-    client.send_message(chat_id, creating_text).await?;
+    client.send_message(chat_id, &preview_text).await?;
 
     let issue_url = match create_github_issue(&state, &issue_info).await {
         Ok(url) => url,
         Err(e) => {
             let error_text = match lang {
-                Language::English => format!("❌ **Issue Creation Failed**\n\nError: {}", e),
-                Language::Japanese => format!("❌ **Issue作成に失敗しました**\n\nエラー: {}", e),
+                Language::English => format!("**Creation Failed**\n\n{}", e),
+                Language::Japanese => format!("**作成失敗**\n\n{}", e),
             };
             client.send_message(chat_id, &error_text).await?;
             return Err(e);
         }
     };
 
-    // Step 5: Send success message
+    // Step 4: Send success message (minimalist - clean layout)
     let success_text = match lang {
         Language::English => format!(
-            r#"✅ **Issue Created Successfully!**
+            r#"**Issue Created**
 
-📝 **Title**: {}
-🔗 **URL**: {}
-⚡ **Priority**: {}
-👤 **Agent**: {}
+{}
 
-🚀 Agent execution started...
-You'll receive a notification when it's complete."#,
-            issue_info.title, issue_url, issue_info.priority, issue_info.agent
+**Priority**
+{}
+
+**Agent**
+{}
+
+────────────────────────
+
+Agent execution started
+You'll receive a notification when complete"#,
+            issue_url, issue_info.priority, issue_info.agent
         ),
         Language::Japanese => format!(
-            r#"✅ **Issue作成完了！**
+            r#"**Issue作成完了**
 
-📝 **タイトル**: {}
-🔗 **URL**: {}
-⚡ **優先度**: {}
-👤 **Agent**: {}
+{}
 
-🚀 Agent実行を開始しました...
-完了時に通知をお送りします。"#,
-            issue_info.title, issue_url, issue_info.priority, issue_info.agent
+**優先度**
+{}
+
+**Agent**
+{}
+
+────────────────────────
+
+Agent実行開始
+完了時に通知します"#,
+            issue_url, issue_info.priority, issue_info.agent
         ),
     };
 
@@ -563,40 +588,46 @@ async fn send_completion_notification(
 
     let completion_text = match lang {
         Language::English => format!(
-            r#"
-✅ **Agent Execution Complete**
+            r#"**Execution Complete**
 
-📝 **Issue**: {}
-🔗 **URL**: {}
-🤖 **Agent**: {}
-✨ **Quality Score**: 95/100
+{}
 
-**Next Steps**:
-- Review the changes
-- Merge the pull request
-- Deploy to production
+**Agent**
+{}
 
-🎉 All done!
-"#,
-            info.title, issue_url, info.agent
+**Quality Score**
+95/100
+
+────────────────────────
+
+**Next Steps**
+• Review changes
+• Merge pull request
+• Deploy to production
+
+Done"#,
+            issue_url, info.agent
         ),
         Language::Japanese => format!(
-            r#"
-✅ **Agent実行完了**
+            r#"**実行完了**
 
-📝 **Issue**: {}
-🔗 **URL**: {}
-🤖 **Agent**: {}
-✨ **品質スコア**: 95/100
+{}
 
-**次のステップ**:
-- 変更をレビュー
-- プルリクエストをマージ
-- 本番環境にデプロイ
+**Agent**
+{}
 
-🎉 完了しました！
-"#,
-            info.title, issue_url, info.agent
+**品質スコア**
+95/100
+
+────────────────────────
+
+**次のステップ**
+• 変更をレビュー
+• プルリクエストをマージ
+• 本番環境にデプロイ
+
+完了"#,
+            issue_url, info.agent
         ),
     };
 
@@ -778,8 +809,10 @@ async fn create_github_issue(_state: &AppState, info: &IssueAnalysis) -> Result<
     let repo = std::env::var("GITHUB_REPO")
         .unwrap_or_else(|_| "Miyabi".to_string());
 
+    info!("Creating Issue in repository: {}/{}", owner, repo);
+
     // Create GitHub client
-    let client = GitHubClient::new(token, owner, repo)
+    let client = GitHubClient::new(token, owner.clone(), repo.clone())
         .map_err(|e| AppError::Configuration(format!("GitHub client error: {}", e)))?;
 
     // Create issue
