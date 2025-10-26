@@ -43,6 +43,10 @@
         "description": "Display project status on session start"
       },
       {
+        "command": ".claude/hooks/autocompact-manager.sh check",
+        "description": "Display auto-compact optimization tips"
+      },
+      {
         "command": ".claude/hooks/session-keepalive.sh start",
         "description": "Start session keep-alive mechanism to prevent timeout"
       }
