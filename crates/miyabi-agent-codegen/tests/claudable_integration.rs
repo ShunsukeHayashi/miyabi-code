@@ -9,7 +9,6 @@
 use miyabi_agent_codegen::CodeGenAgent;
 use miyabi_types::{AgentConfig, AgentType, Task};
 use miyabi_types::task::TaskType;
-use std::path::Path;
 use tempfile::TempDir;
 
 fn create_test_config() -> AgentConfig {
@@ -56,7 +55,7 @@ fn create_frontend_task(title: &str, description: &str) -> Task {
 #[ignore] // Requires Claudable server running
 async fn test_frontend_task_detection() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let task = create_frontend_task(
         "Create dashboard UI",
@@ -75,7 +74,7 @@ async fn test_frontend_task_detection() {
 #[ignore] // Requires Claudable server + ANTHROPIC_API_KEY
 async fn test_claudable_code_generation() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let task = create_frontend_task(
         "Create simple homepage",
@@ -99,7 +98,7 @@ async fn test_claudable_code_generation() {
 #[ignore] // Requires Claudable server + npm
 async fn test_worktree_file_writing() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
@@ -139,7 +138,7 @@ async fn test_worktree_file_writing() {
 #[ignore] // Requires Claudable server + npm (long running ~2min)
 async fn test_npm_install() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
@@ -163,7 +162,7 @@ async fn test_npm_install() {
 #[ignore] // Requires Claudable server + npm (long running ~3min)
 async fn test_nextjs_build() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
@@ -192,7 +191,7 @@ async fn test_e2e_dashboard_generation() {
     // Scenario: User requests dashboard via LINE Bot → Issue created → CodeGen → Claudable → PR
 
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
@@ -240,7 +239,7 @@ async fn test_e2e_landing_page_generation() {
     // Scenario: Marketing team requests landing page
 
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let temp_dir = TempDir::new().unwrap();
     let worktree_path = temp_dir.path();
@@ -273,7 +272,7 @@ async fn test_e2e_landing_page_generation() {
 #[tokio::test]
 async fn test_non_frontend_task_skips_claudable() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     // Non-frontend task
     let task = Task {

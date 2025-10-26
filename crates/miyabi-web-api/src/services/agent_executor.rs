@@ -343,8 +343,6 @@ impl AgentExecutor {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_agent_executor_creation() {
         // This test requires a database connection

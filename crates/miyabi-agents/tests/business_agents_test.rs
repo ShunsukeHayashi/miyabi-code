@@ -16,6 +16,8 @@
 //! - CRMAgent
 //! - AnalyticsAgent
 
+#![allow(deprecated)]
+
 use miyabi_agent_core::BaseAgent;
 use miyabi_agents::business::*;
 use miyabi_types::{AgentConfig, AgentType};

@@ -63,6 +63,7 @@ async fn test_websocket_event_flow() {
             }
 
             // Close connection
+            #[allow(unused_imports)]
             use futures::SinkExt;
             let _ = ws_stream.close(None).await;
         }
@@ -141,6 +142,7 @@ async fn test_websocket_authentication() {
     match tokio_tungstenite::connect_async(&ws_url).await {
         Ok((mut ws_stream, _)) => {
             println!("✅ WebSocket authenticated successfully");
+            #[allow(unused_imports)]
             use futures::SinkExt;
             let _ = ws_stream.close(None).await;
         }

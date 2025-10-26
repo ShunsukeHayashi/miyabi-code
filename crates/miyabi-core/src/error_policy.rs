@@ -299,10 +299,7 @@ mod tests {
             let result = breaker
                 .call(|| {
                     Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "test error",
-                        ))
+                        Result::<(), std::io::Error>::Err(std::io::Error::other("test error"))
                     })
                 })
                 .await;
@@ -323,10 +320,7 @@ mod tests {
             let _ = breaker
                 .call(|| {
                     Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "error",
-                        ))
+                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
                     })
                 })
                 .await;
@@ -350,10 +344,7 @@ mod tests {
             let _ = breaker
                 .call(|| {
                     Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "error",
-                        ))
+                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
                     })
                 })
                 .await;
@@ -380,10 +371,7 @@ mod tests {
             let _ = breaker
                 .call(|| {
                     Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "error",
-                        ))
+                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
                     })
                 })
                 .await;
@@ -415,10 +403,7 @@ mod tests {
             let _ = breaker
                 .call(|| {
                     Box::pin(async {
-                        Result::<(), std::io::Error>::Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "error",
-                        ))
+                        Result::<(), std::io::Error>::Err(std::io::Error::other("error"))
                     })
                 })
                 .await;

@@ -107,7 +107,7 @@ impl AutoIndexHook {
     ) -> Result<usize> {
         // Calculate file hash for deduplication
         let file_hash = hash_file(log_file)
-            .map_err(|e| MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+            .map_err(|e| MiyabiError::Io(std::io::Error::other(e)))?;
 
         // Load cache
         let mut cache = IndexCache::load_or_default(&config.workspace.name)
@@ -135,7 +135,7 @@ impl AutoIndexHook {
         let entries = collector
             .collect(log_file)
             .await
-            .map_err(|e| MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+            .map_err(|e| MiyabiError::Io(std::io::Error::other(e)))?;
 
         if entries.is_empty() {
             debug!("No entries to index from {:?}", log_file);

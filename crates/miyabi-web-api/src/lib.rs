@@ -151,7 +151,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .max_connections(1)
         .acquire_timeout(std::time::Duration::from_millis(100))
         .connect_lazy(&config.database_url)
-        .map_err(|e| AppError::Database(e))?;
+        .map_err(AppError::Database)?;
 
     // Create WebSocket manager
     let ws_manager = Arc::new(websocket::WebSocketManager::new());
