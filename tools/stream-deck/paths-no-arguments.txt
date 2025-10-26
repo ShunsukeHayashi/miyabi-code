@@ -1,0 +1,114 @@
+# Stream Deck パス一覧（引数不要版）
+# 各ボタンにコピペして使用してください
+
+=== Row 1: Claude Code基本操作 (1-4) ===
+1. Next:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/01-next.sh
+
+2. Continue:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/02-continue.sh
+
+3. Fix:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/03-fix.sh
+
+4. Help:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/04-help.sh
+
+=== Row 2: ビルド・テスト (5-8) ===
+5. Build:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/02-build-release.sh
+
+6. Test:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/03-run-tests.sh
+
+7. Clippy:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/07-clippy.sh
+
+8. Format:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/08-format.sh
+
+=== Row 3: Git操作 (9-12) ===
+9. Git Status:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/04-git-status.sh
+
+10. Commit:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/10-commit.sh
+
+11. PR:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/11-pr.sh
+
+12. Push:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/09-git-push.sh
+
+=== Row 4: Agent実行 (13-16) ===
+13. Coordinator:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/10-agent-coordinator.sh
+
+14. CodeGen:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/11-agent-codegen.sh
+
+15. Review:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/12-agent-review.sh
+
+16. Deploy:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/13-agent-deploy.sh
+
+=== Row 5: ドキュメント・解析 (17-20) ===
+17. Docs:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/14-generate-docs.sh
+
+18. Analyze:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/15-analyze-code.sh
+
+19. Benchmark:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/16-benchmark.sh
+
+20. Profile:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/17-profile.sh
+
+=== Row 6: デプロイ・インフラ (21-24) ===
+21. Deploy Prod:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/18-deploy-prod.sh
+
+22. Rollback:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/19-rollback.sh
+
+23. Logs:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/20-view-logs.sh
+
+24. Monitor:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/21-monitor.sh
+
+=== Row 7: ユーティリティ (25-28) ===
+25. Clean:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/22-clean-build.sh
+
+26. Cache:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/23-clear-cache.sh
+
+27. Deps:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/24-update-deps.sh
+
+28. Audit:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/25-security-audit.sh
+
+=== Row 8: カスタム・拡張 (29-32) ===
+29. Voice:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/01-notify-voice.sh
+
+30. Infinity:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/quick/30-infinity.sh
+
+31. Session:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/26-session-end.sh
+
+32. Custom:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/27-custom.sh
+
+===================================
+使い方:
+1. 各ボタンを長押し → Edit
+2. Action: System → Open
+3. Path: 上記のパスをコピペ
+4. Save
+===================================
