@@ -179,12 +179,15 @@ impl VoiceEngine {
         );
 
         // Use voicevox_enqueue.sh script if available
+        tracing::debug!("Checking enqueue script at: {}", self.config.enqueue_script);
         if std::path::Path::new(&self.config.enqueue_script).exists() {
+            tracing::debug!("Enqueue script found, calling enqueue_voice");
             self.enqueue_voice(&text, speaker_id).await?;
         } else {
             tracing::warn!(
-                "voicevox_enqueue.sh not found at {}. Voice guide disabled.",
-                self.config.enqueue_script
+                "voicevox_enqueue.sh not found at {}. Voice guide disabled. Current dir: {:?}",
+                self.config.enqueue_script,
+                std::env::current_dir()
             );
         }
 
@@ -193,6 +196,14 @@ impl VoiceEngine {
 
     /// Enqueue voice message via voicevox_enqueue.sh
     async fn enqueue_voice(&self, text: &str, speaker_id: u32) -> VoiceResult<()> {
+        tracing::debug!(
+            "Calling enqueue script: {} with text length: {} bytes, speaker: {}, speed: {}",
+            self.config.enqueue_script,
+            text.len(),
+            speaker_id,
+            self.config.voice.speed
+        );
+
         let output = Command::new(&self.config.enqueue_script)
             .arg(text)
             .arg(speaker_id.to_string())
@@ -202,8 +213,18 @@ impl VoiceEngine {
                 reason: format!("Failed to execute enqueue script: {}", e),
             })?;
 
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        tracing::debug!("Script exit status: {:?}", output.status);
+        if !stdout.is_empty() {
+            tracing::debug!("Script stdout: {}", stdout);
+        }
+        if !stderr.is_empty() {
+            tracing::warn!("Script stderr: {}", stderr);
+        }
+
         if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(VoiceError::PlaybackFailed {
                 reason: format!("Enqueue script failed: {}", stderr),
             });

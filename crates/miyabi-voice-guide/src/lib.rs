@@ -36,11 +36,13 @@
 //! }
 //! ```
 
+mod auto_setup;
 mod engine;
 mod error;
 mod messages;
 mod speaker;
 
+pub use auto_setup::auto_setup_voicevox;
 pub use engine::{VoiceEngine, VoiceEngineConfig};
 pub use error::{VoiceError, VoiceResult};
 pub use messages::{VoiceMessage, VoiceScript};
@@ -94,18 +96,27 @@ impl VoiceGuide {
     ///
     /// This function is non-blocking and runs in the background.
     /// If VOICEVOX Engine is not running, it will attempt to auto-start it.
+    ///
+    /// IMPORTANT: This function spawns a background task and waits for it to complete.
+    /// This ensures the voice message is enqueued before the program exits.
     pub async fn speak(&self, message: VoiceMessage) {
         if !self.enabled {
             return;
         }
 
         let engine = self.engine.clone();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             let mut engine = engine.lock().await;
             if let Err(e) = engine.speak(message).await {
                 tracing::warn!("Voice guide failed: {}", e);
             }
         });
+
+        // Wait for the task to complete to ensure voice is enqueued
+        // This is critical for short-lived CLI commands
+        if let Err(e) = handle.await {
+            tracing::warn!("Voice guide task failed: {}", e);
+        }
     }
 
     /// Speak a custom text message

@@ -130,6 +130,10 @@ async fn main() -> Result<()> {
     };
     miyabi_core::init_logger(log_level);
 
+    // VOICEVOX Auto-Setup (non-blocking)
+    // This automatically sets up VOICEVOX Engine and Worker on first run
+    miyabi_voice_guide::auto_setup_voicevox();
+
     // Initialize Voice Guide (Voice-First Onboarding)
     let voice_guide = VoiceGuide::new();
 

@@ -21,14 +21,29 @@ TIMESTAMP=$(date +%s%N)
 QUEUE_FILE="/tmp/voicevox_queue/${TIMESTAMP}.json"
 
 # JSONキューファイル作成
-cat > "$QUEUE_FILE" <<EOF
+# Note: Use jq to properly escape JSON strings (handles newlines, quotes, etc.)
+if command -v jq &> /dev/null; then
+  # jq available: proper JSON encoding
+  jq -n \
+    --arg text "$TEXT" \
+    --argjson speaker "$SPEAKER" \
+    --argjson speed "$SPEED" \
+    --argjson timestamp "$TIMESTAMP" \
+    '{text: $text, speaker: $speaker, speedScale: $speed, timestamp: $timestamp}' \
+    > "$QUEUE_FILE"
+else
+  # jq not available: fallback to manual escaping (less robust)
+  # Escape special characters for JSON
+  ESCAPED_TEXT=$(echo "$TEXT" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+  cat > "$QUEUE_FILE" <<EOF
 {
-  "text": "$TEXT",
+  "text": "$ESCAPED_TEXT",
   "speaker": $SPEAKER,
   "speedScale": $SPEED,
   "timestamp": $TIMESTAMP
 }
 EOF
+fi
 
 echo "✅ キューに追加しました: $QUEUE_FILE"
 echo "   テキスト: $TEXT"
