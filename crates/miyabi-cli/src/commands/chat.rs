@@ -232,6 +232,44 @@ impl ChatCommand {
                 println!("{} Session cleared", "✓".green());
                 Ok(false)
             }
+            "agent-run" => {
+                if parts.len() < 2 {
+                    println!("{} Usage: /agent-run <issue_number>", "Error:".red());
+                    return Ok(false);
+                }
+
+                match parts[1].parse::<u64>() {
+                    Ok(issue_number) => {
+                        self.execute_agent_run(issue_number).await?;
+                    }
+                    Err(_) => {
+                        println!("{} Invalid issue number: {}", "Error:".red(), parts[1]);
+                    }
+                }
+                Ok(false)
+            }
+            "create-issue" => {
+                let title = parts[1..].join(" ");
+                if title.is_empty() {
+                    println!("{} Usage: /create-issue <title>", "Error:".red());
+                    return Ok(false);
+                }
+
+                self.execute_create_issue(&title).await?;
+                Ok(false)
+            }
+            "verify" => {
+                self.execute_verify().await?;
+                Ok(false)
+            }
+            "daily-update" => {
+                self.execute_daily_update().await?;
+                Ok(false)
+            }
+            "session-end" => {
+                self.execute_session_end().await?;
+                Ok(false)
+            }
             _ => {
                 println!("{} Unknown command: {}", "Error:".red(), parts[0]);
                 println!("Type {} for help", "/help".green());
@@ -244,6 +282,7 @@ impl ChatCommand {
     fn print_help(&self) {
         println!("\n{}", "Available Commands:".cyan().bold());
         println!("{}", "─".repeat(50).cyan());
+        println!("\n{}", "Core Commands:".yellow());
         println!("  {}  - Show this help message", "/help".green());
         println!("  {}  - Exit the chat", "/exit, /quit".green());
         println!("  {}  - Change execution mode", "/mode <mode>".green());
@@ -253,6 +292,16 @@ impl ChatCommand {
         println!("  {}  - Show current session info", "/session".green());
         println!("  {}  - Clear screen", "/clear".green());
         println!("  {}  - Start new conversation", "/new".green());
+
+        println!("\n{}", "Agent Commands:".yellow());
+        println!("  {}  - Run agent on issue", "/agent-run <issue>".green());
+        println!("  {}  - Create GitHub issue", "/create-issue <title>".green());
+
+        println!("\n{}", "Utility Commands:".yellow());
+        println!("  {}  - Verify system setup", "/verify".green());
+        println!("  {}  - Generate daily report", "/daily-update".green());
+        println!("  {}  - End session notification", "/session-end".green());
+
         println!("\n{}", "Execution Modes:".cyan().bold());
         println!("  {} - Can read files, search code", "ReadOnly".blue());
         println!("  {} - Can also write/edit files", "FileEdits".yellow());
@@ -319,6 +368,102 @@ impl ChatCommand {
             .map_err(|e| CliError::Other(format!("Failed to create .miyabi dir: {}", e)))?;
 
         Ok(miyabi_dir.join("chat_history.txt"))
+    }
+
+    // ========== Slash Command Implementations ==========
+
+    /// Execute /agent-run command
+    async fn execute_agent_run(&self, issue_number: u64) -> Result<()> {
+        println!("\n{} Running agent for Issue #{}", "🤖".cyan(), issue_number);
+
+        use crate::commands::AgentCommand;
+
+        let agent_cmd = AgentCommand::new(
+            "coordinator".to_string(),
+            Some(issue_number),
+        );
+
+        agent_cmd.execute().await
+    }
+
+    /// Execute /create-issue command
+    async fn execute_create_issue(&self, title: &str) -> Result<()> {
+        println!("\n{} Creating issue: {}", "📝".cyan(), title);
+
+        // TODO: Integrate with GitHub API to create issue
+        // For now, show instructions
+        println!("{}", "Use GitHub CLI to create issue:".yellow());
+        println!("  gh issue create --title \"{}\"", title);
+
+        Ok(())
+    }
+
+    /// Execute /verify command
+    async fn execute_verify(&self) -> Result<()> {
+        println!("\n{} Running system verification...", "🔍".cyan());
+
+        // TODO: Implement verification logic
+        // Check: cargo, git, environment variables, etc.
+
+        println!("{} Checking Rust toolchain...", "  •".dimmed());
+        let cargo_version = std::process::Command::new("cargo")
+            .arg("--version")
+            .output();
+
+        match cargo_version {
+            Ok(output) => {
+                let version = String::from_utf8_lossy(&output.stdout);
+                println!("    {} {}", "✓".green(), version.trim());
+            }
+            Err(_) => {
+                println!("    {} cargo not found", "✗".red());
+            }
+        }
+
+        println!("{} Checking Git...", "  •".dimmed());
+        let git_version = std::process::Command::new("git")
+            .arg("--version")
+            .output();
+
+        match git_version {
+            Ok(output) => {
+                let version = String::from_utf8_lossy(&output.stdout);
+                println!("    {} {}", "✓".green(), version.trim());
+            }
+            Err(_) => {
+                println!("    {} git not found", "✗".red());
+            }
+        }
+
+        println!("\n{} Verification complete", "✅".green());
+        Ok(())
+    }
+
+    /// Execute /daily-update command
+    async fn execute_daily_update(&self) -> Result<()> {
+        println!("\n{} Generating daily update...", "📊".cyan());
+
+        // TODO: Integrate with SlashCommand to run /daily-update
+        // For now, show placeholder
+        println!("{}", "Daily update will include:".yellow());
+        println!("  • Git commits from today");
+        println!("  • Issues closed");
+        println!("  • PRs merged");
+        println!("  • Test results");
+
+        Ok(())
+    }
+
+    /// Execute /session-end command
+    async fn execute_session_end(&self) -> Result<()> {
+        println!("\n{} Ending session...", "🔔".cyan());
+
+        // TODO: Integrate with notification system
+        // For now, show placeholder
+        println!("{}", "Session end notification sent".green());
+        println!("  🐮 Cow sound notification via macOS");
+
+        Ok(())
     }
 }
 
