@@ -53,8 +53,13 @@ impl AppConfig {
         // Load .env file if it exists
         dotenvy::dotenv().ok();
 
+        // TEMPORARY: Make database optional for Telegram-only deployment
+        // TODO: Replace with Firebase/Firestore from scratch
         let database_url = env::var("DATABASE_URL")
-            .map_err(|_| "DATABASE_URL environment variable is required".to_string())?;
+            .unwrap_or_else(|_| {
+                eprintln!("WARNING: DATABASE_URL not set, using dummy value");
+                "postgresql://dummy:dummy@localhost:5432/dummy".to_string()
+            });
 
         let server_address =
             env::var("SERVER_ADDRESS").unwrap_or_else(|_| "0.0.0.0:8080".to_string());

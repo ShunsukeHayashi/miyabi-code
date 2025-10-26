@@ -139,11 +139,19 @@ pub struct AppState {
 /// - Database connection fails
 /// - Configuration is invalid
 pub async fn create_app(config: AppConfig) -> Result<Router> {
-    // Create database connection pool
-    let db = database::create_pool(&config.database_url).await?;
+    // TEMPORARY: Skip database for Telegram-only deployment
+    // TODO: Implement proper Firebase/Firestore integration from scratch
+    tracing::warn!("Starting in Telegram-only mode without database");
+    tracing::info!("Telegram Bot routes: /health and /api/v1/telegram/webhook");
 
-    // Run migrations
-    database::run_migrations(&db).await?;
+    // Create an unconfigured pool that won't be used
+    // The Telegram route doesn't require database access
+    // This maintains type compatibility until we implement Firebase from scratch
+    let db = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(1)
+        .acquire_timeout(std::time::Duration::from_millis(100))
+        .connect_lazy(&config.database_url)
+        .map_err(|e| AppError::Database(e))?;
 
     // Create WebSocket manager
     let ws_manager = Arc::new(websocket::WebSocketManager::new());
@@ -173,68 +181,55 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    // Build API routes
+    // Build API routes - TEMPORARY: Only Telegram and Health for scratch implementation
+    // TODO: Re-enable database routes after implementing Firebase/Firestore from scratch
     let api_routes = Router::new()
         // Health check
         .route("/health", get(routes::health::health_check))
-        // Authentication routes
-        .route("/auth/github", get(routes::auth::github_oauth_initiate))
-        .route(
-            "/auth/github/callback",
-            get(routes::auth::github_oauth_callback),
-        )
-        .route("/auth/refresh", post(routes::auth::refresh_token))
-        .route("/auth/logout", post(routes::auth::logout))
-        .route("/auth/mock", post(routes::auth::mock_login))
-        // Repository routes
-        .route(
-            "/repositories",
-            get(routes::repositories::list_repositories),
-        )
-        .route(
-            "/repositories/:id",
-            get(routes::repositories::get_repository),
-        )
-        .route(
-            "/repositories",
-            post(routes::repositories::create_repository),
-        )
-        // Agent execution routes
-        .route("/agents", get(routes::agents::list_agents))
-        .route("/agents/execute", post(routes::agents::execute_agent))
-        // TODO: Implement these route handlers
-        // .route("/agents/executions", get(routes::agents::list_executions))
-        // .route("/agents/executions/:id", get(routes::agents::get_execution))
-        // .route(
-        //     "/agents/executions/:id/logs",
-        //     get(routes::agents::get_execution_logs),
-        // )
-        // Workflow routes
-        .route("/workflows", post(routes::workflows::create_workflow))
-        .route("/workflows", get(routes::workflows::list_workflows))
-        .route("/workflows/:id", get(routes::workflows::get_workflow))
-        // Dashboard routes
-        .route(
-            "/dashboard/summary",
-            get(routes::dashboard::get_dashboard_summary),
-        )
-        .route(
-            "/dashboard/recent",
-            get(routes::dashboard::get_recent_executions),
-        )
-        // Issues routes (TODO: Implement handlers)
-        // .route(
-        //     "/repositories/:repository_id/issues",
-        //     get(routes::issues::list_repository_issues),
-        // )
-        // .route(
-        //     "/repositories/:repository_id/issues/:issue_number",
-        //     get(routes::issues::get_repository_issue),
-        // )
-        // WebSocket endpoint
-        .route("/ws", get(routes::websocket::websocket_handler))
-        // Telegram Bot Webhook
+        // Telegram Bot Webhook - Does NOT require database
         .route("/telegram/webhook", post(routes::telegram::handle_webhook));
+
+        // COMMENTED OUT: These routes require database (will re-enable with Firebase)
+        // // Authentication routes
+        // .route("/auth/github", get(routes::auth::github_oauth_initiate))
+        // .route(
+        //     "/auth/github/callback",
+        //     get(routes::auth::github_oauth_callback),
+        // )
+        // .route("/auth/refresh", post(routes::auth::refresh_token))
+        // .route("/auth/logout", post(routes::auth::logout))
+        // .route("/auth/mock", post(routes::auth::mock_login))
+        // // Repository routes
+        // .route(
+        //     "/repositories",
+        //     get(routes::repositories::list_repositories),
+        // )
+        // .route(
+        //     "/repositories/:id",
+        //     get(routes::repositories::get_repository),
+        // )
+        // .route(
+        //     "/repositories",
+        //     post(routes::repositories::create_repository),
+        // )
+        // // Agent execution routes
+        // .route("/agents", get(routes::agents::list_agents))
+        // .route("/agents/execute", post(routes::agents::execute_agent))
+        // // Workflow routes
+        // .route("/workflows", post(routes::workflows::create_workflow))
+        // .route("/workflows", get(routes::workflows::list_workflows))
+        // .route("/workflows/:id", get(routes::workflows::get_workflow))
+        // // Dashboard routes
+        // .route(
+        //     "/dashboard/summary",
+        //     get(routes::dashboard::get_dashboard_summary),
+        // )
+        // .route(
+        //     "/dashboard/recent",
+        //     get(routes::dashboard::get_recent_executions),
+        // )
+        // // WebSocket endpoint
+        // .route("/ws", get(routes::websocket::websocket_handler));
 
     // Build main router
     let app = Router::new()
