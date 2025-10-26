@@ -266,20 +266,16 @@ async fn main() -> Result<()> {
                         .await
                         .map_err(|e| error::CliError::Other(format!("TUI error: {}", e)))
                 } else {
-                    // Regular REPL mode (not yet implemented)
-                    println!("{}", "💬 Chat mode (REPL)".cyan().bold());
-                    println!();
-                    println!("{}", "TUI mode available with --tui flag".dimmed());
-                    println!("  Example: miyabi chat --tui");
-                    Ok(())
+                    // Regular REPL mode
+                    let chat_cmd = commands::ChatCommand::new();
+                    chat_cmd.run().await
                 }
             }
             #[cfg(not(feature = "tui"))]
             {
-                println!("{}", "❌ TUI feature not enabled".red().bold());
-                println!();
-                println!("Rebuild with: cargo build --features tui");
-                Ok(())
+                // REPL mode works without TUI feature
+                let chat_cmd = commands::ChatCommand::new();
+                chat_cmd.run().await
             }
         }
         None => {
