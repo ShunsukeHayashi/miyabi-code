@@ -1,6 +1,7 @@
 #!/bin/bash
 # Stream Deck Shortcut: Quick Commands
 # Usage: よく使う定型コマンドをClaude Codeに送信
+# Note: セッションが停止していても自動的に再起動します
 
 COMMAND="${1:-next}"
 
