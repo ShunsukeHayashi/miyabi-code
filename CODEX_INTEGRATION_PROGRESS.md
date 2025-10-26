@@ -1,8 +1,37 @@
 # Codex × Miyabi Integration Progress Report
 
-**Date**: 2025-10-16
-**Status**: Phase 1 Completed ✅
-**Implementation Approach**: Cargo Workspace + Symlink Integration
+**Last Updated**: 2025-10-26
+**Status**: Phase 0 (MVP TUI) + Phase 4 (REPL) Completed ✅
+**Implementation Approach**: Rust-native Chat Interface + LLM Integration
+
+---
+
+## 🎉 Latest Update (2025-10-26)
+
+**Major Milestone**: Chat REPL mode is now fully operational!
+
+### Completed Today
+- ✅ Phase 0 (MVP): TUI基本機能 - 1,041 LOC, OpenAI/Anthropic統合
+- ✅ Phase 4-1: REPL モード実装 - 対話型CLI完成
+- ✅ Phase 4-2: スラッシュコマンド統合 - 11コマンド実装
+
+### Key Features
+- Interactive REPL with rustyline (command history, editing)
+- Streaming LLM responses (OpenAI GPT-4o / Anthropic Claude)
+- Session management with auto-save
+- 11 slash commands: /help, /exit, /mode, /session, /clear, /new, /agent-run, /create-issue, /verify, /daily-update, /session-end
+- TUI mode (ratatui) and REPL mode両対応
+
+### Usage
+```bash
+# REPL mode (default)
+miyabi chat
+
+# TUI mode (full-screen interface)
+miyabi chat --tui
+```
+
+**Related Issues**: #561 (Phase 4: Chat REPL完成), #562 (Phase 3: LLM完全統合)
 
 ---
 
