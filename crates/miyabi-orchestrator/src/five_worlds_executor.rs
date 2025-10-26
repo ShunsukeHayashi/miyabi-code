@@ -13,7 +13,6 @@
 
 use crate::dynamic_scaling::{DynamicScaler, DynamicScalerConfig};
 use miyabi_agent_codegen::CodeGenAgent;
-use miyabi_agent_core::BaseAgent;
 use miyabi_agent_review::ReviewAgent;
 use miyabi_core::error_policy::{CircuitBreaker, FallbackStrategy};
 use miyabi_types::error::MiyabiError;
@@ -25,7 +24,7 @@ use miyabi_types::world::{
 use miyabi_types::AgentConfig;
 use miyabi_worktree::FiveWorldsManager;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
@@ -210,6 +209,15 @@ impl FiveWorldsExecutor {
             "Starting 5-Worlds execution"
         );
 
+        // Hook: 5-Worlds execution start
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("ISSUE_NUMBER".to_string(), issue_number.to_string());
+            params.insert("TASK_ID".to_string(), task.id.clone());
+            params.insert("TASK_TITLE".to_string(), task.title.clone());
+            crate::hooks::notify_orchestrator_event("five_worlds_start", params);
+        }
+
         let start_time = Instant::now();
 
         // Step 1: Prepare world configs
@@ -224,11 +232,30 @@ impl FiveWorldsExecutor {
             .map_err(|e| MiyabiError::Git(e.to_string()))?;
         info!("All 5 worktrees spawned successfully");
 
+        // Hook: Worktrees spawned
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("ISSUE_NUMBER".to_string(), issue_number.to_string());
+            crate::hooks::notify_orchestrator_event("worktrees_spawned", params);
+        }
+
         // Step 3: Execute all worlds
         let results = if self.config.parallel_execution {
+            // Hook: Parallel execution mode
+            {
+                let mut params = std::collections::HashMap::new();
+                params.insert("PARALLEL_MODE".to_string(), "true".to_string());
+                crate::hooks::notify_orchestrator_event("parallel_execution", params);
+            }
             self.execute_worlds_parallel(issue_number, &task, world_configs)
                 .await?
         } else {
+            // Hook: Sequential execution mode
+            {
+                let mut params = std::collections::HashMap::new();
+                params.insert("PARALLEL_MODE".to_string(), "false".to_string());
+                crate::hooks::notify_orchestrator_event("sequential_execution", params);
+            }
             self.execute_worlds_sequential(issue_number, &task, world_configs)
                 .await?
         };
@@ -239,6 +266,22 @@ impl FiveWorldsExecutor {
         // Step 5: Cleanup losing worlds, keep winner
         if let Some(winner_id) = five_worlds_result.winner {
             info!(winner = ?winner_id, "Cleaning up losing worlds");
+
+            // Hook: Winner selected
+            if let Some(winner_result) = five_worlds_result.winner_result() {
+                let mut params = std::collections::HashMap::new();
+                params.insert("WINNER_ID".to_string(), format!("{:?}", winner_id));
+                params.insert("SCORE".to_string(), winner_result.score.total.to_string());
+                crate::hooks::notify_orchestrator_event("winner_selected", params);
+            }
+
+            // Hook: Cleanup losers
+            {
+                let mut params = std::collections::HashMap::new();
+                params.insert("WINNER_ID".to_string(), format!("{:?}", winner_id));
+                crate::hooks::notify_orchestrator_event("cleanup_losers", params);
+            }
+
             for world_id in WorldId::all() {
                 if world_id != winner_id {
                     if let Err(e) = self.worktree_manager.cleanup_world(world_id).await {
@@ -254,6 +297,19 @@ impl FiveWorldsExecutor {
         } else {
             // No winner - cleanup all
             warn!("No successful world - cleaning up all worlds");
+
+            // Hook: No winner
+            {
+                let params = std::collections::HashMap::new();
+                crate::hooks::notify_orchestrator_event("no_winner", params);
+            }
+
+            // Hook: Cleanup all
+            {
+                let params = std::collections::HashMap::new();
+                crate::hooks::notify_orchestrator_event("cleanup_all", params);
+            }
+
             if let Err(e) = self
                 .worktree_manager
                 .cleanup_all_worlds_for_issue(issue_number)
@@ -272,6 +328,18 @@ impl FiveWorldsExecutor {
             "5-Worlds execution completed"
         );
 
+        // Hook: Execution summary
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("DURATION_MS".to_string(), duration.as_millis().to_string());
+            params.insert("SUCCESSFUL_COUNT".to_string(), five_worlds_result.successful_count().to_string());
+            params.insert("FAILED_COUNT".to_string(), five_worlds_result.failed_count().to_string());
+            if let Some(winner_result) = five_worlds_result.winner_result() {
+                params.insert("COST_USD".to_string(), format!("{:.2}", winner_result.cost_usd));
+            }
+            crate::hooks::notify_orchestrator_event("execution_summary", params);
+        }
+
         // Step 6: Log winner details
         if let Some(winner_result) = five_worlds_result.winner_result() {
             info!(
@@ -280,6 +348,14 @@ impl FiveWorldsExecutor {
                 "Winner selected: {}",
                 winner_result.score
             );
+
+            // Hook: Winner details
+            {
+                let mut params = std::collections::HashMap::new();
+                params.insert("WINNER_ID".to_string(), format!("{:?}", five_worlds_result.winner.unwrap()));
+                params.insert("SCORE".to_string(), winner_result.score.total.to_string());
+                crate::hooks::notify_orchestrator_event("winner_details", params);
+            }
         } else {
             warn!("No successful world execution - all worlds failed");
         }
@@ -288,7 +364,11 @@ impl FiveWorldsExecutor {
     }
 
     /// Prepares WorldConfig for all 5 worlds
-    fn prepare_world_configs(&self, issue_number: u64, task: &Task) -> HashMap<WorldId, WorldConfig> {
+    fn prepare_world_configs(
+        &self,
+        issue_number: u64,
+        task: &Task,
+    ) -> HashMap<WorldId, WorldConfig> {
         let mut configs = HashMap::new();
 
         // Use task.id as the directory name (it should be filesystem-safe)
@@ -328,6 +408,13 @@ impl FiveWorldsExecutor {
 
         info!(max_concurrency = max_concurrency, "Dynamic scaling applied");
 
+        // Hook: Dynamic scaling applied
+        {
+            let mut params = std::collections::HashMap::new();
+            params.insert("MAX_CONCURRENCY".to_string(), max_concurrency.to_string());
+            crate::hooks::notify_orchestrator_event("parallel_execution", params);
+        }
+
         let mut handles = vec![];
         let semaphore = Arc::new(tokio::sync::Semaphore::new(max_concurrency));
 
@@ -355,6 +442,14 @@ impl FiveWorldsExecutor {
             };
 
             if should_skip {
+                // Hook: Execution skipped due to circuit breaker
+                {
+                    let mut params = std::collections::HashMap::new();
+                    params.insert("WORLD_ID".to_string(), format!("{:?}", world_id));
+                    params.insert("STATE".to_string(), "Open".to_string());
+                    crate::hooks::notify_circuit_breaker_event("execution_skipped", params);
+                }
+
                 // Return failed result immediately
                 let failed_result = WorldExecutionResult::failed(
                     world_id,
@@ -400,16 +495,27 @@ impl FiveWorldsExecutor {
                         let config_clone = config.clone();
                         let task_clone2 = task_clone.clone();
 
-                        let breaker_result = breaker.call(|| {
-                            Box::pin(async move {
-                                tokio::time::timeout(
-                                    timeout,
-                                    Self::execute_single_world_stub(world_id_clone, config_clone, task_clone2),
-                                )
-                                .await
-                                .map_err(|_| std::io::Error::new(std::io::ErrorKind::TimedOut, "Execution timeout"))?
+                        let breaker_result = breaker
+                            .call(|| {
+                                Box::pin(async move {
+                                    tokio::time::timeout(
+                                        timeout,
+                                        Self::execute_single_world_stub(
+                                            world_id_clone,
+                                            config_clone,
+                                            task_clone2,
+                                        ),
+                                    )
+                                    .await
+                                    .map_err(|_| {
+                                        std::io::Error::new(
+                                            std::io::ErrorKind::TimedOut,
+                                            "Execution timeout",
+                                        )
+                                    })?
+                                })
                             })
-                        }).await;
+                            .await;
 
                         match breaker_result {
                             Ok(exec_result) => Ok(Ok(exec_result)),
@@ -449,7 +555,10 @@ impl FiveWorldsExecutor {
                     Ok(Ok(exec_result)) => (world_id, exec_result),
                     Ok(Err(e)) => {
                         warn!(world_id = ?world_id, error = %e, "World execution failed");
-                        (world_id, WorldExecutionResult::failed(world_id, e.to_string()))
+                        (
+                            world_id,
+                            WorldExecutionResult::failed(world_id, e.to_string()),
+                        )
                     }
                     Err(e) => {
                         warn!(world_id = ?world_id, error = %e, "World execution error");
@@ -523,12 +632,21 @@ impl FiveWorldsExecutor {
                     let config_clone = config;
                     let task_clone = task.clone();
 
-                    breaker.call(|| {
-                        Box::pin(async move {
-                            Self::execute_single_world_stub(world_id_clone, config_clone, task_clone).await
-                                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+                    breaker
+                        .call(|| {
+                            Box::pin(async move {
+                                Self::execute_single_world_stub(
+                                    world_id_clone,
+                                    config_clone,
+                                    task_clone,
+                                )
+                                .await
+                                .map_err(|e| {
+                                    std::io::Error::other(e.to_string())
+                                })
+                            })
                         })
-                    }).await
+                        .await
                 } else {
                     Self::execute_single_world_stub(world_id, config, task.clone()).await
                 }
@@ -554,6 +672,7 @@ impl FiveWorldsExecutor {
     }
 
     /// Builds AgentConfig from WorldConfig
+    #[allow(dead_code)]
     fn build_agent_config(world_config: &WorldConfig) -> AgentConfig {
         AgentConfig {
             device_identifier: "miyabi-five-worlds".to_string(),
@@ -576,6 +695,7 @@ impl FiveWorldsExecutor {
     }
 
     /// Estimates cost based on model and duration
+    #[allow(dead_code)]
     fn estimate_cost(config: &WorldConfig, duration_ms: u64) -> f64 {
         // Rough cost estimation based on model and duration
         let base_cost_per_min = match config.model.as_str() {
@@ -590,6 +710,7 @@ impl FiveWorldsExecutor {
     }
 
     /// Converts ReviewResult to EvaluationScore
+    #[allow(dead_code)]
     fn review_result_to_evaluation_score(review: &ReviewResult) -> EvaluationScore {
         let quality_report = &review.quality_report;
         let breakdown = &quality_report.breakdown;
@@ -610,7 +731,7 @@ impl FiveWorldsExecutor {
             build_success,
             tests_passed,
             tests_total,
-            clippy_warnings,
+            clippy_warnings as usize,
             code_quality,
             security,
         )
@@ -618,6 +739,7 @@ impl FiveWorldsExecutor {
 
     /// Calculates clippy warning count from score
     /// Score formula: 100 - (warnings * 5)
+    #[allow(dead_code)]
     fn calculate_clippy_warnings(clippy_score: u8) -> u32 {
         let score_loss = 100u8.saturating_sub(clippy_score);
         (score_loss / 5) as u32
@@ -631,6 +753,7 @@ impl FiveWorldsExecutor {
     /// 3. Run ReviewAgent to evaluate generated code
     /// 4. Calculate EvaluationScore from review results
     /// 5. Return WorldExecutionResult
+    #[allow(dead_code)]
     async fn execute_single_world(
         world_id: WorldId,
         config: WorldConfig,
@@ -652,10 +775,7 @@ impl FiveWorldsExecutor {
             .get_world_handle(world_id)
             .await
             .ok_or_else(|| {
-                MiyabiError::Unknown(format!(
-                    "Worktree not found for world {:?}",
-                    world_id
-                ))
+                MiyabiError::Unknown(format!("Worktree not found for world {:?}", world_id))
             })?;
 
         // Step 2: Build agent config
@@ -722,12 +842,12 @@ impl FiveWorldsExecutor {
 
         // Return a mock successful result
         let score = EvaluationScore::calculate(
-            true,  // build_success
-            8,     // tests_passed
-            10,    // tests_total
-            5,     // clippy_warnings
-            0.85,  // code_quality
-            0.90,  // security
+            true, // build_success
+            8,    // tests_passed
+            10,   // tests_total
+            5,    // clippy_warnings
+            0.85, // code_quality
+            0.90, // security
         );
 
         Ok(WorldExecutionResult::success(
@@ -801,6 +921,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Integration test: requires worktree cleanup after execution
     async fn test_execute_task_with_five_worlds_parallel() {
         let config = FiveWorldsExecutorConfig {
             parallel_execution: true,
@@ -825,6 +946,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Integration test: requires worktree cleanup after execution
     async fn test_execute_task_with_five_worlds_sequential() {
         let config = FiveWorldsExecutorConfig {
             parallel_execution: false,

@@ -6,7 +6,7 @@ use futures::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::broadcast;
-use tracing::{info, warn};
+use tracing::info;
 
 /// WebSocket events that can be broadcasted to all connected clients
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -77,6 +77,15 @@ pub struct WsState {
     pub tx: broadcast::Sender<WsEvent>,
 }
 
+/// Type alias for compatibility
+pub type WebSocketManager = WsState;
+
+impl Default for WsState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WsState {
     pub fn new() -> Self {
         let (tx, _rx) = broadcast::channel(100);
@@ -87,13 +96,15 @@ impl WsState {
     pub fn broadcast(&self, event: WsEvent) {
         let _ = self.tx.send(event);
     }
+
+    /// Handle a WebSocket connection
+    pub async fn handle_connection(self: Arc<Self>, socket: WebSocket, _user_id: String) {
+        handle_socket(socket, self).await;
+    }
 }
 
 /// WebSocket upgrade handler
-pub async fn ws_handler(
-    ws: WebSocketUpgrade,
-    state: Arc<WsState>,
-) -> Response {
+pub async fn ws_handler(ws: WebSocketUpgrade, state: Arc<WsState>) -> Response {
     ws.on_upgrade(|socket| handle_socket(socket, state))
 }
 
@@ -131,7 +142,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
         while let Some(Ok(msg)) = receiver.next().await {
             match msg {
                 Message::Close(_) => break,
-                Message::Ping(data) => {
+                Message::Ping(_data) => {
                     // Echo back pong
                     info!("Received ping");
                 }
@@ -159,8 +170,14 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
 pub fn start_event_simulator(state: Arc<WsState>) {
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(5));
-        let agent_types = vec!["CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "PRAgent", "DeploymentAgent"];
-        let log_levels = vec!["INFO", "DEBUG", "WARN", "ERROR"];
+        let agent_types = [
+            "CoordinatorAgent",
+            "CodeGenAgent",
+            "ReviewAgent",
+            "PRAgent",
+            "DeploymentAgent",
+        ];
+        let log_levels = ["INFO", "DEBUG", "WARN", "ERROR"];
         let mut counter = 0;
 
         loop {
@@ -181,7 +198,7 @@ pub fn start_event_simulator(state: Arc<WsState>) {
             }
 
             // Simulate log entry every 5 seconds
-            if counter % 1 == 0 {
+            {
                 let level = log_levels[counter % log_levels.len()];
                 let agent_type = agent_types[counter % agent_types.len()];
 

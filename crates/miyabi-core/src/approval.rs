@@ -103,7 +103,10 @@ impl ApprovalSystem {
     }
 
     /// Request approval for command execution
-    pub fn request_command_execution(&self, approval: &CommandApproval) -> Result<ApprovalDecision> {
+    pub fn request_command_execution(
+        &self,
+        approval: &CommandApproval,
+    ) -> Result<ApprovalDecision> {
         if !self.interactive {
             return Ok(ApprovalDecision::Approve);
         }
@@ -129,7 +132,11 @@ impl ApprovalSystem {
     /// Print command header
     fn print_command_header(&self, approval: &CommandApproval) {
         println!("\n{}", "─".repeat(60).cyan());
-        println!("{}: {}", "Execute Command".red().bold(), approval.command.cyan());
+        println!(
+            "{}: {}",
+            "Execute Command".red().bold(),
+            approval.command.cyan()
+        );
 
         if !approval.args.is_empty() {
             println!("  Args: {}", approval.args.join(" "));
@@ -169,7 +176,10 @@ impl ApprovalSystem {
         }
 
         if total > display_lines {
-            println!("{}", format!("... ({} more lines)", total - display_lines).dimmed());
+            println!(
+                "{}",
+                format!("... ({} more lines)", total - display_lines).dimmed()
+            );
         }
     }
 
@@ -200,6 +210,7 @@ impl ApprovalSystem {
     }
 
     /// Prompt user for decision
+    #[allow(clippy::only_used_in_recursion)]
     fn prompt_decision(&self) -> Result<ApprovalDecision> {
         println!();
         println!("Options:");
@@ -209,7 +220,8 @@ impl ApprovalSystem {
         println!("  {} - Exit program", "[e]xit".yellow());
         print!("\n{} ", "Decision [y/n/d/e]:".bold());
 
-        io::stdout().flush()
+        io::stdout()
+            .flush()
             .map_err(|e| MiyabiError::Unknown(format!("IO error: {}", e)))?;
 
         let mut input = String::new();
@@ -244,10 +256,8 @@ mod tests {
     fn test_approval_system_non_interactive() {
         let system = ApprovalSystem::new(false);
 
-        let approval = FileChangeApproval::create(
-            "test.txt".to_string(),
-            "Hello, world!".to_string(),
-        );
+        let approval =
+            FileChangeApproval::create("test.txt".to_string(), "Hello, world!".to_string());
 
         let decision = system.request_file_change(&approval).unwrap();
         assert_eq!(decision, ApprovalDecision::Approve);
@@ -255,10 +265,8 @@ mod tests {
 
     #[test]
     fn test_file_change_approval_create() {
-        let approval = FileChangeApproval::create(
-            "new_file.txt".to_string(),
-            "content".to_string(),
-        );
+        let approval =
+            FileChangeApproval::create("new_file.txt".to_string(), "content".to_string());
 
         assert_eq!(approval.operation, FileOperation::Create);
         assert_eq!(approval.old_content, "");
@@ -278,10 +286,8 @@ mod tests {
 
     #[test]
     fn test_file_change_approval_delete() {
-        let approval = FileChangeApproval::delete(
-            "file.txt".to_string(),
-            "content to delete".to_string(),
-        );
+        let approval =
+            FileChangeApproval::delete("file.txt".to_string(), "content to delete".to_string());
 
         assert_eq!(approval.operation, FileOperation::Delete);
         assert_eq!(approval.new_content, "");

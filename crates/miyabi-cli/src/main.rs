@@ -256,6 +256,7 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
+        #[allow(unused_variables)]
         Some(Commands::Chat { prompt, tui }) => {
             #[cfg(feature = "tui")]
             {

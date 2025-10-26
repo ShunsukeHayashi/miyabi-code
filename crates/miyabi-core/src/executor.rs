@@ -7,7 +7,7 @@
 //! 4. Complete tasks autonomously
 
 use crate::{JsonlWriter, Session, ToolRegistry};
-use miyabi_llm::{AnthropicClient, OpenAIClient, LlmClient, Message, ToolCallResponse};
+use miyabi_llm::{AnthropicClient, LlmClient, Message, OpenAIClient, ToolCallResponse};
 use miyabi_types::error::Result;
 use miyabi_types::MiyabiError;
 use std::path::PathBuf;
@@ -41,19 +41,21 @@ impl TaskExecutor {
 
         let llm_client: Box<dyn LlmClient> = match provider.as_str() {
             "openai" => {
-                let client = OpenAIClient::from_env()
-                    .map_err(|e| MiyabiError::Config(format!("Failed to create OpenAI client: {}", e)))?;
+                let client = OpenAIClient::from_env().map_err(|e| {
+                    MiyabiError::Config(format!("Failed to create OpenAI client: {}", e))
+                })?;
                 Box::new(client)
             }
-            "anthropic" | _ => {
-                let client = AnthropicClient::from_env()
-                    .map_err(|e| MiyabiError::Config(format!("Failed to create Anthropic client: {}", e)))?;
+            _  => {
+                let client = AnthropicClient::from_env().map_err(|e| {
+                    MiyabiError::Config(format!("Failed to create Anthropic client: {}", e))
+                })?;
                 Box::new(client)
             }
         };
 
-        let tool_registry = ToolRegistry::new(session.mode.clone())
-            .with_working_dir(session.context.cwd.clone());
+        let tool_registry =
+            ToolRegistry::new(session.mode.clone()).with_working_dir(session.context.cwd.clone());
 
         Ok(Self {
             session,
@@ -131,7 +133,10 @@ impl TaskExecutor {
 
     /// Run the autonomous execution loop
     pub async fn run(&mut self) -> Result<()> {
-        info!("Starting autonomous execution for task: {}", self.session.task);
+        info!(
+            "Starting autonomous execution for task: {}",
+            self.session.task
+        );
 
         // Record start time
         self.start_time = Some(Instant::now());
@@ -154,18 +159,24 @@ impl TaskExecutor {
         loop {
             // Check turn limit
             if turn_count >= self.max_turns {
-                warn!("Reached maximum turn limit ({}), forcing conclusion", self.max_turns);
+                warn!(
+                    "Reached maximum turn limit ({}), forcing conclusion",
+                    self.max_turns
+                );
                 let error_msg = format!("Reached maximum turn limit of {}", self.max_turns);
 
                 // Emit failure event
-                let _ = self.jsonl_writer.failure(
-                    error_msg.clone(),
-                    false,
-                    turn_count,
-                );
+                let _ = self
+                    .jsonl_writer
+                    .failure(error_msg.clone(), false, turn_count);
 
-                self.session.fail("Reached maximum turn limit without completing task".to_string(), false);
-                self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                self.session.fail(
+                    "Reached maximum turn limit without completing task".to_string(),
+                    false,
+                );
+                self.session
+                    .save()
+                    .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
                 return Err(MiyabiError::Unknown(error_msg));
             }
 
@@ -183,9 +194,7 @@ impl TaskExecutor {
                 .llm_client
                 .chat_with_tools(messages.clone(), tools)
                 .await
-                .map_err(|e| {
-                    MiyabiError::Unknown(format!("LLM request failed: {}", e))
-                })?;
+                .map_err(|e| MiyabiError::Unknown(format!("LLM request failed: {}", e)))?;
 
             match response {
                 ToolCallResponse::ToolCalls(calls) => {
@@ -252,7 +261,8 @@ impl TaskExecutor {
 
                                 // Check consecutive failure limit
                                 if consecutive_failures >= MAX_CONSECUTIVE_FAILURES {
-                                    let error_msg = format!("Too many consecutive tool failures: {}", e);
+                                    let error_msg =
+                                        format!("Too many consecutive tool failures: {}", e);
 
                                     // Emit failure event
                                     let _ = self.jsonl_writer.failure(
@@ -261,9 +271,10 @@ impl TaskExecutor {
                                         turn_count,
                                     );
 
+                                    self.session.fail(error_msg.clone(), false);
                                     self.session
-                                        .fail(error_msg.clone(), false);
-                                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                                        .save()
+                                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
                                     return Err(MiyabiError::Unknown(format!(
                                         "Execution aborted after {} consecutive tool failures",
                                         MAX_CONSECUTIVE_FAILURES
@@ -274,7 +285,9 @@ impl TaskExecutor {
                     }
 
                     // Save session after each iteration
-                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    self.session
+                        .save()
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     // Continue loop - LLM will decide next action
                 }
@@ -283,33 +296,42 @@ impl TaskExecutor {
                     info!("Task completed with conclusion: {}", summary);
 
                     // Calculate total duration
-                    let total_duration = self.start_time
+                    let total_duration = self
+                        .start_time
                         .map(|start| start.elapsed().as_millis() as u64)
                         .unwrap_or(0);
 
                     // Emit conclusion event
-                    let _ = self.jsonl_writer.conclusion(
-                        summary.clone(),
-                        turn_count,
-                        total_duration,
-                    );
+                    let _ =
+                        self.jsonl_writer
+                            .conclusion(summary.clone(), turn_count, total_duration);
 
                     // Add final turn with conclusion
                     self.session.add_turn(summary);
                     self.session.complete();
-                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    self.session
+                        .save()
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     return Ok(());
                 }
 
                 ToolCallResponse::NeedApproval { action, reason } => {
                     // For now, treat this as an error - interactive mode not implemented yet
-                    warn!("LLM requested approval for: {} (reason: {})", action, reason);
-                    self.session.fail(format!(
-                        "Interactive approval requested but not supported: {}",
-                        action
-                    ), false);
-                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    warn!(
+                        "LLM requested approval for: {} (reason: {})",
+                        action, reason
+                    );
+                    self.session.fail(
+                        format!(
+                            "Interactive approval requested but not supported: {}",
+                            action
+                        ),
+                        false,
+                    );
+                    self.session
+                        .save()
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     return Err(MiyabiError::Unknown(
                         "Interactive mode not yet implemented".to_string(),
@@ -354,7 +376,10 @@ mod tests {
             return;
         }
 
-        let session = Session::new("count lines of Rust code".to_string(), ExecutionMode::ReadOnly);
+        let session = Session::new(
+            "count lines of Rust code".to_string(),
+            ExecutionMode::ReadOnly,
+        );
         let executor = TaskExecutor::new(session).unwrap();
 
         let prompt = executor.build_system_prompt();

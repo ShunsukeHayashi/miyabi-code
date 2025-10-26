@@ -7,22 +7,25 @@ use crate::error::{CliError, Result};
 use colored::Colorize;
 use miyabi_core::{ExecutionMode, Session, TaskExecutor};
 use rustyline::error::ReadlineError;
-use rustyline::{DefaultEditor, Result as RustylineResult};
+use rustyline::DefaultEditor;
 use std::path::PathBuf;
 
 /// Chat command for interactive REPL
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ChatCommand {
     /// Execution mode (can be changed with /mode command)
     mode: ExecutionMode,
     /// LLM model name
     model: String,
     /// Working directory
+    #[allow(dead_code)]
     working_dir: PathBuf,
     /// Show verbose output
     verbose: bool,
 }
 
+#[allow(dead_code)]
 impl ChatCommand {
     /// Create a new chat command
     pub fn new() -> Self {
@@ -84,7 +87,10 @@ impl ChatCommand {
 
                     // Handle slash commands
                     if line.starts_with('/') {
-                        match self.handle_slash_command(line, &mut mode, &mut session).await {
+                        match self
+                            .handle_slash_command(line, &mut mode, &mut session)
+                            .await
+                        {
                             Ok(should_exit) => {
                                 if should_exit {
                                     break;
@@ -131,7 +137,11 @@ impl ChatCommand {
     fn print_welcome(&self) {
         println!("\n{}", "🌸 Miyabi Interactive Chat".cyan().bold());
         println!("{}", "─".repeat(50).cyan());
-        println!("Type {} for help, {} to exit", "/help".green(), "/exit".green());
+        println!(
+            "Type {} for help, {} to exit",
+            "/help".green(),
+            "/exit".green()
+        );
         println!("{}\n", "─".repeat(50).cyan());
     }
 
@@ -179,7 +189,10 @@ impl ChatCommand {
             "exit" | "quit" | "q" => Ok(true),
             "mode" => {
                 if parts.len() < 2 {
-                    println!("{} Usage: /mode <readonly|fileedits|fullaccess>", "Error:".red());
+                    println!(
+                        "{} Usage: /mode <readonly|fileedits|fullaccess>",
+                        "Error:".red()
+                    );
                     return Ok(false);
                 }
 

@@ -1,5 +1,3 @@
-use miyabi_tui;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing

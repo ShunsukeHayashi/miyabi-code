@@ -1,8 +1,7 @@
 use axum::{
-    routing::{get, post},
-    Router,
-    Json,
     extract::Path,
+    routing::{get, post},
+    Json, Router,
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +17,7 @@ pub struct AgentsListResponse {
     pub agents: Vec<AgentStatus>,
 }
 
-async fn list_agents() -> Json<AgentsListResponse> {
+pub async fn list_agents() -> Json<AgentsListResponse> {
     Json(AgentsListResponse {
         agents: vec![
             AgentStatus {
@@ -55,9 +54,9 @@ pub struct ExecuteAgentResponse {
     pub message: String,
 }
 
-async fn execute_agent(
+pub async fn execute_agent(
     Path(agent_type): Path<String>,
-    Json(payload): Json<ExecuteAgentRequest>,
+    Json(_payload): Json<ExecuteAgentRequest>,
 ) -> Json<ExecuteAgentResponse> {
     Json(ExecuteAgentResponse {
         success: true,

@@ -47,12 +47,15 @@ pub enum CliError {
     Mode(#[from] miyabi_modes::error::ModeError),
 
     #[error("Unknown error: {0}")]
+    #[allow(dead_code)]
     Unknown(String),
 
     #[error("{0}")]
+    #[allow(dead_code)]
     Other(String),
 
     #[error("Session error: {0}")]
+    #[allow(dead_code)]
     SessionError(String),
 
     #[error("Agent execution error: {0}")]

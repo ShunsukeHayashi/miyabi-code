@@ -6,8 +6,8 @@
 use crate::error::{CliError, Result};
 use colored::Colorize;
 use miyabi_core::{ExecutionMode, Session, SessionStatus, TaskExecutor};
-use std::io::Write;
 
+#[allow(dead_code)]
 pub struct ExecCommand {
     /// Task description (e.g., "count lines of code")
     task: String,
@@ -25,9 +25,11 @@ pub struct ExecCommand {
     resume_last: bool,
 
     /// Output schema for structured output (optional)
+    #[allow(dead_code)]
     output_schema: Option<String>,
 }
 
+#[allow(dead_code)]
 impl ExecCommand {
     pub fn new(task: String) -> Self {
         Self {
@@ -98,10 +100,12 @@ impl ExecCommand {
         println!();
 
         // Create executor and run
-        let mut executor = TaskExecutor::new(session.clone())
-            .map_err(|e| CliError::Unknown(e.to_string()))?;
+        let mut executor =
+            TaskExecutor::new(session.clone()).map_err(|e| CliError::Unknown(e.to_string()))?;
 
-        executor.run().await
+        executor
+            .run()
+            .await
             .map_err(|e| CliError::Unknown(e.to_string()))?;
 
         // Get updated session from executor
@@ -136,7 +140,9 @@ impl ExecCommand {
             .with_jsonl_output(true);
 
         // Run the executor (will emit JSONL events automatically)
-        executor.run().await
+        executor
+            .run()
+            .await
             .map_err(|e| CliError::Unknown(e.to_string()))?;
 
         // Get updated session from executor

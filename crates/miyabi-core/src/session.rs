@@ -189,7 +189,7 @@ pub struct SessionContext {
 impl Session {
     /// Create a new session
     pub fn new(task: String, mode: ExecutionMode) -> Self {
-        let id = format!("ses_{}", Uuid::new_v4().to_string()[..8].to_string());
+        let id = format!("ses_{}", &Uuid::new_v4().to_string()[..8]);
         let now = Utc::now();
 
         Self {
@@ -411,7 +411,14 @@ impl SessionContext {
 
     fn get_github_repo() -> Option<String> {
         let output = std::process::Command::new("gh")
-            .args(["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"])
+            .args([
+                "repo",
+                "view",
+                "--json",
+                "nameWithOwner",
+                "-q",
+                ".nameWithOwner",
+            ])
             .output()
             .ok()?;
 

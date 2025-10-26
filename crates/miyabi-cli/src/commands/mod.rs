@@ -14,7 +14,9 @@ pub mod status;
 pub mod worktree;
 
 pub use agent::AgentCommand;
+#[allow(unused_imports)]
 pub use chat::ChatCommand;
+#[allow(unused_imports)]
 pub use exec::ExecCommand;
 pub use init::InitCommand;
 pub use install::InstallCommand;

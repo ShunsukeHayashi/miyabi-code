@@ -257,6 +257,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // Environment-dependent: requires gh CLI to not be configured
     fn test_get_github_token_empty_env() {
         // Set empty token
         std::env::set_var("GITHUB_TOKEN", "");
