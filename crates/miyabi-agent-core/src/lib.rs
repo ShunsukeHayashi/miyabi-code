@@ -3,12 +3,14 @@
 //! This crate provides the foundational `BaseAgent` trait that all agents implement,
 //! along with common utilities for agent orchestration and lifecycle management.
 
+pub mod auto_index_hook;
 pub mod base;
 pub mod hooks;
 pub mod orchestration;
 pub mod prompt_enhancement;
 pub mod rules_context;
 
+pub use auto_index_hook::AutoIndexHook;
 pub use base::BaseAgent;
 pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
