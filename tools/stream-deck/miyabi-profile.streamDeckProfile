@@ -1,0 +1,107 @@
+{
+  "Name": "Miyabi Development",
+  "DeviceType": 0,
+  "Pages": [
+    {
+      "Name": "Main",
+      "Actions": [
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/01-notify-voice.sh",
+            "arguments": "タスク完了しました",
+            "title": "Voice\\nNotify",
+            "icon": "🔊"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Voice Notify"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/02-build-release.sh",
+            "title": "Build\\nRelease",
+            "icon": "🏗️"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Build Release"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/03-run-tests.sh",
+            "title": "Run\\nTests",
+            "icon": "✅"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Run Tests"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/04-git-status.sh",
+            "title": "Git\\nStatus",
+            "icon": "📊"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Git Status"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/06-quick-commands.sh",
+            "arguments": "next",
+            "title": "Next",
+            "icon": "▶️"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Next"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/06-quick-commands.sh",
+            "arguments": "continue",
+            "title": "Continue",
+            "icon": "⏭️"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Continue"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/06-quick-commands.sh",
+            "arguments": "fix",
+            "title": "Fix\\nErrors",
+            "icon": "🔧"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Fix Errors"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/06-quick-commands.sh",
+            "arguments": "infinity",
+            "title": "Infinity\\nMode",
+            "icon": "∞"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Infinity Mode"
+        },
+        {
+          "State": 0,
+          "Settings": {
+            "path": "/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/06-quick-commands.sh",
+            "arguments": "help",
+            "title": "Help",
+            "icon": "❓"
+          },
+          "UUID": "com.elgato.streamdeck.system.open",
+          "Name": "Help"
+        }
+      ]
+    }
+  ]
+}

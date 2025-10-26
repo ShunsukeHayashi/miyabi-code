@@ -1,0 +1,31 @@
+Miyabi Stream Deck - パス一覧
+=====================================
+
+🔊 音声通知:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/01-notify-voice.sh
+
+🏗️ ビルド:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/02-build-release.sh
+
+✅ テスト:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/03-run-tests.sh
+
+📊 Git:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/04-git-status.sh
+
+💬 Claude送信:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/05-send-to-claude.sh
+
+⚡ クイックコマンド:
+/Users/shunsuke/Dev/miyabi-private/tools/stream-deck/06-quick-commands.sh
+
+クイックコマンドの引数:
+- next      (Next)
+- continue  (Continue)
+- fix       (Fix Errors)
+- test      (Run Tests)
+- commit    (Create Commit)
+- pr        (Create PR)
+- infinity  (Infinity Mode)
+- voice     (Voice Notification)
+- help      (Show Help)
