@@ -3,6 +3,7 @@
 //! This module implements the main orchestrator that controls the entire
 //! autonomous workflow from Issue creation to PR merge.
 
+use crate::claude_code_executor::{ClaudeCodeExecutor, ExecutorConfig};
 use crate::decision::{Decision, DecisionEngine};
 use crate::notification::{Notification, NotificationService};
 use crate::state_machine::{Phase, StateMachine};
@@ -14,6 +15,7 @@ use miyabi_worktree::{WorktreeInfo, WorktreeManager};
 use miyabi_types::{AgentConfig, Issue};
 use miyabi_types::task::TaskDecomposition;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{info, warn};
@@ -86,6 +88,9 @@ pub struct HeadlessOrchestrator {
     /// Task decomposition agent
     coordinator_agent: CoordinatorAgent,
 
+    /// Claude Code Executor for Phase 4 (5-Worlds parallel execution)
+    claude_code_executor: Option<ClaudeCodeExecutor>,
+
     /// GitHub API client (optional for dry-run mode)
     github_client: Option<Arc<GitHubClient>>,
 
@@ -147,11 +152,27 @@ impl HeadlessOrchestrator {
             None
         };
 
+        // Initialize ClaudeCodeExecutor (optional, only if not in dry-run)
+        let claude_code_executor = if !config.dry_run {
+            let executor_config = ExecutorConfig {
+                timeout_secs: 600, // 10 minutes per task
+                num_worlds: 5,     // 5-Worlds parallel execution
+                success_threshold: 0.8,
+                log_dir: PathBuf::from(".ai/logs/executor"),
+            };
+            info!("   ClaudeCodeExecutor initialized: 5-Worlds parallel execution (10min timeout)");
+            Some(ClaudeCodeExecutor::new(executor_config))
+        } else {
+            info!("   Dry-run mode: ClaudeCodeExecutor disabled");
+            None
+        };
+
         Self {
             decision_engine: DecisionEngine::new(),
             issue_agent: IssueAgent::new(),
             coordinator_agent: CoordinatorAgent::new(agent_config.clone()),
             notification_service: NotificationService::new(),
+            claude_code_executor,
             config,
             agent_config,
             github_client: None,
@@ -210,11 +231,27 @@ impl HeadlessOrchestrator {
             None
         };
 
+        // Initialize ClaudeCodeExecutor (optional, only if not in dry-run)
+        let claude_code_executor = if !config.dry_run {
+            let executor_config = ExecutorConfig {
+                timeout_secs: 600, // 10 minutes per task
+                num_worlds: 5,     // 5-Worlds parallel execution
+                success_threshold: 0.8,
+                log_dir: PathBuf::from(".ai/logs/executor"),
+            };
+            info!("   ClaudeCodeExecutor initialized: 5-Worlds parallel execution (10min timeout)");
+            Some(ClaudeCodeExecutor::new(executor_config))
+        } else {
+            info!("   Dry-run mode: ClaudeCodeExecutor disabled");
+            None
+        };
+
         Self {
             decision_engine: DecisionEngine::new(),
             issue_agent: IssueAgent::new(),
             coordinator_agent: CoordinatorAgent::new(agent_config.clone()),
             notification_service: NotificationService::new(),
+            claude_code_executor,
             config,
             agent_config,
             github_client: Some(Arc::new(github_client)),
@@ -227,7 +264,7 @@ impl HeadlessOrchestrator {
     ///
     /// This is the entry point for the autonomous workflow.
     /// Called by webhook handler when a new Issue is created.
-    pub async fn handle_issue_created(&self, issue: &Issue) -> Result<ExecutionResult> {
+    pub async fn handle_issue_created(&mut self, issue: &Issue) -> Result<ExecutionResult> {
         info!("📥 Received Issue #{}: {}", issue.number, issue.title);
 
         if self.config.dry_run {
@@ -275,8 +312,19 @@ impl HeadlessOrchestrator {
                 // Continue to Phase 3: Worktree Creation (if multiple tasks and worktree enabled)
                 if decomposition.tasks.len() > 1 {
                     if self.worktree_manager.is_some() {
-                        let _worktrees = self.run_phase_3_worktree_creation(issue, &decomposition, &mut state_machine).await?;
+                        let worktrees = self.run_phase_3_worktree_creation(issue, &decomposition, &mut state_machine).await?;
                         info!("✅ Phase 3 complete: {} worktrees created", decomposition.tasks.len());
+
+                        // Continue to Phase 4: CodeGen Execution (5-Worlds parallel)
+                        if self.claude_code_executor.is_some() && !worktrees.is_empty() {
+                            let execution_result = self.run_phase_4_codegen_execution(issue, &worktrees, &mut state_machine).await?;
+                            info!("✅ Phase 4 complete: {}% confidence ({}/{} worlds succeeded)",
+                                  (execution_result.confidence * 100.0).round(),
+                                  execution_result.successful_worlds,
+                                  execution_result.total_worlds);
+                        } else {
+                            info!("⏭️  Phase 4 skipped: ClaudeCodeExecutor not initialized or no worktrees");
+                        }
                     } else {
                         info!("⏭️  Phase 3 skipped: Single-threaded execution (no worktree manager)");
                     }
@@ -309,8 +357,19 @@ impl HeadlessOrchestrator {
                 // Continue to Phase 3: Worktree Creation (if multiple tasks and worktree enabled)
                 if decomposition.tasks.len() > 1 {
                     if self.worktree_manager.is_some() {
-                        let _worktrees = self.run_phase_3_worktree_creation(issue, &decomposition, &mut state_machine).await?;
+                        let worktrees = self.run_phase_3_worktree_creation(issue, &decomposition, &mut state_machine).await?;
                         info!("✅ Phase 3 complete: {} worktrees created", decomposition.tasks.len());
+
+                        // Continue to Phase 4: CodeGen Execution (5-Worlds parallel)
+                        if self.claude_code_executor.is_some() && !worktrees.is_empty() {
+                            let execution_result = self.run_phase_4_codegen_execution(issue, &worktrees, &mut state_machine).await?;
+                            info!("✅ Phase 4 complete: {}% confidence ({}/{} worlds succeeded)",
+                                  (execution_result.confidence * 100.0).round(),
+                                  execution_result.successful_worlds,
+                                  execution_result.total_worlds);
+                        } else {
+                            info!("⏭️  Phase 4 skipped: ClaudeCodeExecutor not initialized or no worktrees");
+                        }
                     } else {
                         info!("⏭️  Phase 3 skipped: Single-threaded execution (no worktree manager)");
                     }
@@ -577,6 +636,81 @@ impl HeadlessOrchestrator {
         state_machine.transition_to(Phase::WorktreeCreation)?;
 
         Ok(worktrees)
+    }
+
+    /// Phase 4: CodeGen Execution & 5-Worlds Parallel Implementation
+    async fn run_phase_4_codegen_execution(
+        &mut self,
+        issue: &Issue,
+        worktrees: &[WorktreeInfo],
+        state_machine: &mut StateMachine,
+    ) -> Result<crate::claude_code_executor::ExecutionResult> {
+        info!("🚀 Phase 4: CodeGen Execution (5-Worlds Parallel) for #{}", issue.number);
+        info!("   Worktrees: {:?}", worktrees.iter().map(|w| &w.path).collect::<Vec<_>>());
+
+        let executor = self.claude_code_executor.as_mut()
+            .ok_or_else(|| anyhow!("ClaudeCodeExecutor not initialized"))?;
+
+        if self.config.dry_run {
+            info!("   [DRY-RUN] Skipping actual claude code execution");
+            state_machine.transition_to(Phase::CodeGeneration)?;
+
+            // Mock result for dry-run
+            return Ok(crate::claude_code_executor::ExecutionResult {
+                success: true,
+                confidence: 0.8,
+                successful_worlds: 4,
+                total_worlds: 5,
+                message: "[DRY-RUN] Mock 5-Worlds execution".to_string(),
+                world_results: vec![],
+            });
+        }
+
+        // Use the first worktree as base (or primary worktree for the issue)
+        let base_worktree = worktrees.first()
+            .ok_or_else(|| anyhow!("No worktrees available for Phase 4"))?;
+
+        info!("   Base worktree: {:?}", base_worktree.path);
+        info!("   Executing 5-Worlds parallel execution...");
+
+        // Execute agent run with 5-Worlds parallel execution
+        let execution_result = executor
+            .execute_agent_run(issue.number as u32, base_worktree.path.clone())
+            .await?;
+
+        info!("   5-Worlds execution complete:");
+        info!("     Success: {}", execution_result.success);
+        info!("     Confidence: {}%", (execution_result.confidence * 100.0).round());
+        info!("     Successful worlds: {}/{}", execution_result.successful_worlds, execution_result.total_worlds);
+
+        // Display individual world results
+        for world_result in &execution_result.world_results {
+            let status_icon = if world_result.success { "✅" } else { "❌" };
+            info!("     {} World {}: {}", status_icon, world_result.world_id, world_result.message);
+        }
+
+        if execution_result.success {
+            info!("   ✅ Phase 4 succeeded: Confidence threshold met ({}% >= 80%)",
+                  (execution_result.confidence * 100.0).round());
+            state_machine.transition_to(Phase::CodeGeneration)?;
+        } else {
+            warn!("   ⚠️  Phase 4 failed: Confidence threshold not met ({}% < 80%)",
+                  (execution_result.confidence * 100.0).round());
+            warn!("   Escalating to human review");
+
+            // Send escalation notification
+            let notification = Notification::escalation(
+                issue.number,
+                0.0, // No complexity score for Phase 4 failures
+                format!("5-Worlds execution failed: {}% confidence ({}/{} worlds succeeded)",
+                       (execution_result.confidence * 100.0).round(),
+                       execution_result.successful_worlds,
+                       execution_result.total_worlds),
+            );
+            self.notification_service.send(&notification).await?;
+        }
+
+        Ok(execution_result)
     }
 
     /// Get active executions count

@@ -39,6 +39,7 @@
 //! ```
 
 pub mod aggregator;
+pub mod claude_code_executor;
 pub mod dag;
 pub mod decision;
 pub mod dynamic_scaling;
@@ -61,6 +62,7 @@ pub mod state_machine;
 
 // Re-export key types
 pub use aggregator::{AggregatedResult, ResultAggregator};
+pub use claude_code_executor::{ClaudeCodeExecutor, ExecutorConfig, WorldResult};
 pub use dag::{DAGOperations, TaskId};
 pub use decision::{Decision, DecisionEngine, DecisionThresholds};
 pub use dynamic_scaling::{DynamicScaler, DynamicScalerConfig, ResourceMonitor, ResourceStats};
