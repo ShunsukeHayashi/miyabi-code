@@ -72,4 +72,4 @@ required-features = ["http"]
 
 [build-dependencies]
 # tonic-build is needed to compile .proto files when grpc feature is enabled
-tonic-build = "0.12"
+tonic-build = "0.14"
