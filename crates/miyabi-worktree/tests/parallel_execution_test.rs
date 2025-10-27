@@ -199,6 +199,9 @@ async fn test_parallel_execution_with_failures() {
         return;
     }
 
+    // Cleanup stale worktrees from previous test runs
+    cleanup_stale_worktrees().await;
+
     let config = PoolConfig {
         max_concurrency: 2,
         timeout_seconds: 60,
@@ -273,6 +276,9 @@ async fn test_parallel_execution_with_timeout() {
         eprintln!("Skipping test: not in a git repository");
         return;
     }
+
+    // Cleanup stale worktrees from previous test runs
+    cleanup_stale_worktrees().await;
 
     let config = PoolConfig {
         max_concurrency: 2,
