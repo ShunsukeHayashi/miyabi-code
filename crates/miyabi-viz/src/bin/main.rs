@@ -156,7 +156,9 @@ fn main() -> Result<()> {
             println!("\n📦 By category:");
             let mut categories = std::collections::HashMap::new();
             for node in &graph.nodes {
-                *categories.entry(format!("{:?}", node.category)).or_insert(0) += 1;
+                *categories
+                    .entry(format!("{:?}", node.category))
+                    .or_insert(0) += 1;
             }
             for (category, count) in categories {
                 println!("   {}: {}", category, count);
@@ -212,11 +214,7 @@ fn main() -> Result<()> {
 
             // Show module breakdown
             println!("\n📊 Module breakdown:");
-            let public_count = module_graph
-                .nodes
-                .iter()
-                .filter(|n| n.is_public)
-                .count();
+            let public_count = module_graph.nodes.iter().filter(|n| n.is_public).count();
             let private_count = module_graph.nodes.len() - public_count;
             println!("   Public: {}", public_count);
             println!("   Private: {}", private_count);

@@ -47,11 +47,12 @@ async fn main() -> Result<()> {
         .ok()
         .and_then(|s| s.parse::<i64>().ok());
 
-    let github_token = std::env::var("GITHUB_TOKEN")
-        .context("GITHUB_TOKEN environment variable is required")?;
+    let github_token =
+        std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN environment variable is required")?;
 
-    let webhook_url = std::env::var("WEBHOOK_URL")
-        .context("WEBHOOK_URL environment variable is required (e.g., https://example.com/webhook)")?;
+    let webhook_url = std::env::var("WEBHOOK_URL").context(
+        "WEBHOOK_URL environment variable is required (e.g., https://example.com/webhook)",
+    )?;
 
     let port: u16 = std::env::var("WEBHOOK_PORT")
         .unwrap_or_else(|_| "3000".to_string())
@@ -64,7 +65,10 @@ async fn main() -> Result<()> {
     // Verify bot connection
     match telegram_client.get_me().await {
         Ok(user) => {
-            info!("✅ Connected to Telegram as: @{}", user.username.unwrap_or_else(|| user.first_name.clone()));
+            info!(
+                "✅ Connected to Telegram as: @{}",
+                user.username.unwrap_or_else(|| user.first_name.clone())
+            );
         }
         Err(e) => {
             error!("❌ Failed to connect to Telegram: {}", e);
@@ -104,9 +108,7 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to bind to port")?;
 
-    axum::serve(listener, app)
-        .await
-        .context("Server error")?;
+    axum::serve(listener, app).await.context("Server error")?;
 
     Ok(())
 }
@@ -204,9 +206,10 @@ async fn handle_command(state: &AppState, chat_id: i64, command: &str) -> Result
 
             // Send message with interactive buttons
             let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
-                vec![
-                    miyabi_telegram::InlineKeyboardButton::callback("📚 どう話せばいい？", "show_examples"),
-                ],
+                vec![miyabi_telegram::InlineKeyboardButton::callback(
+                    "📚 どう話せばいい？",
+                    "show_examples",
+                )],
                 vec![
                     miyabi_telegram::InlineKeyboardButton::callback("🚀 すぐ始める", "get_started"),
                     miyabi_telegram::InlineKeyboardButton::callback("💡 詳しく知る", "show_help"),
@@ -290,12 +293,10 @@ AIアシスタントです。
 ⭕「ログインを速くして」
 ❌「認証処理のパフォーマンス最適化を...」"#;
 
-            let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
-                vec![
-                    miyabi_telegram::InlineKeyboardButton::callback("🚀 試してみる", "try_now"),
-                    miyabi_telegram::InlineKeyboardButton::callback("📖 ヘルプ", "show_help"),
-                ],
-            ]);
+            let keyboard = miyabi_telegram::InlineKeyboard::new(vec![vec![
+                miyabi_telegram::InlineKeyboardButton::callback("🚀 試してみる", "try_now"),
+                miyabi_telegram::InlineKeyboardButton::callback("📖 ヘルプ", "show_help"),
+            ]]);
 
             state
                 .telegram_client
@@ -392,7 +393,10 @@ async fn handle_natural_language(
     // Create GitHub Issue (internally - user doesn't need to know)
     match create_github_issue(state, &task_title, text, username).await {
         Ok(task_number) => {
-            let task_url = format!("https://github.com/ShunsukeHayashi/Miyabi/issues/{}", task_number);
+            let task_url = format!(
+                "https://github.com/ShunsukeHayashi/Miyabi/issues/{}",
+                task_number
+            );
 
             let success_message = format!(
                 r#"🎉 *登録できました！*
@@ -421,9 +425,10 @@ async fn handle_natural_language(
 
             // Add interactive buttons
             let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
-                vec![
-                    miyabi_telegram::InlineKeyboardButton::url("📊 詳しく見る", &task_url),
-                ],
+                vec![miyabi_telegram::InlineKeyboardButton::url(
+                    "📊 詳しく見る",
+                    &task_url,
+                )],
                 vec![
                     miyabi_telegram::InlineKeyboardButton::callback("➕ 別のこと頼む", "new_task"),
                     miyabi_telegram::InlineKeyboardButton::callback("💡 ヘルプ", "show_help"),
@@ -466,7 +471,11 @@ async fn handle_callback(
     callback_query: &miyabi_telegram::types::CallbackQuery,
     data: &str,
 ) -> Result<()> {
-    let chat_id = callback_query.message.as_ref().map(|m| m.chat.id).unwrap_or(0);
+    let chat_id = callback_query
+        .message
+        .as_ref()
+        .map(|m| m.chat.id)
+        .unwrap_or(0);
 
     match data {
         "show_examples" => {

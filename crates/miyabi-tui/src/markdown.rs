@@ -58,13 +58,15 @@ impl MarkdownRenderer {
             Event::End(tag) => self.end_tag(tag),
             Event::Text(text) => {
                 let style = self.current_style();
-                self.current_line.push(Span::styled(text.to_string(), style));
+                self.current_line
+                    .push(Span::styled(text.to_string(), style));
             }
             Event::Code(code) => {
                 let style = Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD);
-                self.current_line.push(Span::styled(format!("`{}`", code), style));
+                self.current_line
+                    .push(Span::styled(format!("`{}`", code), style));
             }
             Event::SoftBreak => {
                 self.current_line.push(Span::raw(" "));
@@ -117,8 +119,13 @@ impl MarkdownRenderer {
                 self.current_line.push(Span::styled(prefix, style));
             }
             Tag::BlockQuote => {
-                self.push_style(Style::default().fg(Color::DarkGray).add_modifier(Modifier::ITALIC));
-                self.current_line.push(Span::styled("> ", Style::default().fg(Color::DarkGray)));
+                self.push_style(
+                    Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::ITALIC),
+                );
+                self.current_line
+                    .push(Span::styled("> ", Style::default().fg(Color::DarkGray)));
             }
             Tag::CodeBlock(kind) => {
                 self.in_code_block = true;
@@ -139,7 +146,11 @@ impl MarkdownRenderer {
                     Style::default().fg(Color::Yellow),
                 )));
 
-                self.push_style(Style::default().fg(Color::Green).add_modifier(Modifier::DIM));
+                self.push_style(
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::DIM),
+                );
             }
             Tag::List(_) => {
                 // List handling
@@ -156,12 +167,17 @@ impl MarkdownRenderer {
             Tag::Strikethrough => {
                 self.push_style(Style::default().add_modifier(Modifier::CROSSED_OUT));
             }
-            Tag::Link { dest_url: _dest_url, .. } => {
-                self.push_style(Style::default().fg(Color::Blue).add_modifier(Modifier::UNDERLINED));
-                self.current_line.push(Span::styled(
-                    "[",
-                    Style::default().fg(Color::Blue),
-                ));
+            Tag::Link {
+                dest_url: _dest_url,
+                ..
+            } => {
+                self.push_style(
+                    Style::default()
+                        .fg(Color::Blue)
+                        .add_modifier(Modifier::UNDERLINED),
+                );
+                self.current_line
+                    .push(Span::styled("[", Style::default().fg(Color::Blue)));
             }
             _ => {}
         }
@@ -202,10 +218,8 @@ impl MarkdownRenderer {
                 self.pop_style();
             }
             TagEnd::Link => {
-                self.current_line.push(Span::styled(
-                    "]",
-                    Style::default().fg(Color::Blue),
-                ));
+                self.current_line
+                    .push(Span::styled("]", Style::default().fg(Color::Blue)));
                 self.pop_style();
             }
             _ => {}

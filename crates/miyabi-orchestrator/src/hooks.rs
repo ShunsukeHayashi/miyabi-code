@@ -1,4 +1,3 @@
-
 //! Hook system integration for orchestrator events
 //!
 //! This module provides utilities to call Claude Code hooks

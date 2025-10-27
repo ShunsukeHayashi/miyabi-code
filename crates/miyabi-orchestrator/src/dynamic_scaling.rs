@@ -114,7 +114,10 @@ impl DynamicScaler {
         // Hook: Monitoring started
         {
             let mut params = std::collections::HashMap::new();
-            params.insert("MONITOR_INTERVAL_MS".to_string(), self.config.monitor_interval.as_millis().to_string());
+            params.insert(
+                "MONITOR_INTERVAL_MS".to_string(),
+                self.config.monitor_interval.as_millis().to_string(),
+            );
             crate::hooks::notify_scaling_event("monitoring_started", params);
         }
 
@@ -160,9 +163,18 @@ impl DynamicScaler {
                 let mut params = std::collections::HashMap::new();
                 params.insert("OLD_LIMIT".to_string(), old_limit.to_string());
                 params.insert("NEW_LIMIT".to_string(), current_limit.to_string());
-                params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
-                params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
-                params.insert("SCALE_UP_THRESHOLD".to_string(), format!("{:.0}", self.config.scale_up_threshold * 100.0));
+                params.insert(
+                    "MEMORY_USAGE".to_string(),
+                    format!("{:.0}", stats.memory_usage_ratio * 100.0),
+                );
+                params.insert(
+                    "CPU_USAGE".to_string(),
+                    format!("{:.0}", stats.cpu_usage_ratio * 100.0),
+                );
+                params.insert(
+                    "SCALE_UP_THRESHOLD".to_string(),
+                    format!("{:.0}", self.config.scale_up_threshold * 100.0),
+                );
                 crate::hooks::notify_scaling_event("scale_up", params);
             }
         }
@@ -185,9 +197,18 @@ impl DynamicScaler {
                 let mut params = std::collections::HashMap::new();
                 params.insert("OLD_LIMIT".to_string(), old_limit.to_string());
                 params.insert("NEW_LIMIT".to_string(), current_limit.to_string());
-                params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
-                params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
-                params.insert("SCALE_DOWN_THRESHOLD".to_string(), format!("{:.0}", self.config.scale_down_threshold * 100.0));
+                params.insert(
+                    "MEMORY_USAGE".to_string(),
+                    format!("{:.0}", stats.memory_usage_ratio * 100.0),
+                );
+                params.insert(
+                    "CPU_USAGE".to_string(),
+                    format!("{:.0}", stats.cpu_usage_ratio * 100.0),
+                );
+                params.insert(
+                    "SCALE_DOWN_THRESHOLD".to_string(),
+                    format!("{:.0}", self.config.scale_down_threshold * 100.0),
+                );
                 crate::hooks::notify_scaling_event("scale_down", params);
             }
         } else {
@@ -202,8 +223,14 @@ impl DynamicScaler {
             {
                 let mut params = std::collections::HashMap::new();
                 params.insert("NEW_LIMIT".to_string(), current_limit.to_string());
-                params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
-                params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
+                params.insert(
+                    "MEMORY_USAGE".to_string(),
+                    format!("{:.0}", stats.memory_usage_ratio * 100.0),
+                );
+                params.insert(
+                    "CPU_USAGE".to_string(),
+                    format!("{:.0}", stats.cpu_usage_ratio * 100.0),
+                );
                 crate::hooks::notify_scaling_event("no_scaling", params);
             }
         }
@@ -285,20 +312,38 @@ impl ResourceMonitor {
         // Hook: Resource stats collected
         {
             let mut params = std::collections::HashMap::new();
-            params.insert("MEMORY_USAGE".to_string(), format!("{:.0}", stats.memory_usage_ratio * 100.0));
-            params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
-            params.insert("AVAILABLE_MEMORY_GB".to_string(), stats.available_memory_gb.to_string());
-            params.insert("AVAILABLE_WORKTREES".to_string(), stats.available_worktrees.to_string());
-            params.insert("BOTTLENECK_RESOURCE".to_string(), format!("{:?}", stats.bottleneck_resource));
+            params.insert(
+                "MEMORY_USAGE".to_string(),
+                format!("{:.0}", stats.memory_usage_ratio * 100.0),
+            );
+            params.insert(
+                "CPU_USAGE".to_string(),
+                format!("{:.0}", stats.cpu_usage_ratio * 100.0),
+            );
+            params.insert(
+                "AVAILABLE_MEMORY_GB".to_string(),
+                stats.available_memory_gb.to_string(),
+            );
+            params.insert(
+                "AVAILABLE_WORKTREES".to_string(),
+                stats.available_worktrees.to_string(),
+            );
+            params.insert(
+                "BOTTLENECK_RESOURCE".to_string(),
+                format!("{:?}", stats.bottleneck_resource),
+            );
 
             // Clone params for potential bottleneck detection
             let params_clone = params.clone();
             crate::hooks::notify_scaling_event("resource_stats", params);
 
             // Also report bottleneck if detected
-            if matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Memory)
-                || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Cpu)
-                || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Disk) {
+            if matches!(
+                bottleneck,
+                miyabi_core::resource_limits::ResourceType::Memory
+            ) || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Cpu)
+                || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Disk)
+            {
                 crate::hooks::notify_scaling_event("bottleneck_detected", params_clone);
             }
         }

@@ -308,7 +308,10 @@ impl ChatCommand {
 
         println!("\n{}", "Agent Commands:".yellow());
         println!("  {}  - Run agent on issue", "/agent-run <issue>".green());
-        println!("  {}  - Create GitHub issue", "/create-issue <title>".green());
+        println!(
+            "  {}  - Create GitHub issue",
+            "/create-issue <title>".green()
+        );
 
         println!("\n{}", "Utility Commands:".yellow());
         println!("  {}  - Verify system setup", "/verify".green());
@@ -317,7 +320,10 @@ impl ChatCommand {
 
         println!("\n{}", "History Commands:".yellow());
         println!("  {}  - Show conversation history", "/history".green());
-        println!("  {}  - Search past conversations", "/search <query>".green());
+        println!(
+            "  {}  - Search past conversations",
+            "/search <query>".green()
+        );
 
         println!("\n{}", "Execution Modes:".cyan().bold());
         println!("  {} - Can read files, search code", "ReadOnly".blue());
@@ -391,14 +397,15 @@ impl ChatCommand {
 
     /// Execute /agent-run command
     async fn execute_agent_run(&self, issue_number: u64) -> Result<()> {
-        println!("\n{} Running agent for Issue #{}", "🤖".cyan(), issue_number);
+        println!(
+            "\n{} Running agent for Issue #{}",
+            "🤖".cyan(),
+            issue_number
+        );
 
         use crate::commands::AgentCommand;
 
-        let agent_cmd = AgentCommand::new(
-            "coordinator".to_string(),
-            Some(issue_number),
-        );
+        let agent_cmd = AgentCommand::new("coordinator".to_string(), Some(issue_number));
 
         agent_cmd.execute().await
     }
@@ -438,9 +445,7 @@ impl ChatCommand {
         }
 
         println!("{} Checking Git...", "  •".dimmed());
-        let git_version = std::process::Command::new("git")
-            .arg("--version")
-            .output();
+        let git_version = std::process::Command::new("git").arg("--version").output();
 
         match git_version {
             Ok(output) => {
@@ -506,7 +511,10 @@ impl ChatCommand {
             println!("\n{}", "─".repeat(50).cyan());
             println!("Total turns: {}", sess.turns.len());
         } else {
-            println!("{}", "No active session. Start a conversation first.".yellow());
+            println!(
+                "{}",
+                "No active session. Start a conversation first.".yellow()
+            );
         }
 
         Ok(())
@@ -521,9 +529,7 @@ impl ChatCommand {
                 .turns
                 .iter()
                 .enumerate()
-                .filter(|(_, turn)| {
-                    turn.prompt.to_lowercase().contains(&query.to_lowercase())
-                })
+                .filter(|(_, turn)| turn.prompt.to_lowercase().contains(&query.to_lowercase()))
                 .map(|(i, turn)| (i + 1, turn.prompt.as_str()))
                 .collect();
 
@@ -545,7 +551,10 @@ impl ChatCommand {
                 println!("Found {} matches", matches.len());
             }
         } else {
-            println!("{}", "No active session. Start a conversation first.".yellow());
+            println!(
+                "{}",
+                "No active session. Start a conversation first.".yellow()
+            );
         }
 
         Ok(())

@@ -48,7 +48,11 @@ async fn test_phase_1_2_message_flow() {
     let result = orchestrator.handle_issue_created(&issue).await;
 
     // Phase 1-2 should complete successfully in dry-run mode
-    assert!(result.is_ok(), "Issue handling should succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Issue handling should succeed: {:?}",
+        result.err()
+    );
 
     // Verify execution result
     let exec_result = result.unwrap();
@@ -103,11 +107,7 @@ async fn test_message_payload_structure() {
         .await
         .expect("Failed to create orchestrator");
 
-    let issue = create_test_issue(
-        1001,
-        "Test Message Payload",
-        "Verify payload structure",
-    );
+    let issue = create_test_issue(1001, "Test Message Payload", "Verify payload structure");
 
     let result = orchestrator.handle_issue_created(&issue).await;
     assert!(result.is_ok(), "Workflow should complete");
@@ -136,11 +136,7 @@ async fn test_dry_run_mode_disables_session_manager() {
         .await
         .expect("Failed to create orchestrator");
 
-    let issue = create_test_issue(
-        1002,
-        "Test Dry Run",
-        "Verify dry-run behavior",
-    );
+    let issue = create_test_issue(1002, "Test Dry Run", "Verify dry-run behavior");
 
     // Should complete without errors even though SessionManager is disabled
     let result = orchestrator.handle_issue_created(&issue).await;

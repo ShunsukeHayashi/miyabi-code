@@ -125,9 +125,7 @@ impl VoiceGuide {
             return;
         }
 
-        let message = VoiceMessage::Custom {
-            text: text.into(),
-        };
+        let message = VoiceMessage::Custom { text: text.into() };
 
         self.speak(message).await;
     }

@@ -294,7 +294,10 @@ impl HeadlessOrchestrator {
                 base_branch: "main".to_string(),
                 draft: false,
             };
-            info!("   PRCreator initialized: base_branch={}", pr_config.base_branch);
+            info!(
+                "   PRCreator initialized: base_branch={}",
+                pr_config.base_branch
+            );
             Some(PRCreator::new(pr_config))
         } else {
             info!("   Dry-run mode: PRCreator disabled");
@@ -409,14 +412,20 @@ impl HeadlessOrchestrator {
                                 let branch_name = format!("feat/issue-{}", issue.number);
 
                                 // Phase 6: Quality Check
-                                let quality_report = self
-                                    .run_phase_6_quality_check(&mut state_machine)
-                                    .await?;
-                                info!("✅ Phase 6 complete: Quality score {}/100", quality_report.score);
+                                let quality_report =
+                                    self.run_phase_6_quality_check(&mut state_machine).await?;
+                                info!(
+                                    "✅ Phase 6 complete: Quality score {}/100",
+                                    quality_report.score
+                                );
 
                                 // Phase 7: PR Creation
                                 let pr = self
-                                    .run_phase_7_pr_creation(issue, branch_name.clone(), &mut state_machine)
+                                    .run_phase_7_pr_creation(
+                                        issue,
+                                        branch_name.clone(),
+                                        &mut state_machine,
+                                    )
                                     .await?;
                                 info!("✅ Phase 7 complete: PR #{} created", pr.number);
 
@@ -436,7 +445,10 @@ impl HeadlessOrchestrator {
                                     &mut state_machine,
                                 )
                                 .await?;
-                                info!("✅ Phase 9 complete: Workflow finished for Issue #{}", issue.number);
+                                info!(
+                                    "✅ Phase 9 complete: Workflow finished for Issue #{}",
+                                    issue.number
+                                );
                             } else {
                                 warn!(
                                     "⚠️  Phase 6-9 skipped: Low confidence ({:.1}%), requires human review",
@@ -518,14 +530,20 @@ impl HeadlessOrchestrator {
                                 let branch_name = format!("feat/issue-{}", issue.number);
 
                                 // Phase 6: Quality Check
-                                let quality_report = self
-                                    .run_phase_6_quality_check(&mut state_machine)
-                                    .await?;
-                                info!("✅ Phase 6 complete: Quality score {}/100", quality_report.score);
+                                let quality_report =
+                                    self.run_phase_6_quality_check(&mut state_machine).await?;
+                                info!(
+                                    "✅ Phase 6 complete: Quality score {}/100",
+                                    quality_report.score
+                                );
 
                                 // Phase 7: PR Creation
                                 let pr = self
-                                    .run_phase_7_pr_creation(issue, branch_name.clone(), &mut state_machine)
+                                    .run_phase_7_pr_creation(
+                                        issue,
+                                        branch_name.clone(),
+                                        &mut state_machine,
+                                    )
                                     .await?;
                                 info!("✅ Phase 7 complete: PR #{} created", pr.number);
 
@@ -545,7 +563,10 @@ impl HeadlessOrchestrator {
                                     &mut state_machine,
                                 )
                                 .await?;
-                                info!("✅ Phase 9 complete: Workflow finished for Issue #{}", issue.number);
+                                info!(
+                                    "✅ Phase 9 complete: Workflow finished for Issue #{}",
+                                    issue.number
+                                );
                             } else {
                                 warn!(
                                     "⚠️  Phase 6-9 skipped: Low confidence ({:.1}%), requires human review",
@@ -1106,7 +1127,11 @@ impl HeadlessOrchestrator {
         if let Some(ref manager) = self.session_manager {
             let session_id = state_machine.execution_id();
             let msg = MessageBuilder::new(session_id)
-                .priority(if report.passed { Priority::Normal } else { Priority::High })
+                .priority(if report.passed {
+                    Priority::Normal
+                } else {
+                    Priority::High
+                })
                 .message_type(MessageType::Custom(CustomMessage {
                     type_id: "phase_completion".to_string(),
                     payload: serde_json::json!({
@@ -1120,7 +1145,8 @@ impl HeadlessOrchestrator {
                             "coverage": report.breakdown.test_coverage_score,
                         },
                         "passed": report.passed,
-                    }).to_string(),
+                    })
+                    .to_string(),
                 }))
                 .build()
                 .map_err(|e| anyhow!("Failed to build message: {}", e))?;
@@ -1233,7 +1259,7 @@ impl HeadlessOrchestrator {
             title: format!("Review PR #{}", pr_number),
             description: format!("Review code for Issue #{}", issue.number),
             task_type: miyabi_types::task::TaskType::Test, // Using Test as proxy for CodeReview
-            priority: 1, // P1-High
+            priority: 1,                                   // P1-High
             severity: None,
             impact: None,
             assigned_agent: Some(miyabi_types::AgentType::ReviewAgent),
@@ -1390,7 +1416,10 @@ impl HeadlessOrchestrator {
         }
 
         // Execute auto-merge
-        info!("   ✅ Auto-merge criteria met! Merging PR #{}...", pr_number);
+        info!(
+            "   ✅ Auto-merge criteria met! Merging PR #{}...",
+            pr_number
+        );
         self.execute_auto_merge(pr_number).await?;
         info!("   ✅ PR #{} merged successfully", pr_number);
 
@@ -1475,7 +1504,10 @@ impl HeadlessOrchestrator {
         // Add metrics if available
         if let Some(ref metrics) = agent_result.metrics {
             if let Some(quality_score) = metrics.quality_score {
-                body.push_str(&format!("**Metrics Quality Score**: {:.1}/100\n", quality_score));
+                body.push_str(&format!(
+                    "**Metrics Quality Score**: {:.1}/100\n",
+                    quality_score
+                ));
             }
             body.push_str(&format!("**Duration**: {}ms\n", metrics.duration_ms));
         }

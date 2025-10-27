@@ -224,11 +224,7 @@ impl StateMachine {
 
         // Validate transition
         if !self.is_valid_transition(&from, &to) {
-            return Err(anyhow!(
-                "Invalid state transition: {} -> {}",
-                from,
-                to
-            ));
+            return Err(anyhow!("Invalid state transition: {} -> {}", from, to));
         }
 
         info!(
@@ -293,20 +289,14 @@ impl StateMachine {
 
     /// Mark as stuck
     pub fn mark_stuck(&mut self) {
-        warn!(
-            "⚠️  Execution {} marked as stuck",
-            self.state.execution_id
-        );
+        warn!("⚠️  Execution {} marked as stuck", self.state.execution_id);
         self.state.is_stuck = true;
         self.state.updated_at = Utc::now();
     }
 
     /// Mark as timed out
     pub fn mark_timed_out(&mut self) {
-        warn!(
-            "⏰ Execution {} timed out",
-            self.state.execution_id
-        );
+        warn!("⏰ Execution {} timed out", self.state.execution_id);
         self.state.has_timed_out = true;
         self.state.updated_at = Utc::now();
     }
@@ -347,10 +337,7 @@ mod tests {
 
     #[test]
     fn test_phase_progression() {
-        assert_eq!(
-            Phase::IssueAnalysis.next(),
-            Some(Phase::TaskDecomposition)
-        );
+        assert_eq!(Phase::IssueAnalysis.next(), Some(Phase::TaskDecomposition));
         assert_eq!(
             Phase::TaskDecomposition.next(),
             Some(Phase::WorktreeCreation)

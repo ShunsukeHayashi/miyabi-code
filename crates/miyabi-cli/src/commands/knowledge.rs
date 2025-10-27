@@ -719,9 +719,7 @@ async fn export_knowledge(
     let exporter = KnowledgeExporter::new(searcher);
 
     // Export to file
-    let count = exporter
-        .export(export_format, output, Some(filter))
-        .await?;
+    let count = exporter.export(export_format, output, Some(filter)).await?;
 
     if json_output {
         let json = serde_json::json!({

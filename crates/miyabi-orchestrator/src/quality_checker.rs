@@ -322,7 +322,8 @@ impl QualityChecker {
         }
 
         if breakdown.security_score < 80 {
-            recommendations.push("Address security vulnerabilities with 'cargo update'".to_string());
+            recommendations
+                .push("Address security vulnerabilities with 'cargo update'".to_string());
         }
 
         if breakdown.test_coverage_score < 80 {

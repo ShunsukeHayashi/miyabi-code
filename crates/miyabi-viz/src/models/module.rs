@@ -263,7 +263,11 @@ impl ModuleGraph {
                 val: n.visual_size(),
                 color: n.color().to_string(),
                 opacity: n.coverage,
-                group: if n.is_public { "Public".to_string() } else { "Private".to_string() },
+                group: if n.is_public {
+                    "Public".to_string()
+                } else {
+                    "Private".to_string()
+                },
                 loc: n.loc,
                 complexity: n.complexity,
                 is_public: n.is_public,
@@ -306,19 +310,13 @@ mod tests {
         ));
 
         // Same parent module: foo (siblings)
-        assert!(ModuleDependency::share_parent(
-            "foo::bar",
-            "foo::baz"
-        ));
+        assert!(ModuleDependency::share_parent("foo::bar", "foo::baz"));
 
         // Different parents: None vs None (top-level modules)
         assert!(!ModuleDependency::share_parent("foo", "bar"));
 
         // Different parents: foo vs bar
-        assert!(!ModuleDependency::share_parent(
-            "foo::baz",
-            "bar::qux"
-        ));
+        assert!(!ModuleDependency::share_parent("foo::baz", "bar::qux"));
     }
 
     #[test]

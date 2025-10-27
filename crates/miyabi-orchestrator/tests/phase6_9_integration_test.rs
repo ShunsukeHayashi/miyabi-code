@@ -13,7 +13,7 @@
 
 use anyhow::Result;
 use miyabi_orchestrator::{
-    headless::HeadlessOrchestrator, HeadlessOrchestratorConfig, state_machine::StateMachine,
+    headless::HeadlessOrchestrator, state_machine::StateMachine, HeadlessOrchestratorConfig,
 };
 use miyabi_types::{issue::IssueStateGithub, Issue};
 use tracing::info;
@@ -76,11 +76,7 @@ async fn test_phase6_9_medium_quality_human_review() -> Result<()> {
 
     let _orchestrator = HeadlessOrchestrator::new(config);
 
-    let _issue = create_mock_issue(
-        9002,
-        "feat: Add medium quality feature",
-        vec!["feature"],
-    );
+    let _issue = create_mock_issue(9002, "feat: Add medium quality feature", vec!["feature"]);
 
     // Test that medium quality (60-79) triggers human review
     info!("✅ Phase 6-9 medium quality human review test structure validated");

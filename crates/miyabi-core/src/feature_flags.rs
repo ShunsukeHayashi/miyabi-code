@@ -17,9 +17,9 @@
 //! }
 //! ```
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use serde::{Deserialize, Serialize};
 
 /// Feature flag configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]

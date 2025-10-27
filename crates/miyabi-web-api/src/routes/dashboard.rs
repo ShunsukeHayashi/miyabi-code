@@ -1,11 +1,6 @@
 //! Dashboard route handlers
 
-use crate::{
-    error::Result,
-    middleware::AuthenticatedUser,
-    models::AgentExecution,
-    AppState,
-};
+use crate::{error::Result, middleware::AuthenticatedUser, models::AgentExecution, AppState};
 use axum::{
     extract::{Extension, State},
     Json,

@@ -102,7 +102,11 @@ async fn test_phase5_quality_check_success() {
     let report = checker.run_checks().await.unwrap();
 
     // Clean project should have high scores
-    assert!(report.score >= 80, "Clean project should score >= 80, got {}", report.score);
+    assert!(
+        report.score >= 80,
+        "Clean project should score >= 80, got {}",
+        report.score
+    );
     assert!(report.passed, "Clean project should pass quality checks");
     assert!(
         report.issues.is_empty() || report.issues.iter().all(|i| i.score_impact == 0),
@@ -216,9 +220,14 @@ async fn test_phase5_score_threshold_validation() {
             test_coverage_score: 70,
         },
     };
-    assert!(marginal_score.score >= 60 && marginal_score.score < 80,
-            "Marginal score should be 60-79");
-    assert!(!marginal_score.passed, "Marginal score should not auto-pass");
+    assert!(
+        marginal_score.score >= 60 && marginal_score.score < 80,
+        "Marginal score should be 60-79"
+    );
+    assert!(
+        !marginal_score.passed,
+        "Marginal score should not auto-pass"
+    );
 
     // Score < 60: Fail immediately
     let low_score = QualityReport {

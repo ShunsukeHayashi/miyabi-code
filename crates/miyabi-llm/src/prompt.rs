@@ -63,7 +63,7 @@ pub enum ResponseFormat {
     /// Code response with language specification
     Code {
         /// Programming language (e.g., "rust", "python", "javascript")
-        language: String
+        language: String,
     },
 }
 

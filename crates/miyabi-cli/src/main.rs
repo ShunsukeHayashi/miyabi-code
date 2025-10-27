@@ -10,13 +10,13 @@ mod worktree;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 use commands::{
     AgentCommand, ExecCommand, InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand,
     LoopCommand, ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand,
     StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
+use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 
 #[derive(Parser)]
 #[command(name = "miyabi")]
@@ -204,9 +204,11 @@ async fn main() -> Result<()> {
             interactive,
         }) => {
             // Voice Guide: Processing started
-            voice_guide.speak(VoiceMessage::ProcessingStarted {
-                task_name: format!("Project '{}'", name),
-            }).await;
+            voice_guide
+                .speak(VoiceMessage::ProcessingStarted {
+                    task_name: format!("Project '{}'", name),
+                })
+                .await;
 
             let cmd = InitCommand::with_interactive(name.clone(), private, interactive);
             let result = cmd.execute().await;
@@ -214,14 +216,14 @@ async fn main() -> Result<()> {
             // Voice Guide: Success or Error feedback
             match &result {
                 Ok(_) => {
-                    voice_guide.speak(VoiceMessage::SuccessProjectCreated {
-                        project_name: name,
-                    }).await;
+                    voice_guide
+                        .speak(VoiceMessage::SuccessProjectCreated { project_name: name })
+                        .await;
                 }
                 Err(_) => {
-                    voice_guide.speak(VoiceMessage::ErrorProjectExists {
-                        project_name: name,
-                    }).await;
+                    voice_guide
+                        .speak(VoiceMessage::ErrorProjectExists { project_name: name })
+                        .await;
                 }
             }
 
@@ -260,9 +262,11 @@ async fn main() -> Result<()> {
                 println!("  {} Issue #{}", "📋".green(), issue_num);
 
                 // Voice Guide: Processing started
-                voice_guide.speak(VoiceMessage::ProcessingStarted {
-                    task_name: format!("Issue #{}", issue_num),
-                }).await;
+                voice_guide
+                    .speak(VoiceMessage::ProcessingStarted {
+                        task_name: format!("Issue #{}", issue_num),
+                    })
+                    .await;
 
                 let cmd = AgentCommand::new("coordinator".to_string(), Some(issue_num));
                 let result = cmd.execute().await;
@@ -270,14 +274,18 @@ async fn main() -> Result<()> {
                 // Voice Guide: Success or Error feedback
                 match &result {
                     Ok(_) => {
-                        voice_guide.speak(VoiceMessage::SuccessIssueProcessed {
-                            issue_number: issue_num,
-                        }).await;
+                        voice_guide
+                            .speak(VoiceMessage::SuccessIssueProcessed {
+                                issue_number: issue_num,
+                            })
+                            .await;
                     }
                     Err(_) => {
-                        voice_guide.speak(VoiceMessage::ErrorIssueNotFound {
-                            issue_number: issue_num,
-                        }).await;
+                        voice_guide
+                            .speak(VoiceMessage::ErrorIssueNotFound {
+                                issue_number: issue_num,
+                            })
+                            .await;
                     }
                 }
 
@@ -321,9 +329,11 @@ async fn main() -> Result<()> {
             resume,
         }) => {
             // Voice Guide: Processing started
-            voice_guide.speak(VoiceMessage::ProcessingStarted {
-                task_name: "Infinity Mode".to_string(),
-            }).await;
+            voice_guide
+                .speak(VoiceMessage::ProcessingStarted {
+                    task_name: "Infinity Mode".to_string(),
+                })
+                .await;
 
             let cmd = InfinityCommand {
                 max_issues,
@@ -379,7 +389,12 @@ async fn main() -> Result<()> {
             cmd.execute().await
         }
         #[allow(unused_variables)]
-        Some(Commands::Chat { prompt, tui, resume, resume_last }) => {
+        Some(Commands::Chat {
+            prompt,
+            tui,
+            resume,
+            resume_last,
+        }) => {
             #[cfg(feature = "tui")]
             {
                 if tui {

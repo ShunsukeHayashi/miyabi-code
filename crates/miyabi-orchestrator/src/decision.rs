@@ -343,17 +343,13 @@ mod tests {
     fn test_security_sensitivity_detection() {
         let engine = DecisionEngine::new();
 
-        assert!(engine.is_security_sensitive(&[
-            "type:feature".to_string(),
-            "security:high".to_string(),
-        ]));
+        assert!(engine
+            .is_security_sensitive(&["type:feature".to_string(), "security:high".to_string(),]));
 
         assert!(engine.is_security_sensitive(&["auth:required".to_string(),]));
 
-        assert!(!engine.is_security_sensitive(&[
-            "type:feature".to_string(),
-            "priority:high".to_string(),
-        ]));
+        assert!(!engine
+            .is_security_sensitive(&["type:feature".to_string(), "priority:high".to_string(),]));
     }
 
     #[test]

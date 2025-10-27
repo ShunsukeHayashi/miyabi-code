@@ -58,8 +58,7 @@ impl VoiceMessage {
     /// Get the script text for this message
     pub fn script(&self) -> String {
         match self {
-            VoiceMessage::Welcome => {
-                "やぁやぁ！miyabiへようこそなのだ！\n\
+            VoiceMessage::Welcome => "やぁやぁ！miyabiへようこそなのだ！\n\
                 自律型AI開発フレームワークなのだ！\n\
                 \n\
                 まず最初に、GitHubに接続する必要があるのだ。\n\
@@ -67,11 +66,10 @@ impl VoiceMessage {
                 または、GitHub Personal Access Tokenを設定するのだ！\n\
                 \n\
                 準備ができたら `miyabi init プロジェクト名` を\n\
-                実行してプロジェクトを作るのだ！".to_string()
-            }
+                実行してプロジェクトを作るのだ！"
+                .to_string(),
 
-            VoiceMessage::ErrorGitHubToken => {
-                "あれれ、GitHub tokenが見つからないのだ！\n\
+            VoiceMessage::ErrorGitHubToken => "あれれ、GitHub tokenが見つからないのだ！\n\
                 \n\
                 解決方法は2つあるのだ：\n\
                 \n\
@@ -81,27 +79,25 @@ impl VoiceMessage {
                 2つ目: 環境変数で設定する方法\n\
                     `export GITHUB_TOKEN=ghp_xxx` なのだ！\n\
                 \n\
-                どっちか好きな方を選ぶのだ！".to_string()
-            }
+                どっちか好きな方を選ぶのだ！"
+                .to_string(),
 
-            VoiceMessage::ErrorVoicevoxNotRunning => {
-                "VOICEVOX Engineが起動していないのだ！\n\
+            VoiceMessage::ErrorVoicevoxNotRunning => "VOICEVOX Engineが起動していないのだ！\n\
                 \n\
                 Dockerで起動するのだ：\n\
                 `docker run -p 50021:50021 voicevox/voicevox_engine:cpu-latest`\n\
                 \n\
                 または、音声ガイドを無効にしたい場合は\n\
-                `export MIYABI_VOICE_GUIDE=false` を設定するのだ！".to_string()
-            }
+                `export MIYABI_VOICE_GUIDE=false` を設定するのだ！"
+                .to_string(),
 
-            VoiceMessage::ErrorDockerNotFound => {
-                "Dockerが見つからないのだ！\n\
+            VoiceMessage::ErrorDockerNotFound => "Dockerが見つからないのだ！\n\
                 \n\
                 音声ガイドを使うには、Dockerが必要なのだ。\n\
                 Dockerをインストールするか、または\n\
                 `export MIYABI_VOICE_GUIDE=false` で\n\
-                音声ガイドを無効にできるのだ！".to_string()
-            }
+                音声ガイドを無効にできるのだ！"
+                .to_string(),
 
             VoiceMessage::ErrorProjectExists { project_name } => {
                 format!(
@@ -157,20 +153,17 @@ impl VoiceMessage {
                 )
             }
 
-            VoiceMessage::NextStepInit => {
-                "`miyabi init プロジェクト名` を実行して\n\
-                新しいプロジェクトを作るのだ！".to_string()
-            }
+            VoiceMessage::NextStepInit => "`miyabi init プロジェクト名` を実行して\n\
+                新しいプロジェクトを作るのだ！"
+                .to_string(),
 
-            VoiceMessage::NextStepWorkOn => {
-                "`miyabi work-on 番号` を実行して\n\
-                Issueを処理するのだ！".to_string()
-            }
+            VoiceMessage::NextStepWorkOn => "`miyabi work-on 番号` を実行して\n\
+                Issueを処理するのだ！"
+                .to_string(),
 
-            VoiceMessage::NextStepGitHubAuth => {
-                "`gh auth login` を実行して\n\
-                GitHubに接続するのだ！".to_string()
-            }
+            VoiceMessage::NextStepGitHubAuth => "`gh auth login` を実行して\n\
+                GitHubに接続するのだ！"
+                .to_string(),
 
             VoiceMessage::Tip { tip_number } => {
                 let tips = [

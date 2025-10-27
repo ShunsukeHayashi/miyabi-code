@@ -19,7 +19,7 @@ pub mod types;
 
 // New API (modern trait-based interface)
 pub use client::{LlmClient, ToolCallResponse};
-pub use error::{LlmError, LLMError, Result};
+pub use error::{LLMError, LlmError, Result};
 pub use message::{Message, Role};
 pub use tools::{ToolCall, ToolDefinition};
 

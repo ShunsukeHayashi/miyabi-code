@@ -29,8 +29,9 @@ impl ProductDesignAgent {
     /// Generate comprehensive product design using LLM
     async fn generate_product_design(&self, task: &Task) -> Result<ProductDesign> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback()
-            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
+        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
+            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
+        })?;
 
         // Create context from task
         let context = LLMContext::from_task(task);

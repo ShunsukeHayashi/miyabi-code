@@ -241,9 +241,9 @@ impl App {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(3),  // Header
-                Constraint::Min(0),     // Messages
-                Constraint::Length(3),  // Input
+                Constraint::Length(3), // Header
+                Constraint::Min(0),    // Messages
+                Constraint::Length(3), // Input
             ])
             .split(frame.area());
 
@@ -393,7 +393,8 @@ impl App {
         } else {
             // No LLM provider available - show error
             let _ = self.event_tx.send(AppEvent::Error(
-                "LLM provider not initialized. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.".to_string()
+                "LLM provider not initialized. Set OPENAI_API_KEY or ANTHROPIC_API_KEY."
+                    .to_string(),
             ));
         }
     }
@@ -436,7 +437,8 @@ impl App {
                                 let _ = event_tx.send(AppEvent::AssistantChunk(text));
                             }
                             Err(e) => {
-                                let _ = event_tx.send(AppEvent::Error(format!("Stream error: {}", e)));
+                                let _ =
+                                    event_tx.send(AppEvent::Error(format!("Stream error: {}", e)));
                                 break;
                             }
                         }

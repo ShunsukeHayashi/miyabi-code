@@ -84,7 +84,10 @@ pub async fn websocket_handler(
             handle_execution_logs(socket, state, execution_id).await;
         } else {
             // General WebSocket connection
-            state.ws_manager.handle_connection(socket, user_id.to_string()).await;
+            state
+                .ws_manager
+                .handle_connection(socket, user_id.to_string())
+                .await;
         }
     })
 }

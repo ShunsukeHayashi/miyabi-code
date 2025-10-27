@@ -8,9 +8,7 @@
 //! ```
 
 use anyhow::Result;
-use miyabi_core::plugin::{
-    Plugin, PluginContext, PluginManager, PluginMetadata, PluginResult,
-};
+use miyabi_core::plugin::{Plugin, PluginContext, PluginManager, PluginMetadata, PluginResult};
 use serde_json::json;
 use std::collections::HashMap;
 

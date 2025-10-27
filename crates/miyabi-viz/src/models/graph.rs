@@ -94,7 +94,11 @@ impl MiyabiGraph {
     }
 
     /// Find "Unstable Hubs" - highly-depended-upon crates with high B-factor
-    pub fn find_unstable_hubs(&self, bfactor_threshold: f32, dependents_threshold: usize) -> Vec<&CrateNode> {
+    pub fn find_unstable_hubs(
+        &self,
+        bfactor_threshold: f32,
+        dependents_threshold: usize,
+    ) -> Vec<&CrateNode> {
         self.nodes
             .iter()
             .filter(|node| {
@@ -177,12 +181,28 @@ mod tests {
 
         graph.add_node(CrateNode::new("A".to_string(), 1000, CrateCategory::Core));
         graph.add_node(CrateNode::new("B".to_string(), 2000, CrateCategory::Agent));
-        graph.add_node(CrateNode::new("C".to_string(), 3000, CrateCategory::Integration));
+        graph.add_node(CrateNode::new(
+            "C".to_string(),
+            3000,
+            CrateCategory::Integration,
+        ));
 
         // Create a cycle: A → B → C → A
-        graph.add_link(Dependency::new("A".to_string(), "B".to_string(), DependencyKind::Runtime));
-        graph.add_link(Dependency::new("B".to_string(), "C".to_string(), DependencyKind::Runtime));
-        graph.add_link(Dependency::new("C".to_string(), "A".to_string(), DependencyKind::Runtime));
+        graph.add_link(Dependency::new(
+            "A".to_string(),
+            "B".to_string(),
+            DependencyKind::Runtime,
+        ));
+        graph.add_link(Dependency::new(
+            "B".to_string(),
+            "C".to_string(),
+            DependencyKind::Runtime,
+        ));
+        graph.add_link(Dependency::new(
+            "C".to_string(),
+            "A".to_string(),
+            DependencyKind::Runtime,
+        ));
 
         let cycles = graph.detect_cycles();
         assert_eq!(cycles.len(), 1);

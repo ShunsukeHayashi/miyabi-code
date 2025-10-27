@@ -52,7 +52,9 @@ impl GitAnalyzer {
             // If this is not the first commit, compare with parent
             if let Ok(parent) = commit.parent(0) {
                 let parent_tree = parent.tree()?;
-                let diff = self.repo.diff_tree_to_tree(Some(&parent_tree), Some(&tree), None)?;
+                let diff = self
+                    .repo
+                    .diff_tree_to_tree(Some(&parent_tree), Some(&tree), None)?;
 
                 // Analyze changed files
                 diff.foreach(

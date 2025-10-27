@@ -126,10 +126,7 @@ impl OpenAIClient {
     }
 
     /// Parse Server-Sent Events stream from OpenAI API
-    fn parse_sse_stream(
-        &self,
-        response: reqwest::Response,
-    ) -> impl Stream<Item = Result<String>> {
+    fn parse_sse_stream(&self, response: reqwest::Response) -> impl Stream<Item = Result<String>> {
         async_stream::stream! {
             let mut stream = response.bytes_stream();
             let mut buffer = Vec::new();

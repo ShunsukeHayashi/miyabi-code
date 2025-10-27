@@ -8,7 +8,7 @@ pub mod error;
 pub mod types;
 
 pub use client::TelegramClient;
-pub use error::{TelegramError, Result};
+pub use error::{Result, TelegramError};
 pub use types::*;
 
 /// Re-export commonly used types

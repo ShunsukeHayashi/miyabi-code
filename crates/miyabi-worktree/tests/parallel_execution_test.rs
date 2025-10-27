@@ -295,7 +295,6 @@ async fn test_parallel_execution_with_timeout() {
         }
     };
 
-
     let tasks = vec![
         WorktreeTask {
             issue_number: 3001,
@@ -363,7 +362,6 @@ async fn test_execute_simple() {
         }
     };
 
-
     let issue_numbers = vec![4001, 4002, 4003];
 
     let result = pool
@@ -413,7 +411,6 @@ async fn test_pool_statistics() {
             return;
         }
     };
-
 
     // Get initial stats
     let stats = pool.stats().await;
@@ -466,7 +463,6 @@ async fn test_parallel_execution_benchmark() {
             return;
         }
     };
-
 
     // Create 10 tasks
     let tasks: Vec<WorktreeTask> = (5001..=5010)

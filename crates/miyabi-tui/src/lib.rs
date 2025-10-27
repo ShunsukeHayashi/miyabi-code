@@ -27,7 +27,7 @@ mod history;
 mod markdown;
 
 pub use app::{App, AppEvent, AppState, Message, MessageRole};
-pub use history::{ChatHistory, ChatSession, default_history_path};
+pub use history::{default_history_path, ChatHistory, ChatSession};
 pub use markdown::render_markdown;
 
 /// Run the Miyabi TUI application

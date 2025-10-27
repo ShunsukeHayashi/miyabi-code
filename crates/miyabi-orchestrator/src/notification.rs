@@ -32,11 +32,7 @@ pub struct Notification {
 
 impl Notification {
     /// Create a Phase 1 completion notification
-    pub fn phase1_complete(
-        issue_number: u64,
-        complexity: f64,
-        labels: Vec<String>,
-    ) -> Self {
+    pub fn phase1_complete(issue_number: u64, complexity: f64, labels: Vec<String>) -> Self {
         Self {
             notification_type: NotificationType::Phase1Complete,
             issue_number,
@@ -56,20 +52,14 @@ impl Notification {
     }
 
     /// Create an escalation notification
-    pub fn escalation(
-        issue_number: u64,
-        complexity: f64,
-        reason: String,
-    ) -> Self {
+    pub fn escalation(issue_number: u64, complexity: f64, reason: String) -> Self {
         Self {
             notification_type: NotificationType::Escalation,
             issue_number,
             title: format!("🚨 Escalation Required: Issue #{}", issue_number),
             message: format!(
                 "Issue #{} requires human review.\nComplexity: {:.1}/10.0\nReason: {}",
-                issue_number,
-                complexity,
-                reason
+                issue_number, complexity, reason
             ),
             metadata: serde_json::json!({
                 "complexity": complexity,
@@ -80,18 +70,14 @@ impl Notification {
     }
 
     /// Create an error notification
-    pub fn error(
-        issue_number: u64,
-        error_message: String,
-    ) -> Self {
+    pub fn error(issue_number: u64, error_message: String) -> Self {
         Self {
             notification_type: NotificationType::Error,
             issue_number,
             title: format!("❌ Error: Issue #{}", issue_number),
             message: format!(
                 "Error occurred while processing Issue #{}:\n{}",
-                issue_number,
-                error_message
+                issue_number, error_message
             ),
             metadata: serde_json::json!({
                 "error": error_message,
@@ -211,7 +197,10 @@ mod tests {
             vec!["type:feature".to_string(), "priority:P2-Medium".to_string()],
         );
 
-        assert_eq!(notification.notification_type, NotificationType::Phase1Complete);
+        assert_eq!(
+            notification.notification_type,
+            NotificationType::Phase1Complete
+        );
         assert_eq!(notification.issue_number, 123);
         assert!(notification.title.contains("Phase 1 Complete"));
         assert!(notification.message.contains("4.5"));
@@ -219,11 +208,8 @@ mod tests {
 
     #[test]
     fn test_notification_escalation() {
-        let notification = Notification::escalation(
-            456,
-            8.5,
-            "High complexity requires review".to_string(),
-        );
+        let notification =
+            Notification::escalation(456, 8.5, "High complexity requires review".to_string());
 
         assert_eq!(notification.notification_type, NotificationType::Escalation);
         assert_eq!(notification.issue_number, 456);
@@ -233,10 +219,7 @@ mod tests {
 
     #[test]
     fn test_notification_error() {
-        let notification = Notification::error(
-            789,
-            "GitHub API error".to_string(),
-        );
+        let notification = Notification::error(789, "GitHub API error".to_string());
 
         assert_eq!(notification.notification_type, NotificationType::Error);
         assert_eq!(notification.issue_number, 789);
@@ -254,8 +237,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_notification_service_with_discord() {
-        let service = NotificationService::new()
-            .with_discord("https://discord.com/webhook/test".to_string());
+        let service =
+            NotificationService::new().with_discord("https://discord.com/webhook/test".to_string());
 
         let notification = Notification::phase1_complete(123, 4.5, vec![]);
         let result = service.send(&notification).await;

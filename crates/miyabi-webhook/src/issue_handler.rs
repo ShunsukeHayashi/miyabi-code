@@ -70,20 +70,15 @@ impl IssueWebhookEvent {
             _ => IssueStateGithub::Open,
         };
 
-        let labels = self
-            .issue
-            .labels
-            .iter()
-            .map(|l| l.name.clone())
-            .collect();
+        let labels = self.issue.labels.iter().map(|l| l.name.clone()).collect();
 
         let assignee = self.issue.assignee.as_ref().map(|u| u.login.clone());
 
-        let created_at = DateTime::parse_from_rfc3339(&self.issue.created_at)?
-            .with_timezone(&chrono::Utc);
+        let created_at =
+            DateTime::parse_from_rfc3339(&self.issue.created_at)?.with_timezone(&chrono::Utc);
 
-        let updated_at = DateTime::parse_from_rfc3339(&self.issue.updated_at)?
-            .with_timezone(&chrono::Utc);
+        let updated_at =
+            DateTime::parse_from_rfc3339(&self.issue.updated_at)?.with_timezone(&chrono::Utc);
 
         Ok(Issue {
             number: self.issue.number,

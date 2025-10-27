@@ -195,10 +195,8 @@ impl InfinityMode {
             dry_run: config.dry_run,
         };
 
-        let orchestrator = HeadlessOrchestrator::with_github_client(
-            orchestrator_config,
-            github_client.clone(),
-        );
+        let orchestrator =
+            HeadlessOrchestrator::with_github_client(orchestrator_config, github_client.clone());
 
         Self {
             config,
@@ -269,7 +267,11 @@ impl InfinityMode {
             }
 
             println!();
-            println!("🏃 Sprint {} - Processing {} Issues", sprint_id, sprint_issues.len());
+            println!(
+                "🏃 Sprint {} - Processing {} Issues",
+                sprint_id,
+                sprint_issues.len()
+            );
 
             // Execute sprint
             let sprint_result = self.execute_sprint(sprint_id, sprint_issues).await?;
@@ -282,16 +284,14 @@ impl InfinityMode {
             issues.drain(0..processed_count.min(issues.len()));
 
             // Check consecutive failures
-            let sprint_success_count = sprint_result
-                .results
-                .iter()
-                .filter(|r| r.success)
-                .count();
+            let sprint_success_count = sprint_result.results.iter().filter(|r| r.success).count();
 
             if sprint_success_count == 0 {
                 self.consecutive_failures += 1;
-                eprintln!("⚠️  Sprint {} had zero successes (consecutive failures: {})",
-                          sprint_id, self.consecutive_failures);
+                eprintln!(
+                    "⚠️  Sprint {} had zero successes (consecutive failures: {})",
+                    sprint_id, self.consecutive_failures
+                );
             } else {
                 self.consecutive_failures = 0;
             }
@@ -496,24 +496,44 @@ impl InfinityMode {
     /// Display summary
     fn display_summary(&self, report: &InfinityReport) {
         println!();
-        println!("{}", "========================================".bright_cyan());
-        println!("{}", "🏁 Miyabi Infinity Mode - Final Report".bright_cyan().bold());
-        println!("{}", "========================================".bright_cyan());
+        println!(
+            "{}",
+            "========================================".bright_cyan()
+        );
+        println!(
+            "{}",
+            "🏁 Miyabi Infinity Mode - Final Report"
+                .bright_cyan()
+                .bold()
+        );
+        println!(
+            "{}",
+            "========================================".bright_cyan()
+        );
         println!();
 
         println!("{}", "📊 Execution Summary".bright_yellow().bold());
         println!("   Total Duration: {} seconds", report.total_duration_secs);
         println!("   Total Sprints: {}", report.total_sprints);
         println!("   Total Issues: {}", report.total_issues);
-        println!("   Successful: {} ✅", report.successful_issues.to_string().bright_green());
-        println!("   Failed: {} ❌", report.failed_issues.to_string().bright_red());
+        println!(
+            "   Successful: {} ✅",
+            report.successful_issues.to_string().bright_green()
+        );
+        println!(
+            "   Failed: {} ❌",
+            report.failed_issues.to_string().bright_red()
+        );
         println!("   Success Rate: {:.1}%", report.success_rate * 100.0);
         println!();
 
         println!("{}", "🛑 Stop Reason".bright_yellow().bold());
         match &report.stop_reason {
             StopReason::AllCompleted => {
-                println!("   {} All Issues completed successfully", "✅".bright_green());
+                println!(
+                    "   {} All Issues completed successfully",
+                    "✅".bright_green()
+                );
             }
             StopReason::MaxIssuesReached => {
                 println!("   ⏹️  Maximum Issues limit reached");
@@ -546,7 +566,10 @@ impl InfinityMode {
             );
         }
         println!();
-        println!("{}", "========================================".bright_cyan());
+        println!(
+            "{}",
+            "========================================".bright_cyan()
+        );
     }
 }
 

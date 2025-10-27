@@ -30,8 +30,9 @@ impl PersonaAgent {
     /// Generate comprehensive persona analysis using LLM
     async fn generate_persona_analysis(&self, task: &Task) -> Result<PersonaAnalysis> {
         // Initialize LLM provider with standard fallback chain
-        let provider = GPTOSSProvider::new_with_fallback()
-            .map_err(|e| MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e)))?;
+        let provider = GPTOSSProvider::new_with_fallback().map_err(|e| {
+            MiyabiError::Unknown(format!("LLM provider initialization failed: {}", e))
+        })?;
 
         // Create context from task
         let context = LLMContext::from_task(task);

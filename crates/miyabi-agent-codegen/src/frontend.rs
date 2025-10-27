@@ -134,8 +134,8 @@ pub fn frontend_confidence_score(task: &Task) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use miyabi_types::{AgentType, Task};
     use miyabi_types::task::TaskType;
+    use miyabi_types::{AgentType, Task};
 
     fn create_test_task(title: &str, description: &str) -> Task {
         Task {

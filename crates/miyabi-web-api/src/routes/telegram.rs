@@ -55,7 +55,8 @@ struct Texts;
 impl Texts {
     fn welcome(lang: Language) -> &'static str {
         match lang {
-            Language::English => r#"**Miyabi Bot**
+            Language::English => {
+                r#"**Miyabi Bot**
 
 Natural language control for autonomous development
 
@@ -69,8 +70,10 @@ Add performance tests
 
 ────────────────────────
 
-/help for more information"#,
-            Language::Japanese => r#"**Miyabi Bot**
+/help for more information"#
+            }
+            Language::Japanese => {
+                r#"**Miyabi Bot**
 
 自然言語で自律開発を制御
 
@@ -84,13 +87,15 @@ Add performance tests
 
 ────────────────────────
 
-詳細は /help"#,
+詳細は /help"#
+            }
         }
     }
 
     fn help(lang: Language) -> &'static str {
         match lang {
-            Language::English => r#"
+            Language::English => {
+                r#"
 📚 **Miyabi Bot Help**
 
 **Commands**:
@@ -109,8 +114,10 @@ Example: "Add login feature"
 5. Send completion notification
 
 🔗 GitHub: https://github.com/ShunsukeHayashi/Miyabi
-"#,
-            Language::Japanese => r#"
+"#
+            }
+            Language::Japanese => {
+                r#"
 📚 **Miyabi Bot ヘルプ**
 
 **コマンド**:
@@ -129,7 +136,8 @@ Example: "Add login feature"
 5. 完了通知
 
 🔗 GitHub: https://github.com/ShunsukeHayashi/Miyabi
-"#,
+"#
+            }
         }
     }
 
@@ -216,11 +224,16 @@ async fn handle_message(state: AppState, message: Message) -> Result<()> {
     let text = message.text.unwrap_or_default();
 
     // Detect user language
-    let lang = message.from.as_ref()
+    let lang = message
+        .from
+        .as_ref()
         .map(Language::from_user)
         .unwrap_or(Language::English);
 
-    info!("Message from chat_id={} (lang={:?}): {}", chat_id, lang, text);
+    info!(
+        "Message from chat_id={} (lang={:?}): {}",
+        chat_id, lang, text
+    );
 
     // Special commands that don't require authorization
     if text == "/getid" {
@@ -231,7 +244,8 @@ async fn handle_message(state: AppState, message: Message) -> Result<()> {
     if !is_authorized(chat_id).await {
         let client = create_telegram_client()?;
         let unauthorized_text = match lang {
-            Language::English => r#"
+            Language::English => {
+                r#"
 ❌ **Unauthorized Access**
 
 You are not authorized to use this bot.
@@ -242,8 +256,10 @@ To get authorized:
 3. Wait for authorization
 
 Need help? Contact: @YourAdminUsername
-"#,
-            Language::Japanese => r#"
+"#
+            }
+            Language::Japanese => {
+                r#"
 ❌ **未認証アクセス**
 
 このBotを使用する権限がありません。
@@ -254,7 +270,8 @@ Need help? Contact: @YourAdminUsername
 3. 認証を待つ
 
 お問い合わせ: @YourAdminUsername
-"#,
+"#
+            }
         };
 
         client.send_message(chat_id, unauthorized_text).await?;
@@ -284,19 +301,13 @@ async fn is_authorized(chat_id: i64) -> bool {
 }
 
 /// Handle /getid command - Get user's Chat ID (No authorization required)
-async fn handle_getid_command(
-    chat_id: i64,
-    user: Option<&User>,
-    lang: Language,
-) -> Result<()> {
+async fn handle_getid_command(chat_id: i64, user: Option<&User>, lang: Language) -> Result<()> {
     let client = create_telegram_client()?;
 
     let text = if let Some(u) = user {
-        let full_name = format!(
-            "{} {}",
-            u.first_name,
-            u.last_name.as_deref().unwrap_or("")
-        ).trim().to_string();
+        let full_name = format!("{} {}", u.first_name, u.last_name.as_deref().unwrap_or(""))
+            .trim()
+            .to_string();
 
         match lang {
             Language::English => format!(
@@ -346,7 +357,12 @@ Send this Chat ID to the administrator.
 }
 
 /// Handle Telegram commands (/start, /help, etc.)
-async fn handle_command(_state: AppState, chat_id: i64, command: &str, lang: Language) -> Result<()> {
+async fn handle_command(
+    _state: AppState,
+    chat_id: i64,
+    command: &str,
+    lang: Language,
+) -> Result<()> {
     let client = create_telegram_client()?;
 
     match command.trim() {
@@ -693,7 +709,9 @@ async fn handle_agent_selection(
 
     if let Some(msg) = message {
         let chat_id = msg.chat.id;
-        client.send_message(chat_id, &Texts::agent_selected(lang, agent_name)).await?;
+        client
+            .send_message(chat_id, &Texts::agent_selected(lang, agent_name))
+            .await?;
     }
 
     Ok(())
@@ -710,7 +728,9 @@ async fn handle_action(
 
     if let Some(msg) = message {
         let chat_id = msg.chat.id;
-        client.send_message(chat_id, &Texts::action_triggered(lang, action)).await?;
+        client
+            .send_message(chat_id, &Texts::action_triggered(lang, action))
+            .await?;
     }
 
     Ok(())
@@ -814,11 +834,9 @@ async fn create_github_issue(_state: &AppState, info: &IssueAnalysis) -> Result<
     let token = std::env::var("GITHUB_TOKEN")
         .map_err(|_| AppError::Configuration("GITHUB_TOKEN not set".to_string()))?;
 
-    let owner = std::env::var("GITHUB_OWNER")
-        .unwrap_or_else(|_| "ShunsukeHayashi".to_string());
+    let owner = std::env::var("GITHUB_OWNER").unwrap_or_else(|_| "ShunsukeHayashi".to_string());
 
-    let repo = std::env::var("GITHUB_REPO")
-        .unwrap_or_else(|_| "Miyabi".to_string());
+    let repo = std::env::var("GITHUB_REPO").unwrap_or_else(|_| "Miyabi".to_string());
 
     info!("Creating Issue in repository: {}/{}", owner, repo);
 
@@ -840,7 +858,10 @@ async fn create_github_issue(_state: &AppState, info: &IssueAnalysis) -> Result<
             .replace_labels(issue.number, &info.labels)
             .await
             .map_err(|e| {
-                AppError::ExternalApi(format!("Failed to add labels to Issue #{}: {}", issue.number, e))
+                AppError::ExternalApi(format!(
+                    "Failed to add labels to Issue #{}: {}",
+                    issue.number, e
+                ))
             })?;
 
         info!("Labels added to Issue #{}: {:?}", issue.number, info.labels);

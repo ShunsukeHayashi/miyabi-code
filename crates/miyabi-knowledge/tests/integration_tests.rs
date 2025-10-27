@@ -56,7 +56,9 @@ fn create_test_entry(_id: &str, content: &str, agent: &str, issue: u32) -> Knowl
 async fn test_full_flow_index_search_cleanup() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
+        eprintln!(
+            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
+        );
         return;
     }
 
@@ -166,7 +168,9 @@ async fn test_full_flow_index_search_cleanup() {
 async fn test_parallel_execution_10_agents() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
+        eprintln!(
+            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
+        );
         return;
     }
 
@@ -244,7 +248,10 @@ async fn test_parallel_execution_10_agents() {
         .expect("Failed to search");
 
     println!("✅ Search found {} results from all agents", results.len());
-    assert!(results.len() >= 10, "Should find results from multiple agents");
+    assert!(
+        results.len() >= 10,
+        "Should find results from multiple agents"
+    );
 
     println!("\n🎉 Parallel execution test passed!");
 }
@@ -254,7 +261,9 @@ async fn test_parallel_execution_10_agents() {
 async fn test_incremental_indexing_with_cache() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
+        eprintln!(
+            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
+        );
         return;
     }
 
@@ -267,18 +276,8 @@ async fn test_incremental_indexing_with_cache() {
 
     // Create entries
     let entries = vec![
-        create_test_entry(
-            "entry1",
-            "Test incremental indexing",
-            "CodeGenAgent",
-            100,
-        ),
-        create_test_entry(
-            "entry2",
-            "Test cache functionality",
-            "CodeGenAgent",
-            101,
-        ),
+        create_test_entry("entry1", "Test incremental indexing", "CodeGenAgent", 100),
+        create_test_entry("entry2", "Test cache functionality", "CodeGenAgent", 101),
     ];
 
     // First indexing
@@ -303,7 +302,9 @@ async fn test_incremental_indexing_with_cache() {
 async fn test_retention_policy_cleanup() {
     // Check if Qdrant is running
     if !is_qdrant_running().await {
-        eprintln!("⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d");
+        eprintln!(
+            "⚠️  Qdrant not running. Start with: docker-compose -f docker-compose.test.yml up -d"
+        );
         return;
     }
 
@@ -333,7 +334,7 @@ async fn test_retention_policy_cleanup() {
     let retention = RetentionManager::new(
         config.clone(),
         RetentionPolicy {
-            max_days: 0,   // Delete all
+            max_days: 0,    // Delete all
             max_entries: 0, // Force cleanup
             cleanup_interval_hours: 24,
         },

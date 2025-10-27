@@ -189,47 +189,47 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Telegram Bot Webhook - Does NOT require database
         .route("/telegram/webhook", post(routes::telegram::handle_webhook));
 
-        // COMMENTED OUT: These routes require database (will re-enable with Firebase)
-        // // Authentication routes
-        // .route("/auth/github", get(routes::auth::github_oauth_initiate))
-        // .route(
-        //     "/auth/github/callback",
-        //     get(routes::auth::github_oauth_callback),
-        // )
-        // .route("/auth/refresh", post(routes::auth::refresh_token))
-        // .route("/auth/logout", post(routes::auth::logout))
-        // .route("/auth/mock", post(routes::auth::mock_login))
-        // // Repository routes
-        // .route(
-        //     "/repositories",
-        //     get(routes::repositories::list_repositories),
-        // )
-        // .route(
-        //     "/repositories/:id",
-        //     get(routes::repositories::get_repository),
-        // )
-        // .route(
-        //     "/repositories",
-        //     post(routes::repositories::create_repository),
-        // )
-        // // Agent execution routes
-        // .route("/agents", get(routes::agents::list_agents))
-        // .route("/agents/execute", post(routes::agents::execute_agent))
-        // // Workflow routes
-        // .route("/workflows", post(routes::workflows::create_workflow))
-        // .route("/workflows", get(routes::workflows::list_workflows))
-        // .route("/workflows/:id", get(routes::workflows::get_workflow))
-        // // Dashboard routes
-        // .route(
-        //     "/dashboard/summary",
-        //     get(routes::dashboard::get_dashboard_summary),
-        // )
-        // .route(
-        //     "/dashboard/recent",
-        //     get(routes::dashboard::get_recent_executions),
-        // )
-        // // WebSocket endpoint
-        // .route("/ws", get(routes::websocket::websocket_handler));
+    // COMMENTED OUT: These routes require database (will re-enable with Firebase)
+    // // Authentication routes
+    // .route("/auth/github", get(routes::auth::github_oauth_initiate))
+    // .route(
+    //     "/auth/github/callback",
+    //     get(routes::auth::github_oauth_callback),
+    // )
+    // .route("/auth/refresh", post(routes::auth::refresh_token))
+    // .route("/auth/logout", post(routes::auth::logout))
+    // .route("/auth/mock", post(routes::auth::mock_login))
+    // // Repository routes
+    // .route(
+    //     "/repositories",
+    //     get(routes::repositories::list_repositories),
+    // )
+    // .route(
+    //     "/repositories/:id",
+    //     get(routes::repositories::get_repository),
+    // )
+    // .route(
+    //     "/repositories",
+    //     post(routes::repositories::create_repository),
+    // )
+    // // Agent execution routes
+    // .route("/agents", get(routes::agents::list_agents))
+    // .route("/agents/execute", post(routes::agents::execute_agent))
+    // // Workflow routes
+    // .route("/workflows", post(routes::workflows::create_workflow))
+    // .route("/workflows", get(routes::workflows::list_workflows))
+    // .route("/workflows/:id", get(routes::workflows::get_workflow))
+    // // Dashboard routes
+    // .route(
+    //     "/dashboard/summary",
+    //     get(routes::dashboard::get_dashboard_summary),
+    // )
+    // .route(
+    //     "/dashboard/recent",
+    //     get(routes::dashboard::get_recent_executions),
+    // )
+    // // WebSocket endpoint
+    // .route("/ws", get(routes::websocket::websocket_handler));
 
     // Build main router
     let app = Router::new()

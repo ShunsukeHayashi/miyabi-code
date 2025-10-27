@@ -156,10 +156,7 @@ impl ClaudeCodeExecutor {
         issue_number: u32,
         base_worktree_path: PathBuf,
     ) -> Result<ExecutionResult> {
-        info!(
-            "Starting 5-Worlds execution for Issue #{}",
-            issue_number
-        );
+        info!("Starting 5-Worlds execution for Issue #{}", issue_number);
 
         let command = format!("/agent-run --issue {}", issue_number);
         let mut world_results = Vec::new();
@@ -167,13 +164,10 @@ impl ClaudeCodeExecutor {
 
         // Phase 1: Spawn all worlds in parallel
         for world_id in 0..self.config.num_worlds {
-            let worktree_path = PathBuf::from(format!("{}-w{}", base_worktree_path.display(), world_id));
+            let worktree_path =
+                PathBuf::from(format!("{}-w{}", base_worktree_path.display(), world_id));
 
-            debug!(
-                "Spawning World {} at {}",
-                world_id,
-                worktree_path.display()
-            );
+            debug!("Spawning World {} at {}", world_id, worktree_path.display());
 
             // Ensure worktree exists (should be created by Phase 3)
             if !worktree_path.exists() {
@@ -192,16 +186,16 @@ impl ClaudeCodeExecutor {
             session_ids.push((world_id, session_id));
         }
 
-        info!("All {} worlds spawned, waiting for completion...", self.config.num_worlds);
+        info!(
+            "All {} worlds spawned, waiting for completion...",
+            self.config.num_worlds
+        );
 
         // Phase 2: Wait for all worlds to complete
         for (world_id, session_id) in &session_ids {
             debug!("Waiting for World {} (session: {})", world_id, session_id);
 
-            let status = self
-                .session_manager
-                .wait_for_completion(session_id)
-                .await;
+            let status = self.session_manager.wait_for_completion(session_id).await;
 
             let (success, message) = match status {
                 Ok(SessionStatus::Completed) => {
@@ -217,9 +211,13 @@ impl ClaudeCodeExecutor {
                 Ok(SessionStatus::Failed) => {
                     (false, format!("World {} execution failed", world_id))
                 }
-                Ok(SessionStatus::TimedOut) => {
-                    (false, format!("World {} timed out after {} seconds", world_id, self.config.timeout_secs))
-                }
+                Ok(SessionStatus::TimedOut) => (
+                    false,
+                    format!(
+                        "World {} timed out after {} seconds",
+                        world_id, self.config.timeout_secs
+                    ),
+                ),
                 Err(e) => {
                     warn!("Error waiting for World {}: {}", world_id, e);
                     (false, format!("Error: {}", e))

@@ -153,11 +153,7 @@ pub struct Message {
 
 impl Message {
     /// Create a new message
-    pub fn new(
-        session_id: Uuid,
-        priority: Priority,
-        message_type: MessageType,
-    ) -> Self {
+    pub fn new(session_id: Uuid, priority: Priority, message_type: MessageType) -> Self {
         Self {
             id: Uuid::new_v4(),
             session_id,

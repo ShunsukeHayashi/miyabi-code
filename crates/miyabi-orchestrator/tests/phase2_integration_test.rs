@@ -45,7 +45,10 @@ async fn test_phase2_task_decomposition_dry_run() {
     let result = orchestrator.handle_issue_created(&issue).await;
 
     // Should succeed and complete Phase 2
-    assert!(result.is_ok(), "Phase 1 + Phase 2 should succeed in dry-run");
+    assert!(
+        result.is_ok(),
+        "Phase 1 + Phase 2 should succeed in dry-run"
+    );
 
     let result = result.unwrap();
     assert!(result.success, "Execution should be successful");
@@ -135,15 +138,14 @@ async fn test_phase1_to_phase2_transition() {
 
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
-    let issue = create_test_issue(
-        600,
-        "Simple UI change",
-        "Update button color on homepage",
-    );
+    let issue = create_test_issue(600, "Simple UI change", "Update button color on homepage");
 
     // This should pass through both Phase 1 and Phase 2
     let result = orchestrator.handle_issue_created(&issue).await;
-    assert!(result.is_ok(), "Phase 1 → Phase 2 transition should succeed");
+    assert!(
+        result.is_ok(),
+        "Phase 1 → Phase 2 transition should succeed"
+    );
 
     let result = result.unwrap();
     assert!(result.success);
@@ -201,7 +203,10 @@ async fn test_phase2_concurrent_executions() {
     // Execute sequentially (git2::Repository is !Send, can't use tokio::spawn)
     for issue in issues {
         let result = orchestrator.handle_issue_created(&issue).await;
-        assert!(result.is_ok(), "Sequential Phase 2 execution should succeed");
+        assert!(
+            result.is_ok(),
+            "Sequential Phase 2 execution should succeed"
+        );
     }
 }
 

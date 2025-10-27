@@ -1,6 +1,6 @@
 //! Module-level analyzer for Rust crates (Phase 2)
 
-use crate::models::{ModuleNode, ModuleDependency, ModuleGraph};
+use crate::models::{ModuleDependency, ModuleGraph, ModuleNode};
 use crate::Result;
 use std::collections::{HashMap, HashSet};
 use std::fs;
@@ -222,10 +222,8 @@ impl ModuleAnalyzer {
     /// Analyze dependencies between modules by parsing use statements
     fn analyze_dependencies(&self, modules: &[ModuleInfo]) -> Result<Vec<ModuleDependency>> {
         let mut dependencies: Vec<ModuleDependency> = Vec::new();
-        let module_map: HashMap<String, &ModuleInfo> = modules
-            .iter()
-            .map(|m| (m.full_path.clone(), m))
-            .collect();
+        let module_map: HashMap<String, &ModuleInfo> =
+            modules.iter().map(|m| (m.full_path.clone(), m)).collect();
 
         for module in modules {
             let content = fs::read_to_string(&module.file_path)?;

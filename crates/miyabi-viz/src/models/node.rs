@@ -51,14 +51,14 @@ impl CrateCategory {
     /// Get display color for this category (hex color string)
     pub fn color(&self) -> &'static str {
         match self {
-            Self::Core => "#FF6B6B",        // Red
-            Self::Agent => "#4ECDC4",       // Cyan
-            Self::Integration => "#45B7D1", // Light Blue
+            Self::Core => "#FF6B6B",           // Red
+            Self::Agent => "#4ECDC4",          // Cyan
+            Self::Integration => "#45B7D1",    // Light Blue
             Self::Infrastructure => "#96CEB4", // Green
-            Self::Tool => "#FFEAA7",        // Yellow
-            Self::Test => "#DFE6E9",        // Gray
-            Self::Business => "#A29BFE",    // Purple
-            Self::Other => "#636E72",       // Dark Gray
+            Self::Tool => "#FFEAA7",           // Yellow
+            Self::Test => "#DFE6E9",           // Gray
+            Self::Business => "#A29BFE",       // Purple
+            Self::Other => "#636E72",          // Dark Gray
         }
     }
 }
@@ -97,7 +97,7 @@ impl CrateNode {
         Self {
             id,
             loc,
-            bfactor: 50.0, // Default: medium volatility
+            bfactor: 50.0,  // Default: medium volatility
             occupancy: 0.5, // Default: 50% coverage
             category,
             dependencies_count: 0,
@@ -142,9 +142,9 @@ impl DependencyKind {
     /// Get display color for this dependency type
     pub fn color(&self) -> &'static str {
         match self {
-            Self::Runtime => "#FFFFFF",  // White (strong bond)
-            Self::Dev => "#888888",      // Gray (weak bond)
-            Self::Build => "#FFD700",    // Gold (special bond)
+            Self::Runtime => "#FFFFFF", // White (strong bond)
+            Self::Dev => "#888888",     // Gray (weak bond)
+            Self::Build => "#FFD700",   // Gold (special bond)
         }
     }
 

@@ -49,7 +49,10 @@ impl IssueAgent {
         if self.config.verbose {
             info!("   Complexity: {:.1}/10.0", analysis.complexity);
             info!("   Level: {:?}", analysis.complexity_level);
-            info!("   Estimated duration: {} hours", analysis.estimated_duration_hours);
+            info!(
+                "   Estimated duration: {} hours",
+                analysis.estimated_duration_hours
+            );
             info!("   Suggested labels: {:?}", analysis.labels);
             info!("   Reasoning: {}", analysis.reasoning);
         }
@@ -77,7 +80,9 @@ impl BaseAgent for IssueAgent {
         // For Phase 1, we'll expect the Issue to be passed via metadata
         // This is a simplified version - in production, you'd fetch from GitHub API
 
-        let issue_data = task.metadata.as_ref()
+        let issue_data = task
+            .metadata
+            .as_ref()
             .and_then(|m| m.get("issue"))
             .ok_or_else(|| {
                 MiyabiError::Agent(AgentError::new(
@@ -87,15 +92,14 @@ impl BaseAgent for IssueAgent {
                 ))
             })?;
 
-        let issue: Issue = serde_json::from_value(issue_data.clone())
-            .map_err(|e| {
-                warn!("Failed to parse Issue from task metadata: {}", e);
-                MiyabiError::Agent(AgentError::new(
-                    format!("Invalid Issue data in task metadata: {}", e),
-                    AgentType::IssueAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let issue: Issue = serde_json::from_value(issue_data.clone()).map_err(|e| {
+            warn!("Failed to parse Issue from task metadata: {}", e);
+            MiyabiError::Agent(AgentError::new(
+                format!("Invalid Issue data in task metadata: {}", e),
+                AgentType::IssueAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Analyze the issue
         let analysis = self.analyze_issue(&issue).await?;
@@ -133,8 +137,8 @@ mod tests {
     }
 
     fn create_test_task(issue: &Issue) -> Task {
-        use std::collections::HashMap;
         use miyabi_types::task::TaskType;
+        use std::collections::HashMap;
 
         let mut metadata = HashMap::new();
         metadata.insert("issue".to_string(), serde_json::to_value(issue).unwrap());

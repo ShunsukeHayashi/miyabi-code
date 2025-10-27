@@ -75,10 +75,7 @@ impl AutoIndexHook {
                 Ok(entry_count) => {
                     info!(
                         "Auto-indexed {} entries from {:?} (attempt {}/{})",
-                        entry_count,
-                        log_file,
-                        attempt,
-                        config.auto_index.retry_count
+                        entry_count, log_file, attempt, config.auto_index.retry_count
                     );
                     return;
                 }
@@ -101,13 +98,10 @@ impl AutoIndexHook {
     }
 
     /// Try to index a single log file with deduplication
-    async fn try_index_file(
-        config: Arc<KnowledgeConfig>,
-        log_file: &PathBuf,
-    ) -> Result<usize> {
+    async fn try_index_file(config: Arc<KnowledgeConfig>, log_file: &PathBuf) -> Result<usize> {
         // Calculate file hash for deduplication
-        let file_hash = hash_file(log_file)
-            .map_err(|e| MiyabiError::Io(std::io::Error::other(e)))?;
+        let file_hash =
+            hash_file(log_file).map_err(|e| MiyabiError::Io(std::io::Error::other(e)))?;
 
         // Load cache
         let mut cache = IndexCache::load_or_default(&config.workspace.name)

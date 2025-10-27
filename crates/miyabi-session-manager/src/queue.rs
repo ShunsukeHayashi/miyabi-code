@@ -180,7 +180,10 @@ impl MessageQueue {
             // Remove expired messages first
             let expired = queue_guard.remove_expired();
             if expired > 0 {
-                info!("Removed {} expired messages from session {}", expired, session_id);
+                info!(
+                    "Removed {} expired messages from session {}",
+                    expired, session_id
+                );
             }
 
             if let Some(mut message) = queue_guard.dequeue() {
@@ -217,11 +220,7 @@ impl MessageQueue {
         if let Some(queue_ref) = self.queues.get(&session_id) {
             let queue = queue_ref.clone();
             let queue_guard = queue.read().await;
-            queue_guard
-                .messages
-                .iter()
-                .map(|pm| pm.0.clone())
-                .collect()
+            queue_guard.messages.iter().map(|pm| pm.0.clone()).collect()
         } else {
             vec![]
         }
@@ -596,7 +595,12 @@ mod tests {
 
         let session_id = Uuid::new_v4();
 
-        for priority in [Priority::Low, Priority::Normal, Priority::High, Priority::Urgent] {
+        for priority in [
+            Priority::Low,
+            Priority::Normal,
+            Priority::High,
+            Priority::Urgent,
+        ] {
             let msg = MessageBuilder::new(session_id)
                 .priority(priority)
                 .message_type(MessageType::Log(LogMessage {

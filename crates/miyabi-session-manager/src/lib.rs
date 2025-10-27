@@ -54,7 +54,7 @@ mod queue;
 mod session;
 mod storage;
 
-pub use error::{SessionError, Result};
+pub use error::{Result, SessionError};
 pub use message::{
     CommandMessage, CustomMessage, ErrorMessage, LogMessage, Message, MessageBuilder, MessageType,
     Priority, ResultMessage, StatusUpdateMessage,
@@ -148,14 +148,11 @@ impl SessionManager {
     ///
     /// メッセージキューが無効な場合は`SessionError::InvalidState`
     pub async fn send_message(&self, message: Message) -> Result<()> {
-        let queue = self
-            .message_queue
-            .as_ref()
-            .ok_or_else(|| {
-                SessionError::InvalidState(
-                    "Message queue is not enabled. Call with_message_queue(true).".to_string(),
-                )
-            })?;
+        let queue = self.message_queue.as_ref().ok_or_else(|| {
+            SessionError::InvalidState(
+                "Message queue is not enabled. Call with_message_queue(true).".to_string(),
+            )
+        })?;
 
         queue.enqueue(message).await
     }
@@ -170,12 +167,9 @@ impl SessionManager {
     ///
     /// 優先度順で次のメッセージ、またはNone
     pub async fn receive_message(&self, session_id: Uuid) -> Result<Option<Message>> {
-        let queue = self
-            .message_queue
-            .as_ref()
-            .ok_or_else(|| {
-                SessionError::InvalidState("Message queue is not enabled.".to_string())
-            })?;
+        let queue = self.message_queue.as_ref().ok_or_else(|| {
+            SessionError::InvalidState("Message queue is not enabled.".to_string())
+        })?;
 
         queue.dequeue(session_id).await
     }
@@ -190,10 +184,7 @@ impl SessionManager {
     ///
     /// 次のメッセージ、またはNone
     pub async fn peek_message(&self, session_id: Uuid) -> Option<Message> {
-        self.message_queue
-            .as_ref()?
-            .peek(session_id)
-            .await
+        self.message_queue.as_ref()?.peek(session_id).await
     }
 
     /// セッションの全メッセージを取得
@@ -228,11 +219,7 @@ impl SessionManager {
     ///
     /// * `session_id` - セッションID
     /// * `type_name` - メッセージタイプ名（例: "command", "error"）
-    pub async fn filter_messages_by_type(
-        &self,
-        session_id: Uuid,
-        type_name: &str,
-    ) -> Vec<Message> {
+    pub async fn filter_messages_by_type(&self, session_id: Uuid, type_name: &str) -> Vec<Message> {
         if let Some(queue) = &self.message_queue {
             queue.filter_by_type(session_id, type_name).await
         } else {
@@ -359,10 +346,7 @@ impl SessionManager {
         to_agent: &str,
         updated_context: SessionContext,
     ) -> Result<Uuid> {
-        info!(
-            "🔄 Handing off session {} to {}",
-            from_session_id, to_agent
-        );
+        info!("🔄 Handing off session {} to {}", from_session_id, to_agent);
 
         // 現在のセッションを取得
         let mut parent_session = self
@@ -399,7 +383,10 @@ impl SessionManager {
             self.storage.save(&parent).await?;
         }
 
-        info!("✅ Handoff complete: {} → {}", from_session_id, new_session_id);
+        info!(
+            "✅ Handoff complete: {} → {}",
+            from_session_id, new_session_id
+        );
 
         Ok(new_session_id)
     }

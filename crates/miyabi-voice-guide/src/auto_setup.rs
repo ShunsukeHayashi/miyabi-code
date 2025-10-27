@@ -123,8 +123,7 @@ mod tests {
         if let Some(root) = root {
             assert!(root.join("Cargo.toml").exists());
             assert!(
-                root.join("tools/voicevox_auto_setup.sh").exists()
-                    || std::env::var("CI").is_ok() // Skip in CI
+                root.join("tools/voicevox_auto_setup.sh").exists() || std::env::var("CI").is_ok() // Skip in CI
             );
         }
     }

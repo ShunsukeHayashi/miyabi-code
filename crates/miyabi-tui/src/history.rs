@@ -119,8 +119,8 @@ impl ChatHistory {
                 .with_context(|| format!("Failed to create directory: {:?}", parent))?;
         }
 
-        let json = serde_json::to_string_pretty(self)
-            .context("Failed to serialize history to JSON")?;
+        let json =
+            serde_json::to_string_pretty(self).context("Failed to serialize history to JSON")?;
 
         fs::write(path, json)
             .with_context(|| format!("Failed to write history file: {:?}", path))?;

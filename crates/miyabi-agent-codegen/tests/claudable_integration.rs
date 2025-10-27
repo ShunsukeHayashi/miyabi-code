@@ -7,8 +7,8 @@
 //! Run with: `cargo test --package miyabi-agent-codegen --test claudable_integration -- --ignored`
 
 use miyabi_agent_codegen::CodeGenAgent;
-use miyabi_types::{AgentConfig, AgentType, Task};
 use miyabi_types::task::TaskType;
+use miyabi_types::{AgentConfig, AgentType, Task};
 use tempfile::TempDir;
 
 fn create_test_config() -> AgentConfig {

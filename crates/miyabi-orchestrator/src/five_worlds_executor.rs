@@ -332,10 +332,19 @@ impl FiveWorldsExecutor {
         {
             let mut params = std::collections::HashMap::new();
             params.insert("DURATION_MS".to_string(), duration.as_millis().to_string());
-            params.insert("SUCCESSFUL_COUNT".to_string(), five_worlds_result.successful_count().to_string());
-            params.insert("FAILED_COUNT".to_string(), five_worlds_result.failed_count().to_string());
+            params.insert(
+                "SUCCESSFUL_COUNT".to_string(),
+                five_worlds_result.successful_count().to_string(),
+            );
+            params.insert(
+                "FAILED_COUNT".to_string(),
+                five_worlds_result.failed_count().to_string(),
+            );
             if let Some(winner_result) = five_worlds_result.winner_result() {
-                params.insert("COST_USD".to_string(), format!("{:.2}", winner_result.cost_usd));
+                params.insert(
+                    "COST_USD".to_string(),
+                    format!("{:.2}", winner_result.cost_usd),
+                );
             }
             crate::hooks::notify_orchestrator_event("execution_summary", params);
         }
@@ -352,7 +361,10 @@ impl FiveWorldsExecutor {
             // Hook: Winner details
             {
                 let mut params = std::collections::HashMap::new();
-                params.insert("WINNER_ID".to_string(), format!("{:?}", five_worlds_result.winner.unwrap()));
+                params.insert(
+                    "WINNER_ID".to_string(),
+                    format!("{:?}", five_worlds_result.winner.unwrap()),
+                );
                 params.insert("SCORE".to_string(), winner_result.score.total.to_string());
                 crate::hooks::notify_orchestrator_event("winner_details", params);
             }
@@ -641,9 +653,7 @@ impl FiveWorldsExecutor {
                                     task_clone,
                                 )
                                 .await
-                                .map_err(|e| {
-                                    std::io::Error::other(e.to_string())
-                                })
+                                .map_err(|e| std::io::Error::other(e.to_string()))
                             })
                         })
                         .await

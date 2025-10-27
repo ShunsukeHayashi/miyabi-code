@@ -192,7 +192,12 @@ async fn test_filter_by_priority() {
     let session_id = Uuid::new_v4();
 
     // Send messages with different priorities
-    for priority in [Priority::Low, Priority::Normal, Priority::High, Priority::Urgent] {
+    for priority in [
+        Priority::Low,
+        Priority::Normal,
+        Priority::High,
+        Priority::Urgent,
+    ] {
         let msg = MessageBuilder::new(session_id)
             .priority(priority)
             .message_type(MessageType::Log(LogMessage {

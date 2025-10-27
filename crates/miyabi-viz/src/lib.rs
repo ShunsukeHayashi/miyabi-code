@@ -28,8 +28,8 @@ pub mod models;
 
 pub use analyzer::{MiyabiAnalyzer, ModuleAnalyzer};
 pub use models::{
-    CrateCategory, CrateNode, Dependency, DependencyKind, MiyabiGraph,
-    ModuleNode, ModuleDependency, ModuleGraph,
+    CrateCategory, CrateNode, Dependency, DependencyKind, MiyabiGraph, ModuleDependency,
+    ModuleGraph, ModuleNode,
 };
 
 /// Result type for this crate
