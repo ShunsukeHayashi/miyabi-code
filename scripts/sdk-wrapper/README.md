@@ -8,7 +8,7 @@
 
 ## Overview
 
-This directory contains TypeScript implementations of Miyabi decision points using the Anthropic API SDK, replacing bash `claude -p` subprocess calls with programmatic API integration.
+This directory contains TypeScript implementations of Miyabi decision points using **Anthropic or OpenAI APIs**, replacing bash `claude -p` subprocess calls with programmatic API integration.
 
 ### Goals
 
@@ -16,6 +16,7 @@ This directory contains TypeScript implementations of Miyabi decision points usi
 2. **Error Handling**: Built-in retry logic and structured error handling
 3. **Performance**: Direct API calls vs subprocess overhead
 4. **Maintainability**: Clean TypeScript code vs bash script complexity
+5. **Multi-Provider**: Support both Anthropic and OpenAI APIs
 
 ---
 
@@ -27,17 +28,28 @@ node --version  # v18+ required
 npm --version
 ```
 
-### 2. Anthropic API Key
+### 2. API Keys (Anthropic OR OpenAI)
 
-Set your API key as an environment variable:
-
+**Option A: Anthropic API (Priority)**
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-api03-xxx"
 ```
 
+**Option B: OpenAI API (Fallback)**
+```bash
+export OPENAI_API_KEY="sk-proj-xxx"
+```
+
+**Note**: The SDK will auto-detect which provider to use based on available API keys. Anthropic is preferred if both are set.
+
 **Permanent Setup** (add to `~/.zshrc` or `~/.bashrc`):
 ```bash
+# For Anthropic
 echo 'export ANTHROPIC_API_KEY="sk-ant-api03-xxx"' >> ~/.zshrc
+
+# OR for OpenAI
+echo 'export OPENAI_API_KEY="sk-proj-xxx"' >> ~/.zshrc
+
 source ~/.zshrc
 ```
 
@@ -45,6 +57,8 @@ source ~/.zshrc
 ```bash
 # Create .env file
 echo 'ANTHROPIC_API_KEY=sk-ant-api03-xxx' > .env
+# OR
+echo 'OPENAI_API_KEY=sk-proj-xxx' > .env
 
 # Load in shell
 source .env

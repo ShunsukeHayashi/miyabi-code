@@ -1,9 +1,17 @@
 #!/usr/bin/env tsx
 /**
- * Decision Point D2: Complexity Estimation (SDK Version)
+ * Decision Point D2: Complexity Estimation (Multi-Provider SDK Version)
  *
  * Replaces: scripts/decision-trees/D2-complexity-check.sh
- * Purpose: Estimate task complexity using Anthropic API instead of `claude -p`
+ * Purpose: Estimate task complexity using Anthropic or OpenAI API
+ *
+ * Supported Providers:
+ *   - Anthropic (claude-sonnet-4)
+ *   - OpenAI (gpt-4o or gpt-4-turbo)
+ *
+ * Environment Variables:
+ *   - ANTHROPIC_API_KEY: Anthropic API key (priority)
+ *   - OPENAI_API_KEY: OpenAI API key (fallback)
  *
  * Exit codes:
  *   0 = Low complexity → Auto-approve
@@ -13,9 +21,12 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+
+type Provider = 'anthropic' | 'openai';
 
 interface ComplexityResult {
   complexity: 'Low' | 'Medium' | 'High';
@@ -31,18 +42,33 @@ interface IssueData {
 }
 
 class ComplexityAnalyzer {
-  private client: Anthropic;
+  private provider: Provider;
+  private anthropicClient?: Anthropic;
+  private openaiClient?: OpenAI;
   private logDir: string;
 
-  constructor(apiKey?: string) {
-    this.client = new Anthropic({
-      apiKey: apiKey || process.env.ANTHROPIC_API_KEY
-    });
+  constructor() {
     this.logDir = '/tmp/miyabi-automation';
 
     // Ensure log directory exists
     if (!fs.existsSync(this.logDir)) {
       fs.mkdirSync(this.logDir, { recursive: true });
+    }
+
+    // Auto-detect provider based on available API keys
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+
+    if (anthropicKey) {
+      this.provider = 'anthropic';
+      this.anthropicClient = new Anthropic({ apiKey: anthropicKey });
+      console.log('✓ Using Anthropic API (claude-sonnet-4)');
+    } else if (openaiKey) {
+      this.provider = 'openai';
+      this.openaiClient = new OpenAI({ apiKey: openaiKey });
+      console.log('✓ Using OpenAI API (gpt-4o)');
+    } else {
+      throw new Error('No API key found. Set ANTHROPIC_API_KEY or OPENAI_API_KEY');
     }
   }
 
@@ -74,10 +100,10 @@ class ComplexityAnalyzer {
   }
 
   /**
-   * Analyze complexity using Anthropic API
+   * Build complexity analysis prompt
    */
-  private async analyzeComplexity(issue: IssueData): Promise<ComplexityResult> {
-    const prompt = `Analyze the complexity of this GitHub Issue:
+  private buildPrompt(issue: IssueData): string {
+    return `Analyze the complexity of this GitHub Issue:
 
 **Title**: ${issue.title}
 
@@ -109,44 +135,108 @@ ${issue.body}
 - **High**: 10+ files, major refactoring, > 90 minutes, new dependencies
 
 Respond ONLY with the JSON object, no additional text.`;
+  }
 
-    console.log('Running AI complexity analysis...');
+  /**
+   * Analyze complexity using Anthropic API
+   */
+  private async analyzeWithAnthropic(issue: IssueData): Promise<ComplexityResult> {
+    if (!this.anthropicClient) {
+      throw new Error('Anthropic client not initialized');
+    }
 
+    const prompt = this.buildPrompt(issue);
+
+    console.log('Running Anthropic complexity analysis...');
+
+    const message = await this.anthropicClient.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    });
+
+    // Extract text from response
+    const responseText = message.content
+      .filter(block => block.type === 'text')
+      .map(block => (block as any).text)
+      .join('\n');
+
+    return this.parseComplexityResponse(responseText);
+  }
+
+  /**
+   * Analyze complexity using OpenAI API
+   */
+  private async analyzeWithOpenAI(issue: IssueData): Promise<ComplexityResult> {
+    if (!this.openaiClient) {
+      throw new Error('OpenAI client not initialized');
+    }
+
+    const prompt = this.buildPrompt(issue);
+
+    console.log('Running OpenAI complexity analysis...');
+
+    const completion = await this.openaiClient.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a technical project manager analyzing GitHub Issues for complexity estimation. Always respond with valid JSON only.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1024
+    });
+
+    const responseText = completion.choices[0]?.message?.content || '';
+
+    if (!responseText) {
+      throw new Error('Empty response from OpenAI API');
+    }
+
+    return this.parseComplexityResponse(responseText);
+  }
+
+  /**
+   * Parse complexity response from either provider
+   */
+  private parseComplexityResponse(responseText: string): ComplexityResult {
+    // Extract from markdown code block if present
+    let jsonText = responseText;
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[1];
+    }
+
+    const result: ComplexityResult = JSON.parse(jsonText.trim());
+
+    // Validate result
+    if (!['Low', 'Medium', 'High'].includes(result.complexity)) {
+      throw new Error(`Invalid complexity value: ${result.complexity}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Analyze complexity using the selected provider
+   */
+  private async analyzeComplexity(issue: IssueData): Promise<ComplexityResult> {
     try {
-      const message = await this.client.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      });
-
-      // Extract text from response
-      const responseText = message.content
-        .filter(block => block.type === 'text')
-        .map(block => (block as any).text)
-        .join('\n');
-
-      // Parse JSON from response (handle markdown code blocks)
-      let jsonText = responseText;
-
-      // Extract from markdown code block if present
-      const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        jsonText = jsonMatch[1];
+      if (this.provider === 'anthropic') {
+        return await this.analyzeWithAnthropic(issue);
+      } else {
+        return await this.analyzeWithOpenAI(issue);
       }
-
-      const result: ComplexityResult = JSON.parse(jsonText.trim());
-
-      // Validate result
-      if (!['Low', 'Medium', 'High'].includes(result.complexity)) {
-        throw new Error(`Invalid complexity value: ${result.complexity}`);
-      }
-
-      return result;
     } catch (error) {
       throw new Error(`Complexity analysis failed: ${error}`);
     }
@@ -178,10 +268,10 @@ Respond ONLY with the JSON object, no additional text.`;
    */
   async run(issueNumber: number): Promise<number> {
     console.log('=====================================');
-    console.log('Decision Point D2: Complexity Check (SDK)');
+    console.log('Decision Point D2: Complexity Check');
     console.log('=====================================');
     console.log(`Issue: #${issueNumber}`);
-    console.log(`Mode: Anthropic API (Programmatic)`);
+    console.log(`Provider: ${this.provider.toUpperCase()}`);
     console.log(`Time: ${new Date().toISOString()}`);
     console.log('');
 
@@ -196,7 +286,7 @@ Respond ONLY with the JSON object, no additional text.`;
       const result = await this.analyzeComplexity(issueData);
 
       // Save result to log
-      const resultPath = path.join(this.logDir, `complexity-sdk-${issueNumber}.json`);
+      const resultPath = path.join(this.logDir, `complexity-${this.provider}-${issueNumber}.json`);
       fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
 
       // Step 3: Display result
@@ -278,5 +368,3 @@ if (require.main === module) {
       process.exit(3);
     });
 }
-
-export { ComplexityAnalyzer, ComplexityResult, IssueData };
