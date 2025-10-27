@@ -231,7 +231,8 @@ fi
 # Phase 1: 台本生成
 echo ""
 log_info "📝 Phase 1: 台本生成中..."
-python3 yukkuri-narration-generator.py --days "$DAYS" || {
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/yukkuri-narration-generator.py" --days "$DAYS" || {
     log_error "台本生成に失敗しました"
 
     # Lifecycle Hook: NarrationAgent Error (Claude Code Headless Mode)
@@ -251,7 +252,7 @@ log_success "台本生成完了: $OUTPUT_DIR/script.md"
 # Phase 2: 音声合成
 echo ""
 log_info "🎤 Phase 2: 音声合成中..."
-python3 voicevox-synthesizer.py || {
+python3 "$SCRIPT_DIR/voicevox-synthesizer.py" || {
     log_error "音声合成に失敗しました"
     exit 1
 }
@@ -271,7 +272,7 @@ if $GENERATE_THUMBNAIL; then
     THUMBNAIL_OUTPUT="$OUTPUT_DIR/thumbnail.png"
     COMMIT_COUNT=$(git log --oneline --since="$DAYS days ago" 2>/dev/null | wc -l | xargs)
 
-    python3 thumbnail-generator.py \
+    python3 "$SCRIPT_DIR/thumbnail-generator.py" \
         --miyabi \
         --commits "$COMMIT_COUNT" \
         --audio "$AUDIO_COUNT" \
@@ -291,7 +292,7 @@ if $GENERATE_VIDEO; then
     log_info "🎬 Phase 3: 動画生成中..."
 
     VIDEO_OUTPUT="$OUTPUT_DIR/miyabi-progress.mp4"
-    python3 video-generator.py --audio-dir "$OUTPUT_DIR/audio" --output "$VIDEO_OUTPUT" || {
+    python3 "$SCRIPT_DIR/video-generator.py" --audio-dir "$OUTPUT_DIR/audio" --output "$VIDEO_OUTPUT" || {
         log_error "動画生成に失敗しました"
         exit 1
     }
@@ -306,7 +307,7 @@ if $STREAM_MODE; then
 
     # セッション開始
     SESSION_ID="miyabi-narrate-$(date +%s)"
-    python3 social-stream-client.py --start --session "$SESSION_ID" || {
+    python3 "$SCRIPT_DIR/social-stream-client.py" --start --session "$SESSION_ID" || {
         log_error "Social Stream Ninja接続失敗"
         log_warn "ストリーミングなしで続行します"
     }
@@ -318,7 +319,7 @@ if $STREAM_MODE; then
         while IFS= read -r line; do
             # 霊夢・魔理沙の台詞を送信
             if [[ $line =~ ^(霊夢|魔理沙): ]]; then
-                python3 social-stream-client.py --send "$line" --session "$SESSION_ID" 2>/dev/null || true
+                python3 "$SCRIPT_DIR/social-stream-client.py" --send "$line" --session "$SESSION_ID" 2>/dev/null || true
                 sleep 2  # メッセージ間隔
             fi
         done < "$OUTPUT_DIR/script.md"
@@ -326,7 +327,7 @@ if $STREAM_MODE; then
         # 進捗メトリクス送信
         log_info "進捗メトリクスを送信中..."
         METRICS_JSON="{\"chatname\":\"📊 Miyabi Stats\",\"chatmessage\":\"過去${DAYS}日分: ${COMMIT_COUNT}コミット、${AUDIO_COUNT}音声ファイル生成完了！\",\"type\":\"miyabi-metrics\"}"
-        python3 social-stream-client.py --send-content "$METRICS_JSON" --session "$SESSION_ID" 2>/dev/null || true
+        python3 "$SCRIPT_DIR/social-stream-client.py" --send-content "$METRICS_JSON" --session "$SESSION_ID" 2>/dev/null || true
 
         log_success "Social Stream Ninja統合完了"
 
