@@ -32,7 +32,7 @@ ring = "0.17"
 hex = "0.4"
 
 # OpenAI integration
-async-openai = { version = "0.24", default-features = false, features = ["rustls"] }
+async-openai = { version = "0.30", default-features = false, features = ["rustls"] }
 
 # Environment
 dotenvy = "0.15"

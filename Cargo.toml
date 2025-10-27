@@ -69,7 +69,7 @@ reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
 git2 = "0.20"
 
 # Anthropic API
-async-openai = { version = "0.24", default-features = false, features = ["rustls"] }
+async-openai = { version = "0.30", default-features = false, features = ["rustls"] }
 
 # File system & I/O
 walkdir = "2.5"
