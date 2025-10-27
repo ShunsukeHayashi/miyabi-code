@@ -182,47 +182,157 @@ async fn process_update(state: AppState, update: Update) -> Result<()> {
 async fn handle_command(state: &AppState, chat_id: i64, command: &str) -> Result<()> {
     match command {
         "/start" => {
-            let message = r#"👋 Welcome to Miyabi!
+            let message = r#"👋 *こんにちは！*
 
-I'm your autonomous development assistant. I can:
-• Create GitHub Issues from natural language
-• Execute development tasks automatically
-• Provide real-time progress updates
+私はMiyabi、あなたの開発アシスタントです 🤖
 
-Just send me a message describing what you want to build!"#;
+*✨ 私にできること*
+あなたが「やりたいこと」を
+普通に話してくれれば、
+私が全部やっておきます！
 
-            state.telegram_client.send_message(chat_id, message).await?;
+*💬 こんな感じで話してください*
+・「ダークモードがほしい」
+・「ログインできないの直して」
+・「もっと速くして」
+
+難しい言葉は知らなくてOK！
+普段使う言葉で大丈夫です 😊
+
+*👇 まずはここから*"#;
+
+            // Send message with interactive buttons
+            let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
+                vec![
+                    miyabi_telegram::InlineKeyboardButton::callback("📚 どう話せばいい？", "show_examples"),
+                ],
+                vec![
+                    miyabi_telegram::InlineKeyboardButton::callback("🚀 すぐ始める", "get_started"),
+                    miyabi_telegram::InlineKeyboardButton::callback("💡 詳しく知る", "show_help"),
+                ],
+            ]);
+
+            state
+                .telegram_client
+                .send_message_with_keyboard(chat_id, message, keyboard)
+                .await?;
         }
 
         "/help" => {
-            let message = r#"🤖 *Miyabi Commands*
+            let message = r#"💡 *詳しい説明*
 
-*Commands:*
-/start - Get started
-/help - Show this help
-/status - Check system status
+*🎯 Miyabiって何？*
+あなたの代わりに開発作業をする
+AIアシスタントです。
 
-*Natural Language:*
-Just describe what you want to build, and I'll create an Issue and start working on it!
+*✨ できること*
+・Webサイトやアプリの機能追加
+・バグや不具合の修正
+・デザインの改善
+・速度アップ
 
-*Examples:*
-• "Add dark mode toggle"
-• "Fix the login bug"
-• "Implement user search feature"#;
+*💬 使い方*
+普通に話すだけ！
+
+良い例：
+「ダークモードがほしい」→ ⭕
+「ログインが遅いから速くして」→ ⭕
+「検索機能つけて」→ ⭕
+
+悪い例：
+「GitHub Issueを...」→ ❌ 難しい言葉不要
+「プルリクエストで...」→ ❌ 専門用語不要
+
+*📋 何が起こる？*
+1️⃣ あなた：「○○して」と話す
+2️⃣ 私：内容を理解
+3️⃣ 私：タスクを登録
+4️⃣ 私：作業開始（準備中）
+5️⃣ 私：「できたよ！」と報告
+
+*もっと知りたい*
+「どう話せばいい？」→ /examples
+「最初から見る」→ /start"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
         }
 
+        "/examples" => {
+            let message = r#"📚 *こんな風に話してください*
+
+*🌙 見た目を変えたい*
+「ダークモードがほしい」
+「文字を大きくして」
+「スマホでも見やすくして」
+
+*🐛 動かないのを直したい*
+「ログインできない」
+「写真が出てこない」
+「すぐ落ちる」
+
+*✨ 新しいことがしたい*
+「検索できるようにして」
+「お知らせ機能がほしい」
+「データをダウンロードしたい」
+
+*⚡ 遅いのを速くしたい*
+「ページが重い」
+「読み込みが遅い」
+「もっとサクサク動いてほしい」
+
+*💡 こうするともっと良い*
+・「何を」「どうしたい」を言う
+・1回に1つのこと
+・難しい言葉は使わない
+
+例：
+⭕「ログインを速くして」
+❌「認証処理のパフォーマンス最適化を...」"#;
+
+            let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
+                vec![
+                    miyabi_telegram::InlineKeyboardButton::callback("🚀 試してみる", "try_now"),
+                    miyabi_telegram::InlineKeyboardButton::callback("📖 ヘルプ", "show_help"),
+                ],
+            ]);
+
+            state
+                .telegram_client
+                .send_message_with_keyboard(chat_id, message, keyboard)
+                .await?;
+        }
+
         "/status" => {
-            let message = "✅ *Miyabi Status*\n\n• Telegram Bot: Online\n• GitHub: Connected\n• Agents: Ready";
+            let message = r#"✅ *今の状態*
+
+🟢 私は元気に動いています！
+🟢 あなたの依頼を受け付けられます
+
+*今できること*
+✅ タスクの登録
+⏳ 自動実行（準備中）
+
+*バージョン*
+Miyabi v0.1.1
+
+何でも話しかけてください！ 😊"#;
+
             state.telegram_client.send_message(chat_id, message).await?;
         }
 
         _ => {
-            state
-                .telegram_client
-                .send_message(chat_id, "❓ Unknown command. Type /help for available commands.")
-                .await?;
+            let message = r#"❓ *そのコマンドは使えません*
+
+使えるコマンド：
+/start - 最初の説明
+/examples - 使い方の例
+/help - ヘルプ
+/status - システム状態
+
+または、普通に日本語で話しかけてください！
+例：「ダークモードを追加して」"#;
+
+            state.telegram_client.send_message(chat_id, message).await?;
         }
     }
 
@@ -238,45 +348,39 @@ async fn handle_natural_language(
 ) -> Result<()> {
     info!("🧠 Processing natural language input: {}", text);
 
-    // Send "analyzing" message
+    // Send "analyzing" message with progress indicator
+    let analyzing_msg = r#"🔍 *わかりました！*
+
+⏳ 今、内容を確認しています
+📝 少しだけ待っててください..."#;
+
     state
         .telegram_client
-        .send_message(chat_id, "🔍 *分析中*\n\nGPT-4が処理しています")
+        .send_message(chat_id, analyzing_msg)
         .await?;
 
     // TODO: Use Anthropic Claude API to analyze intent and extract Issue details
-    // For now, create a simple Issue
+    // For now, create a simple task
 
-    let issue_title = text.lines().next().unwrap_or(text);
-    let issue_title = if issue_title.len() > 80 {
-        format!("{}...", &issue_title[..77])
+    let task_title = text.lines().next().unwrap_or(text);
+    let task_title = if task_title.len() > 80 {
+        format!("{}...", &task_title[..77])
     } else {
-        issue_title.to_string()
+        task_title.to_string()
     };
 
-    // Send "creating Issue" message
+    // Send "creating task" message
     let analysis_message = format!(
-        r#"*分析完了*
+        r#"✅ *内容を理解しました！*
 
-タイトル
-{}
-
-ラベル
-type:feature · priority:P2-Medium
-
-優先度
-P2
-
-Agent
-coordinator
-
-説明
+*📋 やること*
 {}
 
 ────────────────────────
 
-Issue作成中..."#,
-        issue_title, text
+📝 タスクリストに登録しています...
+もうちょっとだけ待ってね"#,
+        task_title
     );
 
     state
@@ -284,70 +388,70 @@ Issue作成中..."#,
         .send_message(chat_id, &analysis_message)
         .await?;
 
-    // Create GitHub Issue
-    match create_github_issue(state, &issue_title, text, username).await {
-        Ok(issue_number) => {
-            let issue_url = format!("https://github.com/ShunsukeHayashi/Miyabi/issues/{}", issue_number);
+    // Create GitHub Issue (internally - user doesn't need to know)
+    match create_github_issue(state, &task_title, text, username).await {
+        Ok(task_number) => {
+            let task_url = format!("https://github.com/ShunsukeHayashi/Miyabi/issues/{}", task_number);
 
             let success_message = format!(
-                r#"*Issue作成完了*
+                r#"🎉 *登録できました！*
 
-{}
+*📋 タスク番号*
+タスク #{}
 
-優先度
-P2
-
-Agent
-coordinator
-
-────────────────────────
-
-Agent実行開始
-完了時に通知します"#,
-                issue_url
-            );
-
-            state
-                .telegram_client
-                .send_message(chat_id, &success_message)
-                .await?;
-
-            // TODO: Execute Agent in background and send completion notification
-            // For now, send a mock completion message
-            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-
-            let completion_message = format!(
-                r#"*実行完了*
-
-{}
-
-Agent
-coordinator
-
-品質スコア
-95/100
+*✅ 現在の状態*
+✓ タスクリストに追加済み
+⏳ 作業開始の準備中
 
 ────────────────────────
 
-次のステップ
-• 変更をレビュー
-• プルリクエストをマージ
-• 本番環境にデプロイ
+*💡 今の状況*
+タスクは登録されました！
+自動で作業する機能は今準備中です。
 
-完了"#,
-                issue_url
+*👇 次は何しますか？*
+・別のことを頼む
+・詳しい状況を見る
+・ヘルプを見る
+
+何でも話しかけてくださいね！"#,
+                task_number
             );
+
+            // Add interactive buttons
+            let keyboard = miyabi_telegram::InlineKeyboard::new(vec![
+                vec![
+                    miyabi_telegram::InlineKeyboardButton::url("📊 詳しく見る", &task_url),
+                ],
+                vec![
+                    miyabi_telegram::InlineKeyboardButton::callback("➕ 別のこと頼む", "new_task"),
+                    miyabi_telegram::InlineKeyboardButton::callback("💡 ヘルプ", "show_help"),
+                ],
+            ]);
 
             state
                 .telegram_client
-                .send_message(chat_id, &completion_message)
+                .send_message_with_keyboard(chat_id, &success_message, keyboard)
                 .await?;
         }
         Err(e) => {
-            error!("Failed to create GitHub Issue: {}", e);
+            error!("Failed to create task: {}", e);
+
+            let error_message = r#"😢 *うまくいきませんでした*
+
+ごめんなさい！
+ちょっと問題が起きちゃいました。
+
+*どうすればいい？*
+1️⃣ もう一度同じことを言ってみる
+2️⃣ 少し待ってからもう一度試す
+3️⃣ 違う言い方で頼んでみる
+
+困ったら「助けて」って言ってください！"#;
+
             state
                 .telegram_client
-                .send_message(chat_id, &format!("❌ Error creating Issue: {}", e))
+                .send_message(chat_id, error_message)
                 .await?;
         }
     }
@@ -364,20 +468,76 @@ async fn handle_callback(
     let chat_id = callback_query.message.as_ref().map(|m| m.chat.id).unwrap_or(0);
 
     match data {
-        "start_agent" => {
-            state
-                .telegram_client
-                .send_message(chat_id, "🚀 Starting Agent execution...")
-                .await?;
+        "show_examples" => {
+            handle_command(state, chat_id, "/examples").await?;
         }
-        "cancel" => {
-            state
-                .telegram_client
-                .send_message(chat_id, "❌ Cancelled")
-                .await?;
+        "show_help" => {
+            handle_command(state, chat_id, "/help").await?;
+        }
+        "get_started" => {
+            let message = r#"🚀 *やってみよう！*
+
+*ステップ1: したいことを思い浮かべる*
+例えば...
+・「こんな機能がほしい」
+・「ここが壊れてる」
+・「もっとかっこよくしたい」
+
+*ステップ2: そのまま話す*
+難しく考えないで！
+友達に話すみたいに：
+
+「ダークモードがほしい」
+「ログインが遅い」
+「検索機能つけて」
+
+*ステップ3: 送信！*
+それだけ！私が全部わかります 💪
+
+*💡 コツ*
+・具体的なほど良い
+・1回に1つのこと
+・専門用語は使わなくてOK
+
+さあ、何がしたいですか？ 😊"#;
+
+            state.telegram_client.send_message(chat_id, message).await?;
+        }
+        "try_now" => {
+            let message = r#"✨ *やってみよう！*
+
+この下の入力欄に、
+したいことを書いて送信してください。
+
+*こんな感じで*
+「ダークモードがほしい」
+「検索できるようにして」
+「ログインできない」
+
+友達に話すみたいに、
+普通に書けば大丈夫！ 💬"#;
+
+            state.telegram_client.send_message(chat_id, message).await?;
+        }
+        "new_task" => {
+            let message = r#"➕ *次は何しますか？*
+
+他にやってほしいことがあれば
+教えてください！
+
+例：
+「もっと速くして」
+「このボタンの色変えて」
+「通知機能がほしい」
+
+何でも言ってくださいね！ 😊"#;
+
+            state.telegram_client.send_message(chat_id, message).await?;
         }
         _ => {
             warn!("Unknown callback data: {}", data);
+            let message = "申し訳ございません、そのボタンの機能はまだ実装されていません。";
+            state.telegram_client.send_message(chat_id, message).await?;
         }
     }
 
@@ -393,7 +553,7 @@ async fn create_github_issue(
 ) -> Result<u64> {
     info!("Creating GitHub Issue: {}", title);
 
-    // Use gh CLI to create Issue
+    // Use gh CLI to create Issue (without labels to avoid error)
     let output = tokio::process::Command::new("gh")
         .args(&[
             "issue",
@@ -401,13 +561,7 @@ async fn create_github_issue(
             "--title",
             title,
             "--body",
-            &format!("{}\n\n---\nCreated via Telegram by @{}", body, author),
-            "--label",
-            "type:feature",
-            "--label",
-            "priority:P2-Medium",
-            "--label",
-            "source:telegram",
+            &format!("{}\n\n---\n🤖 Created via Telegram by @{}", body, author),
         ])
         .env("GITHUB_TOKEN", &state.github_token)
         .output()
