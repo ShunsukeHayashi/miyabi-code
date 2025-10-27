@@ -25,6 +25,7 @@ use tracing::{debug, error, info, warn};
 #[derive(Clone)]
 struct AppState {
     telegram_client: Arc<TelegramClient>,
+    #[allow(dead_code)]
     chat_id: Option<i64>,
     github_token: String,
 }
@@ -555,7 +556,7 @@ async fn create_github_issue(
 
     // Use gh CLI to create Issue (without labels to avoid error)
     let output = tokio::process::Command::new("gh")
-        .args(&[
+        .args([
             "issue",
             "create",
             "--title",
@@ -580,7 +581,7 @@ async fn create_github_issue(
     // Extract Issue number from URL (e.g., "https://github.com/user/repo/issues/123")
     let issue_number = issue_url
         .split('/')
-        .last()
+        .next_back()
         .and_then(|s| s.parse::<u64>().ok())
         .context("Failed to parse Issue number from URL")?;
 

@@ -39,9 +39,11 @@
 //! ```
 
 pub mod error;
+pub mod issue_handler;
 pub mod signer;
 
 pub use error::{Result, WebhookError};
+pub use issue_handler::{handle_issue_opened, IssueWebhookEvent};
 pub use signer::WebhookSigner;
 
 /// Default replay protection window (5 minutes)

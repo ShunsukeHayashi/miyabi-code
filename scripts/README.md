@@ -782,6 +782,120 @@ set -e
 
 ---
 
+---
+
+## 🔄 Claude Code Session Manager (CSM)
+
+**Purpose**: Manage Claude Code sessions and enable Agent-to-Agent handoff
+
+**Location**: `scripts/csm`
+
+### Setup
+
+```bash
+# 1. Initialize
+./scripts/csm init
+
+# 2. Add alias to ~/.zshrc
+export PATH="$HOME/Dev/miyabi-private/scripts:$PATH"
+alias csm="$HOME/Dev/miyabi-private/scripts/csm"
+
+# 3. Reload
+source ~/.zshrc
+```
+
+### Basic Usage
+
+```bash
+# Register current session
+csm register "CoordinatorAgent" "Issue #567 Phase 1"
+
+# List active sessions
+csm list active
+
+# Handoff to another agent
+csm handoff <session_id> "CodeGenAgent" "Implementation complete"
+
+# Teleport to session
+csm teleport <session_id>
+
+# Show session details
+csm show <session_id>
+
+# Close session
+csm close <session_id>
+```
+
+### Workflow Integration
+
+Typical Agent-to-Agent workflow:
+
+```bash
+# 1. CoordinatorAgent: Task decomposition
+csm register "CoordinatorAgent" "Issue #567 Phase 1実装"
+# ... work ...
+
+# 2. Handoff to CodeGenAgent
+csm handoff <session_id> "CodeGenAgent" "タスク分解完了、実装依頼"
+csm teleport <session_id>
+# ... implementation ...
+
+# 3. Handoff to ReviewAgent
+csm handoff <session_id> "ReviewAgent" "実装完了、レビュー依頼"
+csm teleport <session_id>
+# ... code review ...
+
+# 4. Handoff to DeploymentAgent
+csm handoff <session_id> "DeploymentAgent" "レビュー完了、デプロイ依頼"
+csm teleport <session_id>
+# ... deployment ...
+
+# 5. Close session
+csm close <session_id>
+```
+
+### Data Storage
+
+```
+~/.claude-sessions/
+├── sessions.json     # Session database
+└── logs/            # Session logs
+    └── <session_id>.log
+```
+
+### Session JSON Schema
+
+```json
+{
+  "sessions": [{
+    "id": "96793379-b31a-4e2a-aac7-12f4a715d053",
+    "agent": "CoordinatorAgent",
+    "purpose": "Issue #567 Phase 1実装",
+    "created_at": "2025-10-27T09:44:37+09:00",
+    "last_accessed": "2025-10-27T09:44:37+09:00",
+    "status": "active",
+    "log_file": "~/.claude-sessions/logs/96793379-b31a-4e2a-aac7-12f4a715d053.log",
+    "handoff_history": [{
+      "from": "CoordinatorAgent",
+      "to": "CodeGenAgent",
+      "timestamp": "2025-10-27T10:00:00+09:00",
+      "note": "Implementation complete"
+    }]
+  }]
+}
+```
+
+### Future Enhancements
+
+- [ ] MCP Server implementation
+- [ ] Session auto-archiving
+- [ ] Session search/filter
+- [ ] GitHub Issue linkage
+- [ ] Session analytics
+- [ ] Worktree integration
+
+---
+
 ## 🔗 Related Documentation
 
 - **Master Plan**: `docs/MIYABI_AUTONOMOUS_OPERATION_MASTER_PLAN.md`

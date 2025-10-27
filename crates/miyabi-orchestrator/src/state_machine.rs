@@ -171,6 +171,7 @@ impl ExecutionState {
 }
 
 /// State machine for workflow execution
+#[derive(Clone)]
 pub struct StateMachine {
     /// Current execution state
     state: ExecutionState,
@@ -414,7 +415,7 @@ mod tests {
         let mut sm = StateMachine::new(123);
 
         // Progress through all phases
-        while let Ok(_) = sm.transition_to_next() {}
+        while sm.transition_to_next().is_ok() {}
 
         assert_eq!(sm.current_phase(), Phase::AutoMerge);
         assert!(sm.state().is_completed);
@@ -453,7 +454,7 @@ mod tests {
         assert!(initial_time > 40); // Should be around 51 minutes
 
         // Progress to AutoMerge properly
-        while let Ok(_) = sm.transition_to_next() {}
+        while sm.transition_to_next().is_ok() {}
 
         let final_time = sm.estimated_time_remaining_minutes();
         assert_eq!(final_time, 3); // Only AutoMerge remaining

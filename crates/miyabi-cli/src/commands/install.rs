@@ -227,9 +227,8 @@ mod tests {
         let cmd = InstallCommand::new(false);
         // This will check if .miyabi.yml exists in current dir
         // Result depends on whether we're actually in a Miyabi project
-        let result = cmd.is_miyabi_installed();
+        let _result = cmd.is_miyabi_installed();
         // Just check that the method works without panicking
-        assert!(result || !result);
     }
 
     #[test]
@@ -248,7 +247,7 @@ mod tests {
         let cmd_normal = InstallCommand::new(false);
         let cmd_dry = InstallCommand::new(true);
 
-        assert_eq!(cmd_normal.dry_run, false);
-        assert_eq!(cmd_dry.dry_run, true);
+        assert!(!cmd_normal.dry_run);
+        assert!(cmd_dry.dry_run);
     }
 }

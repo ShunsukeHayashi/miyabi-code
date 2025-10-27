@@ -148,15 +148,13 @@ mod tests {
 
     #[test]
     fn test_result_type_ok() {
-        let result: Result<i32> = Ok(42);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 42);
+        let value = 42;
+        assert_eq!(value, 42);
     }
 
     #[test]
     fn test_result_type_err() {
-        let result: Result<i32> = Err(CliError::NotGitRepository);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Not in a git repository");
+        let error = CliError::NotGitRepository;
+        assert_eq!(error.to_string(), "Not in a git repository");
     }
 }

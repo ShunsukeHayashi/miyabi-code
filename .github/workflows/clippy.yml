@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   clippy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

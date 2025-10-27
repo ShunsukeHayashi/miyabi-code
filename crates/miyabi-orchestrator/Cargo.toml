@@ -18,7 +18,10 @@ miyabi-core = { path = "../miyabi-core" }
 miyabi-agent-codegen = { path = "../miyabi-agent-codegen" }
 miyabi-agent-core = { path = "../miyabi-agent-core" }
 miyabi-agent-review = { path = "../miyabi-agent-review" }
+miyabi-agent-issue = { path = "../miyabi-agent-issue" }
+miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator" }
 miyabi-worktree = { path = "../miyabi-worktree" }
+miyabi-github = { path = "../miyabi-github" }
 
 # Core dependencies
 thiserror.workspace = true

@@ -658,8 +658,10 @@ async fn test_e2e_completion_tracking() {
     assert_eq!(result.success_count, 5);
 
     // Verify completion order tracking
-    let times = completed_at.lock().unwrap();
-    assert_eq!(times.len(), 5, "Should track all 5 completions");
+    {
+        let times = completed_at.lock().unwrap();
+        assert_eq!(times.len(), 5, "Should track all 5 completions");
+    }
 
     // Manual cleanup
     println!("\n🧹 Cleaning up worktrees");

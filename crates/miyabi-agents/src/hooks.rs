@@ -795,11 +795,13 @@ mod tests {
         let log_dir = temp_dir.path().to_path_buf();
 
         // Create config with auto-indexing enabled
-        let mut config = KnowledgeConfig::default();
-        config.auto_index = AutoIndexConfig {
-            enabled: true,
-            delay_seconds: 1,
-            retry_count: 2,
+        let config = KnowledgeConfig {
+            auto_index: AutoIndexConfig {
+                enabled: true,
+                delay_seconds: 1,
+                retry_count: 2,
+            },
+            ..Default::default()
         };
 
         // Create hook with auto-index
@@ -838,11 +840,13 @@ mod tests {
         let log_dir = temp_dir.path().to_path_buf();
 
         // Create config with auto-indexing disabled
-        let mut config = KnowledgeConfig::default();
-        config.auto_index = AutoIndexConfig {
-            enabled: false,
-            delay_seconds: 0,
-            retry_count: 0,
+        let config = KnowledgeConfig {
+            auto_index: AutoIndexConfig {
+                enabled: false,
+                delay_seconds: 0,
+                retry_count: 0,
+            },
+            ..Default::default()
         };
 
         // Create hook with disabled auto-index

@@ -423,6 +423,6 @@ mod tests {
         let new_limit = scaler.get_current_limit().await;
         // Note: This may or may not change depending on actual system resources
         // We just check that it's within valid range
-        assert!(new_limit >= 2 && new_limit <= 5);
+        assert!((2..=5).contains(&new_limit));
     }
 }

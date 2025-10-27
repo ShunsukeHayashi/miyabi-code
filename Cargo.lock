@@ -2627,6 +2627,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-agent-issue"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "miyabi-agent-core",
+ "miyabi-core",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "miyabi-agent-review"
 version = "0.1.1"
 dependencies = [
@@ -3052,11 +3072,16 @@ dependencies = [
 name = "miyabi-orchestrator"
 version = "0.1.1"
 dependencies = [
+ "anyhow",
+ "chrono",
  "futures",
  "miyabi-agent-codegen",
+ "miyabi-agent-coordinator",
  "miyabi-agent-core",
+ "miyabi-agent-issue",
  "miyabi-agent-review",
  "miyabi-core",
+ "miyabi-github",
  "miyabi-types",
  "miyabi-worktree",
  "serde",
@@ -3193,13 +3218,19 @@ dependencies = [
 name = "miyabi-webhook"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "hex",
  "hmac",
+ "miyabi-orchestrator",
+ "miyabi-types",
+ "serde",
+ "serde_json",
  "sha2",
  "subtle",
  "thiserror 2.0.17",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

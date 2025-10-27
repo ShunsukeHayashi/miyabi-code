@@ -475,7 +475,7 @@ mod tests {
             id,
             name,
             "npx",
-            vec!["-y", "@modelcontextprotocol/server-github"]
+            ["-y", "@modelcontextprotocol/server-github"]
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),

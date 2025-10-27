@@ -15,5 +15,14 @@ subtle = "2.5"  # Constant-time comparison
 chrono = { workspace = true, features = ["serde"] }
 thiserror = { workspace = true }
 
+# Phase 1 dependencies
+miyabi-orchestrator = { path = "../miyabi-orchestrator" }
+miyabi-types = { path = "../miyabi-types" }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

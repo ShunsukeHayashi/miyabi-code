@@ -1,0 +1,309 @@
+#!/bin/bash
+# Claude Code Session Manager
+# セッションを管理し、エージェント間で引き継ぐためのツール
+
+set -e
+
+# 設定
+MANAGER_DIR="$HOME/.claude-sessions"
+SESSION_DB="$MANAGER_DIR/sessions.json"
+LOG_DIR="$MANAGER_DIR/logs"
+
+# ディレクトリ初期化
+init_manager() {
+    mkdir -p "$MANAGER_DIR"
+    mkdir -p "$LOG_DIR"
+
+    if [ ! -f "$SESSION_DB" ]; then
+        echo '{"sessions": []}' > "$SESSION_DB"
+        echo "✓ セッションマネージャーを初期化しました"
+    fi
+}
+
+# 現在のセッションを登録
+register_current_session() {
+    local agent_name="$1"
+    local purpose="$2"
+
+    if [ -z "$agent_name" ] || [ -z "$purpose" ]; then
+        echo "❌ エラー: エージェント名と目的を指定してください"
+        echo "使い方: csm register <agent_name> <purpose>"
+        return 1
+    fi
+
+    # 現在のセッションIDを取得（複数の方法を試行）
+    local session_id=""
+
+    # Method 1: claude session コマンド
+    session_id=$(claude session --format json 2>/dev/null | jq -r '.id // empty')
+
+    # Method 2: 環境変数
+    if [ -z "$session_id" ] && [ -n "$CLAUDE_SESSION_ID" ]; then
+        session_id="$CLAUDE_SESSION_ID"
+    fi
+
+    # Method 3: UUID生成（フォールバック）
+    if [ -z "$session_id" ]; then
+        session_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
+        echo "⚠️  セッションIDを自動生成しました: $session_id"
+        echo "   環境変数 CLAUDE_SESSION_ID に設定することを推奨します"
+    fi
+
+    # セッション情報を記録
+    local timestamp=$(date -Iseconds)
+    local log_file="$LOG_DIR/${session_id}.log"
+
+    # 既存のセッションを確認
+    local exists=$(jq --arg id "$session_id" '.sessions[] | select(.id == $id) | .id' "$SESSION_DB")
+
+    if [ -n "$exists" ]; then
+        echo "⚠️  このセッションは既に登録されています: $session_id"
+        return 0
+    fi
+
+    # 新規登録
+    jq --arg id "$session_id" \
+       --arg agent "$agent_name" \
+       --arg purpose "$purpose" \
+       --arg timestamp "$timestamp" \
+       --arg log "$log_file" \
+       '.sessions += [{
+           id: $id,
+           agent: $agent,
+           purpose: $purpose,
+           created_at: $timestamp,
+           last_accessed: $timestamp,
+           status: "active",
+           log_file: $log,
+           handoff_history: []
+       }]' "$SESSION_DB" > "$SESSION_DB.tmp"
+
+    mv "$SESSION_DB.tmp" "$SESSION_DB"
+
+    echo "✓ セッションを登録しました"
+    echo "  ID: $session_id"
+    echo "  エージェント: $agent_name"
+    echo "  目的: $purpose"
+}
+
+# セッション一覧を表示
+list_sessions() {
+    local filter="$1"
+
+    echo "=== Claude Code セッション一覧 ==="
+    echo ""
+
+    if [ "$filter" == "active" ]; then
+        jq -r '.sessions[] | select(.status == "active") |
+               "[\(.status)] \(.id)\n  エージェント: \(.agent)\n  目的: \(.purpose)\n  作成: \(.created_at)\n"' "$SESSION_DB"
+    else
+        jq -r '.sessions[] |
+               "[\(.status)] \(.id)\n  エージェント: \(.agent)\n  目的: \(.purpose)\n  作成: \(.created_at)\n"' "$SESSION_DB"
+    fi
+}
+
+# セッションに移動(テレポート)
+teleport_session() {
+    local session_id="$1"
+
+    if [ -z "$session_id" ]; then
+        echo "❌ エラー: セッションIDを指定してください"
+        echo "使い方: csm teleport <session_id>"
+        return 1
+    fi
+
+    # セッションの存在確認
+    local exists=$(jq --arg id "$session_id" '.sessions[] | select(.id == $id) | .id' "$SESSION_DB")
+
+    if [ -z "$exists" ]; then
+        echo "❌ エラー: セッションが見つかりません: $session_id"
+        return 1
+    fi
+
+    # 最終アクセス時刻を更新
+    local timestamp=$(date -Iseconds)
+    jq --arg id "$session_id" \
+       --arg timestamp "$timestamp" \
+       '(.sessions[] | select(.id == $id) | .last_accessed) = $timestamp' "$SESSION_DB" > "$SESSION_DB.tmp"
+    mv "$SESSION_DB.tmp" "$SESSION_DB"
+
+    echo "🚀 セッションに移動します: $session_id"
+    claude --teleport "$session_id"
+}
+
+# エージェントにセッションを引き継ぐ
+handoff_session() {
+    local session_id="$1"
+    local target_agent="$2"
+    local handoff_note="$3"
+
+    if [ -z "$session_id" ] || [ -z "$target_agent" ]; then
+        echo "❌ エラー: セッションIDとターゲットエージェントを指定してください"
+        echo "使い方: csm handoff <session_id> <target_agent> [note]"
+        return 1
+    fi
+
+    # セッションの存在確認
+    local current_agent=$(jq -r --arg id "$session_id" '.sessions[] | select(.id == $id) | .agent' "$SESSION_DB")
+
+    if [ -z "$current_agent" ]; then
+        echo "❌ エラー: セッションが見つかりません: $session_id"
+        return 1
+    fi
+
+    echo "📝 セッションを引き継ぎます"
+    echo "  From: $current_agent"
+    echo "  To: $target_agent"
+    echo "  Note: ${handoff_note:-なし}"
+
+    # エージェント情報を更新
+    local timestamp=$(date -Iseconds)
+    jq --arg id "$session_id" \
+       --arg current "$current_agent" \
+       --arg agent "$target_agent" \
+       --arg note "${handoff_note:-セッション引き継ぎ}" \
+       --arg timestamp "$timestamp" \
+       '(.sessions[] | select(.id == $id)) |= {
+           id: .id,
+           agent: $agent,
+           purpose: .purpose,
+           created_at: .created_at,
+           last_accessed: $timestamp,
+           last_handoff: $timestamp,
+           handoff_note: $note,
+           status: .status,
+           log_file: .log_file,
+           handoff_history: (.handoff_history + [{
+               from: $current,
+               to: $agent,
+               timestamp: $timestamp,
+               note: $note
+           }])
+       }' "$SESSION_DB" > "$SESSION_DB.tmp"
+
+    mv "$SESSION_DB.tmp" "$SESSION_DB"
+
+    echo "✓ 引き継ぎが完了しました"
+    echo ""
+    echo "次のコマンドでセッションに移動できます:"
+    echo "  csm teleport $session_id"
+}
+
+# セッション詳細を表示
+show_session() {
+    local session_id="$1"
+
+    if [ -z "$session_id" ]; then
+        echo "❌ エラー: セッションIDを指定してください"
+        echo "使い方: csm show <session_id>"
+        return 1
+    fi
+
+    echo "=== セッション詳細 ==="
+    jq --arg id "$session_id" '.sessions[] | select(.id == $id)' "$SESSION_DB"
+}
+
+# セッションをクローズ
+close_session() {
+    local session_id="$1"
+
+    if [ -z "$session_id" ]; then
+        echo "❌ エラー: セッションIDを指定してください"
+        echo "使い方: csm close <session_id>"
+        return 1
+    fi
+
+    jq --arg id "$session_id" \
+       '(.sessions[] | select(.id == $id) | .status) = "closed"' "$SESSION_DB" > "$SESSION_DB.tmp"
+
+    mv "$SESSION_DB.tmp" "$SESSION_DB"
+    echo "✓ セッションをクローズしました: $session_id"
+}
+
+# 使い方を表示
+show_usage() {
+    cat << 'EOF'
+Claude Code Session Manager (CSM)
+
+使い方:
+  csm init                              - マネージャーを初期化
+  csm register <agent> <purpose>        - 現在のセッションを登録
+  csm list [active]                     - セッション一覧を表示
+  csm teleport <session_id>             - セッションに移動
+  csm handoff <session_id> <agent> [note] - セッションを引き継ぐ
+  csm show <session_id>                 - セッション詳細を表示
+  csm close <session_id>                - セッションをクローズ
+
+例:
+  # 現在のセッションを登録
+  csm register "開発エージェント" "APIの実装"
+
+  # セッション一覧を確認
+  csm list active
+
+  # 別のエージェントに引き継ぐ
+  csm handoff abc123 "テストエージェント" "API実装完了、テスト依頼"
+
+  # そのセッションに移動
+  csm teleport abc123
+
+Miyabi Agent統合:
+  # CoordinatorAgent用セッション
+  csm register "CoordinatorAgent" "Issue #567 タスク分解"
+
+  # CodeGenAgent用セッション
+  csm register "CodeGenAgent" "Issue #567 実装"
+
+  # ReviewAgent用セッション
+  csm register "ReviewAgent" "Issue #567 コードレビュー"
+
+EOF
+}
+
+# メイン処理
+main() {
+    local command="$1"
+    shift || true
+
+    # 初期化チェック
+    if [ "$command" != "init" ] && [ ! -f "$SESSION_DB" ]; then
+        echo "⚠️  セッションマネージャーが初期化されていません"
+        echo "次のコマンドで初期化してください: csm init"
+        exit 1
+    fi
+
+    case "$command" in
+        init)
+            init_manager
+            ;;
+        register)
+            register_current_session "$1" "$2"
+            ;;
+        list)
+            list_sessions "$1"
+            ;;
+        teleport)
+            teleport_session "$1"
+            ;;
+        handoff)
+            handoff_session "$1" "$2" "$3"
+            ;;
+        show)
+            show_session "$1"
+            ;;
+        close)
+            close_session "$1"
+            ;;
+        help|--help|-h|"")
+            show_usage
+            ;;
+        *)
+            echo "❌ 不明なコマンド: $command"
+            echo ""
+            show_usage
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

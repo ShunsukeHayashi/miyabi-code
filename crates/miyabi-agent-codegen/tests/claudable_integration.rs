@@ -55,7 +55,7 @@ fn create_frontend_task(title: &str, description: &str) -> Task {
 #[ignore] // Requires Claudable server running
 async fn test_frontend_task_detection() {
     let config = create_test_config();
-    let agent = CodeGenAgent::new_with_claudable(config).unwrap();
+    let _agent = CodeGenAgent::new_with_claudable(config).unwrap();
 
     let task = create_frontend_task(
         "Create dashboard UI",
@@ -278,7 +278,7 @@ async fn test_non_frontend_task_skips_claudable() {
     let task = Task {
         id: "backend-1".to_string(),
         title: "Fix database bug".to_string(),
-        description: "Optimize SQL query performance".to_string(),
+        description: "Optimize SQL query execution speed".to_string(),
         task_type: TaskType::Bug,
         priority: 1,
         severity: None,

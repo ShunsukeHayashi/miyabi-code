@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build-docs:
     name: Build Rust API Documentation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
   deploy-docs:
     name: Deploy to GitHub Pages
     needs: build-docs
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Download documentation artifact

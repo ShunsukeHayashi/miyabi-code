@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -15,7 +15,7 @@ jobs:
       - run: cargo build --release
 
   e2e-tests:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, arm64, miyabi-light]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

@@ -45,10 +45,12 @@ pub mod dynamic_scaling;
 pub mod error;
 pub mod feedback;
 pub mod five_worlds_executor;
+pub mod headless;
 pub mod hooks;
 pub mod launcher;
 pub mod load_balancer;
 pub mod milestone_updater;
+pub mod notification;
 pub mod parser;
 pub mod pr_creator;
 pub mod remote;
@@ -67,8 +69,10 @@ pub use five_worlds_executor::{
     ExecutionStatus, ExecutorStatistics, FiveWorldsExecutor, FiveWorldsExecutorConfig,
     WorldExecutionStatus,
 };
+pub use headless::{ExecutionResult, HeadlessOrchestrator, HeadlessOrchestratorConfig};
 pub use load_balancer::{LoadBalancer, LoadBalancerStats};
 pub use milestone_updater::{Milestone, MilestoneConfig, MilestoneState, MilestoneUpdater};
+pub use notification::{Notification, NotificationService, NotificationType};
 pub use parser::AgentResult;
 pub use pr_creator::{PRConfig, PRCreator, PullRequest};
 pub use remote::RemoteExecutor;

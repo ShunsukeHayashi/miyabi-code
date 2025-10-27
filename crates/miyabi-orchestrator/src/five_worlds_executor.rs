@@ -908,7 +908,7 @@ mod tests {
         for world in ["alpha", "beta", "gamma", "delta", "epsilon"] {
             let branch_name = format!("world-{}-issue-{}-{}", world, issue_number, task_id);
             let _ = Command::new("git")
-                .args(&["branch", "-D", &branch_name])
+                .args(["branch", "-D", &branch_name])
                 .output();
         }
     }

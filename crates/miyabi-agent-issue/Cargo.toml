@@ -1,0 +1,41 @@
+[package]
+name = "miyabi-agent-issue"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+# Core dependencies
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
+miyabi-agent-core = { path = "../miyabi-agent-core" }
+
+# Async
+async-trait = { workspace = true }
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = { workspace = true }
+uuid = { version = "1.11", features = ["v4"] }

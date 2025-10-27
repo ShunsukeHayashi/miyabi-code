@@ -298,9 +298,7 @@ async fn main() -> Result<()> {
             use miyabi_core::ExecutionMode;
 
             // Determine execution mode
-            let mode = if full_auto {
-                ExecutionMode::FullAccess
-            } else if full_access {
+            let mode = if full_auto || full_access {
                 ExecutionMode::FullAccess
             } else if file_edits {
                 ExecutionMode::FileEdits
