@@ -63,6 +63,7 @@ pub struct InfinityConfig {
     pub dry_run: bool,
 
     /// Resume from previous run
+    #[allow(dead_code)]
     pub resume: bool,
 
     /// Output directory for logs

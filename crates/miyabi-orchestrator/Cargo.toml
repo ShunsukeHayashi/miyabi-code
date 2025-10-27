@@ -29,7 +29,7 @@ thiserror.workspace = true
 anyhow.workspace = true
 tokio.workspace = true
 futures = "0.3"
-sysinfo = "0.33"
+sysinfo = "0.37"
 
 # Serialization
 serde.workspace = true
