@@ -11,6 +11,7 @@ use anyhow::{anyhow, Result};
 use miyabi_agent_coordinator::coordinator::CoordinatorAgent;
 use miyabi_agent_issue::IssueAgent;
 use miyabi_github::client::GitHubClient;
+use miyabi_session_manager::{SessionManager, SessionContext};
 use miyabi_worktree::{WorktreeInfo, WorktreeManager};
 use miyabi_types::{AgentConfig, Issue};
 use miyabi_types::task::TaskDecomposition;
@@ -90,6 +91,9 @@ pub struct HeadlessOrchestrator {
 
     /// Claude Code Executor for Phase 4 (5-Worlds parallel execution)
     claude_code_executor: Option<ClaudeCodeExecutor>,
+
+    /// Session Manager for Agent-to-Agent handoff
+    session_manager: Option<Arc<SessionManager>>,
 
     /// GitHub API client (optional for dry-run mode)
     github_client: Option<Arc<GitHubClient>>,
@@ -173,12 +177,25 @@ impl HeadlessOrchestrator {
             coordinator_agent: CoordinatorAgent::new(agent_config.clone()),
             notification_service: NotificationService::new(),
             claude_code_executor,
+            session_manager: None, // Will be initialized via with_session_manager()
             config,
             agent_config,
             github_client: None,
             worktree_manager,
             active_executions: Arc::new(RwLock::new(std::collections::HashMap::new())),
         }
+    }
+
+    /// Enable SessionManager for Agent-to-Agent handoff
+    pub async fn with_session_manager(mut self) -> Result<Self> {
+        if !self.config.dry_run {
+            let session_manager = SessionManager::new(".ai/sessions").await?;
+            info!("   SessionManager initialized: .ai/sessions/");
+            self.session_manager = Some(Arc::new(session_manager));
+        } else {
+            info!("   Dry-run mode: SessionManager disabled");
+        }
+        Ok(self)
     }
 
     /// Create with GitHub client for label automation
@@ -252,6 +269,7 @@ impl HeadlessOrchestrator {
             coordinator_agent: CoordinatorAgent::new(agent_config.clone()),
             notification_service: NotificationService::new(),
             claude_code_executor,
+            session_manager: None, // Will be initialized via with_session_manager()
             config,
             agent_config,
             github_client: Some(Arc::new(github_client)),

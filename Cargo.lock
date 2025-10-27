@@ -3170,6 +3170,7 @@ dependencies = [
  "miyabi-agent-review",
  "miyabi-core",
  "miyabi-github",
+ "miyabi-session-manager",
  "miyabi-types",
  "miyabi-worktree",
  "serde",
