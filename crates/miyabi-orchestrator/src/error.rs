@@ -40,4 +40,8 @@ pub enum SchedulerError {
     /// Process execution failed
     #[error("Process execution failed with exit code {code}: {stderr}")]
     ProcessFailed { code: i32, stderr: String },
+
+    /// Command execution failed
+    #[error("Command '{command}' failed: {stderr}")]
+    CommandFailed { command: String, stderr: String },
 }

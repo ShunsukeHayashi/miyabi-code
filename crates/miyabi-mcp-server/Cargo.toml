@@ -54,6 +54,9 @@ lru = "0.12"
 # DateTime
 chrono = { workspace = true }
 
+# UUID
+uuid = { version = "1.10", features = ["v4", "serde"] }
+
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
 

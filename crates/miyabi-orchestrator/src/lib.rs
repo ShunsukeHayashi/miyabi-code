@@ -54,6 +54,7 @@ pub mod milestone_updater;
 pub mod notification;
 pub mod parser;
 pub mod pr_creator;
+pub mod quality_checker;
 pub mod remote;
 pub mod scheduler;
 pub mod session;
@@ -77,6 +78,7 @@ pub use milestone_updater::{Milestone, MilestoneConfig, MilestoneState, Mileston
 pub use notification::{Notification, NotificationService, NotificationType};
 pub use parser::AgentResult;
 pub use pr_creator::{PRConfig, PRCreator, PullRequest};
+pub use quality_checker::QualityChecker;
 pub use remote::RemoteExecutor;
 pub use scheduler::{Scheduler, SchedulerStats};
 pub use session::{SessionConfig, SessionId, SessionManager, SessionStatus};

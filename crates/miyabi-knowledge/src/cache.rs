@@ -42,10 +42,12 @@ impl IndexCache {
     ///
     /// # Example
     ///
-    /// ```
-    /// use miyabi_knowledge::IndexCache;
-    ///
+    /// ```no_run
+    /// # use miyabi_knowledge::IndexCache;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let cache = IndexCache::load_or_default("my-workspace")?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn load_or_default(workspace: &str) -> Result<Self> {
         let path = Self::cache_path(workspace)?;
@@ -63,12 +65,14 @@ impl IndexCache {
     ///
     /// # Example
     ///
-    /// ```
-    /// use miyabi_knowledge::IndexCache;
-    ///
+    /// ```no_run
+    /// # use miyabi_knowledge::IndexCache;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let mut cache = IndexCache::new("my-workspace".to_string());
     /// cache.mark_indexed("path/to/log.md".into(), "abc123...".to_string());
     /// cache.save()?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn save(&self) -> Result<()> {
         let path = Self::cache_path(&self.workspace)?;

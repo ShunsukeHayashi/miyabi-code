@@ -18,11 +18,13 @@ use std::path::Path;
 ///
 /// # Example
 ///
-/// ```
-/// use miyabi_knowledge::hash_file;
-///
+/// ```no_run
+/// # use miyabi_knowledge::hash_file;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let hash = hash_file("path/to/log.md")?;
 /// println!("Hash: {}", hash);
+/// # Ok(())
+/// # }
 /// ```
 pub fn hash_file<P: AsRef<Path>>(path: P) -> Result<String> {
     let content = std::fs::read(path.as_ref())?;

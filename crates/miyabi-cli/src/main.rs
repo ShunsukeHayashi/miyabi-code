@@ -13,8 +13,8 @@ use colored::Colorize;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 use commands::{
     AgentCommand, ExecCommand, InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand,
-    LoopCommand, ModeCommand, ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand,
-    WorktreeSubcommand,
+    LoopCommand, ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand,
+    StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
 
@@ -135,6 +135,11 @@ enum Commands {
     Worktree {
         #[command(subcommand)]
         command: WorktreeSubcommand,
+    },
+    /// Session management (list, get, stats, lineage, monitor, terminate)
+    Session {
+        #[command(subcommand)]
+        command: SessionSubcommand,
     },
     /// Infinite feedback loop orchestration
     Loop {
@@ -300,6 +305,10 @@ async fn main() -> Result<()> {
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
+            cmd.execute().await
+        }
+        Some(Commands::Session { command }) => {
+            let cmd = SessionCommand::new(command);
             cmd.execute().await
         }
         Some(Commands::Loop { command }) => command.execute().await,

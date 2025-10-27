@@ -32,6 +32,17 @@
 //!
 //! - `knowledge.search` - Search knowledge base with vector similarity
 //!
+//! ### Session Management (when enabled with `with_session_manager()`)
+//!
+//! - `session.spawn` - Spawn new Agent session
+//! - `session.handoff` - Handoff session to another Agent
+//! - `session.monitor` - Monitor session status
+//! - `session.terminate` - Terminate running session
+//! - `session.list` - List all sessions
+//! - `session.get` - Get detailed session info
+//! - `session.stats` - Get session statistics
+//! - `session.lineage` - Get session lineage (ancestry tree)
+//!
 //! ### Health & Status
 //!
 //! - `server.health` - Check server health
@@ -73,6 +84,8 @@ pub mod registry;
 pub mod rpc;
 pub mod server;
 pub mod service;
+pub mod session_handler;
+pub mod session_rpc;
 
 pub use cache::{CacheKey, ToolResultCache};
 pub use config::{ServerArgs, ServerConfig, TransportMode};
@@ -84,9 +97,19 @@ pub use registry::{
 };
 pub use server::McpServer;
 pub use service::{ServiceConfig, ServiceStats, ToolRegistryService};
+pub use session_handler::SessionHandler;
 
 // Re-export RPC types for convenience
 pub use rpc::{
     AgentExecuteParams, AgentExecuteResult, HealthCheckResult, IssueFetchParams, IssueListParams,
     IssueResponse, KnowledgeMetadata, KnowledgeSearchParams, KnowledgeSearchResult,
+};
+
+// Re-export Session RPC types
+pub use session_rpc::{
+    SessionContextParams, SessionGetParams, SessionGetResult, SessionHandoffParams,
+    SessionHandoffResult, SessionInfo, SessionLineageParams, SessionLineageResult,
+    SessionListParams, SessionListResult, SessionMonitorParams, SessionMonitorResult,
+    SessionSpawnParams, SessionSpawnResult, SessionStatsResult, SessionTerminateParams,
+    SessionTerminateResult,
 };

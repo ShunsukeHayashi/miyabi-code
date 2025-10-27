@@ -28,8 +28,8 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Repository: {}/{}", config.repo_owner, config.repo_name);
     tracing::info!("Working Directory: {}", config.working_dir.display());
 
-    // Create and run server
-    let server = McpServer::new(config)?;
+    // Create and run server with SessionManager enabled
+    let server = McpServer::with_session_manager(config).await?;
     server.run().await?;
 
     Ok(())

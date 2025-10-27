@@ -2,7 +2,7 @@
 //!
 //! Runs cargo test, clippy, fmt, and audit to assess code quality
 
-use anyhow::{anyhow, Result};
+use crate::error::{Result, SchedulerError};
 use miyabi_types::quality::{
     QualityBreakdown, QualityIssue, QualityIssueType, QualityReport, QualitySeverity,
 };
@@ -142,7 +142,10 @@ impl QualityChecker {
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
             warn!("   ❌ Test failures detected");
-            Err(anyhow!("Test failures: {}", stderr))
+            Err(SchedulerError::CommandFailed {
+                command: "cargo test".to_string(),
+                stderr: stderr.to_string(),
+            })
         }
     }
 
@@ -168,7 +171,10 @@ impl QualityChecker {
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
             warn!("   ⚠️  Clippy warnings detected");
-            Err(anyhow!("Clippy warnings: {}", stderr))
+            Err(SchedulerError::CommandFailed {
+                command: "cargo clippy".to_string(),
+                stderr: stderr.to_string(),
+            })
         }
     }
 
@@ -191,7 +197,10 @@ impl QualityChecker {
             Ok(String::new())
         } else {
             warn!("   ⚠️  Format check failed");
-            Err(anyhow!("Format check failed - run cargo fmt to fix"))
+            Err(SchedulerError::CommandFailed {
+                command: "cargo fmt --check".to_string(),
+                stderr: "Format check failed - run cargo fmt to fix".to_string(),
+            })
         }
     }
 
@@ -227,7 +236,10 @@ impl QualityChecker {
         } else {
             let stdout = String::from_utf8_lossy(&output.stdout);
             warn!("   ⚠️  Security vulnerabilities detected");
-            Err(anyhow!("Security audit failed: {}", stdout))
+            Err(SchedulerError::CommandFailed {
+                command: "cargo audit".to_string(),
+                stderr: stdout.to_string(),
+            })
         }
     }
 
@@ -244,7 +256,8 @@ impl QualityChecker {
         match result {
             Ok(_) => 100,
             Err(e) => {
-                let warning_count = e.to_string().matches("warning:").count();
+                let error_str = format!("{:?}", e);
+                let warning_count = error_str.matches("warning:").count();
                 if warning_count == 0 {
                     100
                 } else if warning_count <= 5 {
@@ -272,7 +285,8 @@ impl QualityChecker {
             Ok(msg) if msg.contains("not installed") => 100, // No penalty if not installed
             Ok(_) => 100,
             Err(e) => {
-                let vuln_count = e.to_string().matches("vulnerability").count();
+                let error_str = format!("{:?}", e);
+                let vuln_count = error_str.matches("vulnerability").count();
                 if vuln_count == 0 {
                     100
                 } else if vuln_count <= 2 {
@@ -399,9 +413,15 @@ mod tests {
 
     #[test]
     fn test_calculate_test_score() {
-        assert_eq!(QualityChecker::calculate_test_score(&Ok(String::new())), 100);
         assert_eq!(
-            QualityChecker::calculate_test_score(&Err(anyhow!("test"))),
+            QualityChecker::calculate_test_score(&Ok(String::new())),
+            100
+        );
+        assert_eq!(
+            QualityChecker::calculate_test_score(&Err(SchedulerError::CommandFailed {
+                command: "test".to_string(),
+                stderr: "test".to_string()
+            })),
             50
         );
     }

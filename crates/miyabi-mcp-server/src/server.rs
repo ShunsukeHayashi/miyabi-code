@@ -10,11 +10,17 @@ use crate::error::{Result, ServerError};
 use crate::rpc::{
     AgentExecuteParams, IssueFetchParams, IssueListParams, KnowledgeSearchParams, RpcContext,
 };
+use crate::session_handler::SessionHandler;
+use crate::session_rpc::{
+    SessionGetParams, SessionHandoffParams, SessionLineageParams, SessionListParams,
+    SessionMonitorParams, SessionSpawnParams, SessionTerminateParams,
+};
 
 /// MCP Server
 pub struct McpServer {
     config: ServerConfig,
     context: Arc<RwLock<RpcContext>>,
+    session_handler: Option<Arc<SessionHandler>>,
 }
 
 impl McpServer {
@@ -24,6 +30,27 @@ impl McpServer {
         Ok(Self {
             config,
             context: Arc::new(RwLock::new(context)),
+            session_handler: None,
+        })
+    }
+
+    /// Create new MCP server with session management enabled
+    pub async fn with_session_manager(config: ServerConfig) -> Result<Self> {
+        let context = RpcContext::new(config.clone())?;
+
+        // Initialize SessionHandler
+        let sessions_dir = config.working_dir.join(".ai/sessions");
+        let session_handler = SessionHandler::new(sessions_dir.to_str().unwrap()).await?;
+
+        tracing::info!(
+            "SessionManager initialized: {}",
+            sessions_dir.display()
+        );
+
+        Ok(Self {
+            config,
+            context: Arc::new(RwLock::new(context)),
+            session_handler: Some(Arc::new(session_handler)),
         })
     }
 
@@ -120,6 +147,142 @@ impl McpServer {
         io.add_method("server.version", |_params: Params| async move {
             Ok(Value::String(env!("CARGO_PKG_VERSION").to_string()))
         });
+
+        // Session management methods (if SessionHandler is available)
+        if let Some(session_handler) = &self.session_handler {
+            let handler = session_handler.clone();
+
+            // session.spawn
+            {
+                let h = handler.clone();
+                io.add_method("session.spawn", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionSpawnParams = params.parse()?;
+                        let result = h
+                            .spawn_session(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.handoff
+            {
+                let h = handler.clone();
+                io.add_method("session.handoff", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionHandoffParams = params.parse()?;
+                        let result = h
+                            .handoff_session(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.monitor
+            {
+                let h = handler.clone();
+                io.add_method("session.monitor", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionMonitorParams = params.parse()?;
+                        let result = h
+                            .monitor_session(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.terminate
+            {
+                let h = handler.clone();
+                io.add_method("session.terminate", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionTerminateParams = params.parse()?;
+                        let result = h
+                            .terminate_session(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.list
+            {
+                let h = handler.clone();
+                io.add_method("session.list", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionListParams = params.parse()?;
+                        let result = h
+                            .list_sessions(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.get
+            {
+                let h = handler.clone();
+                io.add_method("session.get", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionGetParams = params.parse()?;
+                        let result = h
+                            .get_session(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.stats
+            {
+                let h = handler.clone();
+                io.add_method("session.stats", move |_params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let result = h
+                            .get_stats()
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // session.lineage
+            {
+                let h = handler.clone();
+                io.add_method("session.lineage", move |params: Params| {
+                    let h = h.clone();
+                    async move {
+                        let params: SessionLineageParams = params.parse()?;
+                        let result = h
+                            .get_lineage(params)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            tracing::info!("Session management RPC methods registered (8 methods)");
+        } else {
+            tracing::info!("Session management disabled (use with_session_manager() to enable)");
+        }
 
         io
     }
