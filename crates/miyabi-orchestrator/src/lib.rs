@@ -40,6 +40,7 @@
 
 pub mod aggregator;
 pub mod dag;
+pub mod decision;
 pub mod dynamic_scaling;
 pub mod error;
 pub mod feedback;
@@ -54,10 +55,12 @@ pub mod remote;
 pub mod scheduler;
 pub mod session;
 pub mod ssh;
+pub mod state_machine;
 
 // Re-export key types
 pub use aggregator::{AggregatedResult, ResultAggregator};
 pub use dag::{DAGOperations, TaskId};
+pub use decision::{Decision, DecisionEngine, DecisionThresholds};
 pub use dynamic_scaling::{DynamicScaler, DynamicScalerConfig, ResourceMonitor, ResourceStats};
 pub use error::{Result, SchedulerError};
 pub use five_worlds_executor::{
@@ -72,3 +75,4 @@ pub use remote::RemoteExecutor;
 pub use scheduler::{Scheduler, SchedulerStats};
 pub use session::{SessionConfig, SessionId, SessionManager, SessionStatus};
 pub use ssh::{Machine, MachineStatus, SshConfig};
+pub use state_machine::{ExecutionState, Phase, StateMachine};
