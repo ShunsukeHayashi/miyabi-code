@@ -9,6 +9,37 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
 
+/// Helper function to cleanup stale worktrees before test execution
+async fn cleanup_stale_worktrees() {
+    use tokio::process::Command;
+
+    // List all worktrees
+    let output = Command::new("git")
+        .args(&["worktree", "list", "--porcelain"])
+        .output()
+        .await;
+
+    if let Ok(output) = output {
+        if output.status.success() {
+            let list_output = String::from_utf8_lossy(&output.stdout);
+
+            // Extract worktree paths that match test patterns
+            for line in list_output.lines() {
+                if line.starts_with("worktree ") {
+                    let path = line.strip_prefix("worktree ").unwrap();
+                    // Remove test worktrees (issue-* pattern in .worktrees/)
+                    if path.contains(".worktrees/issue-") {
+                        let _ = Command::new("git")
+                            .args(&["worktree", "remove", path, "--force"])
+                            .output()
+                            .await;
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// Test simple parallel execution with mock tasks
 #[tokio::test]
 #[serial]
@@ -18,6 +49,9 @@ async fn test_parallel_execution_basic() {
         eprintln!("Skipping test: not in a git repository");
         return;
     }
+
+    // Cleanup stale worktrees from previous test runs
+    cleanup_stale_worktrees().await;
 
     let config = PoolConfig {
         max_concurrency: 3,
@@ -255,6 +289,7 @@ async fn test_parallel_execution_with_timeout() {
         }
     };
 
+
     let tasks = vec![
         WorktreeTask {
             issue_number: 3001,
@@ -322,6 +357,7 @@ async fn test_execute_simple() {
         }
     };
 
+
     let issue_numbers = vec![4001, 4002, 4003];
 
     let result = pool
@@ -371,6 +407,7 @@ async fn test_pool_statistics() {
             return;
         }
     };
+
 
     // Get initial stats
     let stats = pool.stats().await;
@@ -423,6 +460,7 @@ async fn test_parallel_execution_benchmark() {
             return;
         }
     };
+
 
     // Create 10 tasks
     let tasks: Vec<WorktreeTask> = (5001..=5010)
