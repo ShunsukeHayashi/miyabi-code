@@ -110,9 +110,10 @@ async fn test_session_handoff() {
     assert_eq!(handoff.parent_session_id, parent_id);
     assert_eq!(handoff.agent_name, "codegen");
 
-    // 3. Verify lineage
+    // 3. Verify lineage (must use child session ID to get full lineage)
+    let child_id = handoff.new_session_id.clone();
     let lineage_params = SessionLineageParams {
-        session_id: parent_id.clone(),
+        session_id: child_id,
     };
     let lineage_result = handler.get_lineage(lineage_params).await;
     assert!(lineage_result.is_ok());

@@ -42,10 +42,7 @@ impl McpServer {
         let sessions_dir = config.working_dir.join(".ai/sessions");
         let session_handler = SessionHandler::new(sessions_dir.to_str().unwrap()).await?;
 
-        tracing::info!(
-            "SessionManager initialized: {}",
-            sessions_dir.display()
-        );
+        tracing::info!("SessionManager initialized: {}", sessions_dir.display());
 
         Ok(Self {
             config,

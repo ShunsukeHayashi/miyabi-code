@@ -238,10 +238,7 @@ impl SessionHandler {
     }
 
     /// Get session lineage (ancestry tree)
-    pub async fn get_lineage(
-        &self,
-        params: SessionLineageParams,
-    ) -> Result<SessionLineageResult> {
+    pub async fn get_lineage(&self, params: SessionLineageParams) -> Result<SessionLineageResult> {
         let session_id = Uuid::parse_str(&params.session_id)
             .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 

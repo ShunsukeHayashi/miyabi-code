@@ -70,9 +70,7 @@ impl SessionCommand {
             SessionSubcommand::Stats => self.show_stats().await,
             SessionSubcommand::Lineage { session_id } => self.show_lineage(session_id).await,
             SessionSubcommand::Monitor { session_id } => self.monitor_session(session_id).await,
-            SessionSubcommand::Terminate { session_id } => {
-                self.terminate_session(session_id).await
-            }
+            SessionSubcommand::Terminate { session_id } => self.terminate_session(session_id).await,
         }
     }
 
@@ -88,16 +86,17 @@ impl SessionCommand {
         println!();
 
         let manager = self.get_session_manager().await?;
-        let sessions = manager
-            .list_sessions()
-            .await
-            .map_err(|e| crate::error::CliError::Other(e.to_string()))?;
+        let sessions = manager.list_active_sessions();
 
         // Filter by status if specified
         let filtered: Vec<_> = if let Some(status_filter) = status {
             sessions
                 .into_iter()
-                .filter(|s| format!("{:?}", s.status).to_lowercase().contains(&status_filter.to_lowercase()))
+                .filter(|s| {
+                    format!("{:?}", s.status)
+                        .to_lowercase()
+                        .contains(&status_filter.to_lowercase())
+                })
                 .take(limit)
                 .collect()
         } else {
@@ -123,7 +122,7 @@ impl SessionCommand {
             };
 
             let status_color = match format!("{:?}", session.status).as_str() {
-                s if s.contains("Running") => "Running".green(),
+                s if s.contains("Active") => "Active".green(),
                 s if s.contains("Completed") => "Completed".blue(),
                 s if s.contains("Failed") => "Failed".red(),
                 s if s.contains("HandedOff") => "HandedOff".yellow(),
@@ -167,11 +166,7 @@ impl SessionCommand {
 
         let session = manager
             .get_session(uuid)
-            .await
-            .map_err(|e| crate::error::CliError::Other(e.to_string()))?
-            .ok_or_else(|| {
-                crate::error::CliError::Other(format!("Session {} not found", session_id))
-            })?;
+            .map_err(|e| crate::error::CliError::Other(e.to_string()))?;
 
         println!("  ID: {}", session.id.to_string().cyan());
         println!("  Agent: {}", session.agent_name.green());
@@ -181,8 +176,13 @@ impl SessionCommand {
         println!();
 
         println!("  Context:");
-        println!("    Issue: #{}", session.context.issue_number);
-        println!("    Phase: {}", session.context.current_phase.yellow());
+        if let Some(issue_num) = session.context.issue_number {
+            println!("    Issue: #{}", issue_num);
+        }
+        println!(
+            "    Phase: {}",
+            format!("{:?}", session.context.current_phase).yellow()
+        );
         if let Some(path) = &session.context.worktree_path {
             println!("    Worktree: {}", path.display().to_string().dimmed());
         }
@@ -215,16 +215,16 @@ impl SessionCommand {
         println!();
 
         let manager = self.get_session_manager().await?;
-        let stats = manager
-            .get_stats()
-            .await
-            .map_err(|e| crate::error::CliError::Other(e.to_string()))?;
+        let stats = manager.get_stats();
 
-        println!("  Total Sessions: {}", stats.total_sessions.to_string().cyan().bold());
-        println!("  Running: {}", stats.running_sessions.to_string().green());
-        println!("  Completed: {}", stats.completed_sessions.to_string().blue());
-        println!("  Failed: {}", stats.failed_sessions.to_string().red());
-        println!("  Handed Off: {}", stats.handed_off_sessions.to_string().yellow());
+        println!(
+            "  Total Sessions: {}",
+            stats.total.to_string().cyan().bold()
+        );
+        println!("  Active: {}", stats.active.to_string().green());
+        println!("  Completed: {}", stats.completed.to_string().blue());
+        println!("  Failed: {}", stats.failed.to_string().red());
+        println!("  Handed Off: {}", stats.handed_off.to_string().yellow());
 
         Ok(())
     }
@@ -237,38 +237,28 @@ impl SessionCommand {
         let uuid = Uuid::parse_str(session_id)
             .map_err(|_| crate::error::CliError::Other("Invalid session UUID".to_string()))?;
 
-        let lineage = manager
-            .get_lineage(uuid)
-            .await
-            .map_err(|e| crate::error::CliError::Other(e.to_string()))?;
+        let lineage = manager.get_session_lineage(uuid);
 
-        println!("  Root Session:");
-        println!(
-            "    {} - {} ({})",
-            lineage.root.id.to_string().cyan(),
-            lineage.root.agent_name.green(),
-            format!("{:?}", lineage.root.status)
-        );
-        println!("    Purpose: {}", lineage.root.purpose);
-        println!();
-
-        if !lineage.descendants.is_empty() {
-            println!("  Descendants ({}):", lineage.descendants.len());
-            for (i, descendant) in lineage.descendants.iter().enumerate() {
-                let indent = "  ".repeat((i % 3) + 2);
-                println!(
-                    "{}└─ {} - {} ({})",
-                    indent,
-                    descendant.id.to_string().cyan(),
-                    descendant.agent_name.green(),
-                    format!("{:?}", descendant.status)
-                );
-                println!("{}   Purpose: {}", indent, descendant.purpose);
-            }
+        if lineage.is_empty() {
+            println!("  No lineage found for session {}", session_id);
+            return Ok(());
         }
 
+        println!("  Session Lineage ({} sessions):", lineage.len());
         println!();
-        println!("  Total in lineage: {}", lineage.total.to_string().cyan());
+
+        for (i, session) in lineage.iter().enumerate() {
+            let indent = "  ".repeat(i);
+            println!(
+                "{}└─ {} - {} ({:?})",
+                indent,
+                session.id.to_string().cyan(),
+                session.agent_name.green(),
+                session.status
+            );
+            println!("{}   Purpose: {}", indent, session.purpose);
+            println!();
+        }
 
         Ok(())
     }
@@ -283,30 +273,21 @@ impl SessionCommand {
 
         let session = manager
             .get_session(uuid)
-            .await
-            .map_err(|e| crate::error::CliError::Other(e.to_string()))?
-            .ok_or_else(|| {
-                crate::error::CliError::Other(format!("Session {} not found", session_id))
-            })?;
+            .map_err(|e| crate::error::CliError::Other(e.to_string()))?;
 
         println!("  Session: {}", session.id.to_string().cyan());
         println!("  Agent: {}", session.agent_name.green());
         println!("  Status: {:?}", session.status);
 
-        let is_running = matches!(
+        let is_active = matches!(
             session.status,
-            miyabi_session_manager::SessionStatus::Running
+            miyabi_session_manager::SessionStatus::Active
         );
 
-        if is_running {
-            println!("  State: {}", "Running".green().bold());
+        if is_active {
+            println!("  State: {}", "Active".green().bold());
         } else {
-            println!("  State: {}", "Not Running".dimmed());
-
-            if let miyabi_session_manager::SessionStatus::Completed { exit_code } = session.status
-            {
-                println!("  Exit Code: {}", exit_code);
-            }
+            println!("  State: {}", "Not Active".dimmed());
 
             if let Some(error) = &session.error_message {
                 println!("  Error: {}", error.red());
@@ -326,16 +307,12 @@ impl SessionCommand {
 
         println!("  Terminating session: {}", session_id.cyan());
 
-        let terminated = manager
-            .terminate(uuid)
+        manager
+            .fail_session(uuid, "Terminated by user".to_string())
             .await
             .map_err(|e| crate::error::CliError::Other(e.to_string()))?;
 
-        if terminated {
-            println!("  {}", "✅ Session terminated successfully".green());
-        } else {
-            println!("  {}", "⚠️  Session was not running or already terminated".yellow());
-        }
+        println!("  {}", "✅ Session terminated successfully".green());
 
         Ok(())
     }

@@ -3,11 +3,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
-use uuid::Uuid;
 
 use miyabi_agents::CoordinatorAgent;
 use miyabi_github::GitHubClient;
-use miyabi_session_manager::{SessionContext, SessionManager, SessionStatus};
 use miyabi_types::{AgentConfig, Issue};
 use octocrab::params::State;
 

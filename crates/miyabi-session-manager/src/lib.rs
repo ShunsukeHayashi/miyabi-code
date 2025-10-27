@@ -49,10 +49,17 @@
 //! ```
 
 mod error;
+mod message;
+mod queue;
 mod session;
 mod storage;
 
 pub use error::{SessionError, Result};
+pub use message::{
+    CommandMessage, CustomMessage, ErrorMessage, LogMessage, Message, MessageBuilder, MessageType,
+    Priority, ResultMessage, StatusUpdateMessage,
+};
+pub use queue::{GlobalQueueStats, MessageQueue, QueueStats};
 pub use session::{AgentResult, ManagedSession, Phase, SessionContext, SessionStatus};
 pub use storage::SessionStorage;
 
@@ -74,6 +81,9 @@ pub struct SessionManager {
 
     /// セッションログディレクトリ
     log_dir: PathBuf,
+
+    /// メッセージキューシステム
+    message_queue: Option<Arc<MessageQueue>>,
 }
 
 impl SessionManager {
@@ -95,7 +105,188 @@ impl SessionManager {
             sessions: Arc::new(DashMap::new()),
             storage,
             log_dir,
+            message_queue: None,
         })
+    }
+
+    /// メッセージキューを有効化（オプション機能）
+    ///
+    /// # Arguments
+    ///
+    /// * `enable` - `true`でメッセージキュー機能を有効化
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use miyabi_session_manager::SessionManager;
+    /// # #[tokio::main]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let mut manager = SessionManager::new(".ai/sessions")
+    ///     .await?
+    ///     .with_message_queue(true)
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn with_message_queue(mut self, enable: bool) -> Result<Self> {
+        if enable {
+            let queue_dir = self.log_dir.parent().unwrap().join("queues");
+            let message_queue = MessageQueue::new(&queue_dir).await?;
+            self.message_queue = Some(Arc::new(message_queue));
+            info!("✅ Message queue enabled at {:?}", queue_dir);
+        }
+        Ok(self)
+    }
+
+    /// メッセージをセッションに送信
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - 送信するメッセージ
+    ///
+    /// # Returns
+    ///
+    /// メッセージキューが無効な場合は`SessionError::InvalidState`
+    pub async fn send_message(&self, message: Message) -> Result<()> {
+        let queue = self
+            .message_queue
+            .as_ref()
+            .ok_or_else(|| {
+                SessionError::InvalidState(
+                    "Message queue is not enabled. Call with_message_queue(true).".to_string(),
+                )
+            })?;
+
+        queue.enqueue(message).await
+    }
+
+    /// セッションの次のメッセージを取得
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    ///
+    /// # Returns
+    ///
+    /// 優先度順で次のメッセージ、またはNone
+    pub async fn receive_message(&self, session_id: Uuid) -> Result<Option<Message>> {
+        let queue = self
+            .message_queue
+            .as_ref()
+            .ok_or_else(|| {
+                SessionError::InvalidState("Message queue is not enabled.".to_string())
+            })?;
+
+        queue.dequeue(session_id).await
+    }
+
+    /// セッションのメッセージキューをピーク（取り出さずに確認）
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    ///
+    /// # Returns
+    ///
+    /// 次のメッセージ、またはNone
+    pub async fn peek_message(&self, session_id: Uuid) -> Option<Message> {
+        self.message_queue
+            .as_ref()?
+            .peek(session_id)
+            .await
+    }
+
+    /// セッションの全メッセージを取得
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    pub async fn list_messages(&self, session_id: Uuid) -> Vec<Message> {
+        if let Some(queue) = &self.message_queue {
+            queue.list_messages(session_id).await
+        } else {
+            vec![]
+        }
+    }
+
+    /// セッションのキューサイズを取得
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    pub async fn queue_size(&self, session_id: Uuid) -> usize {
+        if let Some(queue) = &self.message_queue {
+            queue.len(session_id).await
+        } else {
+            0
+        }
+    }
+
+    /// 特定タイプのメッセージをフィルタ
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    /// * `type_name` - メッセージタイプ名（例: "command", "error"）
+    pub async fn filter_messages_by_type(
+        &self,
+        session_id: Uuid,
+        type_name: &str,
+    ) -> Vec<Message> {
+        if let Some(queue) = &self.message_queue {
+            queue.filter_by_type(session_id, type_name).await
+        } else {
+            vec![]
+        }
+    }
+
+    /// 優先度でメッセージをフィルタ
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    /// * `min_priority` - 最小優先度
+    pub async fn filter_messages_by_priority(
+        &self,
+        session_id: Uuid,
+        min_priority: Priority,
+    ) -> Vec<Message> {
+        if let Some(queue) = &self.message_queue {
+            queue.filter_by_priority(session_id, min_priority).await
+        } else {
+            vec![]
+        }
+    }
+
+    /// キュー統計を取得
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - セッションID
+    pub async fn get_queue_stats(&self, session_id: Uuid) -> Option<QueueStats> {
+        if let Some(queue) = &self.message_queue {
+            queue.get_stats(session_id).await
+        } else {
+            None
+        }
+    }
+
+    /// グローバルキュー統計を取得
+    pub async fn get_global_queue_stats(&self) -> Option<GlobalQueueStats> {
+        if let Some(queue) = &self.message_queue {
+            Some(queue.get_global_stats().await)
+        } else {
+            None
+        }
+    }
+
+    /// 期限切れメッセージをクリーンアップ
+    pub async fn cleanup_expired_messages(&self) -> Result<usize> {
+        if let Some(queue) = &self.message_queue {
+            queue.cleanup_expired().await
+        } else {
+            Ok(0)
+        }
     }
 
     /// 新しいセッションを作成してAgentを起動
@@ -128,7 +319,7 @@ impl SessionManager {
 
         // Claude Code --headless でAgentを起動
         let child = Command::new("claude")
-            .args(&[
+            .args([
                 "code",
                 "--headless",
                 "--execute-command",

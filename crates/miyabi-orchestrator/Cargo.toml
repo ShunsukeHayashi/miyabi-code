@@ -45,4 +45,6 @@ tracing.workspace = true
 uuid = { version = "1.11", features = ["v4", "serde"] }
 
 [dev-dependencies]
+async-trait = { workspace = true }
 tempfile = { workspace = true }
+proptest = "1.5"

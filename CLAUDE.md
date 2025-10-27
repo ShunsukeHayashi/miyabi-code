@@ -229,3 +229,6 @@ export DEVICE_IDENTIFIER=MacBook   # デバイス識別子
 ---
 
 **このファイルはClaude Codeが自動参照します。詳細なコンテキストは`.claude/context/*.md`を動的にロードしてください。**
+
+
+Output ALL ：日本語で書くこと

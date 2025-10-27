@@ -1,7 +1,7 @@
 # Miyabi Slash Commands Index
 
-**Last Updated**: 2025-10-24
-**Total Commands**: 18
+**Last Updated**: 2025-10-27
+**Total Commands**: 20
 
 スラッシュコマンドの完全インデックス。カテゴリ別に整理されています。
 
@@ -29,6 +29,8 @@
 | `/narrate` | 🔊 VoiceVox | Git commitから開発進捗ナレーション生成 |
 | `/watch-sprint` | 🔊 VoiceVox | Infinity Sprintログ監視 + 音声通知 |
 | `/check-benchmark` | 📊 Benchmarks | ベンチマーク実装チェック |
+| `/pattern3` | 🚀 Workflow | Pattern 3 Hybrid Orchestration起動 |
+| `/pattern3-report` | 📊 Reports | Pattern 3実行結果レポート生成 |
 
 ---
 
@@ -223,6 +225,45 @@ Firebase/Cloud デプロイを自動実行。
 **Usage**: `/check-benchmark`
 
 公式ベンチマークハーネス使用の確認。
+
+---
+
+### 🚀 Workflow Commands
+
+#### `/pattern3` - Pattern 3 Hybrid Orchestration起動
+**File**: `pattern3.md`
+**Usage**: `/pattern3`
+
+Main Session（Claude Code）+ Codex X + Claude Code Xの3セッション並列実行により、生産性を140%向上。
+
+**並列実行フロー**:
+```
+Main (Claude Code): 統合・意思決定・レビュー
+ ├── Background 1 (Codex X): Zero-bug品質コード
+ └── Background 2 (Claude Code X): 高速ドキュメント
+```
+
+**利点**:
+- ✅ Main中断ゼロ
+- ✅ 異なるAIモデルの強み活用
+- ✅ 生産性140%向上
+
+---
+
+#### `/pattern3-report` - Pattern 3レポート生成
+**File**: `pattern3-report.md`
+**Usage**: `/pattern3-report`
+
+Pattern 3実行結果を包括的にレポート。
+
+**レポート内容**:
+- Main/Codex X/Claude Code Xの成果
+- 生産性指標（並列タスク数、実行時間等）
+- 品質指標（ビルド成功率、テスト合格率等）
+- Lessons Learned
+- Next Steps
+
+**出力**: `/tmp/pattern3_final_report.md`
 
 ---
 

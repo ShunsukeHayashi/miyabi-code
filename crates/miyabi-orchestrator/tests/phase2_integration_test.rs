@@ -32,7 +32,7 @@ async fn test_phase2_task_decomposition_dry_run() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create a simple issue that will auto-approve and proceed to Phase 2
     let issue = create_test_issue(
@@ -62,7 +62,7 @@ async fn test_phase2_medium_complexity() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create a medium complexity issue
     let issue = create_test_issue(
@@ -89,7 +89,7 @@ async fn test_phase2_feature_request() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     let issue = create_test_issue(
         400,
@@ -111,7 +111,7 @@ async fn test_phase2_bug_fix() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     let issue = create_test_issue(
         500,
@@ -133,7 +133,7 @@ async fn test_phase1_to_phase2_transition() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     let issue = create_test_issue(
         600,
@@ -159,7 +159,7 @@ async fn test_phase2_performance_under_5_minutes() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     let issue = create_test_issue(
         700,
@@ -189,7 +189,7 @@ async fn test_phase2_concurrent_executions() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create multiple issues
     let issues = vec![
@@ -215,7 +215,7 @@ async fn test_phase2_dry_run_no_side_effects() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     let issue = create_test_issue(
         900,
@@ -240,7 +240,7 @@ async fn test_phase2_low_complexity_auto_approve() {
         dry_run: true,
     };
 
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Very simple issue that should auto-approve
     let issue = create_test_issue(

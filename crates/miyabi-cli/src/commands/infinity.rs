@@ -267,7 +267,7 @@ impl InfinityMode {
                 break StopReason::AllCompleted;
             }
 
-            println!("");
+            println!();
             println!("🏃 Sprint {} - Processing {} Issues", sprint_id, sprint_issues.len());
 
             // Execute sprint
@@ -494,11 +494,11 @@ impl InfinityMode {
 
     /// Display summary
     fn display_summary(&self, report: &InfinityReport) {
-        println!("");
+        println!();
         println!("{}", "========================================".bright_cyan());
         println!("{}", "🏁 Miyabi Infinity Mode - Final Report".bright_cyan().bold());
         println!("{}", "========================================".bright_cyan());
-        println!("");
+        println!();
 
         println!("{}", "📊 Execution Summary".bright_yellow().bold());
         println!("   Total Duration: {} seconds", report.total_duration_secs);
@@ -507,7 +507,7 @@ impl InfinityMode {
         println!("   Successful: {} ✅", report.successful_issues.to_string().bright_green());
         println!("   Failed: {} ❌", report.failed_issues.to_string().bright_red());
         println!("   Success Rate: {:.1}%", report.success_rate * 100.0);
-        println!("");
+        println!();
 
         println!("{}", "🛑 Stop Reason".bright_yellow().bold());
         match &report.stop_reason {
@@ -518,7 +518,7 @@ impl InfinityMode {
                 println!("   ⏹️  Maximum Issues limit reached");
             }
             StopReason::Timeout => {
-                println!("   {} Timeout reached ({}h)", "⏱️", self.config.timeout_hours);
+                println!("   ⏱️ Timeout reached ({}h)", self.config.timeout_hours);
             }
             StopReason::ConsecutiveFailures => {
                 println!("   {} 3 sprints failed consecutively", "❌".bright_red());
@@ -527,10 +527,10 @@ impl InfinityMode {
                 println!("   {} Critical error: {}", "🔴".bright_red(), err);
             }
             StopReason::UserInterrupted => {
-                println!("   {} User interrupted (Ctrl+C)", "🛑");
+                println!("   🛑 User interrupted (Ctrl+C)");
             }
         }
-        println!("");
+        println!();
 
         println!("{}", "📈 Sprint Details".bright_yellow().bold());
         for sprint in &report.sprints {
@@ -544,7 +544,7 @@ impl InfinityMode {
                 total_count
             );
         }
-        println!("");
+        println!();
         println!("{}", "========================================".bright_cyan());
     }
 }
@@ -607,7 +607,7 @@ fn detect_repository_simple() -> Result<(String, String)> {
     use std::process::Command;
 
     let output = Command::new("git")
-        .args(&["remote", "get-url", "origin"])
+        .args(["remote", "get-url", "origin"])
         .output()
         .map_err(|e| CliError::ExecutionError(format!("Failed to run git command: {}", e)))?;
 
