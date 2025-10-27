@@ -11,7 +11,7 @@ use anyhow::{anyhow, Result};
 use miyabi_agent_coordinator::coordinator::CoordinatorAgent;
 use miyabi_agent_issue::IssueAgent;
 use miyabi_github::client::GitHubClient;
-use miyabi_session_manager::{SessionManager, SessionContext};
+use miyabi_session_manager::SessionManager;
 use miyabi_worktree::{WorktreeInfo, WorktreeManager};
 use miyabi_types::{AgentConfig, Issue};
 use miyabi_types::task::TaskDecomposition;

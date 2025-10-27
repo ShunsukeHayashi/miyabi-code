@@ -136,7 +136,7 @@ pub async fn handle_issue_opened(
     );
 
     // Create Headless Orchestrator
-    let orchestrator = HeadlessOrchestrator::new(config);
+    let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Execute Phase 1: Issue Analysis
     let result = orchestrator.handle_issue_created(&issue).await?;
