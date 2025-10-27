@@ -312,6 +312,7 @@ cli:
         let dirs = vec![
             PathBuf::from(".ai/logs"),
             PathBuf::from(".ai/parallel-reports"),
+            PathBuf::from("reports"),
             worktree_base.clone(),
         ];
 
@@ -332,6 +333,7 @@ cli:
         let required_dirs = vec![
             PathBuf::from(".ai/logs"),
             PathBuf::from(".ai/parallel-reports"),
+            PathBuf::from("reports"),
             worktree_base,
         ];
 

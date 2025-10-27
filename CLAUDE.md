@@ -1,9 +1,25 @@
 # Miyabi - Claude Code Project Context
 
-**Last Updated**: 2025-10-26
-**Version**: 2.0.1 (Agent数整合性修正)
+**Last Updated**: 2025-10-28
+**Version**: 2.1.0 (CLI情報追加)
 
 このファイルは、Claude Codeが自動的に参照するプロジェクトコンテキストファイルです。
+
+---
+
+## 📑 目次
+
+- [🎯 Quick Reference](#-quick-reference)
+- [📚 Context Index](#-context-index---just-in-time-loading)
+- [🚨 Critical Rules](#-critical-rules---全タスク実行前に必読)
+- [🏗️ Project Structure](#️-project-structure)
+- [🤖 Agents](#-agents---自律型実行agent)
+- [🚀 Quick Start](#-quick-start) ← **初めての方はこちら**
+- [🎮 CLI](#-cli---コマンドラインインターフェース) ← **コマンド一覧**
+- [📖 Core Documentation](#-core-documentation)
+- [🔐 Environment Variables](#-environment-variables)
+- [🔗 Related Links](#-related-links)
+- [📋 Usage Pattern Examples](#-usage-pattern-examples)
 
 ---
 
@@ -85,16 +101,17 @@ cat .claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md
 crates/
 ├── miyabi-types/          # コア型定義（Agent, Task, Issue等）
 ├── miyabi-core/           # 共通ユーティリティ（config, logger）
-├── miyabi-cli/            # CLIツール (bin)
+├── miyabi-cli/            # CLIツール (bin) - 15コマンド実装
 ├── miyabi-agents/         # Agent実装（14個実装済み + 10個計画中）
 ├── miyabi-github/         # GitHub API統合（octocrab wrapper）
 ├── miyabi-worktree/       # Git Worktree管理
 ├── miyabi-llm/            # LLM抽象化層（GPT-OSS-20B、Groq/vLLM/Ollama）
 ├── miyabi-knowledge/      # ナレッジ管理システム（NEW v0.1.1）
+├── miyabi-voice-guide/    # VOICEVOX音声ガイダンス
 └── miyabi-mcp-server/     # MCP Server（JSON-RPC 2.0）
 ```
 
-**詳細**: [architecture.md](.claude/context/architecture.md)
+**詳細**: [architecture.md](.claude/context/architecture.md) | [CLI詳細](#-cli---)
 
 ---
 
@@ -133,16 +150,43 @@ crates/
 
 ## 🚀 Quick Start
 
+### 🎬 初回セットアップ（3ステップ）
+
+```bash
+# 1. ビルド
+cargo build --release
+
+# 2. セットアップウィザード起動
+miyabi setup
+
+# 3. プロジェクトステータス確認
+miyabi status
+```
+
+**環境変数設定**（セットアップで自動設定される）:
+- `GITHUB_TOKEN` - GitHubアクセストークン
+- `ANTHROPIC_API_KEY` - Claude APIキー（Agent実行用）
+- `DEVICE_IDENTIFIER` - デバイス識別子
+
 ### CLI実行
 ```bash
 # ビルド
 cargo build --release
 
 # 単一Agent実行
-./target/release/miyabi agent run coordinator --issue 270
+miyabi agent coordinator --issue 270
 
 # 並列実行（Worktreeベース）
-miyabi agent run coordinator --issues 270,271,272 --concurrency 3
+miyabi parallel --issues 270,271,272 --concurrency 3
+
+# シンプルエイリアス（推奨）
+miyabi work-on 270
+
+# Infinity Mode（全Issue自動処理）
+miyabi infinity --concurrency 3 --sprint-size 5
+
+# 初回セットアップ
+miyabi setup
 ```
 
 ### テスト
@@ -152,7 +196,107 @@ cargo clippy -- -D warnings
 cargo fmt
 ```
 
-**詳細**: [rust.md](.claude/context/rust.md) | [development.md](.claude/context/development.md)
+**詳細**: [rust.md](.claude/context/rust.md) | [development.md](.claude/context/development.md) | [CLI完全ガイド](#-cli---)
+
+---
+
+## 🎮 CLI - コマンドラインインターフェース
+
+**実装**: `crates/miyabi-cli/src/` (Rust 2021 Edition)
+
+### 📋 主要コマンド（全15コマンド）
+
+#### 🏗️ プロジェクト管理
+- **`miyabi init <name>`** - 新規プロジェクト作成
+  - 💡 使用シーン: 新しいプロジェクトをMiyabi対応で立ち上げる
+- **`miyabi install`** - 既存プロジェクトへのインストール
+  - 💡 使用シーン: 既存Gitリポジトリに後からMiyabiを導入
+- **`miyabi setup`** - インタラクティブ設定ウィザード
+  - 💡 使用シーン: 環境変数・APIキーの初回設定
+- **`miyabi status`** - プロジェクトステータス確認
+  - 💡 使用シーン: Agent実行状況やWorktreeの健全性チェック
+
+#### 🤖 Agent実行
+- **`miyabi agent <type> --issue <num>`** - 単一Agent実行
+  - 💡 使用シーン: 特定のAgentタイプを明示的に指定して実行
+- **`miyabi parallel --issues <nums> --concurrency <n>`** - 並列Agent実行
+  - 💡 使用シーン: 複数Issueを同時に処理して時間短縮
+- **`miyabi work-on <issue>`** - タスク実行（最もシンプル・推奨）
+  - 💡 使用シーン: Issue番号だけ指定して即座に作業開始
+- **`miyabi exec <task>`** - LLM駆動自律タスク実行
+  - 💡 使用シーン: Issueを作らず、自然言語でタスクを実行
+
+#### 📊 データ管理
+- **`miyabi knowledge <cmd>`** - ナレッジベース管理
+  - 💡 使用シーン: コードベース検索・RAG統合
+- **`miyabi worktree <cmd>`** - Worktree管理
+  - 💡 使用シーン: 孤立Worktreeのクリーンアップ
+- **`miyabi session <cmd>`** - セッション管理
+  - 💡 使用シーン: 過去のAgent実行履歴を分析
+
+#### ♾️ 高度な機能
+- **`miyabi infinity`** - 完全自律連続実行
+  - 💡 使用シーン: リポジトリ内の全Issueを自動処理
+- **`miyabi loop <cmd>`** - 無限フィードバックループ
+  - 💡 使用シーン: 継続的な品質改善サイクル
+- **`miyabi mode <cmd>`** - アダプティブモードシステム
+  - 💡 使用シーン: タスク特性に応じたAgent動作切り替え
+
+#### 💬 対話機能
+- **`miyabi chat`** - 対話型REPLチャット
+  - 💡 使用シーン: Claudeと対話しながらタスクを進める
+
+### 🎛️ グローバルオプション
+
+```bash
+# JSON形式出力（AIエージェント向け）
+miyabi --json <command>
+
+# 詳細ログ出力
+miyabi --verbose <command>
+
+# バージョン確認
+miyabi --version
+
+# ヘルプ表示
+miyabi --help
+miyabi <command> --help  # コマンド別ヘルプ
+```
+
+### 📖 よく使うパターン
+
+```bash
+# 🎬 パターン1: 新規Issue対応
+miyabi work-on 270           # Issueに取り組む
+miyabi status --watch        # 進捗監視
+
+# 🚀 パターン2: 複数Issue一括処理
+miyabi parallel --issues 270,271,272 --concurrency 3
+
+# ♾️ パターン3: 全自動モード
+miyabi infinity              # リポジトリ内全Issue処理
+
+# 🔍 パターン4: トラブルシューティング
+miyabi status               # 現状確認
+miyabi worktree list        # Worktree一覧
+miyabi session list         # セッション履歴
+miyabi worktree prune       # クリーンアップ
+```
+
+### 🎤 音声ガイダンス（VOICEVOX統合）
+- プロジェクト作成完了時: "プロジェクト{name}を作成しました"
+- Issue処理開始時: "Issue #{num}の処理を開始します"
+- Issue処理完了時: "Issue #{num}が完了しました"
+- Infinity Mode開始時: "Infinity Modeを開始します"
+- 初回起動時: "Welcome to Miyabi"
+
+### 🛡️ セーフティ機能
+- **Worktree保護**: 削除時の自動ディレクトリチェック
+- **自動リカバリ**: エラー時にリポジトリルートへ自動移動
+- **クラッシュ防止**: Bashセッション保護機構
+- **エラーハンドリング**: 分かりやすいエラーメッセージと復旧ガイド
+
+**詳細**: `crates/miyabi-cli/src/main.rs:1-543`
 
 ---
 
