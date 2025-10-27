@@ -12,8 +12,8 @@ use clap::{Parser, Subcommand};
 use colored::Colorize;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 use commands::{
-    AgentCommand, ExecCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand,
-    ModeCommand, ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand,
+    AgentCommand, ExecCommand, InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand,
+    LoopCommand, ModeCommand, ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand,
     WorktreeSubcommand,
 };
 use error::Result;
@@ -145,6 +145,24 @@ enum Commands {
     Mode {
         #[command(flatten)]
         command: ModeCommand,
+    },
+    /// Infinity Mode - Autonomous continuous sprint execution (process all Issues)
+    Infinity {
+        /// Maximum number of Issues to process (default: unlimited)
+        #[arg(long)]
+        max_issues: Option<usize>,
+        /// Number of concurrent executions (default: 3)
+        #[arg(long, default_value = "3")]
+        concurrency: usize,
+        /// Number of Issues per sprint (default: 5)
+        #[arg(long, default_value = "5")]
+        sprint_size: usize,
+        /// Dry run (no actual changes)
+        #[arg(long)]
+        dry_run: bool,
+        /// Resume from previous run
+        #[arg(long)]
+        resume: bool,
     },
 }
 
@@ -286,6 +304,28 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
+        Some(Commands::Infinity {
+            max_issues,
+            concurrency,
+            sprint_size,
+            dry_run,
+            resume,
+        }) => {
+            // Voice Guide: Processing started
+            voice_guide.speak(VoiceMessage::ProcessingStarted {
+                task_name: "Infinity Mode".to_string(),
+            }).await;
+
+            let cmd = InfinityCommand {
+                max_issues,
+                concurrency,
+                sprint_size,
+                dry_run,
+                resume,
+            };
+
+            cmd.execute().await
+        }
         Some(Commands::Exec {
             task,
             file_edits,
