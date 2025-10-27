@@ -29,6 +29,7 @@ pub mod rules;
 pub mod security;
 pub mod session;
 pub mod tools;
+pub mod utils;
 
 pub use approval::{
     ApprovalDecision, ApprovalSystem, CommandApproval, FileChangeApproval, FileOperation,
