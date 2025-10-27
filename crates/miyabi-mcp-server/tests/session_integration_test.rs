@@ -17,10 +17,9 @@ async fn test_session_spawn() {
         agent_name: "coordinator".to_string(),
         purpose: "Test task decomposition".to_string(),
         context: SessionContextParams {
-            issue_number: 100,
+            issue_number: Some(100),
             current_phase: "TaskDecomposition".to_string(),
             worktree_path: None,
-            previous_results: None,
         },
     };
 
@@ -44,10 +43,9 @@ async fn test_session_lifecycle() {
         agent_name: "coordinator".to_string(),
         purpose: "Test lifecycle".to_string(),
         context: SessionContextParams {
-            issue_number: 200,
+            issue_number: Some(200),
             current_phase: "IssueAnalysis".to_string(),
             worktree_path: None,
-            previous_results: None,
         },
     };
 
@@ -63,7 +61,7 @@ async fn test_session_lifecycle() {
 
     let session = get_result.unwrap();
     assert_eq!(session.agent_name, "coordinator");
-    assert_eq!(session.context.issue_number, 200);
+    assert_eq!(session.context.issue_number, Some(200));
 
     // 3. Monitor session
     let monitor_params = SessionMonitorParams {
@@ -85,10 +83,9 @@ async fn test_session_handoff() {
         agent_name: "coordinator".to_string(),
         purpose: "Initial task".to_string(),
         context: SessionContextParams {
-            issue_number: 300,
+            issue_number: Some(300),
             current_phase: "TaskDecomposition".to_string(),
             worktree_path: None,
-            previous_results: None,
         },
     };
 
@@ -100,10 +97,9 @@ async fn test_session_handoff() {
         from_session_id: parent_id.clone(),
         to_agent: "codegen".to_string(),
         updated_context: SessionContextParams {
-            issue_number: 300,
+            issue_number: Some(300),
             current_phase: "CodeGeneration".to_string(),
             worktree_path: Some("/tmp/worktree-300".to_string()),
-            previous_results: Some(serde_json::json!({"tasks": 5})),
         },
     };
 
@@ -139,10 +135,9 @@ async fn test_session_list_and_stats() {
             agent_name: format!("agent-{}", i),
             purpose: format!("Task {}", i),
             context: SessionContextParams {
-                issue_number: i as u64,
+                issue_number: Some(i as u64),
                 current_phase: "Test".to_string(),
                 worktree_path: None,
-                previous_results: None,
             },
         };
         handler.spawn_session(params).await.unwrap();
@@ -180,10 +175,9 @@ async fn test_session_terminate() {
         agent_name: "test-agent".to_string(),
         purpose: "To be terminated".to_string(),
         context: SessionContextParams {
-            issue_number: 999,
+            issue_number: Some(999),
             current_phase: "Test".to_string(),
             worktree_path: None,
-            previous_results: None,
         },
     };
 

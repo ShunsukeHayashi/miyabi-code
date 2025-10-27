@@ -22,6 +22,7 @@ miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
 miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" }
 # miyabi-business-agents REMOVED: Use miyabi-agents/business module instead
 miyabi-knowledge = { version = "0.1.1", path = "../miyabi-knowledge" }
+miyabi-session-manager = { version = "0.1.0", path = "../miyabi-session-manager" }
 
 # GitHub API
 octocrab = { workspace = true }

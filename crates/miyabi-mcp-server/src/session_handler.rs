@@ -20,7 +20,7 @@ impl SessionHandler {
     pub async fn new(sessions_dir: &str) -> Result<Self> {
         let session_manager = SessionManager::new(sessions_dir)
             .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
         Ok(Self {
             session_manager: Arc::new(session_manager),
@@ -41,15 +41,13 @@ impl SessionHandler {
             .session_manager
             .spawn_agent_session(&params.agent_name, &params.purpose, context)
             .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
-        // Get session to extract created_at
+        // Get session to extract created_at (sync method)
         let session = self
             .session_manager
             .get_session(session_id)
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?
-            .ok_or_else(|| ServerError::Other(format!("Session {} not found", session_id)))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
         Ok(SessionSpawnResult {
             session_id: session_id.to_string(),
@@ -64,7 +62,7 @@ impl SessionHandler {
         params: SessionHandoffParams,
     ) -> Result<SessionHandoffResult> {
         let from_id = Uuid::parse_str(&params.from_session_id)
-            .map_err(|_| ServerError::Other("Invalid session UUID".to_string()))?;
+            .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
         tracing::info!(
             "Handing off session {} to agent {}",
@@ -78,15 +76,13 @@ impl SessionHandler {
             .session_manager
             .handoff(from_id, &params.to_agent, context)
             .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
-        // Get new session
+        // Get new session (sync method)
         let new_session = self
             .session_manager
             .get_session(new_session_id)
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?
-            .ok_or_else(|| ServerError::Other(format!("Session {} not found", new_session_id)))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
         Ok(SessionHandoffResult {
             new_session_id: new_session_id.to_string(),
@@ -102,21 +98,16 @@ impl SessionHandler {
         params: SessionMonitorParams,
     ) -> Result<SessionMonitorResult> {
         let session_id = Uuid::parse_str(&params.session_id)
-            .map_err(|_| ServerError::Other("Invalid session UUID".to_string()))?;
+            .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
+        // Get session (sync method)
         let session = self
             .session_manager
             .get_session(session_id)
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?
-            .ok_or_else(|| ServerError::Other(format!("Session {} not found", session_id)))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
-        let is_running = matches!(session.status, SessionStatus::Running);
-        let exit_code = if let SessionStatus::Completed { exit_code } = session.status {
-            Some(exit_code)
-        } else {
-            None
-        };
+        let is_running = matches!(session.status, SessionStatus::Active);
+        let exit_code = None; // SessionStatus doesn't store exit_code
 
         Ok(SessionMonitorResult {
             session_id: params.session_id,
@@ -134,37 +125,44 @@ impl SessionHandler {
         params: SessionTerminateParams,
     ) -> Result<SessionTerminateResult> {
         let session_id = Uuid::parse_str(&params.session_id)
-            .map_err(|_| ServerError::Other("Invalid session UUID".to_string()))?;
+            .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
         tracing::info!("Terminating session {}", session_id);
 
-        let terminated = self
+        // Check if session exists and is active (sync method)
+        let session = self
             .session_manager
-            .terminate(session_id)
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+            .get_session(session_id)
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
+
+        let was_active = matches!(session.status, SessionStatus::Active);
+
+        // Mark as failed (SessionManager doesn't have terminate() method)
+        if was_active {
+            self.session_manager
+                .fail_session(session_id, "Terminated by user".to_string())
+                .await
+                .map_err(|e| ServerError::Internal(e.to_string()))?;
+        }
 
         Ok(SessionTerminateResult {
             session_id: params.session_id,
-            terminated,
+            terminated: was_active,
         })
     }
 
     /// List all sessions
     pub async fn list_sessions(&self, params: SessionListParams) -> Result<SessionListResult> {
         let status_filter = params.status.as_ref().and_then(|s| match s.as_str() {
-            "running" => Some(SessionStatus::Running),
-            "completed" => Some(SessionStatus::Completed { exit_code: 0 }), // Placeholder
+            "active" | "running" => Some(SessionStatus::Active),
+            "completed" => Some(SessionStatus::Completed),
             "failed" => Some(SessionStatus::Failed),
             "handed_off" => Some(SessionStatus::HandedOff),
             _ => None,
         });
 
-        let all_sessions = self
-            .session_manager
-            .list_sessions()
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+        // Get active sessions (sync method)
+        let all_sessions = self.session_manager.list_active_sessions();
 
         let filtered_sessions: Vec<_> = if let Some(filter_status) = status_filter {
             all_sessions
@@ -199,14 +197,13 @@ impl SessionHandler {
     /// Get detailed session info
     pub async fn get_session(&self, params: SessionGetParams) -> Result<SessionGetResult> {
         let session_id = Uuid::parse_str(&params.session_id)
-            .map_err(|_| ServerError::Other("Invalid session UUID".to_string()))?;
+            .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
+        // Get session (sync method)
         let session = self
             .session_manager
             .get_session(session_id)
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?
-            .ok_or_else(|| ServerError::Other(format!("Session {} not found", session_id)))?;
+            .map_err(|e| ServerError::Internal(e.to_string()))?;
 
         Ok(SessionGetResult {
             id: session.id.to_string(),
@@ -228,18 +225,15 @@ impl SessionHandler {
 
     /// Get session statistics
     pub async fn get_stats(&self) -> Result<SessionStatsResult> {
-        let stats = self
-            .session_manager
-            .get_stats()
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+        // Get stats (sync method)
+        let stats = self.session_manager.get_stats();
 
         Ok(SessionStatsResult {
-            total_sessions: stats.total_sessions,
-            running_sessions: stats.running_sessions,
-            completed_sessions: stats.completed_sessions,
-            failed_sessions: stats.failed_sessions,
-            handed_off_sessions: stats.handed_off_sessions,
+            total_sessions: stats.total,
+            running_sessions: stats.active, // Map "active" to "running" for RPC
+            completed_sessions: stats.completed,
+            failed_sessions: stats.failed,
+            handed_off_sessions: stats.handed_off,
         })
     }
 
@@ -249,26 +243,32 @@ impl SessionHandler {
         params: SessionLineageParams,
     ) -> Result<SessionLineageResult> {
         let session_id = Uuid::parse_str(&params.session_id)
-            .map_err(|_| ServerError::Other("Invalid session UUID".to_string()))?;
+            .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
-        let lineage = self
-            .session_manager
-            .get_lineage(session_id)
-            .await
-            .map_err(|e| ServerError::Other(e.to_string()))?;
+        // Get lineage (sync method - returns Vec, not Result)
+        let lineage = self.session_manager.get_session_lineage(session_id);
 
+        if lineage.is_empty() {
+            return Err(ServerError::Internal(format!(
+                "Session {} not found",
+                session_id
+            )));
+        }
+
+        // First session is root (parent)
         let root = SessionInfo {
-            id: lineage.root.id.to_string(),
-            agent_name: lineage.root.agent_name,
-            purpose: lineage.root.purpose,
-            status: format!("{:?}", lineage.root.status),
-            created_at: lineage.root.created_at.to_rfc3339(),
-            parent_session: lineage.root.parent_session.map(|id| id.to_string()),
+            id: lineage[0].id.to_string(),
+            agent_name: lineage[0].agent_name.clone(),
+            purpose: lineage[0].purpose.clone(),
+            status: format!("{:?}", lineage[0].status),
+            created_at: lineage[0].created_at.to_rfc3339(),
+            parent_session: lineage[0].parent_session.map(|id| id.to_string()),
         };
 
+        // Rest are descendants
         let descendants: Vec<SessionInfo> = lineage
-            .descendants
             .iter()
+            .skip(1)
             .map(|s| SessionInfo {
                 id: s.id.to_string(),
                 agent_name: s.agent_name.clone(),
@@ -279,7 +279,7 @@ impl SessionHandler {
             })
             .collect();
 
-        let total = 1 + descendants.len();
+        let total = lineage.len();
 
         Ok(SessionLineageResult {
             root,

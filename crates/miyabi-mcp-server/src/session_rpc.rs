@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use uuid::Uuid;
 
-use miyabi_session_manager::{SessionContext, SessionStatus};
+use miyabi_session_manager::{Phase, SessionContext, SessionStatus};
 
 // ============================================================================
 // Session Management RPC Types
@@ -26,28 +26,39 @@ pub struct SessionSpawnParams {
 /// Session context parameters (simplified for RPC)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionContextParams {
-    /// Issue number
-    pub issue_number: u64,
+    /// Issue number (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issue_number: Option<u64>,
 
-    /// Current phase
+    /// Current phase (string representation)
     pub current_phase: String,
 
     /// Worktree path (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub worktree_path: Option<String>,
-
-    /// Previous results (JSON)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub previous_results: Option<serde_json::Value>,
 }
 
 impl From<SessionContextParams> for SessionContext {
     fn from(params: SessionContextParams) -> Self {
+        // Parse phase string to Phase enum
+        let current_phase = match params.current_phase.as_str() {
+            "IssueAnalysis" => Phase::IssueAnalysis,
+            "TaskDecomposition" => Phase::TaskDecomposition,
+            "WorktreeCreation" => Phase::WorktreeCreation,
+            "CodeGeneration" => Phase::CodeGeneration,
+            "Review" => Phase::Review,
+            "Test" => Phase::Test,
+            "PullRequest" => Phase::PullRequest,
+            "CICD" => Phase::CICD,
+            "Merge" => Phase::Merge,
+            _ => Phase::IssueAnalysis, // Default fallback
+        };
+
         SessionContext {
             issue_number: params.issue_number,
-            current_phase: params.current_phase,
+            current_phase,
             worktree_path: params.worktree_path.map(PathBuf::from),
-            previous_results: params.previous_results,
+            previous_results: vec![], // RPC doesn't transfer Agent results (too complex)
         }
     }
 }
@@ -56,9 +67,8 @@ impl From<SessionContext> for SessionContextParams {
     fn from(context: SessionContext) -> Self {
         Self {
             issue_number: context.issue_number,
-            current_phase: context.current_phase,
+            current_phase: format!("{:?}", context.current_phase),
             worktree_path: context.worktree_path.map(|p| p.to_string_lossy().to_string()),
-            previous_results: context.previous_results,
         }
     }
 }
@@ -301,24 +311,26 @@ mod tests {
         }"#;
         let params: SessionSpawnParams = serde_json::from_str(json).unwrap();
         assert_eq!(params.agent_name, "coordinator");
-        assert_eq!(params.context.issue_number, 270);
+        assert_eq!(params.context.issue_number, Some(270));
     }
 
     #[test]
     fn test_session_context_conversion() {
+        use miyabi_session_manager::Phase;
+
         let params = SessionContextParams {
-            issue_number: 100,
+            issue_number: Some(100),
             current_phase: "CodeGeneration".to_string(),
             worktree_path: Some("/tmp/worktree".to_string()),
-            previous_results: None,
         };
 
         let context: SessionContext = params.clone().into();
-        assert_eq!(context.issue_number, 100);
-        assert_eq!(context.current_phase, "CodeGeneration");
+        assert_eq!(context.issue_number, Some(100));
+        assert_eq!(context.current_phase, Phase::CodeGeneration);
 
         let back: SessionContextParams = context.into();
         assert_eq!(back.issue_number, params.issue_number);
+        assert_eq!(back.current_phase, "CodeGeneration");
     }
 
     #[test]
