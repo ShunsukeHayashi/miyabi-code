@@ -7,6 +7,7 @@ use crate::claude_code_executor::{ClaudeCodeExecutor, ExecutorConfig};
 use crate::decision::{Decision, DecisionEngine};
 use crate::notification::{Notification, NotificationService};
 use crate::pr_creator::{PRConfig, PRCreator};
+use crate::quality_checker::QualityChecker;
 use crate::state_machine::{Phase, StateMachine};
 use anyhow::{anyhow, Result};
 use miyabi_agent_coordinator::coordinator::CoordinatorAgent;
@@ -407,6 +408,12 @@ impl HeadlessOrchestrator {
                             if execution_result.confidence >= 0.6 {
                                 let branch_name = format!("feat/issue-{}", issue.number);
 
+                                // Phase 6: Quality Check
+                                let quality_report = self
+                                    .run_phase_6_quality_check(&mut state_machine)
+                                    .await?;
+                                info!("✅ Phase 6 complete: Quality score {}/100", quality_report.score);
+
                                 // Phase 7: PR Creation
                                 let pr = self
                                     .run_phase_7_pr_creation(issue, branch_name.clone(), &mut state_machine)
@@ -509,6 +516,12 @@ impl HeadlessOrchestrator {
                             // Continue to Phase 6-9 if confidence is high enough
                             if execution_result.confidence >= 0.6 {
                                 let branch_name = format!("feat/issue-{}", issue.number);
+
+                                // Phase 6: Quality Check
+                                let quality_report = self
+                                    .run_phase_6_quality_check(&mut state_machine)
+                                    .await?;
+                                info!("✅ Phase 6 complete: Quality score {}/100", quality_report.score);
 
                                 // Phase 7: PR Creation
                                 let pr = self
@@ -1055,6 +1068,68 @@ impl HeadlessOrchestrator {
         }
 
         Ok(execution_result)
+    }
+
+    /// Phase 6: Quality Check & Auto-Fix
+    async fn run_phase_6_quality_check(
+        &mut self,
+        state_machine: &mut StateMachine,
+    ) -> Result<miyabi_types::quality::QualityReport> {
+        info!("🔍 Phase 6: Quality Check & Auto-Fix");
+
+        state_machine.transition_to(Phase::QualityCheck)?;
+
+        // Get current working directory (project root)
+        let project_path = std::env::current_dir()?;
+
+        // Run quality checks
+        let checker = QualityChecker::new(&project_path);
+        let mut report = checker.run_checks().await?;
+
+        info!("   Quality score: {}/100", report.score);
+        info!("   Clippy: {}/100", report.breakdown.clippy_score);
+        info!("   Rustc: {}/100", report.breakdown.rustc_score);
+        info!("   Security: {}/100", report.breakdown.security_score);
+        info!("   Coverage: {}/100", report.breakdown.test_coverage_score);
+
+        // Auto-fix if score is below threshold but not too low
+        if report.score < 80 && report.score >= 60 {
+            info!("   🔧 Running auto-fix (score {}/100)...", report.score);
+            checker.auto_fix().await?;
+
+            // Re-run checks after auto-fix
+            report = checker.run_checks().await?;
+            info!("   ✅ Auto-fix complete, new score: {}/100", report.score);
+        }
+
+        // Send message queue notification
+        if let Some(ref manager) = self.session_manager {
+            let session_id = state_machine.execution_id();
+            let msg = MessageBuilder::new(session_id)
+                .priority(if report.passed { Priority::Normal } else { Priority::High })
+                .message_type(MessageType::Custom(CustomMessage {
+                    type_id: "phase_completion".to_string(),
+                    payload: serde_json::json!({
+                        "phase": "Phase 6",
+                        "progress": 66,
+                        "quality_score": report.score,
+                        "breakdown": {
+                            "clippy": report.breakdown.clippy_score,
+                            "rustc": report.breakdown.rustc_score,
+                            "security": report.breakdown.security_score,
+                            "coverage": report.breakdown.test_coverage_score,
+                        },
+                        "passed": report.passed,
+                    }).to_string(),
+                }))
+                .build()
+                .map_err(|e| anyhow!("Failed to build message: {}", e))?;
+
+            manager.send_message(msg).await?;
+            info!("   📨 Phase 6 status sent to message queue");
+        }
+
+        Ok(report)
     }
 
     /// Phase 7: PR Creation & Auto-Description Generation
