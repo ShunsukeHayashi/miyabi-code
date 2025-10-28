@@ -14,9 +14,9 @@ async fn test_session_manager_initialization() {
 #[tokio::test]
 async fn test_session_spawn_and_retrieval() {
     let temp_dir = tempdir().unwrap();
-    let manager = SessionManager::new(temp_dir.path()).await.unwrap();
+    let _manager = SessionManager::new(temp_dir.path()).await.unwrap();
 
-    let context = SessionContext {
+    let _context = SessionContext {
         issue_number: Some(270),
         current_phase: Phase::CodeGeneration,
         worktree_path: Some(".worktrees/issue-270".into()),
