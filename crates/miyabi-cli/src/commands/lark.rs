@@ -125,13 +125,22 @@ async fn call_mcp_tool(
 ) -> Result<serde_json::Value> {
     use tokio::io::AsyncWriteExt;
     use tokio::process::Command;
+    use tokio::time::{timeout, Duration};
 
     let mcp_server_path = get_mcp_server_path()?;
     let app_id = std::env::var("LARK_APP_ID").map_err(|_| {
-        CliError::InvalidInput("LARK_APP_ID environment variable not set".to_string())
+        CliError::InvalidInput(
+            "LARK_APP_ID environment variable not set\n\
+             Set it with: export LARK_APP_ID=cli_xxx"
+                .to_string(),
+        )
     })?;
     let app_secret = std::env::var("LARK_APP_SECRET").map_err(|_| {
-        CliError::InvalidInput("LARK_APP_SECRET environment variable not set".to_string())
+        CliError::InvalidInput(
+            "LARK_APP_SECRET environment variable not set\n\
+             Set it with: export LARK_APP_SECRET=xxx"
+                .to_string(),
+        )
     })?;
 
     // Create JSONRPC request
@@ -162,39 +171,59 @@ async fn call_mcp_tool(
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| CliError::ExecutionError(format!("Failed to spawn MCP server: {}", e)))?;
+        .map_err(|e| {
+            CliError::McpServerError(format!(
+                "Failed to spawn MCP server\n\
+                 Path: {:?}\n\
+                 Error: {}",
+                mcp_server_path, e
+            ))
+        })?;
 
     // Write JSONRPC request to stdin
     if let Some(mut stdin) = child.stdin.take() {
         stdin
             .write_all(request_json.as_bytes())
             .await
-            .map_err(|e| CliError::ExecutionError(format!("Failed to write to stdin: {}", e)))?;
-        stdin
-            .write_all(b"\n")
-            .await
-            .map_err(|e| CliError::ExecutionError(format!("Failed to write newline: {}", e)))?;
-        stdin
-            .flush()
-            .await
-            .map_err(|e| CliError::ExecutionError(format!("Failed to flush stdin: {}", e)))?;
+            .map_err(|e| {
+                CliError::McpServerError(format!("Failed to write to MCP server stdin: {}", e))
+            })?;
+        stdin.write_all(b"\n").await.map_err(|e| {
+            CliError::McpServerError(format!("Failed to write newline to stdin: {}", e))
+        })?;
+        stdin.flush().await.map_err(|e| {
+            CliError::McpServerError(format!("Failed to flush stdin: {}", e))
+        })?;
         drop(stdin); // Close stdin to signal end of input
     }
 
-    // Wait for process to complete and collect output
-    let output = child
-        .wait_with_output()
+    // Wait for process with 30s timeout
+    let output = timeout(Duration::from_secs(30), child.wait_with_output())
         .await
-        .map_err(|e| CliError::ExecutionError(format!("Failed to execute MCP server: {}", e)))?;
+        .map_err(|_| {
+            CliError::McpTimeout(format!(
+                "MCP server timed out after 30s\n\
+                 Tool: {}\n\
+                 This may indicate a network issue or the MCP server is stuck.",
+                tool_name
+            ))
+        })?
+        .map_err(|e| {
+            CliError::McpServerError(format!("Failed to execute MCP server: {}", e))
+        })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         let stdout = String::from_utf8_lossy(&output.stdout);
-        return Err(CliError::ExecutionError(format!(
-            "MCP server failed (exit code: {:?})\nstderr: {}\nstdout: {}",
+        return Err(CliError::McpServerError(format!(
+            "MCP server exited with error (code: {:?})\n\
+             Tool: {}\n\
+             stderr: {}\n\
+             stdout: {}",
             output.status.code(),
-            stderr,
-            stdout
+            tool_name,
+            stderr.trim(),
+            stdout.trim()
         )));
     }
 
@@ -202,24 +231,46 @@ async fn call_mcp_tool(
 
     // Parse JSONRPC response
     let response: serde_json::Value = serde_json::from_str(&stdout).map_err(|e| {
-        CliError::ExecutionError(format!(
-            "Failed to parse MCP response as JSON: {}\nResponse: {}",
-            e, stdout
+        CliError::McpServerError(format!(
+            "Failed to parse MCP response as JSON\n\
+             Tool: {}\n\
+             Parse error: {}\n\
+             Response (first 500 chars): {}",
+            tool_name,
+            e,
+            &stdout.chars().take(500).collect::<String>()
         ))
     })?;
 
     // Extract result from JSONRPC response
     if let Some(error) = response.get("error") {
-        return Err(CliError::ExecutionError(format!(
-            "MCP tool error: {}",
-            serde_json::to_string_pretty(error).unwrap_or_else(|_| error.to_string())
+        let error_code = error.get("code").and_then(|v| v.as_i64());
+        let error_message = error.get("message").and_then(|v| v.as_str());
+        let error_data = error.get("data");
+
+        return Err(CliError::McpToolError(format!(
+            "MCP tool '{}' returned error\n\
+             Code: {:?}\n\
+             Message: {}\n\
+             Data: {}",
+            tool_name,
+            error_code,
+            error_message.unwrap_or("(no message)"),
+            error_data
+                .map(|d| serde_json::to_string_pretty(d).unwrap_or_else(|_| d.to_string()))
+                .unwrap_or_else(|| "(no data)".to_string())
         )));
     }
 
-    response
-        .get("result")
-        .cloned()
-        .ok_or_else(|| CliError::ExecutionError("No result in MCP response".to_string()))
+    response.get("result").cloned().ok_or_else(|| {
+        CliError::McpServerError(format!(
+            "No 'result' field in MCP response\n\
+             Tool: {}\n\
+             Response: {}",
+            tool_name,
+            serde_json::to_string_pretty(&response).unwrap_or_else(|_| response.to_string())
+        ))
+    })
 }
 
 /// Extract actual tool result from MCP server response

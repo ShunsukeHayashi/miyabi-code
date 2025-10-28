@@ -60,6 +60,15 @@ pub enum CliError {
 
     #[error("Agent execution error: {0}")]
     AgentExecution(String),
+
+    #[error("MCP server error: {0}")]
+    McpServerError(String),
+
+    #[error("MCP tool error: {0}")]
+    McpToolError(String),
+
+    #[error("MCP timeout: {0}")]
+    McpTimeout(String),
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;
