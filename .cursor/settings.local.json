@@ -1,0 +1,90 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/tool-use.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/voicevox_enqueue.sh 'セッション開始なのだ！Miyabiプロジェクトで作業を始めるのだ！リアルタイムナレーションモード起動なのだ！' 3 1.0",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/notification.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "VOICEVOX_NARRATION_ENABLED": "true",
+    "VOICEVOX_SPEAKER": "3",
+    "VOICEVOX_SPEED": "1.2",
+    "VOICEVOX_ENQUEUE": "tools/voicevox_enqueue.sh"
+  },
+  "permissions": {
+    "allow": [
+      "Read(//Users/shunsuke/.miyabi/**)",
+      "Bash(cat:*)",
+      "Read(//Users/shunsuke/Library/Logs/**)",
+      "Read(//Users/shunsuke/Library/**)",
+      "Bash(cargo --version:*)",
+      "Bash(rustc:*)",
+      "Bash(system_profiler:*)",
+      "Bash(cargo build:*)",
+      "Bash(kill:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix(miyabi-core): eliminate memory leak in logger.rs using OnceCell\n\nReplace `mem::forget` with proper WorkerGuard lifetime management.\n\n## Changes\n- Add `once_cell = \"1.19\"` dependency to miyabi-core\n- Introduce `LOGGER_GUARD: OnceCell<WorkerGuard>` global static\n- Replace 3x `std::mem::forget(_guard)` with `LOGGER_GUARD.set(guard)`\n- Update comments to explain lifetime management\n\n## Impact\n- ✅ Eliminates clippy::mem_forget warnings\n- ✅ Proper WorkerGuard lifecycle management\n- ✅ All tests pass (10/10 logger tests)\n- ✅ No breaking API changes\n\n## Testing\n```\ncargo clippy --package miyabi-core -- -W clippy::mem_forget  # ✅ Pass\ncargo test --package miyabi-core --lib logger                # ✅ 10/10 Pass\n```\n\nFixes #355\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh issue close:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(gh api:*)",
+      "Bash(cargo fix:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh label list:*)",
+      "Bash(gh issue comment 360 --body \"$(cat <<''EOF''\n## 🔗 公開リポジトリ同期\n\nこのIssueは公開リポジトリに同期されました：\n**Public Issue**: https://github.com/ShunsukeHayashi/Miyabi/issues/164\n\n公開Issue #164では、コミュニティからのフィードバックと協力を受け付けています。\n実装の詳細はこのプライベートIssue #360で管理します。\n\n---\n\n## ✅ 既存CI/CD確認結果\n\n`.github/workflows/rust.yml`を確認した結果、**Windows CI/CDは既に実装済み**でした：\n\n### 実装済み内容\n1. **Test job (L109)**: `windows-latest`でテスト実行\n   ```yaml\n   matrix:\n     os: [ubuntu-latest, macos-latest, windows-latest]\n     rust: [stable, beta]\n   ```\n\n2. **Build job (L239)**: Windows向けリリースバイナリ生成\n   ```yaml\n   matrix:\n     include:\n       - os: windows-latest\n         target: x86_64-pc-windows-msvc\n   ```\n\n3. **Artifact upload (L270)**: `miyabi.exe`の自動アップロード\n\n### 次のステップ\nWindows CI/CDは既に動作しているため、次のフェーズに進めます：\n- [ ] Phase 2: Path Handling（PathBuf完全移行）\n- [ ] Phase 3: Environment Variables（dirs crate統合）\n- [ ] Phase 4: 実環境テスト\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\nEOF\n)\")",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git rebase:*)",
+      "Bash(git diff:*)",
+      "Bash(git checkout:*)",
+      "Skill(agent-execution)",
+      "Bash(git stash:*)",
+      "Bash(git stash pop:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

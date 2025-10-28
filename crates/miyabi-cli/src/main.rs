@@ -12,8 +12,8 @@ use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
     AgentCommand, ExecCommand, InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand,
-    LoopCommand, ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand,
-    StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    LarkCommand, LoopCommand, ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand,
+    SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
@@ -130,6 +130,11 @@ enum Commands {
     Knowledge {
         #[command(subcommand)]
         command: KnowledgeCommand,
+    },
+    /// Lark Agent - 識学理論ベースのLark/Feishu Base統合管理
+    Lark {
+        #[command(subcommand)]
+        command: LarkCommand,
     },
     /// Worktree management (list, prune, remove)
     Worktree {
@@ -311,6 +316,7 @@ async fn main() -> Result<()> {
             }
         }
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
+        Some(Commands::Lark { command }) => command.execute().await,
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await

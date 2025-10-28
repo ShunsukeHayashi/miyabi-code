@@ -126,10 +126,10 @@ async fn call_mcp_tool(
 ) -> Result<serde_json::Value> {
     let mcp_server_path = get_mcp_server_path()?;
     let app_id = std::env::var("LARK_APP_ID").map_err(|_| {
-        CliError::ConfigError("LARK_APP_ID environment variable not set".to_string())
+        CliError::InvalidInput("LARK_APP_ID environment variable not set".to_string())
     })?;
     let app_secret = std::env::var("LARK_APP_SECRET").map_err(|_| {
-        CliError::ConfigError("LARK_APP_SECRET environment variable not set".to_string())
+        CliError::InvalidInput("LARK_APP_SECRET environment variable not set".to_string())
     })?;
 
     // Create JSONRPC request
@@ -143,7 +143,7 @@ async fn call_mcp_tool(
         "id": 1
     });
 
-    let request_json = serde_json::to_string(&request)?;
+    let _request_json = serde_json::to_string(&request)?;
 
     // Execute MCP server
     let output = Command::new("node")
@@ -160,13 +160,13 @@ async fn call_mcp_tool(
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| CliError::ExecError(format!("Failed to spawn MCP server: {}", e)))?
+        .map_err(|e| CliError::ExecutionError(format!("Failed to spawn MCP server: {}", e)))?
         .wait_with_output()
-        .map_err(|e| CliError::ExecError(format!("Failed to execute MCP server: {}", e)))?;
+        .map_err(|e| CliError::ExecutionError(format!("Failed to execute MCP server: {}", e)))?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(CliError::ExecError(format!(
+        return Err(CliError::ExecutionError(format!(
             "MCP server failed: {}",
             stderr
         )));
@@ -177,7 +177,7 @@ async fn call_mcp_tool(
 
     // Extract result from JSONRPC response
     if let Some(error) = response.get("error") {
-        return Err(CliError::ExecError(format!(
+        return Err(CliError::ExecutionError(format!(
             "MCP tool error: {}",
             error
         )));
@@ -186,7 +186,7 @@ async fn call_mcp_tool(
     response
         .get("result")
         .cloned()
-        .ok_or_else(|| CliError::ExecError("No result in MCP response".to_string()))
+        .ok_or_else(|| CliError::ExecutionError("No result in MCP response".to_string()))
 }
 
 /// Get MCP server path
@@ -203,7 +203,7 @@ fn get_mcp_server_path() -> Result<PathBuf> {
         .map(|p| p.join("mcp-servers/lark-openapi-mcp-enhanced/dist/cli.js"));
 
     default_path.ok_or_else(|| {
-        CliError::ConfigError(
+        CliError::InvalidInput(
             "MCP_SERVER_PATH not set and default path not found".to_string(),
         )
     })
