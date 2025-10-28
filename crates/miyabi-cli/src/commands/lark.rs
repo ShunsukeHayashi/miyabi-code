@@ -5,7 +5,6 @@ use clap::Subcommand;
 use colored::Colorize;
 use serde_json::json;
 use std::path::PathBuf;
-use std::process::Command;
 
 #[derive(Subcommand)]
 pub enum LarkCommand {
@@ -124,6 +123,9 @@ async fn call_mcp_tool(
     tool_name: &str,
     arguments: serde_json::Value,
 ) -> Result<serde_json::Value> {
+    use tokio::io::AsyncWriteExt;
+    use tokio::process::Command;
+
     let mcp_server_path = get_mcp_server_path()?;
     let app_id = std::env::var("LARK_APP_ID").map_err(|_| {
         CliError::InvalidInput("LARK_APP_ID environment variable not set".to_string())
@@ -143,10 +145,10 @@ async fn call_mcp_tool(
         "id": 1
     });
 
-    let _request_json = serde_json::to_string(&request)?;
+    let request_json = serde_json::to_string(&request)?;
 
-    // Execute MCP server
-    let output = Command::new("node")
+    // Spawn MCP server process
+    let mut child = Command::new("node")
         .arg(&mcp_server_path)
         .arg("mcp")
         .arg("--mode")
@@ -160,26 +162,57 @@ async fn call_mcp_tool(
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| CliError::ExecutionError(format!("Failed to spawn MCP server: {}", e)))?
+        .map_err(|e| CliError::ExecutionError(format!("Failed to spawn MCP server: {}", e)))?;
+
+    // Write JSONRPC request to stdin
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin
+            .write_all(request_json.as_bytes())
+            .await
+            .map_err(|e| CliError::ExecutionError(format!("Failed to write to stdin: {}", e)))?;
+        stdin
+            .write_all(b"\n")
+            .await
+            .map_err(|e| CliError::ExecutionError(format!("Failed to write newline: {}", e)))?;
+        stdin
+            .flush()
+            .await
+            .map_err(|e| CliError::ExecutionError(format!("Failed to flush stdin: {}", e)))?;
+        drop(stdin); // Close stdin to signal end of input
+    }
+
+    // Wait for process to complete and collect output
+    let output = child
         .wait_with_output()
+        .await
         .map_err(|e| CliError::ExecutionError(format!("Failed to execute MCP server: {}", e)))?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
         return Err(CliError::ExecutionError(format!(
-            "MCP server failed: {}",
-            stderr
+            "MCP server failed (exit code: {:?})\nstderr: {}\nstdout: {}",
+            output.status.code(),
+            stderr,
+            stdout
         )));
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)?;
+
+    // Parse JSONRPC response
+    let response: serde_json::Value = serde_json::from_str(&stdout).map_err(|e| {
+        CliError::ExecutionError(format!(
+            "Failed to parse MCP response as JSON: {}\nResponse: {}",
+            e, stdout
+        ))
+    })?;
 
     // Extract result from JSONRPC response
     if let Some(error) = response.get("error") {
         return Err(CliError::ExecutionError(format!(
             "MCP tool error: {}",
-            error
+            serde_json::to_string_pretty(error).unwrap_or_else(|_| error.to_string())
         )));
     }
 
@@ -187,6 +220,33 @@ async fn call_mcp_tool(
         .get("result")
         .cloned()
         .ok_or_else(|| CliError::ExecutionError("No result in MCP response".to_string()))
+}
+
+/// Extract actual tool result from MCP server response
+///
+/// MCP server returns: {"content":[{"text":"Success: {actual_json}","type":"text"}]}
+/// This function extracts and parses the actual_json
+fn extract_mcp_tool_result(mcp_result: &serde_json::Value) -> Result<serde_json::Value> {
+    // Try to extract from content[0].text format
+    if let Some(content) = mcp_result.get("content") {
+        if let Some(first_content) = content.as_array().and_then(|arr| arr.first()) {
+            if let Some(text) = first_content.get("text").and_then(|v| v.as_str()) {
+                // Remove "Success: " prefix if present
+                let json_str = text.strip_prefix("Success: ").unwrap_or(text);
+
+                // Parse the JSON string
+                return serde_json::from_str(json_str).map_err(|e| {
+                    CliError::ExecutionError(format!(
+                        "Failed to parse MCP tool result: {}\nRaw text: {}",
+                        e, text
+                    ))
+                });
+            }
+        }
+    }
+
+    // Fallback: return as-is if not in expected format
+    Ok(mcp_result.clone())
 }
 
 /// Get MCP server path
@@ -231,8 +291,13 @@ async fn create_wiki_node(
 
     let result = call_mcp_tool("wiki_v2_spaceNode_create", arguments).await?;
 
+    // Extract actual response from MCP tool result
+    let node_data = extract_mcp_tool_result(&result)?;
+
     println!("{}", "✅ Wiki node created successfully!".green().bold());
-    println!("{}", serde_json::to_string_pretty(&result)?);
+    println!();
+    println!("{}", "Node Information:".cyan().bold());
+    println!("{}", serde_json::to_string_pretty(&node_data)?);
 
     Ok(())
 }
@@ -247,9 +312,11 @@ async fn get_wiki_node(space_id: &str, token: &str) -> Result<()> {
     });
 
     let result = call_mcp_tool("wiki_v2_space_getNode", arguments).await?;
+    let node_data = extract_mcp_tool_result(&result)?;
 
     println!("{}", "✅ Node information retrieved!".green().bold());
-    println!("{}", serde_json::to_string_pretty(&result)?);
+    println!();
+    println!("{}", serde_json::to_string_pretty(&node_data)?);
 
     Ok(())
 }
@@ -269,9 +336,11 @@ async fn list_wiki_nodes(space_id: &str, parent_token: Option<&str>) -> Result<(
     }
 
     let result = call_mcp_tool("wiki_v2_space_getNodeList", arguments).await?;
+    let nodes_data = extract_mcp_tool_result(&result)?;
 
     println!("{}", "✅ Node list retrieved!".green().bold());
-    println!("{}", serde_json::to_string_pretty(&result)?);
+    println!();
+    println!("{}", serde_json::to_string_pretty(&nodes_data)?);
 
     Ok(())
 }
