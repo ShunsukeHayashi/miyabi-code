@@ -805,26 +805,270 @@ async fn execute_c10_deployment() -> Result<()> {
 }
 
 /// Run Lark Agent REPL
-async fn run_lark_agent_repl(_prompt: Option<&str>) -> Result<()> {
+async fn run_lark_agent_repl(initial_prompt: Option<&str>) -> Result<()> {
+    use rustyline::error::ReadlineError;
+    use rustyline::DefaultEditor;
+
     println!("{}", "🤖 Lark Agent REPL".cyan().bold());
     println!("{}", "識学理論ベースのLark Base統合管理システム構築");
     println!();
 
-    // TODO: Implement interactive REPL
-    // This will involve:
-    // 1. Loading Lark Agent context
-    // 2. Interactive command processing
-    // 3. LLM-powered assistance
-    // 4. MCP tool integration
+    // Load Lark Agent context
+    println!("{}", "📚 Loading Lark Agent context...".yellow());
+    let context = load_lark_agent_context()?;
+    println!("{}", "✅ Context loaded".green());
+    println!();
 
-    println!(
-        "{}",
-        "⚠️  Interactive REPL not yet implemented".yellow()
-    );
-    println!(
-        "{}",
-        "Will provide interactive Lark Agent experience with C1-C10 command stack"
-    );
+    // Display welcome and commands
+    print_lark_agent_welcome();
+
+    // Initialize rustyline editor
+    let mut rl = DefaultEditor::new().map_err(|e| {
+        CliError::ExecutionError(format!("Failed to initialize REPL editor: {}", e))
+    })?;
+
+    // Add history support
+    let history_file = dirs::home_dir()
+        .map(|h| h.join(".miyabi_lark_history"))
+        .ok_or_else(|| CliError::ExecutionError("Failed to get home directory".to_string()))?;
+
+    if history_file.exists() {
+        let _ = rl.load_history(&history_file);
+    }
+
+    // Process initial prompt if provided
+    if let Some(prompt) = initial_prompt {
+        println!("{}", format!(">>> {}", prompt).cyan());
+        process_lark_command(prompt, &context).await?;
+        println!();
+    }
+
+    // Main REPL loop
+    loop {
+        let readline = rl.readline("lark> ");
+        match readline {
+            Ok(line) => {
+                let line = line.trim();
+
+                if line.is_empty() {
+                    continue;
+                }
+
+                rl.add_history_entry(line).ok();
+
+                // Handle special commands
+                match line.to_lowercase().as_str() {
+                    "exit" | "quit" | "q" => {
+                        println!("{}", "👋 Goodbye!".cyan());
+                        break;
+                    }
+                    "help" | "h" | "?" => {
+                        print_lark_agent_help();
+                        continue;
+                    }
+                    "context" => {
+                        print_lark_agent_context_info(&context);
+                        continue;
+                    }
+                    "clear" => {
+                        print!("\x1B[2J\x1B[1;1H"); // Clear screen
+                        print_lark_agent_welcome();
+                        continue;
+                    }
+                    _ => {}
+                }
+
+                // Process command
+                if let Err(e) = process_lark_command(line, &context).await {
+                    eprintln!("{} {}", "Error:".red().bold(), e);
+                }
+
+                println!();
+            }
+            Err(ReadlineError::Interrupted) => {
+                println!("{}", "^C (Use 'exit' to quit)".yellow());
+            }
+            Err(ReadlineError::Eof) => {
+                println!("{}", "^D".yellow());
+                break;
+            }
+            Err(err) => {
+                eprintln!("{} {:?}", "Error:".red().bold(), err);
+                break;
+            }
+        }
+    }
+
+    // Save history
+    let _ = rl.save_history(&history_file);
+
+    Ok(())
+}
+
+/// Load Lark Agent context from files
+fn load_lark_agent_context() -> Result<String> {
+    use std::fs;
+
+    let mut context = String::new();
+
+    // Load agent spec
+    let spec_path = std::path::PathBuf::from(".claude/agents/specs/lark/lark-agent.md");
+    if spec_path.exists() {
+        context.push_str(&fs::read_to_string(&spec_path).map_err(|e| {
+            CliError::ExecutionError(format!("Failed to read spec file: {}", e))
+        })?);
+        context.push_str("\n\n");
+    }
+
+    // Load agent prompt
+    let prompt_path = std::path::PathBuf::from(".claude/agents/prompts/lark/lark-agent-prompt.md");
+    if prompt_path.exists() {
+        context.push_str(&fs::read_to_string(&prompt_path).map_err(|e| {
+            CliError::ExecutionError(format!("Failed to read prompt file: {}", e))
+        })?);
+        context.push_str("\n\n");
+    }
+
+    // Load framework
+    let framework_path = std::path::PathBuf::from(".claude/agents/lark/base-construction-framework.md");
+    if framework_path.exists() {
+        context.push_str(&fs::read_to_string(&framework_path).map_err(|e| {
+            CliError::ExecutionError(format!("Failed to read framework file: {}", e))
+        })?);
+    }
+
+    Ok(context)
+}
+
+/// Print welcome message
+fn print_lark_agent_welcome() {
+    println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━".cyan());
+    println!("{}", "  Lark Agent Interactive REPL".cyan().bold());
+    println!("{}", "  識学理論ベースのLark Base統合管理".dimmed());
+    println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━".cyan());
+    println!();
+    println!("{}", "Commands:".yellow());
+    println!("  {}  - Execute C1 (System Analysis)", "C1".green());
+    println!("  {}  - Execute C2 (Field Implementation)", "C2".green());
+    println!("  {}  - ... (C3-C10)", "...".dimmed());
+    println!("  {}  - Execute all commands C1→C10", "ALL".green());
+    println!("  {} - Show available commands", "help".green());
+    println!("  {} - Show loaded context info", "context".green());
+    println!("  {} - Clear screen", "clear".green());
+    println!("  {} - Exit REPL", "exit".green());
+    println!();
+    println!("{}", "Natural Language:".yellow());
+    println!("  You can also type natural language requests!");
+    println!("  Example: \"Analyze the requirements for a CRM system\"");
+    println!();
+}
+
+/// Print help message
+fn print_lark_agent_help() {
+    println!();
+    println!("{}", "Available Commands:".cyan().bold());
+    println!();
+    println!("{}", "C1-C10 Commands:".yellow());
+    println!("  {} - System Analysis", "C1".green());
+    println!("  {} - Field Implementation", "C2".green());
+    println!("  {} - Relation Setup", "C3".green());
+    println!("  {} - Workflow Automation", "C4".green());
+    println!("  {} - Button Implementation", "C5".green());
+    println!("  {} - View Creation", "C6".green());
+    println!("  {} - Dashboard Construction", "C7".green());
+    println!("  {} - Permission Setup", "C8".green());
+    println!("  {} - Test & Verification", "C9".green());
+    println!("  {} - Deployment", "C10".green());
+    println!("  {} - Execute all C1→C10", "ALL".green());
+    println!();
+    println!("{}", "REPL Commands:".yellow());
+    println!("  {} - Show this help", "help".green());
+    println!("  {} - Show context info", "context".green());
+    println!("  {} - Clear screen", "clear".green());
+    println!("  {} - Exit REPL", "exit".green());
+    println!();
+}
+
+/// Print context information
+fn print_lark_agent_context_info(context: &str) {
+    println!();
+    println!("{}", "Loaded Context Information:".cyan().bold());
+    println!();
+    println!("  Context size: {} bytes", context.len());
+    println!("  Documents loaded:");
+    if context.contains("lark-agent.md") || context.contains("Agent Identity") {
+        println!("    ✅ Agent Spec");
+    }
+    if context.contains("lark-agent-prompt.md") || context.contains("Identity & Mission") {
+        println!("    ✅ Agent Prompt");
+    }
+    if context.contains("base-construction-framework.md") || context.contains("10コマンドスタック") {
+        println!("    ✅ Base Construction Framework");
+    }
+    println!();
+}
+
+/// Process Lark Agent command
+async fn process_lark_command(input: &str, _context: &str) -> Result<()> {
+    let input_upper = input.to_uppercase();
+
+    // Check if it's a C1-C10 or ALL command
+    if input_upper == "ALL"
+        || input_upper == "C1"
+        || input_upper == "C2"
+        || input_upper == "C3"
+        || input_upper == "C4"
+        || input_upper == "C5"
+        || input_upper == "C6"
+        || input_upper == "C7"
+        || input_upper == "C8"
+        || input_upper == "C9"
+        || input_upper == "C10"
+    {
+        // Execute command directly
+        execute_base_command(&input_upper, &None, &None, &None).await?;
+        return Ok(());
+    }
+
+    // Natural language processing
+    println!("{}", "🤔 Processing natural language request...".yellow());
+    println!("{}", "💡 Tip: Direct commands are faster (e.g., 'C1', 'C7', 'ALL')".dimmed());
+    println!();
+
+    // For now, provide guidance
+    println!("{}", "Natural Language Interpretation:".cyan());
+    println!("  Input: \"{}\"", input);
+    println!();
+    println!("{}", "Suggested Commands:".yellow());
+
+    if input.to_lowercase().contains("analysis")
+        || input.to_lowercase().contains("分析")
+        || input.to_lowercase().contains("requirements")
+    {
+        println!("  → Try: {}", "C1".green().bold());
+    } else if input.to_lowercase().contains("field")
+        || input.to_lowercase().contains("フィールド")
+    {
+        println!("  → Try: {}", "C2".green().bold());
+    } else if input.to_lowercase().contains("relation")
+        || input.to_lowercase().contains("リレーション")
+    {
+        println!("  → Try: {}", "C3".green().bold());
+    } else if input.to_lowercase().contains("workflow")
+        || input.to_lowercase().contains("ワークフロー")
+    {
+        println!("  → Try: {}", "C4".green().bold());
+    } else if input.to_lowercase().contains("dashboard")
+        || input.to_lowercase().contains("ダッシュボード")
+    {
+        println!("  → Try: {}", "C7".green().bold());
+    } else {
+        println!("  → Try: {} for full execution", "ALL".green().bold());
+        println!("  → Or: {} for help", "help".green().bold());
+    }
+
+    println!();
+    println!("{}", "⚠️  LLM integration coming in future update".yellow());
 
     Ok(())
 }

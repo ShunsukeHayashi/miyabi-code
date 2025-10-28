@@ -28,6 +28,7 @@ miyabi-worktree = { version = "0.1.0", path = "../miyabi-worktree" }
 miyabi-knowledge = { version = "0.1.1", path = "../miyabi-knowledge" }
 miyabi-modes = { version = "0.1.0", path = "../miyabi-modes" }
 miyabi-session-manager = { version = "0.1.0", path = "../miyabi-session-manager" }
+miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }
 # miyabi-feedback-loop MERGED into miyabi-orchestrator/feedback
 miyabi-orchestrator = { version = "0.1.1", path = "../miyabi-orchestrator" }
 miyabi-tui = { version = "0.1.1", path = "../miyabi-tui", optional = true }
