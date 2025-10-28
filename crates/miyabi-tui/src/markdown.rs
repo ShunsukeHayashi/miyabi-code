@@ -118,7 +118,7 @@ impl MarkdownRenderer {
                 };
                 self.current_line.push(Span::styled(prefix, style));
             }
-            Tag::BlockQuote => {
+            Tag::BlockQuote(_) => {
                 self.push_style(
                     Style::default()
                         .fg(Color::DarkGray)
@@ -194,7 +194,7 @@ impl MarkdownRenderer {
                 self.flush_line();
                 self.lines.push(Line::default()); // Blank line after heading
             }
-            TagEnd::BlockQuote => {
+            TagEnd::BlockQuote(_) => {
                 self.pop_style();
                 self.flush_line();
             }

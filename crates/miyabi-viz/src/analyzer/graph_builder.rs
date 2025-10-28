@@ -33,7 +33,7 @@ impl GraphBuilder {
                 // Count LOC (or use cached value)
                 let loc = self.count_or_cache_loc(package, metadata)?;
 
-                let node = CrateNode::new(name, loc, category);
+                let node = CrateNode::new(name.to_string(), loc, category);
                 graph.add_node(node);
             }
         }
@@ -73,11 +73,11 @@ impl GraphBuilder {
                         let kind = package
                             .dependencies
                             .iter()
-                            .find(|d| d.name == target_name)
+                            .find(|d| d.name == target_name.as_str())
                             .map(|d| super::cargo_parser::CargoParser::convert_dep_kind(d.kind))
                             .unwrap_or(crate::models::DependencyKind::Runtime);
 
-                        graph.add_link(Dependency::new(source_name.clone(), target_name, kind));
+                        graph.add_link(Dependency::new(source_name.to_string(), target_name.to_string(), kind));
                     }
                 }
             }
@@ -92,12 +92,12 @@ impl GraphBuilder {
         package: &cargo_metadata::Package,
         _metadata: &Metadata,
     ) -> Result<usize> {
-        if let Some(&loc) = self.loc_cache.get(&package.name) {
+        if let Some(&loc) = self.loc_cache.get(package.name.as_str()) {
             return Ok(loc);
         }
 
         let loc = Self::count_lines_of_code(package)?;
-        self.loc_cache.insert(package.name.clone(), loc);
+        self.loc_cache.insert(package.name.to_string(), loc);
 
         Ok(loc)
     }
