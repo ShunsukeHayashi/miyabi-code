@@ -488,7 +488,10 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
     let completed_tasks = result.success_count + result.failed_count;
     if completed_tasks < result.total_tasks {
         // Ideal case: some tasks were cancelled
-        eprintln!("[Test] Fail-fast cancelled {} tasks", result.cancelled_count);
+        eprintln!(
+            "[Test] Fail-fast cancelled {} tasks",
+            result.cancelled_count
+        );
     } else {
         // Edge case: all tasks completed before cancellation propagated
         eprintln!("[Test] All tasks completed (fail-fast timing edge case)");

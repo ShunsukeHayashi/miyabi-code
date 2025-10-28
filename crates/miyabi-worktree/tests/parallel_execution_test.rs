@@ -15,7 +15,7 @@ async fn cleanup_stale_worktrees() {
 
     // List all worktrees
     let output = Command::new("git")
-        .args(&["worktree", "list", "--porcelain"])
+        .args(["worktree", "list", "--porcelain"])
         .output()
         .await;
 
@@ -30,7 +30,7 @@ async fn cleanup_stale_worktrees() {
                     // Remove test worktrees (issue-* pattern in .worktrees/)
                     if path.contains(".worktrees/issue-") {
                         let _ = Command::new("git")
-                            .args(&["worktree", "remove", path, "--force"])
+                            .args(["worktree", "remove", path, "--force"])
                             .output()
                             .await;
                     }

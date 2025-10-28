@@ -77,7 +77,11 @@ impl GraphBuilder {
                             .map(|d| super::cargo_parser::CargoParser::convert_dep_kind(d.kind))
                             .unwrap_or(crate::models::DependencyKind::Runtime);
 
-                        graph.add_link(Dependency::new(source_name.to_string(), target_name.to_string(), kind));
+                        graph.add_link(Dependency::new(
+                            source_name.to_string(),
+                            target_name.to_string(),
+                            kind,
+                        ));
                     }
                 }
             }

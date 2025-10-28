@@ -305,12 +305,12 @@ async fn test_phase5_parallel_check_execution() {
 }
 
 #[tokio::test]
+#[ignore] // Placeholder: dry-run mode should be tested in orchestrator-level tests
 async fn test_phase5_dry_run_mode() {
     // Test that dry-run mode skips actual checks
     // This would be tested in the orchestrator level, not QualityChecker
 
-    // Placeholder for future orchestrator-level dry-run testing
-    assert!(true, "Dry-run mode should be tested in orchestrator tests");
+    // TODO: Implement orchestrator-level dry-run testing
 }
 
 #[test]

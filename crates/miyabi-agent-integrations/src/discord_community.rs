@@ -420,6 +420,11 @@ mod tests {
 
     #[test]
     fn test_config_from_env() {
+        // Store original values
+        let original_token = std::env::var("DISCORD_BOT_TOKEN").ok();
+        let original_guild = std::env::var("DISCORD_GUILD_ID").ok();
+
+        // Set test values
         std::env::set_var("DISCORD_BOT_TOKEN", "env_token_123");
         std::env::set_var("DISCORD_GUILD_ID", "9876543210");
 
@@ -428,8 +433,15 @@ mod tests {
         assert_eq!(config.bot_token, Some("env_token_123".to_string()));
         assert_eq!(config.guild_id, Some("9876543210".to_string()));
 
-        std::env::remove_var("DISCORD_BOT_TOKEN");
-        std::env::remove_var("DISCORD_GUILD_ID");
+        // Restore original values
+        match original_token {
+            Some(val) => std::env::set_var("DISCORD_BOT_TOKEN", val),
+            None => std::env::remove_var("DISCORD_BOT_TOKEN"),
+        }
+        match original_guild {
+            Some(val) => std::env::set_var("DISCORD_GUILD_ID", val),
+            None => std::env::remove_var("DISCORD_GUILD_ID"),
+        }
     }
 
     #[test]
