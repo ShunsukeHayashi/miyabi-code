@@ -30,7 +30,7 @@ ratatui = { version = "0.29.0", features = [
 crossterm = { version = "0.28.1", features = ["bracketed-paste", "event-stream"] }
 
 # Markdown & Syntax Highlighting (Phase 2)
-pulldown-cmark = "0.10"
+pulldown-cmark = "0.13"
 tree-sitter-highlight = "0.25.10"
 tree-sitter-bash = "0.25"
 
