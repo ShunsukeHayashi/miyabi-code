@@ -1,13 +1,6 @@
 name: CodeQL Security Scanning
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    # Weekly scan (Monday 09:00 UTC)
-    - cron: '0 9 * * 1'
   workflow_dispatch:
 
 jobs:

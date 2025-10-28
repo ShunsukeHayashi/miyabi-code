@@ -1,18 +1,7 @@
 name: Miyabi Web API - CI/CD
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'miyabi-web/crates/miyabi-web-api/**'
-      - 'miyabi-web/Cargo.toml'
-      - '.github/workflows/miyabi-web-api-ci.yml'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'miyabi-web/crates/miyabi-web-api/**'
-      - 'miyabi-web/Cargo.toml'
-      - '.github/workflows/miyabi-web-api-ci.yml'
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always

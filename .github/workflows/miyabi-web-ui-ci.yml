@@ -1,18 +1,7 @@
 name: Miyabi Web UI - CI/CD
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'miyabi-web/**'
-      - '!miyabi-web/crates/**'
-      - '.github/workflows/miyabi-web-ui-ci.yml'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'miyabi-web/**'
-      - '!miyabi-web/crates/**'
-      - '.github/workflows/miyabi-web-ui-ci.yml'
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20'

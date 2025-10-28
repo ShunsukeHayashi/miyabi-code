@@ -1,22 +1,7 @@
 name: Miyabi Web UI - CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'miyabi-web/**'
-      - 'crates/miyabi-web-api/**'
-      - 'database/**'
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'miyabi-web/**'
-      - 'crates/miyabi-web-api/**'
-      - 'database/**'
+  workflow_dispatch:
 
 env:
   RUST_VERSION: 1.75

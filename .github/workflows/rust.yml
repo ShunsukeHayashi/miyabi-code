@@ -2,20 +2,6 @@ name: Rust CI/CD (2 Runners)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'crates/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/rust.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'crates/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/rust.yml'
 
 env:
   CARGO_TERM_COLOR: always
