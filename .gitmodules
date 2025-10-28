@@ -7,3 +7,9 @@
 [submodule "integrations/lark-wiki-mcp"]
 	path = integrations/lark-wiki-mcp
 	url = https://github.com/ShunsukeHayashi/lark-wiki-mcp-agents.git
+[submodule "mcp-servers/lark-openapi-mcp-enhanced"]
+	path = mcp-servers/lark-openapi-mcp-enhanced
+	url = https://github.com/ShunsukeHayashi/lark-openapi-mcp-enhanced.git
+[submodule "mcp-servers/lark-wiki-mcp-agents"]
+	path = mcp-servers/lark-wiki-mcp-agents
+	url = https://github.com/ShunsukeHayashi/lark-wiki-mcp-agents.git

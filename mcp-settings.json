@@ -90,6 +90,20 @@
       "args": [
         "/Users/shunsuke/Dev/miyabi-private/mcp-servers/context-engineering/index.js"
       ]
+    },
+    "lark-wiki-agent": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/miyabi-private/mcp-servers/lark-wiki-mcp-agents/dist/cli.js",
+        "mcp"
+      ],
+      "env": {
+        "LARK_APP_ID": "cli_a8d2fdb1f1f8d02d",
+        "LARK_APP_SECRET": "V7mzILXEgIaqLwLXtyZstekRJsjRsFfJ",
+        "WIKI_SPACE_ID": "7324483648537755682",
+        "ROOT_NODE_TOKEN": "K7xUwSKH0i3fPekyD9ojSsCLpna",
+        "ENABLE_GENESIS": "true"
+      }
     }
   }
 }
