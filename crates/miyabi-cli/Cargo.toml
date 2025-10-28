@@ -49,7 +49,7 @@ shellexpand = "3.1"
 open = "5.0"  # For opening browser
 comfy-table = "7.1"  # Rich table formatting
 indicatif = "0.17"
-rustyline = "14.0"  # For interactive REPL/chat interface
+rustyline = "17.0"  # For interactive REPL/chat interface
 
 [features]
 default = ["server"]
