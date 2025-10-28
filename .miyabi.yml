@@ -1,21 +1,16 @@
-# Miyabi Configuration
-project_name: miyabi-private
-version: "0.1.0"
-
-# GitHub settings (use environment variables for sensitive data)
-# github_token: ${{ GITHUB_TOKEN }}
-
-# Agent settings
-agents:
-  enabled: true
-  use_worktree: true
-  worktree_base_path: ".worktrees"
-
-# Logging
-logging:
-  level: info
-  directory: "./logs"
-
-# Reporting
-reporting:
-  directory: "./reports"
+github:
+  defaultPrivate: true
+  owner: customer-cloud
+  repo: miyabi-private
+project:
+  gitignoreTemplate: Node
+  licenseTemplate: Apache-2.0
+labels: {}
+workflows:
+  autoLabel: true
+  autoReview: true
+  autoSync: true
+cli:
+  language: ja
+  theme: default
+  verboseErrors: true
