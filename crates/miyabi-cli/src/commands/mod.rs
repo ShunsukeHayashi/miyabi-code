@@ -3,6 +3,7 @@
 pub mod agent;
 pub mod chat;
 pub mod exec;
+pub mod history;
 pub mod infinity;
 pub mod init;
 pub mod install;
@@ -21,6 +22,7 @@ pub use agent::AgentCommand;
 pub use chat::ChatCommand;
 #[allow(unused_imports)]
 pub use exec::ExecCommand;
+pub use history::HistoryCommand;
 pub use infinity::InfinityCommand;
 pub use init::InitCommand;
 pub use install::InstallCommand;

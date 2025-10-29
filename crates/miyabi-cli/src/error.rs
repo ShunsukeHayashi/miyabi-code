@@ -1,5 +1,6 @@
 //! CLI error types
 
+use anyhow;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -69,6 +70,9 @@ pub enum CliError {
 
     #[error("MCP timeout: {0}")]
     McpTimeout(String),
+
+    #[error("{0}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;

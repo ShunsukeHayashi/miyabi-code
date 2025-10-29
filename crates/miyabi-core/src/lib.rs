@@ -11,6 +11,7 @@
 //! - Git utilities (repository discovery, branch management, validation)
 //! - Error handling integration with miyabi-types
 //! - Project-specific rules support (.miyabirules)
+//! - Task metadata persistence (.miyabi/tasks/*.json)
 
 pub mod approval;
 pub mod cache;
@@ -28,6 +29,7 @@ pub mod retry;
 pub mod rules;
 pub mod security;
 pub mod session;
+pub mod task_metadata;
 pub mod tools;
 pub mod utils;
 
@@ -60,4 +62,5 @@ pub use session::{
     Action, ExecutionMode, ReasoningStep, Session, SessionContext, SessionStatus, SessionSummary,
     Turn, TurnStatus,
 };
+pub use task_metadata::{TaskMetadata, TaskMetadataManager, TaskStatistics, TaskStatus};
 pub use tools::{ToolRegistry, ToolResult};
