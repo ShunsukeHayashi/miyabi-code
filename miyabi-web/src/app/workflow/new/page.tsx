@@ -1,24 +1,41 @@
 'use client';
 
-import { useCallback, useState, useMemo } from 'react';
-import {
-  ReactFlow,
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Connection,
-  Edge,
-  BackgroundVariant,
-  NodeTypes,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-
-import AgentPalette from '@/components/workflow/AgentPalette';
-import AgentNode from '@/components/workflow/AgentNode';
+import dynamic from 'next/dynamic';
+import { useCallback, useState, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
+import AgentPalette from '@/components/workflow/AgentPalette';
+
+// 動的インポート: React Flow（重いライブラリ）
+// SSR無効化でバンドルサイズを削減、遅延ロードで初期ロード高速化
+const ReactFlowWrapper = dynamic(
+  () => import('@xyflow/react').then((mod) => ({
+    default: ({ children, ...props }: any) => (
+      <>
+        <style>{`
+          @import '@xyflow/react/dist/style.css';
+        `}</style>
+        {children}
+      </>
+    ),
+  })),
+  {
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center h-96">Loading editor...</div>,
+  }
+);
+
+const ReactFlowCanvas = dynamic(
+  () => import('@/components/workflow/ReactFlowCanvas'),
+  {
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center h-96">Loading workflow canvas...</div>,
+  }
+);
+
+const AgentNode = dynamic(
+  () => import('@/components/workflow/AgentNode'),
+  { ssr: false }
+);
 
 export default function WorkflowEditorPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

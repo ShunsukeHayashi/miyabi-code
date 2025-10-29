@@ -72,7 +72,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --concurrency=80 \
   --project="${PROJECT_ID}" \
   --set-env-vars="RUST_LOG=info,SERVER_ADDRESS=0.0.0.0:8080,ENVIRONMENT=production" \
-  --set-secrets="JWT_SECRET=jwt-secret:latest,GITHUB_CLIENT_ID=github-client-id:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_CALLBACK_URL=github-callback-url:latest,FRONTEND_URL=frontend-url:latest" \
+  --set-secrets="DATABASE_URL=database-url:latest,JWT_SECRET=jwt-secret:latest,GITHUB_CLIENT_ID=github-client-id:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_CALLBACK_URL=github-callback-url:latest,FRONTEND_URL=frontend-url:latest" \
   --labels="app=miyabi,component=web-api,env=production"
 
 if [ $? -eq 0 ]; then

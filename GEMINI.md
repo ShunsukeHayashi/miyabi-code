@@ -327,4 +327,16 @@ export GITHUB_REPOSITORY=ShunsukeHayashi/miyabi-private
 
 ---
 
+UI UX test
+
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["chrome-devtools-mcp@latest"]
+    }
+  }
+}
+
+
 **このファイルはGemini CLI専用です。詳細なドキュメントはCLAUDE.mdまたはAGENTS.mdを参照してください。**
