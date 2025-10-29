@@ -14,6 +14,7 @@ pub mod message;
 pub mod prompt;
 pub mod provider;
 pub mod providers;
+pub mod router;
 pub mod tools;
 pub mod types;
 
@@ -26,6 +27,9 @@ pub use tools::{ToolCall, ToolDefinition};
 // Re-export provider implementations
 pub use providers::anthropic::AnthropicClient;
 pub use providers::openai::OpenAIClient;
+
+// Re-export hybrid router
+pub use router::{CostMetrics, HybridRouter, TaskComplexity};
 
 // Legacy API (for backward compatibility with existing agents)
 pub use context::LLMContext;

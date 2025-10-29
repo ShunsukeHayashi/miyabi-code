@@ -37,6 +37,23 @@ impl OpenAIClient {
         Ok(Self::new(api_key))
     }
 
+    /// Create GPT-4o-mini client (cost-optimized)
+    pub fn new_gpt4o_mini(api_key: String) -> Self {
+        Self {
+            api_key,
+            model: "gpt-4o-mini".to_string(),
+            client: reqwest::Client::new(),
+            max_tokens: Some(4096),
+        }
+    }
+
+    /// Create GPT-4o-mini client from environment
+    pub fn gpt4o_mini_from_env() -> Result<Self> {
+        let api_key = std::env::var("OPENAI_API_KEY")
+            .map_err(|_| LlmError::ConfigError("OPENAI_API_KEY not set".to_string()))?;
+        Ok(Self::new_gpt4o_mini(api_key))
+    }
+
     /// Set custom model
     pub fn with_model(mut self, model: String) -> Self {
         self.model = model;

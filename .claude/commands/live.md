@@ -234,3 +234,5 @@ echo '{"voice_enabled": true, "speaker_id": 3, "speed": 1.2}' > /tmp/miyabi_live
 **タグ**: #live #monitoring #voicevox #real-time #development
 
 --- End Command ---
+
+

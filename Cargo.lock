@@ -2833,6 +2833,7 @@ dependencies = [
  "miyabi-core",
  "miyabi-github",
  "miyabi-knowledge",
+ "miyabi-llm",
  "miyabi-modes",
  "miyabi-orchestrator",
  "miyabi-session-manager",

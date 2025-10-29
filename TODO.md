@@ -114,6 +114,29 @@
 
 ---
 
+## 🧭 Roadmap Candidates（Agent HQインスパイア）
+
+- [ ] **Mission Controlダッシュボードの実装検討**（P0-High, 予備設計）
+  - 統合ビューでエージェント割当・進捗・ブランチ制御を管理
+  - `.ai/logs/`やMCP `miyabi__get_status`を統合表示するWeb/CLI UIを想定
+  - Issue: #608 設計スパイク
+
+- [ ] **Plan Mode & AGENTS.md対応プロジェクト作成**（P1-High）
+  - `AGENTS.md`互換のガードレールファイルを `.codex/agents/` から自動生成
+  - 「計画→実行」フローをCLI/VS Code拡張で提供
+  - Issue: #609 プラン策定
+
+- [ ] **MCP Registryライクな外部ツール連携UX**（P1-Medium）
+  - VS Code拡張またはCLIでMCPサーバー（Stripe/Sentry等）をカタログ化し、一括有効化
+  - `mcp-config.json`との双方向同期を実装
+  - Issue: #610 設計
+
+- [ ] **AI Control Plane & メトリクスダッシュボード**（P2-Medium）
+  - エージェント稼働状況／Copilot風メトリクスを `miyabi status` + Web UIで可視化
+  - モデル・エージェントごとのアクセス制御ポリシー管理、監査ログ整備
+  - Issue: #611 スパイク
+
+
 ## 🚀 次のアクション
 
 **全Sprintが完了しました！🎉**

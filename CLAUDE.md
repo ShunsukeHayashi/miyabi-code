@@ -30,11 +30,6 @@ claude mcp list
 
 **詳細**: [.claude/MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md)
 
-### ⭐⭐⭐⭐⭐ Rule 3: Benchmark Implementation Protocol
-
-公式ハーネス必須 - 独自実装禁止
-
-**詳細**: [.claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md](.claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md)
 
 ### ⭐⭐⭐⭐⭐ Rule 4: Context7 Usage
 
