@@ -11,10 +11,10 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, AgentManageCommand, ExecCommand, HistoryCommand, InfinityCommand, InitCommand,
-    InstallCommand, KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand, ParallelCommand,
-    SessionCommand, SessionSubcommand, SetupCommand, StatusCommand, WorktreeCommand,
-    WorktreeSubcommand,
+    AgentCommand, AgentManageCommand, CleanupCommand, ExecCommand, HistoryCommand,
+    InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand, LarkCommand, LoopCommand,
+    ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand, StatusCommand,
+    WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
@@ -139,10 +139,22 @@ enum Commands {
         #[command(subcommand)]
         command: LarkCommand,
     },
-    /// Worktree management (list, prune, remove)
+    /// Worktree management (list, status, prune, remove)
     Worktree {
         #[command(subcommand)]
         command: WorktreeSubcommand,
+    },
+    /// Cleanup orphaned and stuck worktrees
+    Cleanup {
+        /// Dry run (don't actually delete)
+        #[arg(long)]
+        dry_run: bool,
+        /// Force cleanup (remove all worktrees, not just orphaned/stuck)
+        #[arg(long)]
+        force: bool,
+        /// Clean all worktrees
+        #[arg(long)]
+        all: bool,
     },
     /// Session management (list, get, stats, lineage, monitor, terminate)
     Session {
@@ -395,6 +407,10 @@ async fn main() -> Result<()> {
         Some(Commands::Lark { command }) => command.execute().await,
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
+            cmd.execute().await
+        }
+        Some(Commands::Cleanup { dry_run, force, all }) => {
+            let cmd = CleanupCommand::new(dry_run, force, all);
             cmd.execute().await
         }
         Some(Commands::Session { command }) => {

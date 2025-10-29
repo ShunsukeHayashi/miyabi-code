@@ -3,6 +3,7 @@
 pub mod agent;
 pub mod agent_manage;
 pub mod chat;
+pub mod cleanup;
 pub mod exec;
 pub mod history;
 pub mod infinity;
@@ -22,6 +23,7 @@ pub use agent::AgentCommand;
 pub use agent_manage::AgentManageCommand;
 #[allow(unused_imports)]
 pub use chat::ChatCommand;
+pub use cleanup::CleanupCommand;
 #[allow(unused_imports)]
 pub use exec::ExecCommand;
 pub use history::HistoryCommand;

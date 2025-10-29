@@ -15,6 +15,8 @@ pub struct WorktreeCommand {
 pub enum WorktreeSubcommand {
     /// List all worktrees
     List,
+    /// Show detailed worktree status
+    Status,
     /// Prune old worktrees
     Prune {
         /// Remove worktrees older than N days (default: 7)
@@ -39,6 +41,7 @@ impl WorktreeCommand {
     pub async fn execute(&self) -> Result<()> {
         match &self.subcommand {
             WorktreeSubcommand::List => self.list_worktrees().await,
+            WorktreeSubcommand::Status => self.show_status().await,
             WorktreeSubcommand::Prune {
                 older_than,
                 dry_run,
@@ -255,6 +258,199 @@ impl WorktreeCommand {
         }
 
         println!();
+
+        Ok(())
+    }
+
+    async fn show_status(&self) -> Result<()> {
+        use miyabi_worktree::{WorktreeStateManager, WorktreeStatusDetailed};
+
+        println!("{}", "📊 Worktree Status Report".cyan().bold());
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!();
+
+        let repo_path = std::env::current_dir()?;
+
+        let state_manager = WorktreeStateManager::new(repo_path)
+            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+
+        let worktrees = state_manager
+            .scan_worktrees()
+            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+
+        if worktrees.is_empty() {
+            println!("  ✅ No worktrees found");
+            println!();
+            return Ok(());
+        }
+
+        // Group by status
+        let active: Vec<_> = worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Active)
+            .collect();
+        let idle: Vec<_> = worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Idle)
+            .collect();
+        let stuck: Vec<_> = worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Stuck)
+            .collect();
+        let orphaned: Vec<_> = worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Orphaned)
+            .collect();
+        let corrupted: Vec<_> = worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Corrupted)
+            .collect();
+
+        let total_disk_usage: u64 = worktrees.iter().map(|w| w.disk_usage).sum();
+
+        // Display Active worktrees
+        if !active.is_empty() {
+            println!("{} ({}):", "Active Worktrees".green().bold(), active.len());
+            for wt in &active {
+                let disk_mb = wt.disk_usage / 1024 / 1024;
+                let issue_str = if let Some(issue) = wt.issue_number {
+                    format!("#{}", issue)
+                } else {
+                    "N/A".to_string()
+                };
+                println!(
+                    "  ✅ {} [{}] ({} MB)",
+                    wt.path.display(),
+                    issue_str,
+                    disk_mb
+                );
+            }
+            println!();
+        }
+
+        // Display Idle worktrees
+        if !idle.is_empty() {
+            println!("{} ({}):", "Idle Worktrees".yellow().bold(), idle.len());
+            for wt in &idle {
+                let disk_mb = wt.disk_usage / 1024 / 1024;
+                let age = chrono::Utc::now().signed_duration_since(wt.last_accessed);
+                let age_str = if age.num_days() > 0 {
+                    format!("{}d ago", age.num_days())
+                } else if age.num_hours() > 0 {
+                    format!("{}h ago", age.num_hours())
+                } else {
+                    format!("{}m ago", age.num_minutes())
+                };
+                let issue_str = if let Some(issue) = wt.issue_number {
+                    format!("#{}", issue)
+                } else {
+                    "N/A".to_string()
+                };
+                println!(
+                    "  ⏸️  {} [{}] ({} MB)",
+                    wt.path.display(),
+                    issue_str,
+                    disk_mb
+                );
+                println!("     Last accessed: {}", age_str.dimmed());
+            }
+            println!();
+        }
+
+        // Display Stuck worktrees
+        if !stuck.is_empty() {
+            println!("{} ({}):", "Stuck Worktrees".red().bold(), stuck.len());
+            for wt in &stuck {
+                let disk_mb = wt.disk_usage / 1024 / 1024;
+                let age = chrono::Utc::now().signed_duration_since(wt.last_accessed);
+                let age_str = format!("{}d ago", age.num_days());
+                let issue_str = if let Some(issue) = wt.issue_number {
+                    format!("#{}", issue)
+                } else {
+                    "N/A".to_string()
+                };
+                println!(
+                    "  ⚠️  {} [{}] ({} MB)",
+                    wt.path.display(),
+                    issue_str,
+                    disk_mb
+                );
+                println!("     No activity for: {}", age_str.red());
+            }
+            println!();
+        }
+
+        // Display Orphaned worktrees
+        if !orphaned.is_empty() {
+            println!("{} ({}):", "Orphaned Worktrees".red().bold(), orphaned.len());
+            for wt in &orphaned {
+                let disk_mb = wt.disk_usage / 1024 / 1024;
+                let issue_str = if let Some(issue) = wt.issue_number {
+                    format!("#{}", issue)
+                } else {
+                    "N/A".to_string()
+                };
+                println!(
+                    "  ⚠️  {} [{}] ({} MB)",
+                    wt.path.display(),
+                    issue_str,
+                    disk_mb
+                );
+                println!("     {}", "No corresponding task metadata".red());
+            }
+            println!();
+        }
+
+        // Display Corrupted worktrees
+        if !corrupted.is_empty() {
+            println!("{} ({}):", "Corrupted Worktrees".red().bold(), corrupted.len());
+            for wt in &corrupted {
+                let disk_mb = wt.disk_usage / 1024 / 1024;
+                let issue_str = if let Some(issue) = wt.issue_number {
+                    format!("#{}", issue)
+                } else {
+                    "N/A".to_string()
+                };
+                println!(
+                    "  ❌ {} [{}] ({} MB)",
+                    wt.path.display(),
+                    issue_str,
+                    disk_mb
+                );
+                println!("     {}", "Git errors or missing files".red());
+            }
+            println!();
+        }
+
+        // Summary
+        println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!(
+            "Total: {} worktrees, {} MB",
+            worktrees.len(),
+            total_disk_usage / 1024 / 1024
+        );
+        println!();
+
+        // Recommendations
+        if !orphaned.is_empty() || !stuck.is_empty() || !corrupted.is_empty() {
+            println!("{}", "Recommendations:".cyan().bold());
+            if !orphaned.is_empty() {
+                println!("  - Cleanup orphaned worktrees: {}", "miyabi cleanup".yellow());
+            }
+            if !stuck.is_empty() {
+                println!(
+                    "  - Review stuck worktrees: {}",
+                    "miyabi worktree list".yellow()
+                );
+            }
+            if !corrupted.is_empty() {
+                println!(
+                    "  - Remove corrupted worktrees: {}",
+                    "miyabi cleanup --force".yellow()
+                );
+            }
+            println!();
+        }
 
         Ok(())
     }

@@ -3340,6 +3340,7 @@ dependencies = [
  "miyabi-agents",
  "miyabi-core",
  "miyabi-types",
+ "regex",
  "serde",
  "serde_json",
  "serial_test",
