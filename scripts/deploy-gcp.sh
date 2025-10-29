@@ -1,206 +1,110 @@
 #!/bin/bash
-# Miyabi Web API - GCP Cloud Run Deployment Script
-#
-# This script sets up and deploys Miyabi Web API to Google Cloud Run
-#
-# Prerequisites:
-# - gcloud CLI installed and authenticated
-# - Docker installed
-# - Appropriate GCP permissions
+# GCP Cloud Run 手動デプロイスクリプト
+# Miyabi Web API を GCP にデプロイします
 
-set -e  # Exit on error
+set -e
 
-# Configuration
-PROJECT_ID="${GCP_PROJECT_ID:-miyabi-production}"
-REGION="${GCP_REGION:-asia-northeast1}"
+echo "🚀 Miyabi Web API - GCP Cloud Run デプロイ開始"
+echo "=================================================="
+echo ""
+
+# === 設定 ===
+PROJECT_ID="miyabi-476308"
 SERVICE_NAME="miyabi-web-api"
+REGION="asia-northeast1"  # Tokyo
+IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
+DOCKERFILE_PATH="crates/miyabi-web-api/Dockerfile"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# 環境設定確認
+echo "📋 デプロイ設定確認:"
+echo "  PROJECT_ID: $PROJECT_ID"
+echo "  SERVICE_NAME: $SERVICE_NAME"
+echo "  REGION: $REGION"
+echo "  IMAGE: $IMAGE_NAME"
+echo ""
 
-# Helper functions
-info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
-}
+# === Step 1: Docker ビルド ===
+echo "🔨 Step 1: Docker イメージをビルド中..."
+echo "  (初回はビルドに 5-10分かかります)"
+echo ""
 
-success() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
+COMMIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+IMAGE_TAG="${IMAGE_NAME}:${COMMIT_SHA}"
 
-warn() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-}
+docker buildx build \
+  --platform linux/amd64 \
+  -t "${IMAGE_TAG}" \
+  -t "${IMAGE_NAME}:latest" \
+  -f "${DOCKERFILE_PATH}" \
+  --push \
+  .
 
-error() {
-    echo -e "${RED}❌ $1${NC}"
-}
-
-# Step 1: Verify prerequisites
-info "Checking prerequisites..."
-
-if ! command -v gcloud &> /dev/null; then
-    error "gcloud CLI not found. Please install: https://cloud.google.com/sdk/docs/install"
-    exit 1
-fi
-
-if ! command -v docker &> /dev/null; then
-    error "Docker not found. Please install: https://docs.docker.com/get-docker/"
-    exit 1
-fi
-
-success "Prerequisites verified"
-
-# Step 2: Set GCP project
-info "Setting GCP project to: $PROJECT_ID"
-gcloud config set project "$PROJECT_ID"
-
-# Step 3: Enable required APIs
-info "Enabling required GCP APIs..."
-gcloud services enable \
-    run.googleapis.com \
-    cloudbuild.googleapis.com \
-    secretmanager.googleapis.com \
-    containerregistry.googleapis.com
-
-success "APIs enabled"
-
-# Step 4: Create secrets in Secret Manager (if not exists)
-info "Setting up secrets in Secret Manager..."
-
-create_secret_if_not_exists() {
-    local secret_name=$1
-    local secret_description=$2
-
-    if ! gcloud secrets describe "$secret_name" &> /dev/null; then
-        info "Creating secret: $secret_name"
-        echo -n "Enter value for $secret_name ($secret_description): "
-        read -s secret_value
-        echo
-        echo -n "$secret_value" | gcloud secrets create "$secret_name" \
-            --data-file=- \
-            --replication-policy="automatic"
-        success "Secret created: $secret_name"
-    else
-        warn "Secret already exists: $secret_name (skipping)"
-    fi
-}
-
-# Create all required secrets
-create_secret_if_not_exists "telegram-bot-token" "Telegram Bot Token from BotFather"
-create_secret_if_not_exists "openai-api-key" "OpenAI API Key for GPT-4"
-create_secret_if_not_exists "github-token" "GitHub Personal Access Token"
-create_secret_if_not_exists "jwt-secret" "JWT Secret (random string)"
-create_secret_if_not_exists "authorized-chat-ids" "Comma-separated Chat IDs (e.g., 7654362070)"
-create_secret_if_not_exists "miyabi-database-url" "PostgreSQL Database URL"
-
-success "Secrets configured"
-
-# Step 5: Build and push Docker image (local build option)
-info "Would you like to build locally or use Cloud Build? (local/cloud)"
-read -r build_option
-
-if [ "$build_option" = "local" ]; then
-    info "Building Docker image locally..."
-
-    docker build \
-        -t "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest" \
-        -f crates/miyabi-web-api/Dockerfile \
-        .
-
-    info "Pushing image to Google Container Registry..."
-    docker push "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest"
-
-    IMAGE_URL="gcr.io/$PROJECT_ID/$SERVICE_NAME:latest"
-
-    success "Image built and pushed locally"
+if [ $? -eq 0 ]; then
+  echo "✅ Docker イメージビルド成功"
+  echo "  Image: $IMAGE_TAG"
 else
-    info "Using Cloud Build (triggered automatically on git push)"
-    warn "Make sure to set up Cloud Build trigger in GCP Console"
-    warn "Or run: gcloud builds submit --config=cloudbuild.yaml"
-    exit 0
+  echo "❌ Docker ビルド失敗"
+  exit 1
 fi
 
-# Step 6: Deploy to Cloud Run
-info "Deploying to Cloud Run..."
+echo ""
 
-gcloud run deploy "$SERVICE_NAME" \
-    --image="$IMAGE_URL" \
-    --region="$REGION" \
-    --platform=managed \
-    --allow-unauthenticated \
-    --port=8080 \
-    --memory=2Gi \
-    --cpu=2 \
-    --max-instances=10 \
-    --min-instances=0 \
-    --timeout=300 \
-    --concurrency=80 \
-    --set-env-vars="RUST_LOG=info,SERVER_ADDRESS=0.0.0.0:8080" \
-    --set-secrets="DATABASE_URL=miyabi-database-url:latest,TELEGRAM_BOT_TOKEN=telegram-bot-token:latest,OPENAI_API_KEY=openai-api-key:latest,GITHUB_TOKEN=github-token:latest,JWT_SECRET=jwt-secret:latest,AUTHORIZED_CHAT_IDS=authorized-chat-ids:latest" \
-    --labels="app=miyabi,component=web-api,env=production"
+# === Step 2: Container Registry Push (built-in with buildx) ===
+echo "📤 Step 2: イメージは buildx で自動的にプッシュされました"
+echo "✅ Container Registry プッシュ成功"
 
-success "Deployment complete!"
+echo ""
 
-# Step 7: Get service URL
-SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
-    --region="$REGION" \
-    --format='value(status.url)')
+# === Step 3: Cloud Run にデプロイ ===
+echo "☁️  Step 3: Cloud Run にデプロイ中..."
 
-info "Service URL: $SERVICE_URL"
+gcloud run deploy "${SERVICE_NAME}" \
+  --image="${IMAGE_TAG}" \
+  --region="${REGION}" \
+  --platform=managed \
+  --allow-unauthenticated \
+  --port=8080 \
+  --memory=2Gi \
+  --cpu=2 \
+  --max-instances=10 \
+  --min-instances=0 \
+  --timeout=300 \
+  --concurrency=80 \
+  --project="${PROJECT_ID}" \
+  --set-env-vars="RUST_LOG=info,SERVER_ADDRESS=0.0.0.0:8080,ENVIRONMENT=production" \
+  --set-secrets="JWT_SECRET=jwt-secret:latest,GITHUB_CLIENT_ID=github-client-id:latest,GITHUB_CLIENT_SECRET=github-client-secret:latest,GITHUB_CALLBACK_URL=github-callback-url:latest,FRONTEND_URL=frontend-url:latest" \
+  --labels="app=miyabi,component=web-api,env=production"
 
-# Step 8: Update Telegram Webhook
-info "Updating Telegram Webhook..."
-
-BOT_TOKEN=$(gcloud secrets versions access latest --secret=telegram-bot-token)
-
-WEBHOOK_RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
-    -d "url=${SERVICE_URL}/api/v1/telegram/webhook" \
-    -d "drop_pending_updates=false")
-
-if echo "$WEBHOOK_RESPONSE" | grep -q '"ok":true'; then
-    success "Telegram Webhook updated successfully!"
-    info "Webhook URL: ${SERVICE_URL}/api/v1/telegram/webhook"
+if [ $? -eq 0 ]; then
+  echo "✅ Cloud Run デプロイ成功"
 else
-    error "Failed to update Telegram Webhook"
-    echo "$WEBHOOK_RESPONSE"
-    exit 1
+  echo "❌ デプロイ失敗"
+  exit 1
 fi
 
-# Step 9: Verify webhook
-info "Verifying webhook..."
-
-WEBHOOK_INFO=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getWebhookInfo")
-echo "$WEBHOOK_INFO" | jq '.'
-
-# Step 10: Test endpoint
-info "Testing health endpoint..."
-
-HEALTH_RESPONSE=$(curl -s "${SERVICE_URL}/api/v1/health")
-
-if echo "$HEALTH_RESPONSE" | grep -q 'ok'; then
-    success "Health check passed!"
-else
-    warn "Health check failed. Response: $HEALTH_RESPONSE"
-fi
-
-# Summary
 echo ""
-success "========================================="
-success "  Miyabi Web API Deployment Complete!"
-success "========================================="
+
+# === Step 4: デプロイ完了情報 ===
+echo "🎉 デプロイ完了！"
 echo ""
-info "Service URL: $SERVICE_URL"
-info "Webhook URL: ${SERVICE_URL}/api/v1/telegram/webhook"
-info "Region: $REGION"
-info "Project: $PROJECT_ID"
+
+SERVICE_URL=$(gcloud run services describe "${SERVICE_NAME}" \
+  --region="${REGION}" \
+  --format='value(status.url)' \
+  --project="${PROJECT_ID}")
+
+echo "📍 サービス URL: $SERVICE_URL"
 echo ""
-info "Next steps:"
-echo "  1. Test the bot in Telegram"
-echo "  2. Monitor logs: gcloud run logs tail $SERVICE_NAME --region=$REGION"
-echo "  3. View metrics in Cloud Console"
+
+echo "次のステップ:"
+echo "  1️⃣  ヘルスチェック確認:"
+echo "    curl ${SERVICE_URL}/health"
 echo ""
-success "Happy automating! 🤖"
+echo "  2️⃣  ログ確認:"
+echo "    gcloud run logs read ${SERVICE_NAME} --region=${REGION} --limit=50"
+echo ""
+
+echo ""
+echo "=================================================="
+echo "✅ デプロイ完了！"
+echo ""

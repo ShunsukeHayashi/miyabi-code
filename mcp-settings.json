@@ -104,6 +104,12 @@
         "ROOT_NODE_TOKEN": "K7xUwSKH0i3fPekyD9ojSsCLpna",
         "ENABLE_GENESIS": "true"
       }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp@latest"
+      ]
     }
   }
 }
