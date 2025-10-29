@@ -2755,6 +2755,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
+ "dirs",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2769,6 +2770,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
+ "toml 0.8.23",
  "tracing",
  "tracing-subscriber",
 ]

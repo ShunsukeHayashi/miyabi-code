@@ -87,8 +87,15 @@ pub use miyabi_agent_core::{
 
 // Local modules
 pub mod business;
+pub mod config;
 pub mod hooks;
 pub use hooks::StructuredLogHook;
+
+// Re-export config types
+pub use config::{
+    AgentConfig, AgentConfigManager, AgentDependencies, AgentInfo, AgentMetadata, AgentType,
+    SkillConfig,
+};
 
 // Re-export from specialized agent crates
 pub use miyabi_agent_coordinator::{

@@ -1,6 +1,7 @@
 //! CLI command implementations
 
 pub mod agent;
+pub mod agent_manage;
 pub mod chat;
 pub mod exec;
 pub mod history;
@@ -18,6 +19,7 @@ pub mod status;
 pub mod worktree;
 
 pub use agent::AgentCommand;
+pub use agent_manage::AgentManageCommand;
 #[allow(unused_imports)]
 pub use chat::ChatCommand;
 #[allow(unused_imports)]

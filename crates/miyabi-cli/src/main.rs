@@ -11,9 +11,10 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, ExecCommand, HistoryCommand, InfinityCommand, InitCommand, InstallCommand,
-    KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand, ParallelCommand, SessionCommand,
-    SessionSubcommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, AgentManageCommand, ExecCommand, HistoryCommand, InfinityCommand, InitCommand,
+    InstallCommand, KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand, ParallelCommand,
+    SessionCommand, SessionSubcommand, SetupCommand, StatusCommand, WorktreeCommand,
+    WorktreeSubcommand,
 };
 use error::Result;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
@@ -80,13 +81,10 @@ enum Commands {
         #[arg(short, long)]
         watch: bool,
     },
-    /// Run agent
+    /// Run agent (e.g., miyabi agent run coordinator --issue 123)
     Agent {
-        /// Agent type (coordinator, codegen, review, etc.)
-        agent_type: String,
-        /// Issue number
-        #[arg(long)]
-        issue: Option<u64>,
+        #[command(subcommand)]
+        command: AgentSubcommand,
     },
     /// Execute agents in parallel worktrees
     Parallel {
@@ -181,6 +179,48 @@ enum Commands {
     },
 }
 
+#[derive(Subcommand)]
+enum AgentSubcommand {
+    /// Run an agent for a specific issue
+    Run {
+        /// Agent type (coordinator, codegen, review, etc.)
+        agent_type: String,
+        /// Issue number
+        #[arg(long)]
+        issue: Option<u64>,
+    },
+    /// List all configured agents
+    List {
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show agent configuration
+    Config {
+        /// Agent name (e.g., "CoordinatorAgent")
+        agent_name: String,
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+    /// Edit agent configuration
+    Edit {
+        /// Agent name (e.g., "CoordinatorAgent")
+        agent_name: String,
+        /// Editor to use (default: $EDITOR or vi)
+        #[arg(long)]
+        editor: Option<String>,
+    },
+    /// Create custom agent
+    Create {
+        /// Agent name
+        agent_name: String,
+        /// Template agent to copy from
+        #[arg(long)]
+        template: Option<String>,
+    },
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -251,10 +291,40 @@ async fn main() -> Result<()> {
             let cmd = StatusCommand::new(watch);
             cmd.execute().await
         }
-        Some(Commands::Agent { agent_type, issue }) => {
-            let cmd = AgentCommand::new(agent_type, issue);
-            cmd.execute().await
-        }
+        Some(Commands::Agent { command }) => match command {
+            AgentSubcommand::Run { agent_type, issue } => {
+                let cmd = AgentCommand::new(agent_type.clone(), issue.clone());
+                cmd.execute().await
+            }
+            AgentSubcommand::List { json } => {
+                let cmd = AgentManageCommand::List { json: json.clone() };
+                cmd.execute().await
+            }
+            AgentSubcommand::Config { agent_name, json } => {
+                let cmd = AgentManageCommand::Config {
+                    agent_name: agent_name.clone(),
+                    json: json.clone(),
+                };
+                cmd.execute().await
+            }
+            AgentSubcommand::Edit { agent_name, editor } => {
+                let cmd = AgentManageCommand::Edit {
+                    agent_name: agent_name.clone(),
+                    editor: editor.clone(),
+                };
+                cmd.execute().await
+            }
+            AgentSubcommand::Create {
+                agent_name,
+                template,
+            } => {
+                let cmd = AgentManageCommand::Create {
+                    agent_name: agent_name.clone(),
+                    template: template.clone(),
+                };
+                cmd.execute().await
+            }
+        },
         Some(Commands::Parallel {
             issues,
             concurrency,
