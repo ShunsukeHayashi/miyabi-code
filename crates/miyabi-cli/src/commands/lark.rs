@@ -464,7 +464,7 @@ async fn execute_c1_system_analysis(
     domain: &Option<String>,
 ) -> Result<()> {
     println!("{}", "📊 C1: System Analysis".cyan().bold());
-    println!("{}", "システム要件を分析し、Lark Baseの構造に落とし込む");
+    println!("システム要件を分析し、Lark Baseの構造に落とし込む");
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -509,7 +509,7 @@ async fn execute_c1_system_analysis(
 /// C2: Field Implementation
 async fn execute_c2_field_implementation() -> Result<()> {
     println!("{}", "🔧 C2: Field Implementation".cyan().bold());
-    println!("{}", "各テーブルのフィールドを詳細設計・実装");
+    println!("各テーブルのフィールドを詳細設計・実装");
     println!();
 
     println!("{}", "Critical: 主キーフィールドは最左端に配置".red().bold());
@@ -544,7 +544,7 @@ async fn execute_c2_field_implementation() -> Result<()> {
 /// C3: Relation Setup
 async fn execute_c3_relation_setup() -> Result<()> {
     println!("{}", "🔗 C3: Relation Setup".cyan().bold());
-    println!("{}", "テーブル間の双方向リンクを設定");
+    println!("テーブル間の双方向リンクを設定");
     println!();
 
     println!(
@@ -582,7 +582,7 @@ async fn execute_c3_relation_setup() -> Result<()> {
 /// C4: Workflow Automation
 async fn execute_c4_workflow_automation() -> Result<()> {
     println!("{}", "⚙️  C4: Workflow Automation".cyan().bold());
-    println!("{}", "自動化ワークフローを構築");
+    println!("自動化ワークフローを構築");
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -611,7 +611,7 @@ async fn execute_c4_workflow_automation() -> Result<()> {
 /// C5: Button Implementation
 async fn execute_c5_button_implementation() -> Result<()> {
     println!("{}", "🔘 C5: Button Implementation".cyan().bold());
-    println!("{}", "アクションボタンを設定");
+    println!("アクションボタンを設定");
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -640,7 +640,7 @@ async fn execute_c5_button_implementation() -> Result<()> {
 /// C6: View Creation
 async fn execute_c6_view_creation() -> Result<()> {
     println!("{}", "👁️  C6: View Creation".cyan().bold());
-    println!("{}", "各種ビューを作成・設定");
+    println!("各種ビューを作成・設定");
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -669,7 +669,7 @@ async fn execute_c6_view_creation() -> Result<()> {
 /// C7: Dashboard Construction
 async fn execute_c7_dashboard_construction() -> Result<()> {
     println!("{}", "📊 C7: Dashboard Construction".cyan().bold());
-    println!("{}", "分析ダッシュボードを構築");
+    println!("分析ダッシュボードを構築");
     println!();
 
     println!("{}", "3-Layer Structure:".yellow());
@@ -710,7 +710,7 @@ async fn execute_c7_dashboard_construction() -> Result<()> {
 /// C8: Permission Setup
 async fn execute_c8_permission_setup() -> Result<()> {
     println!("{}", "🔐 C8: Permission Setup".cyan().bold());
-    println!("{}", "階層的な権限を設定");
+    println!("階層的な権限を設定");
     println!();
 
     println!("{}", "Roles:".yellow());
@@ -747,7 +747,7 @@ async fn execute_c8_permission_setup() -> Result<()> {
 /// C9: Test & Verification
 async fn execute_c9_test_verification() -> Result<()> {
     println!("{}", "🧪 C9: Test & Verification".cyan().bold());
-    println!("{}", "システムの動作確認と検証");
+    println!("システムの動作確認と検証");
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -777,7 +777,7 @@ async fn execute_c9_test_verification() -> Result<()> {
 /// C10: Deployment
 async fn execute_c10_deployment() -> Result<()> {
     println!("{}", "🚀 C10: Deployment".cyan().bold());
-    println!("{}", "本番環境への展開");
+    println!("本番環境への展開");
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -810,7 +810,7 @@ async fn run_lark_agent_repl(initial_prompt: Option<&str>) -> Result<()> {
     use rustyline::DefaultEditor;
 
     println!("{}", "🤖 Lark Agent REPL".cyan().bold());
-    println!("{}", "識学理論ベースのLark Base統合管理システム構築");
+    println!("識学理論ベースのLark Base統合管理システム構築");
     println!();
 
     // Load Lark Agent context
