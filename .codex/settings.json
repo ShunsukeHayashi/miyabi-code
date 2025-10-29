@@ -1,0 +1,148 @@
+{
+  "$schema": "https://docs.codex.com/schemas/settings.json",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "command": ".codex/hooks/log-commands.sh \"$PROMPT\"",
+        "description": "Log user prompts to .ai/logs/ for LDD (Log-Driven Development)"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": ".codex/hooks/auto-format.sh",
+        "description": "Auto-format code before editing/writing files"
+      },
+      {
+        "matcher": "Bash",
+        "command": "echo \"⚠️  About to execute: $TOOL_INPUT\" >&2",
+        "description": "Warn before executing bash commands"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": ".codex/hooks/validate-rust.sh",
+        "description": "Validate Rust code after editing/writing files"
+      },
+      {
+        "matcher": "Bash",
+        "command": ".codex/hooks/agent-event.sh progress $AGENT_ID $ISSUE_NUMBER 50 \"Command executed: $TOOL_INPUT\"",
+        "description": "Send agent progress event after bash execution"
+      }
+    ],
+    "Stop": [
+      {
+        "command": ".codex/hooks/session-continue.sh",
+        "description": "Prompt to continue or save session state"
+      }
+    ],
+    "SessionStart": [
+      {
+        "command": "echo \"🚀 Miyabi Project Session Started\" && echo \"📍 Working directory: $(pwd)\" && git status --short",
+        "description": "Display project status on session start"
+      },
+      {
+        "command": ".codex/hooks/autocompact-manager.sh check",
+        "description": "Display auto-compact optimization tips"
+      },
+      {
+        "command": ".codex/hooks/session-keepalive.sh start",
+        "description": "Start session keep-alive mechanism to prevent timeout"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "command": ".codex/hooks/session-keepalive.sh stop",
+        "description": "Stop session keep-alive mechanism"
+      },
+      {
+        "command": "echo \"📊 Session Statistics:\" && echo \"Duration: $(date)\" && git status --short",
+        "description": "Display session summary on exit"
+      }
+    ],
+    "Notification": [
+      {
+        "command": "echo \"🔔 Notification: $NOTIFICATION_MESSAGE\"",
+        "description": "Log Codex notifications"
+      }
+    ],
+    "PreCompact": [
+      {
+        "command": "echo \"🗜️  Context window compacting...\" && echo \"Current size: $CONTEXT_SIZE tokens\"",
+        "description": "Warn before context compaction"
+      }
+    ]
+  },
+  "timeout": {
+    "default": 1800000,
+    "perCommand": {
+      ".codex/hooks/auto-format.sh": 300000,
+      ".codex/hooks/validate-typescript.sh": 600000
+    },
+    "mcp": {
+      "connectionTimeout": 300000,
+      "requestTimeout": 1800000,
+      "idleTimeout": 7200000
+    },
+    "session": {
+      "inactivityTimeout": 14400000,
+      "maxSessionDuration": 28800000,
+      "keepAliveInterval": 60000,
+      "reconnectAttempts": 10,
+      "reconnectDelay": 5000
+    }
+  },
+  "security": {
+    "blockedPaths": [
+      ".env",
+      ".env.local",
+      ".git/",
+      "*.key",
+      "*.pem",
+      "**/node_modules/**",
+      "**/.worktrees/**"
+    ],
+    "allowedCommands": [
+      "echo",
+      "git",
+      "npm",
+      "cargo",
+      "rustc",
+      ".codex/hooks/*.sh"
+    ]
+  },
+  "plugins": [],
+  "allow": [
+    "Read(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Write(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Edit(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Glob(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Grep(/Users/shunsuke/Dev/miyabi-private/**)",
+    "Bash(git *)",
+    "Bash(cargo *)",
+    "Bash(rustc *)",
+    "Bash(npm *)",
+    "Bash(gh *)",
+    "Bash(echo *)",
+    "Bash(cat *)",
+    "Bash(ls *)",
+    "Bash(mkdir *)",
+    "Bash(rm *)",
+    "Bash(mv *)",
+    "Bash(cp *)",
+    "Bash(.codex/hooks/*.sh *)",
+    "Task(*)",
+    "SlashCommand(*)",
+    "Skill(*)",
+    "NotebookEdit(/Users/shunsuke/Dev/miyabi-private/**)",
+    "WebFetch(*)",
+    "WebSearch(*)"
+  ],
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "enableAllProjectMcpServers": true,
+  "mcpServers": {}
+}
