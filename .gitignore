@@ -238,3 +238,6 @@ tools/audio/
 tools/__pycache__/
 tools/*.wav
 tools/*.mp4
+
+# External repositories (separate git repos)
+Youtube/
