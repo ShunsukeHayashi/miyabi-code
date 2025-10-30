@@ -16,7 +16,7 @@ use commands::{
     ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand, StatusCommand,
     WorktreeCommand, WorktreeSubcommand,
 };
-use error::Result;
+use error::{CliError, Result};
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 
 #[derive(Parser)]
@@ -80,6 +80,9 @@ enum Commands {
         /// Watch mode (auto-refresh)
         #[arg(short, long)]
         watch: bool,
+        /// TUI mode (rich terminal interface)
+        #[arg(long)]
+        tui: bool,
     },
     /// Run agent (e.g., miyabi agent run coordinator --issue 123)
     Agent {
@@ -299,9 +302,19 @@ async fn main() -> Result<()> {
             let cmd = SetupCommand::new(yes);
             cmd.execute().await
         }
-        Some(Commands::Status { watch }) => {
-            let cmd = StatusCommand::new(watch);
-            cmd.execute().await
+        Some(Commands::Status { watch, tui }) => {
+            if tui {
+                // Run TUI mode
+                let project_root = std::env::current_dir()?;
+                miyabi_tui::run_worktree_monitor(project_root)
+                    .await
+                    .map_err(|e| CliError::ExecutionError(e.to_string()))?;
+                Ok(())
+            } else {
+                // Run normal status command
+                let cmd = StatusCommand::new(watch);
+                cmd.execute().await
+            }
         }
         Some(Commands::Agent { command }) => match command {
             AgentSubcommand::Run { agent_type, issue } => {

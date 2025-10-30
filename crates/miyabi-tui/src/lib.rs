@@ -25,10 +25,12 @@
 mod app;
 mod history;
 mod markdown;
+pub mod worktree_monitor;
 
 pub use app::{App, AppEvent, AppState, Message, MessageRole};
 pub use history::{default_history_path, ChatHistory, ChatSession};
 pub use markdown::render_markdown;
+pub use worktree_monitor::{run_worktree_monitor, WorktreeMonitorApp};
 
 /// Run the Miyabi TUI application
 ///

@@ -31,7 +31,7 @@ miyabi-session-manager = { version = "0.1.0", path = "../miyabi-session-manager"
 miyabi-llm = { version = "0.1.0", path = "../miyabi-llm" }
 # miyabi-feedback-loop MERGED into miyabi-orchestrator/feedback
 miyabi-orchestrator = { version = "0.1.1", path = "../miyabi-orchestrator" }
-miyabi-tui = { version = "0.1.1", path = "../miyabi-tui", optional = true }
+miyabi-tui = { version = "0.1.1", path = "../miyabi-tui" }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
@@ -56,7 +56,6 @@ rustyline = "17.0"  # For interactive REPL/chat interface
 [features]
 default = ["server"]
 server = ["miyabi-knowledge/server"]
-tui = ["miyabi-tui"]
 
 [dev-dependencies]
 tokio-test = "0.4"

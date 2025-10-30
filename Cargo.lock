@@ -3210,10 +3210,13 @@ name = "miyabi-tui"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "crossterm 0.28.1",
  "dirs",
  "futures 0.3.31",
+ "miyabi-core",
  "miyabi-llm",
+ "miyabi-worktree",
  "pulldown-cmark",
  "ratatui",
  "serde",

@@ -37,6 +37,11 @@ tree-sitter-bash = "0.25"
 # LLM Integration (Phase 1 - Option 1)
 miyabi-llm = { version = "0.1.1", path = "../miyabi-llm" }
 
+# Miyabi Core & Worktree
+miyabi-core = { version = "0.1.1", path = "../miyabi-core" }
+miyabi-worktree = { version = "0.1.1", path = "../miyabi-worktree" }
+chrono = { workspace = true }
+
 # Async Runtime
 tokio = { workspace = true, features = ["rt", "macros", "io-std", "process", "signal", "sync"] }
 futures = "0.3"
