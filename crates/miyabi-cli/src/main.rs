@@ -102,7 +102,10 @@ enum Commands {
     #[command(name = "work-on")]
     WorkOn {
         /// Issue description or number
-        task: String,
+        task: Option<String>,
+        /// Interactive mode - select issue from list
+        #[arg(long, short = 'i')]
+        interactive: bool,
     },
     /// Execute autonomous task with LLM
     Exec {
@@ -373,13 +376,29 @@ async fn main() -> Result<()> {
             let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
         }
-        Some(Commands::WorkOn { task }) => {
+        Some(Commands::WorkOn { task, interactive }) => {
             println!();
             println!("{}", "🚀 Let's work on it!".cyan().bold());
             println!();
 
+            // Interactive mode: select from issue list
+            let task_str = if interactive {
+                match select_issue_interactive().await {
+                    Ok(issue_num) => issue_num.to_string(),
+                    Err(e) => {
+                        eprintln!("{} {}", "❌ Error:".red(), e);
+                        return Err(e);
+                    }
+                }
+            } else if let Some(t) = task {
+                t.clone()
+            } else {
+                eprintln!("{}", "❌ Error: Either provide a task/issue number or use --interactive flag".red());
+                return Err(CliError::InvalidInput("Missing task or --interactive flag".to_string()));
+            };
+
             // Try to parse as issue number
-            if let Ok(issue_num) = task.parse::<u64>() {
+            if let Ok(issue_num) = task_str.parse::<u64>() {
                 println!("  {} Issue #{}", "📋".green(), issue_num);
 
                 // Voice Guide: Processing started
@@ -413,7 +432,7 @@ async fn main() -> Result<()> {
                 result
             } else {
                 // Task description - suggest creating an issue
-                println!("  {} Task: {}", "✨".yellow(), task.bold());
+                println!("  {} Task: {}", "✨".yellow(), task_str.bold());
                 println!();
                 println!("{}", "💡 Next steps:".cyan());
                 println!("  1. Create an issue on GitHub with this description");
@@ -422,7 +441,7 @@ async fn main() -> Result<()> {
                 println!("{}", "Or use GitHub CLI:".dimmed());
                 println!(
                     "  {}",
-                    format!("gh issue create --title \"{}\" --label type:feature", task).yellow()
+                    format!("gh issue create --title \"{}\" --label type:feature", task_str).yellow()
                 );
 
                 // Voice Guide: Next step guidance
@@ -666,4 +685,87 @@ fn recover_from_directory_error() -> bool {
     }
 
     false
+}
+
+/// Interactive issue selection from GitHub (using gh CLI)
+async fn select_issue_interactive() -> Result<u64> {
+    use dialoguer::Select;
+    use std::process::Command;
+
+    println!("{}", "🔍 Fetching open issues from GitHub...".yellow());
+    println!();
+
+    // Use gh CLI to list issues
+    let output = Command::new("gh")
+        .args(["issue", "list", "--limit", "20", "--state", "open", "--json", "number,title,labels"])
+        .output()
+        .map_err(|e| CliError::ExecutionError(format!("Failed to run gh CLI: {}", e)))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(CliError::ExecutionError(format!("gh CLI error: {}", stderr)));
+    }
+
+    #[derive(serde::Deserialize)]
+    struct GhIssue {
+        number: u64,
+        title: String,
+        labels: Vec<GhLabel>,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct GhLabel {
+        name: String,
+    }
+
+    let issues: Vec<GhIssue> = serde_json::from_slice(&output.stdout)
+        .map_err(|e| CliError::Json(e))?;
+
+    if issues.is_empty() {
+        println!("{}", "  No open issues found".yellow());
+        return Err(CliError::ExecutionError("No issues to select from".to_string()));
+    }
+
+    println!("Found {} open issue(s):", issues.len());
+    println!();
+
+    // Prepare selection items
+    let items: Vec<String> = issues
+        .iter()
+        .map(|issue| {
+            let labels_str = issue.labels
+                .iter()
+                .map(|l| l.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+
+            let labels_display = if labels_str.is_empty() {
+                String::new()
+            } else {
+                format!(" [{}]", labels_str)
+            };
+
+            format!(
+                "#{} - {}{}",
+                issue.number,
+                issue.title,
+                labels_display
+            )
+        })
+        .collect();
+
+    // Show interactive selection
+    let selection = Select::new()
+        .with_prompt("Select issue to work on")
+        .items(&items)
+        .default(0)
+        .interact()
+        .map_err(|e| CliError::ExecutionError(format!("Selection failed: {}", e)))?;
+
+    let selected_issue = &issues[selection];
+    println!();
+    println!("{} Selected: #{} - {}", "✅".green(), selected_issue.number, selected_issue.title);
+    println!();
+
+    Ok(selected_issue.number)
 }

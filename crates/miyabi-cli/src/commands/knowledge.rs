@@ -38,6 +38,10 @@ pub enum KnowledgeCommand {
         /// Maximum results
         #[arg(long, default_value = "10")]
         limit: usize,
+
+        /// Automatically start Qdrant if not running
+        #[arg(long)]
+        auto_start: bool,
     },
 
     /// Show knowledge statistics
@@ -45,6 +49,10 @@ pub enum KnowledgeCommand {
         /// Workspace filter
         #[arg(long)]
         workspace: Option<String>,
+
+        /// Automatically start Qdrant if not running
+        #[arg(long)]
+        auto_start: bool,
     },
 
     /// Index logs and artifacts
@@ -156,7 +164,11 @@ impl KnowledgeCommand {
                 task_type,
                 outcome,
                 limit,
+                auto_start,
             } => {
+                if *auto_start {
+                    ensure_qdrant_running().await?;
+                }
                 search_knowledge(
                     query,
                     workspace.clone(),
@@ -169,7 +181,12 @@ impl KnowledgeCommand {
                 )
                 .await
             }
-            Self::Stats { workspace } => show_stats(workspace.clone(), json_output).await,
+            Self::Stats { workspace, auto_start } => {
+                if *auto_start {
+                    ensure_qdrant_running().await?;
+                }
+                show_stats(workspace.clone(), json_output).await
+            },
             Self::Index { workspace, reindex } => {
                 index_workspace(workspace, *reindex, json_output).await
             }
@@ -829,4 +846,102 @@ async fn serve_dashboard(_port: u16, _open: bool, json_output: bool) -> Result<(
         println!();
     }
     Ok(())
+}
+
+/// Ensure Qdrant is running, start it if not
+async fn ensure_qdrant_running() -> Result<()> {
+    use std::process::Command;
+
+    // Check if Qdrant is already running
+    let check = reqwest::Client::new()
+        .get("http://localhost:6333/")
+        .timeout(std::time::Duration::from_secs(2))
+        .send()
+        .await;
+
+    if check.is_ok() {
+        // Qdrant is already running
+        return Ok(());
+    }
+
+    // Qdrant is not running - try to start it
+    println!("{}", "⚠️  Qdrant is not running.".yellow());
+    println!();
+
+    // Check if docker-compose.yml exists
+    let compose_exists = std::path::Path::new("docker-compose.yml").exists();
+
+    if !compose_exists {
+        println!("{}", "❌ docker-compose.yml not found".red());
+        println!();
+        println!("Qdrant needs to be started manually:");
+        println!();
+        println!("  Option 1: Using Docker");
+        println!("    {}", "docker run -d -p 6333:6333 qdrant/qdrant".cyan());
+        println!();
+        println!("  Option 2: Using Docker Compose");
+        println!("    Create docker-compose.yml with Qdrant service");
+        println!("    {}", "docker compose up -d qdrant".cyan());
+        println!();
+        return Err(crate::error::CliError::ExecutionError(
+            "Qdrant is not running".to_string(),
+        ));
+    }
+
+    println!("{} Starting Qdrant via Docker Compose...", "🐳".cyan());
+    println!();
+
+    let output = Command::new("docker")
+        .args(["compose", "up", "-d", "qdrant"])
+        .output()
+        .map_err(|e| {
+            crate::error::CliError::ExecutionError(format!("Failed to start Qdrant: {}", e))
+        })?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("{} Failed to start Qdrant:", "❌".red());
+        println!("{}", stderr);
+        println!();
+        println!("Try starting manually:");
+        println!("  {}", "docker compose up -d qdrant".cyan());
+        return Err(crate::error::CliError::ExecutionError(
+            "Failed to start Qdrant".to_string(),
+        ));
+    }
+
+    println!("{} Waiting for Qdrant to be ready...", "⏳".yellow());
+
+    // Wait for Qdrant to be ready (max 30 seconds)
+    for attempt in 1..=30 {
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+        let check = reqwest::Client::new()
+            .get("http://localhost:6333/")
+            .timeout(std::time::Duration::from_secs(2))
+            .send()
+            .await;
+
+        if check.is_ok() {
+            println!("{} Qdrant started on http://localhost:6333", "✅".green());
+            println!();
+            return Ok(());
+        }
+
+        if attempt % 5 == 0 {
+            print!(".");
+            use std::io::Write;
+            std::io::stdout().flush().ok();
+        }
+    }
+
+    println!();
+    println!("{} Qdrant did not start within 30 seconds", "❌".red());
+    println!();
+    println!("Check status:");
+    println!("  {}", "docker compose logs qdrant".cyan());
+
+    Err(crate::error::CliError::ExecutionError(
+        "Qdrant startup timeout".to_string(),
+    ))
 }
