@@ -144,8 +144,14 @@ impl WorktreeManager {
             let uncommitted_count = statuses.len();
             if uncommitted_count > 0 {
                 tracing::warn!(
-                    "Repository has {} uncommitted change(s). \
-                     Worktree operations will proceed, but you may want to commit or stash changes first.",
+                    "Repository has {} uncommitted change(s).\n\
+                     \n\
+                     Recommended actions:\n\
+                     1. Commit changes: git add . && git commit -m \"Your message\"\n\
+                     2. Stash changes: git stash\n\
+                     3. Proceed anyway (current worktree operations will continue)\n\
+                     \n\
+                     Note: Worktree operations will proceed, but conflicts may occur.",
                     uncommitted_count
                 );
             }
