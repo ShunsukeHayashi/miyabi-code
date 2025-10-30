@@ -61,3 +61,6 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 # Configuration & Directories
 dirs = "6.0"
 uuid = { version = "1.0", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }

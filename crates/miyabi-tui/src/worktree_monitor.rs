@@ -16,7 +16,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Gauge},
+    widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame, Terminal,
 };
 use std::{
@@ -249,7 +249,7 @@ impl WorktreeMonitorApp {
     }
 
     /// Format a single worktree list item
-    fn format_worktree_item(&self, wt: &WorktreeState, is_selected: bool) -> ListItem {
+    fn format_worktree_item(&self, wt: &WorktreeState, is_selected: bool) -> ListItem<'_> {
         let (status_icon, status_color) = match wt.status {
             WorktreeStatusDetailed::Active => ("✅", Color::Green),
             WorktreeStatusDetailed::Idle => ("⏸️ ", Color::Yellow),
@@ -388,4 +388,349 @@ impl WorktreeMonitorApp {
 pub async fn run_worktree_monitor(project_root: PathBuf) -> Result<()> {
     let mut app = WorktreeMonitorApp::new(project_root)?;
     app.run().await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    /// Helper to create a test git repository
+    fn create_test_repo() -> Result<TempDir> {
+        let temp_dir = TempDir::new()?;
+        let repo_path = temp_dir.path();
+
+        // Initialize git repository
+        std::process::Command::new("git")
+            .args(["init"])
+            .current_dir(repo_path)
+            .output()?;
+
+        // Configure git user
+        std::process::Command::new("git")
+            .args(["config", "user.name", "Test User"])
+            .current_dir(repo_path)
+            .output()?;
+
+        std::process::Command::new("git")
+            .args(["config", "user.email", "test@example.com"])
+            .current_dir(repo_path)
+            .output()?;
+
+        // Create .miyabi directory for TaskMetadata
+        fs::create_dir_all(repo_path.join(".miyabi/tasks"))?;
+
+        // Create initial commit
+        fs::write(repo_path.join("README.md"), "# Test Repository")?;
+        std::process::Command::new("git")
+            .args(["add", "."])
+            .current_dir(repo_path)
+            .output()?;
+
+        std::process::Command::new("git")
+            .args(["commit", "-m", "Initial commit"])
+            .current_dir(repo_path)
+            .output()?;
+
+        Ok(temp_dir)
+    }
+
+    #[test]
+    fn test_worktree_monitor_app_creation() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let result = WorktreeMonitorApp::new(repo_path);
+        assert!(result.is_ok(), "Should create WorktreeMonitorApp successfully");
+
+        let app = result.unwrap();
+        assert_eq!(app.selected_index, 0, "Initial selected index should be 0");
+        assert!(!app.should_quit, "Should not be in quit state initially");
+        assert_eq!(app.refresh_interval, Duration::from_millis(500), "Refresh interval should be 500ms");
+    }
+
+    #[test]
+    fn test_worktree_monitor_app_with_no_worktrees() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+        assert_eq!(app.worktrees.len(), 0, "Should have no worktrees initially");
+    }
+
+    #[test]
+    fn test_handle_key_event_quit() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+        assert!(!app.should_quit);
+
+        // Test 'q' key
+        let key_event = KeyEvent::new(KeyCode::Char('q'), event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert!(app.should_quit, "Should quit after pressing 'q'");
+    }
+
+    #[test]
+    fn test_handle_key_event_esc() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+        assert!(!app.should_quit);
+
+        // Test Esc key
+        let key_event = KeyEvent::new(KeyCode::Esc, event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert!(app.should_quit, "Should quit after pressing Esc");
+    }
+
+    #[test]
+    fn test_handle_key_event_navigation() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        // Add some mock worktrees by manipulating internal state
+        // (In real scenario, these would come from WorktreeStateManager)
+        app.worktrees = vec![
+            WorktreeState {
+                path: PathBuf::from("/test/worktree1"),
+                branch: "main".to_string(),
+                issue_number: Some(123),
+                status: WorktreeStatusDetailed::Active,
+                last_accessed: Utc::now(),
+                is_locked: false,
+                has_uncommitted_changes: false,
+                disk_usage: 1024 * 1024,
+            },
+            WorktreeState {
+                path: PathBuf::from("/test/worktree2"),
+                branch: "feature".to_string(),
+                issue_number: Some(124),
+                status: WorktreeStatusDetailed::Idle,
+                last_accessed: Utc::now(),
+                is_locked: false,
+                has_uncommitted_changes: false,
+                disk_usage: 2048 * 1024,
+            },
+        ];
+
+        assert_eq!(app.selected_index, 0);
+
+        // Test Down arrow
+        let key_event = KeyEvent::new(KeyCode::Down, event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 1, "Should move down to index 1");
+
+        // Test Down arrow at end (should stay at end)
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 1, "Should stay at index 1 (end)");
+
+        // Test Up arrow
+        let key_event = KeyEvent::new(KeyCode::Up, event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 0, "Should move up to index 0");
+
+        // Test Up arrow at start (should stay at start)
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 0, "Should stay at index 0 (start)");
+    }
+
+    #[test]
+    fn test_handle_key_event_home_end() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        // Add 5 mock worktrees
+        app.worktrees = (0..5)
+            .map(|i| WorktreeState {
+                path: PathBuf::from(format!("/test/worktree{}", i)),
+                branch: format!("branch{}", i),
+                issue_number: Some(100 + i),
+                status: WorktreeStatusDetailed::Active,
+                last_accessed: Utc::now(),
+                is_locked: false,
+                has_uncommitted_changes: false,
+                disk_usage: 1024 * 1024,
+            })
+            .collect();
+
+        // Test End key
+        let key_event = KeyEvent::new(KeyCode::End, event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 4, "Should jump to end (index 4)");
+
+        // Test Home key
+        let key_event = KeyEvent::new(KeyCode::Home, event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 0, "Should jump to start (index 0)");
+    }
+
+    #[test]
+    fn test_handle_key_event_vim_navigation() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        app.worktrees = vec![
+            WorktreeState {
+                path: PathBuf::from("/test/worktree1"),
+                branch: "main".to_string(),
+                issue_number: Some(123),
+                status: WorktreeStatusDetailed::Active,
+                last_accessed: Utc::now(),
+                is_locked: false,
+                has_uncommitted_changes: false,
+                disk_usage: 1024 * 1024,
+            },
+            WorktreeState {
+                path: PathBuf::from("/test/worktree2"),
+                branch: "feature".to_string(),
+                issue_number: Some(124),
+                status: WorktreeStatusDetailed::Idle,
+                last_accessed: Utc::now(),
+                is_locked: false,
+                has_uncommitted_changes: false,
+                disk_usage: 2048 * 1024,
+            },
+        ];
+
+        assert_eq!(app.selected_index, 0);
+
+        // Test 'j' key (down in vim)
+        let key_event = KeyEvent::new(KeyCode::Char('j'), event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 1, "Should move down with 'j'");
+
+        // Test 'k' key (up in vim)
+        let key_event = KeyEvent::new(KeyCode::Char('k'), event::KeyModifiers::empty());
+        app.handle_key_event(key_event).expect("Failed to handle key event");
+        assert_eq!(app.selected_index, 0, "Should move up with 'k'");
+    }
+
+    #[test]
+    fn test_refresh() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+        let initial_refresh_time = app.last_refresh;
+
+        // Wait a bit to ensure time difference
+        std::thread::sleep(Duration::from_millis(10));
+
+        // Refresh
+        app.refresh().expect("Failed to refresh");
+
+        assert!(
+            app.last_refresh > initial_refresh_time,
+            "Refresh time should be updated"
+        );
+    }
+
+    #[test]
+    fn test_format_worktree_item_status_colors() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        let statuses = vec![
+            WorktreeStatusDetailed::Active,
+            WorktreeStatusDetailed::Idle,
+            WorktreeStatusDetailed::Stuck,
+            WorktreeStatusDetailed::Orphaned,
+            WorktreeStatusDetailed::Corrupted,
+        ];
+
+        for status in statuses {
+            let worktree = WorktreeState {
+                path: PathBuf::from("/test/worktree"),
+                branch: "main".to_string(),
+                issue_number: Some(123),
+                status,
+                last_accessed: Utc::now(),
+                is_locked: false,
+                has_uncommitted_changes: false,
+                disk_usage: 1024 * 1024,
+            };
+
+            // Just verify that formatting doesn't panic
+            let item = app.format_worktree_item(&worktree, false);
+            assert!(!format!("{:?}", item).is_empty(), "Formatted item should not be empty for {:?}", status);
+        }
+    }
+
+    #[test]
+    fn test_format_worktree_item_disk_usage() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        let worktree = WorktreeState {
+            path: PathBuf::from("/test/worktree"),
+            branch: "main".to_string(),
+            issue_number: Some(123),
+            status: WorktreeStatusDetailed::Active,
+            last_accessed: Utc::now(),
+            is_locked: false,
+            has_uncommitted_changes: false,
+            disk_usage: 10 * 1024 * 1024, // 10 MB
+        };
+
+        let item = app.format_worktree_item(&worktree, false);
+        let line_text = format!("{:?}", item);
+
+        // Should show "10 MB"
+        assert!(line_text.contains("10") || line_text.contains("MB"), "Should display disk usage");
+    }
+
+    #[test]
+    fn test_format_worktree_item_age_display() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        // Test recent access (< 1 hour)
+        let worktree = WorktreeState {
+            path: PathBuf::from("/test/worktree"),
+            branch: "main".to_string(),
+            issue_number: Some(123),
+            status: WorktreeStatusDetailed::Active,
+            last_accessed: Utc::now() - chrono::Duration::minutes(30),
+            is_locked: false,
+            has_uncommitted_changes: false,
+            disk_usage: 1024 * 1024,
+        };
+
+        let item = app.format_worktree_item(&worktree, false);
+        let line_text = format!("{:?}", item);
+
+        // Should show minutes
+        assert!(line_text.contains("m ago") || line_text.contains("30"), "Should display age in minutes");
+    }
+
+    #[test]
+    fn test_empty_worktree_list_handling() {
+        let temp_dir = create_test_repo().expect("Failed to create test repo");
+        let repo_path = temp_dir.path().to_path_buf();
+
+        let mut app = WorktreeMonitorApp::new(repo_path).expect("Failed to create app");
+
+        // With empty worktree list, navigation should not panic
+        let key_event = KeyEvent::new(KeyCode::Down, event::KeyModifiers::empty());
+        let result = app.handle_key_event(key_event);
+        assert!(result.is_ok(), "Should handle navigation on empty list");
+
+        assert_eq!(app.selected_index, 0, "Selected index should remain 0");
+    }
 }

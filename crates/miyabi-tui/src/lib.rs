@@ -14,12 +14,10 @@
 //! # Usage
 //!
 //! ```no_run
-//! use miyabi_tui;
-//!
-//! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     miyabi_tui::run_tui().await
-//! }
+//! # #[tokio::main]
+//! # async fn main() -> anyhow::Result<()> {
+//! miyabi_tui::run_tui().await
+//! # }
 //! ```
 
 mod app;
