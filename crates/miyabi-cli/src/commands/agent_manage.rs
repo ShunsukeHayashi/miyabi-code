@@ -39,6 +39,15 @@ pub enum AgentManageCommand {
         #[arg(long)]
         template: Option<String>,
     },
+    /// Initialize default agent configurations
+    Init {
+        /// Force overwrite existing configurations
+        #[arg(long)]
+        force: bool,
+        /// Skip interactive prompts
+        #[arg(long)]
+        yes: bool,
+    },
 }
 
 impl AgentManageCommand {
@@ -58,6 +67,9 @@ impl AgentManageCommand {
                 agent_name,
                 template,
             } => self.create_agent(&manager, agent_name, template).await,
+            AgentManageCommand::Init { force, yes } => {
+                self.initialize_default_agents(&manager, *force, *yes).await
+            }
         }
     }
 
@@ -80,7 +92,10 @@ impl AgentManageCommand {
         if agents.is_empty() {
             println!("{}", "No agents found.".yellow());
             println!();
-            println!("{}", "Hint: Create agent configuration files in:".dimmed());
+            println!("{}", "💡 Tip: Initialize default agents to get started:".bold());
+            println!("  {}", "miyabi agent init".cyan());
+            println!();
+            println!("{}", "Or create agent configuration files manually in:".dimmed());
             println!("  - .miyabi/agents/");
             println!("  - ~/.config/miyabi/agents/");
             return;
@@ -442,6 +457,139 @@ impl AgentManageCommand {
             format!("  Edit: miyabi agent edit {}", agent_name).dimmed()
         );
 
+        Ok(())
+    }
+
+    async fn initialize_default_agents(
+        &self,
+        manager: &AgentConfigManager,
+        force: bool,
+        yes: bool,
+    ) -> Result<()> {
+        use miyabi_agents::{AgentConfig, AgentDependencies, AgentMetadata};
+        use std::collections::HashMap;
+
+        println!();
+        println!("{}", "✨ Initializing Default Agent Configurations".bold().cyan());
+        println!("{}", "━".repeat(60).cyan());
+        println!();
+
+        // Define default agents (3 core agents)
+        let default_agents = vec![
+            (
+                "coordinator",
+                AgentMetadata {
+                    name: "CoordinatorAgent".to_string(),
+                    agent_type: AgentType::Coordinator,
+                    enabled: true,
+                    model: "claude-sonnet-4".to_string(),
+                    description: "Multi-agent orchestration with DAG-based task scheduling".to_string(),
+                },
+            ),
+            (
+                "codegen",
+                AgentMetadata {
+                    name: "CodeGenAgent".to_string(),
+                    agent_type: AgentType::Codegen,
+                    enabled: true,
+                    model: "claude-sonnet-4".to_string(),
+                    description: "AI-driven Rust code generation with quality enforcement".to_string(),
+                },
+            ),
+            (
+                "review",
+                AgentMetadata {
+                    name: "ReviewAgent".to_string(),
+                    agent_type: AgentType::Review,
+                    enabled: true,
+                    model: "claude-sonnet-4".to_string(),
+                    description: "Comprehensive code quality and security review".to_string(),
+                },
+            ),
+        ];
+
+        let mut created_count = 0;
+        let mut skipped_count = 0;
+
+        for (config_name, metadata) in default_agents {
+            // Check if config already exists
+            if !force && manager.find_config_file(&metadata.name)
+                .map_err(|e| CliError::ExecutionError(format!("Failed to check for existing agent: {}", e)))?
+                .is_some()
+            {
+                println!(
+                    "  {} {} (already exists)",
+                    "⏭️".yellow(),
+                    metadata.name.yellow()
+                );
+                skipped_count += 1;
+                continue;
+            }
+
+            // Interactive prompt if not --yes
+            if !yes && !force {
+                print!(
+                    "  Create {}? [Y/n]: ",
+                    metadata.name.cyan()
+                );
+                use std::io::{self, Write};
+                io::stdout().flush().unwrap();
+
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+                let input = input.trim().to_lowercase();
+
+                if input == "n" || input == "no" {
+                    println!("    {} Skipped", "⏭️".yellow());
+                    skipped_count += 1;
+                    continue;
+                }
+            }
+
+            // Create agent configuration
+            let config = AgentConfig {
+                agent: metadata.clone(),
+                parameters: HashMap::new(),
+                skills: HashMap::new(),
+                dependencies: AgentDependencies::default(),
+            };
+
+            // Save configuration
+            manager
+                .save_config(&metadata.name, &config)
+                .map_err(|e| {
+                    CliError::ExecutionError(format!(
+                        "Failed to save {} configuration: {}",
+                        metadata.name, e
+                    ))
+                })?;
+
+            println!(
+                "  {} Created {}",
+                "✅".green(),
+                metadata.name.green()
+            );
+            created_count += 1;
+        }
+
+        println!();
+        println!("{}", "━".repeat(60).cyan());
+        println!(
+            "{} {} agent(s) created, {} skipped",
+            "🎉".bold(),
+            created_count.to_string().green().bold(),
+            skipped_count
+        );
+        println!();
+
+        if created_count > 0 {
+            println!("{}", "Next steps:".bold());
+            println!("  • View agents: {}", "miyabi agent list".cyan());
+            println!("  • Configure: {}", "miyabi agent config <name>".cyan());
+            println!("  • Edit: {}", "miyabi agent edit <name>".cyan());
+        }
+
+        println!();
         Ok(())
     }
 }

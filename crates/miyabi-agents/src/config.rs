@@ -297,7 +297,16 @@ impl AgentConfigManager {
     pub fn save_config(&self, name: &str, config: &AgentConfig) -> Result<()> {
         let config_file = self
             .find_config_file(name)?
-            .unwrap_or_else(|| self.config_dirs[0].join(format!("{}.toml", name)));
+            .unwrap_or_else(|| {
+                // Prefer project-local .miyabi/agents/, fallback to user-global
+                if let Ok(current_dir) = std::env::current_dir() {
+                    current_dir.join(".miyabi").join("agents").join(format!("{}.toml", name))
+                } else if let Some(home) = dirs::home_dir() {
+                    home.join(".config").join("miyabi").join("agents").join(format!("{}.toml", name))
+                } else {
+                    PathBuf::from(format!("{}.toml", name))
+                }
+            });
 
         let content =
             toml::to_string_pretty(config).context("Failed to serialize config to TOML")?;

@@ -234,6 +234,15 @@ enum AgentSubcommand {
         #[arg(long)]
         template: Option<String>,
     },
+    /// Initialize default agent configurations
+    Init {
+        /// Force overwrite existing configurations
+        #[arg(long)]
+        force: bool,
+        /// Skip interactive prompts
+        #[arg(long)]
+        yes: bool,
+    },
 }
 
 #[tokio::main]
@@ -346,6 +355,13 @@ async fn main() -> Result<()> {
                 let cmd = AgentManageCommand::Create {
                     agent_name: agent_name.clone(),
                     template: template.clone(),
+                };
+                cmd.execute().await
+            }
+            AgentSubcommand::Init { force, yes } => {
+                let cmd = AgentManageCommand::Init {
+                    force: force.clone(),
+                    yes: yes.clone(),
                 };
                 cmd.execute().await
             }
