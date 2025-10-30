@@ -1,6 +1,6 @@
 //! Miyabi Business Agents
 //!
-//! 14 specialized agents for business strategy, marketing, and operations.
+//! 15 specialized agents for business strategy, marketing, operations, and design.
 //!
 //! # Strategy Agents (6)
 //!
@@ -25,6 +25,10 @@
 //! - **CRMAgent**: Customer relationship management
 //! - **AnalyticsAgent**: Data analysis and PDCA cycle
 //!
+//! # Design Agents (1)
+//!
+//! - **JonathanIveDesignAgent**: UI/UX design review with Apple design principles
+//!
 //! # Example
 //!
 //! ```rust,ignore
@@ -46,6 +50,7 @@ pub mod analytics;
 pub mod content_creation;
 pub mod crm;
 pub mod funnel_design;
+pub mod jonathan_ive_design;
 pub mod market_research;
 pub mod marketing;
 pub mod persona;
@@ -61,6 +66,7 @@ pub use analytics::AnalyticsAgent;
 pub use content_creation::ContentCreationAgent;
 pub use crm::CRMAgent;
 pub use funnel_design::FunnelDesignAgent;
+pub use jonathan_ive_design::JonathanIveDesignAgent;
 pub use market_research::MarketResearchAgent;
 pub use marketing::MarketingAgent;
 pub use persona::PersonaAgent;

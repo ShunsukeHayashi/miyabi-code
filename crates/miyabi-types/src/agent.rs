@@ -121,6 +121,8 @@ pub enum AgentType {
     CRMAgent,
     /// Analytics - data analysis, PDCA cycle, continuous improvement
     AnalyticsAgent,
+    /// Jonathan Ive Design - UI/UX design review with Apple design principles
+    JonathanIveDesignAgent,
 
     // Community Agents (1)
     /// Discord Community - community management and moderation
@@ -157,6 +159,7 @@ impl AgentType {
             AgentType::SalesAgent => "sales",
             AgentType::CRMAgent => "crm",
             AgentType::AnalyticsAgent => "analytics",
+            AgentType::JonathanIveDesignAgent => "jonathan-ive-design",
 
             // Community Agents
             AgentType::DiscordCommunity => "discord-community",
