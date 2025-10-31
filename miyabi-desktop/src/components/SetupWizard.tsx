@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { TokenSetupScreen } from "./TokenSetupScreen";
-import { RepositorySelectScreen } from "./RepositorySelectScreen";
 import { invoke } from "@tauri-apps/api/core";
 
 interface SetupWizardProps {
@@ -11,7 +10,6 @@ interface SetupWizardProps {
 export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
   const [currentStep, setCurrentStep] = useState<"welcome" | "token" | "repo" | "complete">("welcome");
   const [githubToken, setGithubToken] = useState<string>("");
-  const [repository, setRepository] = useState<string>("");
 
   const handleWelcomeComplete = () => {
     setCurrentStep("token");
@@ -23,25 +21,12 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     // Save token to Tauri secure storage
     try {
       await invoke("save_github_token", { token });
-      // Go to repository selection
-      setCurrentStep("repo");
-    } catch (error) {
-      console.error("Failed to save token:", error);
-      // Still proceed to repo selection
-      setCurrentStep("repo");
-    }
-  };
-
-  const handleRepositoryComplete = async (repo: string) => {
-    setRepository(repo);
-
-    // Save repository to Tauri storage
-    try {
-      await invoke("save_repository", { repository: repo });
+      // For now, go directly to complete
+      // Future step: repo will be implemented in #647
       setCurrentStep("complete");
     } catch (error) {
-      console.error("Failed to save repository:", error);
-      // Still proceed to complete
+      console.error("Failed to save token:", error);
+      // Still proceed for now, but log the error
       setCurrentStep("complete");
     }
   };
@@ -63,16 +48,7 @@ export const SetupWizard = ({ onComplete }: SetupWizardProps) => {
     );
   }
 
-  if (currentStep === "repo") {
-    return (
-      <RepositorySelectScreen
-        token={githubToken}
-        onNext={handleRepositoryComplete}
-        onBack={() => setCurrentStep("token")}
-      />
-    );
-  }
-
+  // Placeholder for future setup steps
   if (currentStep === "complete") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">

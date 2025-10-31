@@ -1,8 +1,26 @@
 # Agent System - Autonomous Agents
 
-**Last Updated**: 2025-10-26
-**Version**: 2.0.1
+**Last Updated**: 2025-10-31
+**Version**: 2.1.0
 **Priority**: ⭐⭐⭐⭐
+
+## 🔒 Agent実行前の必須プロトコル
+
+**全てのAgent実行・タスク開始時に以下を必ず実行**
+
+### ✅ 作業開始チェックリスト
+
+```bash
+□ Step 1: gh issue view <number> でIssue確認
+□ Step 2: gh issue comment で作業宣言（他Agentとのバッティング防止）
+□ Step 3: gh issue edit でラベル変更（Ready → In Progress）
+□ Step 4: git worktree作成 & 移動
+□ Step 5: 作業開始
+```
+
+**詳細**: [CLAUDE.md](../../CLAUDE.md) の「必須作業プロトコル」を参照
+
+---
 
 ## 🤖 Agent概要
 
