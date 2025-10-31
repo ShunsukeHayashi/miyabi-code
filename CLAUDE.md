@@ -1,72 +1,9 @@
 # Miyabi - Project Root & Control Document
 
-## 🔒 必須作業プロトコル (Initial Sequence)
+作業開始時は、User のIntentを適切に理解して、Task nameとして作業宣言して,
+Worktree dirを作成してそのWorktree dir へ必ずcd すること。Git worktreeを使用して作業を開始して下さい。
 
-**全てのタスク開始時に以下を必ず実行すること**
-
-### Phase 0: 作業開始イニシャルシーケンス
-
-```bash
-# Step 1: Issue確認
-gh issue view <issue-number>
-
-# Step 2: 作業宣言コメント投稿（他エージェントとのバッティング防止）
-gh issue comment <issue-number> --body "$(cat <<'EOF'
-## 🚀 作業開始宣言
-
-**担当**: Claude Code (AI Agent)
-**開始時刻**: $(date '+%Y-%m-%d %H:%M:%S')
-**作業内容**: [タスクの簡潔な説明]
-
-他のエージェントとのバッティングを防ぐため、作業を開始します。
-
-🤖 Generated with Claude Code
-EOF
-)"
-
-# Step 3: ラベル変更（Ready → In Progress）
-gh issue edit <issue-number> \
-  --remove-label "📥 state:ready" \
-  --add-label "🏗️ state:in-progress"
-
-# Step 4: Worktree作成 & 移動
-git worktree add .worktrees/issue-<number> -b feat/descriptive-name-<number>
-cd .worktrees/issue-<number>
-
-# Step 5: 作業開始
-# → ここから実装開始
-```
-
-### Phase N: 作業完了シーケンス
-
-```bash
-# Step 1: Commit & Push
-git add .
-git commit -m "feat: descriptive commit message
-
-Closes #<issue-number>
-
-🤖 Generated with Claude Code
-Co-Authored-By: Claude <noreply@anthropic.com>"
-git push -u origin HEAD
-
-# Step 2: PR作成
-gh pr create --title "..." --body "..."
-
-# Step 3: 完了報告
-gh issue comment <issue-number> --body "作業完了..."
-
-# Step 4: ラベル変更（In Progress → Review/Completed）
-gh issue edit <issue-number> \
-  --remove-label "🏗️ state:in-progress" \
-  --add-label "👀 state:review"
-
-# Step 5: Worktree クリーンアップ
-cd /Users/shunsuke/Dev/miyabi-private
-git worktree remove .worktrees/issue-<number>
-```
-
----
+作業終了時は必ずクリーンナップをして下さい。
 
 ## 🎯 Critical Rules - 必ず守ること
 

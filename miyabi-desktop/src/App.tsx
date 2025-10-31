@@ -15,12 +15,11 @@ import { WorkflowDAGViewer } from "./components/WorkflowDAGViewer";
 import { NarrationPlayer } from "./components/NarrationPlayer";
 import { IssueDashboard } from "./components/IssueDashboard";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { SetupWizard, isSetupComplete, markSetupComplete } from "./components/SetupWizard";
 // Temporarily disabled due to firebase-admin incompatibility with browser
 // import { DeploymentDashboard } from "./components/DeploymentDashboard";
 // import { AutoMergeSettings } from "./components/AutoMergeSettings";
 import { CommandPalette } from "./components/CommandPalette";
-import { SetupWizard } from "./components/SetupWizard";
-import { isSetupComplete, markSetupComplete } from "./lib/setup";
 import "./App.css";
 // import { Phase9Provider } from "./context/Phase9Context";
 

@@ -1,14 +1,9 @@
 mod agent;
-mod config;
 mod github;
 mod pty;
 mod voicevox;
 
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
-use config::{
-    clear_config, get_github_repository, get_github_token, save_github_repository,
-    save_github_token,
-};
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
 use pty::{PtyManager, SessionInfo, TerminalSession};
 use voicevox::{
@@ -206,12 +201,6 @@ pub fn run() {
             list_issues_command,
             get_issue_command,
             update_issue_command,
-            // Config commands
-            save_github_token,
-            get_github_token,
-            save_github_repository,
-            get_github_repository,
-            clear_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
