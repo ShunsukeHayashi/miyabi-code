@@ -36,7 +36,6 @@ anyhow = { workspace = true }
 
 # ロギング
 tracing = { workspace = true }
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 # 日時
 chrono = { workspace = true }
@@ -52,14 +51,14 @@ walkdir = "2.4"
 dirs = { workspace = true }
 
 # Markdown パース
-pulldown-cmark = "0.13"
+pulldown-cmark = "0.9"
 
 # 正規表現
 regex = "1.10"
 
 # AST parsing
-tree-sitter = "0.25"
-tree-sitter-rust = "0.24"
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"
 
 # HTTP Server (optional, for Web UI dashboard)
 axum = { version = "0.7", features = ["ws"], optional = true }
@@ -70,11 +69,6 @@ futures-util = { version = "0.3", optional = true }
 tokio = { workspace = true, features = ["test-util"] }
 mockito = "1.5"
 tempfile = "3.8"
-
-[[bin]]
-name = "miyabi-knowledge-server"
-path = "bin/server.rs"
-required-features = ["server"]
 
 [features]
 default = []

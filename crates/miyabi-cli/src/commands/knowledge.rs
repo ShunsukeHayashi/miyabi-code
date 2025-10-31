@@ -5,7 +5,7 @@ use clap::Subcommand;
 use colored::Colorize;
 use miyabi_knowledge::{
     searcher::{KnowledgeSearcher, QdrantSearcher, SearchFilter},
-    ExportFilter, ExportFormat, IndexCache, KnowledgeConfig, KnowledgeExporter,
+    IndexCache, KnowledgeConfig,
 };
 
 #[derive(Subcommand)]
@@ -38,10 +38,6 @@ pub enum KnowledgeCommand {
         /// Maximum results
         #[arg(long, default_value = "10")]
         limit: usize,
-
-        /// Automatically start Qdrant if not running
-        #[arg(long)]
-        auto_start: bool,
     },
 
     /// Show knowledge statistics
@@ -49,10 +45,6 @@ pub enum KnowledgeCommand {
         /// Workspace filter
         #[arg(long)]
         workspace: Option<String>,
-
-        /// Automatically start Qdrant if not running
-        #[arg(long)]
-        auto_start: bool,
     },
 
     /// Index logs and artifacts
@@ -108,49 +100,6 @@ pub enum KnowledgeCommand {
         #[arg(long)]
         open: bool,
     },
-
-    /// Export knowledge base to file
-    Export {
-        /// Export format (csv, json, markdown/md)
-        #[arg(long, default_value = "json")]
-        format: String,
-
-        /// Output file path
-        #[arg(long)]
-        output: String,
-
-        /// Filter by agent name
-        #[arg(long)]
-        agent: Option<String>,
-
-        /// Filter by issue number
-        #[arg(long)]
-        issue: Option<u32>,
-
-        /// Filter by task type
-        #[arg(long)]
-        task_type: Option<String>,
-
-        /// Filter by outcome (success/failed)
-        #[arg(long)]
-        outcome: Option<String>,
-
-        /// Filter by workspace
-        #[arg(long)]
-        workspace: Option<String>,
-
-        /// Date range start (YYYY-MM-DD)
-        #[arg(long)]
-        date_from: Option<String>,
-
-        /// Date range end (YYYY-MM-DD)
-        #[arg(long)]
-        date_to: Option<String>,
-
-        /// Maximum number of entries to export (0 = unlimited)
-        #[arg(long, default_value = "0")]
-        limit: usize,
-    },
 }
 
 impl KnowledgeCommand {
@@ -164,11 +113,7 @@ impl KnowledgeCommand {
                 task_type,
                 outcome,
                 limit,
-                auto_start,
             } => {
-                if *auto_start {
-                    ensure_qdrant_running().await?;
-                }
                 search_knowledge(
                     query,
                     workspace.clone(),
@@ -181,15 +126,7 @@ impl KnowledgeCommand {
                 )
                 .await
             }
-            Self::Stats {
-                workspace,
-                auto_start,
-            } => {
-                if *auto_start {
-                    ensure_qdrant_running().await?;
-                }
-                show_stats(workspace.clone(), json_output).await
-            }
+            Self::Stats { workspace } => show_stats(workspace.clone(), json_output).await,
             Self::Index { workspace, reindex } => {
                 index_workspace(workspace, *reindex, json_output).await
             }
@@ -214,33 +151,6 @@ impl KnowledgeCommand {
                 clear_cache(workspace.clone(), *yes, json_output).await
             }
             Self::Serve { port, open } => serve_dashboard(*port, *open, json_output).await,
-            Self::Export {
-                format,
-                output,
-                agent,
-                issue,
-                task_type,
-                outcome,
-                workspace,
-                date_from,
-                date_to,
-                limit,
-            } => {
-                export_knowledge(
-                    format,
-                    output,
-                    agent.clone(),
-                    *issue,
-                    task_type.clone(),
-                    outcome.clone(),
-                    workspace.clone(),
-                    date_from.clone(),
-                    date_to.clone(),
-                    *limit,
-                    json_output,
-                )
-                .await
-            }
         }
     }
 }
@@ -652,149 +562,6 @@ async fn clear_cache(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
-async fn export_knowledge(
-    format: &str,
-    output: &str,
-    agent: Option<String>,
-    issue: Option<u32>,
-    task_type: Option<String>,
-    outcome: Option<String>,
-    workspace: Option<String>,
-    date_from: Option<String>,
-    date_to: Option<String>,
-    limit: usize,
-    json_output: bool,
-) -> Result<()> {
-    // Parse export format
-    let export_format: ExportFormat = format.parse().map_err(|e: String| {
-        crate::error::CliError::InvalidInput(format!("Invalid export format: {}", e))
-    })?;
-
-    // Parse date filters
-    let date_from_parsed = if let Some(ref date_str) = date_from {
-        Some(parse_date(date_str)?)
-    } else {
-        None
-    };
-
-    let date_to_parsed = if let Some(ref date_str) = date_to {
-        Some(parse_date(date_str)?)
-    } else {
-        None
-    };
-
-    // Build export filter
-    let filter = ExportFilter {
-        agent,
-        issue_number: issue,
-        task_type,
-        outcome,
-        workspace,
-        date_from: date_from_parsed,
-        date_to: date_to_parsed,
-        limit,
-    };
-
-    if !json_output {
-        println!("{} Exporting knowledge base...", "📦".cyan());
-        println!("  Format: {}", format.cyan().bold());
-        println!("  Output: {}", output.yellow());
-
-        if let Some(ref a) = filter.agent {
-            println!("  Filter - Agent: {}", a.cyan());
-        }
-        if let Some(i) = filter.issue_number {
-            println!("  Filter - Issue: #{}", i);
-        }
-        if let Some(ref t) = filter.task_type {
-            println!("  Filter - Task Type: {}", t.cyan());
-        }
-        if let Some(ref o) = filter.outcome {
-            println!("  Filter - Outcome: {}", o.cyan());
-        }
-        if let Some(ref w) = filter.workspace {
-            println!("  Filter - Workspace: {}", w.cyan());
-        }
-        if filter.date_from.is_some() || filter.date_to.is_some() {
-            println!(
-                "  Filter - Date Range: {} to {}",
-                date_from.as_ref().unwrap_or(&"*".to_string()),
-                date_to.as_ref().unwrap_or(&"*".to_string())
-            );
-        }
-        if filter.limit > 0 {
-            println!("  Limit: {} entries", filter.limit);
-        }
-        println!();
-    }
-
-    // Load config
-    let config = KnowledgeConfig::default();
-
-    // Initialize searcher
-    let searcher = QdrantSearcher::new(config).await?;
-
-    // Create exporter
-    let exporter = KnowledgeExporter::new(searcher);
-
-    // Export to file
-    let count = exporter.export(export_format, output, Some(filter)).await?;
-
-    if json_output {
-        let json = serde_json::json!({
-            "status": "success",
-            "format": format,
-            "output": output,
-            "entries_exported": count,
-        });
-        println!("{}", serde_json::to_string_pretty(&json)?);
-    } else {
-        println!("{} Export complete!", "✅".green());
-        println!("  {} entries exported to {}", count, output.bold());
-        println!();
-
-        // Show format-specific tips
-        match export_format {
-            ExportFormat::Csv => {
-                println!("  {} Open with Excel or run:", "💡".cyan());
-                println!("    csvlook {}", output.dimmed());
-            }
-            ExportFormat::Json => {
-                println!("  {} Parse with jq:", "💡".cyan());
-                println!("    cat {} | jq '.[] | .content'", output.dimmed());
-            }
-            ExportFormat::Markdown => {
-                println!("  {} View with:", "💡".cyan());
-                println!("    cat {}", output.dimmed());
-            }
-        }
-    }
-
-    Ok(())
-}
-
-/// Parse date string in YYYY-MM-DD format
-fn parse_date(date_str: &str) -> Result<chrono::DateTime<chrono::Utc>> {
-    use chrono::NaiveDate;
-
-    let naive_date = NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_err(|e| {
-        crate::error::CliError::InvalidInput(format!(
-            "Invalid date format '{}' (expected YYYY-MM-DD): {}",
-            date_str, e
-        ))
-    })?;
-
-    let naive_datetime = naive_date.and_hms_opt(0, 0, 0).ok_or_else(|| {
-        crate::error::CliError::InvalidInput(format!("Invalid date: {}", date_str))
-    })?;
-
-    Ok(chrono::DateTime::from_naive_utc_and_offset(
-        naive_datetime,
-        chrono::Utc,
-    ))
-}
-
 #[cfg(feature = "server")]
 async fn serve_dashboard(port: u16, open: bool, json_output: bool) -> Result<()> {
     use miyabi_knowledge::server::KnowledgeServer;
@@ -842,109 +609,13 @@ async fn serve_dashboard(_port: u16, _open: bool, json_output: bool) -> Result<(
     } else {
         println!("{}", "❌ Server feature not enabled".red());
         println!();
-        println!("The Web UI dashboard requires the 'server' feature to be enabled.");
+        println!(
+            "The Web UI dashboard requires the 'server' feature to be enabled."
+        );
         println!("Please rebuild with:");
         println!();
         println!("  {}", "cargo build --release --features server".cyan());
         println!();
     }
     Ok(())
-}
-
-/// Ensure Qdrant is running, start it if not
-async fn ensure_qdrant_running() -> Result<()> {
-    use std::process::Command;
-
-    // Check if Qdrant is already running
-    let check = reqwest::Client::new()
-        .get("http://localhost:6333/")
-        .timeout(std::time::Duration::from_secs(2))
-        .send()
-        .await;
-
-    if check.is_ok() {
-        // Qdrant is already running
-        return Ok(());
-    }
-
-    // Qdrant is not running - try to start it
-    println!("{}", "⚠️  Qdrant is not running.".yellow());
-    println!();
-
-    // Check if docker-compose.yml exists
-    let compose_exists = std::path::Path::new("docker-compose.yml").exists();
-
-    if !compose_exists {
-        println!("{}", "❌ docker-compose.yml not found".red());
-        println!();
-        println!("Qdrant needs to be started manually:");
-        println!();
-        println!("  Option 1: Using Docker");
-        println!("    {}", "docker run -d -p 6333:6333 qdrant/qdrant".cyan());
-        println!();
-        println!("  Option 2: Using Docker Compose");
-        println!("    Create docker-compose.yml with Qdrant service");
-        println!("    {}", "docker compose up -d qdrant".cyan());
-        println!();
-        return Err(crate::error::CliError::ExecutionError(
-            "Qdrant is not running".to_string(),
-        ));
-    }
-
-    println!("{} Starting Qdrant via Docker Compose...", "🐳".cyan());
-    println!();
-
-    let output = Command::new("docker")
-        .args(["compose", "up", "-d", "qdrant"])
-        .output()
-        .map_err(|e| {
-            crate::error::CliError::ExecutionError(format!("Failed to start Qdrant: {}", e))
-        })?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("{} Failed to start Qdrant:", "❌".red());
-        println!("{}", stderr);
-        println!();
-        println!("Try starting manually:");
-        println!("  {}", "docker compose up -d qdrant".cyan());
-        return Err(crate::error::CliError::ExecutionError(
-            "Failed to start Qdrant".to_string(),
-        ));
-    }
-
-    println!("{} Waiting for Qdrant to be ready...", "⏳".yellow());
-
-    // Wait for Qdrant to be ready (max 30 seconds)
-    for attempt in 1..=30 {
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
-        let check = reqwest::Client::new()
-            .get("http://localhost:6333/")
-            .timeout(std::time::Duration::from_secs(2))
-            .send()
-            .await;
-
-        if check.is_ok() {
-            println!("{} Qdrant started on http://localhost:6333", "✅".green());
-            println!();
-            return Ok(());
-        }
-
-        if attempt % 5 == 0 {
-            print!(".");
-            use std::io::Write;
-            std::io::stdout().flush().ok();
-        }
-    }
-
-    println!();
-    println!("{} Qdrant did not start within 30 seconds", "❌".red());
-    println!();
-    println!("Check status:");
-    println!("  {}", "docker compose logs qdrant".cyan());
-
-    Err(crate::error::CliError::ExecutionError(
-        "Qdrant startup timeout".to_string(),
-    ))
 }

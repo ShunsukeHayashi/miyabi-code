@@ -27,15 +27,7 @@ members = [
     "crates/miyabi-orchestrator",  # Merged: miyabi-scheduler + miyabi-feedback-loop
     # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
-    "crates/miyabi-e2e-tests", "crates/miyabi-modes", "crates/miyabi-line", "crates/miyabi-historical-ai", "crates/miyabi-historical-api",  # E2E test framework
-    "crates/miyabi-viz", "crates/miyabi-tui",  # Molecular visualization system
-    "crates/miyabi-voice-guide", "crates/miyabi-telegram", "crates/miyabi-agent-issue", "crates/miyabi-session-manager",  # Voice-First Onboarding system
-    "crates/miyabi-pty-manager",  # PTY management for agent terminal control
-]
-
-exclude = [
-    "miyabi-desktop",  # Tauri desktop app (separate project)
-    "miyabi-desktop/src-tauri",  # Tauri Rust backend
+    "crates/miyabi-e2e-tests", "crates/miyabi-modes",  # E2E test framework
 ]
 
 [workspace.package]
@@ -69,21 +61,20 @@ colored = "3.0"
 
 # GitHub API
 octocrab = "0.47"
-reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.12", features = ["json"] }
 
 # Git operations
 git2 = "0.20"
 
 # Anthropic API
-async-openai = { version = "0.30", default-features = false, features = ["rustls"] }
+async-openai = { version = "0.24", default-features = false, features = ["rustls"] }
 
 # File system & I/O
 walkdir = "2.5"
 ignore = "0.4"
 tempfile = "3.13"
 dunce = "1.0"
-dirs = "6.0"  # Cross-platform home directory and config paths
-uuid = { version = "1.11", features = ["v4", "serde"] }
+dirs = "5.0"  # Cross-platform home directory and config paths
 
 # Logging
 tracing = "0.1"
@@ -102,8 +93,8 @@ serial_test = "3.2"
 # Web framework (unified versions to resolve duplicates - Issue #462)
 tower = { version = "0.5", features = ["util", "timeout", "load-shed"] }
 tower-http = { version = "0.6", features = ["trace", "fs", "cors"] }
-tokio-tungstenite = "0.28"
-tungstenite = "0.28"
+tokio-tungstenite = "0.24"
+tungstenite = "0.24"
 hyper-util = { version = "0.1", features = ["tokio", "client", "server"] }
 
 [profile.release]
@@ -140,5 +131,3 @@ panic = "abort"
 # Workspace optimization: compile dependencies with optimizations even in dev mode
 [profile.dev.package."*"]
 opt-level = 3
-
-

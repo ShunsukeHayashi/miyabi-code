@@ -53,11 +53,7 @@ impl TemplateRenderer {
     /// let template = "Working in ${MIYABI_WORK_DIR} at ${MIYABI_NOW}";
     /// let result = renderer.render(template, &HashMap::new()).unwrap();
     /// ```
-    pub fn render(
-        &self,
-        template: &str,
-        custom_args: &HashMap<String, String>,
-    ) -> ModeResult<String> {
+    pub fn render(&self, template: &str, custom_args: &HashMap<String, String>) -> ModeResult<String> {
         let mut rendered = template.to_string();
 
         // Replace built-in variables
@@ -140,10 +136,11 @@ impl TemplateRenderer {
         let agents_md_path = self.work_dir.join("AGENTS.md");
         let content = if agents_md_path.exists() {
             debug!("Reading AGENTS.md from {:?}", agents_md_path);
-            fs::read_to_string(&agents_md_path).unwrap_or_else(|e| {
-                warn!("Failed to read AGENTS.md: {}", e);
-                String::from("(Failed to read AGENTS.md)")
-            })
+            fs::read_to_string(&agents_md_path)
+                .unwrap_or_else(|e| {
+                    warn!("Failed to read AGENTS.md: {}", e);
+                    String::from("(Failed to read AGENTS.md)")
+                })
         } else {
             debug!("AGENTS.md not found");
             String::from("(No AGENTS.md found in project root)")

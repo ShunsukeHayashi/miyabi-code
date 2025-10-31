@@ -2,7 +2,6 @@
 
 mod commands;
 mod config;
-mod display;
 mod error;
 mod service;
 mod startup;
@@ -11,12 +10,10 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, ExecCommand, HistoryArgs, InfinityCommand, InitCommand, InstallCommand,
-    KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand, ParallelCommand, SessionCommand,
-    SessionSubcommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ModeCommand,
+    ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
 use error::Result;
-use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 
 #[derive(Parser)]
 #[command(name = "miyabi")]
@@ -37,20 +34,6 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Interactive chat REPL
-    Chat {
-        /// Initial prompt message
-        prompt: Option<String>,
-        /// Use TUI mode (Terminal UI)
-        #[arg(long)]
-        tui: bool,
-        /// Resume from session ID
-        #[arg(long)]
-        resume: Option<String>,
-        /// Resume from last session
-        #[arg(long)]
-        resume_last: bool,
-    },
     /// Initialize new project
     Init {
         /// Project name
@@ -103,53 +86,15 @@ enum Commands {
         /// Issue description or number
         task: String,
     },
-    /// Execute autonomous task with LLM
-    Exec {
-        /// Task description (e.g., "count lines of code")
-        task: String,
-        /// Allow file edits
-        #[arg(long)]
-        file_edits: bool,
-        /// Allow full access (commands, GitHub API)
-        #[arg(long)]
-        full_access: bool,
-        /// Full auto mode (no confirmations, full access)
-        #[arg(long)]
-        full_auto: bool,
-        /// Output as JSON Lines
-        #[arg(long)]
-        json: bool,
-        /// Resume from session ID
-        #[arg(long)]
-        resume: Option<String>,
-        /// Resume from last session
-        #[arg(long)]
-        resume_last: bool,
-    },
     /// Knowledge management (search, index, stats)
     Knowledge {
         #[command(subcommand)]
         command: KnowledgeCommand,
     },
-    /// Lark Agent - 識学理論ベースのLark/Feishu Base統合管理
-    Lark {
-        #[command(subcommand)]
-        command: LarkCommand,
-    },
     /// Worktree management (list, prune, remove)
     Worktree {
         #[command(subcommand)]
         command: WorktreeSubcommand,
-    },
-    /// Task history and statistics
-    History {
-        #[command(flatten)]
-        args: HistoryArgs,
-    },
-    /// Session management (list, get, stats, lineage, monitor, terminate)
-    Session {
-        #[command(subcommand)]
-        command: SessionSubcommand,
     },
     /// Infinite feedback loop orchestration
     Loop {
@@ -160,24 +105,6 @@ enum Commands {
     Mode {
         #[command(flatten)]
         command: ModeCommand,
-    },
-    /// Infinity Mode - Autonomous continuous sprint execution (process all Issues)
-    Infinity {
-        /// Maximum number of Issues to process (default: unlimited)
-        #[arg(long)]
-        max_issues: Option<usize>,
-        /// Number of concurrent executions (default: 3)
-        #[arg(long, default_value = "3")]
-        concurrency: usize,
-        /// Number of Issues per sprint (default: 5)
-        #[arg(long, default_value = "5")]
-        sprint_size: usize,
-        /// Dry run (no actual changes)
-        #[arg(long)]
-        dry_run: bool,
-        /// Resume from previous run
-        #[arg(long)]
-        resume: bool,
     },
 }
 
@@ -193,13 +120,6 @@ async fn main() -> Result<()> {
     };
     miyabi_core::init_logger(log_level);
 
-    // VOICEVOX Auto-Setup (non-blocking)
-    // This automatically sets up VOICEVOX Engine and Worker on first run
-    miyabi_voice_guide::auto_setup_voicevox();
-
-    // Initialize Voice Guide (Voice-First Onboarding)
-    let voice_guide = VoiceGuide::new();
-
     // Perform startup checks (non-fatal warnings)
     startup::perform_startup_checks();
 
@@ -213,31 +133,8 @@ async fn main() -> Result<()> {
             private,
             interactive,
         }) => {
-            // Voice Guide: Processing started
-            voice_guide
-                .speak(VoiceMessage::ProcessingStarted {
-                    task_name: format!("Project '{}'", name),
-                })
-                .await;
-
-            let cmd = InitCommand::with_interactive(name.clone(), private, interactive);
-            let result = cmd.execute().await;
-
-            // Voice Guide: Success or Error feedback
-            match &result {
-                Ok(_) => {
-                    voice_guide
-                        .speak(VoiceMessage::SuccessProjectCreated { project_name: name })
-                        .await;
-                }
-                Err(_) => {
-                    voice_guide
-                        .speak(VoiceMessage::ErrorProjectExists { project_name: name })
-                        .await;
-                }
-            }
-
-            result
+            let cmd = InitCommand::with_interactive(name, private, interactive);
+            cmd.execute().await
         }
         Some(Commands::Install { dry_run }) => {
             let cmd = InstallCommand::new(dry_run);
@@ -270,36 +167,8 @@ async fn main() -> Result<()> {
             // Try to parse as issue number
             if let Ok(issue_num) = task.parse::<u64>() {
                 println!("  {} Issue #{}", "📋".green(), issue_num);
-
-                // Voice Guide: Processing started
-                voice_guide
-                    .speak(VoiceMessage::ProcessingStarted {
-                        task_name: format!("Issue #{}", issue_num),
-                    })
-                    .await;
-
                 let cmd = AgentCommand::new("coordinator".to_string(), Some(issue_num));
-                let result = cmd.execute().await;
-
-                // Voice Guide: Success or Error feedback
-                match &result {
-                    Ok(_) => {
-                        voice_guide
-                            .speak(VoiceMessage::SuccessIssueProcessed {
-                                issue_number: issue_num,
-                            })
-                            .await;
-                    }
-                    Err(_) => {
-                        voice_guide
-                            .speak(VoiceMessage::ErrorIssueNotFound {
-                                issue_number: issue_num,
-                            })
-                            .await;
-                    }
-                }
-
-                result
+                cmd.execute().await
             } else {
                 // Task description - suggest creating an issue
                 println!("  {} Task: {}", "✨".yellow(), task.bold());
@@ -313,148 +182,21 @@ async fn main() -> Result<()> {
                     "  {}",
                     format!("gh issue create --title \"{}\" --label type:feature", task).yellow()
                 );
-
-                // Voice Guide: Next step guidance
-                voice_guide.speak(VoiceMessage::NextStepGitHubAuth).await;
-
                 Ok(())
             }
         }
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
-        Some(Commands::Lark { command }) => command.execute().await,
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
         }
-        Some(Commands::History { args }) => {
-            commands::history::execute(args)
-                .await
-                .map_err(|e| error::CliError::Other(e.to_string()))
-        }
-        Some(Commands::Session { command }) => {
-            let cmd = SessionCommand::new(command);
-            cmd.execute().await
-        }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
-        Some(Commands::Infinity {
-            max_issues,
-            concurrency,
-            sprint_size,
-            dry_run,
-            resume,
-        }) => {
-            // Voice Guide: Processing started
-            voice_guide
-                .speak(VoiceMessage::ProcessingStarted {
-                    task_name: "Infinity Mode".to_string(),
-                })
-                .await;
-
-            let cmd = InfinityCommand {
-                max_issues,
-                concurrency,
-                sprint_size,
-                dry_run,
-                resume,
-            };
-
-            cmd.execute().await
-        }
-        Some(Commands::Exec {
-            task,
-            file_edits,
-            full_access,
-            full_auto,
-            json,
-            resume,
-            resume_last,
-        }) => {
-            use miyabi_core::ExecutionMode;
-
-            // Determine execution mode
-            let mode = if full_auto || full_access {
-                ExecutionMode::FullAccess
-            } else if file_edits {
-                ExecutionMode::FileEdits
-            } else {
-                ExecutionMode::ReadOnly
-            };
-
-            // Create ExecCommand
-            let mut cmd = ExecCommand::new(task);
-            cmd = match mode {
-                ExecutionMode::FullAccess => cmd.with_full_access(),
-                ExecutionMode::FileEdits => cmd.with_full_auto(),
-                ExecutionMode::ReadOnly => cmd,
-                _ => cmd,
-            };
-
-            if json {
-                cmd = cmd.with_json_output();
-            }
-
-            if let Some(session_id) = resume {
-                cmd = cmd.with_resume(session_id);
-            }
-
-            if resume_last {
-                cmd = cmd.with_resume_last();
-            }
-
-            cmd.execute().await
-        }
-        #[allow(unused_variables)]
-        Some(Commands::Chat {
-            prompt,
-            tui,
-            resume,
-            resume_last,
-        }) => {
-            #[cfg(feature = "tui")]
-            {
-                if tui {
-                    // Launch TUI mode
-                    miyabi_tui::run_tui()
-                        .await
-                        .map_err(|e| error::CliError::Other(format!("TUI error: {}", e)))
-                } else {
-                    // Regular REPL mode
-                    let chat_cmd = commands::ChatCommand::new();
-                    // TODO: Implement resume/resume_last functionality in ChatCommand
-                    if let Some(_session_id) = resume {
-                        eprintln!("⚠️  Resume functionality not yet implemented");
-                    }
-                    if resume_last {
-                        eprintln!("⚠️  Resume-last functionality not yet implemented");
-                    }
-                    chat_cmd.run().await
-                }
-            }
-            #[cfg(not(feature = "tui"))]
-            {
-                // REPL mode works without TUI feature
-                let chat_cmd = commands::ChatCommand::new();
-                // TODO: Implement resume/resume_last functionality in ChatCommand
-                if let Some(_session_id) = resume {
-                    eprintln!("⚠️  Resume functionality not yet implemented");
-                }
-                if resume_last {
-                    eprintln!("⚠️  Resume-last functionality not yet implemented");
-                }
-                chat_cmd.run().await
-            }
-        }
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());
             println!();
             println!("Use --help to see available commands");
-            println!();
-
-            // Voice-First Onboarding: Welcome message
-            voice_guide.speak(VoiceMessage::Welcome).await;
-
             Ok(())
         }
     };

@@ -50,7 +50,10 @@ impl ModeRegistry {
     /// Get a mode by character name
     pub fn get_by_character(&self, character: &str) -> Option<MiyabiMode> {
         let modes = self.modes.read().unwrap();
-        modes.values().find(|m| m.character == character).cloned()
+        modes
+            .values()
+            .find(|m| m.character == character)
+            .cloned()
     }
 
     /// List all modes
@@ -195,15 +198,9 @@ mod tests {
     #[test]
     fn test_list_by_source() {
         let registry = ModeRegistry::new();
-        registry
-            .register(create_test_mode("sys1", "s1", "miyabi-core"))
-            .unwrap();
-        registry
-            .register(create_test_mode("sys2", "s2", "miyabi-core"))
-            .unwrap();
-        registry
-            .register(create_test_mode("cust1", "c1", "user"))
-            .unwrap();
+        registry.register(create_test_mode("sys1", "s1", "miyabi-core")).unwrap();
+        registry.register(create_test_mode("sys2", "s2", "miyabi-core")).unwrap();
+        registry.register(create_test_mode("cust1", "c1", "user")).unwrap();
 
         let system_modes = registry.list_system_modes();
         let custom_modes = registry.list_custom_modes();
@@ -215,10 +212,10 @@ mod tests {
     #[test]
     fn test_find_by_tool() {
         let registry = ModeRegistry::new();
-
+        
         let mut mode1 = create_test_mode("read-only", "r1", "user");
         mode1.groups = vec![ToolGroup::Read];
-
+        
         let mut mode2 = create_test_mode("read-edit", "r2", "user");
         mode2.groups = vec![ToolGroup::Read, ToolGroup::Edit];
 
@@ -235,12 +232,8 @@ mod tests {
     #[test]
     fn test_count_and_clear() {
         let registry = ModeRegistry::new();
-        registry
-            .register(create_test_mode("m1", "c1", "user"))
-            .unwrap();
-        registry
-            .register(create_test_mode("m2", "c2", "user"))
-            .unwrap();
+        registry.register(create_test_mode("m1", "c1", "user")).unwrap();
+        registry.register(create_test_mode("m2", "c2", "user")).unwrap();
 
         assert_eq!(registry.count(), 2);
 

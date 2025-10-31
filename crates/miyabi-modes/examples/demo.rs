@@ -24,7 +24,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🎯 Registered Modes:\n");
 
     for mode in registry.list() {
-        println!("  {} {} ({})", mode.name, mode.slug, mode.character);
+        println!("  {} {} ({})", 
+            mode.name, 
+            mode.slug, 
+            mode.character
+        );
     }
 
     println!("\n🔍 Mode Details:\n");

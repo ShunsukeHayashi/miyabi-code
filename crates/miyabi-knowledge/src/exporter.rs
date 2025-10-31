@@ -137,10 +137,7 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
         match format {
             ExportFormat::Csv => self.export_csv(output_path_ref, entries_to_export).await?,
             ExportFormat::Json => self.export_json(output_path_ref, entries_to_export).await?,
-            ExportFormat::Markdown => {
-                self.export_markdown(output_path_ref, entries_to_export)
-                    .await?
-            }
+            ExportFormat::Markdown => self.export_markdown(output_path_ref, entries_to_export).await?,
         }
 
         info!(
@@ -165,7 +162,11 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
     }
 
     /// Export to CSV format
-    async fn export_csv(&self, output_path: &Path, entries: &[KnowledgeResult]) -> Result<()> {
+    async fn export_csv(
+        &self,
+        output_path: &Path,
+        entries: &[KnowledgeResult],
+    ) -> Result<()> {
         let mut file = fs::File::create(output_path).await?;
 
         // Write CSV header
@@ -178,10 +179,28 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
                 "{},{},{},{},{},{},{},{}\n",
                 Self::escape_csv(&entry.id.to_string()),
                 Self::escape_csv(&entry.content),
-                Self::escape_csv(entry.metadata.agent.as_ref().unwrap_or(&"".to_string())),
+                Self::escape_csv(
+                    entry
+                        .metadata
+                        .agent
+                        .as_ref()
+                        .unwrap_or(&"".to_string())
+                ),
                 entry.metadata.issue_number.unwrap_or(0),
-                Self::escape_csv(entry.metadata.task_type.as_ref().unwrap_or(&"".to_string())),
-                Self::escape_csv(entry.metadata.outcome.as_ref().unwrap_or(&"".to_string())),
+                Self::escape_csv(
+                    entry
+                        .metadata
+                        .task_type
+                        .as_ref()
+                        .unwrap_or(&"".to_string())
+                ),
+                Self::escape_csv(
+                    entry
+                        .metadata
+                        .outcome
+                        .as_ref()
+                        .unwrap_or(&"".to_string())
+                ),
                 Self::escape_csv(&entry.metadata.workspace),
                 entry.timestamp.to_rfc3339()
             );
@@ -193,14 +212,22 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
     }
 
     /// Export to JSON format
-    async fn export_json(&self, output_path: &Path, entries: &[KnowledgeResult]) -> Result<()> {
+    async fn export_json(
+        &self,
+        output_path: &Path,
+        entries: &[KnowledgeResult],
+    ) -> Result<()> {
         let json = serde_json::to_string_pretty(entries)?;
         fs::write(output_path, json).await?;
         Ok(())
     }
 
     /// Export to Markdown format
-    async fn export_markdown(&self, output_path: &Path, entries: &[KnowledgeResult]) -> Result<()> {
+    async fn export_markdown(
+        &self,
+        output_path: &Path,
+        entries: &[KnowledgeResult],
+    ) -> Result<()> {
         let mut file = fs::File::create(output_path).await?;
 
         // Write header
@@ -237,7 +264,11 @@ impl<S: KnowledgeSearcher> KnowledgeExporter<S> {
                     .unwrap_or(&"Unknown".to_string()),
                 entry.id,
                 entry.timestamp.to_rfc3339(),
-                entry.metadata.agent.as_ref().unwrap_or(&"N/A".to_string()),
+                entry
+                    .metadata
+                    .agent
+                    .as_ref()
+                    .unwrap_or(&"N/A".to_string()),
                 entry
                     .metadata
                     .issue_number
@@ -279,6 +310,7 @@ mod tests {
     use super::*;
     use crate::types::{KnowledgeId, KnowledgeMetadata};
     use async_trait::async_trait;
+    use std::collections::HashMap;
 
     struct MockSearcher {
         entries: Vec<KnowledgeResult>,
@@ -307,21 +339,19 @@ mod tests {
         }
     }
 
-    fn create_test_entry(_id: &str, content: &str) -> KnowledgeResult {
+    fn create_test_entry(id: &str, content: &str) -> KnowledgeResult {
         KnowledgeResult {
-            id: KnowledgeId::new(),
+            id: KnowledgeId::new(id),
             content: content.to_string(),
             score: 0.95,
             metadata: KnowledgeMetadata {
                 workspace: "test-workspace".to_string(),
-                worktree: None,
                 agent: Some("CodeGenAgent".to_string()),
                 issue_number: Some(123),
                 task_type: Some("feature".to_string()),
                 outcome: Some("success".to_string()),
-                tools_used: Some(Vec::new()),
-                files_changed: None,
-                extra: serde_json::Map::new(),
+                tools_used: Vec::new(),
+                extra: HashMap::new(),
             },
             timestamp: Utc::now(),
         }

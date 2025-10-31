@@ -1,6 +1,5 @@
 //! CLI error types
 
-use anyhow;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -46,33 +45,6 @@ pub enum CliError {
 
     #[error("Mode error: {0}")]
     Mode(#[from] miyabi_modes::error::ModeError),
-
-    #[error("Unknown error: {0}")]
-    #[allow(dead_code)]
-    Unknown(String),
-
-    #[error("{0}")]
-    #[allow(dead_code)]
-    Other(String),
-
-    #[error("Session error: {0}")]
-    #[allow(dead_code)]
-    SessionError(String),
-
-    #[error("Agent execution error: {0}")]
-    AgentExecution(String),
-
-    #[error("MCP server error: {0}")]
-    McpServerError(String),
-
-    #[error("MCP tool error: {0}")]
-    McpToolError(String),
-
-    #[error("MCP timeout: {0}")]
-    McpTimeout(String),
-
-    #[error("{0}")]
-    Anyhow(#[from] anyhow::Error),
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;
@@ -84,7 +56,10 @@ mod tests {
     #[test]
     fn test_invalid_project_name_error() {
         let error = CliError::InvalidProjectName("test-project".to_string());
-        assert_eq!(error.to_string(), "Invalid project name: test-project");
+        assert_eq!(
+            error.to_string(),
+            "Invalid project name: test-project"
+        );
     }
 
     #[test]
@@ -120,10 +95,7 @@ mod tests {
     #[test]
     fn test_git_config_error() {
         let error = CliError::GitConfig("remote not found".to_string());
-        assert_eq!(
-            error.to_string(),
-            "Git configuration error: remote not found"
-        );
+        assert_eq!(error.to_string(), "Git configuration error: remote not found");
     }
 
     #[test]
@@ -161,13 +133,18 @@ mod tests {
 
     #[test]
     fn test_result_type_ok() {
-        let value = 42;
-        assert_eq!(value, 42);
+        let result: Result<i32> = Ok(42);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 42);
     }
 
     #[test]
     fn test_result_type_err() {
-        let error = CliError::NotGitRepository;
-        assert_eq!(error.to_string(), "Not in a git repository");
+        let result: Result<i32> = Err(CliError::NotGitRepository);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Not in a git repository"
+        );
     }
 }

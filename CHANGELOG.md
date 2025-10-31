@@ -8,43 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **[2025-10-27]** FANZA new releases tracking system
-  - DMM Web API v3 integration with bash scripts
-  - Automated content tracking with Markdown + JSON export
-  - `/track-fanza` slash command for easy execution
-  - Complete setup guide: `docs/FANZA_TRACKING_SETUP.md`
-  - cron/GitHub Actions support for daily automation
-  - VOICEVOX narration integration (optional)
-  - Security: API credentials in `.env.fanza` (gitignored)
-
-### Fixed
-- **[2025-10-27]** Discord MCP Server example compilation errors
-  - Fixed incorrect `?` operators in Twilight HTTP API builder calls
-  - Pattern: `.content(msg)?` → `.content(msg)` (builder, not Result)
-  - Affected files: create_channels, setup_miyabi_server, post_initial_content, post_premium_visuals, post_generated_visuals
-  - All 9 Discord example files now compile successfully
-
-- **[2025-10-27]** Multiple clippy warnings resolved across codebase
-  - Modernized error handling: `std::io::Error::new()` → `std::io::Error::other()`
-  - Removed unused imports in miyabi-web-api and miyabi-agent-codegen
-  - Simplified redundant closures: `.map_err(|e| F(e))` → `.map_err(F)`
-  - Added `#[allow(deprecated)]` for backwards compatibility tests
-  - Improved code quality: 7 files updated, 20+ warnings resolved
-
-### Improved
-- **[2025-10-27]** miyabi-knowledge integration test quality
-  - Replaced manual struct initialization with `KnowledgeEntry::new()`
-  - Updated API usage to use `serde_json::Map` instead of `HashMap`
-  - Removed unused imports and variables
-  - Better RetentionManager API usage
-
-### Documentation
-- **[2025-10-27]** Comprehensive system verification report
-  - 96.4% test pass rate (54/56 tests passing)
-  - All 37 crates compiling successfully
-  - 14 business agents + 4 coding agents operational
-  - Production ready status confirmed
-  - Complete metrics: build times, test coverage, code size
+- **[#520]** Real-time progress tracking infrastructure for agents (Phase 1-2) ✅
+  - Created `miyabi-agent-core/src/observable.rs` with Observable Agent pattern (461 lines)
+  - `ProgressObserver` trait for monitoring agent execution
+  - `ProgressUpdate` struct for percentage-based progress reporting
+  - `LogEntry` struct with log levels (Debug/Info/Warn/Error)
+  - `ObservableAgent<A>` generic wrapper for adding progress tracking to any agent
+  - Added `indicatif = "0.17"` dependency for CLI progress bars
+  - 5 comprehensive unit tests validating observer pattern
+  - **NEW**: CLI progress observer example with indicatif
+  - **NEW**: Comprehensive documentation (`PROGRESS_TRACKING.md`) with 3 example observer implementations
+  - Non-invasive pattern: No agent code changes required
 
 ### Changed
 - **[#519]** Deduplicated configuration loading across CLI commands
@@ -53,26 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Eliminated ~250 lines of duplicate code (removed duplicate `get_github_token` and `parse_git_remote` implementations)
   - Configuration now loaded once and cached for subsequent calls
   - Improved maintainability: 2 locations → 1 location for config management
-
-### Added
-- **[#520]** Progress tracking infrastructure for Observable Agent pattern
-  - Added `ProgressObserver` trait for real-time agent monitoring
-  - Implemented thread-safe observer management with `Arc<RwLock<Vec<...>>>`
-  - Created CLI progress observer example with `indicatif` progress bars
-  - Added comprehensive documentation: `PROGRESS_TRACKING.md` (350+ lines)
-  - Supports multiple observer types: CLI, WebSocket, Metrics
-  - Zero breaking changes to existing agent implementations
-
-- **[#521]** Enhanced result display with rich formatting
-  - Created `ResultFormatter` for agent execution results
-  - Added table-based display using `comfy-table` with UTF8 borders
-  - Implemented JSON output format for AI/automation integration
-  - Colorized terminal output (green=success, red=fail, yellow=escalation)
-  - Detailed metrics display: quality scores, lines changed, tests added, errors found
-  - Integrated into all 6 coding agent commands (Coordinator, CodeGen, Review, Issue, PR, Deployment)
-  - Added verbose mode for detailed data inspection
-  - 8 comprehensive unit tests covering all display formats
-  - Improved readability: simple text → rich formatted tables with icons
 
 ### Planned for v0.2.0
 - Business Agents implementation (14 agents)
