@@ -11,7 +11,7 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, AgentConfigArgs, ExecCommand, InfinityCommand, InitCommand, InstallCommand,
+    AgentCommand, ExecCommand, HistoryArgs, InfinityCommand, InitCommand, InstallCommand,
     KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand, ParallelCommand, SessionCommand,
     SessionSubcommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
@@ -88,12 +88,6 @@ enum Commands {
         #[arg(long)]
         issue: Option<u64>,
     },
-    /// Agent configuration management (list, config, edit)
-    #[command(name = "agent-config")]
-    AgentConfig {
-        #[command(flatten)]
-        args: AgentConfigArgs,
-    },
     /// Execute agents in parallel worktrees
     Parallel {
         /// Issue numbers to process (comma-separated)
@@ -146,6 +140,11 @@ enum Commands {
     Worktree {
         #[command(subcommand)]
         command: WorktreeSubcommand,
+    },
+    /// Task history and statistics
+    History {
+        #[command(flatten)]
+        args: HistoryArgs,
     },
     /// Session management (list, get, stats, lineage, monitor, terminate)
     Session {
@@ -256,10 +255,6 @@ async fn main() -> Result<()> {
             let cmd = AgentCommand::new(agent_type, issue);
             cmd.execute().await
         }
-        Some(Commands::AgentConfig { args }) => {
-            commands::agent_config::execute(args).await
-                .map_err(|e| error::CliError::Other(e.to_string()))
-        }
         Some(Commands::Parallel {
             issues,
             concurrency,
@@ -330,6 +325,11 @@ async fn main() -> Result<()> {
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
+        }
+        Some(Commands::History { args }) => {
+            commands::history::execute(args)
+                .await
+                .map_err(|e| error::CliError::Other(e.to_string()))
         }
         Some(Commands::Session { command }) => {
             let cmd = SessionCommand::new(command);

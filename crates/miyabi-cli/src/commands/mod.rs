@@ -4,6 +4,7 @@ pub mod agent;
 pub mod agent_config;
 pub mod chat;
 pub mod exec;
+pub mod history;
 pub mod infinity;
 pub mod init;
 pub mod install;
@@ -23,6 +24,7 @@ pub use agent_config::AgentConfigArgs;
 pub use chat::ChatCommand;
 #[allow(unused_imports)]
 pub use exec::ExecCommand;
+pub use history::HistoryArgs;
 pub use infinity::InfinityCommand;
 pub use init::InitCommand;
 pub use install::InstallCommand;
