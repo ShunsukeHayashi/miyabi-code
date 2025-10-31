@@ -40,14 +40,14 @@ async fn test_orchestrator_managed_session() -> Result<()> {
     let manager = PtyManager::new();
 
     // Spawn orchestrator-managed session
-    let session =
-        manager.spawn_shell_with_manager(80, 24, Some("orchestrator:test-001".to_string()))?;
+    let session = manager.spawn_shell_with_manager(
+        80,
+        24,
+        Some("orchestrator:test-001".to_string()),
+    )?;
 
     assert!(session.is_orchestrator_managed());
-    assert_eq!(
-        session.managed_by,
-        Some("orchestrator:test-001".to_string())
-    );
+    assert_eq!(session.managed_by, Some("orchestrator:test-001".to_string()));
 
     // List sessions by manager
     let managed_sessions = manager.list_sessions_by_manager("orchestrator:test-001");
@@ -133,7 +133,7 @@ async fn test_session_info() -> Result<()> {
 
     assert_eq!(info.session.id, session.id);
     assert!(info.is_alive);
-    // uptime_seconds is u64, so always >= 0
+    assert!(info.uptime_seconds >= 0);
 
     manager.kill_session(&session.id)?;
 
@@ -145,12 +145,21 @@ async fn test_multiple_sessions() -> Result<()> {
     let manager = PtyManager::new();
 
     // Spawn multiple sessions
-    let session1 =
-        manager.spawn_shell_with_manager(80, 24, Some("orchestrator:agent-1".to_string()))?;
-    let session2 =
-        manager.spawn_shell_with_manager(80, 24, Some("orchestrator:agent-1".to_string()))?;
-    let session3 =
-        manager.spawn_shell_with_manager(80, 24, Some("orchestrator:agent-2".to_string()))?;
+    let session1 = manager.spawn_shell_with_manager(
+        80,
+        24,
+        Some("orchestrator:agent-1".to_string()),
+    )?;
+    let session2 = manager.spawn_shell_with_manager(
+        80,
+        24,
+        Some("orchestrator:agent-1".to_string()),
+    )?;
+    let session3 = manager.spawn_shell_with_manager(
+        80,
+        24,
+        Some("orchestrator:agent-2".to_string()),
+    )?;
 
     // Verify all sessions exist
     let all_sessions = manager.list_sessions();
@@ -195,7 +204,11 @@ async fn test_command_execution_sequence() -> Result<()> {
     let output = manager.get_output(&session.id, 20)?;
     let found = output.iter().any(|line| line.contains("test_value"));
 
-    assert!(found, "Should find variable value in output: {:?}", output);
+    assert!(
+        found,
+        "Should find variable value in output: {:?}",
+        output
+    );
 
     manager.kill_session(&session.id)?;
 

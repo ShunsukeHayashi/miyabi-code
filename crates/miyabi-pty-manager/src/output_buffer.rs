@@ -28,7 +28,12 @@ impl SessionOutputBuffer {
     /// Get the N most recent lines
     pub fn get_recent(&self, n: usize) -> Vec<String> {
         let buf = self.buffer.lock().unwrap();
-        buf.iter().rev().take(n).rev().cloned().collect()
+        buf.iter()
+            .rev()
+            .take(n)
+            .rev()
+            .cloned()
+            .collect()
     }
 
     /// Get all lines
@@ -52,8 +57,7 @@ impl SessionOutputBuffer {
         use regex::Regex;
         let re = Regex::new(pattern)?;
         let buf = self.buffer.lock().unwrap();
-        Ok(buf
-            .iter()
+        Ok(buf.iter()
             .filter(|line| re.is_match(line))
             .cloned()
             .collect())

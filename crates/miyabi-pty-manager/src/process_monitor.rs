@@ -15,15 +15,17 @@ impl ProcessMonitor {
         let exit_code_clone = exit_code.clone();
 
         // Monitor process in background thread
-        std::thread::spawn(move || match child.wait() {
-            Ok(status) => {
-                let code = status.exit_code();
-                *exit_code_clone.lock().unwrap() = Some(code);
-                tracing::info!("Process exited with code: {}", code);
-            }
-            Err(e) => {
-                tracing::error!("Process monitor error: {}", e);
-                *exit_code_clone.lock().unwrap() = Some(u32::MAX);
+        std::thread::spawn(move || {
+            match child.wait() {
+                Ok(status) => {
+                    let code = status.exit_code();
+                    *exit_code_clone.lock().unwrap() = Some(code);
+                    tracing::info!("Process exited with code: {}", code);
+                }
+                Err(e) => {
+                    tracing::error!("Process monitor error: {}", e);
+                    *exit_code_clone.lock().unwrap() = Some(u32::MAX);
+                }
             }
         });
 
@@ -73,6 +75,7 @@ impl ProcessMonitor {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
 
     // Note: These tests require mock Child implementation
     // In real usage, Child comes from portable-pty

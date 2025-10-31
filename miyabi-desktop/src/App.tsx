@@ -15,30 +15,15 @@ import { WorkflowDAGViewer } from "./components/WorkflowDAGViewer";
 import { NarrationPlayer } from "./components/NarrationPlayer";
 import { IssueDashboard } from "./components/IssueDashboard";
 import { SettingsPanel } from "./components/SettingsPanel";
-import { SetupWizard, isSetupComplete, markSetupComplete } from "./components/SetupWizard";
-// Temporarily disabled due to firebase-admin incompatibility with browser
-// import { DeploymentDashboard } from "./components/DeploymentDashboard";
-// import { AutoMergeSettings } from "./components/AutoMergeSettings";
+import { DeploymentDashboard } from "./components/DeploymentDashboard";
+import { AutoMergeSettings } from "./components/AutoMergeSettings";
 import { CommandPalette } from "./components/CommandPalette";
 import "./App.css";
-// import { Phase9Provider } from "./context/Phase9Context";
+import { Phase9Provider } from "./context/Phase9Context";
 
 function App() {
-  const [showWelcome, setShowWelcome] = useState(!isSetupComplete());
   const [activePanel, setActivePanel] = useState("dashboard");
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-
-  // Show setup wizard if not completed
-  if (showWelcome) {
-    return (
-      <SetupWizard
-        onComplete={() => {
-          markSetupComplete();
-          setShowWelcome(false);
-        }}
-      />
-    );
-  }
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -69,7 +54,7 @@ function App() {
   }, []);
 
   return (
-    //<Phase9Provider>
+    <Phase9Provider>
       <div className="flex h-screen bg-white text-gray-900">
       {/* Sidebar - Ultra Minimal */}
       <div className="w-20 bg-gray-50 border-r border-gray-200 flex flex-col items-center py-8 space-y-8">
@@ -88,7 +73,6 @@ function App() {
             <Bot size={24} strokeWidth={1.5} />
           </button>
 
-          {/* Temporarily disabled due to firebase-admin incompatibility
           <button
             onClick={() => setActivePanel("deployment")}
             className={`p-4 rounded-xl transition-all duration-200 ${
@@ -100,7 +84,6 @@ function App() {
           >
             <Rocket size={24} strokeWidth={1.5} />
           </button>
-          */}
 
           <button
             onClick={() => setActivePanel("terminal")}
@@ -150,7 +133,6 @@ function App() {
             <ListTodo size={24} strokeWidth={1.5} />
           </button>
 
-          {/* Temporarily disabled due to firebase-admin incompatibility
           <button
             onClick={() => setActivePanel("auto-merge")}
             className={`p-4 rounded-xl transition-all duration-200 ${
@@ -162,7 +144,6 @@ function App() {
           >
             <ShieldCheck size={24} strokeWidth={1.5} />
           </button>
-          */}
         </nav>
 
         <button
@@ -183,13 +164,12 @@ function App() {
         {/* Content Area - Breathable Space */}
         <div className="flex-1 overflow-auto">
           {activePanel === "dashboard" && <DashboardPanel />}
-          {/* Temporarily disabled due to firebase-admin incompatibility */}
-          {/* {activePanel === "deployment" && <DeploymentPanel />} */}
+          {activePanel === "deployment" && <DeploymentPanel />}
           {activePanel === "terminal" && <TerminalPanel />}
           {activePanel === "workflow" && <WorkflowPanel />}
           {activePanel === "narration" && <NarrationPanel />}
           {activePanel === "issues" && <IssuesPanel />}
-          {/* {activePanel === "auto-merge" && <AutoMergePanel />} */}
+          {activePanel === "auto-merge" && <AutoMergePanel />}
           {activePanel === "settings" && <SettingsPanelWrapper />}
         </div>
 
@@ -220,7 +200,7 @@ function App() {
         }}
       />
       </div>
-    //</Phase9Provider>
+    </Phase9Provider>
   );
 }
 
@@ -228,7 +208,6 @@ function DashboardPanel() {
   return <AgentExecutionPanel />;
 }
 
-/* Temporarily disabled due to firebase-admin incompatibility
 function DeploymentPanel() {
   return (
     <div className="h-full flex flex-col">
@@ -236,7 +215,6 @@ function DeploymentPanel() {
     </div>
   );
 }
-*/
 
 function TerminalPanel() {
   return (
@@ -270,7 +248,6 @@ function IssuesPanel() {
   );
 }
 
-/* Temporarily disabled due to firebase-admin incompatibility
 function AutoMergePanel() {
   return (
     <div className="h-full flex flex-col">
@@ -278,7 +255,6 @@ function AutoMergePanel() {
     </div>
   );
 }
-*/
 
 function SettingsPanelWrapper() {
   return (

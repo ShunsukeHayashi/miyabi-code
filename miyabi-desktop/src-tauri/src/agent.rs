@@ -102,7 +102,6 @@ pub struct AgentExecutionRequest {
     pub agent_type: AgentType,
     pub issue_number: Option<u64>,
     pub args: Vec<String>,
-    pub execution_id: Option<String>, // Optional: Pre-generated execution ID from frontend
 }
 
 /// Agent execution status
@@ -132,13 +131,7 @@ pub async fn execute_agent(
     request: AgentExecutionRequest,
     app_handle: AppHandle,
 ) -> Result<AgentExecutionResult, String> {
-    eprintln!("[DEBUG] execute_agent called with agent_type: {:?}, issue_number: {:?}",
-              request.agent_type, request.issue_number);
-
-    // Use provided execution_id if available, otherwise generate new one
-    let execution_id = request.execution_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-    eprintln!("[DEBUG] Using execution_id: {}", execution_id);
-
+    let execution_id = uuid::Uuid::new_v4().to_string();
     let start_time = std::time::Instant::now();
 
     // Emit starting event
@@ -226,12 +219,8 @@ pub async fn execute_agent(
             let mut lines = reader.lines();
 
             while let Ok(Some(line)) = lines.next_line().await {
-                let event_name = format!("agent-output-{}", execution_id_clone);
-                eprintln!("[DEBUG] Emitting stdout to event '{}': {}", event_name, line);
-                match app_handle_clone.emit(&event_name, &line) {
-                    Ok(_) => eprintln!("[DEBUG] Event '{}' emitted successfully", event_name),
-                    Err(e) => eprintln!("[ERROR] Failed to emit event '{}': {:?}", event_name, e),
-                }
+                eprintln!("[DEBUG] Emitting stdout: {}", line);
+                let _ = app_handle_clone.emit(&format!("agent-output-{}", execution_id_clone), &line);
             }
         }))
     } else {
@@ -248,12 +237,8 @@ pub async fn execute_agent(
             let mut lines = reader.lines();
 
             while let Ok(Some(line)) = lines.next_line().await {
-                let event_name = format!("agent-output-{}", execution_id_clone);
-                eprintln!("[DEBUG] Emitting stderr to event '{}': {}", event_name, line);
-                match app_handle_clone.emit(&event_name, &line) {
-                    Ok(_) => eprintln!("[DEBUG] Event '{}' emitted successfully", event_name),
-                    Err(e) => eprintln!("[ERROR] Failed to emit event '{}': {:?}", event_name, e),
-                }
+                eprintln!("[DEBUG] Emitting stderr: {}", line);
+                let _ = app_handle_clone.emit(&format!("agent-output-{}", execution_id_clone), &line);
             }
         }))
     } else {

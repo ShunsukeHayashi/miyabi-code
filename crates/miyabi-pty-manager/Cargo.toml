@@ -7,10 +7,6 @@ description = "PTY (Pseudo-Terminal) management for Miyabi autonomous agents"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ShunsukeHayashi/Miyabi"
 
-[features]
-default = []
-regex = ["dep:regex"]
-
 [dependencies]
 # Core PTY functionality
 portable-pty = "0.8"
@@ -30,9 +26,6 @@ anyhow = "1.0"
 
 # Logging
 tracing = "0.1"
-
-# Optional regex support
-regex = { version = "1", optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -56,12 +56,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test 6: Orchestrator-managed session
     println!("Test 6: Creating orchestrator-managed session...");
-    let orchestrator_session =
-        manager.spawn_shell_with_manager(80, 24, Some("orchestrator:test-agent".to_string()))?;
-    println!(
-        "✅ Orchestrator session created: {}",
-        orchestrator_session.id
-    );
+    let orchestrator_session = manager.spawn_shell_with_manager(
+        80,
+        24,
+        Some("orchestrator:test-agent".to_string()),
+    )?;
+    println!("✅ Orchestrator session created: {}", orchestrator_session.id);
     println!("   - Managed by: {:?}", orchestrator_session.managed_by);
     println!();
 
@@ -70,12 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let all_sessions = manager.list_sessions();
     println!("✅ Total sessions: {}", all_sessions.len());
     for (i, s) in all_sessions.iter().enumerate() {
-        println!(
-            "   [{}] {} ({})",
-            i + 1,
-            s.id,
-            s.managed_by.as_deref().unwrap_or("user")
-        );
+        println!("   [{}] {} ({})", i + 1, s.id, s.managed_by.as_deref().unwrap_or("user"));
     }
     println!();
 

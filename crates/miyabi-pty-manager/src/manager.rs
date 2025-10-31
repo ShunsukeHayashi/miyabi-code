@@ -11,7 +11,6 @@ use std::sync::{Arc, Mutex};
 pub type OutputCallback = Arc<dyn Fn(String) + Send + Sync>;
 
 struct PtySession {
-    #[allow(dead_code)]
     id: String,
     writer: Box<dyn Write + Send>,
     metadata: TerminalSession,
@@ -242,7 +241,11 @@ impl PtyManager {
     }
 
     /// Register an output callback for a session
-    pub fn add_output_callback(&self, session_id: &str, callback: OutputCallback) -> Result<()> {
+    pub fn add_output_callback(
+        &self,
+        session_id: &str,
+        callback: OutputCallback,
+    ) -> Result<()> {
         let mut sessions = self.sessions.lock().unwrap();
 
         if let Some(session) = sessions.get_mut(session_id) {

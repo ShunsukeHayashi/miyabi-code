@@ -78,25 +78,9 @@ export function AgentExecutionPanel() {
           }
         });
 
-        // Update or create active execution
+        // Update active execution
         setActiveExecution((prev) => {
-          // If this is the first event (Starting), create new activeExecution
-          if (!prev && result.status === "starting") {
-            console.log('[DEBUG] Status listener: Creating new activeExecution for:', result.execution_id);
-            return {
-              executionId: result.execution_id,
-              agentType: result.agent_type,
-              status: result.status,
-              exitCode: result.exit_code,
-              durationMs: result.duration_ms,
-              output: [],
-              startTime: Date.now(),
-            };
-          }
-
-          // Update existing activeExecution
           if (prev && prev.executionId === result.execution_id) {
-            console.log('[DEBUG] Status listener: Updating activeExecution:', result.status);
             return {
               ...prev,
               status: result.status,
@@ -104,7 +88,6 @@ export function AgentExecutionPanel() {
               durationMs: result.duration_ms,
             };
           }
-
           return prev;
         });
       });
@@ -157,56 +140,20 @@ export function AgentExecutionPanel() {
     if (!selectedAgent) return;
 
     try {
-      console.log('[DEBUG] handleExecuteAgent: Starting agent execution');
-
-      // 1. Generate execution ID on frontend
-      const executionId = crypto.randomUUID();
-      console.log('[DEBUG] Generated execution ID:', executionId);
-
-      // 2. Pre-create activeExecution state (this triggers output listener registration)
-      const newExecution: AgentExecution = {
-        executionId,
-        agentType: selectedAgent,
-        status: "starting",
-        output: [],
-        startTime: Date.now(),
-      };
-      setActiveExecution(newExecution);
-      console.log('[DEBUG] Created activeExecution, listener should register now');
-
-      // 3. Small delay to ensure listener is registered before backend starts
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // 4. Execute agent with pre-generated ID
       const result = await executeAgent({
         agent_type: selectedAgent,
         issue_number: issueNumber ? parseInt(issueNumber) : undefined,
         args: [],
-        execution_id: executionId, // Pass the pre-generated ID
       });
 
-      console.log('[DEBUG] handleExecuteAgent: Agent execution completed:', result);
-
-      // Update with final result
-      setActiveExecution((prev) => {
-        if (!prev) {
-          console.warn('[WARN] activeExecution is null after agent execution');
-          return {
-            executionId: result.execution_id,
-            agentType: result.agent_type,
-            status: result.status,
-            exitCode: result.exit_code,
-            durationMs: result.duration_ms,
-            output: prev?.output || [],
-            startTime: Date.now(),
-          };
-        }
-        return {
-          ...prev,
-          status: result.status,
-          exitCode: result.exit_code,
-          durationMs: result.duration_ms,
-        };
+      setActiveExecution({
+        executionId: result.execution_id,
+        agentType: result.agent_type,
+        status: result.status,
+        exitCode: result.exit_code,
+        durationMs: result.duration_ms,
+        output: [],
+        startTime: Date.now(),
       });
     } catch (error) {
       console.error("Failed to execute agent:", error);

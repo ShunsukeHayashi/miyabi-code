@@ -50,7 +50,6 @@ export interface AgentExecutionRequest {
   agent_type: AgentType;
   issue_number?: number;
   args: string[];
-  execution_id?: string; // Optional: Pre-generated execution ID from frontend
 }
 
 /**
@@ -224,15 +223,7 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
 export async function executeAgent(
   request: AgentExecutionRequest
 ): Promise<AgentExecutionResult> {
-  console.log('[DEBUG] executeAgent: Calling Tauri command with request:', request);
-  try {
-    const result = await invoke<AgentExecutionResult>("execute_agent_command", { request });
-    console.log('[DEBUG] executeAgent: Tauri command returned:', result);
-    return result;
-  } catch (error) {
-    console.error('[ERROR] executeAgent: Tauri command failed:', error);
-    throw error;
-  }
+  return await invoke<AgentExecutionResult>("execute_agent_command", { request });
 }
 
 /**
@@ -257,18 +248,12 @@ export async function listenToAgentOutput(
   executionId: string,
   callback: (line: string) => void
 ): Promise<() => void> {
-  const eventName = `agent-output-${executionId}`;
-  console.log('[DEBUG] listenToAgentOutput: Setting up listener for event:', eventName);
-
   const unlisten = await listen<string>(
-    eventName,
+    `agent-output-${executionId}`,
     (event) => {
-      console.log('[DEBUG] listenToAgentOutput: Received event:', eventName, 'payload:', event.payload);
       callback(event.payload);
     }
   );
-
-  console.log('[DEBUG] listenToAgentOutput: Listener setup complete for event:', eventName);
   return unlisten;
 }
 

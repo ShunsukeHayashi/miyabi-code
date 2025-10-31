@@ -23,8 +23,7 @@ pub fn auto_setup_voicevox() {
     // Default: DISABLED (changed from enabled to disabled)
     if std::env::var("MIYABI_VOICE_GUIDE")
         .map(|v| v == "true")
-        .unwrap_or(false)
-    // Changed: default is now false (disabled)
+        .unwrap_or(false) // Changed: default is now false (disabled)
     {
         // Voice guide is explicitly enabled, continue setup
     } else {
