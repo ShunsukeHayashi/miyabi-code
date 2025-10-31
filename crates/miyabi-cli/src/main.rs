@@ -11,12 +11,11 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, AgentManageCommand, CleanupCommand, ExecCommand, HistoryCommand, InfinityCommand,
-    InitCommand, InstallCommand, KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand,
-    ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand, StatusCommand,
-    WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, AgentConfigArgs, ExecCommand, InfinityCommand, InitCommand, InstallCommand,
+    KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand, ParallelCommand, SessionCommand,
+    SessionSubcommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
 };
-use error::{CliError, Result};
+use error::Result;
 use miyabi_voice_guide::{VoiceGuide, VoiceMessage};
 
 #[derive(Parser)]
@@ -80,14 +79,20 @@ enum Commands {
         /// Watch mode (auto-refresh)
         #[arg(short, long)]
         watch: bool,
-        /// TUI mode (rich terminal interface)
-        #[arg(long)]
-        tui: bool,
     },
-    /// Run agent (e.g., miyabi agent run coordinator --issue 123)
+    /// Run agent
     Agent {
-        #[command(subcommand)]
-        command: AgentSubcommand,
+        /// Agent type (coordinator, codegen, review, etc.)
+        agent_type: String,
+        /// Issue number
+        #[arg(long)]
+        issue: Option<u64>,
+    },
+    /// Agent configuration management (list, config, edit)
+    #[command(name = "agent-config")]
+    AgentConfig {
+        #[command(flatten)]
+        args: AgentConfigArgs,
     },
     /// Execute agents in parallel worktrees
     Parallel {
@@ -102,10 +107,7 @@ enum Commands {
     #[command(name = "work-on")]
     WorkOn {
         /// Issue description or number
-        task: Option<String>,
-        /// Interactive mode - select issue from list
-        #[arg(long, short = 'i')]
-        interactive: bool,
+        task: String,
     },
     /// Execute autonomous task with LLM
     Exec {
@@ -135,32 +137,15 @@ enum Commands {
         #[command(subcommand)]
         command: KnowledgeCommand,
     },
-    /// Task history management (list, stats, show, clean)
-    History {
-        #[command(subcommand)]
-        command: HistoryCommand,
-    },
     /// Lark Agent - 識学理論ベースのLark/Feishu Base統合管理
     Lark {
         #[command(subcommand)]
         command: LarkCommand,
     },
-    /// Worktree management (list, status, prune, remove)
+    /// Worktree management (list, prune, remove)
     Worktree {
         #[command(subcommand)]
         command: WorktreeSubcommand,
-    },
-    /// Cleanup orphaned and stuck worktrees
-    Cleanup {
-        /// Dry run (don't actually delete)
-        #[arg(long)]
-        dry_run: bool,
-        /// Force cleanup (remove all worktrees, not just orphaned/stuck)
-        #[arg(long)]
-        force: bool,
-        /// Clean all worktrees
-        #[arg(long)]
-        all: bool,
     },
     /// Session management (list, get, stats, lineage, monitor, terminate)
     Session {
@@ -194,57 +179,6 @@ enum Commands {
         /// Resume from previous run
         #[arg(long)]
         resume: bool,
-    },
-}
-
-#[derive(Subcommand)]
-enum AgentSubcommand {
-    /// Run an agent for a specific issue
-    Run {
-        /// Agent type (coordinator, codegen, review, etc.)
-        agent_type: String,
-        /// Issue number
-        #[arg(long)]
-        issue: Option<u64>,
-    },
-    /// List all configured agents
-    List {
-        /// Output in JSON format
-        #[arg(long)]
-        json: bool,
-    },
-    /// Show agent configuration
-    Config {
-        /// Agent name (e.g., "CoordinatorAgent")
-        agent_name: String,
-        /// Output in JSON format
-        #[arg(long)]
-        json: bool,
-    },
-    /// Edit agent configuration
-    Edit {
-        /// Agent name (e.g., "CoordinatorAgent")
-        agent_name: String,
-        /// Editor to use (default: $EDITOR or vi)
-        #[arg(long)]
-        editor: Option<String>,
-    },
-    /// Create custom agent
-    Create {
-        /// Agent name
-        agent_name: String,
-        /// Template agent to copy from
-        #[arg(long)]
-        template: Option<String>,
-    },
-    /// Initialize default agent configurations
-    Init {
-        /// Force overwrite existing configurations
-        #[arg(long)]
-        force: bool,
-        /// Skip interactive prompts
-        #[arg(long)]
-        yes: bool,
     },
 }
 
@@ -314,61 +248,18 @@ async fn main() -> Result<()> {
             let cmd = SetupCommand::new(yes);
             cmd.execute().await
         }
-        Some(Commands::Status { watch, tui }) => {
-            if tui {
-                // Run TUI mode
-                let project_root = std::env::current_dir()?;
-                miyabi_tui::run_worktree_monitor(project_root)
-                    .await
-                    .map_err(|e| CliError::ExecutionError(e.to_string()))?;
-                Ok(())
-            } else {
-                // Run normal status command
-                let cmd = StatusCommand::new(watch);
-                cmd.execute().await
-            }
+        Some(Commands::Status { watch }) => {
+            let cmd = StatusCommand::new(watch);
+            cmd.execute().await
         }
-        Some(Commands::Agent { command }) => match command {
-            AgentSubcommand::Run { agent_type, issue } => {
-                let cmd = AgentCommand::new(agent_type.clone(), issue.clone());
-                cmd.execute().await
-            }
-            AgentSubcommand::List { json } => {
-                let cmd = AgentManageCommand::List { json: json.clone() };
-                cmd.execute().await
-            }
-            AgentSubcommand::Config { agent_name, json } => {
-                let cmd = AgentManageCommand::Config {
-                    agent_name: agent_name.clone(),
-                    json: json.clone(),
-                };
-                cmd.execute().await
-            }
-            AgentSubcommand::Edit { agent_name, editor } => {
-                let cmd = AgentManageCommand::Edit {
-                    agent_name: agent_name.clone(),
-                    editor: editor.clone(),
-                };
-                cmd.execute().await
-            }
-            AgentSubcommand::Create {
-                agent_name,
-                template,
-            } => {
-                let cmd = AgentManageCommand::Create {
-                    agent_name: agent_name.clone(),
-                    template: template.clone(),
-                };
-                cmd.execute().await
-            }
-            AgentSubcommand::Init { force, yes } => {
-                let cmd = AgentManageCommand::Init {
-                    force: force.clone(),
-                    yes: yes.clone(),
-                };
-                cmd.execute().await
-            }
-        },
+        Some(Commands::Agent { agent_type, issue }) => {
+            let cmd = AgentCommand::new(agent_type, issue);
+            cmd.execute().await
+        }
+        Some(Commands::AgentConfig { args }) => {
+            commands::agent_config::execute(args).await
+                .map_err(|e| error::CliError::Other(e.to_string()))
+        }
         Some(Commands::Parallel {
             issues,
             concurrency,
@@ -376,34 +267,13 @@ async fn main() -> Result<()> {
             let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
         }
-        Some(Commands::WorkOn { task, interactive }) => {
+        Some(Commands::WorkOn { task }) => {
             println!();
             println!("{}", "🚀 Let's work on it!".cyan().bold());
             println!();
 
-            // Interactive mode: select from issue list
-            let task_str = if interactive {
-                match select_issue_interactive().await {
-                    Ok(issue_num) => issue_num.to_string(),
-                    Err(e) => {
-                        eprintln!("{} {}", "❌ Error:".red(), e);
-                        return Err(e);
-                    }
-                }
-            } else if let Some(t) = task {
-                t.clone()
-            } else {
-                eprintln!(
-                    "{}",
-                    "❌ Error: Either provide a task/issue number or use --interactive flag".red()
-                );
-                return Err(CliError::InvalidInput(
-                    "Missing task or --interactive flag".to_string(),
-                ));
-            };
-
             // Try to parse as issue number
-            if let Ok(issue_num) = task_str.parse::<u64>() {
+            if let Ok(issue_num) = task.parse::<u64>() {
                 println!("  {} Issue #{}", "📋".green(), issue_num);
 
                 // Voice Guide: Processing started
@@ -437,7 +307,7 @@ async fn main() -> Result<()> {
                 result
             } else {
                 // Task description - suggest creating an issue
-                println!("  {} Task: {}", "✨".yellow(), task_str.bold());
+                println!("  {} Task: {}", "✨".yellow(), task.bold());
                 println!();
                 println!("{}", "💡 Next steps:".cyan());
                 println!("  1. Create an issue on GitHub with this description");
@@ -446,11 +316,7 @@ async fn main() -> Result<()> {
                 println!("{}", "Or use GitHub CLI:".dimmed());
                 println!(
                     "  {}",
-                    format!(
-                        "gh issue create --title \"{}\" --label type:feature",
-                        task_str
-                    )
-                    .yellow()
+                    format!("gh issue create --title \"{}\" --label type:feature", task).yellow()
                 );
 
                 // Voice Guide: Next step guidance
@@ -460,18 +326,9 @@ async fn main() -> Result<()> {
             }
         }
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
-        Some(Commands::History { command }) => command.execute().await,
         Some(Commands::Lark { command }) => command.execute().await,
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
-            cmd.execute().await
-        }
-        Some(Commands::Cleanup {
-            dry_run,
-            force,
-            all,
-        }) => {
-            let cmd = CleanupCommand::new(dry_run, force, all);
             cmd.execute().await
         }
         Some(Commands::Session { command }) => {
@@ -698,102 +555,4 @@ fn recover_from_directory_error() -> bool {
     }
 
     false
-}
-
-/// Interactive issue selection from GitHub (using gh CLI)
-async fn select_issue_interactive() -> Result<u64> {
-    use dialoguer::Select;
-    use std::process::Command;
-
-    println!("{}", "🔍 Fetching open issues from GitHub...".yellow());
-    println!();
-
-    // Use gh CLI to list issues
-    let output = Command::new("gh")
-        .args([
-            "issue",
-            "list",
-            "--limit",
-            "20",
-            "--state",
-            "open",
-            "--json",
-            "number,title,labels",
-        ])
-        .output()
-        .map_err(|e| CliError::ExecutionError(format!("Failed to run gh CLI: {}", e)))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(CliError::ExecutionError(format!(
-            "gh CLI error: {}",
-            stderr
-        )));
-    }
-
-    #[derive(serde::Deserialize)]
-    struct GhIssue {
-        number: u64,
-        title: String,
-        labels: Vec<GhLabel>,
-    }
-
-    #[derive(serde::Deserialize)]
-    struct GhLabel {
-        name: String,
-    }
-
-    let issues: Vec<GhIssue> =
-        serde_json::from_slice(&output.stdout).map_err(|e| CliError::Json(e))?;
-
-    if issues.is_empty() {
-        println!("{}", "  No open issues found".yellow());
-        return Err(CliError::ExecutionError(
-            "No issues to select from".to_string(),
-        ));
-    }
-
-    println!("Found {} open issue(s):", issues.len());
-    println!();
-
-    // Prepare selection items
-    let items: Vec<String> = issues
-        .iter()
-        .map(|issue| {
-            let labels_str = issue
-                .labels
-                .iter()
-                .map(|l| l.name.as_str())
-                .collect::<Vec<_>>()
-                .join(", ");
-
-            let labels_display = if labels_str.is_empty() {
-                String::new()
-            } else {
-                format!(" [{}]", labels_str)
-            };
-
-            format!("#{} - {}{}", issue.number, issue.title, labels_display)
-        })
-        .collect();
-
-    // Show interactive selection
-    let selection = Select::new()
-        .with_prompt("Select issue to work on")
-        .items(&items)
-        .default(0)
-        .interact()
-        .map_err(|e| CliError::ExecutionError(format!("Selection failed: {}", e)))?;
-
-    let selected_issue = &issues[selection];
-    println!();
-    println!(
-        "{} Selected: #{} - {}",
-        "✅".green(),
-        selected_issue.number,
-        selected_issue.title
-    );
-    println!();
-
-    Ok(selected_issue.number)
 }

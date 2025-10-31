@@ -1,11 +1,9 @@
 //! CLI command implementations
 
 pub mod agent;
-pub mod agent_manage;
+pub mod agent_config;
 pub mod chat;
-pub mod cleanup;
 pub mod exec;
-pub mod history;
 pub mod infinity;
 pub mod init;
 pub mod install;
@@ -20,13 +18,11 @@ pub mod status;
 pub mod worktree;
 
 pub use agent::AgentCommand;
-pub use agent_manage::AgentManageCommand;
+pub use agent_config::AgentConfigArgs;
 #[allow(unused_imports)]
 pub use chat::ChatCommand;
-pub use cleanup::CleanupCommand;
 #[allow(unused_imports)]
 pub use exec::ExecCommand;
-pub use history::HistoryCommand;
 pub use infinity::InfinityCommand;
 pub use init::InitCommand;
 pub use install::InstallCommand;
