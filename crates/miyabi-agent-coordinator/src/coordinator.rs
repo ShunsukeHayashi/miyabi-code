@@ -5,6 +5,7 @@
 
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
+use miyabi_core::task_metadata::{TaskMetadata, TaskMetadataManager};
 use miyabi_github::GitHubClient;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
@@ -293,6 +294,61 @@ impl CoordinatorAgent {
         }
 
         recommendations
+    }
+
+    /// Create TaskMetadata for all sub-tasks in a TaskDecomposition
+    ///
+    /// This persists metadata for each task created during decomposition,
+    /// establishing parent-child relationships.
+    pub fn create_subtask_metadata(
+        &self,
+        decomposition: &TaskDecomposition,
+        parent_task_id: &str,
+    ) -> Result<Vec<TaskMetadata>> {
+        // Get project root from config
+        let project_root =
+            std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+        let manager = TaskMetadataManager::new(&project_root).map_err(|e| {
+            MiyabiError::Unknown(format!("Failed to create TaskMetadataManager: {}", e))
+        })?;
+
+        let mut metadata_list = Vec::new();
+
+        for task in &decomposition.tasks {
+            let mut metadata = TaskMetadata::new(
+                task.id.clone(),
+                decomposition.original_issue.number.into(),
+                task.title.clone(),
+                project_root.clone(),
+                "main".to_string(),
+            );
+
+            // Set parent task ID to track relationships
+            metadata.parent_task_id = Some(parent_task_id.to_string());
+
+            // Set assigned agent
+            metadata.agent = task.assigned_agent.as_ref().map(|a| format!("{:?}", a));
+
+            // Save metadata
+            manager
+                .save(&metadata)
+                .map_err(|e| MiyabiError::Unknown(format!("Failed to save TaskMetadata: {}", e)))?;
+            metadata_list.push(metadata);
+
+            tracing::info!(
+                "📝 Created sub-task metadata: {} (parent: {})",
+                task.id,
+                parent_task_id
+            );
+        }
+
+        tracing::info!(
+            "✅ Created {} sub-task metadata entries for parent task {}",
+            metadata_list.len(),
+            parent_task_id
+        );
+
+        Ok(metadata_list)
     }
 
     /// Generate Plans.md markdown from TaskDecomposition (Feler's pattern)

@@ -3,9 +3,11 @@
 use crate::analysis::IssueAnalysis;
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
+use miyabi_core::task_metadata::{TaskMetadata, TaskMetadataManager};
 use miyabi_types::agent::ResultStatus;
 use miyabi_types::error::{AgentError, Result};
 use miyabi_types::{AgentResult, AgentType, Issue, MiyabiError, Task};
+use std::path::PathBuf;
 use tracing::{info, warn};
 
 /// Issue Analysis Agent
@@ -24,6 +26,8 @@ pub struct IssueAgent {
 pub struct IssueAgentConfig {
     /// Enable detailed logging
     pub verbose: bool,
+    /// Project root directory for TaskMetadata persistence
+    pub project_root: Option<PathBuf>,
 }
 
 impl IssueAgent {
@@ -58,6 +62,52 @@ impl IssueAgent {
         }
 
         Ok(analysis)
+    }
+
+    /// Create TaskMetadata for an Issue
+    ///
+    /// This should be called when an Issue is assigned to a worktree for processing
+    pub fn create_task_metadata(
+        &self,
+        task_id: &str,
+        issue: &Issue,
+        worktree_path: Option<PathBuf>,
+        branch_name: Option<String>,
+    ) -> Result<TaskMetadata> {
+        let project_root = self.config.project_root.clone().ok_or_else(|| {
+            MiyabiError::Agent(AgentError::new(
+                "project_root not configured in IssueAgentConfig",
+                AgentType::IssueAgent,
+                Some(task_id.to_string()),
+            ))
+        })?;
+
+        let mut metadata = TaskMetadata::new(
+            task_id.to_string(),
+            Some(issue.number),
+            issue.title.clone(),
+            project_root.clone(),
+            "main".to_string(), // Default base branch
+        );
+
+        metadata.worktree_path = worktree_path;
+        metadata.branch_name = branch_name;
+        metadata.agent = Some("IssueAgent".to_string());
+
+        // Save metadata to disk
+        let manager = TaskMetadataManager::new(&project_root).map_err(|e| {
+            MiyabiError::Unknown(format!("Failed to create TaskMetadataManager: {}", e))
+        })?;
+        manager
+            .save(&metadata)
+            .map_err(|e| MiyabiError::Unknown(format!("Failed to save TaskMetadata: {}", e)))?;
+
+        info!(
+            "📝 Created TaskMetadata for Issue #{}: {}",
+            issue.number, task_id
+        );
+
+        Ok(metadata)
     }
 }
 

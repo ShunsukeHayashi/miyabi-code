@@ -2158,6 +2158,7 @@ dependencies = [
  "miyabi-agent-integrations",
  "miyabi-agent-review",
  "miyabi-agent-workflow",
+ "miyabi-core",
  "miyabi-knowledge",
  "miyabi-llm",
  "miyabi-types",

@@ -48,5 +48,6 @@ knowledge-integration = ["miyabi-knowledge"]
 llm-integration = ["miyabi-llm"]
 
 [dev-dependencies]
+miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
 tempfile = "3.13"
 tracing-subscriber = "0.3"

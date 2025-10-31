@@ -143,7 +143,7 @@ pub struct SkillConfig {
 }
 
 /// Agent dependencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentDependencies {
     #[serde(default)]
     pub requires: Vec<String>,
@@ -172,15 +172,6 @@ pub struct AgentConfig {
     pub skills: HashMap<String, SkillConfig>,
     #[serde(default)]
     pub dependencies: AgentDependencies,
-}
-
-impl Default for AgentDependencies {
-    fn default() -> Self {
-        Self {
-            requires: Vec::new(),
-            provides: Vec::new(),
-        }
-    }
 }
 
 /// Agent information (lightweight summary)

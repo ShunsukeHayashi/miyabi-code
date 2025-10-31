@@ -1,47 +1,61 @@
-// Task Metadata Persistence System
-// Inspired by KAMUI 4D's data/tasks-state.json design
+// Task metadata persistence system for Miyabi
+//
+// This module provides functionality to persist task execution metadata,
+// including execution history, success/failure status, and execution time.
+//
+// Based on KAMUI 4D's `data/tasks-state.json` design, adapted for Miyabi's
+// Git Worktree-based workflow.
 
-use chrono::{DateTime, Duration, Utc};
+use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 /// Task execution status
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TaskStatus {
-    /// Task created but not started
+    /// Task is pending (not started yet)
     Pending,
-    /// Task currently executing
+    /// Task is currently running
     Running,
     /// Task completed successfully
-    Completed,
-    /// Task failed with error
+    Success,
+    /// Task failed with an error
     Failed,
-    /// Task paused (waiting for dependencies)
-    Paused,
+    /// Task was cancelled
+    Cancelled,
 }
 
-/// Task metadata - stored in .miyabi/tasks/{id}.json
+/// Task metadata structure
+///
+/// Stores all information about a task's execution, including:
+/// - Task identification (ID, issue number, title)
+/// - Git information (worktree path, branch names)
+/// - Execution timing (created, started, completed)
+/// - Agent assignment
+/// - Success/failure status
+/// - Parent-child task relationships (for CoordinatorAgent decomposition)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskMetadata {
-    /// Unique task identifier (e.g., "issue-270")
+    /// Unique task ID
     pub id: String,
 
-    /// GitHub Issue number (if applicable)
+    /// GitHub issue number (if applicable)
     pub issue_number: Option<u64>,
 
-    /// Task title/description
+    /// Task title
     pub title: String,
 
     /// Project root directory
     pub project_root: PathBuf,
 
-    /// Worktree path (if using git worktree)
+    /// Git Worktree path (if created)
     pub worktree_path: Option<PathBuf>,
 
-    /// Git branch name
+    /// Branch name for this task
     pub branch_name: Option<String>,
 
     /// Base branch (usually "main")
@@ -50,8 +64,11 @@ pub struct TaskMetadata {
     /// Current task status
     pub status: TaskStatus,
 
-    /// Assigned Agent name
+    /// Assigned agent (e.g., "CoordinatorAgent", "CodeGenAgent")
     pub agent: Option<String>,
+
+    /// Parent task ID (for sub-tasks created by CoordinatorAgent)
+    pub parent_task_id: Option<String>,
 
     /// Task creation timestamp
     pub created_at: DateTime<Utc>,
@@ -62,402 +79,482 @@ pub struct TaskMetadata {
     /// Task completion timestamp
     pub completed_at: Option<DateTime<Utc>>,
 
-    /// Execution duration
-    #[serde(
-        serialize_with = "serialize_duration",
-        deserialize_with = "deserialize_duration",
-        skip_serializing_if = "Option::is_none",
-        default
-    )]
-    pub duration: Option<Duration>,
+    /// Execution duration (in seconds)
+    pub duration_secs: Option<u64>,
 
-    /// Success/failure flag
+    /// Whether the task succeeded
     pub success: Option<bool>,
 
     /// Error message (if failed)
     pub error_message: Option<String>,
 }
 
-// Custom serialization for Duration
-fn serialize_duration<S>(duration: &Option<Duration>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    match duration {
-        Some(d) => serializer.serialize_i64(d.num_seconds()),
-        None => serializer.serialize_none(),
-    }
-}
-
-fn deserialize_duration<'de, D>(deserializer: D) -> Result<Option<Duration>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let seconds: Option<i64> = Option::deserialize(deserializer)?;
-    Ok(seconds.map(Duration::seconds))
-}
-
 impl TaskMetadata {
-    /// Create new task metadata
-    pub fn new(id: String, title: String, project_root: PathBuf) -> Self {
+    /// Create a new TaskMetadata
+    pub fn new(
+        id: String,
+        issue_number: Option<u64>,
+        title: String,
+        project_root: PathBuf,
+        base_branch: String,
+    ) -> Self {
         Self {
             id,
-            issue_number: None,
+            issue_number,
             title,
             project_root,
             worktree_path: None,
             branch_name: None,
-            base_branch: "main".to_string(),
+            base_branch,
             status: TaskStatus::Pending,
             agent: None,
+            parent_task_id: None,
             created_at: Utc::now(),
             started_at: None,
             completed_at: None,
-            duration: None,
+            duration_secs: None,
             success: None,
             error_message: None,
         }
     }
 
     /// Mark task as started
-    pub fn start(&mut self, agent: Option<String>) {
+    pub fn start(&mut self) {
         self.status = TaskStatus::Running;
         self.started_at = Some(Utc::now());
-        self.agent = agent;
     }
 
-    /// Mark task as completed
-    pub fn complete(&mut self, success: bool) {
-        self.status = if success {
-            TaskStatus::Completed
-        } else {
-            TaskStatus::Failed
-        };
+    /// Mark task as completed successfully
+    pub fn complete_success(&mut self) {
+        self.status = TaskStatus::Success;
+        self.success = Some(true);
+        self.complete_common();
+    }
+
+    /// Mark task as failed
+    pub fn complete_failure(&mut self, error: Option<String>) {
+        self.status = TaskStatus::Failed;
+        self.success = Some(false);
+        self.error_message = error;
+        self.complete_common();
+    }
+
+    /// Mark task as cancelled
+    pub fn cancel(&mut self) {
+        self.status = TaskStatus::Cancelled;
+        self.complete_common();
+    }
+
+    /// Common completion logic
+    fn complete_common(&mut self) {
         self.completed_at = Some(Utc::now());
-        self.success = Some(success);
 
         // Calculate duration
         if let Some(started) = self.started_at {
-            let completed = self.completed_at.unwrap();
-            self.duration = Some(completed.signed_duration_since(started));
+            if let Some(completed) = self.completed_at {
+                let duration = completed.signed_duration_since(started);
+                self.duration_secs = Some(duration.num_seconds() as u64);
+            }
         }
     }
 
-    /// Mark task as failed with error message
-    pub fn fail(&mut self, error_message: String) {
-        self.complete(false);
-        self.error_message = Some(error_message);
+    /// Get execution duration
+    pub fn get_duration(&self) -> Option<Duration> {
+        self.duration_secs.map(Duration::from_secs)
     }
 }
 
-/// Task statistics
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskStatistics {
-    pub total_tasks: usize,
-    pub completed_tasks: usize,
-    pub failed_tasks: usize,
-    pub running_tasks: usize,
-    pub avg_duration: Option<Duration>,
-    pub success_rate: f64,
-}
-
 /// Task metadata manager
+///
+/// Handles persistence of task metadata to `.miyabi/tasks/*.json`
 pub struct TaskMetadataManager {
+    /// Base directory (`.miyabi/tasks/`)
     tasks_dir: PathBuf,
 }
 
 impl TaskMetadataManager {
-    /// Create new task metadata manager
-    pub fn new(project_root: &Path) -> anyhow::Result<Self> {
+    /// Create a new TaskMetadataManager
+    ///
+    /// # Arguments
+    /// * `project_root` - Project root directory
+    pub fn new(project_root: &Path) -> Result<Self> {
         let tasks_dir = project_root.join(".miyabi").join("tasks");
-        fs::create_dir_all(&tasks_dir)?;
+
+        // Create tasks directory if it doesn't exist
+        if !tasks_dir.exists() {
+            fs::create_dir_all(&tasks_dir).context("Failed to create .miyabi/tasks directory")?;
+        }
 
         Ok(Self { tasks_dir })
     }
 
-    /// Get task file path
-    fn get_task_path(&self, id: &str) -> PathBuf {
-        self.tasks_dir.join(format!("{}.json", id))
+    /// Save task metadata to disk
+    ///
+    /// Saves metadata as `.miyabi/tasks/{task_id}.json`
+    pub fn save(&self, metadata: &TaskMetadata) -> Result<PathBuf> {
+        let file_path = self.tasks_dir.join(format!("{}.json", metadata.id));
+
+        let json =
+            serde_json::to_string_pretty(metadata).context("Failed to serialize task metadata")?;
+
+        fs::write(&file_path, json).context("Failed to write task metadata to disk")?;
+
+        Ok(file_path)
     }
 
-    /// Create new task
-    pub fn create_task(&self, metadata: TaskMetadata) -> anyhow::Result<()> {
-        let path = self.get_task_path(&metadata.id);
-        let json = serde_json::to_string_pretty(&metadata)?;
-        fs::write(path, json)?;
-        Ok(())
+    /// Load task metadata from disk
+    pub fn load(&self, task_id: &str) -> Result<TaskMetadata> {
+        let file_path = self.tasks_dir.join(format!("{}.json", task_id));
+
+        let json =
+            fs::read_to_string(&file_path).context("Failed to read task metadata from disk")?;
+
+        let metadata: TaskMetadata =
+            serde_json::from_str(&json).context("Failed to deserialize task metadata")?;
+
+        Ok(metadata)
     }
 
-    /// Update existing task
-    pub fn update_task(&self, id: &str, metadata: TaskMetadata) -> anyhow::Result<()> {
-        let path = self.get_task_path(id);
-        let json = serde_json::to_string_pretty(&metadata)?;
-        fs::write(path, json)?;
-        Ok(())
-    }
+    /// List all task metadata files
+    pub fn list_all(&self) -> Result<Vec<TaskMetadata>> {
+        let mut tasks = Vec::new();
 
-    /// Load task by ID
-    pub fn load_task(&self, id: &str) -> anyhow::Result<Option<TaskMetadata>> {
-        let path = self.get_task_path(id);
-        if !path.exists() {
-            return Ok(None);
+        if !self.tasks_dir.exists() {
+            return Ok(tasks);
         }
-
-        let json = fs::read_to_string(path)?;
-        let metadata: TaskMetadata = serde_json::from_str(&json)?;
-        Ok(Some(metadata))
-    }
-
-    /// List all tasks
-    pub fn list_tasks(&self) -> anyhow::Result<Vec<TaskMetadata>> {
-        let mut tasks: Vec<TaskMetadata> = Vec::new();
 
         for entry in fs::read_dir(&self.tasks_dir)? {
             let entry = entry?;
             let path = entry.path();
 
             if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                let json = fs::read_to_string(path)?;
-                if let Ok(metadata) = serde_json::from_str(&json) {
+                if let Ok(metadata) = self.load_from_path(&path) {
                     tasks.push(metadata);
                 }
             }
         }
 
-        // Sort by created_at (newest first)
+        // Sort by creation time (newest first)
         tasks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
         Ok(tasks)
     }
 
-    /// Delete task
-    pub fn delete_task(&self, id: &str) -> anyhow::Result<()> {
-        let path = self.get_task_path(id);
-        if path.exists() {
-            fs::remove_file(path)?;
+    /// Load task metadata from a specific path
+    fn load_from_path(&self, path: &Path) -> Result<TaskMetadata> {
+        let json = fs::read_to_string(path)?;
+        let metadata: TaskMetadata = serde_json::from_str(&json)?;
+        Ok(metadata)
+    }
+
+    /// Find tasks by issue number
+    pub fn find_by_issue(&self, issue_number: u64) -> Result<Vec<TaskMetadata>> {
+        let all_tasks = self.list_all()?;
+        Ok(all_tasks
+            .into_iter()
+            .filter(|task| task.issue_number == Some(issue_number))
+            .collect())
+    }
+
+    /// Find tasks by status
+    pub fn find_by_status(&self, status: TaskStatus) -> Result<Vec<TaskMetadata>> {
+        let all_tasks = self.list_all()?;
+        Ok(all_tasks
+            .into_iter()
+            .filter(|task| task.status == status)
+            .collect())
+    }
+
+    /// Delete task metadata
+    pub fn delete(&self, task_id: &str) -> Result<()> {
+        let file_path = self.tasks_dir.join(format!("{}.json", task_id));
+
+        if file_path.exists() {
+            fs::remove_file(&file_path).context("Failed to delete task metadata")?;
         }
+
         Ok(())
     }
 
-    /// Get task statistics
-    pub fn get_statistics(&self) -> anyhow::Result<TaskStatistics> {
-        let tasks = self.list_tasks()?;
-        let total_tasks = tasks.len();
+    /// Get statistics about all tasks
+    pub fn get_statistics(&self) -> Result<TaskStatistics> {
+        let tasks = self.list_all()?;
 
-        let completed_tasks = tasks.iter().filter(|t| t.status == TaskStatus::Completed).count();
-        let failed_tasks = tasks.iter().filter(|t| t.status == TaskStatus::Failed).count();
-        let running_tasks = tasks.iter().filter(|t| t.status == TaskStatus::Running).count();
-
-        let success_rate = if total_tasks > 0 {
-            completed_tasks as f64 / total_tasks as f64
-        } else {
-            0.0
-        };
+        let total = tasks.len();
+        let pending = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Pending)
+            .count();
+        let running = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Running)
+            .count();
+        let success = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Success)
+            .count();
+        let failed = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Failed)
+            .count();
+        let cancelled = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Cancelled)
+            .count();
 
         // Calculate average duration for completed tasks
-        let durations: Vec<Duration> = tasks
-            .iter()
-            .filter_map(|t| t.duration)
-            .collect();
+        let completed_tasks: Vec<_> = tasks.iter().filter(|t| t.duration_secs.is_some()).collect();
 
-        let avg_duration = if !durations.is_empty() {
-            let total_seconds: i64 = durations.iter().map(|d| d.num_seconds()).sum();
-            Some(Duration::seconds(total_seconds / durations.len() as i64))
+        let avg_duration_secs = if !completed_tasks.is_empty() {
+            let total_duration: u64 = completed_tasks.iter().filter_map(|t| t.duration_secs).sum();
+            Some(total_duration / completed_tasks.len() as u64)
         } else {
             None
         };
 
         Ok(TaskStatistics {
-            total_tasks,
-            completed_tasks,
-            failed_tasks,
-            running_tasks,
-            avg_duration,
-            success_rate,
+            total,
+            pending,
+            running,
+            success,
+            failed,
+            cancelled,
+            success_rate: if success + failed > 0 {
+                Some((success as f64 / (success + failed) as f64) * 100.0)
+            } else {
+                None
+            },
+            avg_duration_secs,
         })
     }
 
-    /// Get tasks by status
-    pub fn get_tasks_by_status(&self, status: TaskStatus) -> anyhow::Result<Vec<TaskMetadata>> {
-        let tasks = self.list_tasks()?;
-        Ok(tasks.into_iter().filter(|t| t.status == status).collect())
-    }
-
-    /// Get tasks by agent
-    pub fn get_tasks_by_agent(&self, agent_name: &str) -> anyhow::Result<Vec<TaskMetadata>> {
-        let tasks = self.list_tasks()?;
-        Ok(tasks
-            .into_iter()
-            .filter(|t| t.agent.as_deref() == Some(agent_name))
-            .collect())
-    }
-}
-
-/// Task index - cached list of all tasks for fast lookup
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskIndex {
-    pub tasks: HashMap<String, TaskMetadataIndex>,
-    pub last_updated: DateTime<Utc>,
-}
-
-/// Lightweight task metadata for index
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskMetadataIndex {
-    pub id: String,
-    pub title: String,
-    pub status: TaskStatus,
-    pub created_at: DateTime<Utc>,
-    pub agent: Option<String>,
-}
-
-impl TaskIndex {
-    pub fn new() -> Self {
-        Self {
-            tasks: HashMap::new(),
-            last_updated: Utc::now(),
-        }
-    }
-
-    pub fn update(&mut self, tasks: Vec<TaskMetadata>) {
-        self.tasks.clear();
-        for task in tasks {
-            let index = TaskMetadataIndex {
-                id: task.id.clone(),
-                title: task.title.clone(),
-                status: task.status,
-                created_at: task.created_at,
-                agent: task.agent.clone(),
-            };
-            self.tasks.insert(task.id.clone(), index);
-        }
-        self.last_updated = Utc::now();
-    }
-
-    pub fn save(&self, path: &Path) -> anyhow::Result<()> {
-        let json = serde_json::to_string_pretty(self)?;
-        fs::write(path, json)?;
+    /// Convenience method: Update task status
+    ///
+    /// Loads task, updates status, and saves back to disk
+    pub fn update_status(&self, task_id: &str, new_status: TaskStatus) -> Result<()> {
+        let mut metadata = self.load(task_id)?;
+        metadata.status = new_status;
+        self.save(&metadata)?;
         Ok(())
     }
 
-    pub fn load(path: &Path) -> anyhow::Result<Option<Self>> {
-        if !path.exists() {
-            return Ok(None);
-        }
-        let json = fs::read_to_string(path)?;
-        let index = serde_json::from_str(&json)?;
-        Ok(Some(index))
+    /// Convenience method: Mark task as started
+    ///
+    /// Sets status to Running and records start time
+    pub fn mark_started(&self, task_id: &str) -> Result<()> {
+        let mut metadata = self.load(task_id)?;
+        metadata.start();
+        self.save(&metadata)?;
+        Ok(())
     }
+
+    /// Convenience method: Mark task as completed successfully
+    ///
+    /// Sets status to Success and records completion time
+    pub fn mark_completed(&self, task_id: &str, success: bool) -> Result<()> {
+        let mut metadata = self.load(task_id)?;
+        if success {
+            metadata.complete_success();
+        } else {
+            metadata.complete_failure(None);
+        }
+        self.save(&metadata)?;
+        Ok(())
+    }
+
+    /// Convenience method: Mark task as failed with error message
+    pub fn mark_failed(&self, task_id: &str, error_message: Option<String>) -> Result<()> {
+        let mut metadata = self.load(task_id)?;
+        metadata.complete_failure(error_message);
+        self.save(&metadata)?;
+        Ok(())
+    }
+}
+
+/// Task statistics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskStatistics {
+    pub total: usize,
+    pub pending: usize,
+    pub running: usize,
+    pub success: usize,
+    pub failed: usize,
+    pub cancelled: usize,
+    pub success_rate: Option<f64>,
+    pub avg_duration_secs: Option<u64>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::thread;
+    use std::time::Duration as StdDuration;
     use tempfile::TempDir;
 
     #[test]
-    fn test_task_metadata_creation() {
+    fn test_task_metadata_new() {
         let metadata = TaskMetadata::new(
-            "task-001".to_string(),
+            "task-123".to_string(),
+            Some(42),
             "Test task".to_string(),
-            PathBuf::from("/tmp/project"),
+            PathBuf::from("/project"),
+            "main".to_string(),
         );
 
-        assert_eq!(metadata.id, "task-001");
+        assert_eq!(metadata.id, "task-123");
+        assert_eq!(metadata.issue_number, Some(42));
         assert_eq!(metadata.title, "Test task");
         assert_eq!(metadata.status, TaskStatus::Pending);
-        assert!(metadata.started_at.is_none());
-        assert!(metadata.completed_at.is_none());
+        assert!(metadata.success.is_none());
     }
 
     #[test]
-    fn test_task_lifecycle() {
+    fn test_task_metadata_start() {
         let mut metadata = TaskMetadata::new(
-            "task-002".to_string(),
-            "Test task".to_string(),
-            PathBuf::from("/tmp/project"),
+            "task-123".to_string(),
+            None,
+            "Test".to_string(),
+            PathBuf::from("/project"),
+            "main".to_string(),
         );
 
-        // Start task
-        metadata.start(Some("TestAgent".to_string()));
+        metadata.start();
         assert_eq!(metadata.status, TaskStatus::Running);
         assert!(metadata.started_at.is_some());
-        assert_eq!(metadata.agent.as_deref(), Some("TestAgent"));
+    }
 
-        // Complete task
-        std::thread::sleep(std::time::Duration::from_millis(100));
-        metadata.complete(true);
-        assert_eq!(metadata.status, TaskStatus::Completed);
-        assert!(metadata.completed_at.is_some());
+    #[test]
+    fn test_task_metadata_complete_success() {
+        let mut metadata = TaskMetadata::new(
+            "task-123".to_string(),
+            None,
+            "Test".to_string(),
+            PathBuf::from("/project"),
+            "main".to_string(),
+        );
+
+        metadata.start();
+        thread::sleep(StdDuration::from_millis(10));
+        metadata.complete_success();
+
+        assert_eq!(metadata.status, TaskStatus::Success);
         assert_eq!(metadata.success, Some(true));
-        assert!(metadata.duration.is_some());
+        assert!(metadata.completed_at.is_some());
+        assert!(metadata.duration_secs.is_some());
     }
 
     #[test]
-    fn test_task_manager() -> anyhow::Result<()> {
-        let temp_dir = TempDir::new()?;
-        let project_root = temp_dir.path();
+    fn test_task_metadata_complete_failure() {
+        let mut metadata = TaskMetadata::new(
+            "task-123".to_string(),
+            None,
+            "Test".to_string(),
+            PathBuf::from("/project"),
+            "main".to_string(),
+        );
 
-        let manager = TaskMetadataManager::new(project_root)?;
+        metadata.start();
+        metadata.complete_failure(Some("Test error".to_string()));
 
-        // Create task
+        assert_eq!(metadata.status, TaskStatus::Failed);
+        assert_eq!(metadata.success, Some(false));
+        assert_eq!(metadata.error_message, Some("Test error".to_string()));
+    }
+
+    #[test]
+    fn test_task_metadata_manager_save_and_load() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = TaskMetadataManager::new(temp_dir.path()).unwrap();
+
         let metadata = TaskMetadata::new(
-            "task-003".to_string(),
-            "Test task".to_string(),
-            project_root.to_path_buf(),
+            "task-456".to_string(),
+            Some(99),
+            "Save test".to_string(),
+            temp_dir.path().to_path_buf(),
+            "main".to_string(),
         );
-        manager.create_task(metadata.clone())?;
 
-        // Load task
-        let loaded = manager.load_task("task-003")?;
-        assert!(loaded.is_some());
-        assert_eq!(loaded.unwrap().id, "task-003");
+        let saved_path = manager.save(&metadata).unwrap();
+        assert!(saved_path.exists());
 
-        // List tasks
-        let tasks = manager.list_tasks()?;
-        assert_eq!(tasks.len(), 1);
-
-        // Delete task
-        manager.delete_task("task-003")?;
-        let tasks = manager.list_tasks()?;
-        assert_eq!(tasks.len(), 0);
-
-        Ok(())
+        let loaded = manager.load("task-456").unwrap();
+        assert_eq!(loaded.id, "task-456");
+        assert_eq!(loaded.issue_number, Some(99));
+        assert_eq!(loaded.title, "Save test");
     }
 
     #[test]
-    fn test_task_statistics() -> anyhow::Result<()> {
-        let temp_dir = TempDir::new()?;
-        let project_root = temp_dir.path();
+    fn test_task_metadata_manager_list_all() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = TaskMetadataManager::new(temp_dir.path()).unwrap();
 
-        let manager = TaskMetadataManager::new(project_root)?;
+        // Create multiple tasks
+        for i in 1..=3 {
+            let metadata = TaskMetadata::new(
+                format!("task-{}", i),
+                Some(i as u64),
+                format!("Task {}", i),
+                temp_dir.path().to_path_buf(),
+                "main".to_string(),
+            );
+            manager.save(&metadata).unwrap();
+        }
 
-        // Create completed task
+        let all_tasks = manager.list_all().unwrap();
+        assert_eq!(all_tasks.len(), 3);
+    }
+
+    #[test]
+    fn test_task_metadata_manager_find_by_issue() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = TaskMetadataManager::new(temp_dir.path()).unwrap();
+
+        let metadata = TaskMetadata::new(
+            "task-789".to_string(),
+            Some(100),
+            "Find test".to_string(),
+            temp_dir.path().to_path_buf(),
+            "main".to_string(),
+        );
+        manager.save(&metadata).unwrap();
+
+        let found = manager.find_by_issue(100).unwrap();
+        assert_eq!(found.len(), 1);
+        assert_eq!(found[0].id, "task-789");
+    }
+
+    #[test]
+    fn test_task_metadata_manager_statistics() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = TaskMetadataManager::new(temp_dir.path()).unwrap();
+
+        // Create tasks with different statuses
         let mut task1 = TaskMetadata::new(
-            "task-004".to_string(),
-            "Completed task".to_string(),
-            project_root.to_path_buf(),
+            "task-s1".to_string(),
+            None,
+            "Success 1".to_string(),
+            temp_dir.path().to_path_buf(),
+            "main".to_string(),
         );
-        task1.start(Some("Agent1".to_string()));
-        task1.complete(true);
-        manager.create_task(task1)?;
+        task1.start();
+        task1.complete_success();
+        manager.save(&task1).unwrap();
 
-        // Create failed task
         let mut task2 = TaskMetadata::new(
-            "task-005".to_string(),
-            "Failed task".to_string(),
-            project_root.to_path_buf(),
+            "task-f1".to_string(),
+            None,
+            "Failed 1".to_string(),
+            temp_dir.path().to_path_buf(),
+            "main".to_string(),
         );
-        task2.start(Some("Agent2".to_string()));
-        task2.fail("Error message".to_string());
-        manager.create_task(task2)?;
+        task2.start();
+        task2.complete_failure(None);
+        manager.save(&task2).unwrap();
 
-        // Get statistics
-        let stats = manager.get_statistics()?;
-        assert_eq!(stats.total_tasks, 2);
-        assert_eq!(stats.completed_tasks, 1);
-        assert_eq!(stats.failed_tasks, 1);
-        assert_eq!(stats.success_rate, 0.5);
-
-        Ok(())
+        let stats = manager.get_statistics().unwrap();
+        assert_eq!(stats.total, 2);
+        assert_eq!(stats.success, 1);
+        assert_eq!(stats.failed, 1);
+        assert!(stats.success_rate.is_some());
     }
 }

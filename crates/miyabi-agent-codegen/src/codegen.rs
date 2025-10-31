@@ -9,6 +9,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use miyabi_agent_core::BaseAgent;
 use miyabi_claudable::ClaudableClient;
+use miyabi_core::task_metadata::TaskMetadataManager;
 use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
@@ -326,6 +327,19 @@ impl BaseAgent for CodeGenAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = Utc::now();
 
+        // Get project root from config for TaskMetadata
+        let project_root =
+            std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+
+        // Update TaskMetadata: mark as started
+        if let Ok(manager) = TaskMetadataManager::new(&project_root) {
+            if let Err(e) = manager.mark_started(&task.id) {
+                tracing::warn!("Failed to update TaskMetadata to Running: {}", e);
+            } else {
+                tracing::info!("🚀 TaskMetadata updated: {} → Running", task.id);
+            }
+        }
+
         // Setup Worktree if enabled (temporarily disabled due to Send issues)
         // let worktree_info = if self.config.use_worktree {
         //     Some(self.setup_worktree(task).await?)
@@ -343,17 +357,45 @@ impl BaseAgent for CodeGenAgent {
         //     Ok(())
         // };
 
-        // Propagate code generation error if any
-        let code_result = code_result?;
+        // Handle code generation result and update TaskMetadata
+        let (final_result, task_success) = match code_result {
+            Ok(result) => {
+                if self.llm_provider.is_some() || self.config.use_worktree {
+                    match self.validate_code(&result) {
+                        Ok(_) => (Ok(result), true),
+                        Err(e) => (Err(e), false),
+                    }
+                } else {
+                    (Ok(result), true)
+                }
+            }
+            Err(e) => (Err(e), false),
+        };
+
+        // Update TaskMetadata: mark as completed (success or failed)
+        if let Ok(manager) = TaskMetadataManager::new(&project_root) {
+            let update_result = if task_success {
+                manager.mark_completed(&task.id, true)
+            } else {
+                let error_msg = final_result.as_ref().err().map(|e| e.to_string());
+                manager.mark_failed(&task.id, error_msg)
+            };
+
+            if let Err(e) = update_result {
+                tracing::warn!("Failed to update TaskMetadata completion status: {}", e);
+            } else {
+                let status = if task_success { "Success" } else { "Failed" };
+                tracing::info!("✅ TaskMetadata updated: {} → {}", task.id, status);
+            }
+        }
+
+        // Propagate error if code generation failed
+        let code_result = final_result?;
 
         // Log cleanup error but don't fail the whole task (temporarily disabled)
         // if let Err(e) = cleanup_result {
         //     tracing::warn!("Failed to cleanup worktree: {}", e);
         // }
-
-        if self.llm_provider.is_some() || self.config.use_worktree {
-            self.validate_code(&code_result)?;
-        }
 
         let end_time = Utc::now();
         let metrics = self.build_metrics(task, &code_result, start_time, end_time);
