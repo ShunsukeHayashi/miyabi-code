@@ -1,0 +1,3 @@
+# MCP Server - Console output should be JSON only
+# Disable all console.log for MCP communication
+SILENT_MODE=true

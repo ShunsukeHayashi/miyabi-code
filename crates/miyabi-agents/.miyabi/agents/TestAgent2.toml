@@ -1,0 +1,14 @@
+[agent]
+name = "TestAgent2"
+type = "marketing"
+enabled = true
+model = "claude-sonnet-4"
+description = "Test agent 2"
+
+[parameters]
+
+[skills]
+
+[dependencies]
+requires = []
+provides = []

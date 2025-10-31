@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { Play, AlertCircle, CheckCircle, Clock, RefreshCw, ExternalLink, Terminal, GitBranch, FileText, Code, Briefcase, TrendingUp, Users } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Play, AlertCircle, CheckCircle, Clock, RefreshCw, ExternalLink, Terminal, GitBranch, FileText } from "lucide-react";
 import {
   AgentType,
   AgentExecutionStatus,
@@ -9,7 +9,6 @@ import {
   listenToAgentStatus,
   listenToAgentOutput,
   getAgentsByCategory,
-  type AgentMetadata,
 } from "../lib/agent-api";
 import { listIssues, type GitHubIssue } from "../lib/github-api";
 
@@ -23,27 +22,8 @@ interface AgentExecution {
   startTime: number;
 }
 
-// Category definitions
-type CategoryId = "all" | "coding" | "business-strategy" | "business-marketing" | "business-sales";
-
-interface Category {
-  id: CategoryId;
-  name: string;
-  icon: React.ReactNode;
-  count: number;
-}
-
-const CATEGORIES: Category[] = [
-  { id: "all", name: "All Agents", icon: <div className="text-base">🤖</div>, count: AVAILABLE_AGENTS.length },
-  { id: "coding", name: "Coding", icon: <Code className="w-4 h-4" />, count: AVAILABLE_AGENTS.filter(a => a.category === "coding").length },
-  { id: "business-strategy", name: "Strategy & Planning", icon: <Briefcase className="w-4 h-4" />, count: AVAILABLE_AGENTS.filter(a => a.category === "business-strategy").length },
-  { id: "business-marketing", name: "Marketing & Content", icon: <TrendingUp className="w-4 h-4" />, count: AVAILABLE_AGENTS.filter(a => a.category === "business-marketing").length },
-  { id: "business-sales", name: "Sales & CRM", icon: <Users className="w-4 h-4" />, count: AVAILABLE_AGENTS.filter(a => a.category === "business-sales").length },
-];
-
 export function AgentExecutionPanel() {
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryId>("all");
   const [issueNumber, setIssueNumber] = useState<string>("");
   const [executions, setExecutions] = useState<AgentExecution[]>([]);
   const [activeExecution, setActiveExecution] = useState<AgentExecution | null>(null);
@@ -233,14 +213,7 @@ export function AgentExecutionPanel() {
     }
   };
 
-  // Filter agents by selected category
-  const filteredAgents = useMemo(() => {
-    if (selectedCategory === "all") {
-      return AVAILABLE_AGENTS;
-    }
-    return AVAILABLE_AGENTS.filter((agent) => agent.category === selectedCategory);
-  }, [selectedCategory]);
-
+  const codingAgents = getAgentsByCategory("coding");
   const selectedAgentMetadata = AVAILABLE_AGENTS.find(
     (a) => a.type === selectedAgent
   );
@@ -258,47 +231,14 @@ export function AgentExecutionPanel() {
           {/* Quick Guide */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 space-y-1">
             <p className="font-medium mb-1">💡 使い方</p>
-            <p>1. カテゴリを選択</p>
-            <p>2. エージェントを選択</p>
-            <p>3. Issue番号を選択（任意）</p>
-            <p>4. 「Execute Agent」をクリック</p>
-          </div>
-        </div>
-
-        {/* Category Filter */}
-        <div className="px-4 pb-4">
-          <div className="flex flex-col gap-2">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setSelectedCategory(cat.id);
-                  // Reset selected agent when changing category
-                  setSelectedAgent(null);
-                }}
-                className={`
-                  px-4 py-2.5 rounded-xl flex items-center justify-between
-                  transition-all duration-200 text-sm font-light
-                  ${selectedCategory === cat.id
-                    ? 'bg-gray-900 text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }
-                `}
-              >
-                <div className="flex items-center gap-2">
-                  {cat.icon}
-                  <span>{cat.name}</span>
-                </div>
-                <span className={`text-xs ${selectedCategory === cat.id ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {cat.count}
-                </span>
-              </button>
-            ))}
+            <p>1. 下からエージェントを選択</p>
+            <p>2. Issue番号を選択（任意）</p>
+            <p>3. 「Execute Agent」をクリック</p>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {filteredAgents.map((agent) => (
+          {codingAgents.map((agent) => (
             <button
               key={agent.type}
               onClick={() => setSelectedAgent(agent.type)}

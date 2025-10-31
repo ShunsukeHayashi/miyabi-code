@@ -1,0 +1,14 @@
+[agent]
+name = "TestAgent"
+type = "coordinator"
+enabled = true
+model = "claude-sonnet-4"
+description = "Test agent"
+
+[parameters]
+
+[skills]
+
+[dependencies]
+requires = []
+provides = []

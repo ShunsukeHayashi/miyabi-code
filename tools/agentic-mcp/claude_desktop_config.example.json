@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "agentic-orchestration": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/ai-course-content-generator-v.0.0.1/tools/agentic-mcp/dist/server.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "your_github_token_here",
+        "ANTHROPIC_API_KEY": "your_anthropic_api_key_here",
+        "GITHUB_REPOSITORY": "ShunsukeHayashi/ai-course-content-generator-v.0.0.1",
+        "GITHUB_REPOSITORY_PATH": "/Users/shunsuke/Dev/ai-course-content-generator-v.0.0.1"
+      }
+    }
+  }
+}

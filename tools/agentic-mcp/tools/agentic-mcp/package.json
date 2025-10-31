@@ -1,0 +1,15 @@
+{
+  "name": "agentic-orchestration-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server for Agentic Orchestration System",
+  "main": "mcp-wrapper.cjs",
+  "bin": {
+    "agentic-mcp": "./mcp-wrapper.cjs"
+  },
+  "scripts": {
+    "start": "node mcp-wrapper.cjs",
+    "test": "node mcp-wrapper.cjs test"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

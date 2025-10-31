@@ -7,7 +7,7 @@ import { listen } from "@tauri-apps/api/event";
  * Agent type definitions (mirrors Rust AgentType enum)
  */
 export type AgentType =
-  // Coding Agents
+  // Coding Agents (7)
   | "coordinator_agent"
   | "code_gen_agent"
   | "review_agent"
@@ -15,20 +15,20 @@ export type AgentType =
   | "pr_agent"
   | "deployment_agent"
   | "refresher_agent"
-  // Business Agents - Strategy & Planning
+  // Business Agents - Strategy & Planning (6)
   | "ai_entrepreneur_agent"
+  | "self_analysis_agent"
   | "product_concept_agent"
   | "product_design_agent"
   | "funnel_design_agent"
   | "persona_agent"
-  | "self_analysis_agent"
-  // Business Agents - Marketing & Content
+  // Business Agents - Marketing & Content (5)
   | "market_research_agent"
   | "marketing_agent"
   | "content_creation_agent"
   | "sns_strategy_agent"
   | "youtube_agent"
-  // Business Agents - Sales & Analytics
+  // Business Agents - Sales & Analytics (3)
   | "sales_agent"
   | "crm_agent"
   | "analytics_agent";
@@ -164,6 +164,30 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
     description: "USP・収益モデル設計",
     color: "#14b8a6", // Teal
   },
+  {
+    type: "product_design_agent",
+    displayName: "プロダクトデザインAgent",
+    characterName: "デザイン",
+    category: "business-strategy",
+    description: "技術スタック・MVP定義",
+    color: "#10b981", // Emerald
+  },
+  {
+    type: "funnel_design_agent",
+    displayName: "ファネルデザインAgent",
+    characterName: "ファネル",
+    category: "business-strategy",
+    description: "顧客導線最適化",
+    color: "#6366f1", // Indigo
+  },
+  {
+    type: "persona_agent",
+    displayName: "ペルソナAgent",
+    characterName: "ペルソナ",
+    category: "business-strategy",
+    description: "ターゲット顧客定義",
+    color: "#ec4899", // Pink
+  },
 
   // Business Agents - Marketing
   {
@@ -189,6 +213,22 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
     category: "business-marketing",
     description: "動画・記事・教材制作",
     color: "#84cc16", // Lime
+  },
+  {
+    type: "sns_strategy_agent",
+    displayName: "SNS戦略Agent",
+    characterName: "SNS",
+    category: "business-marketing",
+    description: "Twitter/Instagram戦略",
+    color: "#06b6d4", // Cyan
+  },
+  {
+    type: "youtube_agent",
+    displayName: "YouTube運用Agent",
+    characterName: "YouTube",
+    category: "business-marketing",
+    description: "チャンネル最適化",
+    color: "#ef4444", // Red
   },
 
   // Business Agents - Sales
