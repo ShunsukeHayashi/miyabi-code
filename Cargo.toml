@@ -30,6 +30,12 @@ members = [
     "crates/miyabi-e2e-tests", "crates/miyabi-modes", "crates/miyabi-line", "crates/miyabi-historical-ai", "crates/miyabi-historical-api",  # E2E test framework
     "crates/miyabi-viz", "crates/miyabi-tui",  # Molecular visualization system
     "crates/miyabi-voice-guide", "crates/miyabi-telegram", "crates/miyabi-agent-issue", "crates/miyabi-session-manager",  # Voice-First Onboarding system
+    "crates/miyabi-pty-manager",  # PTY management for agent terminal control
+]
+
+exclude = [
+    "miyabi-desktop",  # Tauri desktop app (separate project)
+    "miyabi-desktop/src-tauri",  # Tauri Rust backend
 ]
 
 [workspace.package]

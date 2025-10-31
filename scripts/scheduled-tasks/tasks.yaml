@@ -1,0 +1,208 @@
+# Miyabi Scheduled Tasks Configuration
+# Version: 1.0.0
+# Purpose: Define automated scheduled tasks for Miyabi
+#
+# Task Structure:
+#   - id: Unique task identifier (used in logs and cron)
+#   - name: Human-readable task name
+#   - schedule: Cron expression (5 fields: minute hour day month weekday)
+#   - command: Command to execute
+#   - timeout: Maximum execution time in seconds
+#   - enabled: Enable/disable task
+#   - tools: (Optional) Claude Code tools to enable (comma-separated)
+#   - description: Task description
+#
+# Cron Schedule Examples:
+#   0 9 * * *       - Daily at 9:00 AM
+#   0 */4 * * *     - Every 4 hours
+#   0 10 * * 1      - Every Monday at 10:00 AM
+#   */30 * * * *    - Every 30 minutes
+#   0 2 * * *       - Daily at 2:00 AM
+
+tasks:
+  # ========================================
+  # Daily Tasks
+  # ========================================
+
+  - id: ai-blog-daily
+    name: "Daily AI News Blog Generation"
+    schedule: "0 9 * * *"  # 9:00 AM daily
+    command: "scripts/generate-ai-blog.sh --date $(date +%Y-%m-%d)"
+    timeout: 900  # 15 minutes
+    enabled: true
+    tools: "Bash,Read,Write,Edit,WebSearch,WebFetch"
+    description: "Generate daily AI news blog article using WebSearch"
+
+  - id: worktree-cleanup
+    name: "Cleanup Stale Worktrees"
+    schedule: "0 2 * * *"  # 2:00 AM daily
+    command: ".claude/hooks/worktree-manager.sh auto-cleanup 7 false"
+    timeout: 300  # 5 minutes
+    enabled: true
+    description: "Remove worktrees older than 7 days"
+
+  - id: session-logs-archival
+    name: "Archive Session Logs"
+    schedule: "0 3 * * *"  # 3:00 AM daily
+    command: "scripts/scheduled-tasks/archive-logs.sh"
+    timeout: 180  # 3 minutes
+    enabled: true
+    description: "Archive and compress old session logs"
+
+  - id: github-issue-triage
+    name: "GitHub Issue Triage"
+    schedule: "0 */6 * * *"  # Every 6 hours
+    command: "scripts/scheduled-tasks/triage-issues.sh"
+    timeout: 600  # 10 minutes
+    enabled: true
+    tools: "Bash,Read,Write"
+    description: "Auto-triage unlabeled issues using label inference"
+
+  # ========================================
+  # Weekly Tasks
+  # ========================================
+
+  - id: security-audit-weekly
+    name: "Weekly Security Audit"
+    schedule: "0 10 * * 1"  # 10:00 AM every Monday
+    command: "cargo audit && cargo clippy --all-targets -- -D warnings"
+    timeout: 1800  # 30 minutes
+    enabled: true
+    description: "Run security audit and clippy checks"
+
+  - id: dependency-check-weekly
+    name: "Check Dependency Updates"
+    schedule: "0 11 * * 1"  # 11:00 AM every Monday
+    command: "cargo outdated --workspace --root-deps-only"
+    timeout: 600  # 10 minutes
+    enabled: true
+    description: "Check for outdated dependencies"
+
+  - id: performance-benchmarks
+    name: "Run Performance Benchmarks"
+    schedule: "0 12 * * 1"  # 12:00 PM every Monday
+    command: "cargo bench --all"
+    timeout: 3600  # 60 minutes
+    enabled: false  # Disabled by default (resource-intensive)
+    description: "Run performance benchmarks for all crates"
+
+  - id: docs-generation
+    name: "Generate Documentation"
+    schedule: "0 13 * * 1"  # 1:00 PM every Monday
+    command: "cargo doc --all --no-deps"
+    timeout: 900  # 15 minutes
+    enabled: true
+    description: "Generate rustdoc documentation"
+
+  - id: coverage-report
+    name: "Generate Code Coverage Report"
+    schedule: "0 14 * * 1"  # 2:00 PM every Monday
+    command: "cargo tarpaulin --out Html --output-dir .ai/logs/coverage"
+    timeout: 2400  # 40 minutes
+    enabled: false  # Disabled by default (requires tarpaulin installation)
+    description: "Generate code coverage report"
+
+  # ========================================
+  # Bi-Weekly Tasks
+  # ========================================
+
+  - id: knowledge-base-sync
+    name: "Sync Knowledge Base with Qdrant"
+    schedule: "0 9 * * 1,15"  # 1st and 15th day of month at 9:00 AM
+    command: "cargo run --bin miyabi-cli -- knowledge sync --full"
+    timeout: 1800  # 30 minutes
+    enabled: false  # Enable when Qdrant is available
+    description: "Full sync of knowledge base with Qdrant"
+
+  # ========================================
+  # Hourly Tasks
+  # ========================================
+
+  - id: ci-health-check
+    name: "CI/CD Health Check"
+    schedule: "0 * * * *"  # Every hour at :00
+    command: "scripts/scheduled-tasks/check-ci-status.sh"
+    timeout: 120  # 2 minutes
+    enabled: false  # Enable when CI monitoring is ready
+    tools: "Bash,Read"
+    description: "Monitor CI/CD pipeline health"
+
+  - id: agent-metrics-collect
+    name: "Collect Agent Execution Metrics"
+    schedule: "*/30 * * * *"  # Every 30 minutes
+    command: "scripts/scheduled-tasks/collect-agent-metrics.sh"
+    timeout: 60  # 1 minute
+    enabled: false  # Enable when metrics collection is ready
+    description: "Collect and aggregate agent execution metrics"
+
+  # ========================================
+  # Monthly Tasks
+  # ========================================
+
+  - id: dependency-audit-full
+    name: "Full Dependency Audit"
+    schedule: "0 10 1 * *"  # 1st day of month at 10:00 AM
+    command: "cargo audit --db ./advisory-db && cargo deny check"
+    timeout: 1800  # 30 minutes
+    enabled: true
+    description: "Full dependency security audit with cargo-deny"
+
+  - id: disk-cleanup
+    name: "Cleanup Build Artifacts"
+    schedule: "0 4 1 * *"  # 1st day of month at 4:00 AM
+    command: "cargo clean && rm -rf target/*/incremental"
+    timeout: 300  # 5 minutes
+    enabled: true
+    description: "Clean up build artifacts to free disk space"
+
+  # ========================================
+  # On-Demand Tasks (enabled: false by default)
+  # ========================================
+
+  - id: full-test-suite
+    name: "Run Full Test Suite"
+    schedule: "0 0 * * 0"  # Every Sunday at midnight
+    command: "cargo test --all --all-features"
+    timeout: 3600  # 60 minutes
+    enabled: false  # Run manually or via CI
+    description: "Execute full test suite for all crates"
+
+  - id: docker-cleanup
+    name: "Cleanup Docker Resources"
+    schedule: "0 5 * * 0"  # Every Sunday at 5:00 AM
+    command: "docker system prune -af --volumes"
+    timeout: 600  # 10 minutes
+    enabled: false  # Enable if using Docker locally
+    description: "Clean up unused Docker resources"
+
+# ========================================
+# Task Groups (for batch execution)
+# ========================================
+task_groups:
+  daily:
+    - ai-blog-daily
+    - worktree-cleanup
+    - session-logs-archival
+
+  weekly:
+    - security-audit-weekly
+    - dependency-check-weekly
+    - docs-generation
+
+  maintenance:
+    - worktree-cleanup
+    - session-logs-archival
+    - disk-cleanup
+
+# ========================================
+# Global Configuration
+# ========================================
+config:
+  log_dir: ".ai/logs/scheduled-tasks"
+  history_file: ".ai/logs/scheduled-tasks/history.json"
+  max_concurrent_tasks: 3
+  retry_on_failure: true
+  max_retries: 2
+  retry_delay_seconds: 60
+  notification_on_failure: true
+  voicevox_enabled: true

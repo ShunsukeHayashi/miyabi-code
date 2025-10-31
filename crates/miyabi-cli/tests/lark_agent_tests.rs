@@ -35,20 +35,17 @@ fn test_c1_system_analysis() {
     assert!(output.status.success(), "C1 command should succeed");
 
     // Verify output contains expected sections
-    assert!(stdout.contains("C1: System Analysis"), "Should show C1 title");
+    assert!(
+        stdout.contains("C1: System Analysis"),
+        "Should show C1 title"
+    );
     assert!(
         stdout.contains("システム要件を分析し、Lark Baseの構造に落とし込む"),
         "Should show Japanese description"
     );
     assert!(stdout.contains("Tasks:"), "Should show Tasks section");
-    assert!(
-        stdout.contains("T1: 要件定義"),
-        "Should show T1 task"
-    );
-    assert!(
-        stdout.contains("T2: データ構造設計"),
-        "Should show T2 task"
-    );
+    assert!(stdout.contains("T1: 要件定義"), "Should show T1 task");
+    assert!(stdout.contains("T2: データ構造設計"), "Should show T2 task");
     assert!(
         stdout.contains("Deliverables:"),
         "Should show Deliverables section"
@@ -78,14 +75,7 @@ fn test_c1_system_analysis() {
 fn test_c7_dashboard_construction() {
     let output = Command::new("cargo")
         .args(&[
-            "run",
-            "--quiet",
-            "--bin",
-            "miyabi",
-            "--",
-            "lark",
-            "base",
-            "C7",
+            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C7",
         ])
         .env("MIYABI_VOICE_GUIDE", "false")
         .output()
@@ -106,23 +96,14 @@ fn test_c7_dashboard_construction() {
         stdout.contains("3-Layer Structure:"),
         "Should show 3-layer structure"
     );
-    assert!(
-        stdout.contains("KPIカード層"),
-        "Should mention KPI layer"
-    );
+    assert!(stdout.contains("KPIカード層"), "Should mention KPI layer");
     assert!(stdout.contains("グラフ層"), "Should mention graph layer");
     assert!(
         stdout.contains("詳細テーブル層"),
         "Should mention table layer"
     );
-    assert!(
-        stdout.contains("T1: KPIカード作成"),
-        "Should show T1 task"
-    );
-    assert!(
-        stdout.contains("T2: グラフ作成"),
-        "Should show T2 task"
-    );
+    assert!(stdout.contains("T1: KPIカード作成"), "Should show T1 task");
+    assert!(stdout.contains("T2: グラフ作成"), "Should show T2 task");
     assert!(
         stdout.contains("✅ C7 completed"),
         "Should show completion message"
@@ -177,13 +158,7 @@ fn test_all_commands() {
 fn test_invalid_command() {
     let output = Command::new("cargo")
         .args(&[
-            "run",
-            "--quiet",
-            "--bin",
-            "miyabi",
-            "--",
-            "lark",
-            "base",
+            "run", "--quiet", "--bin", "miyabi", "--", "lark", "base",
             "C99", // Invalid command
         ])
         .env("MIYABI_VOICE_GUIDE", "false")

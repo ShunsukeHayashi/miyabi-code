@@ -214,13 +214,14 @@ impl WorktreeMonitorApp {
     /// Draw worktree list section
     fn draw_worktree_list(&self, frame: &mut Frame, area: Rect) {
         if self.worktrees.is_empty() {
-            let empty_msg = Paragraph::new("No worktrees found\n\nWorktrees will appear here when created.")
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title("Worktree List (0)"),
-                )
-                .style(Style::default().fg(Color::DarkGray));
+            let empty_msg =
+                Paragraph::new("No worktrees found\n\nWorktrees will appear here when created.")
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .title("Worktree List (0)"),
+                    )
+                    .style(Style::default().fg(Color::DarkGray));
             frame.render_widget(empty_msg, area);
             return;
         }
@@ -233,11 +234,10 @@ impl WorktreeMonitorApp {
             .collect();
 
         let list = List::new(items)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(format!("Worktree List ({} worktrees)", self.worktrees.len())),
-            )
+            .block(Block::default().borders(Borders::ALL).title(format!(
+                "Worktree List ({} worktrees)",
+                self.worktrees.len()
+            )))
             .highlight_style(
                 Style::default()
                     .fg(Color::Black)
@@ -274,11 +274,7 @@ impl WorktreeMonitorApp {
             "N/A".to_string()
         };
 
-        let path_display = wt
-            .path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("?");
+        let path_display = wt.path.file_name().and_then(|n| n.to_str()).unwrap_or("?");
 
         let line = Line::from(vec![
             Span::styled(status_icon, Style::default().fg(status_color)),
@@ -292,14 +288,17 @@ impl WorktreeMonitorApp {
                 }),
             ),
             Span::raw(" "),
+            Span::styled(format!("[{}]", issue_str), Style::default().fg(Color::Cyan)),
+            Span::raw(" "),
             Span::styled(
-                format!("[{}]", issue_str),
-                Style::default().fg(Color::Cyan),
+                format!("{:?}", wt.status),
+                Style::default().fg(status_color),
             ),
             Span::raw(" "),
-            Span::styled(format!("{:?}", wt.status), Style::default().fg(status_color)),
-            Span::raw(" "),
-            Span::styled(format!("({} MB)", disk_mb), Style::default().fg(Color::Blue)),
+            Span::styled(
+                format!("({} MB)", disk_mb),
+                Style::default().fg(Color::Blue),
+            ),
             Span::raw(" "),
             Span::styled(age_str, Style::default().fg(Color::DarkGray)),
         ]);
@@ -330,12 +329,17 @@ impl WorktreeMonitorApp {
             .filter(|w| w.status == WorktreeStatusDetailed::Orphaned)
             .count();
 
-        let total_disk_mb: u64 = self.worktrees.iter().map(|w| w.disk_usage).sum::<u64>() / 1024 / 1024;
+        let total_disk_mb: u64 =
+            self.worktrees.iter().map(|w| w.disk_usage).sum::<u64>() / 1024 / 1024;
 
         let summary_text = vec![
             Line::from(vec![
                 Span::styled("Total: ", Style::default().add_modifier(Modifier::BOLD)),
-                Span::raw(format!("{} worktrees, {} MB", self.worktrees.len(), total_disk_mb)),
+                Span::raw(format!(
+                    "{} worktrees, {} MB",
+                    self.worktrees.len(),
+                    total_disk_mb
+                )),
             ]),
             Line::from(vec![
                 Span::styled("✅ Active: ", Style::default().fg(Color::Green)),
@@ -352,11 +356,8 @@ impl WorktreeMonitorApp {
             ]),
         ];
 
-        let summary = Paragraph::new(summary_text).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Summary"),
-        );
+        let summary = Paragraph::new(summary_text)
+            .block(Block::default().borders(Borders::ALL).title("Summary"));
 
         frame.render_widget(summary, area);
     }
@@ -442,12 +443,19 @@ mod tests {
         let repo_path = temp_dir.path().to_path_buf();
 
         let result = WorktreeMonitorApp::new(repo_path);
-        assert!(result.is_ok(), "Should create WorktreeMonitorApp successfully");
+        assert!(
+            result.is_ok(),
+            "Should create WorktreeMonitorApp successfully"
+        );
 
         let app = result.unwrap();
         assert_eq!(app.selected_index, 0, "Initial selected index should be 0");
         assert!(!app.should_quit, "Should not be in quit state initially");
-        assert_eq!(app.refresh_interval, Duration::from_millis(500), "Refresh interval should be 500ms");
+        assert_eq!(
+            app.refresh_interval,
+            Duration::from_millis(500),
+            "Refresh interval should be 500ms"
+        );
     }
 
     #[test]
@@ -469,7 +477,8 @@ mod tests {
 
         // Test 'q' key
         let key_event = KeyEvent::new(KeyCode::Char('q'), event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert!(app.should_quit, "Should quit after pressing 'q'");
     }
 
@@ -483,7 +492,8 @@ mod tests {
 
         // Test Esc key
         let key_event = KeyEvent::new(KeyCode::Esc, event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert!(app.should_quit, "Should quit after pressing Esc");
     }
 
@@ -523,20 +533,24 @@ mod tests {
 
         // Test Down arrow
         let key_event = KeyEvent::new(KeyCode::Down, event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 1, "Should move down to index 1");
 
         // Test Down arrow at end (should stay at end)
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 1, "Should stay at index 1 (end)");
 
         // Test Up arrow
         let key_event = KeyEvent::new(KeyCode::Up, event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 0, "Should move up to index 0");
 
         // Test Up arrow at start (should stay at start)
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 0, "Should stay at index 0 (start)");
     }
 
@@ -563,12 +577,14 @@ mod tests {
 
         // Test End key
         let key_event = KeyEvent::new(KeyCode::End, event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 4, "Should jump to end (index 4)");
 
         // Test Home key
         let key_event = KeyEvent::new(KeyCode::Home, event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 0, "Should jump to start (index 0)");
     }
 
@@ -606,12 +622,14 @@ mod tests {
 
         // Test 'j' key (down in vim)
         let key_event = KeyEvent::new(KeyCode::Char('j'), event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 1, "Should move down with 'j'");
 
         // Test 'k' key (up in vim)
         let key_event = KeyEvent::new(KeyCode::Char('k'), event::KeyModifiers::empty());
-        app.handle_key_event(key_event).expect("Failed to handle key event");
+        app.handle_key_event(key_event)
+            .expect("Failed to handle key event");
         assert_eq!(app.selected_index, 0, "Should move up with 'k'");
     }
 
@@ -664,7 +682,11 @@ mod tests {
 
             // Just verify that formatting doesn't panic
             let item = app.format_worktree_item(&worktree, false);
-            assert!(!format!("{:?}", item).is_empty(), "Formatted item should not be empty for {:?}", status);
+            assert!(
+                !format!("{:?}", item).is_empty(),
+                "Formatted item should not be empty for {:?}",
+                status
+            );
         }
     }
 
@@ -690,7 +712,10 @@ mod tests {
         let line_text = format!("{:?}", item);
 
         // Should show "10 MB"
-        assert!(line_text.contains("10") || line_text.contains("MB"), "Should display disk usage");
+        assert!(
+            line_text.contains("10") || line_text.contains("MB"),
+            "Should display disk usage"
+        );
     }
 
     #[test]
@@ -716,7 +741,10 @@ mod tests {
         let line_text = format!("{:?}", item);
 
         // Should show minutes
-        assert!(line_text.contains("m ago") || line_text.contains("30"), "Should display age in minutes");
+        assert!(
+            line_text.contains("m ago") || line_text.contains("30"),
+            "Should display age in minutes"
+        );
     }
 
     #[test]

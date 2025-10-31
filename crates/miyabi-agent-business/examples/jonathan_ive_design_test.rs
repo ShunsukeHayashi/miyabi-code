@@ -16,8 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create agent configuration
     let config = AgentConfig {
         device_identifier: "integration-test".to_string(),
-        github_token: std::env::var("GITHUB_TOKEN")
-            .unwrap_or_else(|_| "test-token".to_string()),
+        github_token: std::env::var("GITHUB_TOKEN").unwrap_or_else(|_| "test-token".to_string()),
         repo_owner: Some("test-owner".to_string()),
         repo_name: Some("test-repo".to_string()),
         use_task_tool: true,

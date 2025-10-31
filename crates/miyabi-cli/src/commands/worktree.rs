@@ -382,7 +382,11 @@ impl WorktreeCommand {
 
         // Display Orphaned worktrees
         if !orphaned.is_empty() {
-            println!("{} ({}):", "Orphaned Worktrees".red().bold(), orphaned.len());
+            println!(
+                "{} ({}):",
+                "Orphaned Worktrees".red().bold(),
+                orphaned.len()
+            );
             for wt in &orphaned {
                 let disk_mb = wt.disk_usage / 1024 / 1024;
                 let issue_str = if let Some(issue) = wt.issue_number {
@@ -403,7 +407,11 @@ impl WorktreeCommand {
 
         // Display Corrupted worktrees
         if !corrupted.is_empty() {
-            println!("{} ({}):", "Corrupted Worktrees".red().bold(), corrupted.len());
+            println!(
+                "{} ({}):",
+                "Corrupted Worktrees".red().bold(),
+                corrupted.len()
+            );
             for wt in &corrupted {
                 let disk_mb = wt.disk_usage / 1024 / 1024;
                 let issue_str = if let Some(issue) = wt.issue_number {
@@ -435,7 +443,10 @@ impl WorktreeCommand {
         if !orphaned.is_empty() || !stuck.is_empty() || !corrupted.is_empty() {
             println!("{}", "Recommendations:".cyan().bold());
             if !orphaned.is_empty() {
-                println!("  - Cleanup orphaned worktrees: {}", "miyabi cleanup".yellow());
+                println!(
+                    "  - Cleanup orphaned worktrees: {}",
+                    "miyabi cleanup".yellow()
+                );
             }
             if !stuck.is_empty() {
                 println!(

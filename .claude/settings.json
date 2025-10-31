@@ -9,6 +9,12 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Task",
+        "command": "jq -r '.tool_input' | .claude/hooks/agent-worktree-pre.sh",
+        "description": "Create worktree for Sub-Agent execution (Orchestrator pattern)",
+        "timeout": 60000
+      },
+      {
         "matcher": "Edit|Write",
         "command": ".claude/hooks/auto-format.sh",
         "description": "Auto-format code before editing/writing files"
@@ -20,6 +26,12 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "Task",
+        "command": "jq -r '.tool_input' | .claude/hooks/agent-worktree-post.sh",
+        "description": "Cleanup worktree after Sub-Agent execution (Orchestrator pattern)",
+        "timeout": 120000
+      },
       {
         "matcher": "Edit|Write",
         "command": ".claude/hooks/validate-rust.sh",
@@ -39,7 +51,7 @@
     ],
     "SessionStart": [
       {
-        "command": "echo \"🚀 Miyabi Project Session Started\" && echo \"📍 Working directory: $CLAUDE_PROJECT_DIR\" && git status --short",
+        "command": "echo \"🚀 Miyabi Orchestrator Session Started\" && echo \"📍 Working directory: $CLAUDE_PROJECT_DIR\" && git status --short",
         "description": "Display project status on session start"
       },
       {
@@ -55,6 +67,10 @@
       {
         "command": ".claude/hooks/session-keepalive.sh stop",
         "description": "Stop session keep-alive mechanism"
+      },
+      {
+        "command": "bash -c 'if .claude/hooks/worktree-manager.sh 2>&1 | grep -q \"is_in_worktree\"; then echo \"⚠️  Cleanup worktree? Run: .claude/hooks/worktree-manager.sh cleanup\"; fi' || true",
+        "description": "Remind user to cleanup worktree if in one"
       },
       {
         "command": "echo \"📊 Session Statistics:\" && echo \"Duration: $(date)\" && git status --short",

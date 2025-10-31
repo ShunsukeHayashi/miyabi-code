@@ -1,23 +1,9 @@
 # Miyabi - Project Root & Control Document
 
-**Version**: 3.1.0
-**Last Updated**: 2025-10-29
-**Purpose**: Project root documentation & Miyabi autonomous control protocol
+作業開始時は、User のIntentを適切に理解して、Task nameとして作業宣言して,
+Worktree dirを作成してそのWorktree dir へ必ずcd すること。Git worktreeを使用して作業を開始して下さい。
 
----
-
-## 🎉 Session 3 Status - COMPLETE ✅
-
-**Date**: 2025-10-29
-**Status**: **PRODUCTION READY** (100% Complete - All 8/8 Infrastructure Tasks Done)
-**Miyabi Web API**: ✅ Deployed to Cloud Run (asia-northeast1)
-**Telegram Bot**: ✅ @Miyabi_auto_bot Active
-**Documentation**: ✅ 15,000+ lines provided
-**Team Ready**: ✅ Comprehensive guides completed
-
-**Key Achievement**: Miyabi Web API transformed from basic deployment to enterprise-grade production system with comprehensive monitoring, security hardening, automated backups, and team training materials.
-
----
+作業終了時は必ずクリーンナップをして下さい。
 
 ## 🎯 Critical Rules - 必ず守ること
 
@@ -349,7 +335,7 @@ RUST_BACKTRACE=1               # Backtrace on panic
 
 ## 🔗 Links
 
-- **Repository**: https://github.com/ShunsukeHayashi/Miyabi
+- **Repository**: 
 - **Landing Page**: https://shunsukehayashi.github.io/Miyabi/landing.html
 - **NPM CLI**: https://www.npmjs.com/package/miyabi
 - **NPM SDK**: https://www.npmjs.com/package/miyabi-agent-sdk

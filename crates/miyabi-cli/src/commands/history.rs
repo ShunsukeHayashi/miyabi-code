@@ -65,24 +65,32 @@ pub enum HistoryCommand {
 
 impl HistoryCommand {
     pub async fn execute(&self) -> Result<()> {
-        let current_dir = env::current_dir()
-            .context("Failed to get current directory")?;
+        let current_dir = env::current_dir().context("Failed to get current directory")?;
 
         let manager = TaskMetadataManager::new(&current_dir)
             .context("Failed to initialize TaskMetadataManager")?;
 
         match self {
-            HistoryCommand::List { limit, status, issue, json } => {
-                self.list_tasks(&manager, *limit, status.as_deref(), *issue, *json).await
+            HistoryCommand::List {
+                limit,
+                status,
+                issue,
+                json,
+            } => {
+                self.list_tasks(&manager, *limit, status.as_deref(), *issue, *json)
+                    .await
             }
-            HistoryCommand::Stats { json } => {
-                self.show_statistics(&manager, *json).await
-            }
+            HistoryCommand::Stats { json } => self.show_statistics(&manager, *json).await,
             HistoryCommand::Show { task_id, json } => {
                 self.show_task_details(&manager, task_id, *json).await
             }
-            HistoryCommand::Clean { all, older_than_days, dry_run } => {
-                self.clean_tasks(&manager, *all, *older_than_days, *dry_run).await
+            HistoryCommand::Clean {
+                all,
+                older_than_days,
+                dry_run,
+            } => {
+                self.clean_tasks(&manager, *all, *older_than_days, *dry_run)
+                    .await
             }
         }
     }
@@ -95,8 +103,7 @@ impl HistoryCommand {
         issue_filter: Option<u64>,
         json: bool,
     ) -> Result<()> {
-        let mut tasks = manager.list_all()
-            .context("Failed to list tasks")?;
+        let mut tasks = manager.list_all().context("Failed to list tasks")?;
 
         // Apply filters
         if let Some(status_str) = status_filter {
@@ -147,11 +154,13 @@ impl HistoryCommand {
                 TaskStatus::Pending => status_text.white(),
             };
 
-            let issue_str = task.issue_number
+            let issue_str = task
+                .issue_number
                 .map(|n| format!("#{}", n))
                 .unwrap_or_else(|| "-".to_string());
 
-            let duration_str = task.duration_secs
+            let duration_str = task
+                .duration_secs
                 .map(|d| format_duration(Duration::from_secs(d)))
                 .unwrap_or_else(|| "-".to_string());
 
@@ -185,7 +194,8 @@ impl HistoryCommand {
     }
 
     async fn show_statistics(&self, manager: &TaskMetadataManager, json: bool) -> Result<()> {
-        let stats = manager.get_statistics()
+        let stats = manager
+            .get_statistics()
             .context("Failed to get task statistics")?;
 
         if json {
@@ -207,8 +217,16 @@ impl HistoryCommand {
         println!("Status Breakdown:");
         println!("  ⏸️  {}: {}", "Pending", stats.pending);
         println!("  🔄 {}: {}", "Running", stats.running);
-        println!("  ✅ {}: {}", "Success".green(), stats.success.to_string().green());
-        println!("  ❌ {}: {}", "Failed".red(), stats.failed.to_string().red());
+        println!(
+            "  ✅ {}: {}",
+            "Success".green(),
+            stats.success.to_string().green()
+        );
+        println!(
+            "  ❌ {}: {}",
+            "Failed".red(),
+            stats.failed.to_string().red()
+        );
         println!("  ⚠️  {}: {}", "Cancelled", stats.cancelled);
         println!();
 
@@ -242,7 +260,8 @@ impl HistoryCommand {
         task_id: &str,
         json: bool,
     ) -> Result<()> {
-        let task = manager.load(task_id)
+        let task = manager
+            .load(task_id)
             .context("Failed to load task metadata")?;
 
         if json {
@@ -301,7 +320,11 @@ impl HistoryCommand {
         }
 
         if let Some(duration) = task.duration_secs {
-            println!("  ⏱️  {}: {}", "Duration", format_duration(Duration::from_secs(duration)));
+            println!(
+                "  ⏱️  {}: {}",
+                "Duration",
+                format_duration(Duration::from_secs(duration))
+            );
         }
 
         if let Some(error) = &task.error_message {
@@ -319,14 +342,14 @@ impl HistoryCommand {
         older_than_days: Option<u64>,
         dry_run: bool,
     ) -> Result<()> {
-        let tasks = manager.list_all()
-            .context("Failed to list tasks")?;
+        let tasks = manager.list_all().context("Failed to list tasks")?;
 
         let tasks_to_delete: Vec<_> = if all {
             tasks
         } else if let Some(days) = older_than_days {
             let cutoff = Utc::now() - chrono::Duration::days(days as i64);
-            tasks.into_iter()
+            tasks
+                .into_iter()
                 .filter(|t| t.created_at < cutoff)
                 .collect()
         } else {
@@ -339,7 +362,8 @@ impl HistoryCommand {
             return Ok(());
         }
 
-        println!("\n{} {} task(s) will be deleted:",
+        println!(
+            "\n{} {} task(s) will be deleted:",
             if dry_run { "🔍 Dry run:" } else { "🗑️ " },
             tasks_to_delete.len()
         );
@@ -361,7 +385,11 @@ impl HistoryCommand {
             }
         }
 
-        println!("\n{} {} task(s) deleted successfully.", "✅".green(), deleted_count);
+        println!(
+            "\n{} {} task(s) deleted successfully.",
+            "✅".green(),
+            deleted_count
+        );
 
         Ok(())
     }

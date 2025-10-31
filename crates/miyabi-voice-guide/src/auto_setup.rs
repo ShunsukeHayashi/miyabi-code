@@ -19,12 +19,16 @@ use tracing::{info, warn};
 /// - Worker process auto-start
 /// - System verification test
 pub fn auto_setup_voicevox() {
-    // Check if voice guide is disabled
+    // Check if voice guide is explicitly enabled
+    // Default: DISABLED (changed from enabled to disabled)
     if std::env::var("MIYABI_VOICE_GUIDE")
-        .map(|v| v == "false")
+        .map(|v| v == "true")
         .unwrap_or(false)
+    // Changed: default is now false (disabled)
     {
-        return; // Silent skip if disabled
+        // Voice guide is explicitly enabled, continue setup
+    } else {
+        return; // Silent skip if not explicitly enabled
     }
 
     info!("Running VOICEVOX auto-setup...");

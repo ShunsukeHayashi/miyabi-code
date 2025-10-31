@@ -83,10 +83,7 @@ pub struct WorktreeCleanupManager {
 
 impl WorktreeCleanupManager {
     /// Create a new cleanup manager
-    pub fn new(
-        state_manager: WorktreeStateManager,
-        policy: WorktreeCleanupPolicy,
-    ) -> Self {
+    pub fn new(state_manager: WorktreeStateManager, policy: WorktreeCleanupPolicy) -> Self {
         Self {
             state_manager,
             policy,
@@ -105,12 +102,14 @@ impl WorktreeCleanupManager {
         // Get all worktrees
         let worktrees = self.state_manager.scan_worktrees()?;
 
-        tracing::info!("Starting worktree cleanup scan (found {} worktrees)", worktrees.len());
+        tracing::info!(
+            "Starting worktree cleanup scan (found {} worktrees)",
+            worktrees.len()
+        );
 
         // Clean up orphaned worktrees
         for worktree in worktrees.iter().filter(|w| {
-            w.status == WorktreeStatusDetailed::Orphaned
-                && self.should_clean_orphaned(w)
+            w.status == WorktreeStatusDetailed::Orphaned && self.should_clean_orphaned(w)
         }) {
             match self.cleanup_single(&mut report, worktree, "orphaned").await {
                 Ok(_) => report.orphaned_cleaned += 1,
@@ -123,9 +122,10 @@ impl WorktreeCleanupManager {
         }
 
         // Clean up idle worktrees
-        for worktree in worktrees.iter().filter(|w| {
-            w.status == WorktreeStatusDetailed::Idle && self.should_clean_idle(w)
-        }) {
+        for worktree in worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Idle && self.should_clean_idle(w))
+        {
             match self.cleanup_single(&mut report, worktree, "idle").await {
                 Ok(_) => report.idle_cleaned += 1,
                 Err(e) => report.errors.push(format!(
@@ -137,9 +137,10 @@ impl WorktreeCleanupManager {
         }
 
         // Clean up stuck worktrees
-        for worktree in worktrees.iter().filter(|w| {
-            w.status == WorktreeStatusDetailed::Stuck
-        }) {
+        for worktree in worktrees
+            .iter()
+            .filter(|w| w.status == WorktreeStatusDetailed::Stuck)
+        {
             match self.cleanup_single(&mut report, worktree, "stuck").await {
                 Ok(_) => report.stuck_cleaned += 1,
                 Err(e) => report.errors.push(format!(
@@ -152,9 +153,10 @@ impl WorktreeCleanupManager {
 
         // Enforce max_worktrees limit
         if let Some(max) = self.policy.max_worktrees {
-            let active_count = worktrees.iter().filter(|w| {
-                w.status == WorktreeStatusDetailed::Active
-            }).count();
+            let active_count = worktrees
+                .iter()
+                .filter(|w| w.status == WorktreeStatusDetailed::Active)
+                .count();
 
             if active_count + report.total_cleaned() > max {
                 // Clean oldest idle worktrees first

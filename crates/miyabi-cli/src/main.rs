@@ -11,9 +11,9 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, AgentManageCommand, CleanupCommand, ExecCommand, HistoryCommand,
-    InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand, LarkCommand, LoopCommand,
-    ModeCommand, ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand, StatusCommand,
+    AgentCommand, AgentManageCommand, CleanupCommand, ExecCommand, HistoryCommand, InfinityCommand,
+    InitCommand, InstallCommand, KnowledgeCommand, LarkCommand, LoopCommand, ModeCommand,
+    ParallelCommand, SessionCommand, SessionSubcommand, SetupCommand, StatusCommand,
     WorktreeCommand, WorktreeSubcommand,
 };
 use error::{CliError, Result};
@@ -393,8 +393,13 @@ async fn main() -> Result<()> {
             } else if let Some(t) = task {
                 t.clone()
             } else {
-                eprintln!("{}", "❌ Error: Either provide a task/issue number or use --interactive flag".red());
-                return Err(CliError::InvalidInput("Missing task or --interactive flag".to_string()));
+                eprintln!(
+                    "{}",
+                    "❌ Error: Either provide a task/issue number or use --interactive flag".red()
+                );
+                return Err(CliError::InvalidInput(
+                    "Missing task or --interactive flag".to_string(),
+                ));
             };
 
             // Try to parse as issue number
@@ -441,7 +446,11 @@ async fn main() -> Result<()> {
                 println!("{}", "Or use GitHub CLI:".dimmed());
                 println!(
                     "  {}",
-                    format!("gh issue create --title \"{}\" --label type:feature", task_str).yellow()
+                    format!(
+                        "gh issue create --title \"{}\" --label type:feature",
+                        task_str
+                    )
+                    .yellow()
                 );
 
                 // Voice Guide: Next step guidance
@@ -457,7 +466,11 @@ async fn main() -> Result<()> {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
         }
-        Some(Commands::Cleanup { dry_run, force, all }) => {
+        Some(Commands::Cleanup {
+            dry_run,
+            force,
+            all,
+        }) => {
             let cmd = CleanupCommand::new(dry_run, force, all);
             cmd.execute().await
         }
@@ -697,13 +710,25 @@ async fn select_issue_interactive() -> Result<u64> {
 
     // Use gh CLI to list issues
     let output = Command::new("gh")
-        .args(["issue", "list", "--limit", "20", "--state", "open", "--json", "number,title,labels"])
+        .args([
+            "issue",
+            "list",
+            "--limit",
+            "20",
+            "--state",
+            "open",
+            "--json",
+            "number,title,labels",
+        ])
         .output()
         .map_err(|e| CliError::ExecutionError(format!("Failed to run gh CLI: {}", e)))?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(CliError::ExecutionError(format!("gh CLI error: {}", stderr)));
+        return Err(CliError::ExecutionError(format!(
+            "gh CLI error: {}",
+            stderr
+        )));
     }
 
     #[derive(serde::Deserialize)]
@@ -718,12 +743,14 @@ async fn select_issue_interactive() -> Result<u64> {
         name: String,
     }
 
-    let issues: Vec<GhIssue> = serde_json::from_slice(&output.stdout)
-        .map_err(|e| CliError::Json(e))?;
+    let issues: Vec<GhIssue> =
+        serde_json::from_slice(&output.stdout).map_err(|e| CliError::Json(e))?;
 
     if issues.is_empty() {
         println!("{}", "  No open issues found".yellow());
-        return Err(CliError::ExecutionError("No issues to select from".to_string()));
+        return Err(CliError::ExecutionError(
+            "No issues to select from".to_string(),
+        ));
     }
 
     println!("Found {} open issue(s):", issues.len());
@@ -733,7 +760,8 @@ async fn select_issue_interactive() -> Result<u64> {
     let items: Vec<String> = issues
         .iter()
         .map(|issue| {
-            let labels_str = issue.labels
+            let labels_str = issue
+                .labels
                 .iter()
                 .map(|l| l.name.as_str())
                 .collect::<Vec<_>>()
@@ -745,12 +773,7 @@ async fn select_issue_interactive() -> Result<u64> {
                 format!(" [{}]", labels_str)
             };
 
-            format!(
-                "#{} - {}{}",
-                issue.number,
-                issue.title,
-                labels_display
-            )
+            format!("#{} - {}{}", issue.number, issue.title, labels_display)
         })
         .collect();
 
@@ -764,7 +787,12 @@ async fn select_issue_interactive() -> Result<u64> {
 
     let selected_issue = &issues[selection];
     println!();
-    println!("{} Selected: #{} - {}", "✅".green(), selected_issue.number, selected_issue.title);
+    println!(
+        "{} Selected: #{} - {}",
+        "✅".green(),
+        selected_issue.number,
+        selected_issue.title
+    );
     println!();
 
     Ok(selected_issue.number)

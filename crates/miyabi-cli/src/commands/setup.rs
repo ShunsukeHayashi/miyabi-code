@@ -355,9 +355,9 @@ cli:
             yes: true, // Skip prompts in setup wizard
         };
 
-        cmd.execute().await.map_err(|e| {
-            CliError::ExecutionError(format!("Failed to initialize agents: {}", e))
-        })?;
+        cmd.execute()
+            .await
+            .map_err(|e| CliError::ExecutionError(format!("Failed to initialize agents: {}", e)))?;
 
         Ok(())
     }

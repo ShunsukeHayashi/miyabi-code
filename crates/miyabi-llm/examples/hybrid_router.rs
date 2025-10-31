@@ -47,7 +47,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("OpenAI requests: {}", metrics.openai_requests);
     println!("Total tokens: {}", metrics.total_tokens());
     println!("Estimated cost: ${:.4}", metrics.estimated_cost_usd);
-    println!("Cost savings: ${:.4}", metrics.cost_savings_vs_pure_claude());
+    println!(
+        "Cost savings: ${:.4}",
+        metrics.cost_savings_vs_pure_claude()
+    );
     println!("Savings %: {:.1}%", metrics.savings_percentage());
 
     Ok(())

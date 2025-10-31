@@ -1,0 +1,448 @@
+{
+  "title": "【ゆっくり解説】Miyabi開発日報 2025-10-31",
+  "duration_estimate": "8-10分",
+  "characters": {
+    "reimu": {
+      "name": "霊夢",
+      "voicevox_speaker": "四国めたん",
+      "speaker_id": 2,
+      "personality": "明るく元気、少し抜けてる"
+    },
+    "marisa": {
+      "name": "魔理沙",
+      "voicevox_speaker": "春日部つむぎ",
+      "speaker_id": 8,
+      "personality": "落ち着き、「だぜ」口調"
+    }
+  },
+  "audio_settings": {
+    "speed": 1.1,
+    "pitch": 0,
+    "intonation": 1.0
+  },
+  "script": [
+    {
+      "index": 1,
+      "timestamp": "0:00-0:30",
+      "section": "OP",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "はいはーい！霊夢だよー！今日もMiyabiプロジェクトの開発進捗を報告していくわよー！",
+      "output_file": "01_reimu_opening.wav"
+    },
+    {
+      "index": 2,
+      "timestamp": "0:00-0:30",
+      "section": "OP",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "おう魔理沙だぜ！今日は何があったんだ？",
+      "output_file": "02_marisa_opening.wav"
+    },
+    {
+      "index": 3,
+      "timestamp": "0:00-0:30",
+      "section": "OP",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "今日はね、なんと！Issue 624のElectron App完全仕様がついに完成したのよ！",
+      "output_file": "03_reimu_announcement.wav"
+    },
+    {
+      "index": 4,
+      "timestamp": "0:00-0:30",
+      "section": "OP",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "おお！それはすげーじゃねーか！詳しく聞かせてくれよ！",
+      "output_file": "04_marisa_reaction.wav"
+    },
+    {
+      "index": 5,
+      "timestamp": "0:30-1:30",
+      "section": "Part1_Statistics",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "じゃあまず今日の統計から見ていくわね！",
+      "output_file": "05_reimu_stats_intro.wav"
+    },
+    {
+      "index": 6,
+      "timestamp": "0:30-1:30",
+      "section": "Part1_Statistics",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "おおっ！追加2万8千行、削除2万1千行って…めちゃくちゃデカい変更じゃねーか！",
+      "output_file": "06_marisa_stats_reaction.wav"
+    },
+    {
+      "index": 7,
+      "timestamp": "0:30-1:30",
+      "section": "Part1_Statistics",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そうなのよー！でもね、削除が多いのはクリーンアップをしたからなの。実質的には7139行のプラスなのよ！",
+      "output_file": "07_reimu_cleanup_explain.wav"
+    },
+    {
+      "index": 8,
+      "timestamp": "0:30-1:30",
+      "section": "Part1_Statistics",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "なるほどな。コード整理も大事だもんな。で、メインの変更は何だったんだぜ？",
+      "output_file": "08_marisa_question.wav"
+    },
+    {
+      "index": 9,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "メインはね、Issue 624のElectron App完全仕様の策定よ！",
+      "output_file": "09_reimu_main_topic.wav"
+    },
+    {
+      "index": 10,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "Electron Appって、デスクトップアプリのやつだよな？",
+      "output_file": "10_marisa_confirm.wav"
+    },
+    {
+      "index": 11,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そうそう！MiyabiをGUIで操作できるデスクトップアプリを作るための、超詳細な設計書が完成したの！",
+      "output_file": "11_reimu_electron_explain.wav"
+    },
+    {
+      "index": 12,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "で、どのくらい詳細なんだぜ？",
+      "output_file": "12_marisa_detail_question.wav"
+    },
+    {
+      "index": 13,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "なんと合計7816行！8つのドキュメントに分かれてるわよ！",
+      "output_file": "13_reimu_7816_lines.wav"
+    },
+    {
+      "index": 14,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "うおお…7816行って、小説1冊分くらいあるんじゃねーか！？",
+      "output_file": "14_marisa_surprise.wav"
+    },
+    {
+      "index": 15,
+      "timestamp": "1:30-3:30",
+      "section": "Part2_Issue624",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そうなのよー！これだけ詳細に設計したから、実装フェーズがスムーズに進むはずよ！",
+      "output_file": "15_reimu_benefit.wav"
+    },
+    {
+      "index": 16,
+      "timestamp": "3:30-5:00",
+      "section": "Part3_TechStack",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "で、どんな技術を使うんだぜ？",
+      "output_file": "16_marisa_tech_question.wav"
+    },
+    {
+      "index": 17,
+      "timestamp": "3:30-5:00",
+      "section": "Part3_TechStack",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "技術スタックはこんな感じよ！Electron 33.2.0、React 18、TypeScript 5.7、Zustand、Tailwind CSSね！",
+      "output_file": "17_reimu_techstack.wav"
+    },
+    {
+      "index": 18,
+      "timestamp": "3:30-5:00",
+      "section": "Part3_TechStack",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "おお、セキュリティもガチガチに固めてるんだな！",
+      "output_file": "18_marisa_security.wav"
+    },
+    {
+      "index": 19,
+      "timestamp": "3:30-5:00",
+      "section": "Part3_TechStack",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "当然よ！Electronは便利だけど、セキュリティが甘いと危ないからね。特にcontext isolationとSandboxは必須なのよ！",
+      "output_file": "19_reimu_security_explain.wav"
+    },
+    {
+      "index": 20,
+      "timestamp": "3:30-5:00",
+      "section": "Part3_TechStack",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "勉強になるぜ！で、RustバイナリってのはMiyabiの本体と連携するってことか？",
+      "output_file": "20_marisa_rust_question.wav"
+    },
+    {
+      "index": 21,
+      "timestamp": "3:30-5:00",
+      "section": "Part3_TechStack",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "その通り！ElectronのフロントエンドとRustのバックエンドをIPC通信で繋ぐハイブリッドアーキテクチャなのよ！",
+      "output_file": "21_reimu_hybrid_arch.wav"
+    },
+    {
+      "index": 22,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "で、実装はどういうスケジュールで進めるんだぜ？",
+      "output_file": "22_marisa_schedule.wav"
+    },
+    {
+      "index": 23,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "3フェーズに分けて進めていくわよ！Phase 1が基礎で2週間、Phase 2で高度な機能を3週間、Phase 3で仕上げを1週間ね！",
+      "output_file": "23_reimu_3phases.wav"
+    },
+    {
+      "index": 24,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "合計6週間、1ヶ月半くらいで完成するってことか！",
+      "output_file": "24_marisa_duration.wav"
+    },
+    {
+      "index": 25,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そうそう！Phase 1が基礎、Phase 2で高度な機能、Phase 3で仕上げって感じね！",
+      "output_file": "25_reimu_phase_summary.wav"
+    },
+    {
+      "index": 26,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "Phase 2のAgent実行システムが気になるんだけど、どういうことだぜ？",
+      "output_file": "26_marisa_agent_question.wav"
+    },
+    {
+      "index": 27,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "MiyabiにはCodeGenAgent、ReviewAgent、DeploymentAgentとか色んなAgentがいるでしょ？それをGUIからワンクリックで実行できるようにするのよ！",
+      "output_file": "27_reimu_agent_explain.wav"
+    },
+    {
+      "index": 28,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "それは便利だな！リアルタイム監視ってのは？",
+      "output_file": "28_marisa_monitor_question.wav"
+    },
+    {
+      "index": 29,
+      "timestamp": "5:00-6:30",
+      "section": "Part4_Roadmap",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "Agentが今何をしているか、ログをリアルタイムで見られる機能よ！進捗が一目でわかるの！",
+      "output_file": "29_reimu_monitor_explain.wav"
+    },
+    {
+      "index": 30,
+      "timestamp": "6:30-7:30",
+      "section": "Part5_Architecture",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "で、アーキテクチャってどうなってるんだぜ？",
+      "output_file": "30_marisa_arch_question.wav"
+    },
+    {
+      "index": 31,
+      "timestamp": "6:30-7:30",
+      "section": "Part5_Architecture",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "簡単に説明するわね！3層構造になってるのよ！",
+      "output_file": "31_reimu_3layer.wav"
+    },
+    {
+      "index": 32,
+      "timestamp": "6:30-7:30",
+      "section": "Part5_Architecture",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "おお、3層構造になってるんだな！",
+      "output_file": "32_marisa_3layer_confirm.wav"
+    },
+    {
+      "index": 33,
+      "timestamp": "6:30-7:30",
+      "section": "Part5_Architecture",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そう！Renderer Processがユーザーが見る画面、Main Processが橋渡し、Rust Backendが実際の処理を担当するのよ！",
+      "output_file": "33_reimu_layer_explain.wav"
+    },
+    {
+      "index": 34,
+      "timestamp": "6:30-7:30",
+      "section": "Part5_Architecture",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "IPC通信ってのは、プロセス間でデータをやり取りする仕組みだよな？",
+      "output_file": "34_marisa_ipc_confirm.wav"
+    },
+    {
+      "index": 35,
+      "timestamp": "6:30-7:30",
+      "section": "Part5_Architecture",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "その通り！しかもセキュアに、型安全に通信できるように設計してあるのよ！",
+      "output_file": "35_reimu_ipc_secure.wav"
+    },
+    {
+      "index": 36,
+      "timestamp": "7:30-8:00",
+      "section": "Part6_Cleanup",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "さっき削除が2万行以上あったって言ってたけど、何を削除したんだぜ？",
+      "output_file": "36_marisa_cleanup_question.wav"
+    },
+    {
+      "index": 37,
+      "timestamp": "7:30-8:00",
+      "section": "Part6_Cleanup",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "主にCLAUDE.mdとKAMUIシステムグラフの大規模なクリーンアップをしたのよ！",
+      "output_file": "37_reimu_cleanup_explain.wav"
+    },
+    {
+      "index": 38,
+      "timestamp": "7:30-8:00",
+      "section": "Part6_Cleanup",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "システムグラフって、プロジェクトの依存関係とかを管理してるやつか？",
+      "output_file": "38_marisa_graph_confirm.wav"
+    },
+    {
+      "index": 39,
+      "timestamp": "7:30-8:00",
+      "section": "Part6_Cleanup",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そうそう！不要な依存関係を削除して、構造を最適化したの。これでプロジェクトがスッキリしたわ！",
+      "output_file": "39_reimu_optimization.wav"
+    },
+    {
+      "index": 40,
+      "timestamp": "7:30-8:00",
+      "section": "Part6_Cleanup",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "定期的なクリーンアップも大事だもんな！",
+      "output_file": "40_marisa_cleanup_agree.wav"
+    },
+    {
+      "index": 41,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "というわけで、今日のMiyabi開発日報はここまで！まとめるわね！",
+      "output_file": "41_reimu_summary_intro.wav"
+    },
+    {
+      "index": 42,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "今日は設計フェーズが完了して、いよいよ実装に入るってわけだな！",
+      "output_file": "42_marisa_next_phase.wav"
+    },
+    {
+      "index": 43,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "そうよ！次のフェーズはPhase 1の実装開始！楽しみね！",
+      "output_file": "43_reimu_excited.wav"
+    },
+    {
+      "index": 44,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "Electron Appが完成したら、Miyabiがもっと使いやすくなるな！",
+      "output_file": "44_marisa_future.wav"
+    },
+    {
+      "index": 45,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "ワクワクするわねー！みんなも楽しみにしててね！",
+      "output_file": "45_reimu_call_to_action.wav"
+    },
+    {
+      "index": 46,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "marisa",
+      "speaker_id": 8,
+      "text": "じゃあ今日はここまで！また次回の開発日報でな！",
+      "output_file": "46_marisa_goodbye.wav"
+    },
+    {
+      "index": 47,
+      "timestamp": "8:00-8:30",
+      "section": "ED",
+      "character": "reimu",
+      "speaker_id": 2,
+      "text": "チャンネル登録と高評価もよろしくねー！ばいばーい！",
+      "output_file": "47_reimu_subscribe.wav"
+    }
+  ]
+}

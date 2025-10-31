@@ -1,0 +1,38 @@
+[package]
+name = "miyabi-pty-manager"
+version = "0.1.0"
+edition = "2021"
+authors = ["Miyabi Team"]
+description = "PTY (Pseudo-Terminal) management for Miyabi autonomous agents"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ShunsukeHayashi/Miyabi"
+
+[features]
+default = []
+regex = ["dep:regex"]
+
+[dependencies]
+# Core PTY functionality
+portable-pty = "0.8"
+
+# Async runtime
+tokio = { version = "1", features = ["full", "sync", "time"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+
+# ID generation
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+
+# Optional regex support
+regex = { version = "1", optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"

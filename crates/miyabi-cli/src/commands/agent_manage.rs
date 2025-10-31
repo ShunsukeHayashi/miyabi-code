@@ -52,8 +52,9 @@ pub enum AgentManageCommand {
 
 impl AgentManageCommand {
     pub async fn execute(&self) -> Result<()> {
-        let manager = AgentConfigManager::new()
-            .map_err(|e| CliError::ExecutionError(format!("Failed to initialize agent config manager: {}", e)))?;
+        let manager = AgentConfigManager::new().map_err(|e| {
+            CliError::ExecutionError(format!("Failed to initialize agent config manager: {}", e))
+        })?;
 
         match self {
             AgentManageCommand::List { json } => self.list_agents(&manager, *json).await,
@@ -74,12 +75,13 @@ impl AgentManageCommand {
     }
 
     async fn list_agents(&self, manager: &AgentConfigManager, json: bool) -> Result<()> {
-        let agents = manager.list_agents()
+        let agents = manager
+            .list_agents()
             .map_err(|e| CliError::ExecutionError(format!("Failed to list agents: {}", e)))?;
 
         if json {
-            let json_output = serde_json::to_string_pretty(&agents)
-                .map_err(|e| CliError::Json(e))?;
+            let json_output =
+                serde_json::to_string_pretty(&agents).map_err(|e| CliError::Json(e))?;
             println!("{}", json_output);
             return Ok(());
         }
@@ -92,10 +94,16 @@ impl AgentManageCommand {
         if agents.is_empty() {
             println!("{}", "No agents found.".yellow());
             println!();
-            println!("{}", "💡 Tip: Initialize default agents to get started:".bold());
+            println!(
+                "{}",
+                "💡 Tip: Initialize default agents to get started:".bold()
+            );
             println!("  {}", "miyabi agent init".cyan());
             println!();
-            println!("{}", "Or create agent configuration files manually in:".dimmed());
+            println!(
+                "{}",
+                "Or create agent configuration files manually in:".dimmed()
+            );
             println!("  - .miyabi/agents/");
             println!("  - ~/.config/miyabi/agents/");
             return;
@@ -105,8 +113,7 @@ impl AgentManageCommand {
         println!("{}", "Miyabi Agent List".bold().cyan());
         println!(
             "{}",
-            format!("({} agents configured)", agents.len())
-                .dimmed()
+            format!("({} agents configured)", agents.len()).dimmed()
         );
         println!();
 
@@ -206,7 +213,10 @@ impl AgentManageCommand {
         }
 
         println!("{}", "Legend:".dimmed());
-        println!("  {} Active  {} Not Configured  {} Disabled", "✅", "⚠️", "❌");
+        println!(
+            "  {} Active  {} Not Configured  {} Disabled",
+            "✅", "⚠️", "❌"
+        );
         println!();
     }
 
@@ -221,8 +231,8 @@ impl AgentManageCommand {
             .map_err(|e| CliError::ExecutionError(format!("Failed to load agent config: {}", e)))?;
 
         if json {
-            let json_output = serde_json::to_string_pretty(&config)
-                .map_err(|e| CliError::Json(e))?;
+            let json_output =
+                serde_json::to_string_pretty(&config).map_err(|e| CliError::Json(e))?;
             println!("{}", json_output);
             return Ok(());
         }
@@ -292,9 +302,7 @@ impl AgentManageCommand {
         }
 
         // Dependencies
-        if !config.dependencies.requires.is_empty()
-            || !config.dependencies.provides.is_empty()
-        {
+        if !config.dependencies.requires.is_empty() || !config.dependencies.provides.is_empty() {
             println!();
             println!("{}", "Dependencies:".bold());
             if !config.dependencies.requires.is_empty() {
@@ -322,8 +330,7 @@ impl AgentManageCommand {
         println!("{}", "━".repeat(60).cyan());
         println!(
             "{}",
-            format!("Edit: miyabi agent edit {}", agent_name)
-                .dimmed()
+            format!("Edit: miyabi agent edit {}", agent_name).dimmed()
         );
 
         Ok(())
@@ -351,8 +358,7 @@ impl AgentManageCommand {
 
         println!(
             "{}",
-            format!("Opening {} with {}...", agent_name, editor_cmd)
-                .cyan()
+            format!("Opening {} with {}...", agent_name, editor_cmd).cyan()
         );
         println!("  File: {}", config_file.display().to_string().dimmed());
         println!();
@@ -376,8 +382,7 @@ impl AgentManageCommand {
         println!("{}", "✅ Configuration updated.".green());
         println!(
             "{}",
-            format!("Verify: miyabi agent config {}", agent_name)
-                .dimmed()
+            format!("Verify: miyabi agent config {}", agent_name).dimmed()
         );
 
         Ok(())
@@ -397,7 +402,13 @@ impl AgentManageCommand {
         );
 
         // Check if agent already exists
-        if manager.find_config_file(agent_name).map_err(|e| CliError::ExecutionError(format!("Failed to check for existing agent: {}", e)))?.is_some() {
+        if manager
+            .find_config_file(agent_name)
+            .map_err(|e| {
+                CliError::ExecutionError(format!("Failed to check for existing agent: {}", e))
+            })?
+            .is_some()
+        {
             return Err(CliError::ExecutionError(format!(
                 "Agent '{}' already exists. Use 'miyabi agent edit {}' to modify it.",
                 agent_name, agent_name
@@ -407,17 +418,14 @@ impl AgentManageCommand {
         // Load template if specified
         let new_config = if let Some(template_name) = template {
             println!("  Using template: {}", template_name.cyan());
-            let mut template_config = manager
-                .load_config(template_name)
-                .map_err(|e| {
-                    CliError::ExecutionError(format!("Failed to load template agent: {}", e))
-                })?;
+            let mut template_config = manager.load_config(template_name).map_err(|e| {
+                CliError::ExecutionError(format!("Failed to load template agent: {}", e))
+            })?;
 
             // Modify for new agent
             template_config.agent.name = agent_name.to_string();
             template_config.agent.agent_type = AgentType::Custom;
-            template_config.agent.description =
-                format!("Custom agent based on {}", template_name);
+            template_config.agent.description = format!("Custom agent based on {}", template_name);
 
             template_config
         } else {
@@ -440,11 +448,9 @@ impl AgentManageCommand {
         };
 
         // Save configuration
-        manager
-            .save_config(agent_name, &new_config)
-            .map_err(|e| {
-                CliError::ExecutionError(format!("Failed to save agent configuration: {}", e))
-            })?;
+        manager.save_config(agent_name, &new_config).map_err(|e| {
+            CliError::ExecutionError(format!("Failed to save agent configuration: {}", e))
+        })?;
 
         println!();
         println!("{}", "✅ Agent created successfully!".green().bold());
@@ -470,7 +476,10 @@ impl AgentManageCommand {
         use std::collections::HashMap;
 
         println!();
-        println!("{}", "✨ Initializing Default Agent Configurations".bold().cyan());
+        println!(
+            "{}",
+            "✨ Initializing Default Agent Configurations".bold().cyan()
+        );
         println!("{}", "━".repeat(60).cyan());
         println!();
 
@@ -483,7 +492,8 @@ impl AgentManageCommand {
                     agent_type: AgentType::Coordinator,
                     enabled: true,
                     model: "claude-sonnet-4".to_string(),
-                    description: "Multi-agent orchestration with DAG-based task scheduling".to_string(),
+                    description: "Multi-agent orchestration with DAG-based task scheduling"
+                        .to_string(),
                 },
             ),
             (
@@ -493,7 +503,8 @@ impl AgentManageCommand {
                     agent_type: AgentType::Codegen,
                     enabled: true,
                     model: "claude-sonnet-4".to_string(),
-                    description: "AI-driven Rust code generation with quality enforcement".to_string(),
+                    description: "AI-driven Rust code generation with quality enforcement"
+                        .to_string(),
                 },
             ),
             (
@@ -513,9 +524,16 @@ impl AgentManageCommand {
 
         for (config_name, metadata) in default_agents {
             // Check if config already exists
-            if !force && manager.find_config_file(&metadata.name)
-                .map_err(|e| CliError::ExecutionError(format!("Failed to check for existing agent: {}", e)))?
-                .is_some()
+            if !force
+                && manager
+                    .find_config_file(&metadata.name)
+                    .map_err(|e| {
+                        CliError::ExecutionError(format!(
+                            "Failed to check for existing agent: {}",
+                            e
+                        ))
+                    })?
+                    .is_some()
             {
                 println!(
                     "  {} {} (already exists)",
@@ -528,10 +546,7 @@ impl AgentManageCommand {
 
             // Interactive prompt if not --yes
             if !yes && !force {
-                print!(
-                    "  Create {}? [Y/n]: ",
-                    metadata.name.cyan()
-                );
+                print!("  Create {}? [Y/n]: ", metadata.name.cyan());
                 use std::io::{self, Write};
                 io::stdout().flush().unwrap();
 
@@ -555,20 +570,14 @@ impl AgentManageCommand {
             };
 
             // Save configuration
-            manager
-                .save_config(&metadata.name, &config)
-                .map_err(|e| {
-                    CliError::ExecutionError(format!(
-                        "Failed to save {} configuration: {}",
-                        metadata.name, e
-                    ))
-                })?;
+            manager.save_config(&metadata.name, &config).map_err(|e| {
+                CliError::ExecutionError(format!(
+                    "Failed to save {} configuration: {}",
+                    metadata.name, e
+                ))
+            })?;
 
-            println!(
-                "  {} Created {}",
-                "✅".green(),
-                metadata.name.green()
-            );
+            println!("  {} Created {}", "✅".green(), metadata.name.green());
             created_count += 1;
         }
 

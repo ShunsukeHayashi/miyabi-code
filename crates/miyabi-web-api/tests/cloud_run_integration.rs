@@ -235,8 +235,8 @@ async fn test_telegram_webhook_content_type() {
     // Just verify the endpoint accepts the request
     assert!(
         response.status().is_client_error()
-        || response.status().is_server_error()
-        || response.status().is_success(),
+            || response.status().is_server_error()
+            || response.status().is_success(),
         "Webhook should return valid HTTP response"
     );
 }
@@ -406,15 +406,9 @@ async fn test_service_is_up() {
     let url = get_api_url();
 
     // Try health endpoint
-    let response = client
-        .get(format!("{}/api/v1/health", url))
-        .send()
-        .await;
+    let response = client.get(format!("{}/api/v1/health", url)).send().await;
 
-    assert!(
-        response.is_ok(),
-        "Service should be responding to requests"
-    );
+    assert!(response.is_ok(), "Service should be responding to requests");
 }
 
 #[tokio::test]

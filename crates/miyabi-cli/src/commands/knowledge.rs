@@ -181,12 +181,15 @@ impl KnowledgeCommand {
                 )
                 .await
             }
-            Self::Stats { workspace, auto_start } => {
+            Self::Stats {
+                workspace,
+                auto_start,
+            } => {
                 if *auto_start {
                     ensure_qdrant_running().await?;
                 }
                 show_stats(workspace.clone(), json_output).await
-            },
+            }
             Self::Index { workspace, reindex } => {
                 index_workspace(workspace, *reindex, json_output).await
             }

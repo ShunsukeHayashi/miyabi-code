@@ -73,11 +73,25 @@ Character references and tone guidelines: `.codex/agents/AGENT_CHARACTERS.md`.
 
 ### Operational Sequence (Mandatory)
 
-1. **MCP First** — Run `codex mcp list` (or `claude mcp list` on legacy setups) and ensure required MCP servers are reachable.  
-2. **Context Sync** — Review `.codex/context/INDEX.md` (and linked modules) plus `CLAUDE.md` for any protocol updates.  
-3. **Task Selection** — Inspect `TODO.md`, `Plans.md`, and open issues to determine the highest-priority work item.  
-4. **Skill/Agent Dispatch** — Execute the task via the appropriate Skill (e.g., `agent-execution`, `rust-development`, `documentation-generation`) or sub-agent; never implement changes directly.  
-5. **Logging & Reporting** — Record outcomes in `.ai/logs/`, update relevant issues/PRs, and document follow-up actions.
+1. **MCP First** — Run `codex mcp list` (or `claude mcp list` on legacy setups) and ensure required MCP servers are reachable.
+2. **Context Sync** — Review `.codex/context/INDEX.md` (and linked modules) plus `CLAUDE.md` for any protocol updates.
+3. **Miyabi Definition Lookup (Pattern 0)** ✨ — Before starting any task, consult the authoritative definitions:
+   ```bash
+   # Entity attributes
+   cat miyabi_def/variables/entities.yaml | grep -A 20 "E3_Agent:"
+
+   # Relation implementation
+   cat miyabi_def/variables/relations.yaml | grep -A 30 "R1_Issue_analyzed_by_Agent:"
+
+   # Label assignment rules
+   cat miyabi_def/variables/labels.yaml | grep -A 10 "STATE:"
+
+   # Workflow stages
+   cat miyabi_def/variables/workflows.yaml | grep -A 30 "W3_Code_Implementation:"
+   ```
+4. **Task Selection** — Inspect `TODO.md`, `Plans.md`, and open issues to determine the highest-priority work item.
+5. **Skill/Agent Dispatch** — Execute the task via the appropriate Skill (e.g., `agent-execution`, `rust-development`, `documentation-generation`) or sub-agent; never implement changes directly.
+6. **Logging & Reporting** — Record outcomes in `.ai/logs/`, update relevant issues/PRs, and document follow-up actions.
 
 1. **Pre-flight (MCP First)**  
    - `codex mcp list` to verify servers (filesystem, miyabi, github, project-context, etc.).  
@@ -99,8 +113,69 @@ Character references and tone guidelines: `.codex/agents/AGENT_CHARACTERS.md`.
    - Tail `.ai/logs/agent-execution.log`.  
    - Use `miyabi status` or the MCP `miyabi__get_status` tool for runtime health.
 
-5. **Close Loop**  
+5. **Close Loop**
    - Record outcomes in the issue, attach test commands, and archive the plan under `.ai/plans/`.
+
+---
+
+## Miyabi Definition System ✨
+
+### Quick Reference
+
+The `miyabi_def/` directory contains the **authoritative machine-readable source of truth** for the entire Miyabi project using Jinja2 + YAML format.
+
+**Foundation (Phase 1 - Complete):**
+- `variables/entities.yaml` — 14 Core Entities (E1-E14), 1,420 lines
+- `variables/relations.yaml` — 39 Relations (R1-R39), 1,350 lines
+- `variables/labels.yaml` — 57 Labels (11 categories), 840 lines
+- `variables/workflows.yaml` — 5 Workflows (W1-W5, 38 stages), 680 lines
+- `variables/agents.yaml` — 21 Agents (7 Coding, 14 Business)
+- `variables/crates.yaml` — 15 Crates
+- `variables/skills.yaml` — 18 Skills
+
+### Generating Definition Files
+
+```bash
+cd miyabi_def
+
+# Activate Python environment
+source .venv/bin/activate
+
+# Generate all definition files
+python generate.py
+
+# View generated files (8 files, 152KB)
+ls -lh generated/
+
+# Validate specific file
+cat generated/entities.yaml
+```
+
+### Common Lookup Patterns
+
+**Pattern 0 (Highest Priority) — Definition Lookup:**
+
+```bash
+# Check entity attributes
+grep -A 20 "E1_Issue:" miyabi_def/variables/entities.yaml
+
+# Find relation implementation
+grep -A 30 "R2_Issue_decomposed_into_Task:" miyabi_def/variables/relations.yaml
+
+# Review label categories
+grep -A 15 "STATE:" miyabi_def/variables/labels.yaml
+
+# Understand workflow stage
+grep -A 25 "W2_Task_Decomposition_Planning:" miyabi_def/variables/workflows.yaml
+
+# Check agent capabilities
+grep -A 15 "CoordinatorAgent:" miyabi_def/variables/agents.yaml
+```
+
+**Integration with Agent Work:**
+- Agents reference: `.codex/context/miyabi-definition.md` (800 tokens, quick overview)
+- Source of truth: `miyabi_def/variables/*.yaml` (complete specifications)
+- Generated outputs: `miyabi_def/generated/*.yaml` (formatted for consumption)
 
 ---
 
@@ -108,12 +183,26 @@ Character references and tone guidelines: `.codex/agents/AGENT_CHARACTERS.md`.
 
 | Area | Location | Notes |
 |------|----------|-------|
+| **Miyabi Definitions** ✨ | `miyabi_def/variables/**` | ⭐⭐⭐⭐⭐ **Primary source of truth** for all definitions |
+| Entity-Relation Model | `miyabi_def/variables/entities.yaml` | 14 Core Entities (E1-E14) |
+| Relation Mappings | `miyabi_def/variables/relations.yaml` | 39 Relations (R1-R39) with N1/N2/N3 notation |
+| Label System | `miyabi_def/variables/labels.yaml` | 57 Labels across 11 categories |
+| Workflow Definitions | `miyabi_def/variables/workflows.yaml` | 5 Workflows (W1-W5) with 38 stages |
+| Agent Definitions | `miyabi_def/variables/agents.yaml` | 21 Agents (7 Coding, 14 Business) |
+| **Context Integration** | `.codex/context/miyabi-definition.md` | Bridge to miyabi_def system (Pattern 0) |
 | Agent Specs | `.codex/agents/specs/**` | Authoritative behaviours & escalation logic |
 | Agent Prompts | `.codex/agents/prompts/**` | Execution-time instructions |
 | Skills | `.codex/Skills/**` | Reusable task-specific procedures |
 | Context Modules | `.codex/context/**` | Core rules, architecture, worktree protocol |
 | MCP Config | `.codex/mcp-config.json` | Node/Rust server definitions |
 | Hooks | `.codex/hooks/**` | Auto format, validation, keep-alive routines |
+
+**Priority Order for Agent Work:**
+1. ⭐⭐⭐⭐⭐ `miyabi_def/variables/` — Primary source of truth
+2. ⭐⭐⭐⭐ `.codex/context/` — Context modules (quick reference)
+3. ⭐⭐⭐ `docs/` — Detailed implementation documentation
+4. ⭐⭐ `.codex/agents/specs/` — Agent specifications
+5. ⭐ `.codex/agents/prompts/` — Execution prompts
 
 For historical compatibility, legacy `.claude/` paths remain readable but `.codex/` is the primary source.
 

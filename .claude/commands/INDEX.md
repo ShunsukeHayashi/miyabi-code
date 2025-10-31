@@ -1,7 +1,7 @@
 # Miyabi Slash Commands Index
 
-**Last Updated**: 2025-10-27
-**Total Commands**: 20
+**Last Updated**: 2025-10-31
+**Total Commands**: 21
 
 スラッシュコマンドの完全インデックス。カテゴリ別に整理されています。
 
@@ -31,6 +31,8 @@
 | `/check-benchmark` | 📊 Benchmarks | ベンチマーク実装チェック |
 | `/pattern3` | 🚀 Workflow | Pattern 3 Hybrid Orchestration起動 |
 | `/pattern3-report` | 📊 Reports | Pattern 3実行結果レポート生成 |
+| `/claude-code-x` | 🤖 Agent | Claude Codeバックグラウンド自律実行 |
+| `/codex` | 🤖 Agent | Codex X統合（GPT-5/o3並列実行） |
 
 ---
 
@@ -316,6 +318,111 @@ Infinity Sprintのログをリアルタイム監視し、イベント発生時�
 - タスク成功: "やったのだ！タスクが1つ完了したのだ！"
 - タスク失敗: "失敗したのだ！でも諦めないのだ！"
 - 全完了: "全部終わったのだ！お疲れ様なのだ！"
+
+---
+
+### 🔮 Advanced Execution Commands
+
+#### `/claude-code-x` - Claude Code バックグラウンド自律実行
+**File**: `claude-code-x.md` (5.4KB), `claude-code-x.sh` (12KB)
+**Usage**: `/claude-code-x exec "Task description"`
+
+Claude Codeをバックグラウンドで自律実行。Codex Xと同様のインターフェースで高速処理。
+
+**特徴**:
+- 🚀 **高速**: Codex Xの3倍速（1m46s vs 6m16s+）
+- 🎯 **高品質**: Claude Sonnet 4.5による精密実装
+- 📊 **セッション管理**: 最大5並列セッション
+- 🔍 **リアルタイム監視**: status/result コマンド対応
+
+**コマンド**:
+```bash
+/claude-code-x exec "Task description"           # タスク実行
+/claude-code-x sessions                          # セッション一覧
+/claude-code-x status <session-id>               # ステータス確認
+/claude-code-x result <session-id>               # 結果取得
+/claude-code-x kill <session-id>                 # セッション終了
+/claude-code-x cleanup                           # 古いセッション削除
+```
+
+**オプション**:
+- `--tools "Tool1,Tool2"` - 使用ツール指定（デフォルト: Bash,Read,Write,Edit,Glob,Grep）
+- `--timeout 600` - タイムアウト秒数（デフォルト: 600秒）
+
+**使用例**:
+```bash
+# 基本実行
+/claude-code-x exec "Implement user authentication with JWT"
+
+# カスタムツール指定
+/claude-code-x exec "Research AI news" --tools "WebSearch,Read,Write"
+
+# タイムアウト指定
+/claude-code-x exec "Run full test suite" --timeout 1200
+
+# セッション監視
+/claude-code-x sessions
+/claude-code-x status claude-code-x-20251031-123456-abc123
+tail -f .ai/sessions/claude-code-x/logs/claude-code-x-20251031-123456-abc123.log
+```
+
+**vs Codex X**:
+
+| Feature | Codex X | Claude Code X |
+|---------|---------|---------------|
+| **Model** | GPT-5 Codex/o3 | Claude Sonnet 4.5 |
+| **Speed** | 遅い (6分+) | 速い (1-2分) |
+| **Quality** | バグゼロ | 高品質 (修正1回程度) |
+| **Interactive** | ❌ | ✅ (別セッション) |
+| **Session Resume** | ✅ `--continue` | ✅ (計画中) |
+
+**Optimal Workflow**:
+```bash
+# Main session: Planning & Orchestration
+> "Let's implement Feature X. First, plan the tasks..."
+
+# Background: Autonomous implementation
+> /claude-code-x exec "Implement Feature X based on plan"
+
+# Continue main work while Claude Code X runs
+> "Now let's work on Feature Y..."
+
+# Check progress
+> /claude-code-x status
+
+# Review results
+> /claude-code-x result <session-id>
+```
+
+**関連スクリプト**:
+- `scripts/generate-ai-blog.sh` - AI news blog article generator (uses Claude Code X with WebSearch)
+
+---
+
+#### `/codex` - Codex X統合
+**File**: `codex.md` (5.2KB), `codex.sh` (12KB)
+**Usage**: `/codex exec "Task description"`
+
+GPT-5 Codex/o3によるゼロバグ品質コード生成（外部統合）。
+
+**特徴**:
+- 🎯 **ゼロバグ**: 高精度な実装
+- 🔄 **セッション再開**: `--continue` でレジューム
+- 📊 **詳細レポート**: 実行結果の自動レポート生成
+
+**コマンド**:
+```bash
+/codex exec "Task description"                   # タスク実行
+/codex continue <session-id> "Additional task"   # セッション継続
+/codex sessions                                  # セッション一覧
+/codex status <session-id>                       # ステータス確認
+```
+
+**Pattern 3 Hybrid Orchestration**:
+- Main Session (Claude Code): 統合・意思決定・レビュー
+- Background 1 (Codex X): Zero-bug品質コード
+- Background 2 (Claude Code X): 高速ドキュメント
+- 生産性140%向上を実現
 
 ---
 

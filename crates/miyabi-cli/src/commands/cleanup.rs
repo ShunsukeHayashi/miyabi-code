@@ -125,11 +125,7 @@ impl CleanupCommand {
             let disk_mb = wt.disk_usage / 1024 / 1024;
             total_disk_usage += wt.disk_usage;
 
-            println!(
-                "  ⚠️  {} ({})",
-                wt.path.display(),
-                status_str.yellow()
-            );
+            println!("  ⚠️  {} ({})", wt.path.display(), status_str.yellow());
             println!("      Branch: {}", wt.branch.dimmed());
             if let Some(issue) = wt.issue_number {
                 println!("      Issue: #{}", issue);
@@ -159,11 +155,27 @@ impl CleanupCommand {
         if report.total_cleaned() == 0 {
             println!("  ✅ No worktrees were cleaned");
         } else {
-            println!("  {} Orphaned worktrees cleaned: {}", "✓".green(), report.orphaned_cleaned);
-            println!("  {} Idle worktrees cleaned: {}", "✓".green(), report.idle_cleaned);
-            println!("  {} Stuck worktrees cleaned: {}", "✓".green(), report.stuck_cleaned);
+            println!(
+                "  {} Orphaned worktrees cleaned: {}",
+                "✓".green(),
+                report.orphaned_cleaned
+            );
+            println!(
+                "  {} Idle worktrees cleaned: {}",
+                "✓".green(),
+                report.idle_cleaned
+            );
+            println!(
+                "  {} Stuck worktrees cleaned: {}",
+                "✓".green(),
+                report.stuck_cleaned
+            );
             println!();
-            println!("  {} Total cleaned: {}", "📊".cyan(), report.total_cleaned());
+            println!(
+                "  {} Total cleaned: {}",
+                "📊".cyan(),
+                report.total_cleaned()
+            );
             println!(
                 "  {} Disk space freed: {} MB",
                 "💾".cyan(),

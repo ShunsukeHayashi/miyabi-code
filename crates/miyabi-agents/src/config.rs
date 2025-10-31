@@ -265,7 +265,10 @@ impl AgentConfigManager {
 
         // Sort by agent type (coding first, then business), then by name
         agents.sort_by(|a, b| {
-            match (a.agent_type.is_coding_agent(), b.agent_type.is_coding_agent()) {
+            match (
+                a.agent_type.is_coding_agent(),
+                b.agent_type.is_coding_agent(),
+            ) {
                 (true, false) => std::cmp::Ordering::Less,
                 (false, true) => std::cmp::Ordering::Greater,
                 _ => a.name.cmp(&b.name),
@@ -295,18 +298,22 @@ impl AgentConfigManager {
 
     /// Save configuration for a specific agent
     pub fn save_config(&self, name: &str, config: &AgentConfig) -> Result<()> {
-        let config_file = self
-            .find_config_file(name)?
-            .unwrap_or_else(|| {
-                // Prefer project-local .miyabi/agents/, fallback to user-global
-                if let Ok(current_dir) = std::env::current_dir() {
-                    current_dir.join(".miyabi").join("agents").join(format!("{}.toml", name))
-                } else if let Some(home) = dirs::home_dir() {
-                    home.join(".config").join("miyabi").join("agents").join(format!("{}.toml", name))
-                } else {
-                    PathBuf::from(format!("{}.toml", name))
-                }
-            });
+        let config_file = self.find_config_file(name)?.unwrap_or_else(|| {
+            // Prefer project-local .miyabi/agents/, fallback to user-global
+            if let Ok(current_dir) = std::env::current_dir() {
+                current_dir
+                    .join(".miyabi")
+                    .join("agents")
+                    .join(format!("{}.toml", name))
+            } else if let Some(home) = dirs::home_dir() {
+                home.join(".config")
+                    .join("miyabi")
+                    .join("agents")
+                    .join(format!("{}.toml", name))
+            } else {
+                PathBuf::from(format!("{}.toml", name))
+            }
+        });
 
         let content =
             toml::to_string_pretty(config).context("Failed to serialize config to TOML")?;
@@ -441,9 +448,13 @@ mod tests {
         let manager = AgentConfigManager::new().unwrap();
 
         // Create multiple test agents
-        for (i, agent_type) in [AgentType::Coordinator, AgentType::Review, AgentType::Marketing]
-            .iter()
-            .enumerate()
+        for (i, agent_type) in [
+            AgentType::Coordinator,
+            AgentType::Review,
+            AgentType::Marketing,
+        ]
+        .iter()
+        .enumerate()
         {
             let config = AgentConfig {
                 agent: AgentMetadata {
@@ -464,17 +475,19 @@ mod tests {
 
         let agents = manager.list_agents().unwrap();
 
-        // Check that our 3 test agents were created
-        let test_agents: Vec<_> = agents
-            .iter()
-            .filter(|a| a.name.starts_with("TestAgent"))
-            .collect();
-        assert_eq!(test_agents.len(), 3, "Should have 3 test agents");
+        // Check that our 3 test agents were created (TestAgent0, TestAgent1, TestAgent2)
+        // Note: There might be other TestAgent* from other tests, so we check for exactly these 3
+        let test_agent0 = agents.iter().find(|a| a.name == "TestAgent0");
+        let test_agent1 = agents.iter().find(|a| a.name == "TestAgent1");
+        let test_agent2 = agents.iter().find(|a| a.name == "TestAgent2");
 
-        // Check that test agents are sorted with coding agents first
-        let test_agent0 = agents.iter().find(|a| a.name == "TestAgent0").unwrap();
-        let test_agent1 = agents.iter().find(|a| a.name == "TestAgent1").unwrap();
-        let test_agent2 = agents.iter().find(|a| a.name == "TestAgent2").unwrap();
+        assert!(test_agent0.is_some(), "TestAgent0 should exist");
+        assert!(test_agent1.is_some(), "TestAgent1 should exist");
+        assert!(test_agent2.is_some(), "TestAgent2 should exist");
+
+        let test_agent0 = test_agent0.unwrap();
+        let test_agent1 = test_agent1.unwrap();
+        let test_agent2 = test_agent2.unwrap();
 
         assert!(test_agent0.agent_type.is_coding_agent());
         assert!(test_agent1.agent_type.is_coding_agent());

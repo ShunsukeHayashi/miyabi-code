@@ -12,27 +12,43 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 
 | Module | File | Size | Priority | Description |
 |--------|------|------|----------|-------------|
+| **Miyabi Definition** | `miyabi-definition.md` | ~800 tokens | ⭐⭐⭐⭐⭐ | ✨ **NEW** - miyabi_def統合（14 Entities, 39 Relations, 57 Labels, 5 Workflows） |
 | **Core Rules** | `core-rules.md` | ~400 tokens | ⭐⭐⭐⭐⭐ | MCP First, Benchmark Protocol, Context7 |
 | **Agents** | `agents.md` | ~300 tokens | ⭐⭐⭐⭐ | 21 Agents概要（7 Coding + 14 Business） |
 | **Architecture** | `architecture.md` | ~400 tokens | ⭐⭐⭐⭐ | Cargo Workspace, Git Worktree, GitHub OS |
 | **Development** | `development.md` | ~300 tokens | ⭐⭐⭐ | Rust/TypeScript規約、テスト、CI/CD |
-| **Entity-Relation** | `entity-relation.md` | ~300 tokens | ⭐⭐⭐ | 12 Entities, 27 Relations, N1/N2/N3記法 |
-| **Labels** | `labels.md` | ~200 tokens | ⭐⭐⭐ | 53 Label体系、10カテゴリ |
+| **Entity-Relation** | `entity-relation.md` | ~300 tokens | ⭐⭐ | 🔄 Legacy - Superseded by miyabi-definition.md |
+| **Labels** | `labels.md` | ~200 tokens | ⭐⭐ | 🔄 Legacy - Superseded by miyabi-definition.md |
 | **Worktree** | `worktree.md` | ~300 tokens | ⭐⭐⭐ | Worktreeライフサイクル、並列実行 |
 | **Rust** | `rust.md` | ~300 tokens | ⭐⭐⭐ | Rust 2021 Edition開発ガイド |
 | **TypeScript** | `typescript.md` | ~200 tokens | ⭐ | レガシーTypeScript参考 |
 | **Protocols** | `protocols.md` | ~300 tokens | ⭐⭐ | タスク管理、報告プロトコル |
 | **External Deps** | `external-deps.md` | ~200 tokens | ⭐⭐ | Context7、MCP Servers |
 
-**Total Estimated Size**: ~3,000 tokens (個別読み込み時)
+**Total Estimated Size**: ~3,800 tokens (個別読み込み時)
+
+**Note**: ✨ `miyabi-definition.md` is the **new primary source** for Entity-Relation Model and Label System. Legacy files remain for backward compatibility.
 
 ## 🎯 Usage Pattern
+
+### Pattern 0: 🆕 Miyabi Definition Lookup（最優先）
+```
+任意のタスクでまず確認すべきモジュール:
+- miyabi-definition.md (Entity, Relation, Label, Workflow定義の完全版)
+
+具体例:
+- Entity属性確認: miyabi_def/variables/entities.yaml参照
+- Relation実装確認: miyabi_def/variables/relations.yaml参照
+- Label割り当て: miyabi_def/variables/labels.yaml参照
+- Workflow stage確認: miyabi_def/variables/workflows.yaml参照
+```
 
 ### Pattern 1: Agent開発タスク
 ```
 必要なモジュール:
+- miyabi-definition.md ✨ NEW (Agent定義、Entity仕様)
 - core-rules.md (MCP確認)
-- agents.md (Agent仕様)
+- agents.md (Agent概要)
 - rust.md (Rust規約)
 - development.md (テスト規約)
 ```
@@ -40,8 +56,8 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 ### Pattern 2: Issue処理タスク
 ```
 必要なモジュール:
+- miyabi-definition.md ✨ NEW (Label体系、Workflow定義)
 - core-rules.md (MCP確認)
-- labels.md (Label体系)
 - worktree.md (並列実行)
 - protocols.md (報告プロトコル)
 ```
@@ -52,6 +68,18 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 - core-rules.md (Benchmark Protocol)
 - external-deps.md (Context7)
 - development.md (CI/CD)
+```
+
+### Pattern 4: 🆕 定義ファイル生成タスク
+```
+必要なモジュール:
+- miyabi-definition.md (miyabi_defシステム全体)
+
+実行手順:
+1. cd /Users/shunsuke/Dev/miyabi-private/miyabi_def
+2. source .venv/bin/activate
+3. python generate.py
+4. ls -lh generated/
 ```
 
 ## 📖 Related Documentation

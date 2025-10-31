@@ -119,10 +119,7 @@ impl LarkCommand {
 }
 
 /// Call Lark MCP tool via subprocess
-async fn call_mcp_tool(
-    tool_name: &str,
-    arguments: serde_json::Value,
-) -> Result<serde_json::Value> {
+async fn call_mcp_tool(tool_name: &str, arguments: serde_json::Value) -> Result<serde_json::Value> {
     use tokio::io::AsyncWriteExt;
     use tokio::process::Command;
     use tokio::time::{timeout, Duration};
@@ -191,9 +188,10 @@ async fn call_mcp_tool(
         stdin.write_all(b"\n").await.map_err(|e| {
             CliError::McpServerError(format!("Failed to write newline to stdin: {}", e))
         })?;
-        stdin.flush().await.map_err(|e| {
-            CliError::McpServerError(format!("Failed to flush stdin: {}", e))
-        })?;
+        stdin
+            .flush()
+            .await
+            .map_err(|e| CliError::McpServerError(format!("Failed to flush stdin: {}", e)))?;
         drop(stdin); // Close stdin to signal end of input
     }
 
@@ -208,9 +206,7 @@ async fn call_mcp_tool(
                 tool_name
             ))
         })?
-        .map_err(|e| {
-            CliError::McpServerError(format!("Failed to execute MCP server: {}", e))
-        })?;
+        .map_err(|e| CliError::McpServerError(format!("Failed to execute MCP server: {}", e)))?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -314,9 +310,7 @@ fn get_mcp_server_path() -> Result<PathBuf> {
         .map(|p| p.join("mcp-servers/lark-openapi-mcp-enhanced/dist/cli.js"));
 
     default_path.ok_or_else(|| {
-        CliError::InvalidInput(
-            "MCP_SERVER_PATH not set and default path not found".to_string(),
-        )
+        CliError::InvalidInput("MCP_SERVER_PATH not set and default path not found".to_string())
     })
 }
 
@@ -453,7 +447,10 @@ async fn execute_base_command(
     }
 
     println!();
-    println!("{}", "✅ All commands completed successfully!".green().bold());
+    println!(
+        "{}",
+        "✅ All commands completed successfully!".green().bold()
+    );
     Ok(())
 }
 
@@ -483,7 +480,10 @@ async fn execute_c1_system_analysis(
 
     // Display industry and domain context
     println!("{}", "Context:".yellow());
-    println!("  Industry: {}", industry.as_deref().unwrap_or("Not specified"));
+    println!(
+        "  Industry: {}",
+        industry.as_deref().unwrap_or("Not specified")
+    );
     println!("  Domain: {}", domain.as_deref().unwrap_or("Not specified"));
     println!();
 
@@ -512,7 +512,10 @@ async fn execute_c2_field_implementation() -> Result<()> {
     println!("各テーブルのフィールドを詳細設計・実装");
     println!();
 
-    println!("{}", "Critical: 主キーフィールドは最左端に配置".red().bold());
+    println!(
+        "{}",
+        "Critical: 主キーフィールドは最左端に配置".red().bold()
+    );
     println!();
 
     println!("{}", "Tasks:".yellow());
@@ -549,7 +552,9 @@ async fn execute_c3_relation_setup() -> Result<()> {
 
     println!(
         "{}",
-        "Critical: リレーション設定直後に可視性チェック（T0）を実行".red().bold()
+        "Critical: リレーション設定直後に可視性チェック（T0）を実行"
+            .red()
+            .bold()
     );
     println!();
 
@@ -914,23 +919,28 @@ fn load_lark_agent_context() -> Result<String> {
     // Load agent spec
     let spec_path = std::path::PathBuf::from(".claude/agents/specs/lark/lark-agent.md");
     if spec_path.exists() {
-        context.push_str(&fs::read_to_string(&spec_path).map_err(|e| {
-            CliError::ExecutionError(format!("Failed to read spec file: {}", e))
-        })?);
+        context.push_str(
+            &fs::read_to_string(&spec_path).map_err(|e| {
+                CliError::ExecutionError(format!("Failed to read spec file: {}", e))
+            })?,
+        );
         context.push_str("\n\n");
     }
 
     // Load agent prompt
     let prompt_path = std::path::PathBuf::from(".claude/agents/prompts/lark/lark-agent-prompt.md");
     if prompt_path.exists() {
-        context.push_str(&fs::read_to_string(&prompt_path).map_err(|e| {
-            CliError::ExecutionError(format!("Failed to read prompt file: {}", e))
-        })?);
+        context.push_str(
+            &fs::read_to_string(&prompt_path).map_err(|e| {
+                CliError::ExecutionError(format!("Failed to read prompt file: {}", e))
+            })?,
+        );
         context.push_str("\n\n");
     }
 
     // Load framework
-    let framework_path = std::path::PathBuf::from(".claude/agents/lark/base-construction-framework.md");
+    let framework_path =
+        std::path::PathBuf::from(".claude/agents/lark/base-construction-framework.md");
     if framework_path.exists() {
         context.push_str(&fs::read_to_string(&framework_path).map_err(|e| {
             CliError::ExecutionError(format!("Failed to read framework file: {}", e))
@@ -1002,7 +1012,8 @@ fn print_lark_agent_context_info(context: &str) {
     if context.contains("lark-agent-prompt.md") || context.contains("Identity & Mission") {
         println!("    ✅ Agent Prompt");
     }
-    if context.contains("base-construction-framework.md") || context.contains("10コマンドスタック") {
+    if context.contains("base-construction-framework.md") || context.contains("10コマンドスタック")
+    {
         println!("    ✅ Base Construction Framework");
     }
     println!();
@@ -1032,7 +1043,10 @@ async fn process_lark_command(input: &str, _context: &str) -> Result<()> {
 
     // Natural language processing
     println!("{}", "🤔 Processing natural language request...".yellow());
-    println!("{}", "💡 Tip: Direct commands are faster (e.g., 'C1', 'C7', 'ALL')".dimmed());
+    println!(
+        "{}",
+        "💡 Tip: Direct commands are faster (e.g., 'C1', 'C7', 'ALL')".dimmed()
+    );
     println!();
 
     // For now, provide guidance
@@ -1046,8 +1060,7 @@ async fn process_lark_command(input: &str, _context: &str) -> Result<()> {
         || input.to_lowercase().contains("requirements")
     {
         println!("  → Try: {}", "C1".green().bold());
-    } else if input.to_lowercase().contains("field")
-        || input.to_lowercase().contains("フィールド")
+    } else if input.to_lowercase().contains("field") || input.to_lowercase().contains("フィールド")
     {
         println!("  → Try: {}", "C2".green().bold());
     } else if input.to_lowercase().contains("relation")

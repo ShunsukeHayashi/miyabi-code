@@ -177,8 +177,7 @@ impl TaskMetadataManager {
 
         // Create tasks directory if it doesn't exist
         if !tasks_dir.exists() {
-            fs::create_dir_all(&tasks_dir)
-                .context("Failed to create .miyabi/tasks directory")?;
+            fs::create_dir_all(&tasks_dir).context("Failed to create .miyabi/tasks directory")?;
         }
 
         Ok(Self { tasks_dir })
@@ -190,11 +189,10 @@ impl TaskMetadataManager {
     pub fn save(&self, metadata: &TaskMetadata) -> Result<PathBuf> {
         let file_path = self.tasks_dir.join(format!("{}.json", metadata.id));
 
-        let json = serde_json::to_string_pretty(metadata)
-            .context("Failed to serialize task metadata")?;
+        let json =
+            serde_json::to_string_pretty(metadata).context("Failed to serialize task metadata")?;
 
-        fs::write(&file_path, json)
-            .context("Failed to write task metadata to disk")?;
+        fs::write(&file_path, json).context("Failed to write task metadata to disk")?;
 
         Ok(file_path)
     }
@@ -203,11 +201,11 @@ impl TaskMetadataManager {
     pub fn load(&self, task_id: &str) -> Result<TaskMetadata> {
         let file_path = self.tasks_dir.join(format!("{}.json", task_id));
 
-        let json = fs::read_to_string(&file_path)
-            .context("Failed to read task metadata from disk")?;
+        let json =
+            fs::read_to_string(&file_path).context("Failed to read task metadata from disk")?;
 
-        let metadata: TaskMetadata = serde_json::from_str(&json)
-            .context("Failed to deserialize task metadata")?;
+        let metadata: TaskMetadata =
+            serde_json::from_str(&json).context("Failed to deserialize task metadata")?;
 
         Ok(metadata)
     }
@@ -267,8 +265,7 @@ impl TaskMetadataManager {
         let file_path = self.tasks_dir.join(format!("{}.json", task_id));
 
         if file_path.exists() {
-            fs::remove_file(&file_path)
-                .context("Failed to delete task metadata")?;
+            fs::remove_file(&file_path).context("Failed to delete task metadata")?;
         }
 
         Ok(())
@@ -279,23 +276,32 @@ impl TaskMetadataManager {
         let tasks = self.list_all()?;
 
         let total = tasks.len();
-        let pending = tasks.iter().filter(|t| t.status == TaskStatus::Pending).count();
-        let running = tasks.iter().filter(|t| t.status == TaskStatus::Running).count();
-        let success = tasks.iter().filter(|t| t.status == TaskStatus::Success).count();
-        let failed = tasks.iter().filter(|t| t.status == TaskStatus::Failed).count();
-        let cancelled = tasks.iter().filter(|t| t.status == TaskStatus::Cancelled).count();
+        let pending = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Pending)
+            .count();
+        let running = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Running)
+            .count();
+        let success = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Success)
+            .count();
+        let failed = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Failed)
+            .count();
+        let cancelled = tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Cancelled)
+            .count();
 
         // Calculate average duration for completed tasks
-        let completed_tasks: Vec<_> = tasks
-            .iter()
-            .filter(|t| t.duration_secs.is_some())
-            .collect();
+        let completed_tasks: Vec<_> = tasks.iter().filter(|t| t.duration_secs.is_some()).collect();
 
         let avg_duration_secs = if !completed_tasks.is_empty() {
-            let total_duration: u64 = completed_tasks
-                .iter()
-                .filter_map(|t| t.duration_secs)
-                .sum();
+            let total_duration: u64 = completed_tasks.iter().filter_map(|t| t.duration_secs).sum();
             Some(total_duration / completed_tasks.len() as u64)
         } else {
             None

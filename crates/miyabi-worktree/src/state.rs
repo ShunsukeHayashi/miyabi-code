@@ -69,8 +69,12 @@ impl WorktreeStateManager {
     /// Create a new WorktreeStateManager
     pub fn new(project_root: PathBuf) -> Result<Self> {
         let worktree_base = project_root.join(".worktrees");
-        let task_metadata_manager = TaskMetadataManager::new(&project_root)
-            .map_err(|e| MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+        let task_metadata_manager = TaskMetadataManager::new(&project_root).map_err(|e| {
+            MiyabiError::Io(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                e.to_string(),
+            ))
+        })?;
 
         Ok(Self {
             project_root,
@@ -89,8 +93,7 @@ impl WorktreeStateManager {
         }
 
         // Iterate through worktree directories
-        let entries = std::fs::read_dir(&self.worktree_base)
-            .map_err(|e| MiyabiError::Io(e))?;
+        let entries = std::fs::read_dir(&self.worktree_base).map_err(|e| MiyabiError::Io(e))?;
 
         for entry in entries {
             let entry = entry.map_err(|e| MiyabiError::Io(e))?;
@@ -115,7 +118,7 @@ impl WorktreeStateManager {
         if !path.exists() {
             return Err(MiyabiError::Io(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                format!("Worktree not found: {}", path.display())
+                format!("Worktree not found: {}", path.display()),
             )));
         }
 
@@ -223,8 +226,12 @@ impl WorktreeStateManager {
     /// Synchronize worktree states with TaskMetadata
     pub fn sync_with_metadata(&self) -> Result<()> {
         let worktrees = self.scan_worktrees()?;
-        let all_tasks = self.task_metadata_manager.list_all()
-            .map_err(|e| MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+        let all_tasks = self.task_metadata_manager.list_all().map_err(|e| {
+            MiyabiError::Io(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                e.to_string(),
+            ))
+        })?;
 
         // Create a map of issue numbers to task metadata
         let task_map: std::collections::HashMap<u64, _> = all_tasks
@@ -265,10 +272,7 @@ impl WorktreeStateManager {
         }
 
         // Try simple numeric prefix
-        if let Some(captures) = regex::Regex::new(r"^(\d+)")
-            .ok()?
-            .captures(dir_name)
-        {
+        if let Some(captures) = regex::Regex::new(r"^(\d+)").ok()?.captures(dir_name) {
             return captures.get(1)?.as_str().parse().ok();
         }
 
@@ -290,7 +294,12 @@ impl WorktreeStateManager {
             let tasks = self
                 .task_metadata_manager
                 .find_by_issue(issue_num)
-                .map_err(|e| MiyabiError::Io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+                .map_err(|e| {
+                    MiyabiError::Io(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        e.to_string(),
+                    ))
+                })?;
             if tasks.is_empty() {
                 return Ok(WorktreeStatusDetailed::Orphaned);
             }
@@ -324,9 +333,7 @@ impl WorktreeStateManager {
     fn get_last_accessed(&self, path: &Path) -> Result<DateTime<Utc>> {
         let metadata = std::fs::metadata(path).map_err(|e| MiyabiError::Io(e))?;
 
-        let modified = metadata
-            .modified()
-            .map_err(|e| MiyabiError::Io(e))?;
+        let modified = metadata.modified().map_err(|e| MiyabiError::Io(e))?;
 
         Ok(DateTime::from(modified))
     }
@@ -336,8 +343,7 @@ impl WorktreeStateManager {
     }
 
     fn has_uncommitted_changes(&self, path: &Path) -> Result<bool> {
-        let repo = git2::Repository::open(path)
-            .map_err(|e| MiyabiError::Git(e.to_string()))?;
+        let repo = git2::Repository::open(path).map_err(|e| MiyabiError::Git(e.to_string()))?;
 
         let statuses = repo
             .statuses(None)
