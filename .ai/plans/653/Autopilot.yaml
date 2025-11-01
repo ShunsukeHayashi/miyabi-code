@@ -1,0 +1,211 @@
+# Autopilot.yaml for Issue #653
+# Autopilot Codex workflow without external LLM
+
+version: "1.0"
+issue:
+  number: 653
+  title: "Autopilot Codex workflow without external LLM"
+  url: "https://github.com/customer-cloud/miyabi-private/issues/653"
+
+config:
+  worktree_isolation: true
+  auto_cleanup: true
+  max_failures: 3  # Abort after 3 consecutive failures
+  timeout_seconds: 3600  # 1 hour timeout
+
+steps:
+  - id: "validate-schema"
+    description: "Validate AUTOPILOT_SCHEMA.md exists and is complete"
+    command: |
+      if [ -f ".ai/plans/AUTOPILOT_SCHEMA.md" ]; then
+        echo "✅ AUTOPILOT_SCHEMA.md found"
+        exit 0
+      else
+        echo "❌ AUTOPILOT_SCHEMA.md not found"
+        exit 1
+      fi
+    expectation: "exit_code == 0"
+    rollback: null
+    optional: false
+
+  - id: "verify-script"
+    description: "Verify run_codex.sh script is executable"
+    command: |
+      if [ -x "scripts/autopilot/run_codex.sh" ]; then
+        echo "✅ run_codex.sh is executable"
+        scripts/autopilot/run_codex.sh 653 --dry-run --plan .ai/plans/653/Autopilot.yaml
+      else
+        echo "❌ run_codex.sh not executable"
+        exit 1
+      fi
+    expectation: "exit_code == 0"
+    rollback: null
+    optional: false
+
+  - id: "create-audit-script"
+    description: "Create audit script for autopilot verification"
+    command: |
+      mkdir -p scripts/audit
+      cat > scripts/audit/codex_autopilot_check.sh << 'AUDIT_EOF'
+      #!/usr/bin/env bash
+      # Autopilot Audit Script
+      set -euo pipefail
+      
+      echo "🔍 Auditing Autopilot execution..."
+      
+      # Check logs
+      if [ -d ".ai/logs/autopilot" ]; then
+        echo "✅ Log directory exists"
+      else
+        echo "❌ Log directory missing"
+        exit 1
+      fi
+      
+      # Check worktree cleanup
+      if [ $(git worktree list | grep -c "autopilot") -eq 0 ]; then
+        echo "✅ No autopilot worktrees remaining"
+      else
+        echo "⚠️  Autopilot worktrees still exist"
+      fi
+      
+      echo "✅ PASS: Autopilot audit complete"
+      AUDIT_EOF
+      
+      chmod +x scripts/audit/codex_autopilot_check.sh
+      echo "✅ Audit script created"
+    expectation: "exit_code == 0"
+    rollback: "rm -f scripts/audit/codex_autopilot_check.sh"
+    optional: false
+
+  - id: "create-docs"
+    description: "Create usage documentation"
+    command: |
+      mkdir -p docs/autopilot
+      cat > docs/autopilot/USAGE.md << 'DOC_EOF'
+      # Autopilot Usage Guide
+      
+      ## Quick Start
+      
+      \`\`\`bash
+      # Run autopilot for a specific issue
+      ./scripts/autopilot/run_codex.sh 653
+      
+      # With custom plan
+      ./scripts/autopilot/run_codex.sh 653 --plan .ai/plans/653/Autopilot-custom.yaml
+      
+      # Dry run mode
+      ./scripts/autopilot/run_codex.sh 653 --dry-run
+      
+      # Verbose logging
+      ./scripts/autopilot/run_codex.sh 653 --verbose
+      
+      # Preserve worktree after execution
+      ./scripts/autopilot/run_codex.sh 653 --no-cleanup
+      \`\`\`
+      
+      ## Schema Reference
+      
+      See \`.ai/plans/AUTOPILOT_SCHEMA.md\` for full schema documentation.
+      
+      ## Audit
+      
+      \`\`\`bash
+      ./scripts/audit/codex_autopilot_check.sh
+      \`\`\`
+      DOC_EOF
+      
+      echo "✅ Documentation created"
+    expectation: "exit_code == 0"
+    rollback: "rm -f docs/autopilot/USAGE.md"
+    optional: false
+
+  - id: "format-code"
+    description: "Format code with cargo fmt"
+    command: "cargo fmt --all"
+    expectation: "exit_code == 0"
+    rollback: null
+    optional: true
+
+  - id: "run-tests"
+    description: "Run tests to verify no regressions"
+    command: "cargo test --all --quiet"
+    expectation: "exit_code == 0"
+    rollback: null
+    optional: true
+
+  - id: "commit-changes"
+    description: "Commit all changes"
+    command: |
+      git add -A
+      git commit -m "feat(autopilot): implement Autopilot.yaml schema and execution engine
+
+      - Add AUTOPILOT_SCHEMA.md with comprehensive schema definition
+      - Enhance scripts/autopilot/run_codex.sh with:
+        * Command-line argument parsing (--plan, --dry-run, --verbose, --no-cleanup, --timeout)
+        * Support for Autopilot.yaml schema structure
+        * Rollback logic for failed steps
+        * Timeout enforcement per step
+        * Expectation evaluation (exit_code, files_created, files_modified)
+        * Consecutive failure tracking with configurable max_failures
+        * Optional step support
+      - Create scripts/audit/codex_autopilot_check.sh for execution verification
+      - Add docs/autopilot/USAGE.md with usage examples
+      - Create .ai/plans/653/Autopilot.yaml as self-implementation example
+
+      Closes #653
+
+      🤖 Generated via Autopilot
+
+      Co-Authored-By: Autopilot <noreply@miyabi.dev>"
+    expectation: "exit_code == 0"
+    rollback: "git reset --soft HEAD~1"
+    optional: false
+
+security:
+  mask_secrets: true
+  allowed_env_vars:
+    - "GITHUB_TOKEN"
+    - "RUST_LOG"
+    - "CARGO_HOME"
+    - "PATH"
+  blocked_env_vars:
+    - "ANTHROPIC_API_KEY"
+    - "OPENAI_API_KEY"
+  network_access: "disabled"  # disabled | readonly | full
+
+logging:
+  stdout_path: ".ai/logs/codex/autopilot-{timestamp}.log"
+  stderr_path: ".ai/logs/codex/autopilot-{timestamp}-error.log"
+  summary_path: ".ai/logs/autopilot/summary-{timestamp}.md"
+  status_path: ".ai/logs/autopilot/status-{timestamp}.log"
+
+notifications:
+  on_success:
+    - type: "github_comment"
+      template: |
+        ✅ Autopilot execution completed successfully
+
+        **Duration**: {duration}
+        **Steps**: {steps_completed}/{steps_total}
+        **Files changed**: {files_changed}
+
+        See logs: `.ai/logs/autopilot/summary-{timestamp}.md`
+
+        🤖 Generated via Autopilot
+  on_failure:
+    - type: "github_comment"
+      template: |
+        ❌ Autopilot execution failed
+
+        **Failed at step**: {failed_step_id} - {failed_step_description}
+        **Error**: {error_message}
+        **Duration**: {duration}
+
+        See failure log: `.ai/logs/autopilot/failed/FAILED-{timestamp}.log`
+
+        🚨 Manual intervention required
+
+cleanup:
+  remove_worktree: true
+  remove_branch_on_failure: false
+  archive_logs: true

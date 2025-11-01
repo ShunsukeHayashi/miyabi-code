@@ -58,11 +58,13 @@ lerna-debug.log*
 .ai/issues/*.json
 .ai/*.mjs
 
-# Plans history management (keep all Plans.md files)
+# Plans history management (keep all Plans.md and Autopilot.yaml files)
 # Format: .ai/plans/{issue-number}/Plans-{timestamp}.md
+# Format: .ai/plans/{issue-number}/Autopilot.yaml
 !.ai/plans/
 !.ai/plans/**/
 !.ai/plans/**/*.md
+!.ai/plans/**/*.yaml
 
 # Keep directory structure but ignore contents
 !.ai/logs/.gitkeep
@@ -153,7 +155,7 @@ claude-plugin/
 /__tests__/
 /commands/
 data/
-.ai/
+# .ai/ # Commented out - specific rules defined at top of file
 reports/
 
 # External context directory
