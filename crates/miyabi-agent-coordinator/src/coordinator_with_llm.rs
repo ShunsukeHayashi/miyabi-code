@@ -7,7 +7,7 @@ use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
-use miyabi_llm::{LLMProvider, LLMRequest, ReasoningEffort};
+use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
@@ -37,11 +37,32 @@ impl CoordinatorAgentWithLLM {
         }
     }
 
-    /// Initialize LLM provider (disabled for testing fallback)
+    /// Initialize LLM provider (with environment-based fallback chain)
     fn initialize_llm_provider() -> Option<Box<dyn LLMProvider>> {
-        // Temporarily disable LLM to test fallback behavior
-        tracing::info!("LLM provider disabled for testing - using rule-based task decomposition");
-        None
+        if std::env::var("MIYABI_DISABLE_LLM")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
+        {
+            tracing::warn!(
+                "LLM provider explicitly disabled via MIYABI_DISABLE_LLM env var; falling back to rule-based task decomposition"
+            );
+            return None;
+        }
+
+        match GPTOSSProvider::new_with_fallback() {
+            Ok(provider) => {
+                let model_name = provider.model_name().to_string();
+                tracing::info!("LLM provider initialized successfully: {}", model_name);
+                Some(Box::new(provider) as Box<dyn LLMProvider>)
+            }
+            Err(err) => {
+                tracing::warn!(
+                    "Failed to initialize LLM provider ({}). Falling back to rule-based task decomposition",
+                    err
+                );
+                None
+            }
+        }
     }
 
     /// Decompose an Issue into Tasks using LLM
@@ -65,39 +86,45 @@ impl CoordinatorAgentWithLLM {
                     .with_reasoning_effort(ReasoningEffort::High);
 
                 // Generate task decomposition
-                let response = llm
-                    .generate(&request)
-                    .await
-                    .map_err(|e| MiyabiError::Unknown(format!("LLM generation failed: {}", e)))?;
+                match llm.generate(&request).await {
+                    Ok(response) => {
+                        // Parse LLM response into tasks
+                        let tasks = self.parse_llm_response(&response.text, issue)?;
 
-                // Parse LLM response into tasks
-                let tasks = self.parse_llm_response(&response.text, issue)?;
+                        // Build DAG from task dependencies
+                        let dag = self.base_coordinator.build_dag(&tasks)?;
 
-                // Build DAG from task dependencies
-                let dag = self.base_coordinator.build_dag(&tasks)?;
+                        // Validate DAG (no cycles)
+                        let has_cycles = dag.has_cycles();
+                        if has_cycles {
+                            return Err(MiyabiError::Validation(
+                                "Task DAG contains cycles - cannot execute".to_string(),
+                            ));
+                        }
 
-                // Validate DAG (no cycles)
-                let has_cycles = dag.has_cycles();
-                if has_cycles {
-                    return Err(MiyabiError::Validation(
-                        "Task DAG contains cycles - cannot execute".to_string(),
-                    ));
-                }
+                        // Calculate total estimated duration
+                        let estimated_total_duration =
+                            tasks.iter().filter_map(|t| t.estimated_duration).sum();
 
-                // Calculate total estimated duration
-                let estimated_total_duration =
-                    tasks.iter().filter_map(|t| t.estimated_duration).sum();
+                        // Generate recommendations
+                        let recommendations = self.generate_recommendations(&tasks, &dag);
 
-                // Generate recommendations
-                let recommendations = self.generate_recommendations(&tasks, &dag);
-
-                TaskDecomposition {
-                    original_issue: issue.clone(),
-                    tasks,
-                    dag,
-                    estimated_total_duration,
-                    has_cycles,
-                    recommendations,
+                        TaskDecomposition {
+                            original_issue: issue.clone(),
+                            tasks,
+                            dag,
+                            estimated_total_duration,
+                            has_cycles,
+                            recommendations,
+                        }
+                    }
+                    Err(err) => {
+                        tracing::warn!(
+                            "LLM generation failed: {}. Falling back to rule-based task decomposition",
+                            err
+                        );
+                        self.base_coordinator.decompose_issue(issue).await?
+                    }
                 }
             }
             None => {
