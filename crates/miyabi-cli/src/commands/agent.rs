@@ -247,8 +247,11 @@ impl AgentCommand {
         println!("  Type: CodeGenAgent (Code generation)");
         println!();
 
-        // Create agent with lifecycle hooks
-        let mut agent = HookedAgent::new(CodeGenAgent::new(config.clone()));
+        // Create agent with lifecycle hooks and LLM integration
+        let mut agent = HookedAgent::new(
+            CodeGenAgent::new_with_all(config.clone())
+                .unwrap_or_else(|_| CodeGenAgent::new(config.clone()))
+        );
         self.register_standard_hooks(&mut agent, &config);
 
         // Create task for codegen
