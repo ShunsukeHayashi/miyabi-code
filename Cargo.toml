@@ -29,6 +29,10 @@ members = [
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
     "crates/miyabi-e2e-tests", "crates/miyabi-modes",  # E2E test framework
 ]
+exclude = [
+    "miyabi-desktop/src-tauri",  # Tauri app has its own workspace
+    "crates/miyabi-agent-swml",  # TODO: Issue #663 - SWML module implementations missing
+]
 
 [workspace.package]
 version = "0.1.1"
@@ -85,6 +89,9 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # System info
 hostname = "0.4"
+
+# UUID generation
+uuid = { version = "1.6", features = ["v4", "serde"] }
 
 # Testing
 insta = "1.40"

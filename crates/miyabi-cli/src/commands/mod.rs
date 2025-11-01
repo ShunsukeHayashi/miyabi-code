@@ -1,6 +1,9 @@
 //! CLI command implementations
 
 pub mod agent;
+// TODO: Fix API compatibility issues with AgentConfigManager
+// pub mod agent_config;
+// pub mod agent_manage;
 pub mod init;
 pub mod install;
 pub mod knowledge;

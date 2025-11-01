@@ -35,37 +35,48 @@ miyabi_def/
 ├── README.md               # このファイル
 ├── generate.py             # YAML生成スクリプト
 │
-├── variables/              # 変数定義ファイル (9 files)
+├── variables/              # 変数定義ファイル (15 files)
 │   ├── global.yaml         # グローバル変数
-│   ├── entities.yaml       # 14 Entities定義 ✨ NEW
-│   ├── relations.yaml      # 39 Relations定義 ✨ NEW
-│   ├── labels.yaml         # 57 Labels定義 ✨ NEW
-│   ├── workflows.yaml      # 5 Workflows定義 ✨ NEW
+│   ├── world_definition.yaml  # 🌍 World Space定義 (W) ⭐ NEW
+│   ├── step_back_question_method.yaml  # 📚 Step-back Question Method (SWML) ⭐ NEW
+│   ├── entities.yaml       # 14 Entities定義
+│   ├── relations.yaml      # 39 Relations定義
+│   ├── labels.yaml         # 57 Labels定義
+│   ├── workflows.yaml      # 5 Workflows定義
 │   ├── agents.yaml         # 21 Agents定義
 │   ├── crates.yaml         # 15 Crates定義
 │   ├── skills.yaml         # 18 Skills定義
-│   └── universal_execution.yaml  # Ω-System定義
+│   ├── universal_execution.yaml  # Ω-System定義
+│   ├── autonomous_operation_protocol.yaml  # 自律運用プロトコル
+│   ├── pr_merge_rules.yaml  # PRマージルール
+│   ├── naming_conventions.yaml  # 命名規則
+│   └── tool_description_rules.yaml  # ツール表示ルール
 │
-├── templates/              # Jinja2テンプレート (9 files)
+├── templates/              # Jinja2テンプレート (11 files)
 │   ├── base.yaml.j2        # ベーステンプレート
-│   ├── entities.yaml.j2    # Entities定義テンプレート ✨ NEW
-│   ├── relations.yaml.j2   # Relations定義テンプレート ✨ NEW
-│   ├── labels.yaml.j2      # Labels定義テンプレート ✨ NEW
-│   ├── workflows.yaml.j2   # Workflows定義テンプレート ✨ NEW
+│   ├── world_definition.yaml.j2  # 🌍 World Space テンプレート ⭐ NEW
+│   ├── step_back_question_method.yaml.j2  # 📚 Step-back Method テンプレート ⭐ NEW
+│   ├── entities.yaml.j2    # Entities定義テンプレート
+│   ├── relations.yaml.j2   # Relations定義テンプレート
+│   ├── labels.yaml.j2      # Labels定義テンプレート
+│   ├── workflows.yaml.j2   # Workflows定義テンプレート
 │   ├── agents.yaml.j2      # Agents定義テンプレート
 │   ├── crates.yaml.j2      # Crates定義テンプレート
 │   ├── skills.yaml.j2      # Skills定義テンプレート
 │   └── universal_task_execution.yaml.j2  # Ω-System テンプレート
 │
-├── generated/              # 生成されたYAMLファイル (8 files, 152KB)
-│   ├── entities.yaml       # 14 Entities完全定義 (39KB) ✨ NEW
-│   ├── relations.yaml      # 39 Relations完全定義 (25KB) ✨ NEW
-│   ├── labels.yaml         # 57 Labels完全定義 (14KB) ✨ NEW
-│   ├── workflows.yaml      # 5 Workflows完全定義 (13KB) ✨ NEW
+├── generated/              # 生成されたYAMLファイル (11 files, 191KB)
+│   ├── world_definition.yaml  # 🌍 World Space完全定義 (21KB) ⭐ NEW
+│   ├── step_back_question_method.yaml  # 📚 Step-back Method完全定義 (18KB) ⭐ NEW
+│   ├── entities.yaml       # 14 Entities完全定義 (39KB)
+│   ├── relations.yaml      # 39 Relations完全定義 (25KB)
+│   ├── labels.yaml         # 57 Labels完全定義 (14KB)
+│   ├── workflows.yaml      # 5 Workflows完全定義 (13KB)
 │   ├── agents.yaml         # 21 Agents完全定義 (9.4KB)
 │   ├── crates.yaml         # 15 Crates完全定義 (6.3KB)
 │   ├── skills.yaml         # 18 Skills完全定義 (7.6KB)
-│   └── universal_task_execution.yaml  # Ω-System (21KB)
+│   ├── universal_task_execution.yaml  # Ω-System (21KB)
+│   └── agent_execution_maximization.yaml  # Agent実行最大化 (23KB)
 │
 └── .venv/                  # Python仮想環境 (gitignored)
 ```
@@ -125,7 +136,36 @@ cat generated/skills.yaml
 - Rustツールチェーン情報
 - 各種カウント（crates数、agents数等）
 
-#### `variables/entities.yaml` ✨ NEW
+#### `variables/world_definition.yaml` 🌍 ⭐ NEW
+**World Space (W)** の完全定義 - Ω-Systemの実行環境
+- **§1-2: Temporal (時間次元)** - タイムゾーン、制約、ホライズン
+- **§3: Spatial (空間次元)** - 物理・デジタル・抽象空間
+- **§4: Contextual (文脈次元)** - ドメイン、ユーザー、システム、技術スタック
+- **§5: Resources (リソース次元)** - 計算・人的・情報・財務リソース
+- **§6: Environmental (環境次元)** - システム負荷、依存関係、制約、外部環境
+- **§7-13: 状態管理・Ω統合・進化・ガバナンス・可観測性・拡張性・ロードマップ**
+
+**数学的表現**: `Ψ(W) = ∫[t₀→t₁] ∇(s, c, r, e) dt`
+
+この定義により、Ω-System (`Ω: I × W → R`) の **World (W)** が機械可読な形で記述されます。
+
+#### `variables/step_back_question_method.yaml` 📚 ⭐ NEW
+**Step-back Question Method** の完全数式化 - SWML (Shunsuke's World Model Logic)
+- **数学的定義**: `F(Goal, Q) = ∫_{A}^{Z} f(step, Q) d(step) = Result`
+- **26ステッププロセス (A to Z)**: 分析→分解→明確化→...→収束
+- **Step-back Questions**: 本質を問う質問の集合 (Why/What if/How系)
+- **品質メトリクス**: Step-back効果により品質が1.5~2倍向上
+- **実装マッピング**: Rust型・関数への完全マッピング
+
+**記号の意味**:
+- `F` (大文字): Goal Achievement Function - ゴール全体達成関数
+- `f` (小文字): Step Execution Function - 個別ステップ実行関数
+- `Q`: Set of Step-back Questions - ステップバック質問の集合
+- `[A, Z]`: 26-step process range - A(Analyze)からZ(Zero-in)までの26ステップ
+
+**詳細**: `STEP_BACK_QUESTION_METHOD_CORRECTED.md` (論理的に厳密な修正版)
+
+#### `variables/entities.yaml`
 14個のCore Entity定義 (E1-E14)
 - Issue, Task, Agent, PR, Label, QualityReport, Command, Escalation, Deployment, LDDLog, DAG, Worktree, DiscordCommunity, SubIssue
 - 各Entityに完全な属性・型・実装情報

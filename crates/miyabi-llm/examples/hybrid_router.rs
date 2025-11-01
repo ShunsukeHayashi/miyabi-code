@@ -9,7 +9,7 @@
 //! cargo run --example hybrid_router
 //! ```
 
-use miyabi_llm::{HybridRouter, LlmClient, Message, Role};
+use miyabi_llm::{HybridRouter, LlmClient, Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

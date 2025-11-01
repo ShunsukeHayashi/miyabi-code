@@ -62,6 +62,6 @@ pub use session::{
     Turn, TurnStatus,
 };
 pub use task_metadata::{
-    TaskIndex, TaskMetadata, TaskMetadataIndex, TaskMetadataManager, TaskStatistics, TaskStatus,
+    TaskMetadata, TaskMetadataManager, TaskStatistics, TaskStatus,
 };
 pub use tools::{ToolRegistry, ToolResult};

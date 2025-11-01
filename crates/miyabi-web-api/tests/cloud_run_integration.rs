@@ -438,6 +438,7 @@ async fn test_service_version_accessible() {
 #[cfg(test)]
 mod helpers {
     /// Parse response and return JSON
+    #[allow(dead_code)]
     pub async fn parse_json(response: reqwest::Response) -> serde_json::Value {
         response
             .json()
@@ -446,6 +447,7 @@ mod helpers {
     }
 
     /// Check if response is success
+    #[allow(dead_code)]
     pub fn is_success(status: reqwest::StatusCode) -> bool {
         status.is_success()
     }

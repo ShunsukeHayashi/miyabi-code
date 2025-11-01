@@ -196,10 +196,10 @@ pub struct FileContextTracker {
 impl FileContextTracker {
     /// Create a new tracker for Rust files
     pub fn new_rust() -> Result<Self> {
-        let language = tree_sitter_rust::LANGUAGE.into();
+        let language = tree_sitter_rust::language();
         let mut parser = Parser::new();
         parser
-            .set_language(&language)
+            .set_language(language)
             .map_err(|e| AstError::ParseError(e.to_string()))?;
 
         Ok(Self { parser, language })

@@ -518,3 +518,163 @@ Output observed:
 ---
 
 **Follow-up Test Completed**: 2025-10-31 18:32 JST
+
+---
+
+## 🔧 Fix Implementation (2025-11-01)
+
+### Root Cause Identified
+**Event Listener Timing Race Condition**: The output listener was registered AFTER agent execution started, causing output events to be missed.
+
+### Changes Made
+
+#### 1. Frontend Fix (AgentExecutionPanel.tsx)
+**File**: `miyabi-desktop/src/components/AgentExecutionPanel.tsx`
+
+**Modified `handleExecuteAgent()` function**:
+```typescript
+// OLD: Register listener after execution completes
+const result = await executeAgent(...);
+setActiveExecution({ executionId: result.execution_id, ... });
+// Listener registered in useEffect AFTER execution
+
+// NEW: Listen for "starting" event and register immediately
+const executionIdPromise = new Promise<string>((resolve) => {
+  const unlisten = listenToAgentStatus((result) => {
+    if (result.status === "starting" || result.status === "running") {
+      resolve(result.execution_id);
+      unlisten();
+    }
+  });
+});
+
+const executePromise = executeAgent(...);
+const executionId = await executionIdPromise;
+
+// Register output listener IMMEDIATELY with real execution_id
+const unlistenOutput = await listenToAgentOutput(executionId, (line) => {
+  setActiveExecution((prev) => ({
+    ...prev,
+    output: [...prev.output, line],
+  }));
+});
+
+await executePromise; // Wait for completion
+```
+
+**Key Improvements**:
+1. Capture `execution_id` from "starting" status event
+2. Register output listener immediately after receiving execution_id
+3. Execute agent and listen for output in parallel
+
+#### 2. Backend Fix (agent.rs)
+**File**: `miyabi-desktop/src-tauri/src/agent.rs`
+
+**Added 100ms delay after "starting" event** (line 151):
+```rust
+// Emit starting event
+let _ = app_handle.emit("agent-execution-status", AgentExecutionResult {
+    execution_id: execution_id.clone(),
+    agent_type: request.agent_type.clone(),
+    status: AgentExecutionStatus::Starting,
+    ...
+});
+
+// Give frontend 100ms to register output listener
+tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+// Now spawn process and start emitting output
+let mut child = cmd.spawn()?;
+```
+
+**Key Improvements**:
+1. Ensures frontend has time to register listener before output starts
+2. Prevents race condition between event emission and listener registration
+3. 100ms is sufficient for async event handling to complete
+
+### Execution Flow (After Fix)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Agent Execution Flow                         │
+└─────────────────────────────────────────────────────────────────┘
+
+Frontend                          Backend
+   │                                 │
+   │  1. executeAgent()              │
+   ├────────────────────────────────►│
+   │                                 │ 2. Generate execution_id (UUID)
+   │                                 │
+   │  3. "starting" event            │
+   │◄────────────────────────────────┤
+   │    (contains execution_id)      │
+   │                                 │
+   │ 4. Receive execution_id         │
+   │    via Promise                  │
+   │                                 │
+   │ 5. Register output listener     │
+   │    (agent-output-{id})          │
+   │                                 │ 6. Wait 100ms (grace period)
+   │                                 │
+   │  7. "running" event             │
+   │◄────────────────────────────────┤
+   │                                 │ 8. Spawn child process
+   │                                 │
+   │  9. Output events (real-time)   │ 10. Stream stdout/stderr
+   │◄────────────────────────────────┤
+   │◄────────────────────────────────┤
+   │◄────────────────────────────────┤
+   │    Display in UI                │    (continuous)
+   │                                 │
+   │  11. "success"/"failed" event   │ 12. Process completes
+   │◄────────────────────────────────┤
+   │                                 │
+   │ 13. Update UI with final status │
+   └─────────────────────────────────┘
+```
+
+### Testing Instructions
+
+#### Manual Test (Desktop App)
+1. Build Desktop App:
+   ```bash
+   cd miyabi-desktop
+   npm install
+   npm run tauri dev
+   ```
+
+2. Execute any agent (e.g., CoordinatorAgent)
+
+3. **Expected Behavior**:
+   - Real-time logs appear in UI during execution
+   - No delay or missing output
+   - Status updates correctly ("実行中..." → "実行完了")
+
+#### Automated Test (CLI)
+```bash
+# CLI already works (confirmed in previous tests)
+miyabi agent run coordinator
+```
+
+### Verification Checklist
+
+- [x] Frontend: Modified `handleExecuteAgent()` to pre-register listener
+- [x] Backend: Added 100ms grace period after "starting" event
+- [x] Workspace: Excluded Tauri app from main workspace
+- [ ] Manual testing: Desktop App real-time logging
+- [ ] Regression test: Multiple concurrent executions
+- [ ] Regression test: Fast-completing agents (< 100ms)
+
+### Related Commits
+- `e0d16a5cd` - fix(miyabi-desktop): resolve log streaming race condition (#636, #637)
+- `90aca37c4` - chore(workspace): exclude Tauri app from main workspace
+
+### Status: READY FOR TESTING ✅
+
+The implementation is complete. Manual testing required to confirm real-time log display in Desktop App UI.
+
+---
+
+**Last Updated**: 2025-11-01
+**Status**: Fix implemented, awaiting manual testing
+**Next Step**: Manual testing on Desktop App UI

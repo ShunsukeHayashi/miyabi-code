@@ -70,10 +70,7 @@ impl WorktreeStateManager {
     pub fn new(project_root: PathBuf) -> Result<Self> {
         let worktree_base = project_root.join(".worktrees");
         let task_metadata_manager = TaskMetadataManager::new(&project_root).map_err(|e| {
-            MiyabiError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            ))
+            MiyabiError::Io(std::io::Error::other(e.to_string()))
         })?;
 
         Ok(Self {
@@ -93,10 +90,10 @@ impl WorktreeStateManager {
         }
 
         // Iterate through worktree directories
-        let entries = std::fs::read_dir(&self.worktree_base).map_err(|e| MiyabiError::Io(e))?;
+        let entries = std::fs::read_dir(&self.worktree_base).map_err(MiyabiError::Io)?;
 
         for entry in entries {
-            let entry = entry.map_err(|e| MiyabiError::Io(e))?;
+            let entry = entry.map_err(MiyabiError::Io)?;
             let path = entry.path();
 
             if path.is_dir() {
@@ -201,11 +198,11 @@ impl WorktreeStateManager {
             .arg(path)
             .current_dir(&self.project_root)
             .status()
-            .map_err(|e| MiyabiError::Io(e))?;
+            .map_err(MiyabiError::Io)?;
 
         if !status.success() {
             // If git worktree remove fails, try manual deletion
-            std::fs::remove_dir_all(path).map_err(|e| MiyabiError::Io(e))?;
+            std::fs::remove_dir_all(path).map_err(MiyabiError::Io)?;
         }
 
         Ok(())
@@ -227,10 +224,7 @@ impl WorktreeStateManager {
     pub fn sync_with_metadata(&self) -> Result<()> {
         let worktrees = self.scan_worktrees()?;
         let all_tasks = self.task_metadata_manager.list_all().map_err(|e| {
-            MiyabiError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            ))
+            MiyabiError::Io(std::io::Error::other(e.to_string()))
         })?;
 
         // Create a map of issue numbers to task metadata
@@ -285,7 +279,7 @@ impl WorktreeStateManager {
         issue_number: Option<u64>,
     ) -> Result<WorktreeStatusDetailed> {
         // Check if corrupted (git errors)
-        if let Err(_) = git2::Repository::open(path) {
+        if git2::Repository::open(path).is_err() {
             return Ok(WorktreeStatusDetailed::Corrupted);
         }
 
@@ -295,10 +289,7 @@ impl WorktreeStateManager {
                 .task_metadata_manager
                 .find_by_issue(issue_num)
                 .map_err(|e| {
-                    MiyabiError::Io(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        e.to_string(),
-                    ))
+                    MiyabiError::Io(std::io::Error::other(e.to_string()))
                 })?;
             if tasks.is_empty() {
                 return Ok(WorktreeStatusDetailed::Orphaned);
@@ -331,9 +322,9 @@ impl WorktreeStateManager {
     }
 
     fn get_last_accessed(&self, path: &Path) -> Result<DateTime<Utc>> {
-        let metadata = std::fs::metadata(path).map_err(|e| MiyabiError::Io(e))?;
+        let metadata = std::fs::metadata(path).map_err(MiyabiError::Io)?;
 
-        let modified = metadata.modified().map_err(|e| MiyabiError::Io(e))?;
+        let modified = metadata.modified().map_err(MiyabiError::Io)?;
 
         Ok(DateTime::from(modified))
     }
@@ -353,19 +344,23 @@ impl WorktreeStateManager {
     }
 
     fn calculate_disk_usage(&self, path: &Path) -> Result<u64> {
+        Self::calculate_disk_usage_recursive(path)
+    }
+
+    fn calculate_disk_usage_recursive(path: &Path) -> Result<u64> {
         let mut total = 0;
 
         if path.is_dir() {
-            for entry in std::fs::read_dir(path).map_err(|e| MiyabiError::Io(e))? {
-                let entry = entry.map_err(|e| MiyabiError::Io(e))?;
-                let path = entry.path();
+            for entry in std::fs::read_dir(path).map_err(MiyabiError::Io)? {
+                let entry = entry.map_err(MiyabiError::Io)?;
+                let entry_path = entry.path();
 
-                if path.is_file() {
-                    if let Ok(metadata) = std::fs::metadata(&path) {
+                if entry_path.is_file() {
+                    if let Ok(metadata) = std::fs::metadata(&entry_path) {
                         total += metadata.len();
                     }
-                } else if path.is_dir() {
-                    total += self.calculate_disk_usage(&path)?;
+                } else if entry_path.is_dir() {
+                    total += Self::calculate_disk_usage_recursive(&entry_path)?;
                 }
             }
         }

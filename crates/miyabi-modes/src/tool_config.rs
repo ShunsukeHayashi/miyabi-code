@@ -18,7 +18,6 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
 
 /// Tool configuration with parameters and settings
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]

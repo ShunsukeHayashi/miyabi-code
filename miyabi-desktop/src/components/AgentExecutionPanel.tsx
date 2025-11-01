@@ -140,23 +140,72 @@ export function AgentExecutionPanel() {
     if (!selectedAgent) return;
 
     try {
-      const result = await executeAgent({
+      // Create a promise to capture the execution_id from the status event
+      const executionIdPromise = new Promise<string>((resolve) => {
+        const unlisten = listenToAgentStatus((result: AgentExecutionResult) => {
+          if (result.status === "starting" || result.status === "running") {
+            console.log('[DEBUG] Received execution_id from status event:', result.execution_id);
+            resolve(result.execution_id);
+            unlisten(); // Clean up listener after we get the ID
+          }
+        });
+      });
+
+      // Execute agent (this will trigger the "starting" status event)
+      const executePromise = executeAgent({
         agent_type: selectedAgent,
         issue_number: issueNumber ? parseInt(issueNumber) : undefined,
         args: [],
       });
 
+      // Wait for execution_id from status event
+      const executionId = await executionIdPromise;
+
+      // Immediately register output listener with the real execution_id
+      const unlistenOutput = await listenToAgentOutput(
+        executionId,
+        (line: string) => {
+          console.log('[DEBUG] Received agent output:', line);
+          setActiveExecution((prev) => {
+            if (!prev || prev.executionId !== executionId) return prev;
+            return {
+              ...prev,
+              output: [...prev.output, line],
+            };
+          });
+        }
+      );
+      console.log('[DEBUG] Output listener registered for:', executionId);
+
+      // Set initial execution state
       setActiveExecution({
-        executionId: result.execution_id,
-        agentType: result.agent_type,
-        status: result.status,
-        exitCode: result.exit_code,
-        durationMs: result.duration_ms,
+        executionId: executionId,
+        agentType: selectedAgent,
+        status: "running",
         output: [],
         startTime: Date.now(),
       });
+
+      // Wait for execution to complete
+      const result = await executePromise;
+
+      // Update execution with final result
+      setActiveExecution((prev) => ({
+        ...prev!,
+        status: result.status,
+        exitCode: result.exit_code,
+        durationMs: result.duration_ms,
+      }));
+
+      // Clean up listener after a delay to ensure all output is captured
+      setTimeout(() => {
+        if (unlistenOutput) unlistenOutput();
+      }, 1000);
     } catch (error) {
       console.error("Failed to execute agent:", error);
+      setActiveExecution((prev) =>
+        prev ? { ...prev, status: "failed" } : null
+      );
     }
   };
 

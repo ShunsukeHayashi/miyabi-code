@@ -12,6 +12,18 @@ meta:
   principle: "Maximum Agent Execution Capability"
   foundation: "完全制御 × 最適コンテキスト × 明確指示 × 適切ツール × 明確成果物"
 
+{% set control = lambda_system.control %}
+{% set roles = lambda_system.roles %}
+{% set context = lambda_system.context %}
+{% set tools = lambda_system.tools %}
+{% set deliverable = lambda_system.deliverable %}
+{% set monitoring = lambda_system.monitoring %}
+{% set progress = monitoring.progress %}
+{% set current_role = monitoring.current_role %}
+{% set context_size = monitoring.context_size %}
+{% set tools_used = monitoring.tools_used %}
+{% set deliverable_status = monitoring.deliverable_status %}
+
 # ═══════════════════════════════════════════════════════════════
 # § 1. Execution Maximization Principle - 実行最大化原理
 # ═══════════════════════════════════════════════════════════════

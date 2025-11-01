@@ -1,0 +1,5 @@
+{
+  "file": "crates/miyabi-agent-swml/src/lib.rs",
+  "line": 29,
+  "comment": "`pub mod agent;`など複数のモジュールを公開していますが、このPRでは対応する`agent.rs`/`convergence.rs`等の実装が追加されていません。今回`miyabi-agent-swml`をworkspaceメンバーに含めたため、このまま`cargo check`や`cargo build`を実行するとmoduleファイル欠如で必ず失敗します。モジュール実装を同梱するか、実装が揃うまでworkspaceへの追加は見送りましょう。"
+}

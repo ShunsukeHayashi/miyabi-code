@@ -44,6 +44,7 @@ async-trait = "0.1"
 dirs = "6.0"
 shellexpand = "3.1"
 open = "5.0"  # For opening browser
+comfy-table = "7.1"  # For pretty table output
 
 [features]
 default = ["server"]

@@ -4,8 +4,8 @@
 # Philosophy: "Quality gates ensure system integrity while enabling rapid iteration"
 
 pr_merge_rules:
-  version: "1.0.0"
-  last_updated: "2025-11-01"
+  version: "1.1.0"
+  last_updated: "2025-10-31"
 
   # === Phase 1: 必須チェック (Mandatory Gates) ===
   # これらが全て通過しないとマージ不可
@@ -69,25 +69,25 @@ pr_merge_rules:
           threshold: "0 errors"
           blocking: true
           priority: "P.1-Critical"
-          command: "npm run lint"
+          command: "pnpm lint"
 
         - check: "TypeScript compilation success"
           threshold: "0 type errors"
           blocking: true
           priority: "P.1-Critical"
-          command: "npm run typecheck"
+          command: "pnpm typecheck"
 
         - check: "All tests pass"
           threshold: "100% pass rate"
           blocking: true
           priority: "P.1-Critical"
-          command: "npm test"
+          command: "pnpm test"
 
         - check: "Test coverage maintained"
           threshold: ">= 80%"
           blocking: true
           priority: "P.2-High"
-          command: "npm run test:coverage"
+          command: "pnpm test:coverage"
 
     security:
       description: "セキュリティ基準"
@@ -96,13 +96,13 @@ pr_merge_rules:
           threshold: "0 critical"
           blocking: true
           priority: "P.1-Critical"
-          command: "npm audit --audit-level=critical"
+          command: "pnpm audit --audit-level=critical"
 
         - check: "No Sev.2-High vulnerabilities"
           threshold: "0 high"
           blocking: true
           priority: "P.2-High"
-          command: "npm audit --audit-level=high"
+          command: "pnpm audit --audit-level=high"
 
         - check: "No secrets leaked"
           threshold: "0 secrets"
@@ -197,6 +197,59 @@ pr_merge_rules:
       commits_count:
         warning: "> 10 commits"
         recommendation: "Squash before merge"
+
+  # === Phase 4: クリーンナップ運用ルール (Cleanup Policies) ===
+  cleanup_policy:
+    description: "レビュー前に必ず遵守すべきクリーンナップ運用ルール"
+
+    rules:
+      - check: "生成物コミット禁止"
+        details: |
+          `.cargo/registry`、`target/`、`dist/`、`.cache/`、ビルドログ、バイナリアセット、`.env.*` を含む生成物や秘密情報はリポジトリに含めない。必要に応じて `.gitignore` を更新し、検出した場合は削除してから再レビューを依頼する。
+        blocking: true
+        priority: "P.1-Critical"
+
+      - check: "統制ドキュメントの最小更新"
+        details: |
+          `CLAUDE.md` や `.codex/context/**` などの統制ドキュメントは最新版を維持し、差分は必要最小限に留める。巻き戻しや空白化が発生した場合は即時修正しない限りマージ不可。
+        blocking: true
+        priority: "P.1-Critical"
+
+      - check: "テスト・Lintの実行証跡"
+        details: |
+          `cargo fmt` / `cargo clippy` / `cargo test`（必要に応じて `pnpm lint` 等）のローカル実行結果をPRコメントに明記する。未実行または失敗状態のままのPRはレビュー対象外とする。
+        blocking: true
+        priority: "P.1-Critical"
+
+      - check: "互換性変更の説明責任"
+        details: |
+          既存機能の削除や挙動変更を行う場合は、PR本文に理由と代替手段・移行手順を明記する。説明が不足している場合はレビューを差し戻す。
+        blocking: true
+        priority: "P.2-High"
+
+      - check: "秘密情報の即時ローテーション"
+        details: |
+          秘密情報を誤ってコミットした場合は即座に削除し、キーをローテーションした上で再レビュー依頼時に対応状況を共有する。ローテーションが完了するまではマージ禁止。
+        blocking: true
+        priority: "P.1-Critical"
+
+      - check: "PRサイズと差分の管理"
+        details: |
+          1 PR = 1 機能/修正を徹底し、巨大差分（>500行、>20ファイル）はタスク分割を行う。分割せずに提出された場合はQ&A前にリスコープする。
+        blocking: false
+        priority: "P.2-High"
+
+      - check: "事前自己チェックリスト"
+        details: |
+          生成物削除／テスト結果／ドキュメント更新／BREAKING CHANGE の有無をPRテンプレートに従って自己チェックし、結果を本文に記載する。
+        blocking: true
+        priority: "P.2-High"
+
+      - check: "クリーンナップ未完了時の停止条件"
+        details: |
+          上記ルール違反が見つかったPRは「クリーンナップ完了」コメントと修正の再プッシュがあるまでレビュー・マージを停止する。
+        blocking: true
+        priority: "P.1-Critical"
 
     description_quality:
       rules:

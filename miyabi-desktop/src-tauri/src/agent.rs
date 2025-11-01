@@ -147,6 +147,9 @@ pub async fn execute_agent(
         },
     );
 
+    // Give frontend 100ms to register output listener
+    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
     // Build miyabi CLI command
     // Find project root (parent of miyabi-desktop)
     let current_dir = std::env::current_dir()

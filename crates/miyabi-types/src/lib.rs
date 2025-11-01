@@ -8,6 +8,7 @@ pub mod benchmark;
 pub mod error;
 pub mod issue;
 pub mod quality;
+pub mod swml;
 pub mod task;
 pub mod workflow;
 pub mod world;
@@ -25,4 +26,11 @@ pub use task::{Task, TaskDecomposition, TaskResult};
 pub use workflow::{ExecutionPlan, ExecutionReport, DAG};
 pub use world::{
     EvaluationScore, FiveWorldsResult, PromptVariant, WorldConfig, WorldExecutionResult, WorldId,
+};
+
+// Re-export SWML types
+pub use swml::{
+    Constraint, FileChange, FileChangeKind, Intent, IntentMetadata, Output, Priority,
+    PullRequestInfo, SWMLResult as Result, ResultMetadata, TestResults, World, WorldConstraint,
+    WorldContext, WorldState,
 };

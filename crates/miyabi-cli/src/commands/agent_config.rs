@@ -1,10 +1,10 @@
 // Agent Configuration Management CLI Commands
 // miyabi agent list/config/edit
 
-use anyhow::{Context, Result};
+use crate::error::{CliError, Result};
 use clap::{Args, Subcommand};
 use colored::Colorize;
-use miyabi_core::{AgentConfig, AgentConfigManager};
+use miyabi_agents::{AgentConfig, AgentConfigManager};
 use std::process::Command as ProcessCommand;
 
 /// Agent configuration management
@@ -324,10 +324,10 @@ async fn edit_config(
     let status = ProcessCommand::new(&editor_cmd)
         .arg(&config_path)
         .status()
-        .with_context(|| format!("Failed to launch editor '{}'", editor_cmd))?;
+        .map_err(|e| CliError::ExecutionError(format!("Failed to launch editor '{}': {}", editor_cmd, e)))?;
 
     if !status.success() {
-        anyhow::bail!("Editor exited with non-zero status");
+        return Err(CliError::ExecutionError("Editor exited with non-zero status".to_string()));
     }
 
     // Reload and validate
@@ -347,7 +347,7 @@ async fn create_agent(
 ) -> Result<()> {
     // Check if already exists
     if manager.find_config_file(agent_name)?.is_some() {
-        anyhow::bail!("Agent '{}' already has a configuration file", agent_name);
+        return Err(CliError::InvalidInput(format!("Agent '{}' already has a configuration file", agent_name)));
     }
 
     // Create config

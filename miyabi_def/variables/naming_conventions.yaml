@@ -697,9 +697,9 @@ naming_conventions:
       - "□ mainブランチへ直接コミットしていないか確認"
 
     before_creating_pr:
-      - "□ 全てのテストがパスするか確認（npm test）"
-      - "□ ESLintエラーがないか確認（npm run lint）"
-      - "□ TypeScriptエラーがないか確認（npm run typecheck）"
+      - "□ 全てのテストがパスするか確認（pnpm test）"
+      - "□ ESLintエラーがないか確認（pnpm lint）"
+      - "□ TypeScriptエラーがないか確認（pnpm typecheck）"
       - "□ コミット履歴が綺麗か確認"
 
     after_pr_merged:

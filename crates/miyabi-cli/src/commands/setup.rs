@@ -51,10 +51,11 @@ impl SetupCommand {
         println!();
 
         // Step 5: Initialize Agent configurations
-        println!("{}", "Step 5: Initializing Agent configurations...".bold());
-        self.initialize_agents().await?;
-        println!("{}", "  ✅ Agent configurations initialized".green());
-        println!();
+        // TODO: Re-enable when agent_manage module is fixed
+        // println!("{}", "Step 5: Initializing Agent configurations...".bold());
+        // self.initialize_agents().await?;
+        // println!("{}", "  ✅ Agent configurations initialized".green());
+        // println!();
 
         // Step 6: Verify setup
         println!("{}", "Step 6: Verifying setup...".bold());
@@ -332,33 +333,11 @@ cli:
         Ok(())
     }
 
+    #[allow(dead_code)]
     async fn initialize_agents(&self) -> Result<()> {
-        use crate::commands::agent_manage::AgentManageCommand;
-
-        if !self.skip_prompts {
-            let should_init = Confirm::new()
-                .with_prompt("Initialize default agent configurations?")
-                .default(true)
-                .interact()
-                .map_err(|e| CliError::GitConfig(format!("Failed to prompt: {}", e)))?;
-
-            if !should_init {
-                println!("  ⏭️  Skipping agent initialization");
-                println!("  💡 You can run 'miyabi agent init' later");
-                return Ok(());
-            }
-        }
-
-        // Call agent init command
-        let cmd = AgentManageCommand::Init {
-            force: false,
-            yes: true, // Skip prompts in setup wizard
-        };
-
-        cmd.execute()
-            .await
-            .map_err(|e| CliError::ExecutionError(format!("Failed to initialize agents: {}", e)))?;
-
+        // TODO: Re-enable when agent_manage module is fixed
+        // Stub implementation to make build work
+        println!("  ⏭️  Agent initialization temporarily disabled (API migration in progress)");
         Ok(())
     }
 

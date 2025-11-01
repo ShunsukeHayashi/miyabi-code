@@ -4,7 +4,7 @@ use crate::config::KnowledgeConfig;
 use crate::error::Result;
 use crate::types::{KnowledgeEntry, KnowledgeMetadata};
 use async_trait::async_trait;
-use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+use pulldown_cmark::{Event, Parser, Tag};
 use std::path::Path;
 use tracing::{debug, info, warn};
 use walkdir::WalkDir;
@@ -67,7 +67,7 @@ impl LogCollector {
                 Event::Start(Tag::CodeBlock(_)) => {
                     _in_code_block = true;
                 }
-                Event::End(TagEnd::CodeBlock) => {
+                Event::End(Tag::CodeBlock(_)) => {
                     _in_code_block = false;
                 }
                 Event::Code(code) | Event::Html(code) => {

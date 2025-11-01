@@ -177,8 +177,8 @@ workflows:
       - stage: 5
         name: "Verification (per Task)"
         actions:
-          - "npm run typecheck"
-          - "npm test"
+          - "pnpm typecheck"
+          - "pnpm test"
           - "eslint実行"
           - "全チェック通過確認"
 
