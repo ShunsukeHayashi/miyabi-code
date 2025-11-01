@@ -31,12 +31,14 @@ pub mod convergence;
 pub mod omega;
 pub mod spaces;
 pub mod step_back;
+pub mod world;
 
 pub use agent::SWMLAgent;
 pub use convergence::ConvergenceTracker;
 pub use omega::{OmegaFunction, PhaseResult};
 pub use spaces::{Intent, ResultSpace as SWMLResult, World};
 pub use step_back::StepBackProcessor;
+pub use world::{WorldManager, WorldConfig, WorldStatistics};
 
 /// SWML version matching the paper
 pub const SWML_VERSION: &str = "1.0.0";

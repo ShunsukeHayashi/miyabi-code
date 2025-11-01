@@ -35,5 +35,18 @@ tracing = { workspace = true }
 # Math/Statistics for convergence analysis
 statrs = "0.17"
 
+# Filesystem and hashing
+walkdir = "2.5"
+sha2 = "0.10"
+
+# Git integration
+git2 = { workspace = true }
+
+# Time
+chrono = { workspace = true, features = ["serde"] }
+
+# TOML parsing
+toml = "0.8"
+
 [dev-dependencies]
 tokio-test = "0.4"
