@@ -51,11 +51,10 @@ impl SetupCommand {
         println!();
 
         // Step 5: Initialize Agent configurations
-        // TODO: Re-enable when agent_manage module is fixed
-        // println!("{}", "Step 5: Initializing Agent configurations...".bold());
-        // self.initialize_agents().await?;
-        // println!("{}", "  ✅ Agent configurations initialized".green());
-        // println!();
+        println!("{}", "Step 5: Initializing Agent configurations...".bold());
+        self.initialize_agents().await?;
+        println!("{}", "  ✅ Agent configurations initialized".green());
+        println!();
 
         // Step 6: Verify setup
         println!("{}", "Step 6: Verifying setup...".bold());
@@ -333,11 +332,32 @@ cli:
         Ok(())
     }
 
-    #[allow(dead_code)]
     async fn initialize_agents(&self) -> Result<()> {
-        // TODO: Re-enable when agent_manage module is fixed
-        // Stub implementation to make build work
-        println!("  ⏭️  Agent initialization temporarily disabled (API migration in progress)");
+        use std::fs;
+        use std::path::Path;
+
+        if !self.skip_prompts {
+            let should_init = Confirm::new()
+                .with_prompt("Initialize default agent configurations?")
+                .default(true)
+                .interact()
+                .map_err(|e| CliError::GitConfig(format!("Failed to prompt: {}", e)))?;
+
+            if !should_init {
+                println!("  ⏭️  Skipping agent initialization");
+                println!("  💡 You can configure agents later in .claude/agents/");
+                return Ok(());
+            }
+        }
+
+        // Create agent config directory
+        let agent_dir = Path::new(".claude/agents/specs");
+        fs::create_dir_all(agent_dir)
+            .map_err(|e| CliError::Io(e))?;
+
+        println!("  ✓ Created agent configuration directory");
+        println!("  💡 Agent configurations can be customized in .claude/agents/specs/");
+
         Ok(())
     }
 

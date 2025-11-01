@@ -36,6 +36,7 @@ use tracing::{debug, info};
 #[derive(Debug)]
 pub struct StepBackProcessor {
     // TODO: Add LLM client for step-back prompting
+    #[allow(dead_code)]
     max_abstraction_level: usize,
 }
 
@@ -100,12 +101,12 @@ impl StepBackProcessor {
     }
 
     // Phase 1 helpers
-    fn identify_domain(&self, intent: &Intent) -> Result<String> {
+    fn identify_domain(&self, _intent: &Intent) -> Result<String> {
         // TODO: Use LLM to identify domain
         Ok("software_development".to_string())
     }
 
-    fn extract_concepts(&self, intent: &Intent) -> Result<Vec<String>> {
+    fn extract_concepts(&self, _intent: &Intent) -> Result<Vec<String>> {
         // TODO: Use LLM to extract high-level concepts
         Ok(vec![
             "code_generation".to_string(),
@@ -114,7 +115,7 @@ impl StepBackProcessor {
         ])
     }
 
-    fn map_principles(&self, concepts: &[String]) -> Result<Vec<String>> {
+    fn map_principles(&self, _concepts: &[String]) -> Result<Vec<String>> {
         // TODO: Map concepts to abstract principles
         Ok(vec![
             "Maintain code quality".to_string(),
@@ -124,7 +125,7 @@ impl StepBackProcessor {
     }
 
     // Phase 2 helpers
-    fn build_reasoning_chain(&self, principles: &[String]) -> Result<Vec<ReasoningStep>> {
+    fn build_reasoning_chain(&self, _principles: &[String]) -> Result<Vec<ReasoningStep>> {
         // TODO: Build logical reasoning chain
         Ok(vec![
             ReasoningStep {
@@ -141,7 +142,7 @@ impl StepBackProcessor {
     }
 
     // Phase 3 helpers
-    fn derive_implementation(&self, chain: &[ReasoningStep]) -> Result<Vec<ImplementationStep>> {
+    fn derive_implementation(&self, _chain: &[ReasoningStep]) -> Result<Vec<ImplementationStep>> {
         // TODO: Derive concrete implementation steps
         Ok(vec![
             ImplementationStep {

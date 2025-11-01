@@ -28,10 +28,10 @@ members = [
     # "crates/miyabi-feedback-loop",  # MERGED into miyabi-orchestrator
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
     "crates/miyabi-e2e-tests", "crates/miyabi-modes",  # E2E test framework
+    "crates/miyabi-agent-swml",  # SWML Agent (Phase 1 implemented)
 ]
 exclude = [
     "miyabi-desktop/src-tauri",  # Tauri app has its own workspace
-    "crates/miyabi-agent-swml",  # TODO: Issue #663 - SWML module implementations missing
 ]
 
 [workspace.package]

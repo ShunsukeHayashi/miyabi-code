@@ -175,14 +175,14 @@ pub struct PhaseMetadata {
 /// 1. Abstract Context (steps 1-6): Extract high-level principles
 /// 2. Reasoning Path (steps 7-18): Build logical reasoning chain
 /// 3. Specific Solution (steps 19-26): Derive concrete solution
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct UnderstandingPhase {
     // TODO: Add LLM client, step-back processor
 }
 
 impl UnderstandingPhase {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
     pub async fn execute(&self, intent: Intent, _world: World) -> Result<Specification> {
@@ -231,14 +231,14 @@ pub struct Specification {
 /// 1. SELECT: Choose relevant reasoning modules
 /// 2. ADAPT: Adapt modules to specific task
 /// 3. IMPLEMENT: Generate structured reasoning plan
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GenerationPhase {
     // TODO: Add LLM client, SELF-DISCOVER processor
 }
 
 impl GenerationPhase {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
     pub async fn execute(&self, _spec: Specification) -> Result<GeneratedCode> {
@@ -286,14 +286,14 @@ pub struct CodeFile {
 /// 2. Topological sort by dependencies
 /// 3. Group independent tasks for parallelization
 /// 4. Assign resources (worktrees)
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AllocationPhase {
     // TODO: Add DAG builder
 }
 
 impl AllocationPhase {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
     pub async fn execute(&self, _code: GeneratedCode) -> Result<TaskGraph> {
@@ -341,14 +341,14 @@ pub struct TaskNode {
 /// 2. Execute level-by-level (process DAG levels in order)
 /// 3. Collect results (stdout/stderr/exit codes)
 /// 4. Handle failures (retry or propagate errors)
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ExecutionPhase {
     // TODO: Add worktree manager, PTY manager
 }
 
 impl ExecutionPhase {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
     pub async fn execute(&self, _graph: TaskGraph) -> Result<ExecutionResults> {
@@ -397,14 +397,14 @@ pub struct TaskExecutionResult {
 /// 3. Generate PR description (summarize changes)
 /// 4. Auto-review (run quality checks)
 /// 5. Merge (auto-merge if quality threshold met)
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct IntegrationPhase {
     // TODO: Add GitHub client, PR agent
 }
 
 impl IntegrationPhase {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
     pub async fn execute(&self, _results: ExecutionResults) -> Result<PullRequest> {
@@ -456,17 +456,17 @@ pub struct PullRequest {
 ///        0.20 × Correctness +
 ///        0.10 × StyleCompliance
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct LearningPhase {
     // TODO: Add knowledge base, persistence manager
 }
 
 impl LearningPhase {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
-    pub async fn execute(&self, pr: PullRequest, mut world: World) -> Result<(World, f64)> {
+    pub async fn execute(&self, _pr: PullRequest, world: World) -> Result<(World, f64)> {
         info!("θ₆ Learning: Updating world and calculating quality");
 
         // TODO: Implement quality calculation

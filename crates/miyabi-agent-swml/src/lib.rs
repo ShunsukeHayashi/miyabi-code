@@ -35,7 +35,7 @@ pub mod step_back;
 pub use agent::SWMLAgent;
 pub use convergence::ConvergenceTracker;
 pub use omega::{OmegaFunction, PhaseResult};
-pub use spaces::{Intent, Result as SWMLResult, World};
+pub use spaces::{Intent, ResultSpace as SWMLResult, World};
 pub use step_back::StepBackProcessor;
 
 /// SWML version matching the paper
