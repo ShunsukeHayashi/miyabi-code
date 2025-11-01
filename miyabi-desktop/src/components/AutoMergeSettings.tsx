@@ -666,3 +666,4 @@ export function AutoMergeSettings() {
     </div>
   );
 }
+export default AutoMergeSettings;

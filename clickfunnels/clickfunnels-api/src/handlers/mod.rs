@@ -4,3 +4,6 @@
 
 pub mod user;
 pub mod funnel;
+pub mod page;
+pub mod proxy;
+pub mod agent;

@@ -8,31 +8,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Miyabi theme colors
-        'miyabi-primary': '#6366f1',
-        'miyabi-secondary': '#8b5cf6',
-        'miyabi-accent': '#ec4899',
-        // Agent type colors
-        'agent-coordinator': '#ef4444',
-        'agent-codegen': '#10b981',
-        'agent-review': '#3b82f6',
-        'agent-deployment': '#f59e0b',
-        'agent-pr': '#8b5cf6',
-        'agent-issue': '#06b6d4',
-        'agent-refresher': '#6b7280',
-        // Background colors (dark mode)
-        'bg-primary': '#0f172a',
-        'bg-secondary': '#1e293b',
-        'bg-tertiary': '#334155',
-        // Text colors
-        'text-primary': '#f1f5f9',
-        'text-secondary': '#cbd5e1',
-        'text-muted': '#64748b',
-        // Status colors
-        'status-success': '#10b981',
-        'status-warning': '#f59e0b',
-        'status-error': '#ef4444',
-        'status-info': '#3b82f6',
+        // Agent role colors (Design System - HSL format)
+        agent: {
+          coordinator: 'hsl(239, 84%, 67%)', // Indigo
+          codegen: 'hsl(142, 76%, 59%)', // Green
+          review: 'hsl(45, 93%, 58%)', // Yellow
+          deployment: 'hsl(0, 84%, 60%)', // Red
+          issue: 'hsl(213, 94%, 68%)', // Blue
+          pr: 'hsl(271, 91%, 73%)', // Purple
+          refresher: 'hsl(180, 65%, 55%)', // Cyan
+        },
+        // Status colors (Design System)
+        status: {
+          success: 'hsl(142, 76%, 59%)', // Green
+          warning: 'hsl(45, 93%, 58%)', // Yellow
+          error: 'hsl(0, 84%, 60%)', // Red
+          info: 'hsl(213, 94%, 68%)', // Blue
+        },
+        // CSS Variable-based colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -68,9 +61,24 @@ export default {
         },
       },
       borderRadius: {
+        'xl': '0.75rem', // 12px (Design System default)
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontWeight: {
+        light: 300, // Design System default for Ultra Minimalism
+        normal: 400,
+        medium: 500,
+        semibold: 600,
+      },
+      spacing: {
+        'sidebar': 'var(--sidebar-width)',
+        'status-bar': 'var(--status-bar-height)',
+        'panel-header': 'var(--panel-header-height)',
+      },
+      transitionDuration: {
+        'default': 'var(--default-transition)',
       },
       keyframes: {
         "accordion-down": {

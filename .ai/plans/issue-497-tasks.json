@@ -1,0 +1,416 @@
+{
+  "issue": 497,
+  "title": "Implement Cline learnings: AST-based context tracking + .miyabirules support",
+  "status": "in_progress",
+  "overall_completion": 70,
+  "phases_completed": 3,
+  "phases_total": 5,
+  "estimated_remaining_minutes": 150,
+  "recommended_concurrency": 2,
+
+  "phases": {
+    "phase1": {
+      "name": "AST-based Context Tracking",
+      "status": "completed",
+      "completion_date": "2025-10-24",
+      "commits": [
+        "389d9a6 - feat(knowledge): add LRU caching layer for AST parsing",
+        "c644fef - feat(knowledge): implement hybrid AST+RAG context searcher",
+        "d863231 - feat(knowledge): implement AST-based context tracking"
+      ],
+      "files_modified": [
+        "crates/miyabi-knowledge/src/ast_context.rs",
+        "crates/miyabi-knowledge/src/cache.rs",
+        "crates/miyabi-knowledge/src/hybrid_context.rs"
+      ],
+      "test_coverage": "64 tests passing"
+    },
+    "phase2": {
+      "name": ".miyabirules Support",
+      "status": "completed",
+      "completion_date": "2025-10-24",
+      "commits": [
+        "59ec59d - feat(rules): implement .miyabirules support",
+        "1dea725 - feat: integrate .miyabirules with CodeGenAgent and ReviewAgent",
+        "3c4ee40 - feat: add .miyabirules support for project-specific rules"
+      ],
+      "files_modified": [
+        "crates/miyabi-core/src/rules.rs",
+        ".miyabirules.example",
+        ".miyabirules.simple"
+      ],
+      "test_coverage": "11 tests passing"
+    },
+    "phase3": {
+      "name": "RAG Prompt Enhancement",
+      "status": "completed",
+      "completion_date": "2025-10-24",
+      "commits": [
+        "4d391dd - feat(knowledge): implement PromptAugmenter with RAG context injection",
+        "8f68afd - feat(agent-core): add prompt enhancement integration"
+      ],
+      "files_modified": [
+        "crates/miyabi-knowledge/src/prompt_augmenter.rs",
+        "crates/miyabi-agent-core/src/lib.rs"
+      ],
+      "test_coverage": "Integrated with existing tests"
+    },
+    "phase4": {
+      "name": "MCP Tool Registry Enhancement",
+      "status": "in_progress",
+      "estimated_minutes": 150,
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Implement dynamic tool discovery",
+          "type": "feature",
+          "severity": "Sev.3-Medium",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 45,
+          "dependencies": [],
+          "level": 0,
+          "parallel_group": "A",
+          "status": "pending",
+          "description": "Implement automatic MCP tool discovery mechanism to dynamically register available tools from MCP servers",
+          "acceptance_criteria": [
+            "Scan MCP server directories for tool definitions",
+            "Parse tool schemas (JSON-RPC 2.0 format)",
+            "Register tools in runtime registry",
+            "Support hot-reloading of tool definitions",
+            "Add error handling for malformed tool schemas"
+          ],
+          "files_to_create": [
+            "crates/miyabi-mcp-server/src/registry.rs"
+          ],
+          "files_to_modify": [
+            "crates/miyabi-mcp-server/src/lib.rs"
+          ],
+          "dependencies_to_add": {
+            "serde_json": "1.0",
+            "walkdir": "2.5",
+            "notify": "7.0"
+          }
+        },
+        {
+          "id": "T2",
+          "name": "Add tool result caching",
+          "type": "feature",
+          "severity": "Sev.3-Medium",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 45,
+          "dependencies": [],
+          "level": 0,
+          "parallel_group": "A",
+          "status": "pending",
+          "description": "Implement LRU cache for tool execution results to reduce redundant API calls and improve performance",
+          "acceptance_criteria": [
+            "Implement LRU cache with TTL (default: 5min)",
+            "Cache tool results by (tool_name, args_hash)",
+            "Add cache hit/miss metrics",
+            "Support cache invalidation",
+            "Add configurable cache size (default: 1000 entries)"
+          ],
+          "files_to_create": [
+            "crates/miyabi-mcp-server/src/cache.rs"
+          ],
+          "files_to_modify": [
+            "crates/miyabi-mcp-server/src/executor.rs"
+          ],
+          "dependencies_to_add": {
+            "lru": "0.12",
+            "siphasher": "1.0"
+          }
+        },
+        {
+          "id": "T3",
+          "name": "Create unified tool registry service",
+          "type": "feature",
+          "severity": "Sev.3-Medium",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 60,
+          "dependencies": ["T1", "T2"],
+          "level": 1,
+          "parallel_group": "B",
+          "status": "pending",
+          "description": "Create a centralized tool registry service that combines dynamic discovery and caching for unified tool management",
+          "acceptance_criteria": [
+            "Integrate tool discovery (T1) with cache (T2)",
+            "Provide unified API for tool lookup",
+            "Add tool versioning support",
+            "Support multiple MCP server instances",
+            "Add health checks for registered tools"
+          ],
+          "files_to_create": [
+            "crates/miyabi-mcp-server/src/service.rs"
+          ],
+          "files_to_modify": [
+            "crates/miyabi-mcp-server/src/lib.rs",
+            "crates/miyabi-cli/src/commands/agent.rs"
+          ],
+          "dependencies_to_add": {}
+        },
+        {
+          "id": "T4",
+          "name": "Add tool metrics collection",
+          "type": "feature",
+          "severity": "Sev.3-Medium",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 45,
+          "dependencies": ["T1", "T3"],
+          "level": 1,
+          "parallel_group": "B",
+          "status": "pending",
+          "description": "Implement metrics collection for tool usage, performance, and errors to enable monitoring and optimization",
+          "acceptance_criteria": [
+            "Track tool invocation counts",
+            "Measure tool execution latency (p50, p95, p99)",
+            "Record error rates per tool",
+            "Export metrics via /metrics endpoint (Prometheus format)",
+            "Add dashboard-friendly JSON export"
+          ],
+          "files_to_create": [
+            "crates/miyabi-mcp-server/src/metrics.rs"
+          ],
+          "files_to_modify": [
+            "crates/miyabi-mcp-server/src/executor.rs"
+          ],
+          "dependencies_to_add": {
+            "prometheus": "0.13"
+          }
+        }
+      ]
+    },
+    "phase5": {
+      "name": "Conversation Replay",
+      "status": "future",
+      "priority": "Low (P3)",
+      "estimated_minutes": 285,
+      "tasks": [
+        {
+          "id": "T5",
+          "name": "Design conversation storage schema",
+          "type": "feature",
+          "severity": "Sev.4-Low",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 90,
+          "dependencies": [],
+          "level": 2,
+          "status": "future",
+          "deferred_reason": "Low priority - Phase 4 more critical for production"
+        },
+        {
+          "id": "T6",
+          "name": "Implement conversation recorder",
+          "type": "feature",
+          "severity": "Sev.4-Low",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 90,
+          "dependencies": ["T5"],
+          "level": 2,
+          "status": "future"
+        },
+        {
+          "id": "T7",
+          "name": "Add replay functionality",
+          "type": "feature",
+          "severity": "Sev.4-Low",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 60,
+          "dependencies": ["T6"],
+          "level": 3,
+          "status": "future"
+        },
+        {
+          "id": "T8",
+          "name": "Create replay CLI command",
+          "type": "feature",
+          "severity": "Sev.4-Low",
+          "agent": "CodeGenAgent",
+          "estimated_minutes": 45,
+          "dependencies": ["T7"],
+          "level": 3,
+          "status": "future"
+        }
+      ]
+    }
+  },
+
+  "dag": {
+    "levels": [
+      {
+        "level": 0,
+        "tasks": ["T1", "T2"],
+        "parallel": true,
+        "estimated_minutes": 45,
+        "description": "Independent tasks - can run in parallel",
+        "worktrees": ["issue-497-t1", "issue-497-t2"]
+      },
+      {
+        "level": 1,
+        "tasks": ["T3"],
+        "parallel": false,
+        "estimated_minutes": 60,
+        "description": "Depends on T1 and T2 completion",
+        "blockers": ["T1", "T2"]
+      },
+      {
+        "level": 1,
+        "tasks": ["T4"],
+        "parallel": false,
+        "estimated_minutes": 45,
+        "description": "Depends on T3 completion",
+        "blockers": ["T3"]
+      }
+    ],
+    "total_levels": 4,
+    "current_phase_levels": 2,
+    "max_parallelism": 2,
+    "total_estimated_minutes": 435,
+    "current_phase_minutes": 150
+  },
+
+  "execution_plan": {
+    "strategy": "parallel_then_sequential",
+    "steps": [
+      {
+        "step": 1,
+        "action": "parallel_execution",
+        "tasks": ["T1", "T2"],
+        "command": "miyabi agent run codegen --tasks T1,T2 --concurrency 2"
+      },
+      {
+        "step": 2,
+        "action": "sequential_execution",
+        "tasks": ["T3"],
+        "command": "miyabi agent run codegen --task T3",
+        "wait_for": ["T1", "T2"]
+      },
+      {
+        "step": 3,
+        "action": "sequential_execution",
+        "tasks": ["T4"],
+        "command": "miyabi agent run codegen --task T4",
+        "wait_for": ["T3"]
+      },
+      {
+        "step": 4,
+        "action": "validation",
+        "commands": [
+          "cargo test --package miyabi-mcp-server --all",
+          "cargo clippy --package miyabi-mcp-server -- -D warnings",
+          "cargo fmt --check"
+        ]
+      },
+      {
+        "step": 5,
+        "action": "documentation",
+        "files": [
+          "crates/miyabi-mcp-server/README.md",
+          "docs/architecture/CLINE_ANALYSIS.md"
+        ]
+      },
+      {
+        "step": 6,
+        "action": "pr_creation",
+        "title": "feat(mcp-server): implement tool registry enhancement (Issue #497 - Phase 4)",
+        "labels": ["enhancement", "🤖 agent:codegen", "🤖 agent:pr"]
+      }
+    ]
+  },
+
+  "metrics": {
+    "total_tasks": 8,
+    "completed_tasks": 0,
+    "in_progress_tasks": 4,
+    "future_tasks": 4,
+    "completion_rate": 0,
+    "phases_completed": 3,
+    "phases_remaining": 2,
+    "estimated_time_spent_hours": 25,
+    "estimated_remaining_hours": 7,
+    "team_velocity": "~3 tasks/day"
+  },
+
+  "success_criteria": {
+    "phase4": {
+      "tool_discovery": {
+        "auto_discovery_working": false,
+        "hot_reload_working": false,
+        "error_handling_complete": false
+      },
+      "tool_caching": {
+        "cache_hit_rate_target": 0.5,
+        "latency_reduction_target": 0.5,
+        "memory_limit_mb": 100
+      },
+      "unified_registry": {
+        "single_api_available": false,
+        "multi_server_support": false,
+        "health_checks_working": false
+      },
+      "metrics": {
+        "prometheus_endpoint_working": false,
+        "dashboard_available": false,
+        "alerting_configured": false
+      }
+    }
+  },
+
+  "quality_requirements": {
+    "code": {
+      "clippy_warnings": 0,
+      "test_coverage_target": 0.8,
+      "documentation_coverage": "100% public APIs"
+    },
+    "commits": {
+      "format": "Conventional Commits",
+      "examples": [
+        "feat(mcp-server): add dynamic tool discovery",
+        "feat(mcp-server): implement LRU cache for tool results",
+        "feat(mcp-server): create unified tool registry service",
+        "feat(mcp-server): add Prometheus metrics collection"
+      ]
+    },
+    "testing": {
+      "unit_tests_required": true,
+      "integration_tests_required": true,
+      "benchmark_tests_recommended": true
+    }
+  },
+
+  "related_files": {
+    "plans": ".ai/plans/issue-497-plans.md",
+    "documentation": "docs/architecture/CLINE_ANALYSIS.md",
+    "implementation": {
+      "phase1": "crates/miyabi-knowledge/src/ast_context.rs",
+      "phase2": "crates/miyabi-core/src/rules.rs",
+      "phase3": "crates/miyabi-knowledge/src/prompt_augmenter.rs",
+      "phase4": "crates/miyabi-mcp-server/src/"
+    },
+    "examples": [
+      ".miyabirules.example",
+      ".miyabirules.simple"
+    ]
+  },
+
+  "next_steps": {
+    "immediate": [
+      "Review execution plan approval",
+      "Create worktrees for T1 and T2",
+      "Execute T1 + T2 in parallel",
+      "Monitor progress and resolve blockers"
+    ],
+    "after_phase4": [
+      "Comprehensive integration testing",
+      "Performance benchmarking",
+      "Documentation updates",
+      "Create Pull Request",
+      "Close Issue #497"
+    ]
+  },
+
+  "created_at": "2025-10-24T00:00:00Z",
+  "created_by": "CoordinatorAgent (しきるん)",
+  "plan_version": "1.0",
+  "last_updated": "2025-10-24T00:00:00Z"
+}

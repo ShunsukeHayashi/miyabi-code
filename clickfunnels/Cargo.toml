@@ -4,6 +4,7 @@ members = [
     "clickfunnels-api",
     "clickfunnels-db",
     "clickfunnels-server",
+    "clickfunnels-integrations",
 ]
 resolver = "2"
 

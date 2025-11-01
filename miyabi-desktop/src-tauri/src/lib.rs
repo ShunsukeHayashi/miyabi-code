@@ -1,9 +1,11 @@
 mod agent;
+mod dashboard;
 mod github;
 mod pty;
 mod voicevox;
 
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
+use dashboard::{DashboardService, DashboardSnapshot};
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
 use pty::{PtyManager, SessionInfo, TerminalSession};
 use voicevox::{
@@ -15,6 +17,7 @@ use tauri::{AppHandle, State};
 
 struct AppState {
     pty_manager: Mutex<PtyManager>,
+    dashboard_service: DashboardService,
 }
 
 #[tauri::command]
@@ -171,12 +174,22 @@ async fn update_issue_command(
     update_issue(request, app_handle).await
 }
 
+// ========== Dashboard Commands ==========
+
+#[tauri::command]
+async fn get_dashboard_snapshot_command(
+    state: State<'_, AppState>,
+) -> Result<DashboardSnapshot, String> {
+    state.dashboard_service.get_snapshot().await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             pty_manager: Mutex::new(PtyManager::new()),
+            dashboard_service: DashboardService::new(),
         })
         .invoke_handler(tauri::generate_handler![
             spawn_terminal,
@@ -201,6 +214,8 @@ pub fn run() {
             list_issues_command,
             get_issue_command,
             update_issue_command,
+            // Dashboard commands
+            get_dashboard_snapshot_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -6,70 +6,92 @@ use chrono::{DateTime, Utc};
 use clickfunnels_core::{PageStatus, PageType};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
-
-/// Create Page Request
-#[derive(Debug, Deserialize, Validate)]
-pub struct CreatePageRequest {
-    pub funnel_id: Uuid,
-
-    #[validate(length(min = 1, max = 200, message = "Name must be 1-200 characters"))]
-    pub name: String,
-
-    #[validate(length(min = 1, max = 200, message = "Title must be 1-200 characters"))]
-    pub title: String,
-
-    #[validate(length(min = 1, max = 100, message = "Slug must be 1-100 characters"))]
-    #[validate(regex(path = "SLUG_REGEX", message = "Slug must be URL-friendly"))]
-    pub slug: String,
-
-    pub page_type: PageType,
-
-    #[serde(default)]
-    pub order_index: i32,
-}
 
 lazy_static::lazy_static! {
     static ref SLUG_REGEX: regex::Regex = regex::Regex::new(r"^[a-z0-9-]+$").unwrap();
 }
 
+/// Create Page Request
+#[derive(Debug, Deserialize)]
+pub struct CreatePageRequest {
+    pub funnel_id: Uuid,
+    pub name: String,
+    pub title: String,
+    pub slug: String,
+    pub page_type: PageType,
+    #[serde(default)]
+    pub order_index: i32,
+}
+
+impl CreatePageRequest {
+    /// Validate the request manually
+    pub fn validate(&self) -> Result<(), String> {
+        if self.name.is_empty() || self.name.len() > 200 {
+            return Err("Name must be 1-200 characters".to_string());
+        }
+
+        if self.title.is_empty() || self.title.len() > 200 {
+            return Err("Title must be 1-200 characters".to_string());
+        }
+
+        if self.slug.is_empty() || self.slug.len() > 100 {
+            return Err("Slug must be 1-100 characters".to_string());
+        }
+
+        if !SLUG_REGEX.is_match(&self.slug) {
+            return Err("Slug must be URL-friendly (lowercase, hyphens, numbers only)".to_string());
+        }
+
+        Ok(())
+    }
+}
+
 /// Update Page Request
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 pub struct UpdatePageRequest {
-    #[validate(length(min = 1, max = 200))]
     pub name: Option<String>,
-
-    #[validate(length(min = 1, max = 200))]
     pub title: Option<String>,
-
     pub page_type: Option<PageType>,
     pub status: Option<PageStatus>,
     pub order_index: Option<i32>,
-
     pub html_content: Option<String>,
     pub css_content: Option<String>,
     pub js_content: Option<String>,
-
     pub settings: Option<serde_json::Value>,
-
     // SEO fields
     pub seo_title: Option<String>,
     pub seo_description: Option<String>,
     pub seo_keywords: Option<String>,
-
     // Open Graph fields
     pub og_title: Option<String>,
     pub og_description: Option<String>,
     pub og_image: Option<String>,
-
     // A/B Testing
     pub is_ab_test_variant: Option<bool>,
     pub ab_test_group_id: Option<Uuid>,
     pub ab_test_weight: Option<i32>,
-
     // Custom code
     pub custom_head_code: Option<String>,
     pub custom_footer_code: Option<String>,
+}
+
+impl UpdatePageRequest {
+    /// Validate the request manually
+    pub fn validate(&self) -> Result<(), String> {
+        if let Some(ref name) = self.name {
+            if name.is_empty() || name.len() > 200 {
+                return Err("Name must be 1-200 characters".to_string());
+            }
+        }
+
+        if let Some(ref title) = self.title {
+            if title.is_empty() || title.len() > 200 {
+                return Err("Title must be 1-200 characters".to_string());
+            }
+        }
+
+        Ok(())
+    }
 }
 
 /// Page Response
@@ -183,7 +205,7 @@ pub struct PageStatsResponse {
 }
 
 /// Update Page Content Request
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 pub struct UpdatePageContentRequest {
     pub html_content: String,
     pub css_content: String,

@@ -12,3 +12,15 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+clickfunnels-api = { path = "../clickfunnels-api" }
+
+# Async runtime
+tokio = { workspace = true }
+axum = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Environment variables
+dotenvy = "0.15"

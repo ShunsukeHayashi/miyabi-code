@@ -332,3 +332,5 @@ export function TerminalManager() {
     </div>
   );
 }
+
+export default TerminalManager;

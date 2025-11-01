@@ -9,7 +9,7 @@ use axum::{
 };
 use clickfunnels_core::User;
 use uuid::Uuid;
-use validator::Validate;
+// use validator::Validate; // TODO: Re-enable when validator is fixed
 
 use crate::{
     dto::user::{CreateUserRequest, ListUsersQuery, PaginatedUsersResponse, UpdateUserRequest, UserResponse},
@@ -24,7 +24,7 @@ pub async fn create_user(
 ) -> ApiResult<(StatusCode, Json<UserResponse>)> {
     // Validate request
     req.validate()
-        .map_err(|e| ApiError::ValidationError(e.to_string()))?;
+        .map_err(ApiError::ValidationError)?;
 
     // TODO: Hash password using bcrypt
     let password_hash = format!("hashed_{}", req.password);
@@ -70,7 +70,7 @@ pub async fn update_user(
 ) -> ApiResult<Json<UserResponse>> {
     // Validate request
     req.validate()
-        .map_err(|e| ApiError::ValidationError(e.to_string()))?;
+        .map_err(ApiError::ValidationError)?;
 
     // TODO: Fetch user from database
     let mut user = User::new(

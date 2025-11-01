@@ -6,55 +6,91 @@ use chrono::{DateTime, Utc};
 use clickfunnels_core::{FunnelStatus, FunnelType};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
-
-/// Create Funnel Request
-#[derive(Debug, Deserialize, Validate)]
-pub struct CreateFunnelRequest {
-    #[validate(length(min = 1, max = 200, message = "Name must be 1-200 characters"))]
-    pub name: String,
-
-    #[validate(length(max = 1000))]
-    pub description: Option<String>,
-
-    pub funnel_type: FunnelType,
-
-    #[validate(length(min = 1, max = 100, message = "Slug must be 1-100 characters"))]
-    #[validate(regex(path = "SLUG_REGEX", message = "Slug must be URL-friendly (lowercase, hyphens, numbers only)"))]
-    pub slug: String,
-
-    #[validate(length(max = 253))]
-    pub custom_domain: Option<String>,
-}
 
 lazy_static::lazy_static! {
     static ref SLUG_REGEX: regex::Regex = regex::Regex::new(r"^[a-z0-9-]+$").unwrap();
 }
 
-/// Update Funnel Request
-#[derive(Debug, Deserialize, Validate)]
-pub struct UpdateFunnelRequest {
-    #[validate(length(min = 1, max = 200))]
-    pub name: Option<String>,
-
-    #[validate(length(max = 1000))]
+/// Create Funnel Request
+#[derive(Debug, Deserialize)]
+pub struct CreateFunnelRequest {
+    pub name: String,
     pub description: Option<String>,
-
-    pub funnel_type: Option<FunnelType>,
-
-    pub status: Option<FunnelStatus>,
-
-    #[validate(length(max = 253))]
+    pub funnel_type: FunnelType,
+    pub slug: String,
     pub custom_domain: Option<String>,
+}
 
+impl CreateFunnelRequest {
+    /// Validate the request manually
+    pub fn validate(&self) -> Result<(), String> {
+        if self.name.is_empty() || self.name.len() > 200 {
+            return Err("Name must be 1-200 characters".to_string());
+        }
+
+        if let Some(ref desc) = self.description {
+            if desc.len() > 1000 {
+                return Err("Description must be max 1000 characters".to_string());
+            }
+        }
+
+        if self.slug.is_empty() || self.slug.len() > 100 {
+            return Err("Slug must be 1-100 characters".to_string());
+        }
+
+        if !SLUG_REGEX.is_match(&self.slug) {
+            return Err("Slug must be URL-friendly (lowercase, hyphens, numbers only)".to_string());
+        }
+
+        if let Some(ref domain) = self.custom_domain {
+            if domain.len() > 253 {
+                return Err("Domain must be max 253 characters".to_string());
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// Update Funnel Request
+#[derive(Debug, Deserialize)]
+pub struct UpdateFunnelRequest {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub funnel_type: Option<FunnelType>,
+    pub status: Option<FunnelStatus>,
+    pub custom_domain: Option<String>,
     pub ga_tracking_id: Option<String>,
     pub fb_pixel_id: Option<String>,
-
     pub smtp_integration_id: Option<Uuid>,
     pub payment_integration_id: Option<Uuid>,
-
     pub settings: Option<serde_json::Value>,
     pub seo_metadata: Option<serde_json::Value>,
+}
+
+impl UpdateFunnelRequest {
+    /// Validate the request manually
+    pub fn validate(&self) -> Result<(), String> {
+        if let Some(ref name) = self.name {
+            if name.is_empty() || name.len() > 200 {
+                return Err("Name must be 1-200 characters".to_string());
+            }
+        }
+
+        if let Some(ref desc) = self.description {
+            if desc.len() > 1000 {
+                return Err("Description must be max 1000 characters".to_string());
+            }
+        }
+
+        if let Some(ref domain) = self.custom_domain {
+            if domain.len() > 253 {
+                return Err("Domain must be max 253 characters".to_string());
+            }
+        }
+
+        Ok(())
+    }
 }
 
 /// Funnel Response

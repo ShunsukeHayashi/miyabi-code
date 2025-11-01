@@ -6,34 +6,76 @@ use chrono::{DateTime, Utc};
 use clickfunnels_core::{SubscriptionTier, UserStatus};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
+
+lazy_static::lazy_static! {
+    static ref EMAIL_REGEX: regex::Regex = regex::Regex::new(
+        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    ).unwrap();
+}
 
 /// Create User Request
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 pub struct CreateUserRequest {
-    #[validate(email(message = "Invalid email format"))]
     pub email: String,
-
-    #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
     pub password: String,
-
-    #[validate(length(min = 1, max = 100, message = "Full name must be 1-100 characters"))]
     pub full_name: String,
-
-    #[validate(length(max = 100))]
     pub company_name: Option<String>,
 }
 
+impl CreateUserRequest {
+    /// Validate the request manually
+    pub fn validate(&self) -> Result<(), String> {
+        // Validate email
+        if !EMAIL_REGEX.is_match(&self.email) {
+            return Err("Invalid email format".to_string());
+        }
+
+        // Validate password
+        if self.password.len() < 8 {
+            return Err("Password must be at least 8 characters".to_string());
+        }
+
+        // Validate full_name
+        if self.full_name.is_empty() || self.full_name.len() > 100 {
+            return Err("Full name must be 1-100 characters".to_string());
+        }
+
+        // Validate company_name
+        if let Some(ref company) = self.company_name {
+            if company.len() > 100 {
+                return Err("Company name must be max 100 characters".to_string());
+            }
+        }
+
+        Ok(())
+    }
+}
+
 /// Update User Request
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 pub struct UpdateUserRequest {
-    #[validate(length(min = 1, max = 100))]
     pub full_name: Option<String>,
-
-    #[validate(length(max = 100))]
     pub company_name: Option<String>,
-
     pub subscription_tier: Option<SubscriptionTier>,
+}
+
+impl UpdateUserRequest {
+    /// Validate the request manually
+    pub fn validate(&self) -> Result<(), String> {
+        if let Some(ref name) = self.full_name {
+            if name.is_empty() || name.len() > 100 {
+                return Err("Full name must be 1-100 characters".to_string());
+            }
+        }
+
+        if let Some(ref company) = self.company_name {
+            if company.len() > 100 {
+                return Err("Company name must be max 100 characters".to_string());
+            }
+        }
+
+        Ok(())
+    }
 }
 
 /// User Response

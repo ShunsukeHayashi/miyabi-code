@@ -34,9 +34,13 @@ regex = "1.10"
 # UUID support
 uuid = { version = "1.10", features = ["v4", "serde"] }
 
+# DateTime
+chrono = { version = "0.4", features = ["serde"] }
+
 # HTTP utilities
 tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
+reqwest = { version = "0.12", features = ["json"] }
 
 # Logging
 tracing = { workspace = true }

@@ -469,3 +469,4 @@ export function NarrationPlayer({ className = "" }: NarrationPlayerProps) {
     </div>
   );
 }
+export default NarrationPlayer;

@@ -628,3 +628,4 @@ function formatEnvironment(environment: string): string {
   if (!environment) return "Unknown";
   return environment.charAt(0).toUpperCase() + environment.slice(1).toLowerCase();
 }
+export default DeploymentDashboard;

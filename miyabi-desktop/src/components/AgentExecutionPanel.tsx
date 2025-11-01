@@ -581,3 +581,4 @@ export function AgentExecutionPanel() {
     </div>
   );
 }
+export default AgentExecutionPanel;

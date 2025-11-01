@@ -1,0 +1,190 @@
+# Autopilot Plan for Issue #646
+# Version: 1.0.0
+# Purpose: GitHub Token Setup Screen実装
+# Reference: miyabi_def/variables/workflows.yaml
+
+autopilot:
+  # メタデータ
+  version: "1.0.0"
+  issue_number: 646
+  title: "[Phase 3.2] 初期セットアップウィザード - GitHub Token設定"
+  created_at: "2025-10-31T23:00:00+09:00"
+
+  # 実行設定
+  execution:
+    mode: "dry-run"  # 最初はdry-runでテスト
+    timeout: 1800  # 30分
+    max_retries: 2
+    abort_on_failure: true
+
+  # Worktree設定
+  worktree:
+    enabled: true
+    branch_prefix: "autopilot/issue-"
+    cleanup_on_success: true
+    cleanup_on_failure: false  # デバッグのため保持
+
+  # セキュリティ設定
+  security:
+    mask_secrets: true
+    allowed_env_vars:
+      - "GITHUB_TOKEN"
+      - "ANTHROPIC_API_KEY"
+      - "DEVICE_IDENTIFIER"
+    block_network: false  # LLM使用のため
+    sandbox_mode: false
+
+  # ステップ定義
+  steps:
+    # Step 1: 環境セットアップ
+    - id: "step-1-setup"
+      name: "環境セットアップ"
+      type: "setup"
+      commands:
+        - "cd miyabi-desktop && pnpm install"
+      expectations:
+        - type: "exit_code"
+          value: 0
+        - type: "file_exists"
+          value: "miyabi-desktop/node_modules/.bin/vite"
+      on_failure: "abort"
+
+    # Step 2: 既存ファイル確認
+    - id: "step-2-check-existing"
+      name: "既存実装確認"
+      type: "setup"
+      commands:
+        - "ls -la miyabi-desktop/src/components/"
+        - "cat miyabi-desktop/src/App.tsx | grep -i setup || true"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "continue"
+
+    # Step 3: GitHubTokenSetup コンポーネント作成（dry-runモード）
+    - id: "step-3-create-component"
+      name: "GitHubTokenSetup コンポーネント作成"
+      type: "codex_exec"
+      commands:
+        - "echo '[DRY-RUN] codex exec --full-auto --prompt \"Create GitHubTokenSetup.tsx component for miyabi-desktop setup wizard with token validation\"'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      post_commands:
+        - "echo '[DRY-RUN] pnpm typecheck'"
+        - "echo '[DRY-RUN] pnpm lint'"
+      on_failure: "retry"
+
+    # Step 4: App.tsx更新（dry-runモード）
+    - id: "step-4-update-app"
+      name: "App.tsx にルーティング追加"
+      type: "codex_exec"
+      commands:
+        - "echo '[DRY-RUN] codex exec --full-auto --prompt \"Add GitHubTokenSetup route to App.tsx\"'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "retry"
+
+    # Step 5: TypeScriptチェック（dry-runモード）
+    - id: "step-5-typecheck"
+      name: "TypeScriptチェック"
+      type: "test"
+      commands:
+        - "echo '[DRY-RUN] cd miyabi-desktop && pnpm typecheck'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "abort"
+
+    # Step 6: コード整形（dry-runモード）
+    - id: "step-6-format"
+      name: "コード整形"
+      type: "format"
+      commands:
+        - "echo '[DRY-RUN] cd miyabi-desktop && pnpm format'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "continue"
+
+    # Step 7: ビルド確認（dry-runモード）
+    - id: "step-7-build"
+      name: "ビルド確認"
+      type: "test"
+      commands:
+        - "echo '[DRY-RUN] cd miyabi-desktop && pnpm build'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "abort"
+
+    # Step 8: PR作成（dry-runモード）
+    - id: "step-8-create-pr"
+      name: "PR作成"
+      type: "git"
+      commands:
+        - "echo '[DRY-RUN] git add .'"
+        - "echo '[DRY-RUN] git commit -m \"feat(miyabi-desktop): implement GitHub Token setup screen\"'"
+        - "echo '[DRY-RUN] git push -u origin HEAD'"
+        - "echo '[DRY-RUN] gh pr create --title \"feat(miyabi-desktop): GitHub Token setup\" --body \"Implements #646\"'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "report"
+
+  # ログ設定
+  logging:
+    level: "debug"  # dry-runなので詳細ログ
+    output_dir: ".ai/logs/codex/autopilot"
+    format: "text"  # テスト段階ではtextで見やすく
+    capture_stdout: true
+    capture_stderr: true
+
+  # 通知設定
+  notifications:
+    on_success:
+      - type: "github_comment"
+        template: |
+          ## ✅ Autopilot DRY-RUN 完了
+
+          **Issue**: #{{issue_number}}
+          **Mode**: DRY-RUN (実際のコード変更なし)
+          **Duration**: {{duration}}秒
+          **Steps**: {{completed_steps}}/{{total_steps}}
+
+          ### 実行ログ
+          - [詳細ログ]({{log_url}})
+          - [サマリー]({{summary_url}})
+
+          ### 次のステップ
+          - mode: "full-auto" に変更して本番実行
+          - または手動でコンポーネント実装
+
+          🤖 Generated with Autopilot Codex (DRY-RUN)
+
+    on_failure:
+      - type: "github_comment"
+        template: |
+          ## ❌ Autopilot DRY-RUN 失敗
+
+          **Issue**: #{{issue_number}}
+          **Mode**: DRY-RUN
+          **Failed at**: {{failed_step}}
+          **Error**: {{error_message}}
+
+          ### デバッグ情報
+          - Worktree: {{worktree_path}}
+          - Log: {{log_path}}
+
+          🤖 Generated with Autopilot Codex (DRY-RUN)
+
+      - type: "escalation"
+        target: "TechLead"
+
+  # 監査設定
+  audit:
+    enabled: true
+    check_worktree_cleanup: true
+    validate_logs: true
+    summary_required: true

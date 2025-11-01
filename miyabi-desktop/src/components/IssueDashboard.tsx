@@ -274,3 +274,4 @@ function formatRelativeTime(dateString: string): string {
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString();
 }
+export default IssueDashboard;

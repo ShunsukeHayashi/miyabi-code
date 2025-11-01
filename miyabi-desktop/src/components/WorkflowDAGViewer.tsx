@@ -330,3 +330,4 @@ export function WorkflowDAGViewer() {
     </div>
   );
 }
+export default WorkflowDAGViewer;

@@ -1,0 +1,293 @@
+{
+  "issueNumber": 472,
+  "title": "[P4-003] チュートリアル10個作成",
+  "priority": "P1-High",
+  "type": "docs",
+  "createdAt": "2025-10-24T14:05:00Z",
+  "createdBy": "CoordinatorAgent",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Create Beginner Tutorials (3 tutorials)",
+      "description": "Develop tutorials for beginners covering Getting Started, Understanding Agents, and Issue-to-PR Workflow",
+      "assignedAgent": "ContentCreationAgent",
+      "estimatedHours": 15,
+      "priority": "P1-High",
+      "dependencies": [],
+      "deliverables": [
+        "tutorials/01-getting-started.md",
+        "tutorials/02-understanding-agents.md",
+        "tutorials/03-issue-to-pr-workflow.md"
+      ],
+      "successCriteria": [
+        "Each tutorial 1,000-1,500 words",
+        "Runnable code examples included",
+        "Screenshots/diagrams added",
+        "Tested by 2+ beginners"
+      ],
+      "tutorials": [
+        {
+          "number": 1,
+          "title": "Getting Started with Miyabi",
+          "filename": "tutorials/01-getting-started.md",
+          "difficulty": "Beginner",
+          "estimatedMinutes": 30,
+          "wordCount": 1500,
+          "topics": [
+            "Installation",
+            "Configuration",
+            "First Agent execution",
+            "Understanding output"
+          ]
+        },
+        {
+          "number": 2,
+          "title": "Understanding Agents - The 21 Characters",
+          "filename": "tutorials/02-understanding-agents.md",
+          "difficulty": "Beginner",
+          "estimatedMinutes": 45,
+          "wordCount": 1800,
+          "topics": [
+            "Agent architecture",
+            "7 Coding Agents",
+            "14 Business Agents",
+            "Character name system"
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Issue-to-PR Workflow - Autonomous Development Cycle",
+          "filename": "tutorials/03-issue-to-pr-workflow.md",
+          "difficulty": "Beginner",
+          "estimatedMinutes": 40,
+          "wordCount": 1600,
+          "topics": [
+            "Workflow overview",
+            "Issue creation",
+            "Task decomposition",
+            "Code generation",
+            "PR creation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Create Intermediate Tutorials (4 tutorials)",
+      "description": "Develop intermediate tutorials covering Agent customization, Worktree execution, Label system, and MCP integration",
+      "assignedAgent": "ContentCreationAgent",
+      "estimatedHours": 20,
+      "priority": "P1-High",
+      "dependencies": ["T1"],
+      "deliverables": [
+        "tutorials/04-agent-customization.md",
+        "tutorials/05-worktree-parallel-execution.md",
+        "tutorials/06-label-system-mastery.md",
+        "tutorials/07-mcp-integration.md"
+      ],
+      "successCriteria": [
+        "Each tutorial 1,700-2,000 words",
+        "Hands-on exercises included",
+        "Troubleshooting sections added",
+        "Intermediate users can complete independently"
+      ],
+      "tutorials": [
+        {
+          "number": 4,
+          "title": "Agent Customization - Building Your Own Prompts",
+          "filename": "tutorials/04-agent-customization.md",
+          "difficulty": "Intermediate",
+          "estimatedMinutes": 60,
+          "wordCount": 2000,
+          "topics": [
+            "Agent spec anatomy",
+            "Customizing prompts",
+            "Configuration options",
+            "Testing custom agents"
+          ]
+        },
+        {
+          "number": 5,
+          "title": "Worktree-Based Parallel Execution",
+          "filename": "tutorials/05-worktree-parallel-execution.md",
+          "difficulty": "Intermediate",
+          "estimatedMinutes": 50,
+          "wordCount": 1800,
+          "topics": [
+            "Worktree benefits",
+            "Parallel execution demo",
+            "Concurrency tuning",
+            "Troubleshooting"
+          ]
+        },
+        {
+          "number": 6,
+          "title": "Label System Mastery - 53 Labels Explained",
+          "filename": "tutorials/06-label-system-mastery.md",
+          "difficulty": "Intermediate",
+          "estimatedMinutes": 45,
+          "wordCount": 1700,
+          "topics": [
+            "Label system philosophy",
+            "10 label categories",
+            "Label-driven automation",
+            "Custom workflows"
+          ]
+        },
+        {
+          "number": 7,
+          "title": "MCP Integration - Connecting External Tools",
+          "filename": "tutorials/07-mcp-integration.md",
+          "difficulty": "Intermediate",
+          "estimatedMinutes": 55,
+          "wordCount": 1900,
+          "topics": [
+            "MCP fundamentals",
+            "Installing MCP servers",
+            "Using Context7",
+            "Building custom MCP tools"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Create Advanced Tutorials (3 tutorials)",
+      "description": "Develop advanced tutorials covering Entity-Relation Model, Custom Agent Development, and Production Deployment",
+      "assignedAgent": "ContentCreationAgent",
+      "estimatedHours": 15,
+      "priority": "P1-High",
+      "dependencies": ["T2"],
+      "deliverables": [
+        "tutorials/08-entity-relation-model.md",
+        "tutorials/09-custom-agent-development.md",
+        "tutorials/10-production-deployment.md"
+      ],
+      "successCriteria": [
+        "Each tutorial 2,000+ words",
+        "Architectural depth demonstrated",
+        "Production-ready examples",
+        "Advanced users gain expertise"
+      ],
+      "tutorials": [
+        {
+          "number": 8,
+          "title": "Entity-Relation Model Deep Dive",
+          "filename": "tutorials/08-entity-relation-model.md",
+          "difficulty": "Advanced",
+          "estimatedMinutes": 60,
+          "wordCount": 2000,
+          "topics": [
+            "12 core Entities",
+            "27 relationships",
+            "N1/N2/N3 notation",
+            "Rust Entity APIs"
+          ]
+        },
+        {
+          "number": 9,
+          "title": "Custom Agent Development - From Scratch",
+          "filename": "tutorials/09-custom-agent-development.md",
+          "difficulty": "Advanced",
+          "estimatedMinutes": 90,
+          "wordCount": 2000,
+          "topics": [
+            "BaseAgent architecture",
+            "Implementing custom Agent",
+            "Creating Agent spec",
+            "CLI integration"
+          ]
+        },
+        {
+          "number": 10,
+          "title": "Production Deployment - CI/CD with Miyabi",
+          "filename": "tutorials/10-production-deployment.md",
+          "difficulty": "Advanced",
+          "estimatedMinutes": 70,
+          "wordCount": 2000,
+          "topics": [
+            "Production architecture",
+            "GitHub Actions setup",
+            "DeploymentAgent configuration",
+            "Monitoring & observability"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Create Tutorial Index & Navigation",
+      "description": "Create master index with navigation links, difficulty badges, and learning path diagrams",
+      "assignedAgent": "ContentCreationAgent",
+      "estimatedHours": 3,
+      "priority": "P2-Medium",
+      "dependencies": ["T1", "T2", "T3"],
+      "deliverables": [
+        "tutorials/README.md"
+      ],
+      "successCriteria": [
+        "Clear learning progression",
+        "Easy navigation between tutorials",
+        "Visual learning paths (Mermaid diagrams)"
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Review & Testing",
+      "description": "Technical accuracy review, code example testing, and user testing with feedback incorporation",
+      "assignedAgent": "ReviewAgent",
+      "estimatedHours": 10,
+      "priority": "P1-High",
+      "dependencies": ["T1", "T2", "T3", "T4"],
+      "deliverables": [
+        "Quality report for all tutorials",
+        "Testing results documentation",
+        "Feedback incorporation log"
+      ],
+      "successCriteria": [
+        "All code examples run successfully",
+        "No major technical errors",
+        "Positive feedback from test users",
+        "90+ quality score from ReviewAgent"
+      ]
+    }
+  ],
+  "summary": {
+    "totalTutorials": 10,
+    "totalTasks": 5,
+    "totalEstimatedHours": 63,
+    "totalWordCount": 18300,
+    "difficultyDistribution": {
+      "beginner": 3,
+      "intermediate": 4,
+      "advanced": 3
+    },
+    "timeline": {
+      "totalWeeks": 6,
+      "fullTimeWeeks": 3
+    }
+  },
+  "dag": {
+    "nodes": [
+      { "id": "T1", "level": 0 },
+      { "id": "T2", "level": 1 },
+      { "id": "T3", "level": 2 },
+      { "id": "T4", "level": 3 },
+      { "id": "T5", "level": 4 }
+    ],
+    "edges": [
+      { "from": "T1", "to": "T2" },
+      { "from": "T2", "to": "T3" },
+      { "from": "T1", "to": "T4" },
+      { "from": "T2", "to": "T4" },
+      { "from": "T3", "to": "T4" },
+      { "from": "T4", "to": "T5" }
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "generatedBy": "CoordinatorAgent",
+    "generatedAt": "2025-10-24T14:05:00Z",
+    "schemaVersion": "2.0"
+  }
+}
