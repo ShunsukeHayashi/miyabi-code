@@ -12,3 +12,31 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+clickfunnels-core = { path = "../clickfunnels-core" }
+
+# Async runtime
+tokio = { workspace = true }
+axum = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Validation
+validator = { version = "0.18", features = ["derive"] }
+lazy_static = "1.4"
+regex = "1.10"
+
+# UUID support
+uuid = { version = "1.10", features = ["v4", "serde"] }
+
+# HTTP utilities
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Logging
+tracing = { workspace = true }

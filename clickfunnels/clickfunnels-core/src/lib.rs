@@ -1,14 +1,14 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! ClickFunnels Core - Domain Models and Business Logic
+//!
+//! This crate contains the core domain entities, business logic,
+//! and shared utilities for the ClickFunnels system.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod entities;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+// Re-export entities for convenient access
+pub use entities::{
+    User, UserStatus, SubscriptionTier,
+    Funnel, FunnelStatus, FunnelType,
+    Page, PageStatus, PageType,
+    Integration, IntegrationStatus, IntegrationType, Provider,
+};
