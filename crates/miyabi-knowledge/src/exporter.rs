@@ -341,17 +341,19 @@ mod tests {
 
     fn create_test_entry(id: &str, content: &str) -> KnowledgeResult {
         KnowledgeResult {
-            id: KnowledgeId::new(id),
+            id: KnowledgeId::from_string(id).unwrap_or_else(|_| KnowledgeId::new()),
             content: content.to_string(),
             score: 0.95,
             metadata: KnowledgeMetadata {
                 workspace: "test-workspace".to_string(),
+                worktree: None,
                 agent: Some("CodeGenAgent".to_string()),
                 issue_number: Some(123),
                 task_type: Some("feature".to_string()),
                 outcome: Some("success".to_string()),
-                tools_used: Vec::new(),
-                extra: HashMap::new(),
+                tools_used: Some(Vec::new()),
+                files_changed: None,
+                extra: serde_json::Map::new(),
             },
             timestamp: Utc::now(),
         }

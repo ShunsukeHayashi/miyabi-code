@@ -7,13 +7,75 @@ use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
-use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
+use miyabi_llm::{GPTOSSProvider, HybridRouter, LLMProvider, LLMRequest, LlmClient, Message, ReasoningEffort, Role};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
 use miyabi_types::{AgentConfig, AgentResult, Issue};
 use serde_json::json;
 use std::collections::HashMap;
+
+/// Adapter to make HybridRouter compatible with legacy LLMProvider trait
+struct HybridRouterAdapter {
+    router: HybridRouter,
+}
+
+impl HybridRouterAdapter {
+    fn new(router: HybridRouter) -> Self {
+        Self { router }
+    }
+}
+
+#[async_trait]
+impl LLMProvider for HybridRouterAdapter {
+    async fn generate(&self, request: &LLMRequest) -> miyabi_llm::error::Result<miyabi_llm::types::LLMResponse> {
+        let msg = Message {
+            role: Role::User,
+            content: request.prompt.clone(),
+        };
+        let response = self.router.chat(vec![msg]).await?;
+
+        Ok(miyabi_llm::types::LLMResponse {
+            text: response,
+            tokens_used: 0,
+            finish_reason: "stop".to_string(),
+            function_call: None,
+            tool_calls: None,
+        })
+    }
+
+    async fn chat(&self, messages: &[miyabi_llm::types::ChatMessage]) -> miyabi_llm::error::Result<miyabi_llm::types::ChatMessage> {
+        let converted: Vec<Message> = messages
+            .iter()
+            .map(|m| Message {
+                role: if m.role == miyabi_llm::types::ChatRole::User { Role::User } else { Role::Assistant },
+                content: m.content.clone(),
+            })
+            .collect();
+
+        let response = self.router.chat(converted).await?;
+
+        Ok(miyabi_llm::types::ChatMessage::assistant(response))
+    }
+
+    async fn call_function(
+        &self,
+        _name: &str,
+        _args: serde_json::Value,
+    ) -> miyabi_llm::error::Result<serde_json::Value> {
+        Err(miyabi_llm::error::LLMError::ApiError(
+            "Function calling not supported by HybridRouter adapter".to_string(),
+        ))
+    }
+
+    fn model_name(&self) -> &str {
+        "hybrid-router"
+    }
+
+    fn max_tokens(&self) -> usize {
+        200_000 // Claude Sonnet 4.5 context window
+    }
+}
 
 /// CoordinatorAgent with LLM integration
 pub struct CoordinatorAgentWithLLM {
@@ -38,6 +100,7 @@ impl CoordinatorAgentWithLLM {
     }
 
     /// Initialize LLM provider (with environment-based fallback chain)
+    /// Tries in order: HybridRouter (Anthropic + OpenAI) → GPT-OSS → None
     fn initialize_llm_provider() -> Option<Box<dyn LLMProvider>> {
         if std::env::var("MIYABI_DISABLE_LLM")
             .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
@@ -49,6 +112,21 @@ impl CoordinatorAgentWithLLM {
             return None;
         }
 
+        // Try HybridRouter first (Anthropic + OpenAI)
+        match HybridRouter::from_env() {
+            Ok(router) => {
+                tracing::info!("✅ HybridRouter initialized (Anthropic Claude + OpenAI GPT)");
+                tracing::info!("   - Complex tasks → claude-3-5-sonnet-20241022");
+                tracing::info!("   - Simple tasks → gpt-4o-mini");
+                let adapter = HybridRouterAdapter::new(router);
+                return Some(Box::new(adapter) as Box<dyn LLMProvider>);
+            }
+            Err(err) => {
+                tracing::warn!("HybridRouter initialization failed: {}. Trying GPT-OSS fallback...", err);
+            }
+        }
+
+        // Fallback to GPT-OSS (local LLM)
         match GPTOSSProvider::new_with_fallback() {
             Ok(provider) => {
                 let model_name = provider.model_name().to_string();
