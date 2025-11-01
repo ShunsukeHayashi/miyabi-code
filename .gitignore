@@ -241,3 +241,6 @@ tools/*.mp4
 
 # External repositories (separate git repos)
 Youtube/
+
+# Miyabi runtime task tracking
+.miyabi/tasks/
