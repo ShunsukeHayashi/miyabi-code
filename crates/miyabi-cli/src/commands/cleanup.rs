@@ -2,8 +2,11 @@
 
 use crate::error::Result;
 use colored::Colorize;
-use miyabi_worktree::{WorktreeCleanupManager, WorktreeCleanupPolicy, WorktreeStateManager};
-use std::time::Duration;
+use miyabi_worktree::{
+    WorktreeCleanupManager, WorktreeCleanupPolicy, WorktreeState, WorktreeStateManager,
+    WorktreeStatusDetailed,
+};
+use std::{path::PathBuf, time::Duration};
 
 pub struct CleanupCommand {
     /// Dry run (don't actually delete)
@@ -52,14 +55,14 @@ impl CleanupCommand {
 
         if self.all {
             policy.delete_on_completion = true;
-            policy.max_worktrees = Some(0);
+            policy.max_worktrees = None;
         }
 
         let cleanup_manager = WorktreeCleanupManager::new(state_manager, policy);
 
         if self.dry_run {
             // In dry run mode, just show what would be cleaned
-            self.dry_run_cleanup(&cleanup_manager).await?;
+            self.dry_run_cleanup(repo_path.clone()).await?;
         } else {
             // Actually perform cleanup
             let report = cleanup_manager
@@ -69,14 +72,44 @@ impl CleanupCommand {
 
             // Display report
             self.display_report(&report);
+
+            if self.all {
+                let state_manager = WorktreeStateManager::new(repo_path)
+                    .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+
+                match state_manager.cleanup_all() {
+                    Ok(additional) if additional > 0 => {
+                        println!(
+                            "  {} Additional worktrees removed during --all: {}",
+                            "✓".green(),
+                            additional
+                        );
+                        println!();
+                    }
+                    Ok(_) => {
+                        // Nothing left to clean; still provide a hint when force/all requested
+                        println!(
+                            "  {} No remaining worktrees after initial cleanup",
+                            "ℹ".blue()
+                        );
+                        println!();
+                    }
+                    Err(err) => {
+                        println!(
+                            "  {} Failed to remove some worktrees: {}",
+                            "⚠️".yellow(),
+                            err
+                        );
+                        println!();
+                    }
+                }
+            }
         }
 
         Ok(())
     }
 
-    async fn dry_run_cleanup(&self, manager: &WorktreeCleanupManager) -> Result<()> {
-        // Get the state manager from the cleanup manager (we'll need to scan manually)
-        let repo_path = std::env::current_dir()?;
+    async fn dry_run_cleanup(&self, repo_path: PathBuf) -> Result<()> {
         let state_manager = WorktreeStateManager::new(repo_path)
             .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
 
@@ -92,23 +125,10 @@ impl CleanupCommand {
         println!("  Found {} worktree(s):", worktrees.len());
         println!();
 
-        let mut would_clean = Vec::new();
-
-        for wt in &worktrees {
-            use miyabi_worktree::WorktreeStatusDetailed;
-
-            let should_clean = match wt.status {
-                WorktreeStatusDetailed::Orphaned => true,
-                WorktreeStatusDetailed::Stuck => true,
-                WorktreeStatusDetailed::Idle => self.all || self.force,
-                WorktreeStatusDetailed::Corrupted => true,
-                WorktreeStatusDetailed::Active => false,
-            };
-
-            if should_clean {
-                would_clean.push(wt);
-            }
-        }
+        let would_clean: Vec<_> = worktrees
+            .iter()
+            .filter(|wt| self.should_clean(wt))
+            .collect();
 
         if would_clean.is_empty() {
             println!("  ✅ No worktrees would be cleaned");
@@ -200,6 +220,16 @@ impl CleanupCommand {
         }
 
         println!();
+    }
+
+    fn should_clean(&self, worktree: &WorktreeState) -> bool {
+        match worktree.status {
+            WorktreeStatusDetailed::Orphaned
+            | WorktreeStatusDetailed::Stuck
+            | WorktreeStatusDetailed::Corrupted => true,
+            WorktreeStatusDetailed::Idle => self.force || self.all,
+            WorktreeStatusDetailed::Active => self.all,
+        }
     }
 }
 

@@ -61,7 +61,5 @@ pub use session::{
     Action, ExecutionMode, ReasoningStep, Session, SessionContext, SessionStatus, SessionSummary,
     Turn, TurnStatus,
 };
-pub use task_metadata::{
-    TaskMetadata, TaskMetadataManager, TaskStatistics, TaskStatus,
-};
+pub use task_metadata::{TaskMetadata, TaskMetadataManager, TaskStatistics, TaskStatus};
 pub use tools::{ToolRegistry, ToolResult};

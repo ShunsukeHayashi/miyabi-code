@@ -123,11 +123,7 @@ impl OmegaFunction {
     }
 
     /// Execute a single iteration for convergence loop
-    pub async fn execute_once(
-        &self,
-        intent: Intent,
-        world: World,
-    ) -> Result<(World, f64)> {
+    pub async fn execute_once(&self, intent: Intent, world: World) -> Result<(World, f64)> {
         let result = self.execute(intent, world.clone()).await?;
 
         // Extract updated world from result (would be stored in result metadata)
@@ -315,7 +311,7 @@ impl AllocationPhase {
 pub struct TaskGraph {
     pub nodes: Vec<TaskNode>,
     pub edges: Vec<(usize, usize)>, // (from, to) indices
-    pub levels: Vec<Vec<usize>>,     // Parallelization levels
+    pub levels: Vec<Vec<usize>>,    // Parallelization levels
 }
 
 #[derive(Debug, Clone)]

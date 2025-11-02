@@ -6,14 +6,14 @@
 //! - Knowledge accumulation
 //! - Learning mechanisms for θ₆ phase
 
-use crate::spaces::{World, GitContext, GitHubContext, FileInfo, Dependency, DependencyKind, Fact};
-use miyabi_types::MiyabiError;
-use std::collections::HashMap;
-use std::path::Path;
-use std::fs;
+use crate::spaces::{Dependency, DependencyKind, Fact, FileInfo, GitContext, GitHubContext, World};
 use chrono::Utc;
+use miyabi_types::MiyabiError;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 use walkdir::WalkDir;
-use serde::{Serialize, Deserialize};
 
 /// Extended World with Phase 2 capabilities
 pub struct WorldManager {
@@ -82,10 +82,7 @@ impl WorldManager {
     pub fn with_config(config: WorldConfig) -> Result<Self, MiyabiError> {
         let world = World::current()?;
 
-        Ok(Self {
-            world,
-            config,
-        })
+        Ok(Self { world, config })
     }
 
     /// Get a reference to the current World
@@ -132,9 +129,12 @@ impl WorldManager {
             .into_iter()
             .filter_entry(|e| !self.should_exclude(e.path()))
         {
-            let entry = entry.map_err(|e| MiyabiError::Io(std::io::Error::other(
-                format!("Failed to read directory entry: {}", e),
-            )))?;
+            let entry = entry.map_err(|e| {
+                MiyabiError::Io(std::io::Error::other(format!(
+                    "Failed to read directory entry: {}",
+                    e
+                )))
+            })?;
 
             if entry.file_type().is_file() {
                 if let Ok(file_info) = self.create_file_info(entry.path()).await {
@@ -181,12 +181,13 @@ impl WorldManager {
             )));
         }
 
-        let last_modified = metadata.modified()
-            .map_err(MiyabiError::Io)?
-            .into();
+        let last_modified = metadata.modified().map_err(MiyabiError::Io)?.into();
 
         // Compute content hash for change detection
-        let content_hash = if path.extension().is_some_and(|ext| ext == "rs" || ext == "toml") {
+        let content_hash = if path
+            .extension()
+            .is_some_and(|ext| ext == "rs" || ext == "toml")
+        {
             Some(self.compute_file_hash(path)?)
         } else {
             None
@@ -202,7 +203,7 @@ impl WorldManager {
 
     /// Compute SHA-256 hash of file content
     fn compute_file_hash(&self, path: &Path) -> Result<String, MiyabiError> {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let content = fs::read(path)?;
         let mut hasher = Sha256::new();
@@ -213,7 +214,10 @@ impl WorldManager {
     }
 
     /// Scan Cargo.toml for dependencies
-    async fn scan_cargo_dependencies(&self, project_root: &Path) -> Result<Vec<Dependency>, MiyabiError> {
+    async fn scan_cargo_dependencies(
+        &self,
+        project_root: &Path,
+    ) -> Result<Vec<Dependency>, MiyabiError> {
         let cargo_toml = project_root.join("Cargo.toml");
 
         if !cargo_toml.exists() {
@@ -231,12 +235,11 @@ impl WorldManager {
             for (name, value) in deps {
                 let version = match value {
                     toml::Value::String(v) => v.clone(),
-                    toml::Value::Table(t) => {
-                        t.get("version")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("*")
-                            .to_string()
-                    }
+                    toml::Value::Table(t) => t
+                        .get("version")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("*")
+                        .to_string(),
                     _ => "*".to_string(),
                 };
 
@@ -258,24 +261,26 @@ impl WorldManager {
             .map_err(|e| MiyabiError::Git(format!("Failed to open git repository: {}", e)))?;
 
         // Get current branch
-        let head = repo.head()
+        let head = repo
+            .head()
             .map_err(|e| MiyabiError::Git(format!("Failed to get HEAD: {}", e)))?;
 
-        let current_branch = head.shorthand()
-            .unwrap_or("unknown")
-            .to_string();
+        let current_branch = head.shorthand().unwrap_or("unknown").to_string();
 
         // Check for uncommitted changes
-        let statuses = repo.statuses(None)
+        let statuses = repo
+            .statuses(None)
             .map_err(|e| MiyabiError::Git(format!("Failed to get status: {}", e)))?;
 
         let uncommitted_changes = !statuses.is_empty();
 
         // Get recent commits (last 10)
-        let mut revwalk = repo.revwalk()
+        let mut revwalk = repo
+            .revwalk()
             .map_err(|e| MiyabiError::Git(format!("Failed to create revwalk: {}", e)))?;
 
-        revwalk.push_head()
+        revwalk
+            .push_head()
             .map_err(|e| MiyabiError::Git(format!("Failed to push HEAD: {}", e)))?;
 
         let mut recent_commits = Vec::new();
@@ -319,7 +324,9 @@ impl WorldManager {
 
     /// Query knowledge base
     pub fn query_knowledge(&self, query: &str) -> Vec<&Fact> {
-        self.world.context.knowledge
+        self.world
+            .context
+            .knowledge
             .iter()
             .filter(|fact| fact.statement.contains(query))
             .collect()
@@ -328,9 +335,7 @@ impl WorldManager {
     /// Get statistics about the current World
     pub fn statistics(&self) -> WorldStatistics {
         let total_files = self.world.state.files.len();
-        let total_size_bytes: u64 = self.world.state.files.iter()
-            .map(|f| f.size_bytes)
-            .sum();
+        let total_size_bytes: u64 = self.world.state.files.iter().map(|f| f.size_bytes).sum();
 
         let file_types = self.count_file_types();
 
@@ -349,7 +354,8 @@ impl WorldManager {
         let mut counts = HashMap::new();
 
         for file in &self.world.state.files {
-            let ext = file.path
+            let ext = file
+                .path
                 .extension()
                 .and_then(|e| e.to_str())
                 .unwrap_or("unknown")

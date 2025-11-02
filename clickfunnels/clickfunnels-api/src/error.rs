@@ -34,6 +34,9 @@ pub enum ApiError {
 
     #[error("Bad request: {0}")]
     BadRequest(String),
+
+    #[error("Database error: {0}")]
+    DatabaseError(String),
 }
 
 /// Error response body
@@ -55,6 +58,7 @@ impl IntoResponse for ApiError {
             ApiError::Conflict(_) => (StatusCode::CONFLICT, "CONFLICT"),
             ApiError::InternalError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_ERROR"),
             ApiError::BadRequest(_) => (StatusCode::BAD_REQUEST, "BAD_REQUEST"),
+            ApiError::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "DATABASE_ERROR"),
         };
 
         let body = ErrorResponse {

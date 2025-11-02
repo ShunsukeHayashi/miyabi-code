@@ -36,6 +36,8 @@ mod worktree;
 
 pub mod codegen;
 pub mod frontend;
+pub mod modes;
 
 pub use codegen::CodeGenAgent;
 pub use documentation::DocumentationGenerationResult;
+pub use modes::{ExecutionMode, ModeExecutor};

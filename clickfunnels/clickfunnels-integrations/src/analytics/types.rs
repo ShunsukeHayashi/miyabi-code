@@ -116,15 +116,17 @@ mod tests {
     fn test_analytics_event_with_parameter() {
         let event = AnalyticsEvent::new("purchase".to_string())
             .with_parameter("value".to_string(), EventParameter::Number(99.99))
-            .with_parameter("currency".to_string(), EventParameter::String("USD".to_string()));
+            .with_parameter(
+                "currency".to_string(),
+                EventParameter::String("USD".to_string()),
+            );
 
         assert_eq!(event.parameters.len(), 2);
     }
 
     #[test]
     fn test_analytics_event_with_user_id() {
-        let event = AnalyticsEvent::new("login".to_string())
-            .with_user_id("user123".to_string());
+        let event = AnalyticsEvent::new("login".to_string()).with_user_id("user123".to_string());
 
         assert_eq!(event.user_id, Some("user123".to_string()));
     }

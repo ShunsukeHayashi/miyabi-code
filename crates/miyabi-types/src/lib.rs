@@ -31,6 +31,6 @@ pub use world::{
 // Re-export SWML types
 pub use swml::{
     Constraint, FileChange, FileChangeKind, Intent, IntentMetadata, Output, Priority,
-    PullRequestInfo, SWMLResult as Result, ResultMetadata, TestResults, World, WorldConstraint,
+    PullRequestInfo, ResultMetadata, SWMLResult as Result, TestResults, World, WorldConstraint,
     WorldContext, WorldState,
 };

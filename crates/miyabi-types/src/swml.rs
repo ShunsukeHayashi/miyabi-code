@@ -288,7 +288,7 @@ impl WorldState {
 
         Ok(Self {
             project_root,
-            files: Vec::new(), // Will be populated by filesystem scan
+            files: Vec::new(),        // Will be populated by filesystem scan
             dependencies: Vec::new(), // Will be populated by parsing manifests
             last_updated: chrono::Utc::now(),
         })
@@ -456,9 +456,7 @@ impl Resources {
         }
 
         if self.memory_mb == 0 {
-            return Err(MiyabiError::Validation(
-                "Memory cannot be zero".to_string(),
-            ));
+            return Err(MiyabiError::Validation("Memory cannot be zero".to_string()));
         }
 
         Ok(())

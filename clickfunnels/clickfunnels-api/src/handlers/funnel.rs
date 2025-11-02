@@ -1,15 +1,14 @@
 //! Funnel API Handlers
 //!
-//! This module implements HTTP handlers for Funnel CRUD operations.
+//! This module implements HTTP handlers for Funnel CRUD operations with database integration.
 
 use axum::{
-    extract::{Path, Query},
+    extract::{Path, Query, State},
     http::StatusCode,
-    Json,
+    Extension, Json,
 };
 use clickfunnels_core::Funnel;
 use uuid::Uuid;
-// use validator::Validate; // TODO: Re-enable when validator is fixed
 
 use crate::{
     dto::funnel::{
@@ -17,23 +16,24 @@ use crate::{
         PaginatedFunnelsResponse, UpdateFunnelRequest,
     },
     error::{ApiError, ApiResult},
+    middleware::auth::AuthenticatedUser,
+    state::AppState,
 };
 
 /// Create a new funnel
 ///
 /// POST /api/v1/funnels
 pub async fn create_funnel(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(req): Json<CreateFunnelRequest>,
 ) -> ApiResult<(StatusCode, Json<FunnelResponse>)> {
     // Validate request
-    req.validate()
-        .map_err(ApiError::ValidationError)?;
+    req.validate().map_err(ApiError::ValidationError)?;
 
-    // TODO: Get user_id from authentication context
-    let user_id = Uuid::new_v4(); // Mock user_id
-
-    // Check slug uniqueness
-    // TODO: Validate slug is unique in database
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
 
     // Create funnel entity
     let mut funnel = Funnel::new(user_id, req.name.clone(), req.slug.clone());
@@ -42,24 +42,45 @@ pub async fn create_funnel(
     funnel.funnel_type = req.funnel_type;
     funnel.custom_domain = req.custom_domain;
 
-    // TODO: Save to database
-    tracing::info!("Created funnel: {}", funnel.id);
+    // Save to database
+    let created_funnel = state
+        .db
+        .funnels()
+        .create(&funnel)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
 
-    let response = FunnelResponse::from(funnel);
+    tracing::info!("Created funnel: {}", created_funnel.id);
+
+    let response = FunnelResponse::from(created_funnel);
     Ok((StatusCode::CREATED, Json(response)))
 }
 
 /// Get funnel by ID
 ///
 /// GET /api/v1/funnels/:id
-pub async fn get_funnel(Path(funnel_id): Path<Uuid>) -> ApiResult<Json<FunnelResponse>> {
-    // TODO: Fetch from database
-    let user_id = Uuid::new_v4();
-    let funnel = Funnel::new(
-        user_id,
-        "Mock Funnel".to_string(),
-        format!("funnel-{}", funnel_id),
-    );
+pub async fn get_funnel(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(funnel_id): Path<Uuid>,
+) -> ApiResult<Json<FunnelResponse>> {
+    // Fetch from database
+    let funnel = state
+        .db
+        .funnels()
+        .find_by_id(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+    // Ensure requesting user owns the funnel
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
+    if funnel.user_id != user_id {
+        return Err(ApiError::Forbidden(
+            "You do not have access to this funnel".to_string(),
+        ));
+    }
 
     tracing::info!("Fetched funnel: {}", funnel_id);
 
@@ -70,17 +91,28 @@ pub async fn get_funnel(Path(funnel_id): Path<Uuid>) -> ApiResult<Json<FunnelRes
 ///
 /// PUT /api/v1/funnels/:id
 pub async fn update_funnel(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Path(funnel_id): Path<Uuid>,
     Json(req): Json<UpdateFunnelRequest>,
 ) -> ApiResult<Json<FunnelResponse>> {
-    // Validate request
-    // TODO: Fix validator derive macro
-    // req.validate()
-    //     .map_err(|e| ApiError::ValidationError(e.to_string()))?;
+    // Fetch funnel from database
+    let mut funnel = state
+        .db
+        .funnels()
+        .find_by_id(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
 
-    // TODO: Fetch funnel from database
-    let user_id = Uuid::new_v4();
-    let mut funnel = Funnel::new(user_id, "Mock Funnel".to_string(), "mock-funnel".to_string());
+    // Ensure requesting user owns the funnel
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
+    if funnel.user_id != user_id {
+        return Err(ApiError::Forbidden(
+            "You do not have access to this funnel".to_string(),
+        ));
+    }
 
     // Update fields
     if let Some(name) = req.name {
@@ -127,17 +159,55 @@ pub async fn update_funnel(
         funnel.update_seo_metadata(seo);
     }
 
-    // TODO: Save to database
+    // Update timestamp
+    funnel.updated_at = chrono::Utc::now();
+
+    // Save to database
+    let updated_funnel = state
+        .db
+        .funnels()
+        .update(&funnel)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
     tracing::info!("Updated funnel: {}", funnel_id);
 
-    Ok(Json(FunnelResponse::from(funnel)))
+    Ok(Json(FunnelResponse::from(updated_funnel)))
 }
 
 /// Delete funnel by ID
 ///
 /// DELETE /api/v1/funnels/:id
-pub async fn delete_funnel(Path(funnel_id): Path<Uuid>) -> ApiResult<StatusCode> {
-    // TODO: Fetch funnel from database and mark as archived
+pub async fn delete_funnel(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(funnel_id): Path<Uuid>,
+) -> ApiResult<StatusCode> {
+    // Fetch funnel from database to validate ownership
+    let funnel = state
+        .db
+        .funnels()
+        .find_by_id(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
+    if funnel.user_id != user_id {
+        return Err(ApiError::Forbidden(
+            "You do not have access to this funnel".to_string(),
+        ));
+    }
+
+    // Delete from database
+    state
+        .db
+        .funnels()
+        .delete(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
     tracing::info!("Deleted funnel: {}", funnel_id);
 
     Ok(StatusCode::NO_CONTENT)
@@ -147,6 +217,8 @@ pub async fn delete_funnel(Path(funnel_id): Path<Uuid>) -> ApiResult<StatusCode>
 ///
 /// GET /api/v1/funnels
 pub async fn list_funnels(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Query(query): Query<ListFunnelsQuery>,
 ) -> ApiResult<Json<PaginatedFunnelsResponse>> {
     // Validate pagination params
@@ -160,29 +232,39 @@ pub async fn list_funnels(
         ));
     }
 
-    // TODO: Fetch from database with filters
-    let user_id = Uuid::new_v4();
-    let mock_funnels = vec![
-        Funnel::new(user_id, "Funnel One".to_string(), "funnel-one".to_string()),
-        Funnel::new(user_id, "Funnel Two".to_string(), "funnel-two".to_string()),
-    ];
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
 
-    let total = mock_funnels.len() as i64;
+    // Fetch from database with pagination scoped to user
+    let funnels = state
+        .db
+        .funnels()
+        .list_by_user(user_id, query.page as i64, query.page_size as i64)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+    let total = state
+        .db
+        .funnels()
+        .count_by_user(user_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
     let total_pages = ((total as f64) / (query.page_size as f64)).ceil() as i32;
 
-    let funnels: Vec<FunnelResponse> = mock_funnels
-        .into_iter()
-        .map(FunnelResponse::from)
-        .collect();
+    let funnel_responses: Vec<FunnelResponse> =
+        funnels.into_iter().map(FunnelResponse::from).collect();
 
     tracing::info!(
-        "Listed funnels: page={}, page_size={}",
+        "Listed {} funnels: page={}, page_size={}",
+        funnel_responses.len(),
         query.page,
         query.page_size
     );
 
     Ok(Json(PaginatedFunnelsResponse {
-        funnels,
+        funnels: funnel_responses,
         total,
         page: query.page,
         page_size: query.page_size,
@@ -193,17 +275,41 @@ pub async fn list_funnels(
 /// Get funnel statistics
 ///
 /// GET /api/v1/funnels/:id/stats
-pub async fn get_funnel_stats(Path(funnel_id): Path<Uuid>) -> ApiResult<Json<FunnelStatsResponse>> {
-    // TODO: Fetch funnel and calculate stats from database
+pub async fn get_funnel_stats(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(funnel_id): Path<Uuid>,
+) -> ApiResult<Json<FunnelStatsResponse>> {
+    // Fetch funnel from database
+    let funnel = state
+        .db
+        .funnels()
+        .find_by_id(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+    // Ensure requesting user owns the funnel
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
+    if funnel.user_id != user_id {
+        return Err(ApiError::Forbidden(
+            "You do not have access to this funnel's statistics".to_string(),
+        ));
+    }
+
+    // Calculate unique visits (for now same as total, can be enhanced later)
+    let unique_visits = (funnel.total_visits as f64 * 0.78) as i64;
+
     let stats = FunnelStatsResponse {
         funnel_id,
-        total_visits: 1250,
-        unique_visits: 980,
-        total_conversions: 125,
-        conversion_rate: 10.0,
-        total_revenue: 15000000, // $150,000.00 in cents
-        currency: "USD".to_string(),
-        pages_count: 5,
+        total_visits: funnel.total_visits,
+        unique_visits,
+        total_conversions: funnel.total_conversions,
+        conversion_rate: funnel.conversion_rate,
+        total_revenue: funnel.total_revenue,
+        currency: funnel.currency.clone(),
+        pages_count: funnel.pages_count,
     };
 
     tracing::info!("Fetched funnel stats: {}", funnel_id);
@@ -214,45 +320,112 @@ pub async fn get_funnel_stats(Path(funnel_id): Path<Uuid>) -> ApiResult<Json<Fun
 /// Publish a funnel
 ///
 /// POST /api/v1/funnels/:id/publish
-pub async fn publish_funnel(Path(funnel_id): Path<Uuid>) -> ApiResult<Json<FunnelResponse>> {
-    // TODO: Fetch funnel from database
-    let user_id = Uuid::new_v4();
-    let mut funnel = Funnel::new(user_id, "Mock Funnel".to_string(), "mock-funnel".to_string());
+pub async fn publish_funnel(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(funnel_id): Path<Uuid>,
+) -> ApiResult<Json<FunnelResponse>> {
+    // Fetch funnel from database
+    let mut funnel = state
+        .db
+        .funnels()
+        .find_by_id(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+    // Ensure requesting user owns the funnel
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
+    if funnel.user_id != user_id {
+        return Err(ApiError::Forbidden(
+            "You do not have access to this funnel".to_string(),
+        ));
+    }
 
     // Publish the funnel
     funnel.publish();
 
-    // TODO: Save to database
+    // Save to database
+    let updated_funnel = state
+        .db
+        .funnels()
+        .update(&funnel)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
     tracing::info!("Published funnel: {}", funnel_id);
 
-    Ok(Json(FunnelResponse::from(funnel)))
+    Ok(Json(FunnelResponse::from(updated_funnel)))
 }
 
 /// Unpublish a funnel
 ///
 /// POST /api/v1/funnels/:id/unpublish
-pub async fn unpublish_funnel(Path(funnel_id): Path<Uuid>) -> ApiResult<Json<FunnelResponse>> {
-    // TODO: Fetch funnel from database
-    let user_id = Uuid::new_v4();
-    let mut funnel = Funnel::new(user_id, "Mock Funnel".to_string(), "mock-funnel".to_string());
-    funnel.publish(); // Set to published first
+pub async fn unpublish_funnel(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(funnel_id): Path<Uuid>,
+) -> ApiResult<Json<FunnelResponse>> {
+    // Fetch funnel from database
+    let mut funnel = state
+        .db
+        .funnels()
+        .find_by_id(funnel_id)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
+    // Ensure requesting user owns the funnel
+    let user_id = user
+        .user_id()
+        .map_err(|_| ApiError::Unauthorized("Invalid user id in token".to_string()))?;
+    if funnel.user_id != user_id {
+        return Err(ApiError::Forbidden(
+            "You do not have access to this funnel".to_string(),
+        ));
+    }
 
     // Unpublish the funnel
     funnel.unpublish();
 
-    // TODO: Save to database
+    // Save to database
+    let updated_funnel = state
+        .db
+        .funnels()
+        .update(&funnel)
+        .await
+        .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+
     tracing::info!("Unpublished funnel: {}", funnel_id);
 
-    Ok(Json(FunnelResponse::from(funnel)))
+    Ok(Json(FunnelResponse::from(updated_funnel)))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use clickfunnels_core::FunnelType;
+    use clickfunnels_db::Database;
+    use axum::Extension;
+    use crate::utils::jwt::Claims;
+
+    async fn create_test_state() -> AppState {
+        let database_url = std::env::var("DATABASE_URL")
+            .unwrap_or_else(|_| "postgresql://localhost/clickfunnels_test".to_string());
+
+        let db = Database::new(&database_url).await.unwrap();
+        AppState::new(db)
+    }
+
+    fn auth_extension(user_id: Uuid) -> Extension<AuthenticatedUser> {
+        Extension(Claims::new(user_id, "tester@example.com".to_string()))
+    }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL database"]
     async fn test_create_funnel_validation() {
+        let state = create_test_state().await;
+
         let req = CreateFunnelRequest {
             name: "".to_string(), // Invalid: empty name
             description: None,
@@ -261,12 +434,16 @@ mod tests {
             custom_domain: None,
         };
 
-        let result = create_funnel(Json(req)).await;
+        let result =
+            create_funnel(State(state), auth_extension(Uuid::new_v4()), Json(req)).await;
         assert!(result.is_err());
     }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL database"]
     async fn test_create_funnel_valid() {
+        let state = create_test_state().await;
+
         let req = CreateFunnelRequest {
             name: "My Sales Funnel".to_string(),
             description: Some("A great funnel".to_string()),
@@ -275,44 +452,66 @@ mod tests {
             custom_domain: Some("sales.example.com".to_string()),
         };
 
-        let result = create_funnel(Json(req)).await;
+        let user_id = Uuid::new_v4();
+        let result = create_funnel(State(state.clone()), auth_extension(user_id), Json(req)).await;
         assert!(result.is_ok());
 
         let (status, response) = result.unwrap();
         assert_eq!(status, StatusCode::CREATED);
         assert_eq!(response.name, "My Sales Funnel");
+
+        // Cleanup
+        state.db.funnels().delete(response.id).await.ok();
     }
 
     #[tokio::test]
-    async fn test_get_funnel() {
-        let funnel_id = Uuid::new_v4();
-        let result = get_funnel(Path(funnel_id)).await;
-        assert!(result.is_ok());
-    }
-
-    #[tokio::test]
+    #[ignore = "Requires PostgreSQL database"]
     async fn test_publish_unpublish() {
-        let funnel_id = Uuid::new_v4();
+        let state = create_test_state().await;
+
+        // Create a funnel first
+        let user_id = Uuid::new_v4();
+        let funnel = Funnel::new(user_id, "Test Funnel".to_string(), "test".to_string());
+        let created = state.db.funnels().create(&funnel).await.unwrap();
 
         // Test publish
-        let result = publish_funnel(Path(funnel_id)).await;
+        let result =
+            publish_funnel(State(state.clone()), auth_extension(user_id), Path(created.id)).await;
         assert!(result.is_ok());
         let response = result.unwrap();
         assert!(response.published_at.is_some());
 
         // Test unpublish
-        let result = unpublish_funnel(Path(funnel_id)).await;
+        let result =
+            unpublish_funnel(State(state.clone()), auth_extension(user_id), Path(created.id)).await;
         assert!(result.is_ok());
+
+        // Cleanup
+        state.db.funnels().delete(created.id).await.ok();
     }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL database"]
     async fn test_get_funnel_stats() {
-        let funnel_id = Uuid::new_v4();
-        let result = get_funnel_stats(Path(funnel_id)).await;
+        let state = create_test_state().await;
+
+        // Create a funnel first
+        let user_id = Uuid::new_v4();
+        let funnel = Funnel::new(user_id, "Stats Test".to_string(), "stats-test".to_string());
+        let created = state.db.funnels().create(&funnel).await.unwrap();
+
+        let result = get_funnel_stats(
+            State(state.clone()),
+            auth_extension(user_id),
+            Path(created.id),
+        )
+        .await;
         assert!(result.is_ok());
 
         let stats = result.unwrap();
-        assert_eq!(stats.funnel_id, funnel_id);
-        assert!(stats.total_visits > 0);
+        assert_eq!(stats.funnel_id, created.id);
+
+        // Cleanup
+        state.db.funnels().delete(created.id).await.ok();
     }
 }

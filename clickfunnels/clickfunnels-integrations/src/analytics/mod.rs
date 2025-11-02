@@ -9,8 +9,8 @@ pub mod ga4;
 pub mod types;
 
 pub use types::{
-    AnalyticsProvider, AnalyticsConfig, AnalyticsEvent,
-    EventParameter, AnalyticsResult, AnalyticsError,
+    AnalyticsConfig, AnalyticsError, AnalyticsEvent, AnalyticsProvider, AnalyticsResult,
+    EventParameter,
 };
 
 use async_trait::async_trait;
@@ -37,7 +37,9 @@ pub trait AnalyticsClient: Send + Sync {
 }
 
 /// Create an analytics client based on the provider type
-pub fn create_analytics_client(config: AnalyticsConfig) -> AnalyticsResult<Box<dyn AnalyticsClient>> {
+pub fn create_analytics_client(
+    config: AnalyticsConfig,
+) -> AnalyticsResult<Box<dyn AnalyticsClient>> {
     match config.provider {
         AnalyticsProvider::GoogleAnalytics4 => {
             let client = ga4::GA4Client::new(

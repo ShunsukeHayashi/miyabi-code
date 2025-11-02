@@ -1,0 +1,15 @@
+{
+  "task_id": "codex-pr-review-20251101-062659",
+  "type": "pr_review",
+  "status": "completed",
+  "created_at": "2025-10-31T21:26:59Z",
+  "updated_at": "2025-10-31T21:27:56Z",
+  "progress": {
+    "total": 11,
+    "completed": 11,
+    "percentage": 100.0
+  },
+  "results": {},
+  "pid": null,
+  "log_file": "/Users/shunsuke/dev/miyabi-private/.ai/codex-tasks/codex-pr-review-20251101-062659/progress.log"
+}

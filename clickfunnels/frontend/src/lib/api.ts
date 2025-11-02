@@ -14,13 +14,42 @@ const BASE_URL = 'http://localhost:3000/api/v1/proxy/clickfunnels'
 
 class ApiClient {
   private client: AxiosInstance
+  private authClient: AxiosInstance
+  private authToken: string | null
 
   constructor() {
+    this.authToken = (typeof window !== 'undefined' && window.localStorage)
+      ? window.localStorage.getItem('cf_jwt_token')
+      : null
+
     this.client = axios.create({
       baseURL: BASE_URL,
       headers: {
         'Content-Type': 'application/json',
       },
+    })
+
+    this.authClient = axios.create({
+      baseURL: 'http://localhost:3000/api/v1',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    this.client.interceptors.request.use((config) => {
+      if (this.authToken) {
+        config.headers = config.headers ?? {}
+        config.headers.Authorization = `Bearer ${this.authToken}`
+      }
+      return config
+    })
+
+    this.authClient.interceptors.request.use((config) => {
+      if (this.authToken) {
+        config.headers = config.headers ?? {}
+        config.headers.Authorization = `Bearer ${this.authToken}`
+      }
+      return config
     })
 
     this.client.interceptors.response.use(
@@ -33,6 +62,17 @@ class ApiClient {
         return Promise.reject(error)
       }
     )
+  }
+
+  setAuthToken(token: string | null) {
+    this.authToken = token
+    if (typeof window !== 'undefined' && window.localStorage) {
+      if (token) {
+        window.localStorage.setItem('cf_jwt_token', token)
+      } else {
+        window.localStorage.removeItem('cf_jwt_token')
+      }
+    }
   }
 
   // ClickFunnels API v2 endpoints
@@ -120,15 +160,9 @@ class ApiClient {
   // SWML Ω-System: AI Agent-powered funnel generation
   async executeFunnelAgents(businessContext: string): Promise<any> {
     try {
-      // Call the local API server (not the proxy)
-      const response = await axios.post(
-        'http://localhost:3000/api/v1/agents/execute-funnel',
+      const response = await this.authClient.post(
+        '/agents/execute-funnel',
         { business_context: businessContext },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       )
       console.log('Agent Execution Response:', response.data)
       return response.data

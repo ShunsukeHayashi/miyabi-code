@@ -221,7 +221,8 @@ impl Funnel {
     /// Update conversion rate based on visits and conversions
     fn update_conversion_rate(&mut self) {
         if self.total_visits > 0 {
-            self.conversion_rate = (self.total_conversions as f64 / self.total_visits as f64) * 100.0;
+            self.conversion_rate =
+                (self.total_conversions as f64 / self.total_visits as f64) * 100.0;
         } else {
             self.conversion_rate = 0.0;
         }

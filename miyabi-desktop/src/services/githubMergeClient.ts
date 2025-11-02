@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { safeInvoke } from "../lib/tauri-utils";
 import type { MergeStrategy } from "./autoMergeService";
 
 export interface PullRequestMergePayload {
@@ -34,7 +34,7 @@ export class GitHubMergeClient {
     prNumber: number,
     payload: PullRequestMergePayload,
   ): Promise<PullRequestMergeResult> {
-    const result = await invoke<PullRequestMergeResult>(
+    const result = await safeInvoke<PullRequestMergeResult>(
       "merge_pull_request_command",
       {
         prNumber,
@@ -44,13 +44,19 @@ export class GitHubMergeClient {
         },
       },
     );
-    return result;
+    return result || { merged: false, message: 'Tauri runtime not available' };
   }
 
   async getPullRequestStatus(prNumber: number): Promise<PullRequestStatus> {
-    return await invoke<PullRequestStatus>("get_pull_request_status_command", {
+    const result = await safeInvoke<PullRequestStatus>("get_pull_request_status_command", {
       prNumber,
       repository: this.repository,
     });
+    return result || {
+      ciStatus: 'unknown',
+      requiredApprovals: 0,
+      currentApprovals: 0,
+      hasConflicts: false,
+    };
   }
 }

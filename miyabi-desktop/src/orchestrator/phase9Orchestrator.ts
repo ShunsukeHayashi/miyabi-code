@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "../utils/EventEmitter";
 import {
   MergeDecisionEngine,
   MergeDecisionOptions,
@@ -11,7 +11,7 @@ import {
   PullRequestMergeResult,
   PullRequestStatus,
 } from "../services/githubMergeClient";
-import { DeploymentStatus } from "../services/deployService";
+import type { DeploymentStatus } from "../services/deployService.types";
 
 export type Phase9MergeEvaluation = {
   prNumber: number;
@@ -113,9 +113,17 @@ export class Phase9Orchestrator {
       deps.mergeEngine ?? new MergeDecisionEngine(config.mergeOptions);
     this.deploymentUnsubscribe = deps.deploymentService.onStatusUpdate(
       (status) => {
+        const prNumber = status.prNumber;
+        if (typeof prNumber !== "number") {
+          console.warn(
+            "[Phase9] Ignoring deployment status update without prNumber",
+            status,
+          );
+          return;
+        }
         this.bus.emit("deployment:status", {
           ...status,
-          prNumber: status.prNumber,
+          prNumber,
         });
       },
     );

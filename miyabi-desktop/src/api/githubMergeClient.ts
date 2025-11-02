@@ -93,10 +93,17 @@ export interface CloseIssueResult {
   url: string;
 }
 
+type RequestErrorLike = Partial<RequestError> & {
+  message?: unknown;
+  response?: {
+    headers?: Record<string, string>;
+  };
+};
+
 export class GitHubApiError extends Error {
   readonly status?: number;
   readonly requestId?: string;
-  override readonly cause?: unknown;
+  readonly cause?: unknown;
 
   constructor(message: string, options: { status?: number; requestId?: string; cause?: unknown } = {}) {
     super(message);
@@ -446,7 +453,7 @@ export class GitHubMergeClient {
 
       const conclusions = checkRuns
         .map((run) => run.conclusion)
-        .filter((value): value is string => value !== null);
+        .filter((value): value is Exclude<typeof value, null> => value !== null);
 
       if (conclusions.length > 0) {
         if (conclusions.every((conclusion) => conclusion === SUCCESS_CONCLUSION)) {
@@ -544,7 +551,7 @@ export class GitHubMergeClient {
   }
 
   private isRetryable(error: unknown): boolean {
-    const requestError = error as Partial<RequestError> | undefined;
+    const requestError = error as RequestErrorLike | undefined;
     const status = requestError?.status;
 
     if (status !== undefined) {
@@ -580,15 +587,14 @@ export class GitHubMergeClient {
   }
 
   private toGitHubError(error: unknown, context: string): GitHubApiError {
-    const requestError = error as Partial<RequestError> | undefined;
-    if (requestError?.message) {
+    const requestError = error as RequestErrorLike | undefined;
+    if (requestError && typeof requestError.message === "string") {
+      const message = requestError.message;
       return new GitHubApiError(
-        `GitHub API error while attempting to ${context}: ${requestError.message}`,
+        `GitHub API error while attempting to ${context}: ${message}`,
         {
           status: requestError.status,
-          requestId:
-            (requestError.response as { headers?: Record<string, string> } | undefined)
-              ?.headers?.["x-github-request-id"],
+          requestId: requestError.response?.headers?.["x-github-request-id"],
           cause: error,
         },
       );

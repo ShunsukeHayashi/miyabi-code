@@ -1,7 +1,6 @@
 // GitHub API wrapper for Tauri
 
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { safeInvoke, safeListen } from "./tauri-utils";
 
 /**
  * Issue state
@@ -50,17 +49,18 @@ export async function listIssues(
   state?: IssueState,
   labels: string[] = []
 ): Promise<GitHubIssue[]> {
-  return await invoke<GitHubIssue[]>("list_issues_command", {
+  const result = await safeInvoke<GitHubIssue[]>("list_issues_command", {
     state: state || null,
     labels,
   });
+  return result || [];
 }
 
 /**
  * Get a single issue
  */
-export async function getIssue(number: number): Promise<GitHubIssue> {
-  return await invoke<GitHubIssue>("get_issue_command", { number });
+export async function getIssue(number: number): Promise<GitHubIssue | null> {
+  return await safeInvoke<GitHubIssue>("get_issue_command", { number });
 }
 
 /**
@@ -68,8 +68,8 @@ export async function getIssue(number: number): Promise<GitHubIssue> {
  */
 export async function updateIssue(
   request: UpdateIssueRequest
-): Promise<GitHubIssue> {
-  return await invoke<GitHubIssue>("update_issue_command", { request });
+): Promise<GitHubIssue | null> {
+  return await safeInvoke<GitHubIssue>("update_issue_command", { request });
 }
 
 /**
@@ -78,10 +78,7 @@ export async function updateIssue(
 export async function listenToIssueUpdates(
   callback: (issue: GitHubIssue) => void
 ): Promise<() => void> {
-  const unlisten = await listen<GitHubIssue>("issue-updated", (event) => {
-    callback(event.payload);
-  });
-  return unlisten;
+  return await safeListen<GitHubIssue>("issue-updated", callback);
 }
 
 /**

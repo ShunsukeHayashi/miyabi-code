@@ -84,9 +84,9 @@ pub struct PaymentIntent {
 pub struct PaymentConfig {
     pub provider: PaymentProvider,
     pub api_key: String,
-    pub client_id: Option<String>,       // For PayPal
-    pub client_secret: Option<String>,   // For PayPal
-    pub sandbox: Option<bool>,           // Use sandbox/test mode
+    pub client_id: Option<String>,     // For PayPal
+    pub client_secret: Option<String>, // For PayPal
+    pub sandbox: Option<bool>,         // Use sandbox/test mode
 }
 
 /// Payment error types

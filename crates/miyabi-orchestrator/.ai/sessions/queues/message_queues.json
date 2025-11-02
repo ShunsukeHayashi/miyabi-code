@@ -1,0 +1,224 @@
+[
+  {
+    "session_id": "ea75a2f5-338a-4d74-ac25-744ab84a6d63",
+    "messages": [
+      {
+        "id": "af36ead8-d2a4-4208-bbe6-fda276e2dcf4",
+        "session_id": "ea75a2f5-338a-4d74-ac25-744ab84a6d63",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"complexity\":4.5,\"estimated_hours\":9,\"issue_number\":999,\"labels_count\":3,\"phase\":\"Phase 1\",\"progress\":11,\"status\":\"completed\"}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.034757Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      },
+      {
+        "id": "28983db5-e93a-4c6e-8c7c-1be92afcb3e3",
+        "session_id": "ea75a2f5-338a-4d74-ac25-744ab84a6d63",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"dag_levels\":4,\"has_cycles\":false,\"issue_number\":999,\"phase\":\"Phase 2\",\"progress\":22,\"status\":\"completed\",\"tasks_count\":4,\"total_duration\":60}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.035005Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      }
+    ],
+    "total_enqueued": 2,
+    "total_dequeued": 0
+  },
+  {
+    "session_id": "6c84a302-9fc3-40c0-bd1d-c462bf39dbec",
+    "messages": [
+      {
+        "id": "a43270d7-3f3a-4ee2-b435-b591dd4e44bd",
+        "session_id": "6c84a302-9fc3-40c0-bd1d-c462bf39dbec",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"complexity\":3.5,\"estimated_hours\":7,\"issue_number\":1000,\"labels_count\":3,\"phase\":\"Phase 1\",\"progress\":11,\"status\":\"completed\"}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.028097Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      },
+      {
+        "id": "54deccce-dedd-405d-89f3-fec1598aab2c",
+        "session_id": "6c84a302-9fc3-40c0-bd1d-c462bf39dbec",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"dag_levels\":4,\"has_cycles\":false,\"issue_number\":1000,\"phase\":\"Phase 2\",\"progress\":22,\"status\":\"completed\",\"tasks_count\":4,\"total_duration\":60}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.028287Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      }
+    ],
+    "total_enqueued": 2,
+    "total_dequeued": 0
+  },
+  {
+    "session_id": "913973c9-cf92-4ac5-9a5c-0969f9d6c5b9",
+    "messages": [
+      {
+        "id": "2ab8af16-eefc-4920-8ccd-d01db511d6b4",
+        "session_id": "913973c9-cf92-4ac5-9a5c-0969f9d6c5b9",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"complexity\":3.5,\"estimated_hours\":7,\"issue_number\":1001,\"labels_count\":3,\"phase\":\"Phase 1\",\"progress\":11,\"status\":\"completed\"}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.051069Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      },
+      {
+        "id": "7991d0af-bb77-4e9b-8d4c-b5d43c6a26b7",
+        "session_id": "913973c9-cf92-4ac5-9a5c-0969f9d6c5b9",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"dag_levels\":4,\"has_cycles\":false,\"issue_number\":1001,\"phase\":\"Phase 2\",\"progress\":22,\"status\":\"completed\",\"tasks_count\":4,\"total_duration\":60}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.051391Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      }
+    ],
+    "total_enqueued": 2,
+    "total_dequeued": 0
+  },
+  {
+    "session_id": "2a6fbe94-fbe4-45a0-819e-42d50909001e",
+    "messages": [
+      {
+        "id": "330282f8-eb85-4b87-80e2-571ad60eb788",
+        "session_id": "2a6fbe94-fbe4-45a0-819e-42d50909001e",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"complexity\":3.5,\"estimated_hours\":7,\"issue_number\":2001,\"labels_count\":3,\"phase\":\"Phase 1\",\"progress\":11,\"status\":\"completed\"}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.056686Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      },
+      {
+        "id": "09a66415-9f2f-4389-9480-c66c04ae3902",
+        "session_id": "2a6fbe94-fbe4-45a0-819e-42d50909001e",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"dag_levels\":4,\"has_cycles\":false,\"issue_number\":2001,\"phase\":\"Phase 2\",\"progress\":22,\"status\":\"completed\",\"tasks_count\":4,\"total_duration\":60}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.056886Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      }
+    ],
+    "total_enqueued": 2,
+    "total_dequeued": 0
+  },
+  {
+    "session_id": "4d225c7f-5e54-40c4-a473-9fd52267eaae",
+    "messages": [
+      {
+        "id": "ce15b1a3-1797-480d-8492-e7ee739160c4",
+        "session_id": "4d225c7f-5e54-40c4-a473-9fd52267eaae",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"complexity\":3.5,\"estimated_hours\":7,\"issue_number\":3001,\"labels_count\":3,\"phase\":\"Phase 1\",\"progress\":11,\"status\":\"completed\"}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.044420Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      },
+      {
+        "id": "c2f86e92-d8d9-410a-817a-73fed1c40459",
+        "session_id": "4d225c7f-5e54-40c4-a473-9fd52267eaae",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"dag_levels\":4,\"has_cycles\":false,\"issue_number\":3001,\"phase\":\"Phase 2\",\"progress\":22,\"status\":\"completed\",\"tasks_count\":4,\"total_duration\":60}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:47.044582Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      }
+    ],
+    "total_enqueued": 2,
+    "total_dequeued": 0
+  },
+  {
+    "session_id": "5d7f85d3-0219-4f92-92bb-b88ab110d742",
+    "messages": [
+      {
+        "id": "5f709699-3dc3-41e1-8b09-3d2b218c72c8",
+        "session_id": "5d7f85d3-0219-4f92-92bb-b88ab110d742",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"complexity\":3.5,\"estimated_hours\":7,\"issue_number\":2002,\"labels_count\":3,\"phase\":\"Phase 1\",\"progress\":11,\"status\":\"completed\"}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:48.957371Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      },
+      {
+        "id": "7dbf342d-1083-47a2-b1d7-6cf55c8c3835",
+        "session_id": "5d7f85d3-0219-4f92-92bb-b88ab110d742",
+        "priority": "Normal",
+        "message_type": {
+          "Custom": {
+            "type_id": "phase_completion",
+            "payload": "{\"dag_levels\":4,\"has_cycles\":false,\"issue_number\":2002,\"phase\":\"Phase 2\",\"progress\":22,\"status\":\"completed\",\"tasks_count\":4,\"total_duration\":60}"
+          }
+        },
+        "created_at": "2025-10-27T06:44:48.957670Z",
+        "expires_at": null,
+        "delivery_attempts": 0,
+        "max_attempts": 3
+      }
+    ],
+    "total_enqueued": 2,
+    "total_dequeued": 0
+  }
+]

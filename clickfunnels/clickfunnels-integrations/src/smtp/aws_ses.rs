@@ -6,7 +6,10 @@ use super::types::*;
 use super::SmtpClient;
 use async_trait::async_trait;
 use aws_config::BehaviorVersion;
-use aws_sdk_ses::{Client as SesClient, types::{Body, Content, Destination, Message}};
+use aws_sdk_ses::{
+    types::{Body, Content, Destination, Message},
+    Client as SesClient,
+};
 
 pub struct AwsSesClient {
     client: Option<SesClient>,
@@ -67,7 +70,9 @@ impl SmtpClient for AwsSesClient {
                     .data(text)
                     .charset("UTF-8")
                     .build()
-                    .map_err(|e| SmtpError::ApiError(format!("Failed to build text content: {}", e)))?,
+                    .map_err(|e| {
+                        SmtpError::ApiError(format!("Failed to build text content: {}", e))
+                    })?,
             );
         }
         if let Some(html) = &message.html_body {
@@ -76,7 +81,9 @@ impl SmtpClient for AwsSesClient {
                     .data(html)
                     .charset("UTF-8")
                     .build()
-                    .map_err(|e| SmtpError::ApiError(format!("Failed to build HTML content: {}", e)))?,
+                    .map_err(|e| {
+                        SmtpError::ApiError(format!("Failed to build HTML content: {}", e))
+                    })?,
             );
         }
 
@@ -115,10 +122,7 @@ impl SmtpClient for AwsSesClient {
         let client = client_mut.get_client().await?;
 
         // Verify by checking account sending quota
-        let result = client
-            .get_send_quota()
-            .send()
-            .await;
+        let result = client.get_send_quota().send().await;
 
         Ok(result.is_ok())
     }

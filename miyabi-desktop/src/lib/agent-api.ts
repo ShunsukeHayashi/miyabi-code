@@ -1,7 +1,6 @@
 // Agent execution API wrapper for Tauri
 
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { safeInvoke, safeListen } from "./tauri-utils";
 
 /**
  * Agent type definitions (mirrors Rust AgentType enum)
@@ -223,7 +222,11 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
 export async function executeAgent(
   request: AgentExecutionRequest
 ): Promise<AgentExecutionResult> {
-  return await invoke<AgentExecutionResult>("execute_agent_command", { request });
+  const result = await safeInvoke<AgentExecutionResult>("execute_agent_command", { request });
+  if (!result) {
+    throw new Error("Tauri runtime not available - cannot execute agent");
+  }
+  return result;
 }
 
 /**
@@ -232,13 +235,10 @@ export async function executeAgent(
 export async function listenToAgentStatus(
   callback: (result: AgentExecutionResult) => void
 ): Promise<() => void> {
-  const unlisten = await listen<AgentExecutionResult>(
+  return await safeListen<AgentExecutionResult>(
     "agent-execution-status",
-    (event) => {
-      callback(event.payload);
-    }
+    callback
   );
-  return unlisten;
 }
 
 /**
@@ -248,13 +248,10 @@ export async function listenToAgentOutput(
   executionId: string,
   callback: (line: string) => void
 ): Promise<() => void> {
-  const unlisten = await listen<string>(
+  return await safeListen<string>(
     `agent-output-${executionId}`,
-    (event) => {
-      callback(event.payload);
-    }
+    callback
   );
-  return unlisten;
 }
 
 /**

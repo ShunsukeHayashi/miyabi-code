@@ -246,3 +246,6 @@ Youtube/
 
 # Miyabi runtime task tracking
 .miyabi/tasks/
+
+# Clickfunnels project (moved to separate repository)
+clickfunnels/

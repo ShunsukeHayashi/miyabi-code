@@ -5,7 +5,7 @@
 use super::types::*;
 use super::SmtpClient;
 use async_trait::async_trait;
-use base64::{Engine as _, engine::general_purpose};
+use base64::{engine::general_purpose, Engine as _};
 use reqwest::Client;
 use serde_json::json;
 
@@ -19,7 +19,9 @@ pub struct SendGridClient {
 impl SendGridClient {
     pub fn new(api_key: String) -> SmtpResult<Self> {
         if api_key.is_empty() {
-            return Err(SmtpError::ConfigError("API key cannot be empty".to_string()));
+            return Err(SmtpError::ConfigError(
+                "API key cannot be empty".to_string(),
+            ));
         }
 
         Ok(Self {
@@ -40,23 +42,29 @@ impl SendGridClient {
         })];
 
         if let Some(cc) = &message.cc {
-            personalizations[0]["cc"] = json!(cc.iter().map(|addr| {
-                if let Some(name) = &addr.name {
-                    json!({"email": addr.email, "name": name})
-                } else {
-                    json!({"email": addr.email})
-                }
-            }).collect::<Vec<_>>());
+            personalizations[0]["cc"] = json!(cc
+                .iter()
+                .map(|addr| {
+                    if let Some(name) = &addr.name {
+                        json!({"email": addr.email, "name": name})
+                    } else {
+                        json!({"email": addr.email})
+                    }
+                })
+                .collect::<Vec<_>>());
         }
 
         if let Some(bcc) = &message.bcc {
-            personalizations[0]["bcc"] = json!(bcc.iter().map(|addr| {
-                if let Some(name) = &addr.name {
-                    json!({"email": addr.email, "name": name})
-                } else {
-                    json!({"email": addr.email})
-                }
-            }).collect::<Vec<_>>());
+            personalizations[0]["bcc"] = json!(bcc
+                .iter()
+                .map(|addr| {
+                    if let Some(name) = &addr.name {
+                        json!({"email": addr.email, "name": name})
+                    } else {
+                        json!({"email": addr.email})
+                    }
+                })
+                .collect::<Vec<_>>());
         }
 
         let from = if let Some(name) = &message.from.name {
@@ -89,13 +97,16 @@ impl SendGridClient {
         }
 
         if let Some(attachments) = &message.attachments {
-            payload["attachments"] = json!(attachments.iter().map(|att| {
-                json!({
-                    "content": general_purpose::STANDARD.encode(&att.content),
-                    "filename": att.filename,
-                    "type": att.content_type,
+            payload["attachments"] = json!(attachments
+                .iter()
+                .map(|att| {
+                    json!({
+                        "content": general_purpose::STANDARD.encode(&att.content),
+                        "filename": att.filename,
+                        "type": att.content_type,
+                    })
                 })
-            }).collect::<Vec<_>>());
+                .collect::<Vec<_>>());
         }
 
         payload
@@ -129,12 +140,18 @@ impl SmtpClient for SendGridClient {
             Ok(message_id)
         } else {
             let status = response.status();
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
 
             if status.as_u16() == 429 {
                 Err(SmtpError::RateLimitExceeded)
             } else if status.as_u16() == 401 || status.as_u16() == 403 {
-                Err(SmtpError::AuthError(format!("SendGrid auth failed: {}", error_text)))
+                Err(SmtpError::AuthError(format!(
+                    "SendGrid auth failed: {}",
+                    error_text
+                )))
             } else {
                 Err(SmtpError::ApiError(format!(
                     "SendGrid API error ({}): {}",

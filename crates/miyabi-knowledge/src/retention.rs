@@ -280,9 +280,7 @@ impl RetentionManager {
     /// Start automatic cleanup task
     ///
     /// Returns a handle to the background task
-    pub fn start_automatic_cleanup(
-        self: Arc<Self>,
-    ) -> tokio::task::JoinHandle<()> {
+    pub fn start_automatic_cleanup(self: Arc<Self>) -> tokio::task::JoinHandle<()> {
         let interval = std::time::Duration::from_secs(self.policy.cleanup_interval_hours * 3600);
 
         tokio::spawn(async move {

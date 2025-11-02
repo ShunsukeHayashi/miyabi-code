@@ -3,8 +3,8 @@
 use crate::{error::Result, worktree::default_worktree_base_dir};
 use chrono::{Duration, Utc};
 use clap::Subcommand;
-use colored::Colorize;
-use miyabi_worktree::WorktreeManager;
+use colored::{ColoredString, Colorize};
+use miyabi_worktree::{WorktreeManager, WorktreeStateManager, WorktreeStatusDetailed};
 use std::path::PathBuf;
 
 pub struct WorktreeCommand {
@@ -31,6 +31,27 @@ pub enum WorktreeSubcommand {
         /// Worktree ID or issue number
         id: String,
     },
+    /// Scan worktrees and filter by status
+    Scan {
+        /// Show only orphaned worktrees
+        #[arg(long)]
+        orphaned: bool,
+        /// Show only stuck worktrees
+        #[arg(long)]
+        stuck: bool,
+        /// Show only idle worktrees
+        #[arg(long)]
+        idle: bool,
+        /// Show only active worktrees
+        #[arg(long)]
+        active: bool,
+        /// Show only corrupted worktrees
+        #[arg(long)]
+        corrupted: bool,
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 impl WorktreeCommand {
@@ -47,6 +68,17 @@ impl WorktreeCommand {
                 dry_run,
             } => self.prune_worktrees(*older_than, *dry_run).await,
             WorktreeSubcommand::Remove { id } => self.remove_worktree(id).await,
+            WorktreeSubcommand::Scan {
+                orphaned,
+                stuck,
+                idle,
+                active,
+                corrupted,
+                json,
+            } => {
+                self.scan_worktrees(*orphaned, *stuck, *idle, *active, *corrupted, *json)
+                    .await
+            }
         }
     }
 
@@ -431,7 +463,7 @@ impl WorktreeCommand {
         }
 
         // Summary
-        println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!(
             "Total: {} worktrees, {} MB",
             worktrees.len(),
@@ -465,6 +497,158 @@ impl WorktreeCommand {
 
         Ok(())
     }
+
+    async fn scan_worktrees(
+        &self,
+        orphaned: bool,
+        stuck: bool,
+        idle: bool,
+        active: bool,
+        corrupted: bool,
+        json: bool,
+    ) -> Result<()> {
+        println!("{}", "📡 Worktree Scan".cyan().bold());
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!();
+
+        let repo_path = std::env::current_dir()?;
+        let state_manager = WorktreeStateManager::new(repo_path)
+            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+
+        let mut worktrees = state_manager
+            .scan_worktrees()
+            .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+
+        // Sort by most recent access
+        worktrees.sort_by(|a, b| b.last_accessed.cmp(&a.last_accessed));
+
+        let filters = [
+            (orphaned, WorktreeStatusDetailed::Orphaned, "Orphaned"),
+            (stuck, WorktreeStatusDetailed::Stuck, "Stuck"),
+            (idle, WorktreeStatusDetailed::Idle, "Idle"),
+            (active, WorktreeStatusDetailed::Active, "Active"),
+            (corrupted, WorktreeStatusDetailed::Corrupted, "Corrupted"),
+        ];
+
+        let mut selected_statuses: Vec<WorktreeStatusDetailed> = filters
+            .iter()
+            .filter_map(|(flag, status, _)| if *flag { Some(*status) } else { None })
+            .collect();
+
+        let selected_labels: Vec<&str> = filters
+            .iter()
+            .filter_map(|(flag, _, label)| if *flag { Some(*label) } else { None })
+            .collect();
+
+        if selected_statuses.is_empty() {
+            selected_statuses.extend([
+                WorktreeStatusDetailed::Active,
+                WorktreeStatusDetailed::Idle,
+                WorktreeStatusDetailed::Stuck,
+                WorktreeStatusDetailed::Orphaned,
+                WorktreeStatusDetailed::Corrupted,
+            ]);
+            println!("  Filter: All statuses");
+        } else {
+            println!("  Filter: {}", selected_labels.join(", "));
+        }
+
+        println!();
+
+        let filtered: Vec<_> = worktrees
+            .into_iter()
+            .filter(|state| selected_statuses.contains(&state.status))
+            .collect();
+
+        if json {
+            let output = serde_json::to_string_pretty(&filtered)
+                .map_err(|e| crate::error::CliError::ExecutionError(e.to_string()))?;
+            println!("{}", output);
+            println!();
+            return Ok(());
+        }
+
+        if filtered.is_empty() {
+            println!("  ✅ No worktrees match the selected filters");
+            println!();
+            return Ok(());
+        }
+
+        for (index, worktree) in filtered.iter().enumerate() {
+            let icon = status_icon(worktree.status);
+            let label = status_label(worktree.status);
+            let disk_mb = worktree.disk_usage / 1024 / 1024;
+            let last_access = format_relative_time(worktree.last_accessed);
+            let issue = worktree
+                .issue_number
+                .map(|n| format!("#{}", n))
+                .unwrap_or_else(|| "N/A".to_string());
+
+            println!(
+                "  {}. {} {} [{}]",
+                index + 1,
+                icon,
+                worktree.path.display(),
+                label
+            );
+            println!("     Issue: {} | Branch: {}", issue, worktree.branch);
+            println!("     Last accessed: {} | Disk: {} MB", last_access, disk_mb);
+            println!(
+                "     Locked: {} | Changes: {}",
+                bool_icon(worktree.is_locked),
+                bool_icon(worktree.has_uncommitted_changes)
+            );
+            println!();
+        }
+
+        println!("  Total matching worktrees: {}", filtered.len());
+        println!();
+
+        Ok(())
+    }
+}
+
+fn status_icon(status: WorktreeStatusDetailed) -> ColoredString {
+    match status {
+        WorktreeStatusDetailed::Active => "✅".green(),
+        WorktreeStatusDetailed::Idle => "⏸️".yellow(),
+        WorktreeStatusDetailed::Stuck => "⚠️".red(),
+        WorktreeStatusDetailed::Orphaned => "⚠️".yellow(),
+        WorktreeStatusDetailed::Corrupted => "❌".red(),
+    }
+}
+
+fn status_label(status: WorktreeStatusDetailed) -> &'static str {
+    match status {
+        WorktreeStatusDetailed::Active => "Active",
+        WorktreeStatusDetailed::Idle => "Idle",
+        WorktreeStatusDetailed::Stuck => "Stuck",
+        WorktreeStatusDetailed::Orphaned => "Orphaned",
+        WorktreeStatusDetailed::Corrupted => "Corrupted",
+    }
+}
+
+fn bool_icon(value: bool) -> ColoredString {
+    if value {
+        "Yes".green()
+    } else {
+        "No".dimmed()
+    }
+}
+
+fn format_relative_time(timestamp: chrono::DateTime<chrono::Utc>) -> String {
+    let now = chrono::Utc::now();
+    let delta = now.signed_duration_since(timestamp);
+
+    if delta.num_days() > 0 {
+        format!("{}d ago", delta.num_days())
+    } else if delta.num_hours() > 0 {
+        format!("{}h ago", delta.num_hours())
+    } else if delta.num_minutes() > 0 {
+        format!("{}m ago", delta.num_minutes())
+    } else {
+        "just now".to_string()
+    }
 }
 
 #[cfg(test)]
@@ -481,5 +665,30 @@ mod tests {
             dry_run: true,
         });
         assert!(matches!(cmd.subcommand, WorktreeSubcommand::Prune { .. }));
+
+        let cmd = WorktreeCommand::new(WorktreeSubcommand::Scan {
+            orphaned: true,
+            stuck: false,
+            idle: false,
+            active: false,
+            corrupted: false,
+            json: false,
+        });
+        assert!(matches!(cmd.subcommand, WorktreeSubcommand::Scan { .. }));
+    }
+
+    #[test]
+    fn test_format_relative_time_outputs() {
+        let now = chrono::Utc::now();
+        assert_eq!(format_relative_time(now), "just now");
+
+        let five_minutes_ago = now - chrono::Duration::minutes(5);
+        assert_eq!(format_relative_time(five_minutes_ago), "5m ago");
+
+        let three_hours_ago = now - chrono::Duration::hours(3);
+        assert_eq!(format_relative_time(three_hours_ago), "3h ago");
+
+        let two_days_ago = now - chrono::Duration::days(2);
+        assert_eq!(format_relative_time(two_days_ago), "2d ago");
     }
 }

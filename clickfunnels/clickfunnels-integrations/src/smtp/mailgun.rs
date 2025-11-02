@@ -17,7 +17,9 @@ pub struct MailgunClient {
 impl MailgunClient {
     pub fn new(api_key: String, domain: String) -> SmtpResult<Self> {
         if api_key.is_empty() {
-            return Err(SmtpError::ConfigError("API key cannot be empty".to_string()));
+            return Err(SmtpError::ConfigError(
+                "API key cannot be empty".to_string(),
+            ));
         }
         if domain.is_empty() {
             return Err(SmtpError::ConfigError("Domain cannot be empty".to_string()));
@@ -127,21 +129,24 @@ impl SmtpClient for MailgunClient {
 
         if response.status().is_success() {
             let json: serde_json::Value = response.json().await?;
-            let message_id = json["id"]
-                .as_str()
-                .unwrap_or("unknown")
-                .to_string();
+            let message_id = json["id"].as_str().unwrap_or("unknown").to_string();
 
             tracing::info!("Email sent via Mailgun: message_id={}", message_id);
             Ok(message_id)
         } else {
             let status = response.status();
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
 
             if status.as_u16() == 429 {
                 Err(SmtpError::RateLimitExceeded)
             } else if status.as_u16() == 401 || status.as_u16() == 403 {
-                Err(SmtpError::AuthError(format!("Mailgun auth failed: {}", error_text)))
+                Err(SmtpError::AuthError(format!(
+                    "Mailgun auth failed: {}",
+                    error_text
+                )))
             } else {
                 Err(SmtpError::ApiError(format!(
                     "Mailgun API error ({}): {}",
@@ -175,37 +180,25 @@ mod tests {
 
     #[test]
     fn test_mailgun_client_new() {
-        let client = MailgunClient::new(
-            "test_api_key".to_string(),
-            "example.com".to_string(),
-        );
+        let client = MailgunClient::new("test_api_key".to_string(), "example.com".to_string());
         assert!(client.is_ok());
     }
 
     #[test]
     fn test_mailgun_client_empty_key() {
-        let client = MailgunClient::new(
-            "".to_string(),
-            "example.com".to_string(),
-        );
+        let client = MailgunClient::new("".to_string(), "example.com".to_string());
         assert!(client.is_err());
     }
 
     #[test]
     fn test_mailgun_client_empty_domain() {
-        let client = MailgunClient::new(
-            "test_key".to_string(),
-            "".to_string(),
-        );
+        let client = MailgunClient::new("test_key".to_string(), "".to_string());
         assert!(client.is_err());
     }
 
     #[test]
     fn test_get_api_url() {
-        let client = MailgunClient::new(
-            "test_key".to_string(),
-            "example.com".to_string(),
-        ).unwrap();
+        let client = MailgunClient::new("test_key".to_string(), "example.com".to_string()).unwrap();
 
         assert_eq!(
             client.get_api_url(),

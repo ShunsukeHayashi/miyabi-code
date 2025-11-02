@@ -10,10 +10,11 @@ use axum::{
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
+    Extension, Json,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+
+use crate::{middleware::auth::AuthenticatedUser, state::AppState};
 
 /// Request to execute funnel design agents
 #[derive(Debug, Deserialize)]
@@ -79,7 +80,8 @@ pub struct ExecuteFunnelResponse {
 /// - World (𝒲): ClickFunnels environment + 8 agents
 /// - Result (ℛ): optimized funnel design
 pub async fn execute_funnel_agents(
-    State(_state): State<Arc<()>>,
+    State(_state): State<AppState>,
+    Extension(_user): Extension<AuthenticatedUser>,
     Json(request): Json<ExecuteFunnelRequest>,
 ) -> Result<Json<ExecuteFunnelResponse>, AgentError> {
     let start_time = std::time::Instant::now();
@@ -168,10 +170,7 @@ async fn execute_mock_agent(
 }
 
 /// Generate complete funnel design from agent results
-fn generate_funnel_design(
-    _context: &str,
-    _agents: &[AgentStatus],
-) -> FunnelDesignResult {
+fn generate_funnel_design(_context: &str, _agents: &[AgentStatus]) -> FunnelDesignResult {
     // TODO: Use actual agent results to generate personalized design
     // For now, return a template design
 

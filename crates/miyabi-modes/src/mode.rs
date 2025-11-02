@@ -40,7 +40,11 @@ pub struct MiyabiMode {
     pub description: Option<String>,
 
     /// Optional custom template arguments (Phase 2.1)
-    #[serde(rename = "systemPromptArgs", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "systemPromptArgs",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub system_prompt_args: Option<HashMap<String, String>>,
 
     /// Optional tool configurations (Phase 2.2)
@@ -78,15 +82,13 @@ impl MiyabiMode {
 
     /// Get short description or truncated when_to_use
     pub fn short_description(&self) -> &str {
-        self.description
-            .as_deref()
-            .unwrap_or_else(|| {
-                if self.when_to_use.len() > 80 {
-                    &self.when_to_use[..80]
-                } else {
-                    &self.when_to_use
-                }
-            })
+        self.description.as_deref().unwrap_or_else(|| {
+            if self.when_to_use.len() > 80 {
+                &self.when_to_use[..80]
+            } else {
+                &self.when_to_use
+            }
+        })
     }
 
     /// Check if this is a system mode
@@ -100,7 +102,10 @@ impl MiyabiMode {
     }
 
     /// Render templates in role definition and custom instructions
-    pub fn render_templates(&self, renderer: &crate::template::TemplateRenderer) -> crate::error::ModeResult<Self> {
+    pub fn render_templates(
+        &self,
+        renderer: &crate::template::TemplateRenderer,
+    ) -> crate::error::ModeResult<Self> {
         let custom_args = self.system_prompt_args.clone().unwrap_or_default();
 
         Ok(Self {
@@ -234,8 +239,12 @@ mod tests {
         let renderer = TemplateRenderer::new(env::current_dir().unwrap());
         let rendered_mode = mode.render_templates(&renderer).unwrap();
 
-        assert!(rendered_mode.role_definition.contains(&env::current_dir().unwrap().display().to_string()));
-        assert!(rendered_mode.custom_instructions.contains("Current time: 2"));
+        assert!(rendered_mode
+            .role_definition
+            .contains(&env::current_dir().unwrap().display().to_string()));
+        assert!(rendered_mode
+            .custom_instructions
+            .contains("Current time: 2"));
     }
 
     #[test]

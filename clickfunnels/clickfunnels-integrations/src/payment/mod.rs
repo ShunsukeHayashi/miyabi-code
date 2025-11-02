@@ -5,14 +5,14 @@
 //! - PayPal
 //! - Square
 
-pub mod stripe_provider;
 pub mod paypal;
 pub mod square;
+pub mod stripe_provider;
 pub mod types;
 
 pub use types::{
-    PaymentProvider, PaymentConfig, PaymentIntent, PaymentMethod,
-    PaymentStatus, PaymentResult, PaymentError, Currency,
+    Currency, PaymentConfig, PaymentError, PaymentIntent, PaymentMethod, PaymentProvider,
+    PaymentResult, PaymentStatus,
 };
 
 use async_trait::async_trait;
@@ -61,10 +61,8 @@ pub fn create_payment_client(config: PaymentConfig) -> PaymentResult<Box<dyn Pay
             Ok(Box::new(client))
         }
         PaymentProvider::Square => {
-            let client = square::SquareClient::new(
-                config.api_key,
-                config.sandbox.unwrap_or(false),
-            )?;
+            let client =
+                square::SquareClient::new(config.api_key, config.sandbox.unwrap_or(false))?;
             Ok(Box::new(client))
         }
     }

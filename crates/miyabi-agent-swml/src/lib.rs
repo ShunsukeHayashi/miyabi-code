@@ -38,7 +38,7 @@ pub use convergence::ConvergenceTracker;
 pub use omega::{OmegaFunction, PhaseResult};
 pub use spaces::{Intent, ResultSpace as SWMLResult, World};
 pub use step_back::StepBackProcessor;
-pub use world::{WorldManager, WorldConfig, WorldStatistics};
+pub use world::{WorldConfig, WorldManager, WorldStatistics};
 
 /// SWML version matching the paper
 pub const SWML_VERSION: &str = "1.0.0";

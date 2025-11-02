@@ -7,8 +7,6 @@ pub mod entities;
 
 // Re-export entities for convenient access
 pub use entities::{
-    User, UserStatus, SubscriptionTier,
-    Funnel, FunnelStatus, FunnelType,
-    Page, PageStatus, PageType,
-    Integration, IntegrationStatus, IntegrationType, Provider,
+    Funnel, FunnelStatus, FunnelType, Integration, IntegrationStatus, IntegrationType, Page,
+    PageStatus, PageType, Provider, SubscriptionTier, User, UserStatus,
 };

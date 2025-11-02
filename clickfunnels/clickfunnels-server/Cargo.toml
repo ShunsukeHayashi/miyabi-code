@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 clickfunnels-api = { path = "../clickfunnels-api" }
+clickfunnels-db = { path = "../clickfunnels-db" }
 
 # Async runtime
 tokio = { workspace = true }

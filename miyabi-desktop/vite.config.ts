@@ -16,6 +16,24 @@ export default defineConfig(async () => ({
     },
   },
 
+  // Prevent Node.js modules from being bundled for browser
+  optimizeDeps: {
+    exclude: ["firebase-admin"],
+  },
+
+  build: {
+    rollupOptions: {
+      external: [
+        "firebase-admin",
+        "events",
+        "crypto",
+        "fs",
+        "path",
+        "os",
+      ],
+    },
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

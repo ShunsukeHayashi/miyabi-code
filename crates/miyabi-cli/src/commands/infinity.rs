@@ -38,8 +38,9 @@ use miyabi_github::client::GitHubClient;
 use miyabi_orchestrator::headless::{HeadlessOrchestrator, HeadlessOrchestratorConfig};
 use miyabi_types::Issue;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
@@ -239,6 +240,20 @@ impl InfinityMode {
 
         println!("📋 Found {} open Issues", issues.len());
 
+        // Filter out processed issues if resuming
+        if self.config.resume {
+            if let Ok(Some(processed)) = InfinityCommand::load_previous_state(&self.config.log_dir)
+            {
+                let before_count = issues.len();
+                issues.retain(|issue| !processed.contains(&issue.number));
+                let after_count = issues.len();
+                println!(
+                    "   Filtered out {} already completed Issues (resume mode)",
+                    before_count - after_count
+                );
+            }
+        }
+
         // Apply max_issues limit
         if let Some(max) = self.config.max_issues {
             if issues.len() > max {
@@ -379,8 +394,9 @@ impl InfinityMode {
 
         let mut results = Vec::new();
 
-        // Execute each Issue sequentially (for now)
-        // TODO: Parallel execution with semaphore
+        // Execute each Issue sequentially
+        // Note: HeadlessOrchestrator requires &mut self, so parallel execution
+        // would require creating multiple orchestrator instances or using a pool
         for issue in &issues {
             println!("   Processing Issue #{}...", issue.number);
             let issue_start = Instant::now();
@@ -390,13 +406,28 @@ impl InfinityMode {
                     let duration = issue_start.elapsed().as_secs();
                     println!("     ✅ Success in {}s", duration);
 
+                    // Try to extract PR number from GitHub (if PR was created)
+                    let pr_number = Self::try_get_pr_for_issue(&issue.number).await?;
+
+                    // If PR was created and merged, update Issue status
+                    if let Some(pr_num) = pr_number {
+                        if Self::is_pr_merged(pr_num).await? {
+                            println!(
+                                "     🔗 PR #{} was merged, updating Issue #{}...",
+                                pr_num, issue.number
+                            );
+                            Self::update_issue_after_merge(&self.github_client, issue.number)
+                                .await?;
+                        }
+                    }
+
                     SprintResult {
                         issue_number: issue.number,
                         success: exec_result.success,
                         duration_secs: duration,
                         error: exec_result.error,
-                        pr_number: None, // TODO: Extract from execution result
-                        quality_score: None,
+                        pr_number,
+                        quality_score: None, // TODO: Extract from execution result
                     }
                 }
                 Err(e) => {
@@ -426,6 +457,100 @@ impl InfinityMode {
             end_time: Some(end_time),
             results,
         })
+    }
+
+    /// Try to get PR number for an issue (if PR was created)
+    async fn try_get_pr_for_issue(issue_number: &u64) -> Result<Option<u64>> {
+        // Try to find PR associated with this issue
+        // This is a best-effort attempt - PR might not exist yet
+        use std::process::Command;
+
+        let output = Command::new("gh")
+            .args(["pr", "list", "--state", "all", "--json", "number,body"])
+            .output();
+
+        if let Ok(output) = output {
+            if output.status.success() {
+                if let Ok(json_str) = String::from_utf8(output.stdout) {
+                    if let Ok(prs) = serde_json::from_str::<Vec<serde_json::Value>>(&json_str) {
+                        for pr in prs {
+                            if let Some(body) = pr.get("body").and_then(|b| b.as_str()) {
+                                if body.contains(&format!("#{}", issue_number))
+                                    || body.contains(&format!("Issue #{}", issue_number))
+                                {
+                                    if let Some(num) = pr.get("number").and_then(|n| n.as_u64()) {
+                                        return Ok(Some(num));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
+    /// Check if a PR has been merged
+    async fn is_pr_merged(pr_number: u64) -> Result<bool> {
+        use std::process::Command;
+
+        let output = Command::new("gh")
+            .args([
+                "pr",
+                "view",
+                &pr_number.to_string(),
+                "--json",
+                "state,merged",
+            ])
+            .output();
+
+        if let Ok(output) = output {
+            if output.status.success() {
+                if let Ok(json_str) = String::from_utf8(output.stdout) {
+                    if let Ok(pr) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                        if let Some(merged) = pr.get("merged").and_then(|m| m.as_bool()) {
+                            return Ok(merged);
+                        }
+                        // Fallback: check state
+                        if let Some(state) = pr.get("state").and_then(|s| s.as_str()) {
+                            return Ok(state == "MERGED");
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(false)
+    }
+
+    /// Update Issue status after PR merge
+    async fn update_issue_after_merge(
+        github_client: &Arc<GitHubClient>,
+        issue_number: u64,
+    ) -> Result<()> {
+        // Remove state:pending label and add state:done label
+        let remove_label = "📥 state:pending";
+        let add_label = "✅ state:done";
+
+        // Remove old state label (best effort, might not exist)
+        let _ = github_client.remove_label(issue_number, remove_label).await;
+
+        // Add new state label
+        github_client
+            .add_labels(issue_number, &[add_label.to_string()])
+            .await?;
+
+        // Close the issue
+        github_client.close_issue(issue_number).await?;
+
+        println!(
+            "     ✅ Updated Issue #{}: {} → {}, closed",
+            issue_number, remove_label, add_label
+        );
+
+        Ok(())
     }
 
     /// Check stop conditions
@@ -479,18 +604,146 @@ impl InfinityMode {
         }
     }
 
-    /// Save report to file
+    /// Save report to file (both JSON and Markdown)
     fn save_report(&self, report: &InfinityReport) -> Result<()> {
         let timestamp = Utc::now().format("%Y-%m-%d-%H%M%S");
-        let filename = format!("infinity-sprint-{}.json", timestamp);
-        let path = self.config.log_dir.join(&filename);
 
+        // Save JSON report
+        let json_filename = format!("infinity-sprint-{}.json", timestamp);
+        let json_path = self.config.log_dir.join(&json_filename);
         let json = serde_json::to_string_pretty(report)?;
-        fs::write(&path, json)?;
+        fs::write(&json_path, json)?;
 
-        println!("📝 Report saved to: {}", path.display());
+        // Save Markdown report
+        let md_filename = format!("infinity-sprint-{}.md", timestamp);
+        let md_path = self.config.log_dir.join(&md_filename);
+        let markdown = self.generate_markdown_report(report);
+        fs::write(&md_path, markdown)?;
+
+        println!("📝 Reports saved:");
+        println!("   JSON: {}", json_path.display());
+        println!("   Markdown: {}", md_path.display());
 
         Ok(())
+    }
+
+    /// Generate Markdown report
+    fn generate_markdown_report(&self, report: &InfinityReport) -> String {
+        let mut md = String::new();
+
+        // Header
+        md.push_str("# 🏁 Miyabi Infinity Mode - 完了報告\n\n");
+        md.push_str(&format!(
+            "**実行日時**: {}\n\n",
+            Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        ));
+
+        // Summary
+        md.push_str("## 📊 実行サマリー\n\n");
+        let hours = report.total_duration_secs / 3600;
+        let minutes = (report.total_duration_secs % 3600) / 60;
+        let seconds = report.total_duration_secs % 60;
+        md.push_str(&format!(
+            "- **総実行時間**: {}時間{}分{}秒\n",
+            hours, minutes, seconds
+        ));
+        md.push_str(&format!("- **総スプリント数**: {}\n", report.total_sprints));
+        md.push_str(&format!("- **総Issue処理数**: {}\n", report.total_issues));
+        md.push_str(&format!(
+            "- **成功率**: {:.1}%\n",
+            report.success_rate * 100.0
+        ));
+        md.push_str(&format!("- **成功**: {} ✅\n", report.successful_issues));
+        md.push_str(&format!("- **失敗**: {} ❌\n\n", report.failed_issues));
+
+        // Stop reason
+        md.push_str("## 🛑 停止理由\n\n");
+        match &report.stop_reason {
+            StopReason::AllCompleted => {
+                md.push_str("✅ **全Issue処理完了**\n\n");
+            }
+            StopReason::MaxIssuesReached => {
+                md.push_str("⏹️  **最大Issue数に到達**\n\n");
+            }
+            StopReason::Timeout => {
+                md.push_str(&format!(
+                    "⏱️  **タイムアウト** ({}時間経過)\n\n",
+                    self.config.timeout_hours
+                ));
+            }
+            StopReason::ConsecutiveFailures => {
+                md.push_str("❌ **3スプリント連続失敗**\n\n");
+            }
+            StopReason::CriticalError(err) => {
+                md.push_str(&format!("🔴 **重大エラー**: {}\n\n", err));
+            }
+            StopReason::UserInterrupted => {
+                md.push_str("🛑 **ユーザー中断** (Ctrl+C)\n\n");
+            }
+        }
+
+        // Sprint details
+        md.push_str("## 📈 スプリント別実績\n\n");
+        for sprint in &report.sprints {
+            let success_count = sprint.results.iter().filter(|r| r.success).count();
+            let total_count = sprint.results.len();
+            let start_str = sprint.start_time.format("%H:%M:%S");
+            let end_str = sprint
+                .end_time
+                .map(|e| e.format("%H:%M:%S").to_string())
+                .unwrap_or_else(|| "進行中".to_string());
+
+            md.push_str(&format!(
+                "### Sprint {} ({} - {})\n\n",
+                sprint.id, start_str, end_str
+            ));
+
+            for result in &sprint.results {
+                let status_icon = if result.success { "✅" } else { "❌" };
+                let duration_str = format!("{:.1}秒", result.duration_secs);
+                let pr_info = if let Some(pr_num) = result.pr_number {
+                    format!(" (PR #{})", pr_num)
+                } else {
+                    String::new()
+                };
+
+                md.push_str(&format!(
+                    "- Issue #{}: {} {} {}\n",
+                    result.issue_number, status_icon, duration_str, pr_info
+                ));
+
+                if let Some(ref error) = result.error {
+                    md.push_str(&format!("  - エラー: {}\n", error));
+                }
+            }
+            md.push_str(&format!(
+                "\n**結果**: {}/{} 成功\n\n",
+                success_count, total_count
+            ));
+        }
+
+        // Performance metrics
+        md.push_str("## ⚡ パフォーマンス\n\n");
+        if report.total_issues > 0 {
+            let avg_duration = report.total_duration_secs as f64 / report.total_issues as f64;
+            md.push_str(&format!(
+                "- **平均処理時間**: {:.1}秒/Issue\n",
+                avg_duration
+            ));
+        }
+
+        // Generated artifacts
+        md.push_str("## 🎨 生成された成果物\n\n");
+        let pr_count = report
+            .sprints
+            .iter()
+            .flat_map(|s| &s.results)
+            .filter(|r| r.pr_number.is_some())
+            .count();
+        md.push_str(&format!("- **PR作成数**: {}\n", pr_count));
+        md.push_str(&format!("- **Issue処理数**: {}\n", report.total_issues));
+
+        md
     }
 
     /// Display summary
@@ -618,10 +871,105 @@ impl InfinityCommand {
             log_dir: PathBuf::from(".ai/logs"),
         };
 
+        // Handle resume mode
+        if self.resume {
+            println!("🔄 Resume mode: Loading previous execution state...");
+            if let Some(processed_issues) = Self::load_previous_state(&config.log_dir)? {
+                println!(
+                    "   Found {} completed Issues from previous run",
+                    processed_issues.len()
+                );
+                println!("   Will skip these Issues and continue from remaining ones");
+            } else {
+                println!("   No previous state found, starting fresh");
+            }
+        }
+
         // Create and execute Infinity Mode
         let mut infinity = InfinityMode::new(config, github_client);
-        let _report = infinity.execute().await?;
+        let report = infinity.execute().await?;
 
+        // Save state for potential resume
+        Self::save_state(&infinity.config.log_dir, &report)?;
+
+        Ok(())
+    }
+
+    /// Load previous execution state (processed Issue numbers)
+    fn load_previous_state(log_dir: &PathBuf) -> Result<Option<Vec<u64>>> {
+        // Find the most recent report
+        let entries = match fs::read_dir(log_dir) {
+            Ok(entries) => entries,
+            Err(_) => return Ok(None),
+        };
+        let mut reports: Vec<(PathBuf, std::time::SystemTime)> = Vec::new();
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) == Some("json")
+                && path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|s| s.starts_with("infinity-sprint-"))
+                    .unwrap_or(false)
+            {
+                if let Ok(metadata) = entry.metadata() {
+                    if let Ok(modified) = metadata.modified() {
+                        reports.push((path, modified));
+                    }
+                }
+            }
+        }
+
+        if reports.is_empty() {
+            return Ok(None);
+        }
+
+        // Sort by modification time (most recent first)
+        reports.sort_by(|a, b| b.1.cmp(&a.1));
+
+        // Load the most recent report
+        if let Some((path, _)) = reports.first() {
+            let content = fs::read_to_string(path)?;
+            let report: InfinityReport = serde_json::from_str(&content)?;
+
+            // Extract successfully completed Issue numbers
+            let processed_set: BTreeSet<u64> = report
+                .sprints
+                .iter()
+                .flat_map(|s| &s.results)
+                .filter(|r| r.success)
+                .map(|r| r.issue_number)
+                .collect();
+
+            let processed: Vec<u64> = processed_set.into_iter().collect();
+            Ok(Some(processed))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Save current state for potential resume
+    fn save_state(log_dir: &Path, report: &InfinityReport) -> Result<()> {
+        // Save a resume checkpoint file
+        let checkpoint_path = log_dir.join("infinity-checkpoint.json");
+        let processed_issues: Vec<u64> = report
+            .sprints
+            .iter()
+            .flat_map(|s| &s.results)
+            .filter(|r| r.success)
+            .map(|r| r.issue_number)
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
+
+        let checkpoint = serde_json::json!({
+            "timestamp": Utc::now().to_rfc3339(),
+            "processed_issues": processed_issues,
+            "total_sprints": report.total_sprints,
+            "total_issues": report.total_issues,
+        });
+        fs::write(&checkpoint_path, serde_json::to_string_pretty(&checkpoint)?)?;
         Ok(())
     }
 }

@@ -16,8 +16,8 @@ pub enum SmtpProvider {
 pub struct SmtpConfig {
     pub provider: SmtpProvider,
     pub api_key: String,
-    pub domain: Option<String>,      // Required for Mailgun
-    pub aws_region: Option<String>,  // Required for AWS SES
+    pub domain: Option<String>,     // Required for Mailgun
+    pub aws_region: Option<String>, // Required for AWS SES
 }
 
 /// Email address with optional name

@@ -1,7 +1,6 @@
 // VOICEVOX API wrapper for Tauri
 
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { safeInvoke, safeListen } from "./tauri-utils";
 
 /**
  * Speaker configuration
@@ -46,14 +45,16 @@ export interface NarrationResult {
  * Check if VOICEVOX Engine is running
  */
 export async function checkVoicevoxEngine(): Promise<boolean> {
-  return await invoke<boolean>("check_voicevox_engine_command");
+  const result = await safeInvoke<boolean>("check_voicevox_engine_command");
+  return result || false;
 }
 
 /**
  * Start VOICEVOX Engine via Docker
  */
 export async function startVoicevoxEngine(): Promise<boolean> {
-  return await invoke<boolean>("start_voicevox_engine_command");
+  const result = await safeInvoke<boolean>("start_voicevox_engine_command");
+  return result || false;
 }
 
 /**
@@ -62,14 +63,16 @@ export async function startVoicevoxEngine(): Promise<boolean> {
 export async function generateNarration(
   request: NarrationRequest
 ): Promise<NarrationResult> {
-  return await invoke<NarrationResult>("generate_narration_command", { request });
+  const result = await safeInvoke<NarrationResult>("generate_narration_command", { request });
+  return result || { success: false, error: 'Tauri runtime not available' };
 }
 
 /**
  * Get available speakers
  */
 export async function getSpeakers(): Promise<SpeakerConfig[]> {
-  return await invoke<SpeakerConfig[]>("get_speakers_command");
+  const result = await safeInvoke<SpeakerConfig[]>("get_speakers_command");
+  return result || DEFAULT_SPEAKERS;
 }
 
 /**
@@ -78,10 +81,7 @@ export async function getSpeakers(): Promise<SpeakerConfig[]> {
 export async function listenToVoicevoxStatus(
   callback: (status: string) => void
 ): Promise<() => void> {
-  const unlisten = await listen<string>("voicevox-status", (event) => {
-    callback(event.payload);
-  });
-  return unlisten;
+  return await safeListen<string>("voicevox-status", callback);
 }
 
 /**
@@ -90,10 +90,7 @@ export async function listenToVoicevoxStatus(
 export async function listenToNarrationProgress(
   callback: (progress: string) => void
 ): Promise<() => void> {
-  const unlisten = await listen<string>("narration-generation-progress", (event) => {
-    callback(event.payload);
-  });
-  return unlisten;
+  return await safeListen<string>("narration-generation-progress", callback);
 }
 
 /**
@@ -102,10 +99,7 @@ export async function listenToNarrationProgress(
 export async function listenToNarrationGenerated(
   callback: (metadata: NarrationMetadata) => void
 ): Promise<() => void> {
-  const unlisten = await listen<NarrationMetadata>("narration-generated", (event) => {
-    callback(event.payload);
-  });
-  return unlisten;
+  return await safeListen<NarrationMetadata>("narration-generated", callback);
 }
 
 /**

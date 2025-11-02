@@ -4,10 +4,12 @@
 //!
 //! Run with: cargo run --example cli_progress_observer
 
-use indicatif::{ProgressBar, ProgressStyle};
-use miyabi_agent_core::{BaseAgent, LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
-use miyabi_types::{AgentResult, AgentType, Task, task::TaskType, agent::ResultStatus};
 use async_trait::async_trait;
+use indicatif::{ProgressBar, ProgressStyle};
+use miyabi_agent_core::{
+    BaseAgent, LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate,
+};
+use miyabi_types::{agent::ResultStatus, task::TaskType, AgentResult, AgentType, Task};
 use std::sync::Arc;
 
 /// CLI Progress Observer using indicatif
@@ -42,16 +44,19 @@ impl ProgressObserver for CLIProgressObserver {
             LogLevel::Warn => "⚠️",
             LogLevel::Error => "❌",
         };
-        self.progress_bar.println(format!("{} {}", level_icon, entry.message));
+        self.progress_bar
+            .println(format!("{} {}", level_icon, entry.message));
     }
 
     async fn on_start(&self, task: &Task) {
-        self.progress_bar.println(format!("🚀 Starting: {}", task.title));
+        self.progress_bar
+            .println(format!("🚀 Starting: {}", task.title));
         self.progress_bar.reset();
     }
 
     async fn on_complete(&self, result: &AgentResult) {
-        self.progress_bar.finish_with_message(format!("✅ Status: {:?}", result.status));
+        self.progress_bar
+            .finish_with_message(format!("✅ Status: {:?}", result.status));
     }
 }
 

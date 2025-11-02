@@ -5,25 +5,22 @@
 //! - Payment gateways (Stripe, PayPal, Square)
 //! - Analytics platforms (Google Analytics 4)
 
-pub mod smtp;
-pub mod payment;
 pub mod analytics;
+pub mod payment;
+pub mod smtp;
 
 // Re-export commonly used types
 pub use smtp::{
-    EmailMessage, EmailAddress, EmailAttachment,
-    SmtpProvider, SmtpConfig, SmtpClient, SmtpResult,
-    create_smtp_client,
+    create_smtp_client, EmailAddress, EmailAttachment, EmailMessage, SmtpClient, SmtpConfig,
+    SmtpProvider, SmtpResult,
 };
 
 pub use payment::{
-    PaymentProvider, PaymentConfig, PaymentClient,
-    PaymentIntent, PaymentMethod, PaymentResult,
-    create_payment_client,
+    create_payment_client, PaymentClient, PaymentConfig, PaymentIntent, PaymentMethod,
+    PaymentProvider, PaymentResult,
 };
 
 pub use analytics::{
-    AnalyticsProvider, AnalyticsConfig, AnalyticsClient,
-    AnalyticsEvent, AnalyticsResult,
-    create_analytics_client,
+    create_analytics_client, AnalyticsClient, AnalyticsConfig, AnalyticsEvent, AnalyticsProvider,
+    AnalyticsResult,
 };

@@ -1,4 +1,8 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('reactflow/dist/style.css');
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

@@ -5,12 +5,14 @@
 //! - Mailgun (API-based)
 //! - AWS SES (SDK-based)
 
-pub mod sendgrid;
-pub mod mailgun;
 pub mod aws_ses;
+pub mod mailgun;
+pub mod sendgrid;
 pub mod types;
 
-pub use types::{EmailMessage, EmailAddress, EmailAttachment, SmtpProvider, SmtpConfig, SmtpResult};
+pub use types::{
+    EmailAddress, EmailAttachment, EmailMessage, SmtpConfig, SmtpProvider, SmtpResult,
+};
 
 use async_trait::async_trait;
 
@@ -39,18 +41,17 @@ pub fn create_smtp_client(config: SmtpConfig) -> SmtpResult<Box<dyn SmtpClient>>
         SmtpProvider::Mailgun => {
             let client = mailgun::MailgunClient::new(
                 config.api_key,
-                config.domain.ok_or_else(|| {
-                    SmtpError::ConfigError("Mailgun requires domain".to_string())
-                })?,
+                config
+                    .domain
+                    .ok_or_else(|| SmtpError::ConfigError("Mailgun requires domain".to_string()))?,
             )?;
             Ok(Box::new(client))
         }
         SmtpProvider::AwsSes => {
-            let client = aws_ses::AwsSesClient::new(
-                config.aws_region.ok_or_else(|| {
+            let client =
+                aws_ses::AwsSesClient::new(config.aws_region.ok_or_else(|| {
                     SmtpError::ConfigError("AWS SES requires region".to_string())
-                })?,
-            );
+                })?);
             Ok(Box::new(client))
         }
     }

@@ -17,7 +17,9 @@ pub struct StripeClient {
 impl StripeClient {
     pub fn new(api_key: String) -> PaymentResult<Self> {
         if api_key.is_empty() {
-            return Err(PaymentError::ConfigError("API key cannot be empty".to_string()));
+            return Err(PaymentError::ConfigError(
+                "API key cannot be empty".to_string(),
+            ));
         }
 
         Ok(Self {
@@ -46,7 +48,9 @@ impl PaymentClient for StripeClient {
         metadata: Option<HashMap<String, String>>,
     ) -> PaymentResult<PaymentIntent> {
         if amount <= 0 {
-            return Err(PaymentError::InvalidAmount("Amount must be positive".to_string()));
+            return Err(PaymentError::InvalidAmount(
+                "Amount must be positive".to_string(),
+            ));
         }
 
         let mut form_data = vec![
@@ -92,12 +96,18 @@ impl PaymentClient for StripeClient {
             Ok(payment_intent)
         } else {
             let status = response.status();
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
 
             if status.as_u16() == 429 {
                 Err(PaymentError::RateLimitExceeded)
             } else if status.as_u16() == 401 || status.as_u16() == 403 {
-                Err(PaymentError::AuthError(format!("Stripe auth failed: {}", error_text)))
+                Err(PaymentError::AuthError(format!(
+                    "Stripe auth failed: {}",
+                    error_text
+                )))
             } else {
                 Err(PaymentError::ApiError(format!(
                     "Stripe API error ({}): {}",
@@ -110,7 +120,10 @@ impl PaymentClient for StripeClient {
     async fn capture_payment(&self, payment_id: &str) -> PaymentResult<PaymentIntent> {
         let response = self
             .client
-            .post(format!("{}/payment_intents/{}/capture", STRIPE_API_URL, payment_id))
+            .post(format!(
+                "{}/payment_intents/{}/capture",
+                STRIPE_API_URL, payment_id
+            ))
             .basic_auth(&self.api_key, Some(""))
             .send()
             .await?;
@@ -158,7 +171,11 @@ impl PaymentClient for StripeClient {
             let json: serde_json::Value = response.json().await?;
             let refund_id = json["id"].as_str().unwrap_or("").to_string();
 
-            tracing::info!("Refund created: id={}, payment_id={}", refund_id, payment_id);
+            tracing::info!(
+                "Refund created: id={}, payment_id={}",
+                refund_id,
+                payment_id
+            );
             Ok(refund_id)
         } else {
             Err(PaymentError::ApiError(format!(
@@ -178,7 +195,9 @@ impl PaymentClient for StripeClient {
 
         if response.status().is_success() {
             let json: serde_json::Value = response.json().await?;
-            Ok(Self::parse_stripe_status(json["status"].as_str().unwrap_or("failed")))
+            Ok(Self::parse_stripe_status(
+                json["status"].as_str().unwrap_or("failed"),
+            ))
         } else if response.status().as_u16() == 404 {
             Err(PaymentError::PaymentNotFound(payment_id.to_string()))
         } else {

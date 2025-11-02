@@ -117,13 +117,13 @@ fn test_status_command_execution() {
 fn test_agent_command_type_parsing() {
     use miyabi_cli::commands::AgentCommand;
 
-    let cmd = AgentCommand::new("coordinator".to_string(), Some(123));
+    let cmd = AgentCommand::new("coordinator".to_string(), Some(123), None);
     assert!(cmd.parse_agent_type().is_ok());
 
-    let cmd = AgentCommand::new("codegen".to_string(), Some(456));
+    let cmd = AgentCommand::new("codegen".to_string(), Some(456), None);
     assert!(cmd.parse_agent_type().is_ok());
 
-    let cmd = AgentCommand::new("invalid".to_string(), None);
+    let cmd = AgentCommand::new("invalid".to_string(), None, None);
     assert!(cmd.parse_agent_type().is_err());
 }
 
@@ -134,7 +134,7 @@ fn test_agent_execution_e2e() {
 
     std::env::set_var("GITHUB_TOKEN", "ghp_test_token");
 
-    let cmd = AgentCommand::new("coordinator".to_string(), Some(123));
+    let cmd = AgentCommand::new("coordinator".to_string(), Some(123), None);
     let result = tokio_test::block_on(cmd.execute());
 
     // Will fail because of invalid token, but should reach execution

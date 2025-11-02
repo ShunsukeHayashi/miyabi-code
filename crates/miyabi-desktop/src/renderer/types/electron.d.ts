@@ -6,8 +6,10 @@ export interface ElectronAPI {
   };
 
   worktree: {
-    getAll: () => Promise<WorktreeMetadata[]>;
-    delete: (worktreePath: string) => Promise<{ success: boolean }>;
+    list: () => Promise<WorktreeSummary[]>;
+    cleanup: (worktreePath: string) => Promise<{ success: boolean; message?: string }>;
+    open: (worktreePath: string) => Promise<{ success: boolean; message?: string }>;
+    getGraph: () => Promise<WorktreeGraphData>;
   };
 
   agent: {
@@ -25,16 +27,44 @@ export interface ElectronAPI {
     getInfo: () => Promise<SystemInfo>;
   };
 
+  dashboard: {
+    getSnapshot: () => Promise<DashboardSnapshot>;
+  };
+
   on: (channel: string, callback: (...args: any[]) => void) => void;
   removeListener: (channel: string, callback: (...args: any[]) => void) => void;
 }
 
-export interface WorktreeMetadata {
+export type WorktreeStatus = 'active' | 'idle' | 'stuck';
+
+export interface WorktreeSummary {
+  id: string;
+  name: string;
   path: string;
   branch: string;
-  status: 'active' | 'idle' | 'stuck' | 'orphaned' | 'corrupted';
-  lastAccessed: number;
-  diskUsage: number;
+  head?: string;
+  status: WorktreeStatus;
+  lastAccessed: string;
+  diskUsageMb: number;
+  issueNumber?: number | null;
+  agentName?: string | null;
+  dirty: boolean;
+}
+
+export interface WorktreeGraphCommit {
+  sha: string;
+  parents: string[];
+  message: string;
+  date: number;
+  branches: string[];
+  isWorktreeHead: boolean;
+  worktree?: WorktreeSummary;
+}
+
+export interface WorktreeGraphData {
+  commits: WorktreeGraphCommit[];
+  branches: string[];
+  worktrees: WorktreeSummary[];
 }
 
 export interface AgentMetadata {
@@ -58,6 +88,62 @@ export interface SystemInfo {
   cpus: number;
   totalMemory: number;
   freeMemory: number;
+}
+
+export interface DashboardSnapshot {
+  worktrees: {
+    total: number;
+    active: number;
+    idle: number;
+    stuck: number;
+    orphaned: number;
+    lastUpdated: string;
+  };
+  agents: {
+    total: number;
+    active: number;
+    inactive: number;
+    uniqueAgents: number;
+    recentlyExecuted: Array<{
+      taskId: string;
+      agentName: string;
+      status: string;
+      completedAt?: string;
+      durationSec?: number | null;
+    }>;
+  };
+  issues: {
+    open: number;
+    inProgress: number;
+    done: number;
+    topPriority: Array<{
+      issueNumber: number;
+      title: string;
+      status: 'open' | 'in_progress' | 'done';
+      lastUpdated: string;
+      agentName?: string | null;
+    }>;
+  };
+  history: {
+    recentRuns: Array<{
+      id: string;
+      issueNumber?: number | null;
+      agentName?: string | null;
+      status: string;
+      completedAt?: string;
+      durationSec?: number | null;
+    }>;
+    successRate: number;
+    avgDurationSec: number;
+  };
+  system: {
+    platform: string;
+    arch: string;
+    cpuCores: number;
+    totalMemoryGb: number;
+    freeMemoryGb: number;
+    uptimeHours: number;
+  };
 }
 
 declare global {

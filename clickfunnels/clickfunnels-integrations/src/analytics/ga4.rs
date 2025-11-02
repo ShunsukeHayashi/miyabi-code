@@ -21,10 +21,14 @@ pub struct GA4Client {
 impl GA4Client {
     pub fn new(measurement_id: String, api_secret: String) -> AnalyticsResult<Self> {
         if measurement_id.is_empty() {
-            return Err(AnalyticsError::ConfigError("Measurement ID cannot be empty".to_string()));
+            return Err(AnalyticsError::ConfigError(
+                "Measurement ID cannot be empty".to_string(),
+            ));
         }
         if api_secret.is_empty() {
-            return Err(AnalyticsError::ConfigError("API secret cannot be empty".to_string()));
+            return Err(AnalyticsError::ConfigError(
+                "API secret cannot be empty".to_string(),
+            ));
         }
 
         Ok(Self {
@@ -98,12 +102,7 @@ impl AnalyticsClient for GA4Client {
             self.api_secret
         );
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&payload)
-            .send()
-            .await?;
+        let response = self.client.post(&url).json(&payload).send().await?;
 
         if response.status().is_success() {
             if self.debug_mode {
@@ -115,7 +114,10 @@ impl AnalyticsClient for GA4Client {
             Ok(())
         } else {
             let status = response.status();
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
 
             Err(AnalyticsError::ApiError(format!(
                 "GA4 API error ({}): {}",
@@ -126,8 +128,14 @@ impl AnalyticsClient for GA4Client {
 
     async fn track_page_view(&self, page_path: &str, page_title: &str) -> AnalyticsResult<()> {
         let event = AnalyticsEvent::new("page_view".to_string())
-            .with_parameter("page_path".to_string(), EventParameter::String(page_path.to_string()))
-            .with_parameter("page_title".to_string(), EventParameter::String(page_title.to_string()));
+            .with_parameter(
+                "page_path".to_string(),
+                EventParameter::String(page_path.to_string()),
+            )
+            .with_parameter(
+                "page_title".to_string(),
+                EventParameter::String(page_title.to_string()),
+            );
 
         self.track_event(&event).await
     }
@@ -145,7 +153,10 @@ impl AnalyticsClient for GA4Client {
         }
 
         if let Some(curr) = currency {
-            event = event.with_parameter("currency".to_string(), EventParameter::String(curr.to_string()));
+            event = event.with_parameter(
+                "currency".to_string(),
+                EventParameter::String(curr.to_string()),
+            );
         }
 
         self.track_event(&event).await
@@ -162,39 +173,27 @@ mod tests {
 
     #[test]
     fn test_ga4_client_new() {
-        let client = GA4Client::new(
-            "G-XXXXXXXXXX".to_string(),
-            "secret123".to_string(),
-        );
+        let client = GA4Client::new("G-XXXXXXXXXX".to_string(), "secret123".to_string());
         assert!(client.is_ok());
     }
 
     #[test]
     fn test_ga4_client_empty_measurement_id() {
-        let client = GA4Client::new(
-            "".to_string(),
-            "secret123".to_string(),
-        );
+        let client = GA4Client::new("".to_string(), "secret123".to_string());
         assert!(client.is_err());
     }
 
     #[test]
     fn test_ga4_client_empty_api_secret() {
-        let client = GA4Client::new(
-            "G-XXXXXXXXXX".to_string(),
-            "".to_string(),
-        );
+        let client = GA4Client::new("G-XXXXXXXXXX".to_string(), "".to_string());
         assert!(client.is_err());
     }
 
     #[test]
     fn test_ga4_client_debug_mode() {
-        let client = GA4Client::new(
-            "G-XXXXXXXXXX".to_string(),
-            "secret123".to_string(),
-        )
-        .unwrap()
-        .with_debug(true);
+        let client = GA4Client::new("G-XXXXXXXXXX".to_string(), "secret123".to_string())
+            .unwrap()
+            .with_debug(true);
 
         assert!(client.debug_mode);
         assert_eq!(client.get_api_url(), GA4_DEBUG_URL);
@@ -202,14 +201,14 @@ mod tests {
 
     #[test]
     fn test_build_event_payload() {
-        let client = GA4Client::new(
-            "G-XXXXXXXXXX".to_string(),
-            "secret123".to_string(),
-        ).unwrap();
+        let client = GA4Client::new("G-XXXXXXXXXX".to_string(), "secret123".to_string()).unwrap();
 
         let event = AnalyticsEvent::new("purchase".to_string())
             .with_parameter("value".to_string(), EventParameter::Number(99.99))
-            .with_parameter("currency".to_string(), EventParameter::String("USD".to_string()))
+            .with_parameter(
+                "currency".to_string(),
+                EventParameter::String("USD".to_string()),
+            )
             .with_client_id("client123".to_string());
 
         let payload = client.build_event_payload(&event);

@@ -17,7 +17,9 @@ pub struct PayPalClient {
 impl PayPalClient {
     pub fn new(client_id: String, client_secret: String, sandbox: bool) -> PaymentResult<Self> {
         if client_id.is_empty() || client_secret.is_empty() {
-            return Err(PaymentError::ConfigError("Client ID and secret are required".to_string()));
+            return Err(PaymentError::ConfigError(
+                "Client ID and secret are required".to_string(),
+            ));
         }
 
         Ok(Self {
@@ -72,7 +74,11 @@ impl PaymentClient for PayPalClient {
         })
     }
 
-    async fn refund_payment(&self, _payment_id: &str, _amount: Option<i64>) -> PaymentResult<String> {
+    async fn refund_payment(
+        &self,
+        _payment_id: &str,
+        _amount: Option<i64>,
+    ) -> PaymentResult<String> {
         Ok("stub_refund_id".to_string())
     }
 

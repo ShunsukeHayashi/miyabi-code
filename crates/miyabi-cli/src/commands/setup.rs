@@ -352,8 +352,7 @@ cli:
 
         // Create agent config directory
         let agent_dir = Path::new(".claude/agents/specs");
-        fs::create_dir_all(agent_dir)
-            .map_err(|e| CliError::Io(e))?;
+        fs::create_dir_all(agent_dir).map_err(CliError::Io)?;
 
         println!("  ✓ Created agent configuration directory");
         println!("  💡 Agent configurations can be customized in .claude/agents/specs/");

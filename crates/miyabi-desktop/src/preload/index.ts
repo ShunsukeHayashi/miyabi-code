@@ -13,8 +13,10 @@ contextBridge.exposeInMainWorld('electron', {
 
   // Worktree methods
   worktree: {
-    getAll: () => ipcRenderer.invoke('worktree:getAll'),
-    delete: (worktreePath: string) => ipcRenderer.invoke('worktree:delete', worktreePath),
+    list: () => ipcRenderer.invoke('worktrees:list'),
+    cleanup: (worktreePath: string) => ipcRenderer.invoke('worktrees:cleanup', worktreePath),
+    open: (worktreePath: string) => ipcRenderer.invoke('worktrees:open', worktreePath),
+    getGraph: () => ipcRenderer.invoke('worktrees:graph'),
   },
 
   // Agent methods
@@ -33,6 +35,11 @@ contextBridge.exposeInMainWorld('electron', {
   // System methods
   system: {
     getInfo: () => ipcRenderer.invoke('system:getInfo'),
+  },
+
+  // Dashboard methods
+  dashboard: {
+    getSnapshot: () => ipcRenderer.invoke('dashboard:getSnapshot'),
   },
 
   // Event listeners

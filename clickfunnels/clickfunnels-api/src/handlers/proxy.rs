@@ -9,45 +9,27 @@ use axum::{
     Json,
 };
 use serde_json::Value;
-use std::sync::Arc;
 
-/// Shared HTTP client for proxy requests
-#[derive(Clone)]
-pub struct ProxyState {
-    client: reqwest::Client,
-    base_url: String,
-    access_token: String,
-}
-
-impl ProxyState {
-    pub fn new(access_token: String) -> Self {
-        Self {
-            client: reqwest::Client::new(),
-            // Use accounts.myclickfunnels.com for team/workspace discovery
-            base_url: "https://accounts.myclickfunnels.com/api/v2".to_string(),
-            access_token,
-        }
-    }
-}
+use crate::state::AppState;
 
 /// Proxy GET requests to ClickFunnels API
 ///
 /// # Arguments
 /// * `endpoint` - The ClickFunnels API endpoint (e.g., "teams", "workspaces")
 /// * `query_params` - Optional query parameters
-/// * `state` - Shared proxy state with HTTP client and credentials
+/// * `state` - Application state containing proxy configuration
 pub async fn proxy_get(
     Path(endpoint): Path<String>,
     Query(query_params): Query<std::collections::HashMap<String, String>>,
-    State(state): State<Arc<ProxyState>>,
+    State(app_state): State<AppState>,
 ) -> Result<Json<Value>, ProxyError> {
+    let state = app_state.proxy.as_ref().ok_or(ProxyError::NotConfigured)?;
     let url = format!("{}/{}", state.base_url, endpoint);
     let auth_header = format!("Bearer {}", state.access_token);
 
     tracing::info!("Proxying GET request to: {}", url);
     tracing::debug!("Query params: {:?}", query_params);
-    tracing::debug!("Access token (first 10 chars): {}...", &state.access_token[..10.min(state.access_token.len())]);
-    tracing::debug!("Authorization header (first 20 chars): {}...", &auth_header[..20.min(auth_header.len())]);
+    tracing::debug!("Using configured ClickFunnels proxy credentials");
 
     let response = state
         .client
@@ -67,7 +49,10 @@ pub async fn proxy_get(
     tracing::info!("ClickFunnels API response status: {}", status);
 
     if !status.is_success() {
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
         tracing::error!("ClickFunnels API error ({}): {}", status, error_text);
         return Err(ProxyError::ApiError(status.as_u16(), error_text));
     }
@@ -84,9 +69,10 @@ pub async fn proxy_get(
 /// Proxy POST requests to ClickFunnels API
 pub async fn proxy_post(
     Path(endpoint): Path<String>,
-    State(state): State<Arc<ProxyState>>,
+    State(app_state): State<AppState>,
     Json(body): Json<Value>,
 ) -> Result<Json<Value>, ProxyError> {
+    let state = app_state.proxy.as_ref().ok_or(ProxyError::NotConfigured)?;
     let url = format!("{}/{}", state.base_url, endpoint);
 
     tracing::info!("Proxying POST request to: {}", url);
@@ -109,7 +95,10 @@ pub async fn proxy_post(
     tracing::info!("ClickFunnels API POST response status: {}", status);
 
     if !status.is_success() {
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
         tracing::error!("ClickFunnels API error ({}): {}", status, error_text);
         return Err(ProxyError::ApiError(status.as_u16(), error_text));
     }
@@ -125,6 +114,9 @@ pub async fn proxy_post(
 /// Proxy errors
 #[derive(Debug, thiserror::Error)]
 pub enum ProxyError {
+    #[error("Proxy not configured - access token required")]
+    NotConfigured,
+
     #[error("Failed to send request: {0}")]
     RequestFailed(String),
 
@@ -138,10 +130,15 @@ pub enum ProxyError {
 impl IntoResponse for ProxyError {
     fn into_response(self) -> Response {
         let (status, message) = match &self {
+            ProxyError::NotConfigured => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Proxy not configured".to_string(),
+            ),
             ProxyError::RequestFailed(msg) => (StatusCode::BAD_GATEWAY, msg.clone()),
-            ProxyError::ApiError(code, msg) => {
-                (StatusCode::from_u16(*code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR), msg.clone())
-            }
+            ProxyError::ApiError(code, msg) => (
+                StatusCode::from_u16(*code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+                msg.clone(),
+            ),
             ProxyError::ParseError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
         };
 

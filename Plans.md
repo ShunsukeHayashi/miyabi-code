@@ -1,8 +1,8 @@
-# Plans for Issue #363
+# Plans for Issue #673
 
-**Title**: 🖼️ Phase 2: 画像素材準備 - BytePlus Landing Page用画像8種類作成
+**Title**: feat: Integrate @humanu/orchestra (gwr) into miyabi-desktop
 
-**URL**: https://github.com/customer-cloud/miyabi-private/issues/363
+**URL**: https://github.com/customer-cloud/miyabi-private/issues/673
 
 ---
 
@@ -15,9 +15,9 @@
 
 ## 📝 Task Breakdown
 
-### 1. Analyze requirements for #363
+### 1. Analyze requirements for #673
 
-- **ID**: `task-363-analysis`
+- **ID**: `task-673-analysis`
 - **Type**: Docs
 - **Assigned Agent**: IssueAgent
 - **Priority**: 0
@@ -25,113 +25,93 @@
 
 **Description**: Analyze issue requirements and create detailed specification
 
-### 2. Implement solution for #363
+### 2. Implement solution for #673
 
-- **ID**: `task-363-impl`
+- **ID**: `task-673-impl`
 - **Type**: Feature
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 1
 - **Estimated Duration**: 30 min
-- **Dependencies**: task-363-analysis
+- **Dependencies**: task-673-analysis
 
-**Description**: ## 📋 概要
+**Description**: ## 🎯 Overview
 
-BytePlus Video API Bootcampランディングページ用の画像素材を作成し、最適化します。
+Integrate `@humanu/orchestra` (gwr) Git Worktree + tmux management functionality into miyabi-desktop to provide a consistent development experience across all execution patterns.
 
-**親Issue**: #361
-**マイルストーン**: Milestone 32 - BytePlus Video API Bootcamp
-**依存**: #362 (Phase 1完了後)
+## 📋 Goals
 
----
+1. **Worktree Visualization** - Display all worktrees in a tree view
+2. **tmux Session Integration** - Link tmux sessions to worktrees
+3. **AI-powered Naming** - Automatic naming using Anthropic API
+4. **Real-time Git Status** - Instant visualization of changes
+5. **Interactive Operations** - Support for keyboard/mouse interactions
 
-## 🎯 目標
+## 🎯 Five Execution Patterns
 
-8種類の画像を作成し、WebP形式で最適化する
+1. **CLI TUI Mode** (`miyabi tui`) - Direct gwr wrapper
+2. **Desktop GUI Mode** - Tauri + React integration
+3. **Agent Execution Mode** - Automatic worktree + tmux management
+4. **Parallel Execution Mode** - Multiple worktree parallel execution
+5. **Infinity Mode** - Automatic processing of all issues
 
----
+## 🏗️ Architecture
 
-## ✅ 必要な画像
+### Frontend (React + TypeScript)
+- `WorktreeManagerPanel.tsx` - Main panel
+- `WorktreeTreeView.tsx` - Interactive tree view (react-arborist)
+- `WorktreeDetailPanel.tsx` - Detail panel
+- `AINamingInput.tsx` - AI naming UI
+- `GitStatusBadges.tsx` - Real-time Git status
 
-| ファイル名 | サイズ推奨 | 説明 | 優先度 |
-|-----------|----------|------|-------|
-| `byteplus-partner-logo.svg` | - | BytePlus公式パートナーロゴ | 🔥 P0 |
-| `hero-demo.png` | 1200x800px | ヒーローセクションのデモ画像 | 🔥 P0 |
-| `instructor.jpg` | 400x400px | 講師写真 | ⚠️ P1 |
-| `testimonial-1.jpg` | 200x200px | 参加者1の写真 | ⚠️ P1 |
-| `testimonial-2.jpg` | 200x200px | 参加者2の写真 | ⚠️ P1 |
-| `testimonial-3.jpg` | 200x200px | 参加者3の写真 | ⚠️ P1 |
-| `og-image.png` | 1200x630px | OGP画像（SNSシェア用） | 🔥 P0 |
-| `favicon.png` | 32x32px | ファビコン | 📝 P2 |
+### Backend (Rust + Tauri)
+- `worktree.rs` - Worktree management
+- `ai_naming.rs` - Anthropic API integration
+- `tmux.rs` (enhanced) - Worktree ↔ tmux linking
 
----
+## 📅 Implementation Roadmap (3 weeks)
 
-## 🛠️ 画像最適化
+### Phase 1: Foundation (Week 1, Days 1-3) ⭐
+- [ ] Add Cargo dependencies
+- [ ] Implement `worktree.rs`
+- [ ] Implement `ai_naming.rs`
+- [ ] Register Tauri commands
+- [ ] Write unit tests
 
-### WebP変換
+### Phase 2-8: See detailed plan
 
-```bash
-# ImageMagickを使用
-convert hero-demo.png -quality 85 -define webp:lossless=false hero-demo.webp
+## 📖 Detailed Plan
 
-# または cwebp を使用
-cwebp -q 85 hero-demo.png -o hero-demo.webp
-```
+See: `.ai/plans/701/Plans-latest.md`
 
-### 最適化目標
+## 🔗 Related
 
-- **サイズ削減**: 50%以上削減
-- **品質維持**: 視覚的な劣化なし
-- **WebP対応**: 全画像でWebP提供
-
----
-
-## 📦 成果物
-
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/byteplus-partner-logo.svg`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/hero-demo.webp`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/instructor.webp`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/testimonial-1.webp`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/testimonial-2.webp`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/testimonial-3.webp`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/og-image.webp`
-- [ ] `docs/landing-pages/byteplus-bootcamp/images/favicon.png`
-
----
-
-## ⏱️ 推定工数
-
-**4時間** - 画像作成 + 最適化
-
----
-
-## 🔗 関連リンク
-
-- **親Issue**: #361
-- **依存Issue**: #362
-
----
+- gwr: @humanu/orchestra
+- TMUX_INTEGRATION_DESIGN.md
+- .claude/context/worktree.md
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-### 3. Add tests for #363
+Co-Authored-By: Claude <noreply@anthropic.com>
 
-- **ID**: `task-363-test`
+### 3. Add tests for #673
+
+- **ID**: `task-673-test`
 - **Type**: Test
 - **Assigned Agent**: CodeGenAgent
 - **Priority**: 2
 - **Estimated Duration**: 15 min
-- **Dependencies**: task-363-impl
+- **Dependencies**: task-673-impl
 
 **Description**: Create comprehensive test coverage
 
-### 4. Review code quality for #363
+### 4. Review code quality for #673
 
-- **ID**: `task-363-review`
+- **ID**: `task-673-review`
 - **Type**: Refactor
 - **Assigned Agent**: ReviewAgent
 - **Priority**: 3
 - **Estimated Duration**: 10 min
-- **Dependencies**: task-363-test
+- **Dependencies**: task-673-test
 
 **Description**: Run quality checks and code review
 
@@ -141,31 +121,31 @@ Tasks can be executed in parallel within each level:
 
 ### Level 0 (Parallel Execution)
 
-- `task-363-analysis` - Analyze requirements for #363
+- `task-673-analysis` - Analyze requirements for #673
 
 ### Level 1 (Parallel Execution)
 
-- `task-363-impl` - Implement solution for #363
+- `task-673-impl` - Implement solution for #673
 
 ### Level 2 (Parallel Execution)
 
-- `task-363-test` - Add tests for #363
+- `task-673-test` - Add tests for #673
 
 ### Level 3 (Parallel Execution)
 
-- `task-363-review` - Review code quality for #363
+- `task-673-review` - Review code quality for #673
 
 ## 📊 Dependency Graph
 
 ```mermaid
 graph TD
-    task_363_analysis["Analyze requirements for #363"]
-    task_363_impl["Implement solution for #363"]
-    task_363_test["Add tests for #363"]
-    task_363_review["Review code quality for #363"]
-    task_363_analysis --> task_363_impl
-    task_363_impl --> task_363_test
-    task_363_test --> task_363_review
+    task_673_analysis["Analyze requirements for #673"]
+    task_673_impl["Implement solution for #673"]
+    task_673_test["Add tests for #673"]
+    task_673_review["Review code quality for #673"]
+    task_673_analysis --> task_673_impl
+    task_673_impl --> task_673_test
+    task_673_test --> task_673_review
 ```
 
 ## ⏱️ Timeline Estimation
@@ -176,4 +156,4 @@ graph TD
 
 ---
 
-*Generated by CoordinatorAgent on 2025-11-01 10:36:05 UTC*
+*Generated by CoordinatorAgent on 2025-11-02 02:16:43 UTC*

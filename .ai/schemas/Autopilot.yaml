@@ -1,0 +1,162 @@
+# Autopilot Plan Schema
+# Version: 1.0.0
+# Purpose: Codex/Claude Code無人実行プラン定義
+# Reference: miyabi_def/variables/workflows.yaml
+
+autopilot:
+  # メタデータ
+  version: "1.0.0"
+  issue_number: 646  # GitHub Issue番号
+  title: "Initial Setup Wizard - Welcome Screen"
+  created_at: "2025-10-31T22:00:00+09:00"
+
+  # 実行設定
+  execution:
+    mode: "full-auto"  # full-auto | semi-auto | dry-run
+    timeout: 3600  # 秒単位（1時間）
+    max_retries: 3
+    abort_on_failure: true
+
+  # Worktree設定
+  worktree:
+    enabled: true
+    branch_prefix: "autopilot/issue-"
+    cleanup_on_success: true
+    cleanup_on_failure: false  # 失敗時はデバッグのため残す
+
+  # セキュリティ設定
+  security:
+    mask_secrets: true
+    allowed_env_vars:
+      - "GITHUB_TOKEN"
+      - "ANTHROPIC_API_KEY"
+      - "DEVICE_IDENTIFIER"
+    block_network: false  # LLM使用時はfalse
+    sandbox_mode: false
+
+  # ステップ定義（miyabi_def/variables/workflows.yaml形式を踏襲）
+  steps:
+    - id: "step-1"
+      name: "環境セットアップ"
+      type: "setup"
+      commands:
+        - "cargo build --release"
+        - "pnpm install"
+      expectations:
+        - type: "exit_code"
+          value: 0
+        - type: "file_exists"
+          value: "target/release/miyabi"
+      rollback:
+        - "cargo clean"
+      on_failure: "abort"
+
+    - id: "step-2"
+      name: "Codex実行 - Welcome画面実装"
+      type: "codex_exec"
+      commands:
+        - "codex exec --full-auto --prompt 'Implement Welcome screen component for miyabi-desktop setup wizard'"
+      expectations:
+        - type: "file_exists"
+          value: "miyabi-desktop/src/components/WelcomeScreen.tsx"
+        - type: "contains"
+          file: "miyabi-desktop/src/components/WelcomeScreen.tsx"
+          value: "export default function WelcomeScreen"
+      post_commands:
+        - "pnpm typecheck"
+        - "pnpm lint"
+      on_failure: "retry"
+
+    - id: "step-3"
+      name: "テスト実行"
+      type: "test"
+      commands:
+        - "pnpm test --run"
+        - "cargo test --all"
+      expectations:
+        - type: "exit_code"
+          value: 0
+        - type: "output_contains"
+          value: "test result: ok"
+      on_failure: "report"
+
+    - id: "step-4"
+      name: "コード整形"
+      type: "format"
+      commands:
+        - "cargo fmt"
+        - "pnpm format"
+      expectations:
+        - type: "exit_code"
+          value: 0
+      on_failure: "continue"
+
+    - id: "step-5"
+      name: "PR作成"
+      type: "git"
+      commands:
+        - "git add ."
+        - "git commit -m 'feat(miyabi-desktop): implement Welcome screen for setup wizard\n\nCloses #646\n\n🤖 Generated with Autopilot Codex'"
+        - "git push -u origin HEAD"
+        - "gh pr create --title 'feat(miyabi-desktop): Welcome screen' --body 'Implements #646\n\n## Changes\n- Add WelcomeScreen component\n- Add setup wizard routing\n\n## Tests\n- ✅ TypeScript checks pass\n- ✅ All tests pass\n\n🤖 Generated with Autopilot Codex'"
+      expectations:
+        - type: "exit_code"
+          value: 0
+        - type: "output_contains"
+          value: "https://github.com"
+      on_failure: "report"
+
+  # ログ設定
+  logging:
+    level: "info"  # debug | info | warn | error
+    output_dir: ".ai/logs/codex/autopilot"
+    format: "json"  # json | text
+    capture_stdout: true
+    capture_stderr: true
+
+  # 通知設定
+  notifications:
+    on_success:
+      - type: "github_comment"
+        template: |
+          ## ✅ Autopilot実行完了
+
+          **Issue**: #{{issue_number}}
+          **Duration**: {{duration}}
+          **Steps**: {{completed_steps}}/{{total_steps}}
+
+          ### 実行ログ
+          - [詳細ログ]({{log_url}})
+          - [サマリー]({{summary_url}})
+
+          🤖 Generated with Autopilot Codex
+
+    on_failure:
+      - type: "github_comment"
+        template: |
+          ## ❌ Autopilot実行失敗
+
+          **Issue**: #{{issue_number}}
+          **Failed at**: {{failed_step}}
+          **Error**: {{error_message}}
+
+          ### エラーログ
+          ```
+          {{error_log}}
+          ```
+
+          ### 対応が必要です
+          - Worktreeは保持されています: {{worktree_path}}
+          - エラーログ: {{log_path}}
+
+          🤖 Generated with Autopilot Codex
+
+      - type: "escalation"
+        target: "TechLead"
+
+  # 監査設定
+  audit:
+    enabled: true
+    check_worktree_cleanup: true
+    validate_logs: true
+    summary_required: true

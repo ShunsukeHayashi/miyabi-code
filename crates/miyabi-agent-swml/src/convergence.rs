@@ -76,11 +76,7 @@ impl ConvergenceTracker {
         if self.history.len() >= 3 {
             let last_three: Vec<f64> = self.history.iter().rev().take(3).copied().collect();
             let mean = last_three.iter().sum::<f64>() / 3.0;
-            let variance = last_three
-                .iter()
-                .map(|q| (q - mean).powi(2))
-                .sum::<f64>()
-                / 3.0;
+            let variance = last_three.iter().map(|q| (q - mean).powi(2)).sum::<f64>() / 3.0;
             let std_dev = variance.sqrt();
 
             // Stable if std dev < 5% of mean

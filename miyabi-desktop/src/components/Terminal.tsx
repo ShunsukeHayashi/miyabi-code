@@ -49,13 +49,18 @@ export function Terminal({ tabId, fontSize = 13, colorScheme = 'dark' }: Termina
     fitAddonRef.current = fitAddon;
 
     // Spawn PTY session
+    let stopListening: (() => void) | undefined;
     const initTerminal = async () => {
       try {
         const session = await spawnTerminal(term.cols, term.rows);
+        if (!session) {
+          term.writeln('\x1b[1;33mNo PTY session available. Ensure the Tauri backend is running.\x1b[0m');
+          return;
+        }
         setSessionId(session.id);
 
         // Listen to output from PTY
-        await listenToTerminalOutput(session.id, (data) => {
+        stopListening = await listenToTerminalOutput(session.id, (data) => {
           term.write(data);
         });
 
@@ -86,6 +91,7 @@ export function Terminal({ tabId, fontSize = 13, colorScheme = 'dark' }: Termina
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
+      stopListening?.();
       term.dispose();
     };
   }, [tabId]); // Re-initialize when tab changes

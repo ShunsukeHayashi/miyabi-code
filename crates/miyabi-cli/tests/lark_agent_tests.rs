@@ -11,7 +11,7 @@ use std::process::Command;
 #[test]
 fn test_c1_system_analysis() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run",
             "--quiet",
             "--bin",
@@ -74,7 +74,7 @@ fn test_c1_system_analysis() {
 #[test]
 fn test_c7_dashboard_construction() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C7",
         ])
         .env("MIYABI_VOICE_GUIDE", "false")
@@ -114,7 +114,7 @@ fn test_c7_dashboard_construction() {
 #[test]
 fn test_all_commands() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run",
             "--quiet",
             "--bin",
@@ -157,7 +157,7 @@ fn test_all_commands() {
 #[test]
 fn test_invalid_command() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run", "--quiet", "--bin", "miyabi", "--", "lark", "base",
             "C99", // Invalid command
         ])
@@ -178,7 +178,7 @@ fn test_invalid_command() {
 #[test]
 fn test_c2_critical_warning() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C2",
         ])
         .env("MIYABI_VOICE_GUIDE", "false")
@@ -203,7 +203,7 @@ fn test_c2_critical_warning() {
 #[test]
 fn test_c3_critical_warning() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C3",
         ])
         .env("MIYABI_VOICE_GUIDE", "false")
@@ -224,7 +224,7 @@ fn test_c3_critical_warning() {
 #[test]
 fn test_c8_roles() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run", "--quiet", "--bin", "miyabi", "--", "lark", "base", "C8",
         ])
         .env("MIYABI_VOICE_GUIDE", "false")
@@ -254,7 +254,7 @@ fn test_c8_roles() {
 #[test]
 fn test_wiki_create_help() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run",
             "--quiet",
             "--bin",
@@ -284,7 +284,7 @@ fn test_wiki_create_help() {
 #[test]
 fn test_lark_agent_help() {
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run", "--quiet", "--bin", "miyabi", "--", "lark", "agent", "--help",
         ])
         .output()

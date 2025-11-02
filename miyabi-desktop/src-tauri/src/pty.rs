@@ -40,7 +40,8 @@ impl PtyManager {
         managed_by: Option<String>,
     ) -> Result<TerminalSession, String> {
         let core = self.core.lock().unwrap();
-        let session = core.spawn_shell_with_manager(cols, rows, managed_by)
+        let session = core
+            .spawn_shell_with_manager(cols, rows, managed_by)
             .map_err(|e| e.to_string())?;
 
         // バックグラウンドで出力をTauriイベントとして配信
@@ -69,13 +70,15 @@ impl PtyManager {
     /// PTYにデータを書き込み
     pub fn write_to_pty(&self, session_id: &str, data: &str) -> Result<(), String> {
         let core = self.core.lock().unwrap();
-        core.write_to_pty(session_id, data).map_err(|e| e.to_string())
+        core.write_to_pty(session_id, data)
+            .map_err(|e| e.to_string())
     }
 
     /// PTYをリサイズ（注: portable-ptyの制限により未実装）
     pub fn resize_pty(&self, session_id: &str, cols: u16, rows: u16) -> Result<(), String> {
         let core = self.core.lock().unwrap();
-        core.resize_pty(session_id, cols, rows).map_err(|e| e.to_string())
+        core.resize_pty(session_id, cols, rows)
+            .map_err(|e| e.to_string())
     }
 
     /// セッションを終了
@@ -101,7 +104,8 @@ impl PtyManager {
     /// コマンドを実行
     pub fn execute_command(&self, session_id: &str, command: &str) -> Result<(), String> {
         let core = self.core.lock().unwrap();
-        core.execute_command(session_id, command).map_err(|e| e.to_string())
+        core.execute_command(session_id, command)
+            .map_err(|e| e.to_string())
     }
 
     /// 特定のマネージャーのセッションを一覧表示
@@ -113,7 +117,8 @@ impl PtyManager {
     /// 特定のマネージャーの全セッションを終了
     pub fn kill_sessions_by_manager(&self, manager_id: &str) -> Result<usize, String> {
         let core = self.core.lock().unwrap();
-        core.kill_sessions_by_manager(manager_id).map_err(|e| e.to_string())
+        core.kill_sessions_by_manager(manager_id)
+            .map_err(|e| e.to_string())
     }
 }
 

@@ -152,12 +152,10 @@ pub async fn execute_agent(
 
     // Build miyabi CLI command
     // Find project root (parent of miyabi-desktop)
-    let current_dir = std::env::current_dir()
-        .map_err(|e| format!("Failed to get current directory: {}", e))?;
+    let current_dir =
+        std::env::current_dir().map_err(|e| format!("Failed to get current directory: {}", e))?;
 
-    let project_root = current_dir
-        .parent()
-        .ok_or("Failed to find project root")?;
+    let project_root = current_dir.parent().ok_or("Failed to find project root")?;
 
     // Use the release binary directly for better performance
     let miyabi_binary = project_root.join("target/release/miyabi");
@@ -165,9 +163,7 @@ pub async fn execute_agent(
     // Fallback to cargo run if release binary doesn't exist
     let mut cmd = if miyabi_binary.exists() {
         let mut c = Command::new(&miyabi_binary);
-        c.arg("agent")
-            .arg("run")
-            .arg(request.agent_type.as_str());
+        c.arg("agent").arg("run").arg(request.agent_type.as_str());
         c
     } else {
         let mut c = Command::new("cargo");
@@ -223,7 +219,8 @@ pub async fn execute_agent(
 
             while let Ok(Some(line)) = lines.next_line().await {
                 eprintln!("[DEBUG] Emitting stdout: {}", line);
-                let _ = app_handle_clone.emit(&format!("agent-output-{}", execution_id_clone), &line);
+                let _ =
+                    app_handle_clone.emit(&format!("agent-output-{}", execution_id_clone), &line);
             }
         }))
     } else {
@@ -241,7 +238,8 @@ pub async fn execute_agent(
 
             while let Ok(Some(line)) = lines.next_line().await {
                 eprintln!("[DEBUG] Emitting stderr: {}", line);
-                let _ = app_handle_clone.emit(&format!("agent-output-{}", execution_id_clone), &line);
+                let _ =
+                    app_handle_clone.emit(&format!("agent-output-{}", execution_id_clone), &line);
             }
         }))
     } else {

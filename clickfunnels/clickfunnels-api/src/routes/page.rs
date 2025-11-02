@@ -3,13 +3,18 @@
 //! This module defines the routing configuration for Page endpoints.
 
 use axum::{
+    middleware,
     routing::{delete, get, post, put},
     Router,
 };
 
-use crate::handlers::page::{
-    create_page, delete_page, duplicate_page, get_page, get_page_stats, list_pages, publish_page,
-    unpublish_page, update_page, update_page_content,
+use crate::{
+    handlers::page::{
+        create_page, delete_page, duplicate_page, get_page, get_page_stats, list_pages, publish_page,
+        unpublish_page, update_page, update_page_content,
+    },
+    middleware::auth::auth_middleware,
+    state::AppState,
 };
 
 /// Create Page routes
@@ -25,7 +30,7 @@ use crate::handlers::page::{
 /// - POST /pages/:id/publish - Publish page
 /// - POST /pages/:id/unpublish - Unpublish page
 /// - POST /pages/:id/duplicate - Duplicate page
-pub fn create_page_routes() -> Router {
+pub fn create_page_routes() -> Router<AppState> {
     Router::new()
         .route("/pages", post(create_page))
         .route("/pages", get(list_pages))
@@ -37,4 +42,5 @@ pub fn create_page_routes() -> Router {
         .route("/pages/:id/publish", post(publish_page))
         .route("/pages/:id/unpublish", post(unpublish_page))
         .route("/pages/:id/duplicate", post(duplicate_page))
+        .route_layer(middleware::from_fn(auth_middleware))
 }

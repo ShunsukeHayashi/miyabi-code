@@ -1,0 +1,79 @@
+{
+  "issue_number": 106,
+  "title": "[Task] Stripe Dashboard プラン設定",
+  "coordinator_result": {
+    "dag": {
+      "nodes": [
+        {
+          "id": "task-1",
+          "description": "要件定義・アーキテクチャ設計",
+          "agent_type": "codegen",
+          "dependencies": [],
+          "priority": 1,
+          "estimated_hours": 4
+        },
+        {
+          "id": "task-2",
+          "description": "フロントエンド実装（React/TypeScript）",
+          "agent_type": "codegen",
+          "dependencies": ["task-1"],
+          "priority": 2,
+          "estimated_hours": 8
+        },
+        {
+          "id": "task-3",
+          "description": "バックエンド実装（Firebase Functions）",
+          "agent_type": "codegen",
+          "dependencies": ["task-1"],
+          "priority": 2,
+          "estimated_hours": 6
+        },
+        {
+          "id": "task-4",
+          "description": "ユニットテスト実装",
+          "agent_type": "codegen",
+          "dependencies": ["task-2", "task-3"],
+          "priority": 3,
+          "estimated_hours": 4
+        },
+        {
+          "id": "task-5",
+          "description": "E2Eテスト実装",
+          "agent_type": "codegen",
+          "dependencies": ["task-4"],
+          "priority": 4,
+          "estimated_hours": 3
+        },
+        {
+          "id": "task-6",
+          "description": "コードレビュー・品質チェック",
+          "agent_type": "review",
+          "dependencies": ["task-5"],
+          "priority": 5,
+          "estimated_hours": 2
+        }
+      ],
+      "critical_path": ["task-1", "task-2", "task-4", "task-5", "task-6"],
+      "total_estimated_hours": 27
+    },
+    "agent_assignments": [
+      {
+        "agent": "CodeGenAgent",
+        "tasks": ["task-1", "task-2", "task-3", "task-4", "task-5"],
+        "estimated_hours": 25
+      },
+      {
+        "agent": "ReviewAgent",
+        "tasks": ["task-6"],
+        "estimated_hours": 2
+      }
+    ],
+    "execution_plan": {
+      "parallel_execution": ["task-2", "task-3"],
+      "sequential_execution": ["task-1", "task-4", "task-5", "task-6"],
+      "max_concurrency": 2
+    }
+  },
+  "status": "assigned",
+  "assigned_at": "2025-10-02T14:30:41Z"
+}

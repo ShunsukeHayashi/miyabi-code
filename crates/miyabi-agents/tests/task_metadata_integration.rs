@@ -204,7 +204,7 @@ mod task_metadata_tests {
         manager.save(&parent).unwrap();
 
         // Create 4 subtasks (like CoordinatorAgent would)
-        let subtask_ids = vec![
+        let subtask_ids = [
             "task-300-analysis",
             "task-300-impl",
             "task-300-test",

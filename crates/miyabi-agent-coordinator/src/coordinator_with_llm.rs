@@ -7,7 +7,10 @@ use crate::coordinator::CoordinatorAgent;
 use async_trait::async_trait;
 use miyabi_agent_core::BaseAgent;
 use miyabi_github::GitHubClient;
-use miyabi_llm::{GPTOSSProvider, HybridRouter, LLMProvider, LLMRequest, LlmClient, Message, ReasoningEffort, Role};
+use miyabi_llm::{
+    GPTOSSProvider, HybridRouter, LLMProvider, LLMRequest, LlmClient, Message, ReasoningEffort,
+    Role,
+};
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::{Task, TaskDecomposition, TaskType};
@@ -28,7 +31,10 @@ impl HybridRouterAdapter {
 
 #[async_trait]
 impl LLMProvider for HybridRouterAdapter {
-    async fn generate(&self, request: &LLMRequest) -> miyabi_llm::error::Result<miyabi_llm::types::LLMResponse> {
+    async fn generate(
+        &self,
+        request: &LLMRequest,
+    ) -> miyabi_llm::error::Result<miyabi_llm::types::LLMResponse> {
         let msg = Message {
             role: Role::User,
             content: request.prompt.clone(),
@@ -44,11 +50,18 @@ impl LLMProvider for HybridRouterAdapter {
         })
     }
 
-    async fn chat(&self, messages: &[miyabi_llm::types::ChatMessage]) -> miyabi_llm::error::Result<miyabi_llm::types::ChatMessage> {
+    async fn chat(
+        &self,
+        messages: &[miyabi_llm::types::ChatMessage],
+    ) -> miyabi_llm::error::Result<miyabi_llm::types::ChatMessage> {
         let converted: Vec<Message> = messages
             .iter()
             .map(|m| Message {
-                role: if m.role == miyabi_llm::types::ChatRole::User { Role::User } else { Role::Assistant },
+                role: if m.role == miyabi_llm::types::ChatRole::User {
+                    Role::User
+                } else {
+                    Role::Assistant
+                },
                 content: m.content.clone(),
             })
             .collect();
@@ -122,7 +135,10 @@ impl CoordinatorAgentWithLLM {
                 return Some(Box::new(adapter) as Box<dyn LLMProvider>);
             }
             Err(err) => {
-                tracing::warn!("HybridRouter initialization failed: {}. Trying GPT-OSS fallback...", err);
+                tracing::warn!(
+                    "HybridRouter initialization failed: {}. Trying GPT-OSS fallback...",
+                    err
+                );
             }
         }
 

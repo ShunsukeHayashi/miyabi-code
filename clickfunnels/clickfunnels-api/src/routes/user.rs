@@ -7,7 +7,10 @@ use axum::{
     Router,
 };
 
-use crate::handlers::user::{create_user, delete_user, get_user, list_users, update_user};
+use crate::{
+    handlers::user::{create_user, delete_user, get_user, list_users, update_user},
+    state::AppState,
+};
 
 /// Create User routes
 ///
@@ -17,7 +20,7 @@ use crate::handlers::user::{create_user, delete_user, get_user, list_users, upda
 /// - GET /users/:id - Get user by ID
 /// - PUT /users/:id - Update user
 /// - DELETE /users/:id - Delete user
-pub fn create_user_routes() -> Router {
+pub fn create_user_routes() -> Router<AppState> {
     Router::new()
         .route("/users", post(create_user))
         .route("/users", get(list_users))

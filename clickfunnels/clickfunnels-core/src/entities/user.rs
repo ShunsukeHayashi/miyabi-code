@@ -136,7 +136,8 @@ impl User {
     /// Check if user has a valid password reset token
     pub fn has_valid_reset_token(&self, token: &str) -> bool {
         if let (Some(stored_token), Some(expires_at)) =
-            (&self.password_reset_token, self.password_reset_expires_at) {
+            (&self.password_reset_token, self.password_reset_expires_at)
+        {
             stored_token == token && expires_at > Utc::now()
         } else {
             false
@@ -173,7 +174,11 @@ impl User {
     }
 
     /// Reset password
-    pub fn reset_password(&mut self, token: &str, new_password_hash: String) -> Result<(), &'static str> {
+    pub fn reset_password(
+        &mut self,
+        token: &str,
+        new_password_hash: String,
+    ) -> Result<(), &'static str> {
         if self.has_valid_reset_token(token) {
             self.password_hash = new_password_hash;
             self.password_reset_token = None;

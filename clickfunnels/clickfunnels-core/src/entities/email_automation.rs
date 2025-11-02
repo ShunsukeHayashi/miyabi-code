@@ -333,7 +333,10 @@ impl EmailDelay {
                 while next.weekday().num_days_from_sunday() != *day as u32 {
                     next += Duration::days(1);
                 }
-                next.date_naive().and_hms_opt(*hour as u32, 0, 0).unwrap().and_utc()
+                next.date_naive()
+                    .and_hms_opt(*hour as u32, 0, 0)
+                    .unwrap()
+                    .and_utc()
             }
         }
     }

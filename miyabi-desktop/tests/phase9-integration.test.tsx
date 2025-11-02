@@ -6,21 +6,24 @@ import type {
   PullRequestMergeResult,
   PullRequestStatus,
 } from "../src/services/githubMergeClient";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { Phase9Provider } from "../src/context/Phase9Context";
 import { AutoMergeSettings } from "../src/components/AutoMergeSettings";
 import { DeploymentDashboard } from "../src/components/DeploymentDashboard";
 
 interface GitHubClientStub {
-  getPullRequestStatus: Mock<Promise<PullRequestStatus>, [number]>;
-  mergePullRequest: Mock<Promise<PullRequestMergeResult>, [number, { strategy: string }]>;
+  getPullRequestStatus: Mock<(prNumber: number) => Promise<PullRequestStatus>>;
+  mergePullRequest: Mock<
+    (prNumber: number, options: { strategy: string }) => Promise<PullRequestMergeResult>
+  >;
 }
 
 interface DeploymentServiceStub {
-  triggerDeployment: Mock<Promise<string>, [number]>;
+  triggerDeployment: Mock<(prNumber: number) => Promise<string>>;
   onStatusUpdate: (listener: (status: any) => void) => () => void;
-  monitorDeployment?: Mock<Promise<void>, [string]>;
+  monitorDeployment?: Mock<(deploymentId: string) => Promise<void>>;
 }
 
 describe("Phase9 orchestrator integration", () => {
@@ -31,16 +34,13 @@ describe("Phase9 orchestrator integration", () => {
 
   beforeEach(() => {
     mergeClient = {
-      getPullRequestStatus: vi.fn() as Mock<Promise<PullRequestStatus>, [number]>,
-      mergePullRequest: vi.fn() as Mock<
-        Promise<PullRequestMergeResult>,
-        [number, { strategy: string }]
-      >,
+      getPullRequestStatus: vi.fn() as GitHubClientStub["getPullRequestStatus"],
+      mergePullRequest: vi.fn() as GitHubClientStub["mergePullRequest"],
     };
 
     deploymentListeners = [];
     deploymentService = {
-      triggerDeployment: vi.fn() as Mock<Promise<string>, [number]>,
+      triggerDeployment: vi.fn() as DeploymentServiceStub["triggerDeployment"],
       onStatusUpdate: (listener) => {
         deploymentListeners.push(listener);
         return () => {
@@ -50,7 +50,7 @@ describe("Phase9 orchestrator integration", () => {
           }
         };
       },
-      monitorDeployment: vi.fn() as Mock<Promise<void>, [string]>,
+      monitorDeployment: vi.fn() as DeploymentServiceStub["monitorDeployment"],
     };
 
     orchestrator = new Phase9Orchestrator(
@@ -78,7 +78,6 @@ describe("Phase9 orchestrator integration", () => {
     preferredStrategy: undefined,
     requireLinearHistory: false,
     allowRebase: true,
-    environment: "staging",
     ...overrides,
   });
 

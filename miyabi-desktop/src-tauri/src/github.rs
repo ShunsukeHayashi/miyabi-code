@@ -4,6 +4,8 @@
 
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::fs;
+use std::path::PathBuf;
 use tauri::{AppHandle, Emitter};
 
 /// Issue state
@@ -37,6 +39,70 @@ pub struct GitHubIssue {
     pub html_url: String,
 }
 
+/// Load an environment value, falling back to parsing the nearest `.env` file.
+pub(crate) fn load_env_value(key: &str) -> Result<String, String> {
+    if let Ok(value) = env::var(key) {
+        let trimmed = value.trim();
+        if !trimmed.is_empty() {
+            return Ok(trimmed.to_string());
+        }
+    }
+
+    if let Some(dotenv_path) = find_project_dotenv()? {
+        let content = fs::read_to_string(&dotenv_path)
+            .map_err(|e| format!("Failed to read {}: {}", dotenv_path.display(), e))?;
+
+        for line in content.lines() {
+            let mut trimmed = line.trim();
+
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                continue;
+            }
+
+            if let Some(stripped) = trimmed.strip_prefix("export ") {
+                trimmed = stripped.trim();
+            }
+
+            if let Some((env_key, env_value)) = trimmed.split_once('=') {
+                if env_key.trim() == key {
+                    let mut value = env_value.trim().to_string();
+                    if let (Some(first), Some(last)) = (value.chars().next(), value.chars().last())
+                    {
+                        if (first == '\"' && last == '\"') || (first == '\'' && last == '\'') {
+                            value = value[1..value.len() - 1].to_string();
+                        }
+                    }
+
+                    if !value.is_empty() {
+                        env::set_var(key, &value);
+                        return Ok(value);
+                    }
+                }
+            }
+        }
+    }
+
+    Err(format!("{} not set", key))
+}
+
+/// Locate the `.env` file by walking up from the current directory.
+pub(crate) fn find_project_dotenv() -> Result<Option<PathBuf>, String> {
+    let mut dir =
+        env::current_dir().map_err(|e| format!("Failed to determine current directory: {}", e))?;
+
+    loop {
+        let candidate = dir.join(".env");
+        if candidate.exists() {
+            return Ok(Some(candidate));
+        }
+
+        match dir.parent() {
+            Some(parent) => dir = parent.to_path_buf(),
+            None => return Ok(None),
+        }
+    }
+}
+
 /// Issue creation request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateIssueRequest {
@@ -62,8 +128,8 @@ pub async fn list_issues(
     labels: Vec<String>,
     _app_handle: AppHandle,
 ) -> Result<Vec<GitHubIssue>, String> {
-    let token = env::var("GITHUB_TOKEN").map_err(|_| "GITHUB_TOKEN not set".to_string())?;
-    let repo = env::var("GITHUB_REPOSITORY")
+    let token = load_env_value("GITHUB_TOKEN")?;
+    let repo = load_env_value("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/Miyabi".to_string());
 
     let parts: Vec<&str> = repo.split('/').collect();
@@ -164,8 +230,8 @@ pub async fn list_issues(
 
 /// Get a single issue
 pub async fn get_issue(number: u64) -> Result<GitHubIssue, String> {
-    let token = env::var("GITHUB_TOKEN").map_err(|_| "GITHUB_TOKEN not set".to_string())?;
-    let repo = env::var("GITHUB_REPOSITORY")
+    let token = load_env_value("GITHUB_TOKEN")?;
+    let repo = load_env_value("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/Miyabi".to_string());
 
     let parts: Vec<&str> = repo.split('/').collect();
@@ -263,8 +329,8 @@ pub async fn update_issue(
     request: UpdateIssueRequest,
     app_handle: AppHandle,
 ) -> Result<GitHubIssue, String> {
-    let token = env::var("GITHUB_TOKEN").map_err(|_| "GITHUB_TOKEN not set".to_string())?;
-    let repo = env::var("GITHUB_REPOSITORY")
+    let token = load_env_value("GITHUB_TOKEN")?;
+    let repo = load_env_value("GITHUB_REPOSITORY")
         .unwrap_or_else(|_| "ShunsukeHayashi/Miyabi".to_string());
 
     let parts: Vec<&str> = repo.split('/').collect();
@@ -281,7 +347,10 @@ pub async fn update_issue(
     // Build request body
     let mut body = serde_json::Map::new();
     if let Some(title) = &request.title {
-        body.insert("title".to_string(), serde_json::Value::String(title.clone()));
+        body.insert(
+            "title".to_string(),
+            serde_json::Value::String(title.clone()),
+        );
     }
     if let Some(body_text) = &request.body {
         body.insert(

@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 clickfunnels-core = { path = "../clickfunnels-core" }
+clickfunnels-db = { path = "../clickfunnels-db" }
 
 # Async runtime
 tokio = { workspace = true }
@@ -39,8 +40,17 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # HTTP utilities
 tower = "0.4"
-tower-http = { version = "0.5", features = ["cors", "trace"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "limit"] }
 reqwest = { version = "0.12", features = ["json"] }
+governor = "0.6"
 
 # Logging
 tracing = { workspace = true }
+
+# Security
+bcrypt = "0.15"
+jsonwebtoken = "9.2"
+
+[dev-dependencies]
+http-body-util = "0.1"
+tower = { version = "0.4", features = ["util"] }

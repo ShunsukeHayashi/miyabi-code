@@ -1,16 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import DashboardView from './views/DashboardView';
+import WorktreesView from './views/WorktreesView';
+import { useDashboard } from './hooks/useDashboard';
 
 export default function App() {
   const [appVersion, setAppVersion] = useState<string>('');
-  const [systemInfo, setSystemInfo] = useState<any>(null);
+  const [activeView, setActiveView] = useState<NavKey>('dashboard');
 
   useEffect(() => {
-    // Load app version
-    window.electron.app.getVersion().then(setAppVersion);
-
-    // Load system info
-    window.electron.system.getInfo().then(setSystemInfo);
+    let mounted = true;
+    window.electron.app
+      .getVersion()
+      .then((version) => {
+        if (mounted) setAppVersion(version);
+      })
+      .catch(() => {
+        if (mounted) setAppVersion('dev');
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  const navItems = useMemo(
+    () => [
+      { key: 'dashboard' as const, label: 'Dashboard', icon: '🏠' },
+      { key: 'worktrees' as const, label: 'Worktrees', icon: '🌲' },
+      { key: 'agents' as const, label: 'Agents', icon: '🤖' },
+      { key: 'issues' as const, label: 'Issues', icon: '📋' },
+      { key: 'history' as const, label: 'History', icon: '📊' },
+      { key: 'settings' as const, label: 'Settings', icon: '⚙️' },
+    ],
+    []
+  );
+
+  const dashboard = useDashboard();
+
+  const activeNav = navItems.find((n) => n.key === activeView) ?? navItems[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -19,7 +45,7 @@ export default function App() {
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="text-2xl font-extralight">Miyabi Desktop</div>
-            <span className="text-xs text-foreground-muted">v{appVersion}</span>
+            <span className="text-xs text-foreground-muted">v{appVersion || 'dev'}</span>
           </div>
         </div>
       </header>
@@ -29,78 +55,40 @@ export default function App() {
         {/* Sidebar */}
         <aside className="w-64 border-r border-background-lighter bg-background-light">
           <nav className="p-4 space-y-2">
-            <NavItem icon="🏠" label="Dashboard" active />
-            <NavItem icon="🌲" label="Worktrees" />
-            <NavItem icon="🤖" label="Agents" />
-            <NavItem icon="📋" label="Issues" />
-            <NavItem icon="📊" label="History" />
-            <NavItem icon="⚙️" label="Settings" />
+            {navItems.map((item) => (
+              <NavItem
+                key={item.key}
+                icon={item.icon}
+                label={item.label}
+                active={item.key === activeView}
+                onClick={() => setActiveView(item.key)}
+              />
+            ))}
           </nav>
         </aside>
 
         {/* Content Area */}
         <div className="flex-1 p-8">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-extralight mb-8">Welcome to Miyabi Desktop</h1>
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-4xl font-extralight mb-8">{activeNav.label}</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <Card
-                title="🚀 Getting Started"
-                description="Open a Miyabi project to get started with autonomous development."
-              >
-                <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 transition-colors">
-                  Open Project
-                </button>
-              </Card>
-
-              <Card
-                title="📚 Documentation"
-                description="Learn more about Miyabi's features and capabilities."
-              >
-                <button className="px-4 py-2 border border-foreground-muted text-foreground rounded-md hover:bg-background-lighter transition-colors">
-                  View Docs
-                </button>
-              </Card>
-            </div>
-
-            {systemInfo && (
-              <Card title="💻 System Information">
-                <dl className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <dt className="text-foreground-muted">Platform</dt>
-                    <dd className="font-mono">{systemInfo.platform}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-foreground-muted">Architecture</dt>
-                    <dd className="font-mono">{systemInfo.arch}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-foreground-muted">CPU Cores</dt>
-                    <dd className="font-mono">{systemInfo.cpus}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-foreground-muted">Memory</dt>
-                    <dd className="font-mono">
-                      {(systemInfo.totalMemory / 1024 / 1024 / 1024).toFixed(1)} GB
-                    </dd>
-                  </div>
-                </dl>
-              </Card>
-            )}
-
-            <div className="mt-8 p-6 bg-background-lighter rounded-lg border border-background-lighter">
-              <h2 className="text-xl font-extralight mb-4">MVP Features (Sprint 0)</h2>
-              <ul className="space-y-2 text-sm text-foreground-muted">
-                <li>✅ Electron + React + TypeScript setup</li>
-                <li>✅ Vite build system with HMR</li>
-                <li>✅ IPC communication layer (main ↔ renderer)</li>
-                <li>✅ Basic UI layout (sidebar, content area)</li>
-                <li>⏳ Project management (Sprint 2)</li>
-                <li>⏳ Worktree visualization (Sprint 3)</li>
-                <li>⏳ Agent monitoring (Sprint 4)</li>
-                <li>⏳ Issue management (Sprint 5)</li>
-              </ul>
-            </div>
+            {(() => {
+              switch (activeView) {
+                case 'dashboard':
+                  return (
+                    <DashboardView
+                      data={dashboard.data}
+                      loading={dashboard.loading}
+                      error={dashboard.error}
+                      onNavigate={(view) => setActiveView(view as NavKey)}
+                    />
+                  );
+                case 'worktrees':
+                  return <WorktreesView />;
+                default:
+                  return <PlaceholderView view={activeView} />;
+              }
+            })()}
           </div>
         </div>
       </main>
@@ -119,9 +107,26 @@ export default function App() {
   );
 }
 
-function NavItem({ icon, label, active = false }: { icon: string; label: string; active?: boolean }) {
+type NavKey =
+  | 'dashboard'
+  | 'worktrees'
+  | 'agents'
+  | 'issues'
+  | 'history'
+  | 'settings';
+
+type NavItemProps = {
+  icon: string;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+};
+
+function NavItem({ icon, label, active = false, onClick }: NavItemProps) {
   return (
     <button
+      type="button"
+      onClick={onClick}
       className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
         active
           ? 'bg-background-lighter text-foreground'
@@ -134,20 +139,31 @@ function NavItem({ icon, label, active = false }: { icon: string; label: string;
   );
 }
 
-function Card({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children?: React.ReactNode;
-}) {
+function PlaceholderView({ view }: { view: NavKey }) {
+  const descriptions: Record<Exclude<NavKey, 'dashboard'>, string> = {
+    worktrees: 'Monitor active branches and worktree health. This view will display active worktrees, orphan detection, and clean-up actions.',
+    agents: 'Manage and configure Miyabi agent assignments, parameters, and dependencies.',
+    issues: 'Review GitHub issues, track progress, and manage synchronization between worktrees and tasks.',
+    history: 'Inspect past runs, outcomes, and audit logs in a timeline with analytics.',
+    settings: 'Adjust preferences, integrations, and themes for Miyabi Desktop.',
+  };
+
+  if (view === 'dashboard') {
+    return null;
+  }
+
+  const titleMap: Record<Exclude<NavKey, 'dashboard'>, string> = {
+    worktrees: '🌲 Worktrees',
+    agents: '🤖 Agents',
+    issues: '📋 Issues',
+    history: '📊 History',
+    settings: '⚙️ Settings',
+  };
+
   return (
     <div className="p-6 bg-background-light rounded-lg border border-background-lighter">
-      <h3 className="text-lg font-extralight mb-2">{title}</h3>
-      {description && <p className="text-sm text-foreground-muted mb-4">{description}</p>}
-      {children}
+      <h3 className="text-lg font-extralight mb-2">{titleMap[view]}</h3>
+      <p className="text-sm text-foreground-muted">{descriptions[view]}</p>
     </div>
   );
 }

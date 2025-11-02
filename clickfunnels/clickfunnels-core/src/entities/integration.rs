@@ -184,7 +184,12 @@ pub struct Integration {
 
 impl Integration {
     /// Create a new Integration with default values
-    pub fn new(user_id: Uuid, name: String, integration_type: IntegrationType, provider: Provider) -> Self {
+    pub fn new(
+        user_id: Uuid,
+        name: String,
+        integration_type: IntegrationType,
+        provider: Provider,
+    ) -> Self {
         let now = Utc::now();
         Self {
             id: Uuid::new_v4(),
@@ -240,7 +245,12 @@ impl Integration {
     }
 
     /// Set OAuth tokens
-    pub fn set_oauth_tokens(&mut self, access_token: String, refresh_token: Option<String>, expires_in_seconds: Option<i64>) {
+    pub fn set_oauth_tokens(
+        &mut self,
+        access_token: String,
+        refresh_token: Option<String>,
+        expires_in_seconds: Option<i64>,
+    ) {
         self.oauth_access_token = Some(access_token);
         self.oauth_refresh_token = refresh_token;
 
@@ -394,7 +404,10 @@ mod tests {
             Provider::SendGrid,
         );
 
-        integration.set_api_credentials("api_key_123".to_string(), Some("api_secret_456".to_string()));
+        integration.set_api_credentials(
+            "api_key_123".to_string(),
+            Some("api_secret_456".to_string()),
+        );
         assert_eq!(integration.api_key, Some("api_key_123".to_string()));
         assert_eq!(integration.api_secret, Some("api_secret_456".to_string()));
     }
@@ -415,7 +428,10 @@ mod tests {
             Some(3600), // 1 hour
         );
 
-        assert_eq!(integration.oauth_access_token, Some("access_token_abc".to_string()));
+        assert_eq!(
+            integration.oauth_access_token,
+            Some("access_token_abc".to_string())
+        );
         assert!(!integration.is_oauth_token_expired());
     }
 

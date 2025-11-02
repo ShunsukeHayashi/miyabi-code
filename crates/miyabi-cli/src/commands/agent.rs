@@ -3,6 +3,10 @@
 use crate::config::ConfigLoader;
 use crate::error::{CliError, Result};
 use colored::Colorize;
+use miyabi_agent_codegen::{
+    modes::{manual::ManualMode, ModeExecutor},
+    ExecutionMode,
+};
 use miyabi_agents::{
     AIEntrepreneurAgent, AnalyticsAgent, AuditLogHook, BaseAgent, CRMAgent, CodeGenAgent,
     ContentCreationAgent, CoordinatorAgentWithLLM, DeploymentAgent, EnvironmentCheckHook,
@@ -19,11 +23,16 @@ use std::path::PathBuf;
 pub struct AgentCommand {
     pub agent_type: String,
     pub issue: Option<u64>,
+    pub mode: Option<ExecutionMode>,
 }
 
 impl AgentCommand {
-    pub fn new(agent_type: String, issue: Option<u64>) -> Self {
-        Self { agent_type, issue }
+    pub fn new(agent_type: String, issue: Option<u64>, mode: Option<ExecutionMode>) -> Self {
+        Self {
+            agent_type,
+            issue,
+            mode,
+        }
     }
 
     pub async fn execute(&self) -> Result<()> {
@@ -245,14 +254,11 @@ impl AgentCommand {
 
         println!("  Issue: #{}", issue_number);
         println!("  Type: CodeGenAgent (Code generation)");
-        println!();
 
-        // Create agent with lifecycle hooks and LLM integration
-        let mut agent = HookedAgent::new(
-            CodeGenAgent::new_with_all(config.clone())
-                .unwrap_or_else(|_| CodeGenAgent::new(config.clone()))
-        );
-        self.register_standard_hooks(&mut agent, &config);
+        // Check execution mode
+        let mode = self.mode.unwrap_or(ExecutionMode::Auto);
+        println!("  Mode: {}", mode);
+        println!();
 
         // Create task for codegen
         let task = Task {
@@ -275,26 +281,66 @@ impl AgentCommand {
             )])),
         };
 
-        // Execute agent
-        println!("{}", "  Executing...".dimmed());
-        let result = agent.execute(&task).await?;
+        // Execute based on mode
+        match mode {
+            ExecutionMode::Manual => {
+                // Manual mode: Guide human implementation
+                println!("{}", "  📝 Manual Mode Activated".cyan().bold());
+                println!();
 
-        // Display results
-        println!();
-        println!("  Results:");
-        println!("    Status: {:?}", result.status);
+                // Create manual mode executor
+                let current_dir = std::env::current_dir().map_err(|e| {
+                    CliError::InvalidInput(format!("Failed to get current directory: {}", e))
+                })?;
+                let manual_mode = ManualMode::new(current_dir);
 
-        if let Some(metrics) = result.metrics {
-            println!("    Duration: {}ms", metrics.duration_ms);
-            if let Some(lines_changed) = metrics.lines_changed {
-                println!("    Lines changed: {}", lines_changed);
+                // Execute manual mode
+                let result = manual_mode
+                    .execute(&task)
+                    .await
+                    .map_err(|e| CliError::ExecutionError(e.to_string()))?;
+
+                println!();
+                println!("{}", result);
+                println!();
+                println!("{}", "✅ Manual mode setup complete".green().bold());
+
+                Ok(())
             }
-            if let Some(tests_added) = metrics.tests_added {
-                println!("    Tests added: {}", tests_added);
+            ExecutionMode::Auto => {
+                // Auto mode: LLM-driven code generation
+                println!("{}", "  🤖 Auto Mode: LLM Code Generation".cyan().bold());
+                println!();
+
+                // Create agent with lifecycle hooks and LLM integration
+                let mut agent = HookedAgent::new(
+                    CodeGenAgent::new_with_all(config.clone())
+                        .unwrap_or_else(|_| CodeGenAgent::new(config.clone())),
+                );
+                self.register_standard_hooks(&mut agent, &config);
+
+                // Execute agent
+                println!("{}", "  Executing...".dimmed());
+                let result = agent.execute(&task).await?;
+
+                // Display results
+                println!();
+                println!("  Results:");
+                println!("    Status: {:?}", result.status);
+
+                if let Some(metrics) = result.metrics {
+                    println!("    Duration: {}ms", metrics.duration_ms);
+                    if let Some(lines_changed) = metrics.lines_changed {
+                        println!("    Lines changed: {}", lines_changed);
+                    }
+                    if let Some(tests_added) = metrics.tests_added {
+                        println!("    Tests added: {}", tests_added);
+                    }
+                }
+
+                Ok(())
             }
         }
-
-        Ok(())
     }
 
     async fn run_review_agent(&self, config: AgentConfig) -> Result<()> {
@@ -902,47 +948,47 @@ mod tests {
 
     #[test]
     fn test_parse_agent_type() {
-        let cmd = AgentCommand::new("coordinator".to_string(), None);
+        let cmd = AgentCommand::new("coordinator".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::CoordinatorAgent
         ));
 
-        let cmd = AgentCommand::new("codegen".to_string(), None);
+        let cmd = AgentCommand::new("codegen".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::CodeGenAgent
         ));
 
-        let cmd = AgentCommand::new("code-gen".to_string(), None);
+        let cmd = AgentCommand::new("code-gen".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::CodeGenAgent
         ));
 
-        let cmd = AgentCommand::new("invalid".to_string(), None);
+        let cmd = AgentCommand::new("invalid".to_string(), None, None);
         assert!(cmd.parse_agent_type().is_err());
 
         // Test Business Agent types
-        let cmd = AgentCommand::new("ai-entrepreneur".to_string(), None);
+        let cmd = AgentCommand::new("ai-entrepreneur".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::AIEntrepreneurAgent
         ));
 
-        let cmd = AgentCommand::new("entrepreneur".to_string(), None);
+        let cmd = AgentCommand::new("entrepreneur".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::AIEntrepreneurAgent
         ));
 
-        let cmd = AgentCommand::new("marketing".to_string(), None);
+        let cmd = AgentCommand::new("marketing".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::MarketingAgent
         ));
 
-        let cmd = AgentCommand::new("analytics".to_string(), None);
+        let cmd = AgentCommand::new("analytics".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::AnalyticsAgent
@@ -951,24 +997,24 @@ mod tests {
 
     #[test]
     fn test_agent_command_creation() {
-        let cmd = AgentCommand::new("coordinator".to_string(), Some(123));
+        let cmd = AgentCommand::new("coordinator".to_string(), Some(123), None);
         assert_eq!(cmd.agent_type, "coordinator");
         assert_eq!(cmd.issue, Some(123));
 
-        let cmd = AgentCommand::new("codegen".to_string(), None);
+        let cmd = AgentCommand::new("codegen".to_string(), None, None);
         assert_eq!(cmd.agent_type, "codegen");
         assert_eq!(cmd.issue, None);
     }
 
     #[test]
     fn test_parse_agent_type_case_insensitive() {
-        let cmd = AgentCommand::new("COORDINATOR".to_string(), None);
+        let cmd = AgentCommand::new("COORDINATOR".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::CoordinatorAgent
         ));
 
-        let cmd = AgentCommand::new("CoDeGen".to_string(), None);
+        let cmd = AgentCommand::new("CoDeGen".to_string(), None, None);
         assert!(matches!(
             cmd.parse_agent_type().unwrap(),
             AgentType::CodeGenAgent
@@ -989,7 +1035,7 @@ mod tests {
         ];
 
         for (input, expected) in test_cases {
-            let cmd = AgentCommand::new(input.to_string(), None);
+            let cmd = AgentCommand::new(input.to_string(), None, None);
             let result = cmd.parse_agent_type().unwrap();
             assert_eq!(
                 std::mem::discriminant(&result),
@@ -1028,7 +1074,7 @@ mod tests {
         ];
 
         for (input, expected) in test_cases {
-            let cmd = AgentCommand::new(input.to_string(), None);
+            let cmd = AgentCommand::new(input.to_string(), None, None);
             let result = cmd.parse_agent_type().unwrap();
             assert_eq!(
                 std::mem::discriminant(&result),
@@ -1052,7 +1098,7 @@ mod tests {
         ];
 
         for input in invalid_types {
-            let cmd = AgentCommand::new(input.to_string(), None);
+            let cmd = AgentCommand::new(input.to_string(), None, None);
             let result = cmd.parse_agent_type();
             assert!(result.is_err(), "Should fail for input: {}", input);
             assert!(matches!(result.unwrap_err(), CliError::InvalidAgentType(_)));
@@ -1061,7 +1107,7 @@ mod tests {
 
     #[test]
     fn test_create_business_task() {
-        let cmd = AgentCommand::new("marketing".to_string(), Some(42));
+        let cmd = AgentCommand::new("marketing".to_string(), Some(42), None);
         let task = cmd.create_business_task(42, "Test Title", "Test Description");
 
         assert_eq!(task.id, "business-issue-42");

@@ -10,11 +10,16 @@ import {
   type Phase9OrchestratorConfig,
 } from "../orchestrator/phase9Orchestrator";
 import { GitHubMergeClient } from "../services/githubMergeClient";
-import {
-  DeploymentEngine,
-  type DeploymentEngineConfig,
-  type DeploymentStatus,
-} from "../services/deployService";
+// Temporarily disabled to avoid Node.js module imports in browser
+// import {
+//   DeploymentEngine,
+//   type DeploymentEngineConfig,
+//   type DeploymentStatus,
+// } from "../services/deployService";
+
+import type { DeploymentStatus } from "../services/deployService.types";
+
+type DeploymentEngineConfig = any; // Placeholder type
 
 interface DeploymentServiceMinimal {
   triggerDeployment(prNumber: number): Promise<string>;
@@ -52,21 +57,26 @@ class InMemoryDeploymentService implements DeploymentServiceMinimal {
 }
 
 function createDeploymentService(
-  config?: DeploymentEngineConfig,
+  _config?: DeploymentEngineConfig,
 ): DeploymentServiceMinimal {
-  if (!config) {
-    return new InMemoryDeploymentService();
-  }
+  // Temporarily disabled: DeploymentEngine requires Node.js modules
+  // Always use InMemoryDeploymentService for now
+  return new InMemoryDeploymentService();
 
-  try {
-    return new DeploymentEngine(config);
-  } catch (error) {
-    console.error(
-      "[Phase9] Failed to initialise DeploymentEngine. Falling back to in-memory service.",
-      error,
-    );
-    return new InMemoryDeploymentService();
-  }
+  // Original implementation (commented out):
+  // if (!config) {
+  //   return new InMemoryDeploymentService();
+  // }
+  //
+  // try {
+  //   return new DeploymentEngine(config);
+  // } catch (error) {
+  //   console.error(
+  //     "[Phase9] Failed to initialise DeploymentEngine. Falling back to in-memory service.",
+  //     error,
+  //   );
+  //   return new InMemoryDeploymentService();
+  // }
 }
 
 interface Phase9ProviderProps {

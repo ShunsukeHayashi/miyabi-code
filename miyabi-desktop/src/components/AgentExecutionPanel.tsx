@@ -141,14 +141,29 @@ export function AgentExecutionPanel() {
 
     try {
       // Create a promise to capture the execution_id from the status event
-      const executionIdPromise = new Promise<string>((resolve) => {
-        const unlisten = listenToAgentStatus((result: AgentExecutionResult) => {
+      const executionIdPromise = new Promise<string>((resolve, reject) => {
+        let unsubscribe: (() => void) | undefined;
+        let resolved = false;
+
+        const handleStatus = (result: AgentExecutionResult) => {
           if (result.status === "starting" || result.status === "running") {
+            resolved = true;
             console.log('[DEBUG] Received execution_id from status event:', result.execution_id);
             resolve(result.execution_id);
-            unlisten(); // Clean up listener after we get the ID
+            unsubscribe?.();
           }
-        });
+        };
+
+        listenToAgentStatus(handleStatus)
+          .then((unlisten) => {
+            unsubscribe = unlisten;
+            if (resolved) {
+              unlisten();
+            }
+          })
+          .catch((error) => {
+            reject(error);
+          });
       });
 
       // Execute agent (this will trigger the "starting" status event)

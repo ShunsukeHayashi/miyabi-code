@@ -10,8 +10,9 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, InitCommand, InstallCommand, KnowledgeCommand, LoopCommand, ModeCommand,
-    ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand, WorktreeSubcommand,
+    AgentCommand, CleanupCommand, InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand,
+    LoopCommand, ModeCommand, ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand,
+    WorktreeSubcommand,
 };
 use error::Result;
 
@@ -70,6 +71,9 @@ enum Commands {
         /// Issue number
         #[arg(long)]
         issue: Option<u64>,
+        /// Execution mode (auto or manual) - only for CodeGenAgent
+        #[arg(long)]
+        mode: Option<String>,
     },
     /// Execute agents in parallel worktrees
     Parallel {
@@ -105,6 +109,36 @@ enum Commands {
     Mode {
         #[command(flatten)]
         command: ModeCommand,
+    },
+    /// Cleanup git worktrees and recover disk space
+    Cleanup {
+        /// Perform a dry run without deleting any worktrees
+        #[arg(long)]
+        dry_run: bool,
+        /// Force removal of stuck or locked worktrees
+        #[arg(long)]
+        force: bool,
+        /// Remove all worktrees (including active ones)
+        #[arg(long)]
+        all: bool,
+    },
+    /// Infinity Mode - Process all Issues autonomously until completion
+    Infinity {
+        /// Maximum number of Issues to process (default: unlimited)
+        #[arg(long)]
+        max_issues: Option<usize>,
+        /// Number of concurrent executions (default: 3)
+        #[arg(long, default_value = "3")]
+        concurrency: usize,
+        /// Number of Issues per sprint (default: 5)
+        #[arg(long, default_value = "5")]
+        sprint_size: usize,
+        /// Dry run mode (no actual changes)
+        #[arg(long)]
+        dry_run: bool,
+        /// Resume from previous run
+        #[arg(long)]
+        resume: bool,
     },
 }
 
@@ -148,8 +182,20 @@ async fn main() -> Result<()> {
             let cmd = StatusCommand::new(watch);
             cmd.execute().await
         }
-        Some(Commands::Agent { agent_type, issue }) => {
-            let cmd = AgentCommand::new(agent_type, issue);
+        Some(Commands::Agent {
+            agent_type,
+            issue,
+            mode,
+        }) => {
+            // Parse execution mode
+            let execution_mode = mode
+                .map(|m| m.parse::<miyabi_agent_codegen::ExecutionMode>())
+                .transpose()
+                .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
+                    error::CliError::InvalidInput(e.to_string())
+                })?;
+
+            let cmd = AgentCommand::new(agent_type, issue, execution_mode);
             cmd.execute().await
         }
         Some(Commands::Parallel {
@@ -167,7 +213,7 @@ async fn main() -> Result<()> {
             // Try to parse as issue number
             if let Ok(issue_num) = task.parse::<u64>() {
                 println!("  {} Issue #{}", "📋".green(), issue_num);
-                let cmd = AgentCommand::new("coordinator".to_string(), Some(issue_num));
+                let cmd = AgentCommand::new("coordinator".to_string(), Some(issue_num), None);
                 cmd.execute().await
             } else {
                 // Task description - suggest creating an issue
@@ -190,8 +236,32 @@ async fn main() -> Result<()> {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
         }
+        Some(Commands::Cleanup {
+            dry_run,
+            force,
+            all,
+        }) => {
+            let cmd = CleanupCommand::new(dry_run, force, all);
+            cmd.execute().await
+        }
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
+        Some(Commands::Infinity {
+            max_issues,
+            concurrency,
+            sprint_size,
+            dry_run,
+            resume,
+        }) => {
+            let cmd = InfinityCommand {
+                max_issues,
+                concurrency,
+                sprint_size,
+                dry_run,
+                resume,
+            };
+            cmd.execute().await
+        }
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());

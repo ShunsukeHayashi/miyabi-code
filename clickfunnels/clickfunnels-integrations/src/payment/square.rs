@@ -15,7 +15,9 @@ pub struct SquareClient {
 impl SquareClient {
     pub fn new(api_key: String, sandbox: bool) -> PaymentResult<Self> {
         if api_key.is_empty() {
-            return Err(PaymentError::ConfigError("API key cannot be empty".to_string()));
+            return Err(PaymentError::ConfigError(
+                "API key cannot be empty".to_string(),
+            ));
         }
 
         Ok(Self { api_key, sandbox })
@@ -66,7 +68,11 @@ impl PaymentClient for SquareClient {
         })
     }
 
-    async fn refund_payment(&self, _payment_id: &str, _amount: Option<i64>) -> PaymentResult<String> {
+    async fn refund_payment(
+        &self,
+        _payment_id: &str,
+        _amount: Option<i64>,
+    ) -> PaymentResult<String> {
         Ok("stub_refund_id".to_string())
     }
 

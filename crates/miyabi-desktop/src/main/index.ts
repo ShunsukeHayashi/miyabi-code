@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { registerDashboardHandlers } from './services/dashboard';
+import { registerWorktreeHandlers } from './services/worktrees';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -144,6 +146,10 @@ function createMenu() {
 // App lifecycle
 app.on('ready', createWindow);
 
+// Register IPC handlers
+registerDashboardHandlers();
+registerWorktreeHandlers();
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -167,16 +173,6 @@ ipcMain.handle('app:getName', () => {
 
 ipcMain.handle('app:getPath', (_, name: 'home' | 'appData' | 'userData' | 'temp') => {
   return app.getPath(name);
-});
-
-// Worktree handlers (placeholder - will be implemented in Sprint 3)
-ipcMain.handle('worktree:getAll', async () => {
-  return [];
-});
-
-ipcMain.handle('worktree:delete', async (_, worktreePath: string) => {
-  console.log('Delete worktree:', worktreePath);
-  return { success: true };
 });
 
 // Agent handlers (placeholder - will be implemented in Sprint 4)

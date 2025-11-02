@@ -4,7 +4,7 @@
 //! orphaned, stuck, and idle worktrees, with integration to TaskMetadata.
 
 use chrono::{DateTime, Utc};
-use miyabi_core::TaskMetadataManager;
+use miyabi_core::{find_git_root, TaskMetadataManager};
 use miyabi_types::error::{MiyabiError, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -68,13 +68,36 @@ pub struct WorktreeStateManager {
 impl WorktreeStateManager {
     /// Create a new WorktreeStateManager
     pub fn new(project_root: PathBuf) -> Result<Self> {
-        let worktree_base = project_root.join(".worktrees");
-        let task_metadata_manager = TaskMetadataManager::new(&project_root).map_err(|e| {
-            MiyabiError::Io(std::io::Error::other(e.to_string()))
-        })?;
+        // Automatically resolve the git repository root. When invoked from a
+        // subdirectory, this ensures we look in the canonical project root for
+        // both `.worktrees/` and `.miyabi/tasks/`.
+        let resolved_root = match find_git_root(Some(&project_root)) {
+            Ok(root) => {
+                if root != project_root {
+                    tracing::debug!(
+                        "Resolved git repository root {:?} from {:?}",
+                        root,
+                        project_root
+                    );
+                }
+                root
+            }
+            Err(err) => {
+                tracing::debug!(
+                    "WorktreeStateManager fallback to provided path {:?}: {}",
+                    project_root,
+                    err
+                );
+                project_root.clone()
+            }
+        };
+
+        let worktree_base = resolved_root.join(".worktrees");
+        let task_metadata_manager = TaskMetadataManager::new(&resolved_root)
+            .map_err(|e| MiyabiError::Io(std::io::Error::other(e.to_string())))?;
 
         Ok(Self {
-            project_root,
+            project_root: resolved_root,
             worktree_base,
             task_metadata_manager,
         })
@@ -220,12 +243,38 @@ impl WorktreeStateManager {
         Ok(count)
     }
 
+    /// Clean up all known worktrees regardless of status
+    pub fn cleanup_all(&self) -> Result<usize> {
+        let worktrees = self.scan_worktrees()?;
+        let mut cleaned = 0usize;
+        let mut errors = Vec::new();
+
+        for worktree in worktrees {
+            match self.cleanup_worktree(&worktree.path) {
+                Ok(_) => cleaned += 1,
+                Err(e) => {
+                    errors.push(format!("{} ({})", worktree.path.display(), e));
+                }
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(cleaned)
+        } else {
+            Err(MiyabiError::Unknown(format!(
+                "Failed to clean some worktrees: {}",
+                errors.join(", ")
+            )))
+        }
+    }
+
     /// Synchronize worktree states with TaskMetadata
     pub fn sync_with_metadata(&self) -> Result<()> {
         let worktrees = self.scan_worktrees()?;
-        let all_tasks = self.task_metadata_manager.list_all().map_err(|e| {
-            MiyabiError::Io(std::io::Error::other(e.to_string()))
-        })?;
+        let all_tasks = self
+            .task_metadata_manager
+            .list_all()
+            .map_err(|e| MiyabiError::Io(std::io::Error::other(e.to_string())))?;
 
         // Create a map of issue numbers to task metadata
         let task_map: std::collections::HashMap<u64, _> = all_tasks
@@ -288,9 +337,7 @@ impl WorktreeStateManager {
             let tasks = self
                 .task_metadata_manager
                 .find_by_issue(issue_num)
-                .map_err(|e| {
-                    MiyabiError::Io(std::io::Error::other(e.to_string()))
-                })?;
+                .map_err(|e| MiyabiError::Io(std::io::Error::other(e.to_string())))?;
             if tasks.is_empty() {
                 return Ok(WorktreeStatusDetailed::Orphaned);
             }
@@ -400,5 +447,45 @@ mod tests {
 
         let states = manager.scan_worktrees().unwrap();
         assert_eq!(states.len(), 0);
+    }
+
+    #[test]
+    fn test_cleanup_all_with_no_worktrees() {
+        let temp_dir = TempDir::new().unwrap();
+        let manager = WorktreeStateManager::new(temp_dir.path().to_path_buf()).unwrap();
+
+        let cleaned = manager.cleanup_all().unwrap();
+        assert_eq!(cleaned, 0);
+    }
+
+    #[test]
+    fn test_state_manager_resolves_git_root() {
+        let temp_dir = TempDir::new().unwrap();
+        let repo_path = temp_dir.path();
+
+        // Initialize git repository
+        let init_output = std::process::Command::new("git")
+            .args(["init"])
+            .current_dir(repo_path)
+            .output()
+            .expect("git init should be invokable");
+        assert!(
+            init_output.status.success(),
+            "git init did not exit successfully"
+        );
+
+        let subdir = repo_path.join("nested");
+        std::fs::create_dir(&subdir).unwrap();
+
+        // Create manager from subdirectory path
+        let manager = WorktreeStateManager::new(subdir.clone()).unwrap();
+
+        // Task metadata directory should exist at repository root
+        assert!(repo_path.join(".miyabi").join("tasks").exists());
+        assert!(!subdir.join(".miyabi").exists());
+
+        // Manager still scans (even if no worktrees)
+        let states = manager.scan_worktrees().unwrap();
+        assert!(states.is_empty());
     }
 }

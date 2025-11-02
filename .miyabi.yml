@@ -14,15 +14,3 @@ cli:
   language: ja
   theme: default
   verboseErrors: true
-live_mode:
-  enabled: true
-  auto_start: true
-  voice_enabled: true
-  speaker_id: 3
-  update_interval: 5
-  modes:
-    - git
-    - files
-    - tests
-    - build
-    - resources

@@ -248,14 +248,20 @@ impl Page {
     /// Update conversion rate
     fn update_conversion_rate(&mut self) {
         if self.total_visits > 0 {
-            self.conversion_rate = (self.total_conversions as f64 / self.total_visits as f64) * 100.0;
+            self.conversion_rate =
+                (self.total_conversions as f64 / self.total_visits as f64) * 100.0;
         } else {
             self.conversion_rate = 0.0;
         }
     }
 
     /// Set SEO metadata
-    pub fn set_seo_metadata(&mut self, title: String, description: String, keywords: Option<String>) {
+    pub fn set_seo_metadata(
+        &mut self,
+        title: String,
+        description: String,
+        keywords: Option<String>,
+    ) {
         self.seo_title = Some(title);
         self.seo_description = Some(description);
         self.seo_keywords = keywords;
@@ -333,14 +339,22 @@ mod tests {
     fn test_publish_unpublish() {
         let funnel_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let mut page = Page::new(funnel_id, user_id, "Test Page".to_string(), "test".to_string());
+        let mut page = Page::new(
+            funnel_id,
+            user_id,
+            "Test Page".to_string(),
+            "test".to_string(),
+        );
 
         assert!(page.is_draft());
         assert!(!page.is_published());
 
         page.publish("https://example.com/test".to_string());
         assert!(page.is_published());
-        assert_eq!(page.published_url, Some("https://example.com/test".to_string()));
+        assert_eq!(
+            page.published_url,
+            Some("https://example.com/test".to_string())
+        );
 
         page.unpublish();
         assert!(page.is_draft());
@@ -350,7 +364,12 @@ mod tests {
     fn test_update_content() {
         let funnel_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let mut page = Page::new(funnel_id, user_id, "Test Page".to_string(), "test".to_string());
+        let mut page = Page::new(
+            funnel_id,
+            user_id,
+            "Test Page".to_string(),
+            "test".to_string(),
+        );
 
         page.update_html_content("<h1>Hello World</h1>".to_string());
         assert_eq!(page.html_content, "<h1>Hello World</h1>");
@@ -366,7 +385,12 @@ mod tests {
     fn test_conversion_tracking() {
         let funnel_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let mut page = Page::new(funnel_id, user_id, "Test Page".to_string(), "test".to_string());
+        let mut page = Page::new(
+            funnel_id,
+            user_id,
+            "Test Page".to_string(),
+            "test".to_string(),
+        );
 
         // Record 200 visits (150 unique)
         for i in 0..200 {
@@ -387,7 +411,12 @@ mod tests {
     fn test_seo_metadata() {
         let funnel_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let mut page = Page::new(funnel_id, user_id, "Test Page".to_string(), "test".to_string());
+        let mut page = Page::new(
+            funnel_id,
+            user_id,
+            "Test Page".to_string(),
+            "test".to_string(),
+        );
 
         page.set_seo_metadata(
             "SEO Title".to_string(),
@@ -404,7 +433,12 @@ mod tests {
     fn test_ab_testing() {
         let funnel_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let mut page = Page::new(funnel_id, user_id, "Test Page".to_string(), "test".to_string());
+        let mut page = Page::new(
+            funnel_id,
+            user_id,
+            "Test Page".to_string(),
+            "test".to_string(),
+        );
 
         assert!(!page.is_ab_test_variant);
 
@@ -423,7 +457,12 @@ mod tests {
     fn test_custom_code_injection() {
         let funnel_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let mut page = Page::new(funnel_id, user_id, "Test Page".to_string(), "test".to_string());
+        let mut page = Page::new(
+            funnel_id,
+            user_id,
+            "Test Page".to_string(),
+            "test".to_string(),
+        );
 
         page.set_custom_head_code("<script>console.log('head');</script>".to_string());
         page.set_custom_footer_code("<script>console.log('footer');</script>".to_string());

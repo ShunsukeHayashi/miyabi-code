@@ -71,5 +71,5 @@ path = "src/bin/dashboard-server.rs"
 required-features = ["http"]
 
 [build-dependencies]
-# tonic-build is needed to compile .proto files when grpc feature is enabled
-tonic-build = "0.14"
+# tonic-prost-build is needed to compile .proto files when grpc feature is enabled
+tonic-prost-build = "0.14"

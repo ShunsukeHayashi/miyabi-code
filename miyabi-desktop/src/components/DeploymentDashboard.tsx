@@ -10,7 +10,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { usePhase9Orchestrator } from "../context/Phase9Context";
-import type { DeploymentStatus as Phase9DeploymentStatus, DeploymentPhase } from "../services/deployService";
+import type { DeploymentStatus as Phase9DeploymentStatus } from "../services/deployService.types";
 
 type PipelineStatus = "healthy" | "deploying" | "queued" | "error";
 
@@ -179,8 +179,6 @@ export function DeploymentDashboard() {
     useState<DeploymentEvent[]>(INITIAL_HISTORY);
   const [isDeploying, setIsDeploying] = useState(false);
   const [heartbeat, setHeartbeat] = useState(() => new Date());
-  const [manualPr, setManualPr] = useState<string>("");
-  const [manualError, setManualError] = useState<string | null>(null);
 
   // Simulate live status updates to convey active monitoring
   useEffect(() => {
@@ -203,6 +201,95 @@ export function DeploymentDashboard() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const bus = orchestrator.eventBus;
+    const unsubscribe = bus.on(
+      "deployment:status",
+      (payload: Phase9DeploymentStatus & { prNumber: number }) => {
+        const environment = payload.environment ?? "staging";
+        const status = payload.status;
+        const rawTimestamp = (payload.updatedAt ??
+          payload.createdAt ??
+          new Date()) as unknown;
+        let timestampSource: Date;
+        if (rawTimestamp instanceof Date) {
+          timestampSource = rawTimestamp;
+        } else if (
+          typeof rawTimestamp === "string" ||
+          typeof rawTimestamp === "number"
+        ) {
+          timestampSource = new Date(rawTimestamp);
+        } else {
+          timestampSource = new Date();
+        }
+        const timestamp = timestampSource.toISOString();
+        const pipelineId = normalizePipelineId(environment);
+
+        setIsDeploying(status === "pending" || status === "running");
+
+        setPipelines((prev) => {
+          const pipelineStatus = mapStatusToPipelineStatus(payload);
+          const existingIndex = prev.findIndex(
+            (pipeline) => pipeline.id === pipelineId,
+          );
+
+          const updatedPipeline: Pipeline =
+            existingIndex >= 0
+              ? {
+                  ...prev[existingIndex],
+                  status: pipelineStatus,
+                  lastDeploymentAt: timestamp,
+                  version: resolvePipelineVersion(payload, prev[existingIndex].version),
+                }
+              : {
+                  id: pipelineId,
+                  name: formatEnvironment(environment),
+                  branch: environment === "production" ? "main" : environment,
+                  status: pipelineStatus,
+                  version: resolvePipelineVersion(payload),
+                  lastDeploymentAt: timestamp,
+                  changeCount: 0,
+                  reviewerCount: 0,
+                  qualityScore: 0,
+                };
+
+          if (existingIndex >= 0) {
+            const next = [...prev];
+            next[existingIndex] = updatedPipeline;
+            return next;
+          }
+          return [...prev, updatedPipeline];
+        });
+
+        setDeploymentHistory((prev) => {
+          const actor = "Phase9 Orchestrator";
+          const summary = buildDeploymentSummaryFromPayload(payload);
+          const entry: DeploymentEvent = {
+            id: payload.deploymentId ?? `deployment-${timestampSource.getTime()}`,
+            timestamp,
+            environment: formatEnvironment(environment),
+            actor,
+            result: mapStatusToHistoryResult(payload),
+            summary,
+          };
+          const existingIndex = prev.findIndex(
+            (item) => item.id === entry.id && item.timestamp === entry.timestamp,
+          );
+          if (existingIndex >= 0) {
+            const next = [...prev];
+            next[existingIndex] = entry;
+            return next;
+          }
+          return [entry, ...prev].slice(0, 20);
+        });
+      },
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [orchestrator]);
 
   const latestSuccessfulDeployment = useMemo(
     () => deploymentHistory.find((event) => event.result === "success"),
@@ -589,20 +676,131 @@ function normalizePipelineId(environment: string): string {
   return value;
 }
 
-function mapPhaseToPipelineStatus(phase: DeploymentPhase): PipelineStatus {
-  switch (phase) {
-    case "queued":
-      return "queued";
-    case "deploying_staging":
-    case "smoke_testing":
-    case "promoting":
-      return "deploying";
+function resolvePipelineVersion(
+  payload: Phase9DeploymentStatus & { prNumber: number },
+  previous?: string,
+): string {
+  const extended = payload as Phase9DeploymentStatus & {
+    version?: string;
+    releaseTag?: string;
+    displayVersion?: string;
+    metadata?: Record<string, unknown>;
+  };
+
+  const metadata =
+    extended.metadata && typeof extended.metadata === "object"
+      ? (extended.metadata as Record<string, unknown>)
+      : {};
+
+  const candidateKeys = [
+    "version",
+    "displayVersion",
+    "releaseTag",
+    "releaseVersion",
+    "artifactVersion",
+    "artifactTag",
+    "gitTag",
+    "gitSha",
+    "semver",
+  ] as const;
+
+  for (const key of candidateKeys) {
+    const fromPayload = (extended as Record<string, unknown>)[key];
+    if (typeof fromPayload === "string" && fromPayload.trim().length > 0) {
+      return fromPayload.trim();
+    }
+
+    const fromMetadata = metadata[key];
+    if (typeof fromMetadata === "string" && fromMetadata.trim().length > 0) {
+      return fromMetadata.trim();
+    }
+  }
+
+  if (typeof previous === "string" && previous.trim().length > 0) {
+    return previous.trim();
+  }
+
+  if (typeof payload.id === "string" && payload.id.trim().length > 0) {
+    return payload.id.trim();
+  }
+
+  if (typeof payload.prNumber === "number" && Number.isFinite(payload.prNumber)) {
+    return `PR #${payload.prNumber}`;
+  }
+
+  return payload.deploymentId ?? "unknown";
+}
+
+function buildDeploymentSummaryFromPayload(
+  payload: Phase9DeploymentStatus & { prNumber: number },
+): string {
+  const prNumber =
+    typeof payload.prNumber === "number" && Number.isFinite(payload.prNumber)
+      ? payload.prNumber
+      : undefined;
+
+  if (payload.error) {
+    if (prNumber !== undefined) {
+      return `Deployment error for PR #${prNumber}: ${payload.error}`;
+    }
+    return `Deployment error: ${payload.error}`;
+  }
+
+  const rawMessage = typeof payload.message === "string" ? payload.message.trim() : "";
+  if (rawMessage.length > 0) {
+    const normalized = ensureTerminalPunctuation(rawMessage);
+    if (prNumber !== undefined && !containsPrReference(normalized, prNumber)) {
+      const withoutTerminal = normalized.replace(/([.!?])\s*$/, "");
+      return `${withoutTerminal} for PR #${prNumber}.`;
+    }
+    return normalized;
+  }
+
+  return buildDeploymentSummary(payload.status, payload.phase, prNumber);
+}
+
+function mapStatusToPipelineStatus(
+  status: Phase9DeploymentStatus,
+): PipelineStatus {
+  const statusValue =
+    typeof status.status === "string" ? status.status.toLowerCase() : "";
+  const phaseValue =
+    typeof status.phase === "string" ? status.phase.toLowerCase() : "";
+
+  switch (statusValue) {
+    case "success":
     case "completed":
     case "rollback_succeeded":
       return "healthy";
     case "failed":
     case "rollback_failed":
       return "error";
+    case "pending":
+    case "queued":
+      return "queued";
+    case "running":
+      return phaseValue === "rollback" ? "error" : "deploying";
+    case "deploying_staging":
+    case "smoke_testing":
+    case "promoting":
+    case "rollback_initiated":
+      return "deploying";
+    default:
+      break;
+  }
+
+  switch (phaseValue) {
+    case "rollback":
+      return "error";
+    case "rollback_failed":
+      return "error";
+    case "rollback_succeeded":
+      return "healthy";
+    case "queued":
+      return "queued";
+    case "deploying_staging":
+    case "smoke_testing":
+    case "promoting":
     case "rollback_initiated":
       return "deploying";
     default:
@@ -610,18 +808,81 @@ function mapPhaseToPipelineStatus(phase: DeploymentPhase): PipelineStatus {
   }
 }
 
-function mapPhaseToHistoryResult(phase: DeploymentPhase): DeploymentEvent["result"] {
-  switch (phase) {
+function mapStatusToHistoryResult(
+  status: Phase9DeploymentStatus,
+): DeploymentEvent["result"] {
+  const statusValue =
+    typeof status.status === "string" ? status.status.toLowerCase() : "";
+  const phaseValue =
+    typeof status.phase === "string" ? status.phase.toLowerCase() : "";
+
+  switch (statusValue) {
+    case "success":
     case "completed":
-      return "success";
+      return phaseValue === "rollback" ? "warning" : "success";
+    case "rollback_succeeded":
+      return "warning";
     case "failed":
+    case "rollback_failed":
+      return "failed";
+    case "pending":
+    case "queued":
+      return "in-progress";
+    case "running":
+      return phaseValue === "rollback" ? "warning" : "in-progress";
+    case "deploying_staging":
+    case "smoke_testing":
+    case "promoting":
+    case "rollback_initiated":
+      return "in-progress";
+    default:
+      break;
+  }
+
+  switch (phaseValue) {
     case "rollback_failed":
       return "failed";
     case "rollback_succeeded":
       return "warning";
+    case "rollback":
+    case "deploying_staging":
+    case "smoke_testing":
+    case "promoting":
+    case "rollback_initiated":
+    case "queued":
+      return "in-progress";
     default:
       return "in-progress";
   }
+}
+
+function buildDeploymentSummary(
+  status: Phase9DeploymentStatus["status"],
+  phase?: Phase9DeploymentStatus["phase"],
+  prNumber?: number,
+): string {
+  const statusLabel = humanize(status);
+  const phaseLabel = phase ? ` – ${humanize(phase)}` : "";
+  const prLabel =
+    typeof prNumber === "number" && Number.isFinite(prNumber)
+      ? ` for PR #${prNumber}`
+      : "";
+  return `Deployment ${statusLabel}${phaseLabel}${prLabel}.`;
+}
+
+function ensureTerminalPunctuation(text: string): string {
+  return /[.!?]\s*$/.test(text) ? text : `${text}.`;
+}
+
+function containsPrReference(text: string, prNumber: number): boolean {
+  const regex = new RegExp(`PR\\s*#?${prNumber}\\b`, "i");
+  return regex.test(text);
+}
+
+function humanize(value: string): string {
+  return value
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function formatEnvironment(environment: string): string {

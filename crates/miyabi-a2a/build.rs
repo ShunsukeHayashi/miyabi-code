@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Only compile proto files when the "grpc" feature is enabled
     #[cfg(feature = "grpc")]
     {
-        tonic_build::configure()
+        tonic_prost_build::configure()
             .build_server(true)
             .build_client(true)
             .out_dir("src/grpc/generated")

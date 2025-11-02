@@ -270,8 +270,7 @@ mod tests {
         // If gh is authenticated on the system, this will succeed (which is correct behavior)
         // If gh is not available or not authenticated, it will fail
         // Both outcomes are valid depending on the system state
-        if token.is_ok() {
-            let token_str = token.unwrap();
+        if let Ok(token_str) = token {
             // If successful, should be a valid GitHub token format
             assert!(
                 token_str.starts_with("ghp_")

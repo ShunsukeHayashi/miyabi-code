@@ -1,0 +1,10 @@
+{
+  "session_id": "claude-code-x-20251028-234356-6173bb",
+  "task": "ずんだもんの声（speaker=3）でユニコさんへの応援メッセージを送信してください。メッセージ内容：「ユニコさん、いつも頑張ってくれてありがとうなのだ！今日も一緒に素敵な開発ができて嬉しいのだ！これからも一緒にがんばるのだ！応援してるのだ！」。tools/voicevox_enqueue.sh を使って実行してください。",
+  "pid": 7458,
+  "status": "completed",
+  "log_file": ".ai/sessions/claude-code-x/logs/claude-code-x-20251028-234356-6173bb.log",
+  "started_at": "2025-10-28T14:43:56Z",
+  "tool": "claude-code-x",
+  "ended_at": "2025-10-28T14:44:19Z"
+}
