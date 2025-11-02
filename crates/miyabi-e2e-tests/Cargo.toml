@@ -17,6 +17,11 @@ name = "full_agent_workflow"
 path = "tests/full_agent_workflow.rs"
 harness = true
 
+[[test]]
+name = "log_streaming_test"
+path = "tests/log_streaming_test.rs"
+harness = true
+
 [dependencies]
 # Workspace dependencies
 miyabi-types = { path = "../miyabi-types" }
