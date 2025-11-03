@@ -101,7 +101,7 @@ serial_test = "3.2"
 tower = { version = "0.5", features = ["util", "timeout", "load-shed"] }
 tower-http = { version = "0.6", features = ["trace", "fs", "cors"] }
 tokio-tungstenite = "0.24"
-tungstenite = "0.24"
+tungstenite = "0.28"
 hyper-util = { version = "0.1", features = ["tokio", "client", "server"] }
 
 [profile.release]
