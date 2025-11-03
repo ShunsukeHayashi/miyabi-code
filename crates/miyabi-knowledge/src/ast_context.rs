@@ -196,21 +196,15 @@ pub struct FileContextTracker {
 impl FileContextTracker {
     /// Create a new tracker for Rust files
     pub fn new_rust() -> Result<Self> {
-        // TODO: Fix tree-sitter-rust 0.24 breaking change
-        // The LANGUAGE constant changed from a function to a LanguageFn type
-        // Temporarily disabled until proper migration
-        // See: https://github.com/tree-sitter/tree-sitter-rust/issues/XXX
-        return Err(AstError::ParseError(
-            "AST parsing temporarily disabled due to tree-sitter-rust 0.24 breaking change".to_string()
-        ));
+        // tree-sitter-rust 0.24 changed from language() function to LANGUAGE constant
+        // LANGUAGE is of type LanguageFn, which implements Into<Language>
+        let language: Language = tree_sitter_rust::LANGUAGE.into();
+        let mut parser = Parser::new();
+        parser
+            .set_language(&language)
+            .map_err(|e| AstError::ParseError(e.to_string()))?;
 
-        // let language = tree_sitter_rust::LANGUAGE;  // LanguageFn type
-        // let mut parser = Parser::new();
-        // parser
-        //     .set_language(language)
-        //     .map_err(|e| AstError::ParseError(e.to_string()))?;
-        //
-        // Ok(Self { parser, language })
+        Ok(Self { parser, language })
     }
 
     /// Parse a Rust file and extract context
