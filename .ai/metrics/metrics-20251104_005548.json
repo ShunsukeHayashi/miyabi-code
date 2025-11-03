@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-11-04 00:55:50",
+  "system": {
+    "memory_percent": 52,
+    "cpu_percent": 79.11,
+    "disk_percent": 4
+  },
+  "operations": {
+    "water_spider_restarts": 0,
+    "watchdog_restarts": 0,
+    "total_agents": 11,
+    "online_agents": 11,
+    "agent_availability": 100.00
+  },
+  "health": {
+    "overall_score": 83,
+    "status": "HEALTHY"
+  }
+}

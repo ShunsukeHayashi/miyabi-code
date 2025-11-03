@@ -110,7 +110,7 @@ impl AnthropicClient {
             while let Some(chunk_result) = stream.next().await {
                 match chunk_result {
                     Ok(chunk) => {
-                        // Convert Bytes to Vec<u8>
+                        // chunk is bytes::Bytes
                         buffer.extend_from_slice(&chunk);
 
                         // Split by double newlines (SSE event separator)

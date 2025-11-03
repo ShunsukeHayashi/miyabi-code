@@ -151,6 +151,7 @@ impl OpenAIClient {
             while let Some(chunk_result) = stream.next().await {
                 match chunk_result {
                     Ok(chunk) => {
+                        // chunk is bytes::Bytes
                         buffer.extend_from_slice(&chunk);
 
                         // Split by double newlines (SSE event separator)

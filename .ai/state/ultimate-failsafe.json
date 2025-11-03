@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "last_check": "2025-11-04 01:02:39",
+  "components": {
+    "water_spider": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:38",
+      "checks": 70,
+      "restarts": 0
+    },
+    "system_watchdog": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:38",
+      "checks": 70,
+      "restarts": 0
+    },
+    "agent_monitor": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:39",
+      "checks": 70,
+      "restarts": 0
+    },
+    "health_monitor": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:39",
+      "checks": 69,
+      "restarts": 1
+    }
+  }
+}

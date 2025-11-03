@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "last_check": "2025-11-04 01:02:33",
+  "components": {
+    "water_spider": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:33",
+      "checks": 58
+    },
+    "state_monitor": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:33",
+      "checks": 58
+    },
+    "voicevox": {
+      "status": "RUNNING",
+      "last_check": "2025-11-04 01:02:33",
+      "checks": 58
+    }
+  }
+}
