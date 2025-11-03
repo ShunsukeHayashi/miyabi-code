@@ -51,7 +51,7 @@ walkdir = "2.4"
 dirs = { workspace = true }
 
 # Markdown パース
-pulldown-cmark = "0.9"
+pulldown-cmark = "0.13"
 
 # 正規表現
 regex = "1.10"
