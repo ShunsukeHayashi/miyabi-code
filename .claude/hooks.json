@@ -1,0 +1,18 @@
+{
+  "sessionEnd": {
+    "description": "Session end hook for Miyabi Orchestra - Auto-report to Conductor",
+    "command": "bash",
+    "args": [
+      "-c",
+      "source ~/.miyabi_hooks.sh && miyabi_session_end_report"
+    ]
+  },
+  "sessionStart": {
+    "description": "Session start hook for Miyabi Orchestra",
+    "command": "bash",
+    "args": [
+      "-c",
+      "source ~/.miyabi_hooks.sh && miyabi_session_start_notify"
+    ]
+  }
+}

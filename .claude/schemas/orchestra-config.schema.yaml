@@ -1,0 +1,505 @@
+# Miyabi Orchestra Configuration Schema
+# JSON Schema Draft 07 (YAML format)
+#
+# このスキーマは、Miyabi Orchestra（並列Agent実行システム）の
+# 設定ファイルを検証するためのものです。
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://github.com/ShunsukeHayashi/Miyabi/schemas/orchestra-config.schema.yaml"
+title: Miyabi Orchestra Configuration
+description: |
+  Miyabi Orchestraの設定ファイルスキーマ。
+  複数のAgentを並列実行するためのパラメータを定義します。
+
+type: object
+
+required:
+  - orchestration
+  - ensemble
+
+properties:
+  # ========================================
+  # オーケストレーション設定
+  # ========================================
+  orchestration:
+    type: object
+    description: Agentのライフサイクル管理とリトライ戦略
+    required:
+      - max_retries
+      - timeout_seconds
+    properties:
+      max_retries:
+        type: integer
+        description: 最大リトライ回数
+        minimum: 0
+        maximum: 10
+        default: 3
+        examples:
+          - 3
+          - 5
+
+      initial_backoff_ms:
+        type: integer
+        description: 初期バックオフ時間（ミリ秒）
+        minimum: 10
+        maximum: 5000
+        default: 100
+        examples:
+          - 100
+          - 500
+
+      backoff_multiplier:
+        type: number
+        description: バックオフ乗数（指数バックオフ）
+        minimum: 1.0
+        maximum: 5.0
+        default: 2.0
+        examples:
+          - 2.0
+          - 1.5
+
+      max_backoff_ms:
+        type: integer
+        description: 最大バックオフ時間（ミリ秒）
+        minimum: 1000
+        maximum: 60000
+        default: 10000
+        examples:
+          - 10000
+          - 30000
+
+      timeout_seconds:
+        type: integer
+        description: タスク実行タイムアウト（秒）
+        minimum: 10
+        maximum: 3600
+        default: 300
+        examples:
+          - 300
+          - 600
+
+  # ========================================
+  # Ensemble設定（paneレイアウト）
+  # ========================================
+  ensemble:
+    type: object
+    description: tmux paneのレイアウトとAgent配置
+    required:
+      - type
+      - num_agents
+    properties:
+      type:
+        type: string
+        description: Ensembleタイプ
+        enum:
+          - coding
+          - hybrid
+          - demo
+          - custom
+        default: coding
+        examples:
+          - coding
+          - hybrid
+
+      num_agents:
+        type: integer
+        description: Agent数（Conductor除く）
+        minimum: 1
+        maximum: 20
+        examples:
+          - 4
+          - 6
+          - 1
+
+      layout:
+        type: string
+        description: tmuxレイアウト形式
+        enum:
+          - tiled
+          - even-horizontal
+          - even-vertical
+          - main-horizontal
+          - main-vertical
+          - custom
+        default: tiled
+
+      custom_layout:
+        type: string
+        description: カスタムレイアウト（tmux layout format）
+        pattern: "^[0-9a-f,{}\\[\\]]+$"
+        examples:
+          - "1a2b,159x48,0,0{79x48,0,0,1,79x48,80,0[79x23,80,0,2,79x24,80,24,3]}"
+
+  # ========================================
+  # Agent設定
+  # ========================================
+  agents:
+    type: array
+    description: Agent定義リスト
+    minItems: 1
+    maxItems: 21
+    items:
+      type: object
+      required:
+        - name
+        - type
+        - pane_id
+      properties:
+        name:
+          type: string
+          description: Agent名（日本語・英語どちらでも可）
+          minLength: 1
+          maxLength: 50
+          examples:
+            - カエデ
+            - サクラ
+            - ツバキ
+            - ボタン
+            - CodeGen
+            - Review
+
+        type:
+          type: string
+          description: AgentType（E3）
+          enum:
+            # Coding Agents
+            - CoordinatorAgent
+            - CodeGenAgent
+            - ReviewAgent
+            - IssueAgent
+            - PRAgent
+            - DeploymentAgent
+            - RefresherAgent
+            # Business Agents
+            - AIEntrepreneurAgent
+            - ProductConceptAgent
+            - ProductDesignAgent
+            - FunnelDesignAgent
+            - PersonaAgent
+            - SelfAnalysisAgent
+            - MarketResearchAgent
+            - MarketingAgent
+            - ContentCreationAgent
+            - SNSStrategyAgent
+            - YouTubeAgent
+            - SalesAgent
+            - CRMAgent
+            - AnalyticsAgent
+
+        pane_id:
+          type: string
+          description: tmux pane ID（%N形式）
+          pattern: "^%[0-9]+$"
+          examples:
+            - "%1"
+            - "%2"
+            - "%27"
+
+        pane_index:
+          type: integer
+          description: tmux pane index（0始まり）
+          minimum: 0
+          maximum: 100
+
+        role:
+          type: string
+          description: 役割説明
+          maxLength: 200
+          examples:
+            - Rustコード実装担当
+            - コードレビュー担当
+            - PR作成担当
+            - デプロイ担当
+
+        authority:
+          type: string
+          description: Agent権限レベル
+          enum:
+            - 🔴統括権限
+            - 🔵実行権限
+            - 🟢分析権限
+          examples:
+            - 🔴統括権限
+            - 🔵実行権限
+
+        escalation_target:
+          type: string
+          description: エスカレーション先
+          enum:
+            - TechLead
+            - ProductManager
+            - User
+          examples:
+            - TechLead
+
+  # ========================================
+  # tmux設定
+  # ========================================
+  tmux:
+    type: object
+    description: tmux固有の設定
+    properties:
+      session_name:
+        type: string
+        description: tmuxセッション名
+        minLength: 1
+        maxLength: 50
+        default: miyabi
+        examples:
+          - miyabi
+          - miyabi-orchestra
+
+      window_name:
+        type: string
+        description: tmuxウィンドウ名
+        minLength: 1
+        maxLength: 50
+        default: orchestra
+        examples:
+          - orchestra
+          - coding-ensemble
+
+      prefix_key:
+        type: string
+        description: tmux prefix key
+        enum:
+          - C-a
+          - C-b
+        default: C-b
+        examples:
+          - C-a
+          - C-b
+
+      pane_border_status:
+        type: string
+        description: pane境界線ステータス表示
+        enum:
+          - "off"
+          - top
+          - bottom
+        default: top
+
+      pane_border_format:
+        type: string
+        description: pane境界線フォーマット
+        examples:
+          - " 🎹 #{pane_title} "
+          - " [#{pane_index}] #{pane_title} "
+
+  # ========================================
+  # メトリクス設定
+  # ========================================
+  metrics:
+    type: object
+    description: 実行メトリクスの収集と保存
+    properties:
+      enabled:
+        type: boolean
+        description: メトリクス収集を有効化
+        default: true
+
+      output_dir:
+        type: string
+        description: メトリクス出力ディレクトリ
+        default: .ai/logs/metrics
+        examples:
+          - .ai/logs/metrics
+          - /tmp/miyabi-metrics
+
+      format:
+        type: string
+        description: メトリクス出力フォーマット
+        enum:
+          - json
+          - yaml
+          - csv
+        default: json
+
+      include_fields:
+        type: array
+        description: 出力するメトリクスフィールド
+        items:
+          type: string
+          enum:
+            - start_time
+            - end_time
+            - duration_ms
+            - retry_count
+            - success
+            - error_message
+        default:
+          - start_time
+          - end_time
+          - duration_ms
+          - success
+
+  # ========================================
+  # ログ設定
+  # ========================================
+  logging:
+    type: object
+    description: ログ出力設定
+    properties:
+      level:
+        type: string
+        description: ログレベル
+        enum:
+          - trace
+          - debug
+          - info
+          - warn
+          - error
+        default: info
+
+      output:
+        type: string
+        description: ログ出力先
+        enum:
+          - stdout
+          - file
+          - both
+        default: both
+
+      file_path:
+        type: string
+        description: ログファイルパス
+        default: .ai/logs/orchestra.log
+        examples:
+          - .ai/logs/orchestra.log
+          - /tmp/miyabi-orchestra.log
+
+  # ========================================
+  # 報告プロトコル
+  # ========================================
+  reporting:
+    type: object
+    description: Agentの報告プロトコル設定
+    properties:
+      format:
+        type: string
+        description: 報告メッセージフォーマット
+        examples:
+          - "[{agent_name}] {message}"
+          - "🎭 {agent_name}: {message}"
+
+      conductor_pane:
+        type: string
+        description: Conductor pane ID（報告先）
+        pattern: "^%[0-9]+$"
+        default: "%1"
+        examples:
+          - "%1"
+
+      send_delay_ms:
+        type: integer
+        description: メッセージ送信前の遅延（ミリ秒）
+        minimum: 0
+        maximum: 5000
+        default: 100
+
+# ========================================
+# 設定例
+# ========================================
+examples:
+  - # Coding Ensemble (5-pane)
+    orchestration:
+      max_retries: 3
+      initial_backoff_ms: 100
+      backoff_multiplier: 2.0
+      max_backoff_ms: 10000
+      timeout_seconds: 300
+
+    ensemble:
+      type: coding
+      num_agents: 4
+      layout: tiled
+
+    agents:
+      - name: カエデ
+        type: CodeGenAgent
+        pane_id: "%2"
+        pane_index: 1
+        role: Rustコード実装担当
+        authority: 🔵実行権限
+        escalation_target: TechLead
+
+      - name: サクラ
+        type: ReviewAgent
+        pane_id: "%5"
+        pane_index: 2
+        role: コードレビュー担当
+        authority: 🔵実行権限
+        escalation_target: TechLead
+
+      - name: ツバキ
+        type: PRAgent
+        pane_id: "%3"
+        pane_index: 3
+        role: PR作成担当
+        authority: 🔵実行権限
+        escalation_target: TechLead
+
+      - name: ボタン
+        type: DeploymentAgent
+        pane_id: "%4"
+        pane_index: 4
+        role: デプロイ担当
+        authority: 🔵実行権限
+        escalation_target: TechLead
+
+    tmux:
+      session_name: miyabi
+      window_name: coding-ensemble
+      prefix_key: C-a
+      pane_border_status: top
+      pane_border_format: " 🎹 #{pane_title} "
+
+    metrics:
+      enabled: true
+      output_dir: .ai/logs/metrics
+      format: json
+
+    logging:
+      level: info
+      output: both
+      file_path: .ai/logs/orchestra.log
+
+    reporting:
+      format: "[{agent_name}] {message}"
+      conductor_pane: "%1"
+      send_delay_ms: 100
+
+  - # Hybrid Ensemble (7-pane)
+    orchestration:
+      max_retries: 5
+      timeout_seconds: 600
+
+    ensemble:
+      type: hybrid
+      num_agents: 6
+      layout: tiled
+
+    agents:
+      - name: CodeGen
+        type: CodeGenAgent
+        pane_id: "%27"
+
+      - name: Review
+        type: ReviewAgent
+        pane_id: "%28"
+
+      - name: PR
+        type: PRAgent
+        pane_id: "%25"
+
+      - name: MarketResearch
+        type: MarketResearchAgent
+        pane_id: "%29"
+
+      - name: Content
+        type: ContentCreationAgent
+        pane_id: "%30"
+
+      - name: Analytics
+        type: AnalyticsAgent
+        pane_id: "%31"

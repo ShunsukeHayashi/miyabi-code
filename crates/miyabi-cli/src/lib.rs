@@ -2,6 +2,7 @@
 //!
 //! This module exposes internal structures for integration testing
 
+pub mod agents;
 pub mod commands;
 pub mod config;
 pub mod error;

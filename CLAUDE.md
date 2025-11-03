@@ -92,6 +92,10 @@ Use context7 to get the latest Tokio async runtime documentation
 │       ├── ENTITY_RELATION_MODEL.md   # 12 Entities, 27 Relations
 │       ├── LABEL_SYSTEM_GUIDE.md      # 53 Labels
 │       ├── TEMPLATE_MASTER_INDEX.md   # 88 Templates
+│       ├── QUICK_START_3STEPS.md      # 🎭 3ステップクイックスタート ⭐ NEW
+│       ├── YOUR_CURRENT_SETUP.md      # 🎭 あなた専用ガイド ⭐ NEW
+│       ├── TMUX_QUICKSTART.md         # 🎭 tmux 5分ガイド
+│       ├── TMUX_LAYOUTS.md            # 🎭 tmux レイアウト集
 │       └── ... (20+ files)
 │
 ├── 🤖 Claude Code Integration
@@ -110,6 +114,9 @@ Use context7 to get the latest Tokio async runtime documentation
 │       ├── skills/                    # 15 Skills
 │       ├── MCP_INTEGRATION_PROTOCOL.md
 │       ├── BENCHMARK_IMPLEMENTATION_CHECKLIST.md
+│       ├── MIYABI_PARALLEL_ORCHESTRA.md  # 🎭 雅なる並列実行の哲学 ⭐ NEW
+│       ├── TMUX_OPERATIONS.md            # 🎭 tmux運用ガイド（技術詳細）
+│       ├── KAMUI_TMUX_GUIDE.md           # 🎭 Kamui tmux統合ガイド
 │       └── TROUBLESHOOTING.md
 │
 ├── 🧪 Testing & CI/CD
@@ -134,9 +141,12 @@ Use context7 to get the latest Tokio async runtime documentation
 │   ├── discord-config.json            # Discord bot config
 │   └── external/                      # External dependencies
 │
-├── 🚀 Deployment
+├── 🚀 Deployment & Scripts
 │   ├── deployment/                    # Deployment scripts
 │   ├── docker/                        # Dockerfiles
+│   ├── scripts/                       # Utility scripts
+│   │   ├── miyabi-orchestra-interactive.sh  # 🎭 インタラクティブセットアップ ⭐ NEW
+│   │   └── miyabi-orchestra.sh              # 🎭 CLIセットアップ ⭐ NEW
 │   └── .worktrees/                    # Git worktrees (runtime)
 │
 ├── 💼 Business & Legal
@@ -186,6 +196,68 @@ miyabi knowledge search "error handling"
 # Agent execution
 miyabi agent <type> --issue <num>
 ```
+
+### tmux Parallel Operations (Advanced)
+
+**Alternative approach**: Multiple Claude Code instances in tmux panes for heterogeneous agent execution.
+
+**🎭 Miyabi Orchestra - Quick Start**:
+
+**方法A: インタラクティブセットアップ（推奨）**
+```bash
+# 3ステップガイド付き自動セットアップ
+./scripts/miyabi-orchestra-interactive.sh
+
+# メニューから選択:
+# 1) Coding Ensemble (初心者向け)
+# 2) Hybrid Ensemble (上級者向け)
+# 3) Quick Demo (3分お試し)
+```
+
+**方法B: コマンドライン（上級者）**
+```bash
+# Coding Ensemble (5-pane)
+./scripts/miyabi-orchestra.sh coding-ensemble
+
+# Hybrid Ensemble (7-pane)
+./scripts/miyabi-orchestra.sh hybrid-ensemble
+
+# レガシー名も使用可能
+./scripts/miyabi-orchestra.sh 5pane
+```
+
+**When to use**:
+- ✅ Heterogeneous agent execution (Coding + Business simultaneously)
+- ✅ Ad-hoc task distribution with real-time adjustment
+- ✅ Experimental workflows
+- ❌ Standardized Issue processing → Use `miyabi parallel` instead
+
+**Documentation**:
+- **📖 Index**: [.claude/TMUX_INTEGRATION_INDEX.md](.claude/TMUX_INTEGRATION_INDEX.md) - 統合インデックス（全ドキュメント索引） ⭐ START HERE
+- **📖 Codex Integration**: [.claude/CODEX_TMUX_PARALLEL_EXECUTION.md](.claude/CODEX_TMUX_PARALLEL_EXECUTION.md) - Claude Code Company原理統合版
+- **🎯 Kamui Integration**: [.claude/KAMUI_TMUX_GUIDE.md](.claude/KAMUI_TMUX_GUIDE.md) - Kamui tmux統合ガイド
+- **🚀 Advanced Techniques**: [.claude/TMUX_ADVANCED_TECHNIQUES.md](.claude/TMUX_ADVANCED_TECHNIQUES.md) - CLI完全活用・miyabi_def統合 ⭐ NEW
+- **⚡ Claude Code Commands**: [docs/CLAUDE_CODE_COMMANDS.md](docs/CLAUDE_CODE_COMMANDS.md) - ワンライナーコマンド集
+- **📊 Your Setup**: [docs/YOUR_CURRENT_SETUP.md](docs/YOUR_CURRENT_SETUP.md) - あなた専用ガイド（Claude Code対応）
+- **🎨 Visual Guide**: [docs/VISUAL_GUIDE.md](docs/VISUAL_GUIDE.md) - UI/UX改善ガイド
+- **🌸 Philosophy**: [.claude/MIYABI_PARALLEL_ORCHESTRA.md](.claude/MIYABI_PARALLEL_ORCHESTRA.md) - 雅なる並列実行の哲学
+- **⚡ 3-Step Guide**: [docs/QUICK_START_3STEPS.md](docs/QUICK_START_3STEPS.md) - たった3ステップ
+- **🔧 Technical**: [.claude/TMUX_OPERATIONS.md](.claude/TMUX_OPERATIONS.md) - 技術詳細
+- **🎨 Layouts**: [docs/TMUX_LAYOUTS.md](docs/TMUX_LAYOUTS.md) - レイアウト集
+
+**Comparison**:
+
+| Aspect | `miyabi parallel` | tmux + Claude Code |
+|--------|------------------|-------------------|
+| Setup | ✅ Easy | ⚠️ Complex |
+| Concurrency | ✅ Auto | 🔧 Manual |
+| Agent Types | CoordinatorAgent only | All 21 agents |
+| Flexibility | ⚠️ Limited | ✅ Very High |
+| Token Management | ✅ Auto | ⚠️ Manual |
+
+**Recommended**: Use `miyabi parallel` for standard workflows, tmux for advanced scenarios.
+
+---
 
 ### Available Skills (15)
 

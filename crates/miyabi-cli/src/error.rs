@@ -16,6 +16,12 @@ pub enum CliError {
     #[error("Invalid agent type: {0}")]
     InvalidAgentType(String),
 
+    #[error("Agent {0} is not registered in the execution registry")]
+    AgentNotRegistered(String),
+
+    #[error("Agent task template missing: {0}")]
+    AgentTaskTemplateMissing(String),
+
     #[error("Issue number required for agent execution")]
     MissingIssueNumber,
 

@@ -12,7 +12,7 @@ readme = "README.md"
 
 [features]
 default = ["http"]
-grpc = ["dep:tonic", "dep:prost"]
+grpc = ["dep:tonic", "dep:prost", "dep:tonic-prost"]
 http = ["dep:axum", "dep:tower-http"]
 
 [dependencies]
@@ -47,8 +47,9 @@ jsonwebtoken = "9.3"
 futures = "0.3"
 
 # gRPC support (optional, v2.0 planned feature)
-tonic = { version = "0.12", optional = true }
-prost = { version = "0.13", optional = true }
+tonic = { version = "0.14", optional = true }
+prost = { version = "0.14", optional = true }
+tonic-prost = { version = "0.14", optional = true }
 
 # HTTP REST API support (for dashboard)
 axum = { version = "0.7", features = ["ws"], optional = true }
@@ -62,8 +63,8 @@ tokio-test = "0.4"
 tempfile = "3.8"
 wiremock = "0.6"
 tokio-stream = { version = "0.1", features = ["net"] }
-tonic = "0.12"
-prost = "0.13"
+tonic = "0.14"
+prost = "0.14"
 
 [[bin]]
 name = "dashboard-server"

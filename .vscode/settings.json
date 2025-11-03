@@ -24,5 +24,13 @@
   "workbench.list.smoothScrolling": true,
 
   // コメント
-  "editor.comments.insertSpace": true
+  "editor.comments.insertSpace": true,
+
+  // YAML Schema設定
+  "yaml.schemas": {
+    ".claude/schemas/orchestra-config.schema.yaml": [
+      "orchestra-config.yaml",
+      "**/orchestra-config.*.yaml"
+    ]
+  }
 }

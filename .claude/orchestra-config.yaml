@@ -1,0 +1,500 @@
+# Miyabi Orchestra - Master Configuration
+# Version: 3.0.0
+# Integrates: miyabi_def + .claude + tmux Orchestra
+# Created: 2025-11-03
+#
+# 📋 Schema Validation
+# - JSON Schema: .claude/schemas/orchestra-config.schema.yaml
+# - Example Config: .claude/schemas/orchestra-config.example.yaml
+# - Documentation: .claude/schemas/README.md
+#
+# 📖 Related Documentation
+# - Integration Guide: .claude/MIYABI_ORCHESTRA_INTEGRATION.md
+# - Philosophy: .claude/MIYABI_PARALLEL_ORCHESTRA.md
+# - Quick Start: docs/QUICK_START_3STEPS.md
+# - Your Setup: docs/YOUR_CURRENT_SETUP.md
+
+miyabi_def_integration:
+  enabled: true
+  base_path: "/Users/shunsuke/Dev/miyabi-private/miyabi_def"
+
+  references:
+    agents: "generated/agents.yaml"
+    skills: "generated/skills.yaml"
+    crates: "generated/crates.yaml"
+    entities: "generated/entities.yaml"
+    relations: "generated/relations.yaml"
+    labels: "generated/labels.yaml"
+    workflows: "generated/workflows.yaml"
+    world_definition: "generated/world_definition.yaml"
+    step_back_method: "generated/step_back_question_method.yaml"
+    universal_task_execution: "generated/universal_task_execution.yaml"
+    agent_execution_maximization: "generated/agent_execution_maximization.yaml"
+
+orchestra:
+  name: "Miyabi Orchestra"
+  version: "2.0.0"
+  mode: "full-automation"  # full-automation | semi-automation | manual
+
+  tmux:
+    session_name: "miyabi-orchestra"
+    working_directory: "/Users/shunsuke/Dev/miyabi-private"
+
+  panes:
+    conductor:
+      id: "%1"
+      agent_id: "agents.coding[0]"
+      agent: "CoordinatorAgent"
+      character: "カンナ"
+      emoji: "🎼"
+      role: "Orchestrator"
+      skills:
+        - "agent-execution"
+      responsibilities:
+        - "Overall task coordination"
+        - "Agent assignment"
+        - "Progress monitoring"
+        - "Escalation handling"
+
+    codegen:
+      id: "%2"
+      agent_id: "agents.coding[1]"
+      agent: "CodeGenAgent"
+      character: "カエデ"
+      emoji: "🎹"
+      role: "Code Implementation"
+      skills:
+        - "rust-development"
+        - "agent-execution"
+      responsibilities:
+        - "Code generation"
+        - "Unit test creation"
+        - "Documentation writing"
+
+    review:
+      id: "%5"
+      agent_id: "agents.coding[2]"
+      agent: "ReviewAgent"
+      character: "サクラ"
+      emoji: "🎺"
+      role: "Code Review"
+      skills:
+        - "security-audit"
+        - "debugging-troubleshooting"
+        - "performance-analysis"
+      responsibilities:
+        - "Code quality review"
+        - "Security analysis"
+        - "Performance check"
+        - "Best practices validation"
+
+    pr:
+      id: "%3"
+      agent_id: "agents.coding[4]"
+      agent: "PRAgent"
+      character: "ツバキ"
+      emoji: "🥁"
+      role: "Pull Request Management"
+      skills:
+        - "git-workflow"
+      responsibilities:
+        - "PR creation"
+        - "PR description generation"
+        - "Merge management"
+        - "Git history management"
+
+    deploy:
+      id: "%4"
+      agent_id: "agents.coding[5]"
+      agent: "DeploymentAgent"
+      character: "ボタン"
+      emoji: "🎷"
+      role: "Deployment"
+      skills:
+        - "agent-execution"
+      responsibilities:
+        - "Deployment execution"
+        - "Production monitoring"
+        - "Rollback if needed"
+        - "Release notes generation"
+
+    monitor:
+      id: "%6"
+      agent_id: "special.water_spider"
+      agent: "WaterSpiderAgent"
+      character: "クモ"
+      emoji: "🕷️"
+      role: "Monitoring & Message Relay"
+      script: "scripts/water-spider-monitor-v2.sh"
+      responsibilities:
+        - "Health check all agents"
+        - "Message relay between agents"
+        - "Auto-recovery"
+        - "Status reporting to Conductor"
+
+  message_relay:
+    enabled: true
+    interval: 5  # seconds
+    log_file: ".ai/logs/water-spider-relay.log"
+
+    rules:
+      - id: "R1"
+        trigger_agent: "カエデ"
+        trigger_keyword: "実装完了"
+        target_agent: "サクラ"
+        message: "カエデが実装を完了しました。コードレビューを開始してください。"
+        workflow_stage: "W3 → W4"
+
+      - id: "R2"
+        trigger_agent: "カエデ"
+        trigger_keyword: "コード完了"
+        target_agent: "サクラ"
+        message: "カエデがコードを完了しました。レビューを開始してください。"
+        workflow_stage: "W3 → W4"
+
+      - id: "R3"
+        trigger_agent: "サクラ"
+        trigger_keyword: "レビュー完了"
+        target_agent: "ツバキ"
+        message: "サクラがレビューを完了しました。PR作成を開始してください。"
+        workflow_stage: "W4 → W5"
+
+      - id: "R4"
+        trigger_agent: "サクラ"
+        trigger_keyword: "承認"
+        target_agent: "ツバキ"
+        message: "サクラが承認しました。PR作成を開始してください。"
+        workflow_stage: "W4 → W5"
+
+      - id: "R5"
+        trigger_agent: "ツバキ"
+        trigger_keyword: "PR作成完了"
+        target_agent: "ボタン"
+        message: "ツバキがPRを作成しました。デプロイを開始してください。"
+        workflow_stage: "W5 → Deploy"
+
+      - id: "R6"
+        trigger_agent: "ツバキ"
+        trigger_keyword: "PR完了"
+        target_agent: "ボタン"
+        message: "ツバキがPR完了しました。デプロイしてください。"
+        workflow_stage: "W5 → Deploy"
+
+      - id: "R7"
+        trigger_agent: "ボタン"
+        trigger_keyword: "デプロイ完了"
+        target_agent: "カンナ"
+        message: "ボタンがデプロイを完了しました。タスク完了です。"
+        workflow_stage: "Deploy → Complete"
+
+  health_check:
+    enabled: true
+    interval: 60  # seconds
+    timeout: 30   # seconds
+    recovery_attempts: 3
+    log_file: ".ai/logs/water-spider.log"
+
+    methods:
+      - type: "ping"
+        message: "[{agent}] ping応答OK と発言してください。（30秒以内）"
+        expected_response: "ping応答OK"
+
+      - type: "session_alive"
+        check: "Claude Code session is active"
+        indicator: "bypass permissions"
+
+  voice_notification:
+    enabled: true
+
+    voicevox:
+      queue_dir: "/tmp/voicevox_queue"
+
+      speaker_mapping:
+        カンナ: 3   # ずんだもん（ノーマル）
+        カエデ: 3   # ずんだもん（ノーマル）
+        サクラ: 1   # 四国めたん（ノーマル）
+        ツバキ: 8   # 春日部つむぎ（ノーマル）
+        ボタン: 14  # 冥鳴ひまり（ノーマル）
+        クモ: 3     # ずんだもん（ノーマル）
+
+      events:
+        - event: "task_complete"
+          template: "{agent}が{task}を完了したのだ！"
+          priority: "high"
+
+        - event: "error"
+          template: "{agent}でエラーが発生したのだ！確認してほしいのだ！"
+          priority: "critical"
+
+        - event: "relay"
+          template: "{from_agent}から{to_agent}へメッセージを転送したのだ。"
+          priority: "medium"
+
+        - event: "recovery"
+          template: "{agent}の復旧を試みるのだ。"
+          priority: "high"
+
+workflows:
+  # Reference to miyabi_def/generated/workflows.yaml
+  definition_source: "miyabi_def/generated/workflows.yaml"
+
+  active:
+    - id: "W1"
+      name: "Issue_Creation_Triage"
+      stages: 8
+      responsible_agents: ["カンナ", "スミレ"]
+
+    - id: "W2"
+      name: "Task_Decomposition"
+      stages: 7
+      responsible_agents: ["カンナ"]
+
+    - id: "W3"
+      name: "Code_Implementation"
+      stages: 9
+      responsible_agents: ["カエデ"]
+
+    - id: "W4"
+      name: "Code_Review"
+      stages: 8
+      responsible_agents: ["サクラ"]
+
+    - id: "W5"
+      name: "Deployment"
+      stages: 6
+      responsible_agents: ["ツバキ", "ボタン"]
+
+agents:
+  # Reference to miyabi_def/generated/agents.yaml
+  definition_source: "miyabi_def/generated/agents.yaml"
+
+  total: 21
+
+  active_in_orchestra: 5  # カンナ, カエデ, サクラ, ツバキ, ボタン
+
+  coding_agents:
+    total: 7
+    list:
+      - CoordinatorAgent   # カンナ (active)
+      - CodeGenAgent       # カエデ (active)
+      - ReviewAgent        # サクラ (active)
+      - IssueAgent         # スミレ (standby)
+      - PRAgent            # ツバキ (active)
+      - DeploymentAgent    # ボタン (active)
+      - RefresherAgent     # アサガオ (standby)
+
+  business_agents:
+    total: 14
+    strategy_planning: 6
+    marketing: 5
+    sales_crm: 3
+
+skills:
+  # Reference to miyabi_def/generated/skills.yaml
+  definition_source: "miyabi_def/generated/skills.yaml"
+
+  total: 18
+
+  categories:
+    development: 5
+    operations: 5
+    business: 5
+    specialized: 3
+
+  available_via_skill_tool: true
+
+labels:
+  # Reference to miyabi_def/generated/labels.yaml
+  definition_source: "miyabi_def/generated/labels.yaml"
+
+  total: 57
+  categories: 11
+
+  github_sync:
+    enabled: true
+    github_labels_file: ".github/labels.yml"
+
+  state_labels:
+    - "state:created"
+    - "state:analyzing"
+    - "state:decomposed"
+    - "state:in-progress"
+    - "state:review"
+    - "state:pr-ready"
+    - "state:deployed"
+    - "state:closed"
+
+entities:
+  # Reference to miyabi_def/generated/entities.yaml
+  definition_source: "miyabi_def/generated/entities.yaml"
+
+  total: 14
+
+  core:
+    - E1_Issue
+    - E2_Task
+    - E3_Agent
+    - E4_PullRequest
+    - E5_Label
+    - E6_QualityReport
+    - E7_Command
+    - E8_Escalation
+    - E9_Deployment
+    - E10_LDDLog
+    - E11_DAG
+    - E12_Worktree
+    - E13_DiscordCommunity
+    - E14_SubIssue
+
+relations:
+  # Reference to miyabi_def/generated/relations.yaml
+  definition_source: "miyabi_def/generated/relations.yaml"
+
+  total: 39
+
+  cardinality_types:
+    N1: "1:1 relationship"
+    N2: "1:N relationship"
+    N3: "N:N relationship"
+
+omega_system:
+  # Reference to miyabi_def/generated/world_definition.yaml
+  world_definition_source: "miyabi_def/generated/world_definition.yaml"
+
+  # Reference to miyabi_def/generated/step_back_question_method.yaml
+  step_back_method_source: "miyabi_def/generated/step_back_question_method.yaml"
+
+  enabled: true
+
+  world_space:
+    dimensions: 13
+    formula: "Ψ(W) = ∫[t₀→t₁] ∇(s, c, r, e) dt"
+
+  step_back_method:
+    steps: 26  # A to Z
+    formula: "F(Goal, Q) = ∫_{A}^{Z} f(step, Q) d(step) = Result"
+    quality_improvement: "1.5~2.0x"
+
+  task_execution:
+    formula: "Ω: I × W → R"
+    input: "Issue, Task, Context"
+    world: "Environment State"
+    result: "Completed Task, Artifacts"
+
+logging:
+  level: "info"
+  directory: ".ai/logs"
+
+  files:
+    orchestration: "orchestra-session-*.log"
+    water_spider: "water-spider.log"
+    message_relay: "water-spider-relay.log"
+    session_end: "orchestra-session-end.log"
+    session_start: "orchestra-session-start.log"
+
+  rotation:
+    enabled: true
+    max_size: "10MB"
+    max_files: 30
+
+reporting:
+  enabled: true
+
+  daily_report:
+    enabled: true
+    time: "23:59"
+    output: ".ai/reports/daily-{date}.md"
+
+  session_report:
+    enabled: true
+    on_events:
+      - "session_end"
+      - "task_complete"
+      - "error_threshold_exceeded"
+
+notifications:
+  slack:
+    enabled: false  # Set to true when configured
+    webhook_url: ""  # Set your Slack webhook URL
+
+  discord:
+    enabled: false  # Set to true when configured
+    webhook_url: ""  # Set your Discord webhook URL
+
+  email:
+    enabled: false
+    smtp_server: ""
+    smtp_port: 587
+    from: ""
+    to: []
+
+performance:
+  metrics:
+    enabled: true
+    collection_interval: 60  # seconds
+
+    track:
+      - "agent_response_time"
+      - "task_completion_time"
+      - "error_rate"
+      - "recovery_success_rate"
+      - "message_relay_count"
+
+  thresholds:
+    max_agent_response_time: 300  # seconds
+    max_task_completion_time: 3600  # seconds
+    max_error_rate: 0.1  # 10%
+    min_recovery_success_rate: 0.8  # 80%
+
+security:
+  secrets_management:
+    use_env: true
+    env_file: ".env"
+
+  api_keys:
+    github_token: "GITHUB_TOKEN"
+    anthropic_api_key: "ANTHROPIC_API_KEY"
+    openai_api_key: "OPENAI_API_KEY"
+
+  access_control:
+    require_authentication: false
+    allowed_users: []
+
+integration:
+  github:
+    enabled: true
+    repository: "${GITHUB_REPOSITORY}"
+    api_base: "https://api.github.com"
+
+  voicevox:
+    enabled: true
+    api_base: "http://localhost:50021"
+    queue_processor: "scripts/voicevox-queue-processor.sh"
+
+  qdrant:
+    enabled: false  # Set to true when knowledge search is needed
+    host: "localhost"
+    port: 6333
+    collection: "miyabi-knowledge"
+
+  mcp_servers:
+    enabled: true
+    config_file: ".claude/mcp.json"
+
+metadata:
+  created_at: "2025-11-03"
+  last_updated: "2025-11-03"
+  version: "3.0.0"
+  format: "Miyabi Orchestra Configuration (YAML)"
+  encoding: "UTF-8"
+  maintainer: "Miyabi Team"
+
+  git:
+    tracked: true
+    location: ".claude/orchestra-config.yaml"
+
+  documentation:
+    integration_guide: ".claude/MIYABI_ORCHESTRA_INTEGRATION.md"
+    water_spider_v2_report: ".ai/reports/water-spider-v2-implementation-report.md"
+    improvement_ideas: ".ai/reports/orchestra-improvement-ideas.md"
+    test_results: ".ai/reports/orchestra-test-results-2025-11-03.md"

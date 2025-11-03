@@ -1,15 +1,15 @@
 //! Parallel command - Execute agents in parallel worktrees
 
 use crate::{
+    agents::AgentRegistry,
     config::ConfigLoader,
     error::{CliError, Result},
 };
 use colored::Colorize;
-use miyabi_agents::BaseAgent;
-use miyabi_agents::CoordinatorAgentWithLLM;
-use miyabi_types::{AgentConfig, AgentType, Task};
+use miyabi_types::error::MiyabiError;
+use miyabi_types::{AgentConfig, AgentType};
 use miyabi_worktree::{PoolConfig, WorktreePool, WorktreeTask};
-use std::collections::HashMap;
+use serde_json::json;
 
 pub struct ParallelCommand {
     pub issues: Vec<u64>,
@@ -70,6 +70,10 @@ impl ParallelCommand {
                 CliError::ExecutionError(format!("Failed to create worktree pool: {}", e))
             })?;
 
+        let descriptor = AgentRegistry::global()
+            .get(AgentType::CoordinatorAgent)
+            .ok_or_else(|| CliError::AgentNotRegistered("CoordinatorAgent".to_string()))?;
+
         // Create tasks for each issue
         let tasks: Vec<WorktreeTask> = self
             .issues
@@ -102,6 +106,7 @@ impl ParallelCommand {
         let result = pool
             .execute_parallel(tasks, move |worktree_info, task| {
                 let config = config.clone();
+                let descriptor = descriptor;
 
                 async move {
                     println!(
@@ -111,38 +116,19 @@ impl ParallelCommand {
                         worktree_info.path.file_name().unwrap_or_default()
                     );
 
-                    // Create CoordinatorAgent with LLM
-                    let agent = CoordinatorAgentWithLLM::new(config);
+                    let agent = descriptor.instantiate(&config);
+                    let agent_task = descriptor
+                        .build_issue_task(task.issue_number, None, true)
+                        .ok_or_else(|| {
+                            MiyabiError::Unknown(
+                                "CoordinatorAgent missing default task template".to_string(),
+                            )
+                        })?;
 
-                    // Create coordinator task
-                    let agent_task = Task {
-                        id: format!("coordinator-issue-{}", task.issue_number),
-                        title: format!("Coordinate Issue #{}", task.issue_number),
-                        description: format!(
-                            "Decompose Issue #{} into executable tasks",
-                            task.issue_number
-                        ),
-                        task_type: miyabi_types::task::TaskType::Feature,
-                        priority: 1,
-                        severity: None,
-                        impact: None,
-                        assigned_agent: Some(AgentType::CoordinatorAgent),
-                        dependencies: vec![],
-                        estimated_duration: Some(5),
-                        status: None,
-                        start_time: None,
-                        end_time: None,
-                        metadata: Some(HashMap::from([(
-                            "issue_number".to_string(),
-                            serde_json::json!(task.issue_number),
-                        )])),
-                    };
-
-                    // Execute agent
                     let agent_result = agent
                         .execute(&agent_task)
                         .await
-                        .map_err(|e| miyabi_types::error::MiyabiError::Unknown(e.to_string()))?;
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     println!(
                         "    {} [Issue #{}] Completed with status: {:?}",
@@ -153,7 +139,7 @@ impl ParallelCommand {
 
                     // Return result data
                     Ok(agent_result.data.unwrap_or_else(|| {
-                        serde_json::json!({
+                        json!({
                             "status": "completed",
                             "issue": task.issue_number
                         })

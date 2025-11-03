@@ -1,0 +1,97 @@
+# Miyabi Orchestra Configuration - Example
+#
+# このファイルは、Miyabi Orchestra設定のサンプルです。
+# Schema: .claude/schemas/orchestra-config.schema.yaml
+
+# ========================================
+# オーケストレーション設定
+# ========================================
+orchestration:
+  max_retries: 3
+  initial_backoff_ms: 100
+  backoff_multiplier: 2.0
+  max_backoff_ms: 10000
+  timeout_seconds: 300
+
+# ========================================
+# Ensemble設定（paneレイアウト）
+# ========================================
+ensemble:
+  type: coding  # coding | hybrid | demo | custom
+  num_agents: 4
+  layout: tiled  # tiled | even-horizontal | even-vertical | main-horizontal | main-vertical
+
+# ========================================
+# Agent設定
+# ========================================
+agents:
+  - name: カエデ
+    type: CodeGenAgent
+    pane_id: "%2"
+    pane_index: 1
+    role: Rustコード実装担当
+    authority: 🔵実行権限
+    escalation_target: TechLead
+
+  - name: サクラ
+    type: ReviewAgent
+    pane_id: "%5"
+    pane_index: 2
+    role: コードレビュー担当
+    authority: 🔵実行権限
+    escalation_target: TechLead
+
+  - name: ツバキ
+    type: PRAgent
+    pane_id: "%3"
+    pane_index: 3
+    role: PR作成担当
+    authority: 🔵実行権限
+    escalation_target: TechLead
+
+  - name: ボタン
+    type: DeploymentAgent
+    pane_id: "%4"
+    pane_index: 4
+    role: デプロイ担当
+    authority: 🔵実行権限
+    escalation_target: TechLead
+
+# ========================================
+# tmux設定
+# ========================================
+tmux:
+  session_name: miyabi
+  window_name: coding-ensemble
+  prefix_key: C-a  # C-a (Kamui) | C-b (Standard)
+  pane_border_status: top  # off | top | bottom
+  pane_border_format: " 🎹 #{pane_title} "
+
+# ========================================
+# メトリクス設定
+# ========================================
+metrics:
+  enabled: true
+  output_dir: .ai/logs/metrics
+  format: json  # json | yaml | csv
+  include_fields:
+    - start_time
+    - end_time
+    - duration_ms
+    - success
+
+# ========================================
+# ログ設定
+# ========================================
+logging:
+  level: info  # trace | debug | info | warn | error
+  output: both  # stdout | file | both
+  file_path: .ai/logs/orchestra.log
+
+# ========================================
+# 報告プロトコル
+# ========================================
+reporting:
+  format: "[{agent_name}] {message}"
+  conductor_pane: "%1"
+  send_delay_ms: 100

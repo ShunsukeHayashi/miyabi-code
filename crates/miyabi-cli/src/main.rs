@@ -1,5 +1,6 @@
 //! Miyabi CLI - 一つのコマンドで全てが完結
 
+mod agents;
 mod commands;
 mod config;
 mod error;

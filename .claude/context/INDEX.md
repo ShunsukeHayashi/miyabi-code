@@ -1,7 +1,7 @@
 # Miyabi Context Index
 
-**Last Updated**: 2025-10-24
-**Version**: 2.0.0
+**Last Updated**: 2025-11-03
+**Version**: 3.0.0
 
 ## 📚 Context Module Directory
 
@@ -90,6 +90,21 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 - Labels: `docs/LABEL_SYSTEM_GUIDE.md`
 - MCP Protocol: `.claude/MCP_INTEGRATION_PROTOCOL.md`
 - Benchmark Checklist: `.claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md`
+
+**tmux Parallel Execution** (Miyabi Orchestra v2.0):
+- **Integration Guide**: `.claude/MIYABI_ORCHESTRA_INTEGRATION.md` ⭐ NEW - 完全統合ガイド (3.0.0)
+- **Configuration**: `.claude/orchestra-config.yaml` ⭐ NEW - Master configuration (490 lines)
+- **Schema**: `.claude/schemas/orchestra-config.schema.yaml` ⭐ NEW - YAML Schema (12KB, JSON Schema Draft 07)
+- **Philosophy**: `.claude/MIYABI_PARALLEL_ORCHESTRA.md` - 雅なる並列実行の哲学
+- **Quick Start**: `docs/QUICK_START_3STEPS.md` ⭐ NEW - 3分でセットアップ
+- **Your Setup**: `docs/YOUR_CURRENT_SETUP.md` ⭐ UPDATED - Claude Code interactive mode guide
+- **tmux Guide**: `docs/TMUX_QUICKSTART.md` ⭐ NEW - 5分で基本操作
+- **Layouts**: `docs/TMUX_LAYOUTS.md` ⭐ NEW - レイアウト集 (ASCII art)
+- **Visual Guide**: `docs/VISUAL_GUIDE.md` ⭐ UPDATED - UI/UX改善ガイド
+- **Advanced Guide**: `docs/ORCHESTRA_ADVANCED_GUIDE.md` ⭐ NEW - 上級者向けガイド
+- **Commands**: `docs/CLAUDE_CODE_COMMANDS.md` - ワンライナーコマンド集
+- **Operations**: `.claude/TMUX_OPERATIONS.md` - tmux技術詳細
+- **Codex Integration**: `.claude/CODEX_TMUX_PARALLEL_EXECUTION.md` - Claude Code Company統合
 
 **Agent Specs**: `.claude/agents/specs/coding/*.md` | `.claude/agents/specs/business/*.md`
 **Agent Prompts**: `.claude/agents/prompts/coding/*.md`
