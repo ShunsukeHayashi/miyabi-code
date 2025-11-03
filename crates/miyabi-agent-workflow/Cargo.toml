@@ -10,10 +10,10 @@ keywords = ["agents", "ai", "github", "workflow", "cicd"]
 categories = ["development-tools", "web-programming"]
 
 [dependencies]
-miyabi-agent-core = { version = "0.1.0", path = "../miyabi-agent-core" }
-miyabi-types = { version = "0.1.0", path = "../miyabi-types" }
-miyabi-core = { version = "0.1.0", path = "../miyabi-core" }
-miyabi-github = { version = "0.1.0", path = "../miyabi-github" }
+miyabi-agent-core = { version = "1.1.0", path = "../miyabi-agent-core" }
+miyabi-types = { version = "1.1.0", path = "../miyabi-types" }
+miyabi-core = { version = "1.1.0", path = "../miyabi-core" }
+miyabi-github = { version = "1.1.0", path = "../miyabi-github" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

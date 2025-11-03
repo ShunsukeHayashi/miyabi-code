@@ -35,11 +35,11 @@ tree-sitter-highlight = "0.25.10"
 tree-sitter-bash = "0.25"
 
 # LLM Integration (Phase 1 - Option 1)
-miyabi-llm = { version = "0.1.1", path = "../miyabi-llm" }
+miyabi-llm = { version = "1.1.0", path = "../miyabi-llm" }
 
 # Miyabi Core & Worktree
-miyabi-core = { version = "0.1.1", path = "../miyabi-core" }
-miyabi-worktree = { version = "0.1.1", path = "../miyabi-worktree" }
+miyabi-core = { version = "1.1.0", path = "../miyabi-core" }
+miyabi-worktree = { version = "1.1.0", path = "../miyabi-worktree" }
 chrono = { workspace = true }
 
 # Async Runtime
