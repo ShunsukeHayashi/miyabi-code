@@ -100,7 +100,7 @@ serial_test = "3.2"
 # Web framework (unified versions to resolve duplicates - Issue #462)
 tower = { version = "0.5", features = ["util", "timeout", "load-shed"] }
 tower-http = { version = "0.6", features = ["trace", "fs", "cors"] }
-tokio-tungstenite = "0.24"
+tokio-tungstenite = "0.28"
 tungstenite = "0.28"
 hyper-util = { version = "0.1", features = ["tokio", "client", "server"] }
 
