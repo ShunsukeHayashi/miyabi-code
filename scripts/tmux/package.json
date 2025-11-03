@@ -1,0 +1,23 @@
+{
+  "name": "miyabi-tmux-gradebook",
+  "version": "1.0.0",
+  "description": "Miyabi tmux Gradebook - Session and agent performance evaluation system",
+  "type": "module",
+  "scripts": {
+    "gradebook": "tsx tmux-gradebook.ts",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
+  },
+  "keywords": [
+    "miyabi",
+    "tmux",
+    "gradebook",
+    "evaluation",
+    "metrics"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "dependencies": {
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.0"
+  }
+}
