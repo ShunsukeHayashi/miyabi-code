@@ -3,19 +3,10 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct AppConfig {
     pub github_token: Option<String>,
     pub github_repository: Option<String>,
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            github_token: None,
-            github_repository: None,
-        }
-    }
 }
 
 /// Get the path to the config file

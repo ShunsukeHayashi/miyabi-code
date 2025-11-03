@@ -196,7 +196,9 @@ impl DashboardService {
                     name: "ReviewAgent".to_string(),
                     status: "completed".to_string(),
                     started_at: (chrono::Utc::now() - chrono::Duration::hours(1)).to_rfc3339(),
-                    ended_at: Some((chrono::Utc::now() - chrono::Duration::minutes(30)).to_rfc3339()),
+                    ended_at: Some(
+                        (chrono::Utc::now() - chrono::Duration::minutes(30)).to_rfc3339(),
+                    ),
                     issue_number: Some(677),
                 },
             ],
@@ -211,16 +213,14 @@ impl DashboardService {
             open: 20,
             in_progress: 5,
             completed_today: 3,
-            recent: vec![
-                IssueInfo {
-                    number: 678,
-                    title: "feat: Dashboard snapshot service and UI".to_string(),
-                    state: "open".to_string(),
-                    labels: vec!["enhancement".to_string(), "priority:P1-High".to_string()],
-                    created_at: chrono::Utc::now().to_rfc3339(),
-                    updated_at: chrono::Utc::now().to_rfc3339(),
-                },
-            ],
+            recent: vec![IssueInfo {
+                number: 678,
+                title: "feat: Dashboard snapshot service and UI".to_string(),
+                state: "open".to_string(),
+                labels: vec!["enhancement".to_string(), "priority:P1-High".to_string()],
+                created_at: chrono::Utc::now().to_rfc3339(),
+                updated_at: chrono::Utc::now().to_rfc3339(),
+            }],
         })
     }
 

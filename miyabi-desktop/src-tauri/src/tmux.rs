@@ -424,7 +424,7 @@ impl TmuxManager {
                 let status_code = &line[..2];
                 match status_code {
                     "??" => untracked += 1,
-                    s if s.chars().next() != Some(' ') => staged += 1,
+                    s if !s.starts_with(' ') => staged += 1,
                     s if s.chars().nth(1) != Some(' ') => modified += 1,
                     _ => {}
                 }

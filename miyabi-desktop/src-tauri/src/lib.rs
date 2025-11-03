@@ -1,14 +1,19 @@
 mod agent;
+mod agent_state;
+mod ai_naming;
 mod automation;
 mod config;
+mod dashboard;
 mod github;
 mod pty;
 mod tmux;
 mod voicevox;
+mod worktree;
 
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
+use ai_naming::AnthropicClient;
 use automation::{AutomationConfig, AutomationManager, AutomationReadiness, AutomationSession};
-use config::{AgentConfig, AgentsConfig};
+use config::AgentsConfig;
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
 use pty::{PtyManager, SessionInfo, TerminalSession};
 use std::env;
@@ -16,13 +21,17 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::{AppHandle, State};
 use tmux::{TmuxManager, TmuxSession};
+use tokio::sync::Mutex as TokioMutex;
 use voicevox::{
     check_voicevox_engine, generate_narration, get_speakers, start_voicevox_engine,
     NarrationRequest, NarrationResult, SpeakerConfig,
 };
+use worktree::{GitStatus, Worktree, WorktreeManager};
 
 struct AppState {
     pty_manager: Mutex<PtyManager>,
+    worktree_manager: TokioMutex<Option<WorktreeManager>>,
+    ai_client: TokioMutex<Option<AnthropicClient>>,
 }
 
 #[tauri::command]
@@ -284,12 +293,123 @@ async fn load_automation_config_from_env() -> Result<AutomationConfig, String> {
     AutomationManager::load_config_from_env()
 }
 
+// ========== Worktree Management Commands ==========
+
+#[tauri::command]
+async fn worktree_list(state: State<'_, AppState>) -> Result<Vec<Worktree>, String> {
+    // Clone manager to avoid holding lock across await
+    let manager = {
+        let mut manager_guard = state.worktree_manager.lock().await;
+
+        // Lazy initialize manager
+        if manager_guard.is_none() {
+            *manager_guard = Some(WorktreeManager::new().map_err(|e| e.to_string())?);
+        }
+
+        manager_guard.as_ref().unwrap().clone()
+    }; // Lock dropped here
+
+    manager.list_worktrees().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn worktree_create_with_tmux(
+    issue_number: u64,
+    create_tmux: bool,
+    state: State<'_, AppState>,
+) -> Result<Worktree, String> {
+    // Clone manager to avoid holding lock across await
+    let manager = {
+        let mut manager_guard = state.worktree_manager.lock().await;
+
+        // Lazy initialize manager
+        if manager_guard.is_none() {
+            *manager_guard = Some(WorktreeManager::new().map_err(|e| e.to_string())?);
+        }
+
+        manager_guard.as_ref().unwrap().clone()
+    }; // Lock dropped here
+
+    manager
+        .create_worktree(issue_number, create_tmux)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn worktree_delete(worktree_id: String, state: State<'_, AppState>) -> Result<(), String> {
+    // Clone manager to avoid holding lock across await
+    let manager = {
+        let manager_guard = state.worktree_manager.lock().await;
+        manager_guard
+            .as_ref()
+            .ok_or_else(|| "Worktree manager not initialized".to_string())?
+            .clone()
+    }; // Lock dropped here
+
+    manager
+        .delete_worktree(&worktree_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn worktree_get_git_status(
+    worktree_id: String,
+    state: State<'_, AppState>,
+) -> Result<GitStatus, String> {
+    // Clone manager to avoid holding lock across await
+    let manager = {
+        let manager_guard = state.worktree_manager.lock().await;
+        manager_guard
+            .as_ref()
+            .ok_or_else(|| "Worktree manager not initialized".to_string())?
+            .clone()
+    }; // Lock dropped here
+
+    manager
+        .get_git_status(&worktree_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn ai_generate_name(
+    issue_title: String,
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    // Clone client to avoid holding lock across await
+    let client = {
+        let mut client_guard = state.ai_client.lock().await;
+
+        // Lazy initialize client
+        if client_guard.is_none() {
+            *client_guard = Some(AnthropicClient::default());
+        }
+
+        let client = client_guard.as_ref().unwrap();
+
+        if !client.is_configured() {
+            return Err("Anthropic API key not configured. Please set ANTHROPIC_API_KEY environment variable.".to_string());
+        }
+
+        client.clone()
+    }; // Lock dropped here
+
+    client
+        .generate_worktree_name(&issue_title)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             pty_manager: Mutex::new(PtyManager::new()),
+            worktree_manager: TokioMutex::new(None),
+            ai_client: TokioMutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             spawn_terminal,
@@ -327,6 +447,12 @@ pub fn run() {
             stop_full_automation,
             get_automation_status,
             load_automation_config_from_env,
+            // Worktree commands
+            worktree_list,
+            worktree_create_with_tmux,
+            worktree_delete,
+            worktree_get_git_status,
+            ai_generate_name,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

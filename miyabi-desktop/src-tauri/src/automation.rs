@@ -197,7 +197,7 @@ impl AutomationManager {
                 "miyabi-auto-{}",
                 github_repo
                     .as_ref()
-                    .and_then(|r| r.split('/').last())
+                    .and_then(|r| r.split('/').next_back())
                     .unwrap_or("dev")
             ),
             repo_root: repo_root.clone(),

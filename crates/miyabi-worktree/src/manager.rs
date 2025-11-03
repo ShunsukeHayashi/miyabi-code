@@ -221,41 +221,46 @@ impl WorktreeManager {
             worktree_path
         );
 
-        // Open repository
-        let repo = Repository::open(&self.repo_path)
-            .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
+        // Perform all git2 operations in a scope to ensure repo is dropped before await
+        {
+            // Open repository
+            let repo = Repository::open(&self.repo_path)
+                .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
 
-        // Check repository state (warning only, don't block worktree creation)
-        let state = repo.state();
-        if state != RepositoryState::Clean {
-            tracing::warn!(
-                "Repository is not in a clean state: {:?}. \
-                 Worktree creation will proceed, but be aware of potential conflicts.",
-                state
-            );
-        }
+            // Check repository state (warning only, don't block worktree creation)
+            let state = repo.state();
+            if state != RepositoryState::Clean {
+                tracing::warn!(
+                    "Repository is not in a clean state: {:?}. \
+                     Worktree creation will proceed, but be aware of potential conflicts.",
+                    state
+                );
+            }
 
-        // Get main branch (try 'main' first, then 'master')
-        let main_branch = self.get_main_branch(&repo)?;
+            // Get main branch (try 'main' first, then 'master')
+            let main_branch = self.get_main_branch(&repo)?;
 
-        // Create new branch from main
-        let head_commit = repo
-            .find_branch(&main_branch, BranchType::Local)
-            .map_err(|e| MiyabiError::Git(format!("Failed to find main branch: {}", e)))?
-            .get()
-            .peel_to_commit()
-            .map_err(|e| MiyabiError::Git(format!("Failed to get main commit: {}", e)))?;
+            // Create new branch from main
+            let head_commit = repo
+                .find_branch(&main_branch, BranchType::Local)
+                .map_err(|e| MiyabiError::Git(format!("Failed to find main branch: {}", e)))?
+                .get()
+                .peel_to_commit()
+                .map_err(|e| MiyabiError::Git(format!("Failed to get main commit: {}", e)))?;
 
-        // Check if branch already exists
-        if let Ok(_existing) = repo.find_branch(&branch_name, BranchType::Local) {
-            tracing::warn!(
-                "Branch {} already exists, using existing branch",
-                branch_name
-            );
-        } else {
-            repo.branch(&branch_name, &head_commit, false)
-                .map_err(|e| MiyabiError::Git(format!("Failed to create branch: {}", e)))?;
-        }
+            // Check if branch already exists
+            let branch_exists = repo.find_branch(&branch_name, BranchType::Local).is_ok();
+
+            if branch_exists {
+                tracing::warn!(
+                    "Branch {} already exists, using existing branch",
+                    branch_name
+                );
+            } else {
+                repo.branch(&branch_name, &head_commit, false)
+                    .map_err(|e| MiyabiError::Git(format!("Failed to create branch: {}", e)))?;
+            }
+        } // repo is dropped here, before the await point
 
         // Create worktree using git command (git2 doesn't support worktree creation directly)
         let output = tokio::process::Command::new("git")
@@ -400,15 +405,21 @@ impl WorktreeManager {
             tracing::info!("✅ git worktree prune completed successfully");
         }
 
-        // Remove branch
-        let repo = Repository::open(&self.repo_path)
-            .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
+        // Remove branch (in a scope to ensure repo is dropped before await)
+        {
+            let repo = Repository::open(&self.repo_path)
+                .map_err(|e| MiyabiError::Git(format!("Failed to open repository: {}", e)))?;
 
-        if let Ok(mut branch) = repo.find_branch(&worktree_info.branch_name, BranchType::Local) {
-            branch
-                .delete()
-                .map_err(|e| MiyabiError::Git(format!("Failed to delete branch: {}", e)))?;
-        }
+            // Check if branch exists and delete it
+            let branch_result = repo.find_branch(&worktree_info.branch_name, BranchType::Local);
+            if let Ok(mut branch) = branch_result {
+                branch
+                    .delete()
+                    .map_err(|e| MiyabiError::Git(format!("Failed to delete branch: {}", e)))?;
+            } else {
+                tracing::debug!("Branch {} not found, skipping deletion", worktree_info.branch_name);
+            }
+        } // repo is dropped here, before the await point
 
         // Remove from tracked worktrees
         {
