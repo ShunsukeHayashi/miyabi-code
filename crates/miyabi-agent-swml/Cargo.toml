@@ -33,7 +33,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 
 # Math/Statistics for convergence analysis
-statrs = "0.17"
+statrs = "0.18"
 
 # Filesystem and hashing
 walkdir = "2.5"
