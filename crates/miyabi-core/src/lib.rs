@@ -16,6 +16,7 @@ pub mod approval;
 pub mod cache;
 pub mod config;
 pub mod documentation;
+pub mod error;
 pub mod error_policy;
 pub mod executor;
 pub mod feature_flags;
@@ -40,6 +41,7 @@ pub use documentation::{
     generate_readme, generate_rustdoc, CodeExample, DocumentationConfig, DocumentationResult,
     ReadmeTemplate, ValidationResult,
 };
+pub use error::{CoreError, ErrorCode, ErrorContextExt, Result, UnifiedError};
 pub use error_policy::{CircuitBreaker, CircuitState, FallbackStrategy};
 // Re-export all git utilities from consolidated git module
 pub use executor::TaskExecutor;

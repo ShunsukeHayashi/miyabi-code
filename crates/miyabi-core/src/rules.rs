@@ -3,6 +3,7 @@
 //! This module provides support for loading and applying custom rules from `.miyabirules` files,
 //! similar to Cline's `.clinerules` functionality.
 
+use crate::error::{ErrorCode, UnifiedError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -27,6 +28,81 @@ pub enum RulesError {
     /// I/O error
     #[error("I/O error: {0}")]
     IoError(#[from] std::io::Error),
+}
+
+impl RulesError {
+    /// Get error code for programmatic handling
+    ///
+    /// # Returns
+    ///
+    /// A static string identifier for this error type, useful for:
+    /// - Programmatic error handling
+    /// - Documentation references
+    /// - Metrics/monitoring
+    /// - Internationalization
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use miyabi_core::rules::RulesError;
+    /// use std::path::PathBuf;
+    ///
+    /// let error = RulesError::FileNotFound(PathBuf::from("/tmp/test"));
+    /// assert_eq!(error.code(), "RULES_FILE_NOT_FOUND");
+    /// ```
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::FileNotFound(_) => "RULES_FILE_NOT_FOUND",
+            Self::ParseError(_) => "RULES_PARSE_ERROR",
+            Self::ValidationError(_) => "RULES_VALIDATION_ERROR",
+            Self::IoError(_) => "RULES_IO_ERROR",
+        }
+    }
+
+    /// Get user-friendly error message
+    ///
+    /// Returns a simplified, actionable message suitable for end users.
+    pub fn user_message(&self) -> String {
+        match self {
+            Self::FileNotFound(path) => {
+                format!("Could not find rules file: {}", path.display())
+            }
+            Self::ParseError(msg) => {
+                format!("Rules file format is invalid: {}", msg)
+            }
+            Self::ValidationError(msg) => {
+                format!("Rules configuration error: {}", msg)
+            }
+            Self::IoError(_) => {
+                "Unable to read rules file. Check file permissions.".to_string()
+            }
+        }
+    }
+}
+
+// Implement the UnifiedError trait for RulesError
+impl UnifiedError for RulesError {
+    fn code(&self) -> ErrorCode {
+        match self {
+            Self::FileNotFound(_) => ErrorCode::FILE_NOT_FOUND,
+            Self::ParseError(_) => ErrorCode::PARSE_ERROR,
+            Self::ValidationError(_) => ErrorCode::VALIDATION_ERROR,
+            Self::IoError(e) => match e.kind() {
+                std::io::ErrorKind::NotFound => ErrorCode::FILE_NOT_FOUND,
+                std::io::ErrorKind::PermissionDenied => ErrorCode::PERMISSION_DENIED,
+                _ => ErrorCode::IO_ERROR,
+            },
+        }
+    }
+
+    fn user_message(&self) -> String {
+        // Reuse the existing user_message implementation
+        RulesError::user_message(self)
+    }
+
+    fn context(&self) -> Option<&dyn std::any::Any> {
+        None
+    }
 }
 
 pub type Result<T> = std::result::Result<T, RulesError>;
