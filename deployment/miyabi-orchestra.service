@@ -1,0 +1,37 @@
+[Unit]
+Description=Miyabi Orchestra - Autonomous Agent Orchestration System
+Documentation=https://github.com/customer-cloud/miyabi-private
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=root
+Group=root
+WorkingDirectory=/home/user/miyabi-private
+
+# 環境変数
+Environment="MIYABI_PROJECT_ROOT=/home/user/miyabi-private"
+Environment="MIYABI_SESSION=miyabi-orchestra"
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# 起動コマンド
+ExecStart=/home/user/miyabi-private/scripts/miyabi-orchestra-daemon.sh start
+
+# 停止コマンド
+ExecStop=/home/user/miyabi-private/scripts/miyabi-orchestra-daemon.sh stop
+
+# 再起動設定
+Restart=always
+RestartSec=10
+
+# リソース制限
+MemoryLimit=4G
+CPUQuota=200%
+
+# ログ設定
+StandardOutput=append:/home/user/miyabi-private/logs/systemd/stdout.log
+StandardError=append:/home/user/miyabi-private/logs/systemd/stderr.log
+
+[Install]
+WantedBy=multi-user.target
