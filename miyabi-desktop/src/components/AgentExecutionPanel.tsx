@@ -11,6 +11,8 @@ import {
   getAgentsByCategory,
 } from "../lib/agent-api";
 import { listIssues, type GitHubIssue } from "../lib/github-api";
+import { ErrorModal } from "./ErrorModal";
+import { getErrorInfo, type ErrorInfo } from "../lib/errors";
 
 interface AgentExecution {
   executionId: string;
@@ -29,6 +31,7 @@ export function AgentExecutionPanel() {
   const [activeExecution, setActiveExecution] = useState<AgentExecution | null>(null);
   const [issues, setIssues] = useState<GitHubIssue[]>([]);
   const [loadingIssues, setLoadingIssues] = useState(false);
+  const [errorModal, setErrorModal] = useState<ErrorInfo | null>(null);
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   // Load open issues on mount
@@ -43,6 +46,7 @@ export function AgentExecutionPanel() {
       setIssues(openIssues);
     } catch (error) {
       console.error("Failed to load issues:", error);
+      setErrorModal(getErrorInfo(error));
     } finally {
       setLoadingIssues(false);
     }
@@ -218,6 +222,7 @@ export function AgentExecutionPanel() {
       }, 1000);
     } catch (error) {
       console.error("Failed to execute agent:", error);
+      setErrorModal(getErrorInfo(error));
       setActiveExecution((prev) =>
         prev ? { ...prev, status: "failed" } : null
       );
@@ -593,6 +598,21 @@ export function AgentExecutionPanel() {
           </div>
         )}
       </div>
+
+      {/* Error Modal */}
+      {errorModal && (
+        <ErrorModal
+          error={errorModal}
+          onClose={() => setErrorModal(null)}
+          onRetry={
+            errorModal.title.includes('エージェント')
+              ? handleExecuteAgent
+              : errorModal.title.includes('Issue')
+              ? loadOpenIssues
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }
