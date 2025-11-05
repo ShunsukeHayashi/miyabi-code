@@ -1,8 +1,15 @@
-# 🎓 Miyabi tmux Gradebook
+# 🎓 Miyabi tmux Toolkit
 
-Comprehensive evaluation system for tmux session and agent performance.
+Comprehensive monitoring and evaluation system for tmux session and agent performance.
+
+## 📦 What's Included
+
+1. **🎓 Gradebook** - Session and agent performance evaluation system
+2. **🎯 Conductor Timeline** - Real-time agent state monitoring and event reporting (NEW!)
 
 ## Quick Start
+
+### Gradebook
 
 ```bash
 # Generate full Markdown report
@@ -15,13 +22,45 @@ npx tsx tmux-gradebook.ts Miyabi --summary
 npx tsx tmux-gradebook.ts Miyabi --json --output .ai/gradebook/report.json
 ```
 
+### Conductor Timeline
+
+```bash
+# Generate report once and display in console
+node dist/conductor-timeline/src/cli/conductorTimeline.js --session miyabi-refactor
+
+# Send report to tmux pane and JSONL file
+node dist/conductor-timeline/src/cli/conductorTimeline.js --session miyabi-refactor --output-pane %10 --jsonl .ai/logs/conductor_timeline.jsonl
+
+# Continuous monitoring with 10-second interval
+node dist/conductor-timeline/src/cli/conductorTimeline.js --session miyabi-refactor --watch --watch-interval 10
+
+# 30-minute window with console-only output
+node dist/conductor-timeline/src/cli/conductorTimeline.js --session miyabi-refactor --window 30 --console-only
+
+# Or use npm script
+npm run timeline -- --session miyabi-refactor --console-only
+
+# Build the project first
+npm run build
+```
+
 ## Features
 
+### Gradebook
 - ✅ **Dual-Level Evaluation**: Session-wide + per-agent grading (0-100 scale)
 - ✅ **Multi-Source Data**: tmux commands + `.ai/sessions` + `.ai/logs` + `.ai/codex-tasks`
 - ✅ **Weighted Scoring**: Customizable metric weights (completion, quality, performance, collaboration)
 - ✅ **Multiple Formats**: Markdown reports, JSON export, compact summary
 - ✅ **Testable Architecture**: Mocked shell interactions for unit testing
+
+### Conductor Timeline
+- ✅ **Real-Time Monitoring**: Live agent state tracking (RUN/IDLE/DEAD)
+- ✅ **Event Aggregation**: Load and aggregate conductor events from `.ai/logs`
+- ✅ **Multiple Output Formats**: Console, tmux pane, and JSONL file output
+- ✅ **Watch Mode**: Continuous monitoring with configurable intervals
+- ✅ **Mission Control Integration**: JSON output consumable by Mission Control UI
+- ✅ **Comprehensive Testing**: Jest unit tests with 70%+ coverage
+- ✅ **TypeScript Native**: Fully typed with ESM modules
 
 ## Evaluation Categories
 
@@ -51,6 +90,7 @@ npx tsx tmux-gradebook.ts Miyabi --json --output .ai/gradebook/report.json
 
 ## Architecture
 
+### Gradebook
 ```
 scripts/tmux/
 ├── types/gradebook.ts        # Type definitions (14 interfaces)
@@ -64,8 +104,28 @@ scripts/tmux/
 └── tmux-gradebook.ts          # CLI entry point
 ```
 
+### Conductor Timeline
+```
+scripts/tmux/conductor-timeline/
+├── src/
+│   ├── types/index.ts         # Type definitions
+│   ├── adapters/
+│   │   └── TmuxAdapter.ts     # tmux CLI wrapper
+│   ├── loaders/
+│   │   └── EventLoader.ts     # Load events from .ai/logs
+│   ├── aggregators/
+│   │   └── TimelineAggregator.ts  # Aggregate agent states
+│   ├── formatters/
+│   │   ├── ReportFormatter.ts     # Format reports
+│   │   └── ReportWriter.ts        # Write to tmux/JSONL
+│   └── cli/
+│       └── conductorTimeline.ts   # CLI entry point
+└── __tests__/                 # Jest unit tests
+```
+
 ## CLI Options
 
+### Gradebook
 ```
 Usage: tsx tmux-gradebook.ts [session-name] [options]
 
@@ -80,6 +140,26 @@ Examples:
   tsx tmux-gradebook.ts Miyabi
   tsx tmux-gradebook.ts Miyabi --json --output report.json
   tsx tmux-gradebook.ts Miyabi --summary
+```
+
+### Conductor Timeline
+```
+Usage: conductor-timeline --session <name> [options]
+
+Options:
+  -s, --session <name>          Tmux session name (default: miyabi-refactor)
+  -w, --window <minutes>        Time window for events in minutes (default: 60)
+  -o, --output-pane <pane-id>   Tmux pane ID to send output (e.g., %10)
+  -j, --jsonl <path>            Path to JSONL output file
+  --watch                       Continuous monitoring mode
+  --watch-interval <seconds>    Watch mode interval (default: 10)
+  -c, --console-only            Output to console only
+  -h, --help                    Show help message
+
+Examples:
+  conductor-timeline --session miyabi-refactor
+  conductor-timeline --session miyabi-refactor --output-pane %10 --jsonl .ai/logs/conductor_timeline.jsonl
+  conductor-timeline --session miyabi-refactor --watch --watch-interval 10
 ```
 
 ## Configuration

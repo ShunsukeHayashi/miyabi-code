@@ -1,0 +1,43 @@
+{
+  "name": "miyabi-conductor-timeline",
+  "version": "1.0.0",
+  "description": "Conductor Timeline Monitoring Pipeline - tmux monitoring, event aggregation, and JSONL output",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "conductor-timeline": "dist/cli/conductorTimeline.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "timeline": "node dist/cli/conductorTimeline.js"
+  },
+  "keywords": [
+    "miyabi",
+    "tmux",
+    "conductor",
+    "timeline",
+    "monitoring",
+    "mission-control"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "dependencies": {
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.3.0"
+  }
+}
