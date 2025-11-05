@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "crates/miyabi-core",
+    "crates/miyabi-dag",
     "crates/miyabi-types",
     "crates/miyabi-cli",
     "crates/miyabi-agent-core",

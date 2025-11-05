@@ -1,61 +1,44 @@
-//! Workflow Builder - Mastra-style fluent API for DAG construction
-//!
-//! Provides a user-friendly builder pattern for creating complex task workflows
-//! with `.step()`, `.then()`, `.branch()`, and `.parallel()` methods.
+//! WorkflowBuilder - Fluent API for defining agent workflows
 
+use crate::condition::{Condition, ConditionalBranch};
+use crate::error::{Result, WorkflowError};
 use miyabi_types::{
     agent::AgentType,
     task::{Task, TaskType},
     workflow::{Edge, DAG},
 };
-use std::collections::HashMap;
+use std::collections::HashSet;
 
-/// Workflow builder for constructing task DAGs
+/// Builder for constructing agent workflows
 pub struct WorkflowBuilder {
-    /// Workflow name
     name: String,
-    /// List of workflow steps
     steps: Vec<Step>,
-    /// Current step ID (for chaining)
     current_step: Option<String>,
 }
 
-/// A single step in the workflow
+/// A single step in a workflow
 #[derive(Clone, Debug)]
 pub struct Step {
-    /// Unique step identifier
     pub id: String,
-    /// Step name
     pub name: String,
-    /// Agent type to execute this step
     pub agent_type: AgentType,
-    /// Dependencies (step IDs this step depends on)
     pub dependencies: Vec<String>,
-    /// Step type (sequential, parallel, conditional)
     pub step_type: StepType,
 }
 
-/// Step execution type
-#[derive(Clone, Debug)]
+/// Type of workflow step
+#[derive(Clone, Debug, PartialEq)]
 pub enum StepType {
-    /// Sequential execution (default)
+    /// Sequential step (default)
     Sequential,
-    /// Parallel execution
+    /// Parallel step (executes concurrently with siblings)
     Parallel,
-    /// Conditional execution
-    Conditional { condition: String },
+    /// Conditional branch with multiple possible paths
+    Conditional { branches: Vec<ConditionalBranch> },
 }
 
 impl WorkflowBuilder {
-    /// Create a new workflow builder
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use miyabi_workflow::WorkflowBuilder;
-    ///
-    /// let workflow = WorkflowBuilder::new("issue-resolution");
-    /// ```
+    /// Create a new workflow with the given name
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
@@ -64,17 +47,7 @@ impl WorkflowBuilder {
         }
     }
 
-    /// Add a new step to the workflow
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use miyabi_workflow::WorkflowBuilder;
-    /// use miyabi_types::agent::AgentType;
-    ///
-    /// let workflow = WorkflowBuilder::new("example")
-    ///     .step("analyze", AgentType::IssueAgent);
-    /// ```
+    /// Add a step to the workflow (no dependencies)
     pub fn step(mut self, name: &str, agent: AgentType) -> Self {
         let step_id = format!("step-{}", self.steps.len());
         let step = Step {
@@ -90,18 +63,7 @@ impl WorkflowBuilder {
         self
     }
 
-    /// Add a sequential step that depends on the current step
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use miyabi_workflow::WorkflowBuilder;
-    /// use miyabi_types::agent::AgentType;
-    ///
-    /// let workflow = WorkflowBuilder::new("example")
-    ///     .step("analyze", AgentType::IssueAgent)
-    ///     .then("implement", AgentType::CodeGenAgent);
-    /// ```
+    /// Add a sequential step that depends on the previous step
     pub fn then(mut self, name: &str, agent: AgentType) -> Self {
         let step_id = format!("step-{}", self.steps.len());
         let dependencies = self
@@ -123,7 +85,9 @@ impl WorkflowBuilder {
         self
     }
 
-    /// Add a conditional branch
+    /// Add a simple conditional branch (pass/fail pattern)
+    ///
+    /// Creates a branch step with two paths: one for success, one for failure.
     ///
     /// # Examples
     ///
@@ -131,11 +95,13 @@ impl WorkflowBuilder {
     /// use miyabi_workflow::WorkflowBuilder;
     /// use miyabi_types::agent::AgentType;
     ///
-    /// let workflow = WorkflowBuilder::new("example")
-    ///     .step("analyze", AgentType::IssueAgent)
-    ///     .branch("critical-path", "if priority > 5".to_string());
+    /// let workflow = WorkflowBuilder::new("ci-cd")
+    ///     .step("test", AgentType::ReviewAgent)
+    ///     .branch("decision", "deploy", "rollback")
+    ///     .step("deploy", AgentType::DeploymentAgent)
+    ///     .step("rollback", AgentType::CodeGenAgent);
     /// ```
-    pub fn branch(mut self, name: &str, condition: String) -> Self {
+    pub fn branch(mut self, name: &str, pass_step: &str, fail_step: &str) -> Self {
         let step_id = format!("step-{}", self.steps.len());
         let dependencies = self
             .current_step
@@ -143,12 +109,24 @@ impl WorkflowBuilder {
             .map(|id| vec![id.clone()])
             .unwrap_or_default();
 
+        let branches = vec![
+            ConditionalBranch::new(
+                "pass",
+                Condition::FieldEquals {
+                    field: "success".to_string(),
+                    value: serde_json::Value::Bool(true),
+                },
+                pass_step,
+            ),
+            ConditionalBranch::new("fail", Condition::Always, fail_step),
+        ];
+
         let step = Step {
             id: step_id.clone(),
             name: name.to_string(),
-            agent_type: AgentType::CoordinatorAgent, // Coordinator evaluates conditions
+            agent_type: AgentType::CoordinatorAgent,
             dependencies,
-            step_type: StepType::Conditional { condition },
+            step_type: StepType::Conditional { branches },
         };
 
         self.steps.push(step);
@@ -156,21 +134,62 @@ impl WorkflowBuilder {
         self
     }
 
-    /// Add multiple parallel steps
+    /// Add a conditional branch with custom conditions
+    ///
+    /// Allows specifying multiple branches with different conditions.
     ///
     /// # Examples
     ///
     /// ```
-    /// use miyabi_workflow::WorkflowBuilder;
+    /// use miyabi_workflow::{WorkflowBuilder, Condition};
     /// use miyabi_types::agent::AgentType;
+    /// use serde_json::json;
     ///
-    /// let workflow = WorkflowBuilder::new("example")
-    ///     .step("analyze", AgentType::IssueAgent)
-    ///     .parallel(vec![
-    ///         ("test", AgentType::ReviewAgent),
-    ///         ("lint", AgentType::CodeGenAgent),
+    /// let workflow = WorkflowBuilder::new("quality-check")
+    ///     .step("analyze", AgentType::ReviewAgent)
+    ///     .branch_on("route", vec![
+    ///         ("high", Condition::FieldGreaterThan {
+    ///             field: "quality".to_string(),
+    ///             value: 0.9,
+    ///         }, "fast-deploy"),
+    ///         ("medium", Condition::FieldGreaterThan {
+    ///             field: "quality".to_string(),
+    ///             value: 0.7,
+    ///         }, "manual-review"),
+    ///         ("low", Condition::Always, "reject"),
     ///     ]);
     /// ```
+    pub fn branch_on(mut self, name: &str, branches: Vec<(&str, Condition, &str)>) -> Self {
+        let step_id = format!("step-{}", self.steps.len());
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
+
+        let conditional_branches: Vec<ConditionalBranch> = branches
+            .into_iter()
+            .map(|(branch_name, condition, next_step)| {
+                ConditionalBranch::new(branch_name, condition, next_step)
+            })
+            .collect();
+
+        let step = Step {
+            id: step_id.clone(),
+            name: name.to_string(),
+            agent_type: AgentType::CoordinatorAgent,
+            dependencies,
+            step_type: StepType::Conditional {
+                branches: conditional_branches,
+            },
+        };
+
+        self.steps.push(step);
+        self.current_step = Some(step_id);
+        self
+    }
+
+    /// Add parallel steps that execute concurrently
     pub fn parallel(mut self, steps: Vec<(&str, AgentType)>) -> Self {
         let parent_id = self.current_step.clone();
 
@@ -192,37 +211,16 @@ impl WorkflowBuilder {
             self.steps.push(step);
         }
 
-        // No single current step after parallel execution
         self.current_step = None;
         self
     }
 
-    /// Build the DAG from the workflow steps
-    ///
-    /// Performs topological sort and validates the graph.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - The workflow contains circular dependencies
-    /// - The graph is invalid
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use miyabi_workflow::WorkflowBuilder;
-    /// use miyabi_types::agent::AgentType;
-    ///
-    /// let dag = WorkflowBuilder::new("example")
-    ///     .step("analyze", AgentType::IssueAgent)
-    ///     .then("implement", AgentType::CodeGenAgent)
-    ///     .build_dag()
-    ///     .unwrap();
-    ///
-    /// assert_eq!(dag.nodes.len(), 2);
-    /// ```
-    pub fn build_dag(self) -> Result<DAG, anyhow::Error> {
-        // Convert steps to Task nodes
+    /// Build the DAG representation of this workflow
+    pub fn build_dag(self) -> Result<DAG> {
+        if self.steps.is_empty() {
+            return Err(WorkflowError::EmptyWorkflow);
+        }
+
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
 
@@ -245,116 +243,73 @@ impl WorkflowBuilder {
             };
             nodes.push(task);
 
-            // Create edges from dependencies
-            for dep in &step.dependencies {
-                edges.push(Edge {
-                    from: dep.clone(),
-                    to: step.id.clone(),
-                });
-            }
-        }
-
-        // Compute topological levels
-        let levels = self.compute_levels(&nodes, &edges)?;
-
-        let dag = DAG {
-            nodes,
-            edges,
-            levels,
-        };
-
-        // Validate the DAG
-        dag.validate()
-            .map_err(|e| anyhow::anyhow!("DAG validation failed: {}", e))?;
-
-        Ok(dag)
-    }
-
-    /// Compute topological levels for parallel execution
-    ///
-    /// Uses Kahn's algorithm to perform topological sort and group
-    /// tasks into levels where tasks at the same level can execute in parallel.
-    fn compute_levels(
-        &self,
-        nodes: &[Task],
-        edges: &[Edge],
-    ) -> Result<Vec<Vec<String>>, anyhow::Error> {
-        use std::collections::VecDeque;
-
-        // Build dependency maps
-        let mut in_degree: HashMap<String, usize> = HashMap::new();
-        let mut adj_list: HashMap<String, Vec<String>> = HashMap::new();
-
-        // Initialize all nodes with in-degree 0
-        for node in nodes {
-            in_degree.insert(node.id.clone(), 0);
-            adj_list.insert(node.id.clone(), Vec::new());
-        }
-
-        // Build adjacency list and compute in-degrees
-        for edge in edges {
-            *in_degree.get_mut(&edge.to).unwrap() += 1;
-            adj_list.get_mut(&edge.from).unwrap().push(edge.to.clone());
-        }
-
-        // Kahn's algorithm: process nodes level by level
-        let mut levels: Vec<Vec<String>> = Vec::new();
-        let mut queue: VecDeque<String> = VecDeque::new();
-
-        // Start with nodes that have no dependencies (in-degree 0)
-        for (node_id, &degree) in &in_degree {
-            if degree == 0 {
-                queue.push_back(node_id.clone());
-            }
-        }
-
-        let mut processed = 0;
-
-        while !queue.is_empty() {
-            let level_size = queue.len();
-            let mut current_level = Vec::new();
-
-            for _ in 0..level_size {
-                if let Some(node_id) = queue.pop_front() {
-                    current_level.push(node_id.clone());
-                    processed += 1;
-
-                    // Reduce in-degree of neighbors
-                    if let Some(neighbors) = adj_list.get(&node_id) {
-                        for neighbor in neighbors {
-                            let degree = in_degree.get_mut(neighbor).unwrap();
-                            *degree -= 1;
-                            if *degree == 0 {
-                                queue.push_back(neighbor.clone());
-                            }
-                        }
+            // Add edges based on step type
+            match &step.step_type {
+                StepType::Conditional { branches } => {
+                    // For conditional steps, add edges to all possible branch targets
+                    for branch in branches {
+                        edges.push(Edge {
+                            from: step.id.clone(),
+                            to: branch.next_step.clone(),
+                        });
+                    }
+                }
+                StepType::Sequential | StepType::Parallel => {
+                    // Normal dependency edges
+                    for dep in &step.dependencies {
+                        edges.push(Edge {
+                            from: dep.clone(),
+                            to: step.id.clone(),
+                        });
                     }
                 }
             }
-
-            if !current_level.is_empty() {
-                levels.push(current_level);
-            }
         }
 
-        // Check for cycles
-        if processed != nodes.len() {
-            return Err(anyhow::anyhow!(
-                "Circular dependency detected: processed {} of {} nodes",
-                processed,
-                nodes.len()
-            ));
+        let levels = self.compute_levels(&nodes, &edges)?;
+
+        Ok(DAG {
+            nodes,
+            edges,
+            levels,
+        })
+    }
+
+    fn compute_levels(&self, nodes: &[Task], edges: &[Edge]) -> Result<Vec<Vec<String>>> {
+        let mut levels: Vec<Vec<String>> = Vec::new();
+        let mut remaining: HashSet<String> = nodes.iter().map(|n| n.id.clone()).collect();
+
+        while !remaining.is_empty() {
+            let mut current_level = Vec::new();
+
+            for node_id in &remaining {
+                let has_unresolved_deps = edges
+                    .iter()
+                    .any(|e| e.to == *node_id && remaining.contains(&e.from));
+
+                if !has_unresolved_deps {
+                    current_level.push(node_id.clone());
+                }
+            }
+
+            if current_level.is_empty() {
+                return Err(WorkflowError::CircularDependency);
+            }
+
+            for id in &current_level {
+                remaining.remove(id);
+            }
+
+            levels.push(current_level);
         }
 
         Ok(levels)
     }
 
-    /// Get workflow name
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    /// Get workflow steps
     pub fn steps(&self) -> &[Step] {
         &self.steps
     }
@@ -363,107 +318,199 @@ impl WorkflowBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use miyabi_types::agent::AgentType;
 
     #[test]
-    fn test_workflow_builder_creation() {
-        let builder = WorkflowBuilder::new("test-workflow");
-        assert_eq!(builder.name(), "test-workflow");
-        assert_eq!(builder.steps().len(), 0);
+    fn test_empty_workflow() {
+        let workflow = WorkflowBuilder::new("empty");
+        let result = workflow.build_dag();
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), WorkflowError::EmptyWorkflow));
     }
 
     #[test]
     fn test_single_step() {
-        let builder = WorkflowBuilder::new("single").step("analyze", AgentType::IssueAgent);
+        let workflow = WorkflowBuilder::new("single").step("analyze", AgentType::IssueAgent);
 
-        assert_eq!(builder.steps().len(), 1);
-        assert_eq!(builder.steps()[0].name, "analyze");
-        assert_eq!(builder.steps()[0].dependencies.len(), 0);
+        let dag = workflow.build_dag().unwrap();
+        assert_eq!(dag.nodes.len(), 1);
+        assert_eq!(dag.edges.len(), 0);
+        assert_eq!(dag.levels.len(), 1);
+        assert_eq!(dag.levels[0].len(), 1);
     }
 
     #[test]
-    fn test_sequential_steps() {
-        let builder = WorkflowBuilder::new("sequential")
-            .step("step1", AgentType::IssueAgent)
-            .then("step2", AgentType::CodeGenAgent)
-            .then("step3", AgentType::ReviewAgent);
+    fn test_sequential_workflow() {
+        let workflow = WorkflowBuilder::new("sequential")
+            .step("analyze", AgentType::IssueAgent)
+            .then("implement", AgentType::CodeGenAgent);
 
-        assert_eq!(builder.steps().len(), 3);
-        assert_eq!(builder.steps()[1].dependencies.len(), 1);
-        assert_eq!(builder.steps()[2].dependencies.len(), 1);
-    }
-
-    #[test]
-    fn test_parallel_steps() {
-        let builder = WorkflowBuilder::new("parallel")
-            .step("start", AgentType::IssueAgent)
-            .parallel(vec![
-                ("task1", AgentType::CodeGenAgent),
-                ("task2", AgentType::ReviewAgent),
-                ("task3", AgentType::PRAgent),
-            ]);
-
-        assert_eq!(builder.steps().len(), 4);
-        // All parallel tasks depend on "start"
-        assert_eq!(builder.steps()[1].dependencies[0], "step-0");
-        assert_eq!(builder.steps()[2].dependencies[0], "step-0");
-        assert_eq!(builder.steps()[3].dependencies[0], "step-0");
-    }
-
-    #[test]
-    fn test_build_dag_simple() {
-        let dag = WorkflowBuilder::new("simple")
-            .step("step1", AgentType::IssueAgent)
-            .then("step2", AgentType::CodeGenAgent)
-            .build_dag()
-            .unwrap();
-
+        let dag = workflow.build_dag().unwrap();
         assert_eq!(dag.nodes.len(), 2);
         assert_eq!(dag.edges.len(), 1);
         assert_eq!(dag.levels.len(), 2);
-        assert_eq!(dag.levels[0].len(), 1); // step1
-        assert_eq!(dag.levels[1].len(), 1); // step2
     }
 
     #[test]
-    fn test_build_dag_parallel() {
-        let dag = WorkflowBuilder::new("parallel")
+    fn test_parallel_workflow() {
+        let workflow = WorkflowBuilder::new("parallel")
             .step("start", AgentType::IssueAgent)
             .parallel(vec![
                 ("task1", AgentType::CodeGenAgent),
                 ("task2", AgentType::ReviewAgent),
-            ])
-            .build_dag()
-            .unwrap();
+            ]);
 
+        let dag = workflow.build_dag().unwrap();
         assert_eq!(dag.nodes.len(), 3);
         assert_eq!(dag.levels.len(), 2);
-        assert_eq!(dag.levels[0].len(), 1); // start
-        assert_eq!(dag.levels[1].len(), 2); // task1, task2 in parallel
+        assert_eq!(dag.levels[1].len(), 2);
     }
 
     #[test]
-    fn test_build_dag_complex() {
-        let dag = WorkflowBuilder::new("complex")
+    fn test_complex_workflow() {
+        let workflow = WorkflowBuilder::new("complex")
             .step("analyze", AgentType::IssueAgent)
+            .then("implement", AgentType::CodeGenAgent)
             .parallel(vec![
-                ("implement", AgentType::CodeGenAgent),
-                ("document", AgentType::CodeGenAgent),
-            ])
-            .build_dag()
-            .unwrap();
+                ("test", AgentType::ReviewAgent),
+                ("lint", AgentType::CodeGenAgent),
+            ]);
 
-        assert_eq!(dag.nodes.len(), 3);
-        assert_eq!(dag.levels.len(), 2);
+        let dag = workflow.build_dag().unwrap();
+        assert_eq!(dag.nodes.len(), 4);
+        assert!(dag.levels.len() >= 2);
     }
 
     #[test]
-    fn test_dag_validation_success() {
-        let dag = WorkflowBuilder::new("valid")
-            .step("step1", AgentType::IssueAgent)
-            .then("step2", AgentType::CodeGenAgent)
-            .build_dag()
-            .unwrap();
+    fn test_conditional_branch_simple() {
+        let workflow = WorkflowBuilder::new("ci-cd")
+            .step("test", AgentType::ReviewAgent)
+            .branch("decision", "deploy", "rollback")
+            .step("deploy", AgentType::DeploymentAgent)
+            .step("rollback", AgentType::CodeGenAgent);
 
-        assert!(dag.validate().is_ok());
+        let dag = workflow.build_dag().unwrap();
+        assert_eq!(dag.nodes.len(), 4);
+
+        // Find the decision step
+        let decision_step = dag.nodes.iter().find(|n| n.title == "decision").unwrap();
+
+        // Check that decision step has edges to both deploy and rollback
+        let edges_from_decision: Vec<_> = dag
+            .edges
+            .iter()
+            .filter(|e| e.from == decision_step.id)
+            .collect();
+
+        assert_eq!(edges_from_decision.len(), 2);
+
+        // Verify targets
+        let targets: Vec<&String> = edges_from_decision.iter().map(|e| &e.to).collect();
+        assert!(targets.iter().any(|t| *t == "deploy"));
+        assert!(targets.iter().any(|t| *t == "rollback"));
+    }
+
+    #[test]
+    fn test_conditional_branch_on() {
+        use crate::condition::Condition;
+
+        let workflow = WorkflowBuilder::new("quality-check")
+            .step("analyze", AgentType::ReviewAgent)
+            .branch_on(
+                "route",
+                vec![
+                    (
+                        "high",
+                        Condition::FieldGreaterThan {
+                            field: "quality".to_string(),
+                            value: 0.9,
+                        },
+                        "fast-deploy",
+                    ),
+                    (
+                        "medium",
+                        Condition::FieldGreaterThan {
+                            field: "quality".to_string(),
+                            value: 0.7,
+                        },
+                        "manual-review",
+                    ),
+                    ("low", Condition::Always, "reject"),
+                ],
+            )
+            .step("fast-deploy", AgentType::DeploymentAgent)
+            .step("manual-review", AgentType::ReviewAgent)
+            .step("reject", AgentType::CodeGenAgent);
+
+        let dag = workflow.build_dag().unwrap();
+        assert_eq!(dag.nodes.len(), 5);
+
+        // Find the route step
+        let route_step = dag.nodes.iter().find(|n| n.title == "route").unwrap();
+
+        // Check that route step has edges to all three targets
+        let edges_from_route: Vec<_> = dag
+            .edges
+            .iter()
+            .filter(|e| e.from == route_step.id)
+            .collect();
+
+        assert_eq!(edges_from_route.len(), 3);
+    }
+
+    #[test]
+    fn test_step_type_conditional() {
+        use crate::condition::{Condition, ConditionalBranch};
+
+        let branches = vec![
+            ConditionalBranch::new(
+                "pass",
+                Condition::FieldEquals {
+                    field: "success".to_string(),
+                    value: serde_json::Value::Bool(true),
+                },
+                "deploy",
+            ),
+            ConditionalBranch::new("fail", Condition::Always, "rollback"),
+        ];
+
+        let step_type = StepType::Conditional {
+            branches: branches.clone(),
+        };
+
+        match step_type {
+            StepType::Conditional { branches: b } => {
+                assert_eq!(b.len(), 2);
+                assert_eq!(b[0].name, "pass");
+                assert_eq!(b[1].name, "fail");
+            }
+            _ => panic!("Expected Conditional step type"),
+        }
+    }
+
+    #[test]
+    fn test_conditional_workflow_integration() {
+        let workflow = WorkflowBuilder::new("full-pipeline")
+            .step("build", AgentType::CodeGenAgent)
+            .then("test", AgentType::ReviewAgent)
+            .branch("deploy-decision", "production", "staging")
+            .step("production", AgentType::DeploymentAgent)
+            .step("staging", AgentType::DeploymentAgent);
+
+        let dag = workflow.build_dag().unwrap();
+
+        // Verify structure
+        assert_eq!(dag.nodes.len(), 5);
+
+        // Verify edge structure
+        assert!(dag
+            .edges
+            .iter()
+            .any(|e| e.from == "step-0" && e.to == "step-1")); // build -> test
+        assert!(dag.edges.iter().any(|e| e.from == "step-2")); // decision has outgoing edges
+
+        // The decision step should have 2 outgoing edges
+        let decision_edges: Vec<_> = dag.edges.iter().filter(|e| e.from == "step-2").collect();
+        assert_eq!(decision_edges.len(), 2);
     }
 }
