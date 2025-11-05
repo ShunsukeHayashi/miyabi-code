@@ -1,141 +1,424 @@
-# Miyabi Agents Overview
+# Miyabi - Project Root & Control Document
 
-**Last Updated**: 2025-11-03  
-**Version**: 3.0.0  
-**Maintained by**: Miyabi Team
+作業開始時は、User のIntentを適切に理解して、Task nameとして作業宣言して,
+Worktree dirを作成してそのWorktree dir へ必ずcd すること。Git worktreeを使用して作業を開始して下さい。
 
----
+作業終了時は必ずクリーンナップをして下さい。
 
-## 🎯 Mandatory Protocols (必須プロトコル)
+## 🎯 Critical Rules - 必ず守ること
 
-- **Rule 1 – Task Execution Protocol**  
-  すべてのタスクは必ず Sub-Agent または Skill (`agent-execution`, `rust-development`, `documentation-generation` など) を経由して実施すること。直接実装は厳禁。
-- **Rule 2 – MCP First Approach**  
-  作業開始前に `claude mcp list` を実行し、利用可能な MCP サーバーを確認すること。詳細: `.claude/MCP_INTEGRATION_PROTOCOL.md`
-- **Rule 3 – tmux send-keys Protocol (CRITICAL)**  
-  tmux 上の Claude Code セッションへ入力する際は  
-  `tmux send-keys -t <PANE> "command" && sleep 0.1 && tmux send-keys -t <PANE> Enter`  
-  を厳守。`sleep` なしや `Enter` 省略は動作不良の原因となる。詳細: `.claude/TMUX_OPERATIONS.md`
-- **Rule 4 – Context7 Usage**  
-  外部ライブラリ情報は必ず Context7 経由で取得すること。例: `Use context7 to get the latest Tokio async runtime documentation`
-- **Rule 5 – Inter-Agent Relay Protocol**  
-  各エージェントはタスク完了・中断時に必ず次の担当エージェントへメッセージでトリガーを渡し、報告ループを維持すること。メッセージは `tmux send-keys -t <PANE> "message" && sleep 0.1 && tmux send-keys -t <PANE> Enter` 構文で送信する。自動化が必要な場合はメッセージに `[[exec:実行したいコマンド]]` を含め、`scripts/miyabi-skill-proxy.sh watch` を起動してホスト側で処理させる。
+### ⭐⭐⭐⭐⭐ Rule 1: Task Execution Protocol
 
----
+**必ず、Task todos は Sub-Agentへアサインする or Skill useで対応**
 
-## 🤖 Agent Portfolio（稼働中 20 Agents）
+- ✅ **Coding/Bug修正** → `agent-execution` Skill or `rust-development` Skill
+- ✅ **デバッグ** → `debugging-troubleshooting` Skill
+- ✅ **パフォーマンス** → `performance-analysis` Skill
+- ✅ **セキュリティ** → `security-audit` Skill
+- ✅ **ドキュメント** → `documentation-generation` Skill
+- ❌ **直接実装禁止** - 必ずSub-AgentまたはSkillを経由すること
 
-### 🎭 Coding Agents (6) — Miyabi Orchestra v2.0
+### ⭐⭐⭐⭐⭐ Rule 2: MCP First Approach
 
-Water Spider v2.0 が自動でメッセージ中継を行い、W1-W5 までのワークフロー自動化 (100%) を実現。
+全てのタスク実行前に、まず MCP の活用可能性を検討する
 
-| Agent | Character | Workflow Stage | tmux Pane | Status |
-|-------|-----------|----------------|-----------|--------|
-| IssueAgent | みつけるん | W1: Issue Triage | `%10` | ✅ Active |
-| CoordinatorAgent | しきるん | W2: Task Decomposition | `%11` | ✅ Active |
-| CodeGenAgent | カエデ | W3: Code Implementation | `%2` | ✅ Active |
-| ReviewAgent | サクラ | W4: Code Review | `%5` | ✅ Active |
-| PRAgent | ツバキ | W3: Pull Request | `%3` | ✅ Active |
-| DeploymentAgent | ボタン | W5: Deployment | `%4` | ✅ Active |
-
-**Workflow Chain**
-```
-みつけるん → しきるん → カエデ → サクラ → ツバキ → ボタン
+```bash
+# Phase 0: MCP確認（必須）
+claude mcp list
 ```
 
-**Reference**: `.claude/agents/tmux_agents_control.md`
+**詳細**: [.claude/MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md)
 
-### 💼 Business Agents (14) — Rust Implementation Complete
 
-#### 🎯 戦略・企画系 (6)
-- AIEntrepreneurAgent（あきんどさん）: 包括的ビジネスプラン
-- ProductConceptAgent（けいかくん）: 収益モデル・USP
-- ProductDesignAgent（つくるん2号）: サービス詳細設計
-- FunnelDesignAgent（みちしるべん）: 顧客導線設計
-- PersonaAgent（よみとるん）: ターゲット定義
-- SelfAnalysisAgent（しらべるん）: キャリア分析
+### ⭐⭐⭐⭐⭐ Rule 4: Context7 Usage
 
-#### 📢 マーケティング系 (5)
-- MarketResearchAgent（しらべるん2号）: 市場/競合調査
-- MarketingAgent（ひろめるん）: 広告・SEO・SNS戦略
-- ContentCreationAgent（かくちゃん）: コンテンツ制作計画
-- SNSStrategyAgent（つぶやくん）: SNS 戦略立案
-- YouTubeAgent（どうがくん）: YouTube 運用最適化
+外部ライブラリ参照時は必ず Context7 使用
 
-#### 🤝 営業・顧客管理系 (3)
-- SalesAgent（うるん）: セールスプロセス整備
-- CRMAgent（ささえるん）: 顧客体験向上
-- AnalyticsAgent（かぞえるん）: KPI/PDCA 分析
+```
+Use context7 to get the latest Tokio async runtime documentation
+```
 
-**Specs**: `.claude/agents/specs/`  
-**Prompts**: `.claude/agents/prompts/`  
-**Character List**: `.claude/agents/AGENT_CHARACTERS.md`
+**詳細**: [.claude/context/external-deps.md](.claude/context/external-deps.md)
 
 ---
 
-## 🗺️ Planned & Upcoming Agents
+## 📁 Project Root Structure
 
-### Coding Agents (計画中)
-
-| Agent | Role | Status |
-|-------|------|--------|
-| RefresherAgent（アサガオ） | Issue 状態監視・自動更新 | 📋 Spec |
-| DiscordCommunityAgent | Discord コミュニティ運用 | 📋 Spec |
-| HooksIntegrationAgent | Git Hooks 統合 | 📋 Spec |
-| ImageGenAgent (Dev) | 画像生成ワークフロー | 📋 Spec |
-
-### Business Agents (計画中)
-
-| Agent | Role |
-|-------|------|
-| HonokaAgent | AI 秘書・タスク管理支援 |
-| JonathanIveDesignAgent | デザイン戦略/UI・UX |
-| LPGenAgent | LP 自動生成 |
-| NoteAgent | note.com 記事生成 |
-| SlideGenAgent | プレゼン資料生成 |
-| NarrationAgent | VOICEVOX ナレーション |
-| ImageGenAgent (Biz) | 画像生成（マーケ用途） |
+```
+/Users/shunsuke/Dev/miyabi-private/
+│
+├── 🦀 Rust Core (Cargo Workspace)
+│   ├── Cargo.toml                    # Workspace定義
+│   ├── rust-toolchain.toml            # Rust 2021 Edition (Stable)
+│   └── crates/                        # 15+ crates
+│       ├── miyabi-cli/                # CLI binary
+│       ├── miyabi-core/               # Core utilities
+│       ├── miyabi-types/              # Type definitions
+│       ├── miyabi-agents/             # 21 Agents (Coding: 7, Business: 14)
+│       ├── miyabi-github/             # GitHub API
+│       ├── miyabi-worktree/           # Git Worktree管理
+│       ├── miyabi-llm/                # LLM抽象化層
+│       ├── miyabi-knowledge/          # ナレッジ管理（Qdrant）
+│       ├── miyabi-voice-guide/        # VOICEVOX統合
+│       └── miyabi-mcp-server/         # MCP Server (JSON-RPC 2.0)
+│
+├── 🎨 Frontend & Web
+│   ├── miyabi-dashboard/              # React Dashboard
+│   ├── miyabi-web/                    # Landing page
+│   └── assets/                        # Static assets
+│
+├── 🔧 Configuration
+│   ├── .miyabi.yml                    # Miyabi project config
+│   ├── .env                           # Environment variables (gitignored)
+│   ├── docker-compose.yml             # Docker orchestration
+│   ├── vercel.json                    # Vercel deployment
+│   ├── cloudbuild.yaml                # GCP Cloud Build
+│   ├── codecov.yml                    # Code coverage
+│   ├── deny.toml                      # Cargo deny config
+│   └── mcp-settings.json              # MCP server settings
+│
+├── 📚 Documentation
+│   ├── README.md                      # Project overview
+│   ├── CLAUDE.md                      # ⭐ This file - Control document
+│   ├── AGENTS.md                      # Agent system overview
+│   ├── QUICKSTART-JA.md               # Quick start guide (日本語)
+│   ├── CHANGELOG.md                   # Version history
+│   ├── CONTRIBUTING.md                # Contribution guidelines
+│   ├── SECURITY.md                    # Security policy
+│   ├── PERFORMANCE.md                 # Performance benchmarks
+│   ├── MIGRATION_v0.1.1.md            # Migration guide
+│   ├── RELEASE_CHECKLIST.md           # Release process
+│   └── docs/                          # Detailed docs
+│       ├── ENTITY_RELATION_MODEL.md   # 12 Entities, 27 Relations
+│       ├── LABEL_SYSTEM_GUIDE.md      # 53 Labels
+│       ├── TEMPLATE_MASTER_INDEX.md   # 88 Templates
+│       ├── QUICK_START_3STEPS.md      # 🎭 3ステップクイックスタート ⭐ NEW
+│       ├── YOUR_CURRENT_SETUP.md      # 🎭 あなた専用ガイド ⭐ NEW
+│       ├── TMUX_QUICKSTART.md         # 🎭 tmux 5分ガイド
+│       ├── TMUX_LAYOUTS.md            # 🎭 tmux レイアウト集
+│       └── ... (20+ files)
+│
+├── 🤖 Claude Code Integration
+│   └── .claude/
+│       ├── commands/                  # Slash commands (15+ files)
+│       ├── context/                   # Context modules (11 files) ⭐⭐⭐
+│       │   ├── INDEX.md               # Context index
+│       │   ├── core-rules.md          # Critical rules
+│       │   ├── agents.md              # Agent details
+│       │   ├── architecture.md        # System architecture
+│       │   ├── worktree.md            # Worktree protocol
+│       │   └── ... (11 modules)
+│       ├── agents/                    # Agent specs & prompts
+│       │   ├── specs/                 # 21 Agent specifications
+│       │   └── prompts/               # 6 Execution prompts
+│       ├── skills/                    # 15 Skills
+│       ├── MCP_INTEGRATION_PROTOCOL.md
+│       ├── BENCHMARK_IMPLEMENTATION_CHECKLIST.md
+│       ├── MIYABI_PARALLEL_ORCHESTRA.md  # 🎭 雅なる並列実行の哲学 ⭐ NEW
+│       ├── TMUX_OPERATIONS.md            # 🎭 tmux運用ガイド（技術詳細）
+│       ├── KAMUI_TMUX_GUIDE.md           # 🎭 Kamui tmux統合ガイド
+│       └── TROUBLESHOOTING.md
+│
+├── 🧪 Testing & CI/CD
+│   ├── .github/
+│   │   ├── workflows/                 # GitHub Actions (13 workflows)
+│   │   └── labels.yml                 # 53 Label definitions
+│   ├── benchmarks/                    # Performance benchmarks
+│   └── examples/                      # Usage examples
+│
+├── 📊 Data & Logs
+│   ├── .ai/                           # AI execution data
+│   │   ├── logs/                      # Execution logs
+│   │   ├── plans/                     # Task plans
+│   │   └── parallel-reports/          # Parallel execution reports
+│   ├── data/                          # Data files
+│   ├── database/                      # Database schemas
+│   └── logs/                          # Application logs
+│
+├── 🔗 Integrations
+│   ├── mcp-servers/                   # MCP server implementations
+│   ├── integrations/                  # External integrations
+│   ├── discord-config.json            # Discord bot config
+│   └── external/                      # External dependencies
+│
+├── 🚀 Deployment & Scripts
+│   ├── deployment/                    # Deployment scripts
+│   ├── docker/                        # Dockerfiles
+│   ├── scripts/                       # Utility scripts
+│   │   ├── miyabi-orchestra-interactive.sh  # 🎭 インタラクティブセットアップ ⭐ NEW
+│   │   └── miyabi-orchestra.sh              # 🎭 CLIセットアップ ⭐ NEW
+│   └── .worktrees/                    # Git worktrees (runtime)
+│
+├── 💼 Business & Legal
+│   ├── BUDGET.yml                     # Budget tracking
+│   ├── marketplace.json               # GitHub Marketplace
+│   ├── marketplace-business.json      # Business config
+│   ├── legal/                         # Legal documents
+│   └── projects/                      # Business projects
+│
+└── 📝 Miscellaneous
+    ├── TODO.md                        # Project TODO
+    ├── Plans.md                       # Current plans
+    ├── DIRECTORY_STRUCTURE.md         # Directory reference
+    ├── CODEX_INTEGRATION_PROGRESS.md  # Codex integration status
+    ├── DISCORD_COMMUNITY_PLAN.md      # Community plan
+    └── reports/                       # Various reports
+```
 
 ---
 
-## 🎨 キャラクター命名と同時実行ルール
+## 🎮 Miyabi Control Interface
 
-- 🔴 リーダー枠 (1): あきんどさん — 単独実行推奨
-- 🟢 実行枠 (10): けいかくん・つくるん2号・かくちゃん など — 並列実行可
-- 🔵 分析枠 (3): しらべるん・しらべるん2号・かぞえるん — 並列実行可
+### Quick Commands
 
-呼び出し例:  
-`「あきんどさん でビジネスプラン作成」`  
-`「かくちゃん と どうがくん を並列実行してコンテンツ制作」`
+```bash
+# Build
+cargo build --release
 
-詳細: `.claude/agents/AGENT_CHARACTERS.md`
+# Run CLI
+./target/release/miyabi --help
+
+# Work on Issue
+miyabi work-on <issue-number>
+
+# Parallel execution
+miyabi parallel --issues 270,271,272 --concurrency 3
+
+# Infinity mode (all issues)
+miyabi infinity
+
+# Status check
+miyabi status [--watch]
+
+# Knowledge search
+miyabi knowledge search "error handling"
+
+# Agent execution
+miyabi agent <type> --issue <num>
+```
+
+### tmux Parallel Operations (Advanced)
+
+**Alternative approach**: Multiple Claude Code instances in tmux panes for heterogeneous agent execution.
+
+**🎭 Miyabi Orchestra - Quick Start**:
+
+**方法A: インタラクティブセットアップ（推奨）**
+```bash
+# 3ステップガイド付き自動セットアップ
+./scripts/miyabi-orchestra-interactive.sh
+
+# メニューから選択:
+# 1) Coding Ensemble (初心者向け)
+# 2) Hybrid Ensemble (上級者向け)
+# 3) Quick Demo (3分お試し)
+```
+
+**方法B: コマンドライン（上級者）**
+```bash
+# Coding Ensemble (5-pane)
+./scripts/miyabi-orchestra.sh coding-ensemble
+
+# Hybrid Ensemble (7-pane)
+./scripts/miyabi-orchestra.sh hybrid-ensemble
+
+# レガシー名も使用可能
+./scripts/miyabi-orchestra.sh 5pane
+```
+
+**When to use**:
+- ✅ Heterogeneous agent execution (Coding + Business simultaneously)
+- ✅ Ad-hoc task distribution with real-time adjustment
+- ✅ Experimental workflows
+- ❌ Standardized Issue processing → Use `miyabi parallel` instead
+
+**Documentation**:
+- **⚡ Claude Code Commands**: [docs/CLAUDE_CODE_COMMANDS.md](docs/CLAUDE_CODE_COMMANDS.md) - ワンライナーコマンド集 ⭐ NEW
+- **📊 Your Setup**: [docs/YOUR_CURRENT_SETUP.md](docs/YOUR_CURRENT_SETUP.md) - あなた専用ガイド（Claude Code対応）
+- **🌸 Philosophy**: [.claude/MIYABI_PARALLEL_ORCHESTRA.md](.claude/MIYABI_PARALLEL_ORCHESTRA.md) - 雅なる並列実行の哲学
+- **⚡ 3-Step Guide**: [docs/QUICK_START_3STEPS.md](docs/QUICK_START_3STEPS.md) - たった3ステップ
+- **🔧 Technical**: [.claude/TMUX_OPERATIONS.md](.claude/TMUX_OPERATIONS.md) - 技術詳細
+- **🎨 Layouts**: [docs/TMUX_LAYOUTS.md](docs/TMUX_LAYOUTS.md) - レイアウト集
+
+**Comparison**:
+
+| Aspect | `miyabi parallel` | tmux + Claude Code |
+|--------|------------------|-------------------|
+| Setup | ✅ Easy | ⚠️ Complex |
+| Concurrency | ✅ Auto | 🔧 Manual |
+| Agent Types | CoordinatorAgent only | All 21 agents |
+| Flexibility | ⚠️ Limited | ✅ Very High |
+| Token Management | ✅ Auto | ⚠️ Manual |
+
+**Recommended**: Use `miyabi parallel` for standard workflows, tmux for advanced scenarios.
 
 ---
 
-## 🚀 Execution Interfaces
+### Available Skills (15)
 
-- **CLI**  
-  `codex`  
-  並列実行: `codex` (マルチペインで同時起動)
-- **tmux Orchestra**  
-  `./scripts/miyabi-orchestra-interactive.sh` または `./scripts/miyabi-orchestra.sh coding-ensemble`
-- **Rust API**  
-  `crates/miyabi-agent-business/src/` と `crates/miyabi-agent-core/src/` の `BaseAgent` 実装を参照
-- **MCP Server**  
-  JSON-RPC 2.0 経由で `agents/<name>/execute` メソッドを呼び出し可能
+1. **agent-execution** - Execute Miyabi Agents with Git Worktree isolation
+2. **rust-development** - Comprehensive Rust workflow (build, test, clippy, fmt)
+3. **debugging-troubleshooting** - Systematic debugging for Rust
+4. **dependency-management** - Cargo dependency updates & vulnerability resolution
+5. **performance-analysis** - Profiling, benchmarking, optimization
+6. **security-audit** - Security scanning (cargo-audit, clippy, secrets)
+7. **git-workflow** - Automated Git operations (commit, PR, merge)
+8. **documentation-generation** - Generate docs from Entity-Relation Model
+9. **issue-analysis** - Analyze Issues and infer labels (57-label system)
+10. **project-setup** - Initialize new Miyabi projects
+11. **business-strategy-planning** - Business plan & strategy formulation
+12. **content-marketing-strategy** - Content & SNS strategy
+13. **market-research-analysis** - Market research (20+ companies)
+14. **sales-crm-management** - Sales process & customer management
+15. **growth-analytics-dashboard** - KPI tracking & PDCA cycle
+
+**Usage**:
+```
+Skill tool with command "agent-execution"
+Skill tool with command "rust-development"
+```
 
 ---
 
-## 🔗 Related Documentation
+## 📚 Context Modules (Just-In-Time Loading)
 
-- `.claude/context/agents.md` – 詳細な背景情報
-- `.claude/context/core-rules.md` – クリティカルルールの原典
-- `.claude/context/worktree.md` – Worktree プロトコル
-- `docs/AGENT_OPERATIONS_MANUAL.md` – 運用マニュアル
-- `docs/CLAUDE_CODE_COMMANDS.md` – Claude Code コマンド集
+**Location**: `.claude/context/`
+
+| Priority | Module | File | Description |
+|----------|--------|------|-------------|
+| ⭐⭐⭐⭐⭐ | **Core Rules** | `core-rules.md` | MCP First, Benchmark Protocol, Context7 |
+| ⭐⭐⭐⭐ | **Agents** | `agents.md` | 14 Agents実装済み + 10 Agents計画中 |
+| ⭐⭐⭐⭐ | **Architecture** | `architecture.md` | Cargo Workspace, GitHub OS, Worktree |
+| ⭐⭐⭐ | **Development** | `development.md` | Rust/TypeScript規約、テスト、CI/CD |
+| ⭐⭐⭐ | **Entity-Relation** | `entity-relation.md` | 12 Entities, 27 Relations, N1/N2/N3記法 |
+| ⭐⭐⭐ | **Labels** | `labels.md` | 53 Label体系、10カテゴリ |
+| ⭐⭐⭐ | **Worktree** | `worktree.md` | Worktreeライフサイクル、並列実行 |
+| ⭐⭐⭐ | **Rust** | `rust.md` | Rust 2021 Edition開発ガイド |
+| ⭐⭐ | **Protocols** | `protocols.md` | タスク管理、報告プロトコル |
+| ⭐⭐ | **External Deps** | `external-deps.md` | Context7、MCP Servers |
+| ⭐ | **TypeScript** | `typescript.md` | レガシーTypeScript参考 |
+
+**Full Index**: [.claude/context/INDEX.md](.claude/context/INDEX.md)
 
 ---
 
-## 🗂️ Change Log
+## 🤖 Agent System
 
-- **2025-11-03**: Miyabi Orchestra v2.0 反映、Agent カタログを全面更新、tmux プロトコル追記
+### 21 Agents (Rust Implementation)
+
+**Coding Agents (7)**: CoordinatorAgent, CodeGenAgent, ReviewAgent, IssueAgent, PRAgent, DeploymentAgent, RefresherAgent
+
+**Business Agents (14)**:
+- 戦略・企画系（6個）: AIEntrepreneur, ProductConcept, ProductDesign, FunnelDesign, Persona, SelfAnalysis
+- マーケティング系（5個）: MarketResearch, Marketing, ContentCreation, SNSStrategy, YouTube
+- 営業・顧客管理系（3個）: Sales, CRM, Analytics
+
+**Specs**: `.claude/agents/specs/` (21 files)
+**Prompts**: `.claude/agents/prompts/` (6 files)
+
+**Character Names**: [.claude/agents/AGENT_CHARACTERS.md](.claude/agents/AGENT_CHARACTERS.md)
+
+---
+
+## 🔐 Environment Variables
+
+Required variables (set in `.env` or environment):
+
+```bash
+GITHUB_TOKEN=ghp_xxx           # GitHub access token
+ANTHROPIC_API_KEY=sk-xxx       # Anthropic API key (optional)
+OPENAI_API_KEY=sk-xxx          # OpenAI API key (for hybrid routing)
+DEVICE_IDENTIFIER=MacBook      # Device identifier
+GITHUB_REPOSITORY=owner/repo   # Repository name
+RUST_LOG=info                  # Log level
+RUST_BACKTRACE=1               # Backtrace on panic
+```
+
+---
+
+## 🚀 Quick Start
+
+### First Time Setup
+
+1. **Clone & Build**
+   ```bash
+   cd /Users/shunsuke/Dev/miyabi-private
+   cargo build --release
+   ```
+
+2. **Setup Environment**
+   ```bash
+   miyabi setup  # Interactive wizard
+   ```
+
+3. **Verify Installation**
+   ```bash
+   miyabi status
+   cargo test --all
+   ```
+
+### Daily Workflow
+
+1. **Check Status**
+   ```bash
+   miyabi status --watch
+   ```
+
+2. **Work on Issue**
+   ```bash
+   miyabi work-on 270
+   ```
+
+3. **Parallel Execution**
+   ```bash
+   miyabi parallel --issues 270,271,272 --concurrency 3
+   ```
+
+4. **Review Changes**
+   ```bash
+   git status
+   cargo test --all
+   cargo clippy -- -D warnings
+   ```
+
+---
+
+## 📖 Key Documentation
+
+**Essential Reading** (⭐⭐⭐⭐⭐):
+- [ENTITY_RELATION_MODEL.md](docs/ENTITY_RELATION_MODEL.md) - System architecture
+- [LABEL_SYSTEM_GUIDE.md](docs/LABEL_SYSTEM_GUIDE.md) - Label taxonomy
+- [.claude/context/core-rules.md](.claude/context/core-rules.md) - Critical rules
+- [.claude/MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md) - MCP protocol
+
+**Reference**:
+- [README.md](README.md) - Project overview
+- [QUICKSTART-JA.md](QUICKSTART-JA.md) - Quick start (Japanese)
+- [AGENTS.md](AGENTS.md) - Agent system details
+- [CHANGELOG.md](CHANGELOG.md) - Version history
+- [CONTRIBUTING.md](CONTRIBUTING.md) - How to contribute
+
+---
+
+## 🔗 Links
+
+- **Repository**: 
+- **Landing Page**: https://shunsukehayashi.github.io/Miyabi/landing.html
+- **NPM CLI**: https://www.npmjs.com/package/miyabi
+- **NPM SDK**: https://www.npmjs.com/package/miyabi-agent-sdk
+
+---
+
+## 📝 Notes for Claude Code
+
+1. **Always check Context Modules first** - `.claude/context/*.md` contains detailed information
+2. **Use Skills for all tasks** - Never implement directly, always delegate
+3. **Follow MCP First Approach** - Check MCP availability before starting
+4. **Read Issue labels carefully** - 53-label system defines workflow state
+5. **Update .ai/logs/** - All executions should be logged
+
+---
+
+**This file is automatically loaded by Claude Code. Keep it up-to-date as the project control center.**
+
+**Version**: 3.0.0 | **Format**: Project Root & Control Document | **Maintained by**: Miyabi Team

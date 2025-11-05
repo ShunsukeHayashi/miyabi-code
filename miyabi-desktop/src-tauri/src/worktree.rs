@@ -74,17 +74,19 @@ impl WorktreeManagerState {
 
 /// List all worktrees
 #[tauri::command]
-pub fn list_worktrees(state: State<'_, WorktreeManagerState>) -> Result<Vec<WorktreeInfo>, String> {
-    let manager = state
-        .manager
-        .lock()
+pub fn list_worktrees(
+    state: State<'_, WorktreeManagerState>,
+) -> Result<Vec<WorktreeInfo>, String> {
+    let manager = state.manager.lock()
         .map_err(|e| format!("Failed to lock manager: {}", e))?;
 
     // Get worktree list from miyabi-worktree (run in tokio runtime)
-    let runtime =
-        tokio::runtime::Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| format!("Failed to create runtime: {}", e))?;
 
-    let worktrees = runtime.block_on(async { manager.list_worktrees().await });
+    let worktrees = runtime.block_on(async {
+        manager.list_worktrees().await
+    });
 
     // Convert miyabi_worktree::WorktreeInfo to our WorktreeInfo
     let worktree_infos = worktrees
@@ -115,18 +117,17 @@ pub fn create_worktree(
     options: CreateWorktreeOptions,
     state: State<'_, WorktreeManagerState>,
 ) -> Result<WorktreeInfo, String> {
-    let manager = state
-        .manager
-        .lock()
+    let manager = state.manager.lock()
         .map_err(|e| format!("Failed to lock manager: {}", e))?;
 
     // Create tokio runtime for async operation
-    let runtime =
-        tokio::runtime::Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| format!("Failed to create runtime: {}", e))?;
 
-    let worktree = runtime
-        .block_on(async { manager.create_worktree(options.issue_number).await })
-        .map_err(|e| format!("Failed to create worktree: {}", e))?;
+    let worktree = runtime.block_on(async {
+        manager.create_worktree(options.issue_number).await
+    })
+    .map_err(|e| format!("Failed to create worktree: {}", e))?;
 
     let worktree_info = WorktreeInfo {
         path: worktree.path.clone(),
@@ -151,17 +152,16 @@ pub fn remove_worktree(
     worktree_id: String,
     state: State<'_, WorktreeManagerState>,
 ) -> Result<(), String> {
-    let manager = state
-        .manager
-        .lock()
+    let manager = state.manager.lock()
         .map_err(|e| format!("Failed to lock manager: {}", e))?;
 
-    let runtime =
-        tokio::runtime::Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| format!("Failed to create runtime: {}", e))?;
 
-    runtime
-        .block_on(async { manager.remove_worktree(&worktree_id).await })
-        .map_err(|e| format!("Failed to remove worktree: {}", e))?;
+    runtime.block_on(async {
+        manager.remove_worktree(&worktree_id).await
+    })
+    .map_err(|e| format!("Failed to remove worktree: {}", e))?;
 
     Ok(())
 }
@@ -172,17 +172,16 @@ pub fn get_worktree_status(
     worktree_id: String,
     state: State<'_, WorktreeManagerState>,
 ) -> Result<WorktreeInfo, String> {
-    let manager = state
-        .manager
-        .lock()
+    let manager = state.manager.lock()
         .map_err(|e| format!("Failed to lock manager: {}", e))?;
 
-    let runtime =
-        tokio::runtime::Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| format!("Failed to create runtime: {}", e))?;
 
-    let worktree = runtime
-        .block_on(async { manager.get_worktree(&worktree_id).await })
-        .map_err(|e| format!("Failed to get worktree: {}", e))?;
+    let worktree = runtime.block_on(async {
+        manager.get_worktree(&worktree_id).await
+    })
+    .map_err(|e| format!("Failed to get worktree: {}", e))?;
 
     let worktree_info = WorktreeInfo {
         path: worktree.path.clone(),
@@ -203,18 +202,19 @@ pub fn get_worktree_status(
 
 /// Cleanup stale worktrees
 #[tauri::command]
-pub fn cleanup_worktrees(state: State<'_, WorktreeManagerState>) -> Result<usize, String> {
-    let manager = state
-        .manager
-        .lock()
+pub fn cleanup_worktrees(
+    state: State<'_, WorktreeManagerState>,
+) -> Result<usize, String> {
+    let manager = state.manager.lock()
         .map_err(|e| format!("Failed to lock manager: {}", e))?;
 
-    let runtime =
-        tokio::runtime::Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| format!("Failed to create runtime: {}", e))?;
 
-    runtime
-        .block_on(async { manager.cleanup_all().await })
-        .map_err(|e| format!("Failed to cleanup worktrees: {}", e))?;
+    runtime.block_on(async {
+        manager.cleanup_all().await
+    })
+    .map_err(|e| format!("Failed to cleanup worktrees: {}", e))?;
 
     // Return number of worktrees after cleanup (as a proxy for removed count)
     // This is not ideal, but the API doesn't return removed count
@@ -228,8 +228,7 @@ mod tests {
     #[test]
     fn test_parse_issue_number_from_branch() {
         let branch = "issue-673";
-        let issue_number = branch
-            .strip_prefix("issue-")
+        let issue_number = branch.strip_prefix("issue-")
             .and_then(|s| s.split('-').next())
             .and_then(|s| s.parse::<u64>().ok());
 
@@ -239,8 +238,7 @@ mod tests {
     #[test]
     fn test_parse_issue_number_from_branch_with_suffix() {
         let branch = "issue-673-gwr-integration";
-        let issue_number = branch
-            .strip_prefix("issue-")
+        let issue_number = branch.strip_prefix("issue-")
             .and_then(|s| s.split('-').next())
             .and_then(|s| s.parse::<u64>().ok());
 

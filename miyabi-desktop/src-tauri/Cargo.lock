@@ -2550,7 +2550,6 @@ dependencies = [
  "anyhow",
  "async-openai",
  "chrono",
- "futures-util",
  "git2",
  "miyabi-pty-manager",
  "miyabi-types",
@@ -2578,10 +2577,6 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures",
- "miyabi-llm-anthropic",
- "miyabi-llm-core",
- "miyabi-llm-google",
- "miyabi-llm-openai",
  "miyabi-types",
  "regex",
  "reqwest",
@@ -2590,67 +2585,6 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "miyabi-llm-anthropic"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "async-trait",
- "bytes",
- "chrono",
- "futures",
- "miyabi-llm-core",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tokio",
-]
-
-[[package]]
-name = "miyabi-llm-core"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "futures",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
-]
-
-[[package]]
-name = "miyabi-llm-google"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "futures",
- "miyabi-llm-core",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "miyabi-llm-openai"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "async-trait",
- "bytes",
- "chrono",
- "futures",
- "miyabi-llm-core",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tokio",
 ]
 
 [[package]]
@@ -5338,18 +5272,6 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
-]
-
-[[package]]
-name = "tokio-tungstenite"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c83b561d025642014097b66e6c1bb422783339e0909e4429cde4749d1990bc38"
-dependencies = [
- "futures-util",
- "log",
- "tokio",
- "tungstenite",
 ]
 
 [[package]]

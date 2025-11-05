@@ -12,10 +12,9 @@ import clsx from "clsx";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { TmuxMonitorPanelV2 } from "./components/TmuxMonitorPanelV2";
 import { TmuxManager } from "./components/TmuxManager";
-import { DashboardOverview } from "./components/DashboardOverview";
+import { FullAutomationPanel } from "./components/FullAutomationPanel";
+import { TauriStatusIndicator } from "./components/TauriStatusIndicator";
 import { WorktreesView } from "./views/Worktrees";
-import { IssueDashboard } from "./components/IssueDashboard";
-import { CommandPalette } from "./components/CommandPalette";
 import "./App.css";
 import { Phase9Provider } from "./context/Phase9Context";
 import { ToastProvider } from "./components/ui";
@@ -68,10 +67,36 @@ function App() {
   const openPalette = useCallback(() => setIsPaletteOpen(true), []);
 
   useEffect(() => {
-    const handleShortcut = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        openPalette();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + K for command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+      // Cmd/Ctrl + Shift + P for command palette (VS Code style)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "p") {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+      // Cmd/Ctrl + 1-9 for quick panel switching
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        const panels = [
+          "dashboard",
+          "deployment",
+          "terminal",
+          "workflow",
+          "worktrees",
+          "narration",
+          "issues",
+          "auto-merge",
+          "tmux",
+          "automation",
+        ];
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= panels.length) {
+          e.preventDefault();
+          setActivePanel(panels[num - 1]);
+        }
       }
     };
 
@@ -242,14 +267,218 @@ function App() {
             </main>
           </div>
 
-          <CommandPalette
-            isOpen={isPaletteOpen}
-            onClose={() => setIsPaletteOpen(false)}
-            onNavigate={handleNavigate}
-          />
+          <button
+            onClick={() => setActivePanel("deployment")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "deployment"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="Deployment Control"
+          >
+            <Rocket size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("terminal")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "terminal"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="ターミナル - コマンド実行と詳細ログ確認"
+          >
+            <TerminalIcon size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("workflow")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "workflow"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="ワークフローDAG - エージェントの実行フロー可視化"
+          >
+            <Network size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("narration")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "narration"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="VOICEVOX音声 - Git履歴から音声ガイド生成"
+          >
+            <Volume2 size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("issues")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "issues"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="GitHub Issues - Issue管理とカンバンボード"
+          >
+            <ListTodo size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("auto-merge")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "auto-merge"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="Auto-Merge Settings"
+          >
+            <ShieldCheck size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("tmux")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "tmux"
+                ? "bg-gray-900 text-white"
+                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            title="Tmux Agent Manager - 外部コーディングエージェント管理"
+          >
+            <Layers size={24} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={() => setActivePanel("automation")}
+            className={`p-4 rounded-xl transition-all duration-200 ${
+              activePanel === "automation"
+                ? "bg-yellow-500 text-white"
+                : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"
+            }`}
+            title="Full Automation - Claude Code + Codex + Orchestrator完全自動化"
+          >
+            <Zap size={24} strokeWidth={1.5} />
+          </button>
+        </nav>
+
+        <button
+          onClick={() => setActivePanel("settings")}
+          className={`p-4 rounded-xl transition-all duration-200 ${
+            activePanel === "settings"
+              ? "bg-gray-900 text-white"
+              : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+          title="Settings"
+        >
+          <Settings size={24} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Content Area - Breathable Space */}
+        <div className="flex-1 overflow-auto">
+          {activePanel === "dashboard" && <DashboardPanel />}
+          {activePanel === "deployment" && <DeploymentPanel />}
+          {activePanel === "terminal" && <TerminalPanel />}
+          {activePanel === "workflow" && <WorkflowPanel />}
+          {activePanel === "worktrees" && <WorktreesPanel />}
+          {activePanel === "narration" && <NarrationPanel />}
+          {activePanel === "issues" && <IssuesPanel />}
+          {activePanel === "auto-merge" && <AutoMergePanel />}
+          {activePanel === "tmux" && <TmuxPanel />}
+          {activePanel === "automation" && <FullAutomationPanel />}
+          {activePanel === "settings" && <SettingsPanelWrapper />}
         </div>
       </ToastProvider>
     </Phase9Provider>
+  );
+}
+
+function DashboardPanel() {
+  return <AgentExecutionPanel />;
+}
+
+function DeploymentPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <DeploymentDashboard />
+    </div>
+  );
+}
+
+function TerminalPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <TerminalManager />
+    </div>
+  );
+}
+
+function WorkflowPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <WorkflowDAGViewer />
+    </div>
+  );
+}
+
+function WorktreesPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <WorktreesView />
+    </div>
+  );
+}
+
+function NarrationPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <NarrationPlayer />
+    </div>
+  );
+}
+
+function IssuesPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <IssueDashboard />
+    </div>
+  );
+}
+
+function AutoMergePanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <AutoMergeSettings />
+    </div>
+  );
+}
+
+function TmuxPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <TmuxManager />
+    </div>
+  );
+}
+
+function AutomationPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <FullAutomationPanel />
+    </div>
+  );
+}
+
+function SettingsPanelWrapper() {
+  return (
+    <div className="h-full flex flex-col">
+      <SettingsPanel />
+    </div>
   );
 }
 

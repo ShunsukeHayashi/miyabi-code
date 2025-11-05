@@ -3,11 +3,11 @@
 //! Provides real-time Agent state tracking and control via JSON state files
 //! Integrates with Claude Code SessionStart/SessionEnd hooks
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use chrono::{DateTime, Utc};
 
 /// Agent execution status
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -71,11 +71,15 @@ pub fn load_agent_states(state_file_path: &Path) -> Result<AgentStatesRoot, Stri
     let contents = fs::read_to_string(state_file_path)
         .map_err(|e| format!("Failed to read state file: {}", e))?;
 
-    serde_json::from_str(&contents).map_err(|e| format!("Failed to parse state file: {}", e))
+    serde_json::from_str(&contents)
+        .map_err(|e| format!("Failed to parse state file: {}", e))
 }
 
 /// Save agent states to JSON file
-pub fn save_agent_states(state_file_path: &Path, states: &AgentStatesRoot) -> Result<(), String> {
+pub fn save_agent_states(
+    state_file_path: &Path,
+    states: &AgentStatesRoot,
+) -> Result<(), String> {
     let json = serde_json::to_string_pretty(states)
         .map_err(|e| format!("Failed to serialize states: {}", e))?;
 
@@ -84,7 +88,8 @@ pub fn save_agent_states(state_file_path: &Path, states: &AgentStatesRoot) -> Re
             .map_err(|e| format!("Failed to create state directory: {}", e))?;
     }
 
-    fs::write(state_file_path, json).map_err(|e| format!("Failed to write state file: {}", e))
+    fs::write(state_file_path, json)
+        .map_err(|e| format!("Failed to write state file: {}", e))
 }
 
 /// Tauri command: Get all agent states
@@ -146,12 +151,7 @@ pub async fn trigger_agent_restart(
 
     if output.status.success() {
         // Update state
-        update_agent_state(
-            state_file_path,
-            agent_name.clone(),
-            AgentStatus::AutoRestarted,
-        )
-        .await?;
+        update_agent_state(state_file_path, agent_name.clone(), AgentStatus::AutoRestarted).await?;
         Ok(format!("Agent '{}' restarted successfully", agent_name))
     } else {
         Err(format!(

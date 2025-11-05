@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { safeInvoke, isTauriAvailable } from '../lib/tauri-utils';
 import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
+import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -110,11 +111,10 @@ export function TmuxManager() {
   const [gwrStatus, setGwrStatus] = useState('');
   const [gwrLoading, setGwrLoading] = useState(false);
   const [gwrError, setGwrError] = useState<string | null>(null);
-  const [orchestraStatus, setOrchestraStatus] = useState<OrchestraStatus | null>(null);
-  const [orchestraError, setOrchestraError] = useState<string | null>(null);
-  const [orchestraLoading, setOrchestraLoading] = useState(false);
-  const [showMissingOnly, setShowMissingOnly] = useState(false);
-  const [expandedPaneId, setExpandedPaneId] = useState<string | null>(null);
+  const [gwrWorktrees, setGwrWorktrees] = useState<GwrWorktree[]>([]);
+  const [gwrStatus, setGwrStatus] = useState('');
+  const [gwrLoading, setGwrLoading] = useState(false);
+  const [gwrError, setGwrError] = useState<string | null>(null);
 
   useEffect(() => {
     const available = isTauriAvailable();
@@ -152,18 +152,6 @@ export function TmuxManager() {
     if (runtimeReady) {
       void loadGwrData();
     }
-  }, [runtimeReady]);
-
-  useEffect(() => {
-    if (!runtimeReady) {
-      return undefined;
-    }
-
-    void refreshOrchestraStatus();
-    const interval = setInterval(() => {
-      void refreshOrchestraStatus();
-    }, 5000);
-    return () => clearInterval(interval);
   }, [runtimeReady]);
 
   function ensureRuntime(message?: string): boolean {
@@ -229,31 +217,6 @@ export function TmuxManager() {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
       console.error('[TmuxManager] Failed to refresh sessions:', err);
-    }
-  }
-
-  async function refreshOrchestraStatus(sessionName?: string, showSpinner = false) {
-    if (!ensureRuntime()) {
-      return;
-    }
-    try {
-      if (showSpinner) {
-        setOrchestraLoading(true);
-      }
-      setOrchestraError(null);
-      const payload = await safeInvoke<OrchestraStatus>('tmux_orchestra_status',
-        sessionName
-          ? { sessionName, session_name: sessionName }
-          : {}
-      );
-      setOrchestraStatus(payload);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setOrchestraError(message);
-    } finally {
-      if (showSpinner) {
-        setOrchestraLoading(false);
-      }
     }
   }
 

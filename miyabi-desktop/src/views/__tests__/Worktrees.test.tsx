@@ -1,9 +1,9 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import { WorktreesView } from '../Worktrees';
 import type { WorktreeGraph } from '../../types/worktrees';
 
-const fetchWorktreeGraphMock = vi.fn<() => Promise<WorktreeGraph | null>>();
+const fetchWorktreeGraphMock = vi.fn<[], Promise<WorktreeGraph | null>>();
 
 vi.mock('../../lib/worktree-api', () => ({
   fetchWorktreeGraph: () => fetchWorktreeGraphMock(),
@@ -38,7 +38,7 @@ const sampleGraph: WorktreeGraph = {
         head: '1234567890abcdef',
         base_commit: 'abcdef1234567890',
         status: 'active',
-        locked_reason: undefined,
+        locked_reason: null,
         issue_number: 1,
         agent: { agent_name: 'CodeGenAgent', agent_type: 'codegen', execution_mode: 'automated' },
         last_commit_time: new Date('2025-11-01T12:00:00Z').toISOString(),
@@ -54,9 +54,9 @@ const sampleGraph: WorktreeGraph = {
         head: 'fedcba0987654321',
         base_commit: 'abcdef1234567890',
         status: 'stale',
-        locked_reason: undefined,
+        locked_reason: null,
         issue_number: 42,
-        agent: undefined,
+        agent: null,
         last_commit_time: new Date('2025-10-01T10:00:00Z').toISOString(),
       },
     },
@@ -97,19 +97,19 @@ describe('WorktreesView', () => {
 
     await waitFor(() => expect(fetchWorktreeGraphMock).toHaveBeenCalled());
 
-    expect(screen.getByText(/Worktrees Overview/i)).toBeTruthy();
+    expect(screen.getByText(/Worktrees Overview/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /List/i }));
 
     await screen.findByText('issue-1');
-    expect(screen.queryByText('issue-42')).to.be.null;
+    expect(screen.queryByText('issue-42')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText(/Active only/i));
-    await screen.findByText('issue-42');
+    expect(await screen.findByText('issue-42')).toBeInTheDocument();
 
     const issueFilterInput = screen.getByPlaceholderText('Filter by issue #');
     fireEvent.change(issueFilterInput, { target: { value: '42' } });
-    await screen.findByText('issue-42');
-    expect(screen.queryByText('issue-1')).to.be.null;
+    expect(await screen.findByText('issue-42')).toBeInTheDocument();
+    expect(screen.queryByText('issue-1')).not.toBeInTheDocument();
   });
 });

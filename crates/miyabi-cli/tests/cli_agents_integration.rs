@@ -1,7 +1,7 @@
 //! Integration tests for CLI ↔ agents interaction
 //! Tests the interaction between miyabi-cli and miyabi-agents
 
-use miyabi_types::Issue;
+use miyabi_types::{AgentType, Issue};
 
 /// Helper to create test issue
 fn create_test_issue(number: u64) -> Issue {
@@ -20,7 +20,7 @@ fn create_test_issue(number: u64) -> Issue {
 
 #[test]
 fn test_cli_agent_type_parsing() {
-    let agent_types = [
+    let agent_types = vec![
         "coordinator",
         "codegen",
         "review",
@@ -31,15 +31,8 @@ fn test_cli_agent_type_parsing() {
     ];
 
     for agent_str in agent_types {
-        let normalized = agent_str.to_ascii_lowercase();
-        assert!(
-            matches!(
-                normalized.as_str(),
-                "coordinator" | "codegen" | "review" | "issue" | "pr" | "deployment" | "refresher"
-            ),
-            "Unsupported agent type string: {}",
-            agent_str
-        );
+        let result: Result<AgentType, _> = agent_str.parse();
+        assert!(result.is_ok(), "Failed to parse agent type: {}", agent_str);
     }
 }
 
@@ -60,7 +53,10 @@ fn test_cli_agent_command_format() {
 fn test_cli_parallel_execution_format() {
     // Test command: miyabi parallel --issues 270,271,272 --concurrency 3
     let issues_str = "270,271,272";
-    let issue_numbers: Vec<u64> = issues_str.split(',').map(|s| s.parse().unwrap()).collect();
+    let issue_numbers: Vec<u64> = issues_str
+        .split(',')
+        .map(|s| s.parse().unwrap())
+        .collect();
 
     assert_eq!(issue_numbers.len(), 3);
     assert_eq!(issue_numbers[0], 270);
@@ -118,7 +114,7 @@ fn test_cli_agent_mode_option() {
     let mode = "auto";
 
     assert_eq!(agent_type, "codegen");
-    assert!(matches!(mode, "auto" | "manual"));
+    assert!(mode == "auto" || mode == "manual");
 }
 
 #[test]
@@ -158,19 +154,8 @@ fn test_cli_agent_result_format() {
 fn test_cli_error_handling() {
     // Test invalid agent type
     let invalid_agent = "invalid_agent";
-    let known_agents = [
-        "coordinator",
-        "codegen",
-        "review",
-        "issue",
-        "pr",
-        "deployment",
-        "refresher",
-    ];
-    assert!(
-        !known_agents.contains(&invalid_agent),
-        "Invalid agent unexpectedly recognized"
-    );
+    let result: Result<AgentType, _> = invalid_agent.parse();
+    assert!(result.is_err());
 }
 
 #[test]

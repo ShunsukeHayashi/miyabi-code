@@ -134,8 +134,8 @@ Respond in JSON format:
             .context("No response content from API")?;
 
         // Parse JSON response
-        let suggestion: NamingSuggestion =
-            serde_json::from_str(content).context("Failed to parse AI response as JSON")?;
+        let suggestion: NamingSuggestion = serde_json::from_str(content)
+            .context("Failed to parse AI response as JSON")?;
 
         Ok(suggestion)
     }
@@ -182,10 +182,7 @@ Respond in JSON format:
             })
             .unwrap_or("feature");
 
-        let branch_name = format!(
-            "{}/issue-{}-{}",
-            prefix, context.issue_number, sanitized_title
-        );
+        let branch_name = format!("{}/issue-{}-{}", prefix, context.issue_number, sanitized_title);
 
         NamingSuggestion {
             branch_name,
@@ -233,10 +230,7 @@ mod tests {
 
         assert!(suggestion.branch_name.starts_with("feature/issue-673"));
         assert!(suggestion.branch_name.contains("integrate"));
-        assert_eq!(
-            suggestion.display_name,
-            "Issue #673: Integrate @humanu/orchestra (gwr) into miyabi-desktop"
-        );
+        assert_eq!(suggestion.display_name, "Issue #673: Integrate @humanu/orchestra (gwr) into miyabi-desktop");
     }
 
     #[test]

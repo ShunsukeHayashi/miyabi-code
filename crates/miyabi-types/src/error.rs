@@ -1,7 +1,98 @@
 //! Error types for Miyabi
 
 use crate::agent::{AgentType, EscalationTarget, Severity};
+use std::any::Any;
+use std::fmt;
 use thiserror::Error;
+
+/// Error code for programmatic handling
+///
+/// Error codes allow:
+/// - Programmatic error matching (without string comparison)
+/// - Documentation references
+/// - Metrics/monitoring
+/// - Internationalization
+/// - Stable error identification across versions
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ErrorCode(&'static str);
+
+impl ErrorCode {
+    // I/O Errors
+    pub const IO_ERROR: Self = Self("IO_ERROR");
+    pub const FILE_NOT_FOUND: Self = Self("FILE_NOT_FOUND");
+    pub const PERMISSION_DENIED: Self = Self("PERMISSION_DENIED");
+
+    // Parse Errors
+    pub const PARSE_ERROR: Self = Self("PARSE_ERROR");
+    pub const INVALID_FORMAT: Self = Self("INVALID_FORMAT");
+    pub const INVALID_SYNTAX: Self = Self("INVALID_SYNTAX");
+
+    // Configuration Errors
+    pub const CONFIG_ERROR: Self = Self("CONFIG_ERROR");
+    pub const MISSING_CONFIG: Self = Self("MISSING_CONFIG");
+    pub const INVALID_CONFIG: Self = Self("INVALID_CONFIG");
+
+    // Internal Errors
+    pub const INTERNAL_ERROR: Self = Self("INTERNAL_ERROR");
+    pub const UNEXPECTED_STATE: Self = Self("UNEXPECTED_STATE");
+
+    // Validation Errors
+    pub const VALIDATION_ERROR: Self = Self("VALIDATION_ERROR");
+    pub const INVALID_INPUT: Self = Self("INVALID_INPUT");
+
+    // Agent Errors
+    pub const AGENT_ERROR: Self = Self("AGENT_ERROR");
+    pub const ESCALATION_ERROR: Self = Self("ESCALATION_ERROR");
+    pub const CIRCULAR_DEPENDENCY_ERROR: Self = Self("CIRCULAR_DEPENDENCY_ERROR");
+
+    // External Service Errors
+    pub const HTTP_ERROR: Self = Self("HTTP_ERROR");
+    pub const GITHUB_ERROR: Self = Self("GITHUB_ERROR");
+    pub const GIT_ERROR: Self = Self("GIT_ERROR");
+    pub const AUTH_ERROR: Self = Self("AUTH_ERROR");
+
+    // Operation Errors
+    pub const TIMEOUT_ERROR: Self = Self("TIMEOUT_ERROR");
+    pub const TOOL_ERROR: Self = Self("TOOL_ERROR");
+    pub const UNKNOWN_ERROR: Self = Self("UNKNOWN_ERROR");
+
+    /// Get the string representation of the error code
+    pub fn as_str(&self) -> &'static str {
+        self.0
+    }
+}
+
+impl fmt::Display for ErrorCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// Unified error trait for all Miyabi errors
+///
+/// All error types in the Miyabi project should implement this trait
+/// to provide consistent error handling across the codebase.
+///
+/// This trait provides a unified interface for:
+/// - Error codes (programmatic handling)
+/// - User-friendly messages (end-user display)
+/// - Debug context (developer debugging)
+///
+/// # Required Methods
+///
+/// - `code()`: Returns a machine-readable error code
+/// - `user_message()`: Returns a user-friendly message
+/// - `context()`: Returns additional debugging context (optional)
+pub trait UnifiedError: std::error::Error {
+    /// Get error code for programmatic handling
+    fn code(&self) -> ErrorCode;
+
+    /// Get user-friendly message suitable for displaying to end users
+    fn user_message(&self) -> String;
+
+    /// Get additional context for debugging (optional)
+    fn context(&self) -> Option<&dyn Any>;
+}
 
 /// Main error type for Miyabi operations
 #[derive(Error, Debug)]
@@ -190,6 +281,108 @@ impl CircularDependencyError {
 
 /// Result type alias for Miyabi operations
 pub type Result<T> = std::result::Result<T, MiyabiError>;
+
+// Implement UnifiedError trait for MiyabiError
+impl UnifiedError for MiyabiError {
+    fn code(&self) -> ErrorCode {
+
+        match self {
+            Self::Agent(_) => ErrorCode::AGENT_ERROR,
+            Self::Escalation(_) => ErrorCode::ESCALATION_ERROR,
+            Self::CircularDependency(_) => ErrorCode::CIRCULAR_DEPENDENCY_ERROR,
+            Self::Io(e) => match e.kind() {
+                std::io::ErrorKind::NotFound => ErrorCode::FILE_NOT_FOUND,
+                std::io::ErrorKind::PermissionDenied => ErrorCode::PERMISSION_DENIED,
+                _ => ErrorCode::IO_ERROR,
+            },
+            Self::Json(_) => ErrorCode::PARSE_ERROR,
+            Self::Http(_) => ErrorCode::HTTP_ERROR,
+            Self::GitHub(_) => ErrorCode::GITHUB_ERROR,
+            Self::Git(_) => ErrorCode::GIT_ERROR,
+            Self::Auth(_) => ErrorCode::AUTH_ERROR,
+            Self::Config(_) => ErrorCode::CONFIG_ERROR,
+            Self::Validation(_) => ErrorCode::VALIDATION_ERROR,
+            Self::Timeout(_) => ErrorCode::TIMEOUT_ERROR,
+            Self::ToolError(_) => ErrorCode::TOOL_ERROR,
+            Self::PermissionDenied(_) => ErrorCode::PERMISSION_DENIED,
+            Self::Unknown(_) => ErrorCode::UNKNOWN_ERROR,
+        }
+    }
+
+    fn user_message(&self) -> String {
+        match self {
+            Self::Agent(e) => format!(
+                "An agent failed to complete its task: {} (Agent: {:?})",
+                e.message, e.agent_type
+            ),
+            Self::Escalation(e) => format!(
+                "This issue requires human intervention ({}). Target: {:?}, Severity: {:?}",
+                e.message, e.target, e.severity
+            ),
+            Self::CircularDependency(e) => format!(
+                "Tasks have circular dependencies that prevent execution: {}",
+                e.cycle.join(" → ")
+            ),
+            Self::Io(e) => format!(
+                "A file operation failed: {}. Please check file paths and permissions.",
+                e
+            ),
+            Self::Json(e) => format!(
+                "Failed to process JSON data: {}. Please check the data format.",
+                e
+            ),
+            Self::Http(msg) => format!(
+                "A network request failed: {}. Please check your internet connection.",
+                msg
+            ),
+            Self::GitHub(msg) => format!(
+                "GitHub API request failed: {}. Please check your token and permissions.",
+                msg
+            ),
+            Self::Git(msg) => format!(
+                "Git operation failed: {}. Please check your repository state.",
+                msg
+            ),
+            Self::Auth(msg) => format!(
+                "Authentication failed: {}. Please check your credentials.",
+                msg
+            ),
+            Self::Config(msg) => format!(
+                "Configuration error: {}. Please check your settings.",
+                msg
+            ),
+            Self::Validation(msg) => format!(
+                "Input validation failed: {}. Please check your input.",
+                msg
+            ),
+            Self::Timeout(ms) => format!(
+                "Operation timed out after {}ms. Please try again or increase the timeout.",
+                ms
+            ),
+            Self::ToolError(msg) => format!(
+                "Tool execution failed: {}. Please check the tool configuration.",
+                msg
+            ),
+            Self::PermissionDenied(msg) => format!(
+                "Permission denied: {}. Please check file or API permissions.",
+                msg
+            ),
+            Self::Unknown(msg) => format!(
+                "An unexpected error occurred: {}. Please report this issue.",
+                msg
+            ),
+        }
+    }
+
+    fn context(&self) -> Option<&dyn std::any::Any> {
+        match self {
+            Self::Agent(e) => e.task_id.as_ref().map(|id| id as &dyn std::any::Any),
+            Self::Escalation(e) => Some(&e.context as &dyn std::any::Any),
+            Self::CircularDependency(e) => Some(&e.cycle as &dyn std::any::Any),
+            _ => None,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

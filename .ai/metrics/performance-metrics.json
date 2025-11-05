@@ -51,16 +51,6 @@
         }
       ],
       "stats": {}
-    },
-    "しきるん": {
-      "events": [
-        {
-          "type": "idle_start",
-          "task_id": "N/A",
-          "timestamp": "2025-11-03T23:24:19Z"
-        }
-      ],
-      "stats": {}
     }
   }
 }

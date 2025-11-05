@@ -5,10 +5,6 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-PANE_MAP_FILE="$PROJECT_ROOT/.ai/orchestra/pane-map.json"
-
 # Function to get pane color by agent name
 get_pane_color() {
     case "$1" in
@@ -107,47 +103,7 @@ get_agent_emoji() {
 
 # Function to get agent pane ID
 get_agent_pane() {
-    local agent="$1"
-
-    # 1) JSONマッピング（任意設定）があれば優先
-    if [[ -f "$PANE_MAP_FILE" ]] && command -v jq >/dev/null 2>&1; then
-        local mapped
-        mapped="$(jq -r --arg agent "$agent" 'if has($agent) then .[$agent] else "__UNSET__" end' "$PANE_MAP_FILE" 2>/dev/null)"
-        if [[ "$mapped" != "__UNSET__" ]]; then
-            # 空文字が明示された場合はスキップとして扱う
-            if [[ -z "$mapped" ]]; then
-                echo ""
-                return 0
-            fi
-            echo "$mapped"
-            return 0
-        fi
-    fi
-
-    # 2) tmuxペインタイトルからの推定
-    if command -v tmux >/dev/null 2>&1; then
-        local panes
-        panes="$(tmux list-panes -a -F '#{pane_id}|#{pane_title}' 2>/dev/null || true)"
-        if [[ -n "$panes" ]]; then
-            while IFS='|' read -r pid ptitle; do
-                case "$agent" in
-                    "カンナ") [[ "$ptitle" == *"カンナ"* || "$ptitle" == *"Conductor"* ]] && echo "$pid" && return 0 ;;
-                    "カエデ") [[ "$ptitle" == *"カエデ"* ]] && echo "$pid" && return 0 ;;
-                    "サクラ") [[ "$ptitle" == *"サクラ"* ]] && echo "$pid" && return 0 ;;
-                    "ツバキ") [[ "$ptitle" == *"ツバキ"* ]] && echo "$pid" && return 0 ;;
-                    "ボタン") [[ "$ptitle" == *"ボタン"* ]] && echo "$pid" && return 0 ;;
-                    "クモ") [[ "$ptitle" == *"クモ"* || "$ptitle" == *"Water Spider"* ]] && echo "$pid" && return 0 ;;
-                    "Codex-1") [[ "$ptitle" == *"Codex-1"* ]] && echo "$pid" && return 0 ;;
-                    "Codex-2") [[ "$ptitle" == *"Codex-2"* ]] && echo "$pid" && return 0 ;;
-                    "Codex-3") [[ "$ptitle" == *"Codex-3"* ]] && echo "$pid" && return 0 ;;
-                    "Codex-4") [[ "$ptitle" == *"Codex-4"* ]] && echo "$pid" && return 0 ;;
-                esac
-            done <<< "$panes"
-        fi
-    fi
-
-    # 3) 旧固定マッピング（後方互換）
-    case "$agent" in
+    case "$1" in
         "カンナ") echo "%1" ;;
         "カエデ") echo "%2" ;;
         "サクラ") echo "%5" ;;
@@ -174,8 +130,8 @@ set_pane_ui() {
     local bg_color=$(get_pane_bg_color "$agent_name" "$status")
 
     if [ -z "$pane_id" ]; then
-        echo "ℹ️  $agent_name のペインが見つからないためスキップします"
-        return 0
+        echo "⚠️  不明なAgent: $agent_name"
+        return 1
     fi
 
     # Check if pane exists

@@ -2826,7 +2826,6 @@ dependencies = [
  "futures 0.3.31",
  "hostname",
  "indicatif 0.17.11",
- "miyabi-a2a",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2867,7 +2866,6 @@ dependencies = [
  "dirs 6.0.0",
  "git2",
  "hostname",
- "miyabi-llm",
  "miyabi-types",
  "once_cell",
  "serde",
@@ -3298,14 +3296,12 @@ dependencies = [
 
 [[package]]
 name = "miyabi-workflow"
-version = "1.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "dirs 5.0.1",
  "futures 0.3.31",
  "miyabi-types",
- "rhai",
  "serde",
  "serde_json",
  "sled",

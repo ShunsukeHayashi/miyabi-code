@@ -437,14 +437,6 @@ tmuxで直接 `miyabi agent` コマンドを実行するより、Claude Code Ski
 "miyabi agent coordinator --issue 270 を実行"  # Skill経由の方が柔軟
 ```
 
-### 6. オペレーションTips
-
-- Claude Code ↔︎ Codexセッションを切り替える際は `Ctrl-C` → 0.5秒待機 → 再度 `Ctrl-C`。二段階割込みでセッションを安定させる。
-- 即時割り込みが必要な場合は `Esc` を2回押下。tmux送信中の入力を安全にキャンセルできる。
-
-- Claude Code/Codex切り替え時: Ctrl+C → 0.5秒待機 → Ctrl+C
-- インターセプト時: Escを2回
-
 ---
 
 ## トラブルシューティング

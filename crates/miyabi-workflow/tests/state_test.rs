@@ -78,13 +78,7 @@ fn test_list_active_workflows() {
 
     // Create multiple workflows with different statuses
     let running = create_test_state("workflow-running", WorkflowStatus::Running);
-    let paused = create_test_state(
-        "workflow-paused",
-        WorkflowStatus::Paused {
-            reason: "Test pause".to_string(),
-            paused_at: 1234567890,
-        },
-    );
+    let paused = create_test_state("workflow-paused", WorkflowStatus::Paused);
     let completed = create_test_state("workflow-completed", WorkflowStatus::Completed);
     let failed = create_test_state("workflow-failed", WorkflowStatus::Failed);
 
@@ -200,33 +194,20 @@ fn test_clear_workflow() {
 
     // Save state and steps
     store.save_execution(&state).unwrap();
-    store
-        .save_step("workflow-clear", "step-1", &output)
-        .unwrap();
-    store
-        .save_step("workflow-clear", "step-2", &output)
-        .unwrap();
+    store.save_step("workflow-clear", "step-1", &output).unwrap();
+    store.save_step("workflow-clear", "step-2", &output).unwrap();
 
     // Verify data exists
     assert!(store.load_execution("workflow-clear").unwrap().is_some());
-    assert!(store
-        .load_step("workflow-clear", "step-1")
-        .unwrap()
-        .is_some());
+    assert!(store.load_step("workflow-clear", "step-1").unwrap().is_some());
 
     // Clear workflow - Note: This clears step data but not execution state
     // (execution state has different prefix "execution:")
     store.clear_workflow("workflow-clear").unwrap();
 
     // Step data should be cleared
-    assert!(store
-        .load_step("workflow-clear", "step-1")
-        .unwrap()
-        .is_none());
-    assert!(store
-        .load_step("workflow-clear", "step-2")
-        .unwrap()
-        .is_none());
+    assert!(store.load_step("workflow-clear", "step-1").unwrap().is_none());
+    assert!(store.load_step("workflow-clear", "step-2").unwrap().is_none());
 }
 
 #[test]
@@ -241,10 +222,7 @@ fn test_concurrent_workflow_states() {
             if i % 2 == 0 {
                 WorkflowStatus::Running
             } else {
-                WorkflowStatus::Paused {
-                    reason: format!("Workflow {} paused", i),
-                    paused_at: 1234567890 + i as u64,
-                }
+                WorkflowStatus::Paused
             },
         );
         store.save_execution(&state).unwrap();
@@ -252,134 +230,4 @@ fn test_concurrent_workflow_states() {
 
     let active = store.list_active().unwrap();
     assert_eq!(active.len(), 5);
-}
-
-#[test]
-fn test_pause_resume_workflow() {
-    let mut state = create_test_state("test-pause-resume", WorkflowStatus::Running);
-
-    // Initially running
-    assert_eq!(state.status, WorkflowStatus::Running);
-    assert!(!state.is_paused());
-    assert!(state.pause_reason().is_none());
-
-    // Pause workflow
-    state.pause("Waiting for approval");
-    assert!(state.is_paused());
-    assert!(state.can_resume());
-    assert_eq!(state.pause_reason(), Some("Waiting for approval"));
-    assert!(state.pause_duration().is_some());
-
-    // Resume workflow
-    state.resume();
-    assert_eq!(state.status, WorkflowStatus::Running);
-    assert!(!state.is_paused());
-    assert!(state.pause_reason().is_none());
-}
-
-#[test]
-fn test_pause_duration() {
-    let mut state = create_test_state("test-duration", WorkflowStatus::Running);
-
-    // Pause and check duration is tracked
-    state.pause("Test pause");
-    assert!(state.is_paused());
-
-    // Duration should be Some (since we just paused)
-    assert!(state.pause_duration().is_some());
-
-    // Check timeout detection
-    assert!(!state.is_timed_out(86400)); // Not timed out (24h timeout)
-    assert!(state.is_timed_out(0)); // Timed out with 0 timeout
-}
-
-#[test]
-fn test_list_paused_workflows() {
-    let temp_dir = TempDir::new().unwrap();
-    let store = StateStore::with_path(temp_dir.path()).unwrap();
-
-    // Create workflows with different statuses
-    let running = create_test_state("workflow-running", WorkflowStatus::Running);
-    let mut paused1 = create_test_state("workflow-paused-1", WorkflowStatus::Running);
-    let mut paused2 = create_test_state("workflow-paused-2", WorkflowStatus::Running);
-    let completed = create_test_state("workflow-completed", WorkflowStatus::Completed);
-
-    // Pause some workflows
-    paused1.pause("Waiting for approval");
-    paused2.pause("Manual pause");
-
-    store.save_execution(&running).unwrap();
-    store.save_execution(&paused1).unwrap();
-    store.save_execution(&paused2).unwrap();
-    store.save_execution(&completed).unwrap();
-
-    // List paused workflows
-    let paused_list = store.list_paused().unwrap();
-    assert_eq!(paused_list.len(), 2);
-
-    // Verify pause reasons
-    let reasons: Vec<Option<&str>> = paused_list.iter().map(|s| s.pause_reason()).collect();
-    assert!(reasons.contains(&Some("Waiting for approval")));
-    assert!(reasons.contains(&Some("Manual pause")));
-}
-
-#[test]
-fn test_list_timed_out_workflows() {
-    let temp_dir = TempDir::new().unwrap();
-    let store = StateStore::with_path(temp_dir.path()).unwrap();
-
-    // Create paused workflows with different timestamps
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-
-    let old_paused = create_test_state(
-        "workflow-old",
-        WorkflowStatus::Paused {
-            reason: "Old pause".to_string(),
-            paused_at: now - 100000, // Paused ~27 hours ago
-        },
-    );
-
-    let recent_paused = create_test_state(
-        "workflow-recent",
-        WorkflowStatus::Paused {
-            reason: "Recent pause".to_string(),
-            paused_at: now - 1000, // Paused ~16 minutes ago
-        },
-    );
-
-    store.save_execution(&old_paused).unwrap();
-    store.save_execution(&recent_paused).unwrap();
-
-    // List workflows timed out after 24 hours (86400 seconds)
-    let timed_out = store.list_timed_out(86400).unwrap();
-    assert_eq!(timed_out.len(), 1);
-    assert_eq!(timed_out[0].workflow_id, "workflow-old");
-
-    // List workflows timed out after 10 minutes (600 seconds)
-    let timed_out_10m = store.list_timed_out(600).unwrap();
-    assert_eq!(timed_out_10m.len(), 2); // Both should be timed out (1000s and 100000s)
-}
-
-#[test]
-fn test_pause_persistence() {
-    let temp_dir = TempDir::new().unwrap();
-    let store = StateStore::with_path(temp_dir.path()).unwrap();
-
-    // Create and pause a workflow
-    let mut state = create_test_state("test-persistence", WorkflowStatus::Running);
-    state.pause("Test pause for persistence");
-
-    // Save to store
-    store.save_execution(&state).unwrap();
-
-    // Load from store
-    let loaded = store.load_execution("test-persistence").unwrap().unwrap();
-
-    // Verify pause state persisted
-    assert!(loaded.is_paused());
-    assert_eq!(loaded.pause_reason(), Some("Test pause for persistence"));
-    assert!(loaded.pause_duration().is_some());
 }

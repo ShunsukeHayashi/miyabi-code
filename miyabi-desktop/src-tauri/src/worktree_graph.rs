@@ -114,28 +114,11 @@ pub enum EdgeKind {
 
 /// Build complete worktree graph
 pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
-    // Find repository root - try current directory, then parent directories
-    let search_path = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    // Find repository root
+    let repo = Repository::discover(".")
+        .map_err(|e| format!("Failed to open repository: {}", e))?;
 
-    let repo = Repository::discover(&search_path)
-        .or_else(|_| {
-            // Fallback: Try explicit path to miyabi-private
-            let fallback_path = search_path
-                .ancestors()
-                .find(|p| p.join(".git").exists())
-                .ok_or_else(|| "Could not find Git repository".to_string())?;
-            Repository::open(fallback_path)
-                .map_err(|e| format!("Failed to open repository at {:?}: {}", fallback_path, e))
-        })
-        .map_err(|e| {
-            format!(
-                "Failed to discover repository from {:?}: {}",
-                search_path, e
-            )
-        })?;
-
-    let repo_path = repo
-        .path()
+    let repo_path = repo.path()
         .parent()
         .ok_or("Failed to get repository root")?;
 
@@ -151,8 +134,8 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
     let mut branch_upstream_map: HashMap<String, String> = HashMap::new();
 
     for branch_result in branches {
-        let (branch, _branch_type) =
-            branch_result.map_err(|e| format!("Failed to read branch: {}", e))?;
+        let (branch, _branch_type) = branch_result
+            .map_err(|e| format!("Failed to read branch: {}", e))?;
 
         let branch_name = branch
             .name()
@@ -168,10 +151,13 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
             .ok()
             .map(|c| c.id().to_string());
 
-        let upstream_name = branch
-            .upstream()
-            .ok()
-            .and_then(|upstream| upstream.name().ok().flatten().map(|name| name.to_string()));
+        let upstream_name = branch.upstream().ok().and_then(|upstream| {
+            upstream
+                .name()
+                .ok()
+                .flatten()
+                .map(|name| name.to_string())
+        });
 
         if let Some(ref upstream) = upstream_name {
             // Extract short name (e.g., "origin/main" -> "main")
@@ -180,10 +166,15 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
             }
         }
 
-        let latest_commit_time = branch.get().peel_to_commit().ok().and_then(|commit| {
-            let timestamp = commit.time().seconds();
-            DateTime::from_timestamp(timestamp, 0).map(|dt: DateTime<Utc>| dt.to_rfc3339())
-        });
+        let latest_commit_time = branch
+            .get()
+            .peel_to_commit()
+            .ok()
+            .and_then(|commit| {
+                let timestamp = commit.time().seconds();
+                DateTime::from_timestamp(timestamp, 0)
+                    .map(|dt: DateTime<Utc>| dt.to_rfc3339())
+            });
 
         let branch_node = GraphNode::Branch {
             id: format!("branch:{}", branch_name),
@@ -219,7 +210,11 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
         worktree_path: std::path::PathBuf,
     }
 
-    let worktree_names: Vec<String> = worktrees.iter().flatten().map(|s| s.to_string()).collect();
+    let worktree_names: Vec<String> = worktrees
+        .iter()
+        .flatten()
+        .map(|s| s.to_string())
+        .collect();
 
     let mut worktree_data_list: Vec<WorktreeData> = Vec::new();
 
@@ -259,13 +254,16 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
             .and_then(|h| h.peel_to_commit().ok())
             .and_then(|commit| {
                 let timestamp = commit.time().seconds();
-                DateTime::from_timestamp(timestamp, 0).map(|dt: DateTime<Utc>| dt.to_rfc3339())
+                DateTime::from_timestamp(timestamp, 0)
+                    .map(|dt: DateTime<Utc>| dt.to_rfc3339())
             });
 
         // Determine status
         let lock_status = worktree.is_locked().ok();
         let (is_locked, locked_reason) = match lock_status {
-            Some(WorktreeLockStatus::Locked(reason)) => (true, reason.map(|s| s.to_string())),
+            Some(WorktreeLockStatus::Locked(reason)) => {
+                (true, reason.map(|s| s.to_string()))
+            }
             _ => (false, None),
         };
 
@@ -332,10 +330,7 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
         // Create edge: branch -> worktree
         if branch_names.contains(&worktree_data.branch_name) {
             edges.push(GraphEdge {
-                id: format!(
-                    "edge:branch:{}->worktree:{}",
-                    worktree_data.branch_name, worktree_data.name
-                ),
+                id: format!("edge:branch:{}->worktree:{}", worktree_data.branch_name, worktree_data.name),
                 from: format!("branch:{}", worktree_data.branch_name),
                 to: format!("worktree:{}", worktree_data.name),
                 kind: EdgeKind::BranchWorktree,
@@ -372,7 +367,11 @@ pub async fn build_worktree_graph() -> Result<WorktreeGraph, String> {
 /// Extract issue number from branch name
 fn extract_issue_number(branch_name: &str) -> Option<u64> {
     // Common patterns: "issue-123", "issue/123", "#123", "123-feature"
-    let patterns = [r"issue[-/](\d+)", r"#(\d+)", r"^(\d+)[-/]"];
+    let patterns = [
+        r"issue[-/](\d+)",
+        r"#(\d+)",
+        r"^(\d+)[-/]",
+    ];
 
     for pattern in patterns {
         if let Ok(re) = regex::Regex::new(pattern) {
@@ -401,16 +400,13 @@ fn read_agent_context(worktree_path: &std::path::Path) -> Option<AgentInfo> {
     let json: serde_json::Value = serde_json::from_str(&content).ok()?;
 
     Some(AgentInfo {
-        agent_type: json
-            .get("agent_type")
+        agent_type: json.get("agent_type")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string()),
-        agent_name: json
-            .get("agent_name")
+        agent_name: json.get("agent_name")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string()),
-        execution_mode: json
-            .get("execution_mode")
+        execution_mode: json.get("execution_mode")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string()),
     })

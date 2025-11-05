@@ -35,5 +35,3 @@ git2 = "0.20"
 regex = "1.10"
 async-openai = { version = "0.24", default-features = false, features = ["rustls"] }
 num_cpus = "1.16"
-tokio-tungstenite = "0.21"
-futures-util = "0.3"

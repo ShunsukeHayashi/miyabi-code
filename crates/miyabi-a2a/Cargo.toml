@@ -63,7 +63,7 @@ tokio-test = "0.4"
 tempfile = "3.8"
 wiremock = "0.6"
 tokio-stream = { version = "0.1", features = ["net"] }
-tonic = { version = "0.14", features = ["transport"] }
+tonic = "0.14"
 prost = "0.14"
 
 [[bin]]

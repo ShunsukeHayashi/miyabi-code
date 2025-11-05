@@ -1,21 +1,17 @@
 //! Integration tests for agent-core ↔ agents interaction
 //! Tests the interaction between miyabi-agent-core and miyabi-agents
 
+use miyabi_agent_core::BaseAgent;
 use miyabi_agent_codegen::CodeGenAgent;
 use miyabi_agent_coordinator::CoordinatorAgent;
-use miyabi_agent_core::BaseAgent;
 use miyabi_agent_review::ReviewAgent;
-use miyabi_core::task_metadata::TaskStatus;
-use miyabi_types::task::TaskType;
-use miyabi_types::{AgentConfig, AgentType, Issue, Task};
-use serde_json::json;
-use std::collections::HashMap;
+use miyabi_types::{AgentConfig, AgentType, Issue, Task, TaskType};
 
 /// Helper to create test agent config
 fn create_test_agent_config() -> AgentConfig {
     AgentConfig {
         device_identifier: "test-device".to_string(),
-        github_token: "ghp_test_token_example_123".to_string(),
+        github_token: "ghp_test_token".to_string(),
         repo_owner: Some("test-owner".to_string()),
         repo_name: Some("test-repo".to_string()),
         use_task_tool: false,
@@ -54,7 +50,7 @@ async fn test_coordinator_agent_initialization() {
     let agent = CoordinatorAgent::new(config);
 
     assert_eq!(agent.agent_type(), AgentType::CoordinatorAgent);
-    assert_eq!(agent.agent_type().as_str(), "coordinator");
+    assert_eq!(agent.name(), "CoordinatorAgent");
 }
 
 #[tokio::test]
@@ -63,7 +59,7 @@ async fn test_codegen_agent_initialization() {
     let agent = CodeGenAgent::new(config);
 
     assert_eq!(agent.agent_type(), AgentType::CodeGenAgent);
-    assert_eq!(agent.agent_type().as_str(), "codegen");
+    assert_eq!(agent.name(), "CodeGenAgent");
 }
 
 #[tokio::test]
@@ -72,18 +68,18 @@ async fn test_review_agent_initialization() {
     let agent = ReviewAgent::new(config);
 
     assert_eq!(agent.agent_type(), AgentType::ReviewAgent);
-    assert_eq!(agent.agent_type().as_str(), "review");
+    assert_eq!(agent.name(), "ReviewAgent");
 }
 
 #[tokio::test]
-async fn test_coordinator_decomposes_issue() {
+async fn test_agent_config_propagation() {
     let config = create_test_agent_config();
-    let agent = CoordinatorAgent::new(config);
-    let issue = create_test_issue(101);
+    let device_id = config.device_identifier.clone();
 
-    let decomposition = agent.decompose_issue(&issue).await.unwrap();
-    assert_eq!(decomposition.original_issue.number, issue.number);
-    assert_eq!(decomposition.tasks.len(), 4);
+    let agent = CoordinatorAgent::new(config);
+
+    // Verify config was properly set
+    assert_eq!(agent.config().device_identifier, device_id);
 }
 
 #[test]
@@ -99,7 +95,7 @@ fn test_agent_type_mapping() {
     ];
 
     for agent_type in agent_types {
-        let name = agent_type.as_str();
+        let name = agent_type.to_string();
         assert!(!name.is_empty());
     }
 }
@@ -213,8 +209,8 @@ fn test_agent_dependencies() {
 
 #[test]
 fn test_agent_metadata_handling() {
-    let mut metadata = HashMap::new();
-    metadata.insert("issue_number".to_string(), json!(418));
+    let mut metadata = std::collections::HashMap::new();
+    metadata.insert("issue_number".to_string(), "418".to_string());
 
     let task = Task {
         id: "task-1".to_string(),
@@ -230,16 +226,11 @@ fn test_agent_metadata_handling() {
         status: None,
         start_time: None,
         end_time: None,
-        metadata: Some(metadata),
+        metadata: Some(metadata.clone()),
     };
 
-    let issue_number = task
-        .metadata
-        .as_ref()
-        .and_then(|meta| meta.get("issue_number"))
-        .and_then(|value| value.as_i64())
-        .unwrap();
-    assert_eq!(issue_number, 418);
+    assert!(task.metadata.is_some());
+    assert_eq!(task.metadata.unwrap().get("issue_number").unwrap(), "418");
 }
 
 #[tokio::test]
@@ -345,10 +336,7 @@ fn test_issue_to_tasks_conversion() {
     ];
 
     assert_eq!(tasks.len(), 2);
-    assert_eq!(
-        tasks[1].dependencies[0],
-        format!("task-{}-impl", issue.number)
-    );
+    assert_eq!(tasks[1].dependencies[0], format!("task-{}-impl", issue.number));
 }
 
 #[test]
@@ -357,35 +345,40 @@ fn test_agent_worktree_config() {
     config.use_worktree = true;
     config.worktree_base_path = Some(".worktrees".into());
 
-    assert!(config.validate().is_ok());
     let agent = CoordinatorAgent::new(config);
-    assert_eq!(agent.agent_type(), AgentType::CoordinatorAgent);
+
+    assert!(agent.config().use_worktree);
+    assert!(agent.config().worktree_base_path.is_some());
 }
 
 #[test]
 fn test_agent_log_directory() {
     let config = create_test_agent_config();
-    assert_eq!(config.log_directory, "./logs");
     let agent = CodeGenAgent::new(config);
-    assert_eq!(agent.agent_type(), AgentType::CodeGenAgent);
+
+    assert!(!agent.config().log_directory.is_empty());
+    assert_eq!(agent.config().log_directory, "./logs");
 }
 
 #[test]
 fn test_agent_report_directory() {
     let config = create_test_agent_config();
-    assert_eq!(config.report_directory, "./reports");
     let agent = ReviewAgent::new(config);
-    assert_eq!(agent.agent_type(), AgentType::ReviewAgent);
+
+    assert!(!agent.config().report_directory.is_empty());
+    assert_eq!(agent.config().report_directory, "./reports");
 }
 
 #[test]
 fn test_task_status_lifecycle() {
+    use miyabi_types::TaskStatus;
+
     let statuses = vec![
         TaskStatus::Pending,
-        TaskStatus::Running,
-        TaskStatus::Success,
+        TaskStatus::InProgress,
+        TaskStatus::Completed,
         TaskStatus::Failed,
-        TaskStatus::Cancelled,
+        TaskStatus::Blocked,
     ];
 
     for status in statuses {

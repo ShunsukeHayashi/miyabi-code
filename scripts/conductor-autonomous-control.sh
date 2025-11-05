@@ -107,8 +107,14 @@ add_agent() {
 
     # エージェントを起動
     case "$agent_type" in
-        "codex"|"claude"|"codegen")
+        "codex")
             tmux send-keys -t "$created_pane" "cd '$WORKING_DIR' && codex" Enter
+            ;;
+        "claude")
+            tmux send-keys -t "$created_pane" "cd '$WORKING_DIR' && cc" Enter
+            ;;
+        "codegen")
+            tmux send-keys -t "$created_pane" "cd '$WORKING_DIR' && cc" Enter
             ;;
         *)
             tmux send-keys -t "$created_pane" "cd '$WORKING_DIR' && bash" Enter

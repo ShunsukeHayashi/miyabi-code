@@ -141,14 +141,14 @@ assign_task_to_agent() {
     local pane_process
     pane_process=$(tmux display-message -t "$pane_id" -p '#{pane_current_command}')
 
-    if [ "$pane_process" != "codex" ]; then
-        log_warn "Pane $pane_id is running '$pane_process' instead of 'codex' (Codex CLI)"
-        log_warn "Attempting to restart Codex..."
+    if [ "$pane_process" != "node" ]; then
+        log_warn "Pane $pane_id is running '$pane_process' instead of 'node' (Claude Code)"
+        log_warn "Attempting to restart Claude Code..."
 
-        # Codex再起動
+        # Claude Code再起動
         tmux send-keys -t "$pane_id" C-c
         sleep 0.5
-        tmux send-keys -t "$pane_id" "cd '$PROJECT_ROOT' && codex" && sleep 0.1 && tmux send-keys -t "$pane_id" Enter
+        tmux send-keys -t "$pane_id" "cd '$PROJECT_ROOT' && claude --dangerously-skip-permissions" && sleep 0.1 && tmux send-keys -t "$pane_id" Enter
         sleep 3
     fi
 

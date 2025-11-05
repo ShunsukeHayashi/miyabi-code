@@ -7,15 +7,13 @@ use miyabi_types::{
     task::{Task, TaskType},
     workflow::{Edge, DAG},
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 /// Builder for constructing agent workflows
-#[derive(Clone, Debug)]
 pub struct WorkflowBuilder {
     name: String,
     steps: Vec<Step>,
-    current_steps: Vec<String>,
-    name_to_id: HashMap<String, String>,
+    current_step: Option<String>,
 }
 
 /// A single step in a workflow
@@ -29,7 +27,7 @@ pub struct Step {
 }
 
 /// Conditional branch definition
-#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ConditionalBranch {
     /// Branch name
     pub name: String,
@@ -37,13 +35,6 @@ pub struct ConditionalBranch {
     pub condition: Condition,
     /// ID of next step if condition is true
     pub next_step: String,
-}
-
-impl ConditionalBranch {
-    /// Evaluate this branch's condition against a context
-    pub fn evaluate(&self, context: &serde_json::Value) -> bool {
-        self.condition.evaluate(context)
-    }
 }
 
 /// Type of workflow step
@@ -63,8 +54,7 @@ impl WorkflowBuilder {
         Self {
             name: name.to_string(),
             steps: Vec::new(),
-            current_steps: Vec::new(),
-            name_to_id: HashMap::new(),
+            current_step: None,
         }
     }
 
@@ -80,19 +70,18 @@ impl WorkflowBuilder {
         };
 
         self.steps.push(step);
-        self.name_to_id.insert(name.to_string(), step_id.clone());
-        self.current_steps = vec![step_id];
+        self.current_step = Some(step_id);
         self
     }
 
     /// Add a sequential step that depends on the previous step
     pub fn then(mut self, name: &str, agent: AgentType) -> Self {
         let step_id = format!("step-{}", self.steps.len());
-        let dependencies = if self.current_steps.is_empty() {
-            Vec::new()
-        } else {
-            self.current_steps.clone()
-        };
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
 
         let step = Step {
             id: step_id.clone(),
@@ -103,8 +92,7 @@ impl WorkflowBuilder {
         };
 
         self.steps.push(step);
-        self.name_to_id.insert(name.to_string(), step_id.clone());
-        self.current_steps = vec![step_id];
+        self.current_step = Some(step_id);
         self
     }
 
@@ -123,11 +111,11 @@ impl WorkflowBuilder {
     /// ```
     pub fn branch_on(mut self, name: &str, branches: Vec<(&str, Condition, &str)>) -> Self {
         let step_id = format!("step-{}", self.steps.len());
-        let dependencies = if self.current_steps.is_empty() {
-            Vec::new()
-        } else {
-            self.current_steps.clone()
-        };
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
 
         let conditional_branches: Vec<ConditionalBranch> = branches
             .into_iter()
@@ -149,8 +137,7 @@ impl WorkflowBuilder {
         };
 
         self.steps.push(step);
-        self.name_to_id.insert(name.to_string(), step_id.clone());
-        self.current_steps = vec![step_id];
+        self.current_step = Some(step_id);
         self
     }
 
@@ -171,11 +158,11 @@ impl WorkflowBuilder {
     /// ```
     pub fn branch(mut self, name: &str, pass_step: &str, fail_step: &str) -> Self {
         let step_id = format!("step-{}", self.steps.len());
-        let dependencies = if self.current_steps.is_empty() {
-            Vec::new()
-        } else {
-            self.current_steps.clone()
-        };
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
 
         let conditional_branches = vec![
             ConditionalBranch {
@@ -201,19 +188,20 @@ impl WorkflowBuilder {
         };
 
         self.steps.push(step);
-        self.name_to_id.insert(name.to_string(), step_id.clone());
-        self.current_steps = vec![step_id];
+        self.current_step = Some(step_id);
         self
     }
 
     /// Add parallel steps that execute concurrently
     pub fn parallel(mut self, steps: Vec<(&str, AgentType)>) -> Self {
-        let parent_dependencies = self.current_steps.clone();
-        let mut parallel_step_ids = Vec::new();
+        let parent_id = self.current_step.clone();
 
         for (name, agent) in steps {
             let step_id = format!("step-{}", self.steps.len());
-            let dependencies = parent_dependencies.clone();
+            let dependencies = parent_id
+                .as_ref()
+                .map(|id| vec![id.clone()])
+                .unwrap_or_default();
 
             let step = Step {
                 id: step_id.clone(),
@@ -224,11 +212,9 @@ impl WorkflowBuilder {
             };
 
             self.steps.push(step);
-            self.name_to_id.insert(name.to_string(), step_id.clone());
-            parallel_step_ids.push(step_id);
         }
 
-        self.current_steps = parallel_step_ids;
+        self.current_step = None;
         self
     }
 
@@ -242,45 +228,22 @@ impl WorkflowBuilder {
         let mut edges = Vec::new();
 
         for step in &self.steps {
-            let mut task = Task::new(
-                step.id.clone(),
-                step.name.clone(),
-                format!("Workflow step: {}", step.name),
-                TaskType::Feature,
-                1,
-            )
-            .map_err(|err| WorkflowError::InvalidConfiguration(err.to_string()))?;
-
-            task.assigned_agent = Some(step.agent_type);
-            task.dependencies = step.dependencies.clone();
-
-            // Store conditional branch information in metadata
-            if let StepType::Conditional { branches } = &step.step_type {
-                let mut metadata = HashMap::new();
-                metadata.insert("is_conditional".to_string(), serde_json::json!(true));
-
-                let mut resolved_branches: Vec<ConditionalBranch> = Vec::new();
-                for branch in branches {
-                    let target_id = self.resolve_branch_target(&branch.next_step)?;
-                    resolved_branches.push(ConditionalBranch {
-                        name: branch.name.clone(),
-                        condition: branch.condition.clone(),
-                        next_step: target_id,
-                    });
-                }
-
-                metadata.insert(
-                    "conditional_branches".to_string(),
-                    serde_json::to_value(&resolved_branches)
-                        .map_err(|e| WorkflowError::InvalidConfiguration(e.to_string()))?,
-                );
-                metadata.insert(
-                    "branch_count".to_string(),
-                    serde_json::json!(branches.len()),
-                );
-                task.metadata = Some(metadata);
-            }
-
+            let task = Task {
+                id: step.id.clone(),
+                title: step.name.clone(),
+                description: format!("Workflow step: {}", step.name),
+                task_type: TaskType::Feature,
+                priority: 1,
+                assigned_agent: Some(step.agent_type),
+                dependencies: step.dependencies.clone(),
+                estimated_duration: None,
+                status: None,
+                start_time: None,
+                end_time: None,
+                metadata: None,
+                severity: None,
+                impact: None,
+            };
             nodes.push(task);
 
             // Add dependency edges (incoming edges to this step)
@@ -290,16 +253,13 @@ impl WorkflowBuilder {
                     to: step.id.clone(),
                 });
             }
-        }
 
-        for step in &self.steps {
+            // Add conditional branch edges (outgoing edges from this step)
             if let StepType::Conditional { branches } = &step.step_type {
                 for branch in branches {
-                    let target_id = self.resolve_branch_target(&branch.next_step)?;
-
                     edges.push(Edge {
                         from: step.id.clone(),
-                        to: target_id,
+                        to: branch.next_step.clone(),
                     });
                 }
             }
@@ -314,16 +274,6 @@ impl WorkflowBuilder {
         })
     }
 
-    fn resolve_branch_target(&self, target: &str) -> Result<String> {
-        if self.steps.iter().any(|candidate| candidate.id == target) {
-            return Ok(target.to_string());
-        }
-        if let Some(mapped) = self.name_to_id.get(target) {
-            return Ok(mapped.clone());
-        }
-        Err(WorkflowError::StepNotFound(target.to_string()))
-    }
-
     fn compute_levels(&self, nodes: &[Task], edges: &[Edge]) -> Result<Vec<Vec<String>>> {
         let mut levels: Vec<Vec<String>> = Vec::new();
         let mut remaining: HashSet<String> = nodes.iter().map(|n| n.id.clone()).collect();
@@ -332,9 +282,9 @@ impl WorkflowBuilder {
             let mut current_level = Vec::new();
 
             for node_id in &remaining {
-                let has_unresolved_deps = edges
-                    .iter()
-                    .any(|e| e.to == *node_id && remaining.contains(&e.from));
+                let has_unresolved_deps = edges.iter().any(|e| {
+                    e.to == *node_id && remaining.contains(&e.from)
+                });
 
                 if !has_unresolved_deps {
                     current_level.push(node_id.clone());
@@ -379,10 +329,10 @@ mod tests {
 
     #[test]
     fn test_single_step() {
-        let workflow = WorkflowBuilder::new("single").step("analyze", AgentType::IssueAgent);
+        let workflow =
+            WorkflowBuilder::new("single").step("analyze", AgentType::IssueAgent);
 
         let dag = workflow.build_dag().unwrap();
-        dag.validate().unwrap();
         assert_eq!(dag.nodes.len(), 1);
         assert_eq!(dag.edges.len(), 0);
         assert_eq!(dag.levels.len(), 1);
@@ -396,7 +346,6 @@ mod tests {
             .then("implement", AgentType::CodeGenAgent);
 
         let dag = workflow.build_dag().unwrap();
-        dag.validate().unwrap();
         assert_eq!(dag.nodes.len(), 2);
         assert_eq!(dag.edges.len(), 1);
         assert_eq!(dag.levels.len(), 2);
@@ -412,18 +361,9 @@ mod tests {
             ]);
 
         let dag = workflow.build_dag().unwrap();
-        dag.validate().unwrap();
         assert_eq!(dag.nodes.len(), 3);
         assert_eq!(dag.levels.len(), 2);
         assert_eq!(dag.levels[1].len(), 2);
-
-        let start_node = dag.nodes.iter().find(|n| n.title == "start").unwrap();
-        let outgoing: Vec<_> = dag
-            .edges
-            .iter()
-            .filter(|e| e.from == start_node.id)
-            .collect();
-        assert_eq!(outgoing.len(), 2);
     }
 
     #[test]
@@ -434,55 +374,10 @@ mod tests {
             .parallel(vec![
                 ("test", AgentType::ReviewAgent),
                 ("lint", AgentType::CodeGenAgent),
-            ])
-            .then("deploy", AgentType::DeploymentAgent);
+            ]);
 
         let dag = workflow.build_dag().unwrap();
-        dag.validate().unwrap();
-        assert_eq!(dag.nodes.len(), 5);
-        assert!(dag.levels.len() >= 3);
-
-        let deploy_node = dag.nodes.iter().find(|n| n.title == "deploy").unwrap();
-        let dependencies: Vec<_> = dag
-            .edges
-            .iter()
-            .filter(|e| e.to == deploy_node.id)
-            .map(|e| e.from.clone())
-            .collect();
-        assert_eq!(dependencies.len(), 2);
-
-        let test_node = dag.nodes.iter().find(|n| n.title == "test").unwrap();
-        let lint_node = dag.nodes.iter().find(|n| n.title == "lint").unwrap();
-        assert!(dependencies.contains(&test_node.id));
-        assert!(dependencies.contains(&lint_node.id));
-    }
-
-    #[test]
-    fn test_parallel_then_sequential() {
-        let workflow = WorkflowBuilder::new("parallel-then")
-            .step("start", AgentType::IssueAgent)
-            .parallel(vec![
-                ("task-a", AgentType::CodeGenAgent),
-                ("task-b", AgentType::ReviewAgent),
-            ])
-            .then("finish", AgentType::DeploymentAgent);
-
-        let dag = workflow.build_dag().unwrap();
-        dag.validate().unwrap();
-
-        let finish_node = dag.nodes.iter().find(|n| n.title == "finish").unwrap();
-        let deps: Vec<_> = dag
-            .edges
-            .iter()
-            .filter(|e| e.to == finish_node.id)
-            .map(|e| e.from.clone())
-            .collect();
-        assert_eq!(deps.len(), 2);
-
-        let task_a = dag.nodes.iter().find(|n| n.title == "task-a").unwrap();
-        let task_b = dag.nodes.iter().find(|n| n.title == "task-b").unwrap();
-
-        assert!(deps.contains(&task_a.id));
-        assert!(deps.contains(&task_b.id));
+        assert_eq!(dag.nodes.len(), 4);
+        assert!(dag.levels.len() >= 2);
     }
 }

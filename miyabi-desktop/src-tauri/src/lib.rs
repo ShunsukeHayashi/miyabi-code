@@ -8,13 +8,7 @@ mod worktree_graph;
 mod pty;
 mod tmux;
 mod voicevox;
-<<<<<<< HEAD
-mod websocket;
 mod worktree;
-mod worktree_graph;
-=======
-mod worktree;
->>>>>>> origin/main
 
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
 use ai_naming::suggest_worktree_name;
@@ -27,18 +21,12 @@ use config::{
 };
 =======
 use config::{AgentConfig, AgentsConfig};
->>>>>>> origin/main
 use events::EventEmitter;
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
 use pty::{PtyManager, SessionInfo, TerminalSession};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-<<<<<<< HEAD
-use tauri::{AppHandle, Manager, State};
-use tmux::{TmuxManager, TmuxSession};
-use tokio::process::Command;
-=======
 use tauri::{AppHandle, State};
 use tmux::{TmuxManager, TmuxSession};
 use tokio::sync::Mutex as TokioMutex;
@@ -47,10 +35,6 @@ use voicevox::{
     check_voicevox_engine, generate_narration, get_speakers, start_voicevox_engine,
     NarrationRequest, NarrationResult, SpeakerConfig,
 };
-<<<<<<< HEAD
-use websocket::WebSocketServer;
-=======
->>>>>>> origin/main
 use worktree::{
     cleanup_worktrees, create_worktree, get_worktree_status, list_worktrees, remove_worktree,
     WorktreeManagerState,
@@ -61,21 +45,11 @@ struct AppState {
     event_emitter: Arc<EventEmitter>,
 }
 
-<<<<<<< HEAD
-const DEFAULT_ORCHESTRA_SESSION: &str = "miyabi-refactor";
-
-// Initialize WorktreeManagerState from repository root
-fn init_worktree_manager() -> Result<WorktreeManagerState, String> {
-    // Find repository root
-    let mut current_dir =
-        env::current_dir().map_err(|e| format!("Failed to get current directory: {}", e))?;
-=======
 // Initialize WorktreeManagerState from repository root
 fn init_worktree_manager() -> Result<WorktreeManagerState, String> {
     // Find repository root
     let mut current_dir = env::current_dir()
         .map_err(|e| format!("Failed to get current directory: {}", e))?;
->>>>>>> origin/main
 
     loop {
         if current_dir.join(".git").exists() {
@@ -514,27 +488,8 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-<<<<<<< HEAD
-            // Initialize WebSocket server
-            let ws_server = Arc::new(WebSocketServer::new());
-
-            // Start WebSocket server on port 9001
-            let ws_server_clone = ws_server.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(e) = ws_server_clone.start(9001).await {
-                    eprintln!("❌ Failed to start WebSocket server: {}", e);
-                } else {
-                    println!("✅ WebSocket server started successfully on ws://127.0.0.1:9001");
-                }
-            });
-
-            // Initialize EventEmitter with AppHandle and WebSocket server
-            let event_emitter =
-                Arc::new(EventEmitter::new(app.handle().clone(), ws_server.clone()));
-=======
             // Initialize EventEmitter with AppHandle
             let event_emitter = Arc::new(EventEmitter::new(app.handle().clone()));
->>>>>>> origin/main
 
             // Manage AppState with EventEmitter
             app.manage(AppState {
@@ -588,16 +543,6 @@ pub fn run() {
             stop_full_automation,
             get_automation_status,
             load_automation_config_from_env,
-<<<<<<< HEAD
-            // Window and Pane Monitoring/Control
-            automation::list_session_windows,
-            automation::list_window_panes,
-            automation::send_to_pane,
-            automation::get_pane_content,
-            automation::focus_window,
-            automation::focus_pane,
-=======
->>>>>>> origin/main
             // Worktree commands
             list_worktrees,
             worktrees_graph_command,

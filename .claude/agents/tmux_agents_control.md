@@ -25,12 +25,12 @@
 ### Start All Agents (Parallel Launch - 6 Agents)
 
 ```bash
-tmux send-keys -t %10 "cd '/Users/shunsuke/Dev/miyabi-private' && codex" && sleep 0.5 && tmux send-keys -t %10 Enter & \
-tmux send-keys -t %11 "cd '/Users/shunsuke/Dev/miyabi-private' && codex" && sleep 0.5 && tmux send-keys -t %11 Enter & \
-tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && codex" && sleep 0.5 && tmux send-keys -t %2 Enter & \
-tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && codex" && sleep 0.5 && tmux send-keys -t %5 Enter & \
-tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && codex" && sleep 0.5 && tmux send-keys -t %3 Enter & \
-tmux send-keys -t %4 "cd '/Users/shunsuke/Dev/miyabi-private' && codex" && sleep 0.5 && tmux send-keys -t %4 Enter & \
+tmux send-keys -t %10 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %10 Enter & \
+tmux send-keys -t %11 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %11 Enter & \
+tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %2 Enter & \
+tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %5 Enter & \
+tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %3 Enter & \
+tmux send-keys -t %4 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %4 Enter & \
 wait
 ```
 
@@ -690,19 +690,19 @@ tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && カエデが �
 ### カエデ with Custom Sub-Agent
 
 ```bash
-tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && codex --agents '{\"miyabi-coder\": {\"description\": \"Miyabi specialist\", \"prompt\": \"You are Kaede, CodeGenAgent. Follow CLAUDE.md.\", \"tools\": [\"Read\", \"Edit\", \"Write\", \"Bash\", \"Grep\", \"Skill\"], \"model\": \"sonnet\"}}'" && sleep 0.5 && tmux send-keys -t %2 Enter
+tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && claude --agents '{\"miyabi-coder\": {\"description\": \"Miyabi specialist\", \"prompt\": \"You are Kaede, CodeGenAgent. Follow CLAUDE.md.\", \"tools\": [\"Read\", \"Edit\", \"Write\", \"Bash\", \"Grep\", \"Skill\"], \"model\": \"sonnet\"}}'" && sleep 0.5 && tmux send-keys -t %2 Enter
 ```
 
 ### サクラ with JSON Output
 
 ```bash
-tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && codex -p 'Issue #270のレビュー結果は？' --output-format json > /tmp/sakura-review.json" && sleep 0.5 && tmux send-keys -t %5 Enter
+tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && claude -p 'Issue #270のレビュー結果は？' --output-format json > /tmp/sakura-review.json" && sleep 0.5 && tmux send-keys -t %5 Enter
 ```
 
 ### ツバキ with Context Injection
 
 ```bash
-tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && codex --append-system-prompt 'Miyabi PR規約: Conventional Commits準拠、57ラベル体系使用'" && sleep 0.5 && tmux send-keys -t %3 Enter
+tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && claude --append-system-prompt 'Miyabi PR規約: Conventional Commits準拠、57ラベル体系使用'" && sleep 0.5 && tmux send-keys -t %3 Enter
 ```
 
 ---
