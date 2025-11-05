@@ -1,6 +1,6 @@
 # Ignore all files except docs directory
 /*
-!/docs/
+!/docs/**
 !/vercel.json
 !/build.sh
 
