@@ -1,0 +1,399 @@
+/* @theme miyabi-jony */
+/* Inspired by Jony Ive's Design Philosophy: Simplicity, Whitespace, Typography */
+
+@import 'default';
+
+:root {
+  /* Monochromatic palette with one accent - Jony Ive principle */
+  --color-primary: #000000;        /* Pure black for clarity */
+  --color-accent: #007AFF;         /* Apple blue - only accent color */
+  --color-background: #ffffff;     /* Pure white for maximum contrast */
+  --color-text: #1d1d1f;          /* Near-black (Apple's text color) */
+  --color-text-light: #86868b;    /* Gray for secondary text */
+  --color-subtle: #f5f5f7;        /* Subtle background (Apple's light gray) */
+
+  /* Typography - Refined and lightweight */
+  --font-heading: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'SF Pro Display', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'SF Pro Text', sans-serif;
+
+  /* No gradients - Flat is honest */
+}
+
+section {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  padding: 120px 100px;  /* More breathing room */
+  line-height: 1.5;      /* Better readability */
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+/* Typography Hierarchy - Light and clear */
+h1 {
+  font-family: var(--font-heading);
+  color: var(--color-primary);
+  font-size: 4rem;           /* Larger for impact */
+  font-weight: 600;          /* Lighter than before (was 700) */
+  margin-bottom: 2rem;       /* More space */
+  line-height: 1.1;
+  letter-spacing: -0.03em;   /* Optical refinement */
+}
+
+h2 {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  font-size: 2.8rem;
+  font-weight: 500;          /* Even lighter (was 600) */
+  margin-bottom: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 1.2rem;
+  line-height: 1.2;
+}
+
+p {
+  margin-bottom: 1.5rem;     /* More vertical rhythm */
+  font-size: 1.3rem;
+  line-height: 1.6;          /* More readable */
+  font-weight: 400;
+}
+
+strong {
+  color: var(--color-primary);
+  font-weight: 600;          /* Lighter (was 700) */
+}
+
+ul {
+  margin-left: 0;            /* Remove indent - cleaner */
+  list-style: none;          /* Remove bullets */
+}
+
+li {
+  font-size: 1.3rem;
+  margin-bottom: 1.2rem;     /* More space between items */
+  padding-left: 1.5rem;      /* Add padding for visual alignment */
+  position: relative;
+  line-height: 1.6;
+}
+
+li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);  /* Accent color for bullets */
+  font-weight: 600;
+}
+
+/* Special Classes - Refined */
+.huge {
+  font-size: 6rem;           /* Even bigger for emphasis */
+  font-weight: 600;          /* Lighter (was 800) */
+  color: var(--color-primary);
+  line-height: 1.05;
+  margin: 2rem 0;
+  letter-spacing: -0.04em;
+}
+
+.emphasis {
+  color: var(--color-accent);  /* Use accent color sparingly */
+  font-weight: 600;            /* Lighter (was 700) */
+  font-size: inherit;          /* Don't change size - subtle emphasis */
+}
+
+.quote {
+  font-style: normal;          /* Remove italic - cleaner */
+  color: var(--color-text-light);
+  border-left: 3px solid var(--color-accent);  /* Thinner border */
+  padding-left: 2rem;          /* More space */
+  margin: 3rem 0;              /* More vertical space */
+  font-size: 1.5rem;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* Opening Slide - Pure and minimal */
+section.opening {
+  background: var(--color-background);  /* Pure white - no gradient */
+  color: var(--color-primary);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 120px;
+}
+
+section.opening h1 {
+  color: var(--color-primary);
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+section.opening h2 {
+  color: var(--color-text-light);
+  font-size: 2.5rem;
+  margin-bottom: 4rem;
+  font-weight: 400;          /* Very light */
+}
+
+section.opening::after {
+  content: "";
+  position: absolute;
+  bottom: 100px;
+  width: 60px;
+  height: 3px;
+  background: var(--color-accent);  /* Simple accent line */
+}
+
+/* Act Title Slides - Minimalist */
+section.act-title {
+  background: var(--color-subtle);  /* Subtle gray instead of gradient */
+  color: var(--color-primary);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 120px;
+}
+
+section.act-title h1 {
+  color: var(--color-primary);
+  font-size: 4.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+section.act-title h2 {
+  color: var(--color-text-light);
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+/* Closing Slide - Elegant simplicity */
+section.closing {
+  background: var(--color-primary);  /* Pure black */
+  color: var(--color-background);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 120px;
+}
+
+section.closing h1 {
+  color: var(--color-background);
+  font-size: 4rem;
+  margin-bottom: 2.5rem;
+  font-weight: 600;
+}
+
+section.closing p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.6rem;
+  margin-bottom: 2rem;
+  font-weight: 400;
+}
+
+section.closing strong {
+  color: var(--color-background);
+  font-weight: 600;
+}
+
+/* Quote Slide - Refined */
+section.quote-slide {
+  background: var(--color-background);
+  color: var(--color-primary);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 150px;
+}
+
+section.quote-slide .huge {
+  color: var(--color-primary);
+  font-size: 3rem;
+  line-height: 1.4;
+  margin-bottom: 3rem;
+  font-style: normal;        /* No italic - cleaner */
+  font-weight: 400;          /* Light weight for elegance */
+  max-width: 800px;
+}
+
+section.quote-slide p {
+  color: var(--color-text-light);
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+/* Appendix Slides - Subtle */
+section.appendix {
+  background-color: var(--color-subtle);
+  font-size: 1rem;
+  padding: 100px;
+}
+
+section.appendix h1 {
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+section.appendix h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+section.appendix h3 {
+  font-size: 1.5rem;
+  color: var(--color-text);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+section.appendix p,
+section.appendix li {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+section.appendix strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Final Slide - Pure impact */
+section.final {
+  background: var(--color-primary);
+  color: var(--color-background);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 120px;
+}
+
+section.final h1 {
+  color: var(--color-background);
+  font-size: 3.5rem;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+section.final h2 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 2.2rem;
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+}
+
+section.final p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+section.final strong {
+  color: var(--color-background);
+  font-weight: 600;
+}
+
+/* Table Styling - Clean and minimal */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 3rem 0;
+  font-size: 1.2rem;
+}
+
+thead {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+th {
+  padding: 1.2rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+td {
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid #d2d2d7;  /* Apple's light gray border */
+}
+
+tbody tr:hover {
+  background-color: var(--color-subtle);
+}
+
+/* Remove animations - Static is confident */
+/* Jony Ive: "We don't do gimmicks" */
+
+/* Footer - Subtle */
+section::after {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-weight: 400;
+}
+
+/* Slide Numbers - Minimal */
+section[data-marpit-pagination]::after {
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 1024px) {
+  section {
+    padding: 80px 60px;
+  }
+
+  h1 {
+    font-size: 3rem;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+  }
+
+  .huge {
+    font-size: 4rem;
+  }
+}
+
+/* Design Philosophy Notes */
+/*
+  1. Simplicity: One accent color, flat design, no gradients
+  2. Whitespace: Generous padding and margins
+  3. Typography: Lightweight fonts (300-500), optical refinement
+  4. Honesty: No unnecessary decoration or effects
+  5. Clarity: Clear hierarchy through size and weight, not color
+  6. Refinement: Letter-spacing, line-height carefully tuned
+
+  "Design is not just what it looks like and feels like.
+   Design is how it works." - Steve Jobs
+
+  "We try to develop products that seem somehow inevitable,
+   that leave you with the sense that that's the only possible
+   solution that makes sense." - Jony Ive
+*/

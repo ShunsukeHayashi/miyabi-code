@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 64 64">
+  <!-- Simple building outline - shopping mall concept -->
+  <rect x="18" y="20" width="28" height="28" rx="2" stroke="#111827" stroke-width="1.5" fill="none"/>
+  <!-- Roof line -->
+  <path stroke="#111827" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M14 20h36"/>
+  <!-- Door -->
+  <rect x="28" y="38" width="8" height="10" rx="1" stroke="#111827" stroke-width="1.5" fill="none"/>
+</svg>

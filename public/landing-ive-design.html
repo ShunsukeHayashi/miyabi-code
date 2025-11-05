@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi - 3つのAIが開発を72%速くする</title>
+    <meta name="description" content="3つのAIスペシャリストが、Issue作成からデプロイまですべて自動化。開発時間を72%削減します。">
+    <meta property="og:title" content="Miyabi - 3つのAIが開発を72%速くする">
+    <meta property="og:description" content="1コマンドで起動。Issue作成からデプロイまで、すべて自動化。">
+    <meta property="og:type" content="website">
+    <style>
+        /* === Reset & Base === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", sans-serif;
+            background: #FFFFFF;
+            color: #1D1D1F;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* === Typography === */
+        h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: 3rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.005em;
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #6E6E73;
+        }
+
+        /* === Hero Section === */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 80px 20px;
+            background: #FFFFFF;
+        }
+
+        .hero h1 {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero .tagline {
+            font-size: 1.75rem;
+            color: #6E6E73;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        .hero .subtitle {
+            font-size: 1.125rem;
+            color: #86868B;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease 0.4s backwards;
+        }
+
+        /* === Stat Highlight === */
+        .stat-highlight {
+            font-size: 4rem;
+            font-weight: 300;
+            color: #0071E3;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin: 30px 0 10px;
+            animation: fadeInUp 0.8s ease 0.5s backwards;
+        }
+
+        .stat-highlight-label {
+            font-size: 1rem;
+            color: #86868B;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease 0.55s backwards;
+        }
+
+        /* === Social Proof === */
+        .social-proof {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.875rem;
+            color: #6E6E73;
+            margin-bottom: 40px;
+            padding: 8px 20px;
+            background: #F5F5F7;
+            border-radius: 20px;
+            animation: fadeInUp 0.8s ease 0.6s backwards;
+        }
+
+        .social-proof::before {
+            content: "⭐";
+            font-size: 1rem;
+        }
+
+        /* === Command Box === */
+        .command-container {
+            animation: fadeInUp 0.8s ease 0.6s backwards;
+        }
+
+        .command-box {
+            display: inline-block;
+            background: #F5F5F7;
+            padding: 32px 56px;
+            border-radius: 16px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 1.25rem;
+            color: #1D1D1F;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
+                        0 0 0 1px rgba(0, 0, 0, 0.04);
+        }
+
+        .command-box:hover {
+            background: #E8E8ED;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #0071E3;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 5px 10px;
+            transition: opacity 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            opacity: 0.7;
+        }
+
+        /* === Stats Section === */
+        .stats {
+            padding: 120px 20px;
+            background: #F5F5F7;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 60px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 600;
+            color: #1D1D1F;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #6E6E73;
+        }
+
+        /* === Agents Section === */
+        .agents {
+            padding: 120px 20px;
+            background: #FFFFFF;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            margin-bottom: 20px;
+        }
+
+        .section-header p {
+            font-size: 1.25rem;
+        }
+
+        /* === Agent Categories === */
+        .agent-category {
+            max-width: 1200px;
+            margin: 0 auto 100px;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Core agents grid - 3 columns for hero agents */
+        .core-agents-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 60px;
+        }
+
+        /* Full team grid - hidden by default */
+        .full-team {
+            display: none;
+            max-width: 1200px;
+            margin: 60px auto 0;
+        }
+
+        .full-team.expanded {
+            display: block;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        /* Show All button */
+        .show-all-btn {
+            display: block;
+            margin: 0 auto;
+            background: transparent;
+            border: 2px solid #D2D2D7;
+            color: #1D1D1F;
+            padding: 12px 32px;
+            border-radius: 980px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .show-all-btn:hover {
+            border-color: #86868B;
+            background: #F5F5F7;
+        }
+
+        .show-all-btn.active {
+            background: #F5F5F7;
+            border-color: #86868B;
+        }
+
+        /* === Agent Card === */
+        .agent-card {
+            background: #FFFFFF;
+            border: 1px solid #D2D2D7;
+            border-radius: 18px;
+            padding: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .agent-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+            border-color: #86868B;
+        }
+
+        .agent-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1D1D1F;
+            margin-bottom: 5px;
+        }
+
+        .agent-name-en {
+            font-size: 0.875rem;
+            color: #86868B;
+            margin-bottom: 15px;
+        }
+
+        .agent-description {
+            font-size: 0.95rem;
+            color: #6E6E73;
+            line-height: 1.6;
+        }
+
+        .agent-role {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #F5F5F7;
+            color: #6E6E73;
+        }
+
+        /* === Feature Comparison === */
+        .comparison {
+            padding: 120px 20px;
+            background: #F5F5F7;
+        }
+
+        .comparison-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .comparison-item {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            padding: 40px;
+            background: #FFFFFF;
+            border-radius: 18px;
+            border: 1px solid #D2D2D7;
+        }
+
+        .comparison-label {
+            font-size: 0.875rem;
+            color: #86868B;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 15px;
+        }
+
+        .comparison-value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .comparison-before .comparison-value { color: #FF3B30; }
+        .comparison-after .comparison-value { color: #34C759; }
+
+        .comparison-arrow {
+            font-size: 3rem;
+            color: #86868B;
+        }
+
+        /* === Footer === */
+        footer {
+            padding: 60px 20px;
+            background: #F5F5F7;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #0071E3;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 0.7;
+        }
+
+        .footer-copyright {
+            color: #86868B;
+            font-size: 0.875rem;
+        }
+
+        /* === Animations === */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === Responsive === */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            .hero .tagline { font-size: 1.25rem; }
+            .stat-highlight { font-size: 3rem; }
+            .stat-number { font-size: 3rem; }
+            .comparison-arrow { margin: 20px 0; }
+            .comparison-arrow::before { content: "↓"; }
+            .agent-grid { grid-template-columns: 1fr; }
+            .core-agents-grid { grid-template-columns: 1fr; }
+            .command-box {
+                padding: 24px 36px;
+                font-size: 1rem;
+            }
+            .social-proof {
+                font-size: 0.75rem;
+                padding: 6px 16px;
+            }
+        }
+
+        /* === CTA Button === */
+        .cta-button {
+            display: inline-block;
+            background: #0071E3;
+            color: #FFFFFF;
+            padding: 15px 40px;
+            border-radius: 980px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .cta-button:hover {
+            background: #0077ED;
+            box-shadow: 0 4px 16px rgba(0, 113, 227, 0.25);
+        }
+
+        .cta-button:active {
+            background: #0066D6;
+        }
+
+        /* === Toast Notification === */
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1D1D1F;
+            color: #FFFFFF;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.hide {
+            animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* === Scroll Animations === */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Miyabi</h1>
+        <p class="tagline">3つのAIが、<br>あなたの開発を速くする</p>
+
+        <div class="stat-highlight">72%</div>
+        <p class="stat-highlight-label">効率改善</p>
+
+        <p class="subtitle">1コマンドで起動。Issue作成からデプロイまで、すべて自動化。</p>
+
+        <div class="social-proof">
+            1.2K GitHub Stars · 50+ teams using daily
+        </div>
+
+        <div class="command-container">
+            <div class="command-box">
+                <code id="install-cmd">npx miyabi init my-project</code>
+                <button class="copy-btn" onclick="copyCommand()">Copy</button>
+            </div>
+        </div>
+
+        <a href="https://github.com/ShunsukeHayashi/Miyabi" class="cta-button">Start Your AI Team</a>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container fade-in-up">
+            <div class="stat-item">
+                <div class="stat-number" data-target="23" data-suffix="">23</div>
+                <div class="stat-label">AIエージェント</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="72" data-suffix="%">72%</div>
+                <div class="stat-label">開発効率改善</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="10" data-suffix="分">10分</div>
+                <div class="stat-label">PR自動作成</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="80" data-suffix="%+">80%+</div>
+                <div class="stat-label">テストカバレッジ</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agents Section -->
+    <section class="agents">
+        <div class="section-header">
+            <h2>あなたのAIチーム</h2>
+            <p>3人のスペシャリストが、開発のすべてを担当します</p>
+        </div>
+
+        <!-- Core 3 Agents -->
+        <div class="core-agents-grid">
+            <!-- Coordinator -->
+            <div class="agent-card">
+                <div class="agent-name">しきるん</div>
+                <div class="agent-name-en">Coordinator</div>
+                <p class="agent-description">チームを統率するリーダー。Issueを分析して、最適な実行プランを立案します。</p>
+                <span class="agent-role">プランナー</span>
+            </div>
+
+            <!-- CodeGen -->
+            <div class="agent-card">
+                <div class="agent-name">つくるん</div>
+                <div class="agent-name-en">Coder</div>
+                <p class="agent-description">コードを書くスペシャリスト。テスト付きで高品質なコードを自動生成します。</p>
+                <span class="agent-role">デベロッパー</span>
+            </div>
+
+            <!-- Review -->
+            <div class="agent-card">
+                <div class="agent-name">めだまん</div>
+                <div class="agent-name-en">Reviewer</div>
+                <p class="agent-description">品質を守る番人。100点満点でコードを評価し、改善提案をします。</p>
+                <span class="agent-role">品質管理</span>
+            </div>
+        </div>
+
+        <!-- Show All Button -->
+        <button class="show-all-btn" onclick="toggleFullTeam()">
+            全23エージェントを見る
+        </button>
+
+        <!-- Full Team - Hidden by default -->
+        <div class="full-team" id="full-team">
+            <div class="section-header" style="margin-top: 80px;">
+                <h3>フルラインナップ</h3>
+                <p style="font-size: 1rem;">23のスペシャリストが、開発からビジネスまで全領域をカバー</p>
+            </div>
+
+            <!-- Coding Agents -->
+            <div class="agent-category">
+                <h3 class="category-title">Coding Agents（8個）</h3>
+                <div class="agent-grid">
+                    <div class="agent-card">
+                        <div class="agent-name">しきるん</div>
+                        <div class="agent-name-en">CoordinatorAgent</div>
+                        <p class="agent-description">タスク分解とDAG構築</p>
+                        <span class="agent-role">リーダー</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つくるん</div>
+                        <div class="agent-name-en">CodeGenAgent</div>
+                        <p class="agent-description">AI駆動コード生成</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">めだまん</div>
+                        <div class="agent-name-en">ReviewAgent</div>
+                        <p class="agent-description">品質スコアリング</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">みつけるん</div>
+                        <div class="agent-name-en">IssueAgent</div>
+                        <p class="agent-description">Issue分析・ラベリング</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">まとめるん</div>
+                        <div class="agent-name-en">PRAgent</div>
+                        <p class="agent-description">PR自動作成</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">はこぶん</div>
+                        <div class="agent-name-en">DeploymentAgent</div>
+                        <p class="agent-description">CI/CDデプロイ</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つなぐん</div>
+                        <div class="agent-name-en">HooksIntegration</div>
+                        <p class="agent-description">ライフサイクルフック</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">ぴかぴかん</div>
+                        <div class="agent-name-en">RefresherAgent</div>
+                        <p class="agent-description">Issue状態監視</p>
+                        <span class="agent-role">サポート役</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Agents -->
+            <div class="agent-category">
+                <h3 class="category-title">Business Agents（15個）</h3>
+                <div class="agent-grid">
+                    <div class="agent-card">
+                        <div class="agent-name">あきんどさん</div>
+                        <div class="agent-name-en">AIEntrepreneurAgent</div>
+                        <p class="agent-description">ビジネスプラン策定</p>
+                        <span class="agent-role">リーダー</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つくろん</div>
+                        <div class="agent-name-en">ProductConceptAgent</div>
+                        <p class="agent-description">プロダクトコンセプト</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">かくん</div>
+                        <div class="agent-name-en">ProductDesignAgent</div>
+                        <p class="agent-description">サービス設計</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">みちびきん</div>
+                        <div class="agent-name-en">FunnelDesignAgent</div>
+                        <p class="agent-description">導線設計</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">ひろめるん</div>
+                        <div class="agent-name-en">MarketingAgent</div>
+                        <p class="agent-description">マーケティング戦略</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">かくちゃん</div>
+                        <div class="agent-name-en">ContentCreationAgent</div>
+                        <p class="agent-description">コンテンツ制作</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">つぶやきん</div>
+                        <div class="agent-name-en">SNSStrategyAgent</div>
+                        <p class="agent-description">SNS戦略</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">どうがん</div>
+                        <div class="agent-name-en">YouTubeAgent</div>
+                        <p class="agent-description">YouTube運用</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">うるん</div>
+                        <div class="agent-name-en">SalesAgent</div>
+                        <p class="agent-description">営業戦略</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">おきゃくさま</div>
+                        <div class="agent-name-en">CRMAgent</div>
+                        <p class="agent-description">顧客管理</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">いぶさん</div>
+                        <div class="agent-name-en">JonathanIveDesignAgent</div>
+                        <p class="agent-description">UI/UXデザイン</p>
+                        <span class="agent-role">実行役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">なりきりん</div>
+                        <div class="agent-name-en">PersonaAgent</div>
+                        <p class="agent-description">ペルソナ設計</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">じぶんさん</div>
+                        <div class="agent-name-en">SelfAnalysisAgent</div>
+                        <p class="agent-description">SWOT分析</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">しらべるん</div>
+                        <div class="agent-name-en">MarketResearchAgent</div>
+                        <p class="agent-description">市場調査</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                    <div class="agent-card">
+                        <div class="agent-name">かぞえるん</div>
+                        <div class="agent-name-en">AnalyticsAgent</div>
+                        <p class="agent-description">データ分析</p>
+                        <span class="agent-role">分析役</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Section -->
+    <section class="comparison">
+        <div class="section-header">
+            <h2>圧倒的な効率改善</h2>
+            <p>従来の手動開発と比較して、開発時間を72%削減</p>
+        </div>
+
+        <div class="comparison-container">
+            <div class="comparison-item comparison-before fade-in-up">
+                <div class="comparison-label">Before</div>
+                <div class="comparison-value">36h</div>
+                <p>手動での開発</p>
+            </div>
+
+            <div class="comparison-arrow fade-in-up">→</div>
+
+            <div class="comparison-item comparison-after fade-in-up">
+                <div class="comparison-label">After</div>
+                <div class="comparison-value">10h</div>
+                <p>Miyabi使用</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="https://github.com/ShunsukeHayashi/Miyabi">GitHub</a>
+            <a href="https://www.npmjs.com/package/miyabi">npm</a>
+            <a href="https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/AGENT_OPERATIONS_MANUAL.md">Documentation</a>
+            <a href="https://github.com/ShunsukeHayashi/Miyabi/discussions">Community</a>
+        </div>
+        <p class="footer-copyright">© 2025 Miyabi. Designed with Jonathan Ive's philosophy.</p>
+    </footer>
+
+    <script>
+        // Toggle Full Team
+        function toggleFullTeam() {
+            const fullTeam = document.getElementById('full-team');
+            const btn = document.querySelector('.show-all-btn');
+
+            if (fullTeam.classList.contains('expanded')) {
+                fullTeam.classList.remove('expanded');
+                btn.textContent = '全23エージェントを見る';
+                btn.classList.remove('active');
+            } else {
+                fullTeam.classList.add('expanded');
+                btn.textContent = '3つのコアエージェントに戻る';
+                btn.classList.add('active');
+                // Smooth scroll to expanded section
+                setTimeout(() => {
+                    fullTeam.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
+        }
+
+        // Toast Notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        // Copy Command with Toast
+        function copyCommand() {
+            const cmd = document.getElementById('install-cmd').textContent;
+            navigator.clipboard.writeText(cmd).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                showToast('コマンドをコピーしました！');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Click to copy command box
+        document.querySelector('.command-box').addEventListener('click', function(e) {
+            if (!e.target.classList.contains('copy-btn')) {
+                copyCommand();
+            }
+        });
+        document.querySelector('.command-box').style.cursor = 'pointer';
+
+        // Counter Animation
+        function animateCounter(element, target, suffix) {
+            let current = 0;
+            const increment = target / 60;
+            const duration = 1500;
+            const stepTime = duration / 60;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target + suffix;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current) + suffix;
+                }
+            }, stepTime);
+        }
+
+        // Intersection Observer for Scroll Animations
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -80px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+
+                    // Animate counters when stats section becomes visible
+                    if (entry.target.classList.contains('stats-container')) {
+                        const statNumbers = entry.target.querySelectorAll('.stat-number');
+                        statNumbers.forEach(stat => {
+                            const target = parseInt(stat.getAttribute('data-target'));
+                            const suffix = stat.getAttribute('data-suffix');
+                            animateCounter(stat, target, suffix);
+                        });
+                    }
+
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-in-up').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Add fade-in-up class to agent cards
+            document.querySelectorAll('.agent-card').forEach((card, index) => {
+                card.classList.add('fade-in-up');
+                card.style.transitionDelay = `${(index % 4) * 0.1}s`;
+                observer.observe(card);
+            });
+        });
+
+        // Smooth scroll for links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

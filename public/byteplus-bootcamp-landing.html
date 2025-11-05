@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BytePlus Video AI Bootcamp 2025 - 3時間で習得する次世代動画生成API実装</title>
+    <meta name="description" content="3時間で習得する次世代動画生成API実装。BytePlus Video APIを使った15パターンの実装例、ハンズオン、収益化戦略まで完全網羅。">
+
+    <!-- Accessibility -->
+    <meta name="color-scheme" content="light">
+
+    <!-- Performance Optimization -->
+    <meta name="theme-color" content="#FF6B00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon-32x32.svg">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="assets/favicon-16x16.svg">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="assets/favicon-32x32.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180x180.svg">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="assets/favicon-192x192.svg">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="BytePlus Video AI Bootcamp 2025">
+    <meta property="og:description" content="3時間で習得する次世代動画生成API実装">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shunsukehayashi.github.io/miyabi-private/byteplus-bootcamp-landing.html">
+    <meta property="og:image" content="https://shunsukehayashi.github.io/miyabi-private/assets/byteplus-bootcamp-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BytePlus Video AI Bootcamp 2025">
+    <meta name="twitter:description" content="3時間で習得する次世代動画生成API実装">
+    <meta name="twitter:image" content="https://shunsukehayashi.github.io/miyabi-private/assets/byteplus-bootcamp-og.png">
+
+    <!-- Resource Hints -->
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://www.google-analytics.com">
+    <link rel="preconnect" href="https://connect.facebook.net">
+    <link rel="preconnect" href="https://snap.licdn.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    <link rel="dns-prefetch" href="https://connect.facebook.net">
+    <link rel="dns-prefetch" href="https://snap.licdn.com">
+
+    <!-- Preload Critical Assets -->
+    <link rel="preload" href="assets/byteplus-bootcamp-hero-bg.webp" as="image" type="image/webp">
+    <link rel="preload" href="assets/byteplus-bootcamp-hero-bg.jpg" as="image" type="image/jpeg">
+
+    <!-- Google Analytics 4 (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX', {
+            'page_title': 'BytePlus Video AI Bootcamp 2025',
+            'page_location': window.location.href
+        });
+    </script>
+
+    <!-- Facebook Pixel -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', 'XXXXXXXXXXXXXXX');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXX&ev=PageView&noscript=1"/>
+    </noscript>
+
+    <!-- LinkedIn Insight Tag -->
+    <script type="text/javascript">
+        _linkedin_partner_id = "XXXXXXX";
+        window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+        window._linkedin_data_partner_ids.push(_linkedin_partner_id);
+    </script>
+    <script type="text/javascript">
+        (function(l) {
+            if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};
+            window.lintrk.q=[]}
+            var s = document.getElementsByTagName("script")[0];
+            var b = document.createElement("script");
+            b.type = "text/javascript";b.async = true;
+            b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+            s.parentNode.insertBefore(b, s);
+        })(window.lintrk);
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none;" alt=""
+        src="https://px.ads.linkedin.com/collect/?pid=XXXXXXX&fmt=gif" />
+    </noscript>
+
+    <style>
+        /* Design System - CSS Custom Properties */
+        :root {
+            /* Primary Color Palette */
+            --color-primary-50: #FFF5ED;
+            --color-primary-100: #FFE5D1;
+            --color-primary-200: #FFCCA3;
+            --color-primary-300: #FFB275;
+            --color-primary-400: #FF9947;
+            --color-primary-500: #FF6B00;
+            --color-primary-600: #E55A00;
+            --color-primary-700: #CC4900;
+            --color-primary-800: #B23800;
+            --color-primary-900: #992700;
+
+            /* Secondary Color Palette */
+            --color-secondary-50: #F5F3FF;
+            --color-secondary-100: #EDE9FE;
+            --color-secondary-200: #DDD6FE;
+            --color-secondary-300: #C4B5FD;
+            --color-secondary-400: #A78BFA;
+            --color-secondary-500: #667eea;
+            --color-secondary-600: #5A67D8;
+            --color-secondary-700: #4C51BF;
+            --color-secondary-800: #764ba2;
+            --color-secondary-900: #5B21B6;
+
+            /* Neutral Colors */
+            --color-gray-50: #F9FAFB;
+            --color-gray-100: #F3F4F6;
+            --color-gray-200: #E5E7EB;
+            --color-gray-300: #D1D5DB;
+            --color-gray-400: #9CA3AF;
+            --color-gray-500: #6B7280;
+            --color-gray-600: #4B5563;
+            --color-gray-700: #374151;
+            --color-gray-800: #1F2937;
+            --color-gray-900: #111827;
+
+            /* Semantic Colors */
+            --color-background: #FFFFFF;
+            --color-text-primary: #1A1A2E;
+            --color-text-secondary: #666666;
+            --color-text-tertiary: #999999;
+
+            /* Typography Scale */
+            --font-size-xs: 0.75rem;    /* 12px */
+            --font-size-sm: 0.875rem;   /* 14px */
+            --font-size-base: 1rem;      /* 16px */
+            --font-size-lg: 1.125rem;    /* 18px */
+            --font-size-xl: 1.25rem;     /* 20px */
+            --font-size-2xl: 1.5rem;     /* 24px */
+            --font-size-3xl: 1.875rem;   /* 30px */
+            --font-size-4xl: 2.25rem;    /* 36px */
+            --font-size-5xl: 3rem;       /* 48px */
+            --font-size-6xl: 3.75rem;    /* 60px */
+
+            /* Font Weights */
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+
+            /* Line Heights */
+            --line-height-tight: 1.25;
+            --line-height-normal: 1.5;
+            --line-height-relaxed: 1.625;
+            --line-height-loose: 1.8;
+
+            /* Spacing Scale */
+            --spacing-1: 0.25rem;   /* 4px */
+            --spacing-2: 0.5rem;    /* 8px */
+            --spacing-3: 0.75rem;   /* 12px */
+            --spacing-4: 1rem;      /* 16px */
+            --spacing-5: 1.25rem;   /* 20px */
+            --spacing-6: 1.5rem;    /* 24px */
+            --spacing-8: 2rem;      /* 32px */
+            --spacing-10: 2.5rem;   /* 40px */
+            --spacing-12: 3rem;     /* 48px */
+            --spacing-16: 4rem;     /* 64px */
+            --spacing-20: 5rem;     /* 80px */
+
+            /* Border Radius */
+            --radius-sm: 0.25rem;   /* 4px */
+            --radius-md: 0.5rem;    /* 8px */
+            --radius-lg: 0.75rem;   /* 12px */
+            --radius-xl: 1rem;      /* 16px */
+            --radius-2xl: 1.5rem;   /* 24px */
+            --radius-full: 9999px;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+            --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Z-Index Scale */
+            --z-index-dropdown: 1000;
+            --z-index-sticky: 1020;
+            --z-index-fixed: 1030;
+            --z-index-modal: 1040;
+            --z-index-popover: 1050;
+            --z-index-tooltip: 1060;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth; /* Smooth scroll for anchor links */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-normal);
+            color: var(--color-text-primary);
+            background-color: var(--color-background);
+            overflow-x: hidden;
+        }
+
+        /* Reduced motion support for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--color-primary-500);
+            color: white;
+            padding: var(--spacing-2) var(--spacing-4);
+            text-decoration: none;
+            z-index: var(--z-index-dropdown);
+            border-radius: 0 0 var(--radius-sm) 0;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Enhanced Focus Indicators */
+        *:focus {
+            outline: 3px solid var(--color-primary-500);
+            outline-offset: 2px;
+        }
+
+        *:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        *:focus-visible {
+            outline: 3px solid var(--color-primary-500);
+            outline-offset: 2px;
+        }
+
+        /* Hero Section - Ive Style: Minimalism & Clarity */
+        .hero {
+            background-color: var(--color-gray-900);
+            background-image: url('assets/byteplus-bootcamp-hero-bg.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white;
+            padding: 120px var(--spacing-8) 120px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* JPG Fallback for older browsers */
+        @supports not (background-image: url('*.webp')) {
+            .hero {
+                background-image: url('assets/byteplus-bootcamp-hero-bg.jpg');
+            }
+        }
+
+        /* Subtle gradient overlay for depth */
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.08) 0%, transparent 70%);
+            opacity: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--spacing-8);
+            animation: fadeInUp 1s ease;
+            text-shadow: none;
+            line-height: 1.1;
+        }
+
+        .hero .subtitle {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-normal);
+            margin-bottom: 60px;
+            opacity: 0.85;
+            animation: fadeInUp 1s ease 0.2s backwards;
+            line-height: var(--line-height-relaxed);
+            letter-spacing: -0.01em;
+        }
+
+        .hero .event-info {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-normal);
+            margin-bottom: 60px;
+            animation: fadeInUp 1s ease 0.4s backwards;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: var(--spacing-8);
+            border-radius: var(--radius-2xl);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-block;
+            max-width: 600px;
+        }
+
+        .event-info p {
+            margin: var(--spacing-3) 0;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: var(--line-height-relaxed);
+        }
+
+        .event-info strong {
+            color: white;
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* CTA Button - Ive Style: Minimal & Precise */
+        .cta-button {
+            display: inline-block;
+            background: var(--color-primary-500);
+            color: white;
+            padding: 18px 48px;
+            min-height: 48px;
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-medium);
+            letter-spacing: -0.01em;
+            border-radius: 980px;
+            text-decoration: none;
+            transition: all var(--transition-base);
+            animation: fadeInUp 1s ease 0.6s backwards;
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: visible;
+        }
+
+        .cta-button:hover {
+            background: var(--color-primary-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.4);
+        }
+
+        .cta-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+            transition: all var(--transition-fast);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Container - Ive Style: Generous Spacing */
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 100px var(--spacing-8) 100px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 120px;
+        }
+
+        /* Section Title - Ive Style: Large, Clear, Minimal */
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 80px;
+            text-align: center;
+            color: var(--color-gray-900);
+            position: relative;
+            padding-bottom: 0;
+            line-height: 1.1;
+        }
+
+        .section-title::after {
+            display: none; /* Remove decorative underline */
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        /* Feature Card - Ive Style: Clean, Flat, Subtle */
+        .feature-card {
+            background: white;
+            padding: 48px 40px;
+            border-radius: 24px;
+            border: 1px solid var(--color-gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::after {
+            display: none; /* Remove shine effect */
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-6);
+            transition: transform var(--transition-base);
+            display: inline-block;
+            opacity: 0.9;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+
+        .feature-card h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: var(--spacing-4);
+            color: var(--color-gray-900);
+            transition: color var(--transition-base);
+        }
+
+        .feature-card:hover h3 {
+            color: var(--color-gray-900);
+        }
+
+        .feature-card p {
+            color: var(--color-gray-600);
+            line-height: var(--line-height-relaxed);
+            font-size: var(--font-size-sm);
+            transition: color var(--transition-base);
+        }
+
+        .feature-card:hover p {
+            color: var(--color-gray-700);
+        }
+
+        /* Agenda */
+        .agenda-list {
+            list-style: none;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Agenda Item - Ive Style: Minimal Border, Subtle Hover */
+        .agenda-item {
+            background: white;
+            padding: 40px;
+            margin-bottom: var(--spacing-6);
+            border-radius: 20px;
+            border: 1px solid var(--color-gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .agenda-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
+        }
+
+        .agenda-item h3 {
+            color: var(--color-gray-900);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: var(--spacing-3);
+        }
+
+        .agenda-item .time {
+            color: var(--color-gray-500);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-4);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .agenda-item .description {
+            color: var(--color-gray-600);
+            line-height: var(--line-height-relaxed);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Target Audience */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        /* Audience Card - Ive Style: Subtle Gradient, Refined */
+        .audience-card {
+            background: white;
+            color: var(--color-gray-900);
+            padding: 48px var(--spacing-8);
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid var(--color-gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .audience-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
+        }
+
+        .audience-card .icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-5);
+            transition: transform var(--transition-base);
+            display: inline-block;
+            opacity: 0.9;
+        }
+
+        .audience-card:hover .icon {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+
+        .audience-card h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: var(--spacing-3);
+            color: var(--color-gray-900);
+        }
+
+        .audience-card p {
+            color: var(--color-gray-600);
+            line-height: var(--line-height-relaxed);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        /* Stat Item - Ive Style: Minimal, Elegant Numbers */
+        .stat-item {
+            padding: 48px var(--spacing-8);
+            background: white;
+            border: 1px solid var(--color-gray-200);
+            border-radius: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-gray-300);
+        }
+
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin-bottom: var(--spacing-3);
+            color: var(--color-primary-500);
+            transition: transform var(--transition-base);
+            display: inline-block;
+            line-height: 1;
+        }
+
+        .stat-item:hover .stat-number {
+            transform: scale(1.02);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-base);
+            color: var(--color-gray-600);
+            font-weight: var(--font-weight-medium);
+            transition: color var(--transition-base);
+        }
+
+        .stat-item:hover .stat-label {
+            color: var(--color-gray-700);
+        }
+
+        /* CTA Section - Ive Style: Simple, Focused */
+        .cta-section {
+            background: var(--color-gray-50);
+            color: var(--color-gray-900);
+            text-align: center;
+            padding: 120px var(--spacing-8);
+            margin-top: 0;
+        }
+
+        .cta-section h2 {
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--spacing-6);
+            line-height: 1.1;
+        }
+
+        .cta-section p {
+            font-size: var(--font-size-lg);
+            color: var(--color-gray-600);
+            margin-bottom: 48px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: var(--line-height-relaxed);
+        }
+
+        .cta-section .cta-button {
+            background: var(--color-primary-500);
+            color: white;
+        }
+
+        .cta-section .cta-button:hover {
+            background: var(--color-primary-600);
+        }
+
+        /* Footer - Ive Style: Minimal, Elegant */
+        .footer {
+            background: var(--color-gray-900);
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            padding: 60px var(--spacing-8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer p {
+            margin: var(--spacing-4) 0;
+            font-size: var(--font-size-sm);
+            line-height: var(--line-height-relaxed);
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: color var(--transition-base);
+            display: inline-block;
+            font-weight: var(--font-weight-medium);
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        /* Fixed CTA Button (Mobile) */
+        .mobile-cta-fixed {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-primary-500);
+            padding: var(--spacing-3) var(--spacing-5);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: var(--z-index-fixed);
+            text-align: center;
+        }
+
+        .mobile-cta-fixed .cta-button {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            color: var(--color-primary-500);
+            margin: 0;
+            animation: none;
+        }
+
+        /* Responsive - Ive Style: Adaptive Typography */
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+            }
+
+            .hero {
+                padding: 80px var(--spacing-5);
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+                letter-spacing: -0.015em;
+            }
+
+            .hero .subtitle {
+                font-size: var(--font-size-lg);
+            }
+
+            .hero .event-info {
+                font-size: var(--font-size-sm);
+                padding: var(--spacing-6);
+            }
+
+            .container {
+                padding: 60px var(--spacing-5);
+            }
+
+            .section {
+                margin-bottom: 80px;
+            }
+
+            .section-title {
+                font-size: 2.25rem;
+                margin-bottom: 48px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-5);
+            }
+
+            .feature-card {
+                padding: 32px 24px;
+            }
+
+            .stat-number {
+                font-size: 3rem;
+            }
+
+            .cta-button {
+                padding: 16px 40px;
+                font-size: var(--font-size-base);
+                min-height: 48px;
+            }
+
+            .agenda-item {
+                padding: 28px 24px;
+            }
+
+            .audience-card {
+                padding: 32px 24px;
+            }
+
+            .cta-section {
+                padding: 80px var(--spacing-5);
+            }
+
+            .cta-section h2 {
+                font-size: 2.25rem;
+            }
+
+            /* Show fixed CTA on mobile */
+            .mobile-cta-fixed {
+                display: block;
+            }
+
+            body {
+                padding-bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">メインコンテンツへスキップ</a>
+
+    <!-- Hero Section -->
+    <header class="hero" role="banner">
+        <div class="hero-content">
+            <h1 id="page-title">BytePlus Video AI Bootcamp 2025</h1>
+            <p class="subtitle">3時間で習得する次世代動画生成API実装</p>
+
+            <div class="event-info">
+                <p><strong>日時</strong> 2025年XX月XX日 10:00-13:30</p>
+                <p><strong>場所</strong> オンライン（Zoom）</p>
+                <p><strong>参加費</strong> 無料（先着50名）</p>
+                <p><strong>特典</strong> 150ページスライド + コードサンプル30個</p>
+            </div>
+
+            <a href="#register" class="cta-button" aria-label="今すぐ無料でByteePlus Bootcampに申し込む">今すぐ無料申し込み</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+
+    <!-- Stats Section -->
+    <div class="container" aria-label="統計情報">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">150</div>
+                <div class="stat-label">ページ</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">15</div>
+                <div class="stat-label">実装パターン</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">3.5</div>
+                <div class="stat-label">時間</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">30+</div>
+                <div class="stat-label">コードサンプル</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container">
+        <section class="section" aria-labelledby="features-heading">
+            <h2 id="features-heading" class="section-title">このBootcampで得られるもの</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>市場理解</h3>
+                    <p>AI動画生成市場の全体像と成長予測。TAM/SAM/SOM分析、競合21社の詳細調査。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>技術理解</h3>
+                    <p>BytePlus APIの仕様と実装方法。REST API + GraphQL、5言語SDK対応。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>実装スキル</h3>
+                    <p>15パターンの実装方法を習得。基本5 + 応用5 + 実践5パターン。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎓</div>
+                    <h3>実践経験</h3>
+                    <p>ハンズオンで実際に動画生成を体験。5つの演習 + トラブルシューティング。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>収益化知識</h3>
+                    <p>4つの収益化パターンを理解。月商¥500K〜¥10Mのビジネスモデル。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>即戦力</h3>
+                    <p>セミナー終了後すぐに案件獲得可能。無料トライアル + サンプルコード付き。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agenda Section -->
+        <section class="section" aria-labelledby="agenda-heading">
+            <h2 id="agenda-heading" class="section-title">アジェンダ（全7パート）</h2>
+
+            <ul class="agenda-list">
+                <li class="agenda-item">
+                    <h3>Part 1: イントロダクション</h3>
+                    <p class="time">⏱️ 30分 | 📄 10ページ</p>
+                    <p class="description">セミナー概要、講師紹介、BytePlusとは何か、セミナーのゴール設定</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 2: 市場動向分析</h3>
+                    <p class="time">⏱️ 20分 | 📄 20ページ</p>
+                    <p class="description">市場規模（TAM/SAM/SOM）、地域別シェア、競合分析21社、価格戦略、ターゲット業界</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 3: BytePlus API概要</h3>
+                    <p class="time">⏱️ 25分 | 📄 25ページ</p>
+                    <p class="description">API概要、3つのコア機能、技術仕様、5言語SDK、統合例、200+テンプレート</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 4: 実装15パターン</h3>
+                    <p class="time">⏱️ 90分 | 📄 60ページ</p>
+                    <p class="description">
+                        <strong>基本5パターン:</strong> Text-to-Video、Image-to-Video、字幕生成、短尺変換、多言語対応<br>
+                        <strong>応用5パターン:</strong> A/Bテスト、バッチ生成、リアルタイム、Webhook、エラーハンドリング<br>
+                        <strong>実践5パターン:</strong> WordPress、Shopify、AWS Lambda、カスタムテンプレート、分析統合
+                    </p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 5: ハンズオンワークショップ</h3>
+                    <p class="time">⏱️ 20分 | 📄 20ページ</p>
+                    <p class="description">5つの演習: 環境セットアップ、Text-to-Video、Image-to-Video、字幕追加、チャレンジ課題</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 6: 収益化戦略</h3>
+                    <p class="time">⏱️ 15分 | 📄 8ページ</p>
+                    <p class="description">4つの収益化パターン: 受託（月商¥500K）、SaaS（月商¥2M）、コンサル（月商¥3M）、プラットフォーム統合（月商¥5-10M）</p>
+                </li>
+
+                <li class="agenda-item">
+                    <h3>Part 7: まとめ & Q&A</h3>
+                    <p class="time">⏱️ 15分 | 📄 7ページ</p>
+                    <p class="description">全体振り返り、Key Takeaways、次のステップ、リソース紹介、質疑応答</p>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Target Audience Section -->
+        <section class="section" aria-labelledby="audience-heading">
+            <h2 id="audience-heading" class="section-title">対象者</h2>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <div class="icon">👨‍💻</div>
+                    <h3>エンジニア</h3>
+                    <p>API統合経験者、新技術習得を目指すフロントエンド/バックエンドエンジニア</p>
+                </div>
+
+                <div class="audience-card">
+                    <div class="icon">👔</div>
+                    <h3>経営者</h3>
+                    <p>AI動画生成事業の立ち上げを検討中の経営者、事業責任者</p>
+                </div>
+
+                <div class="audience-card">
+                    <div class="icon">📈</div>
+                    <h3>マーケター</h3>
+                    <p>動画マーケティングの自動化を目指すマーケティング担当者</p>
+                </div>
+
+                <div class="audience-card">
+                    <div class="icon">🎨</div>
+                    <h3>クリエイター</h3>
+                    <p>制作効率を向上させたい動画クリエイター、ディレクター</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    </main>
+    <!-- End Main Content -->
+
+    <!-- CTA Section -->
+    <section class="cta-section" aria-labelledby="register-heading">
+        <h2 id="register-heading">今すぐ無料申し込み</h2>
+        <p>先着50名限定。150ページスライド + コードサンプル30個を無料プレゼント</p>
+        <a href="https://forms.google.com/byteplus-bootcamp-2025" class="cta-button" target="_blank" aria-label="申し込みフォームへ移動（新しいタブで開く）">
+            申し込みフォームへ
+        </a>
+        <p style="margin-top: 48px; font-size: 0.875rem; color: var(--color-gray-600);">
+            お問い合わせ: info@byteplus-partner.com<br>
+            公式サイト: byteplus-bootcamp.com
+        </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <p>&copy; 2025 BytePlus公式パートナー. All Rights Reserved.</p>
+        <p>
+            <a href="https://docs.byteplus.com">ドキュメント</a> |
+            <a href="https://github.com/byteplus/video-api-examples">GitHub</a> |
+            <a href="https://discord.gg/byteplus">Discord</a>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
+            Powered by <a href="https://github.com/ShunsukeHayashi/Miyabi">Miyabi Framework</a>
+        </p>
+    </footer>
+
+    <!-- Event Tracking Scripts -->
+    <script>
+        // Track CTA button clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all CTA buttons
+            const ctaButtons = document.querySelectorAll('.cta-button');
+
+            ctaButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    const buttonText = this.textContent.trim();
+                    const buttonLocation = this.closest('section')?.className || 'unknown';
+
+                    // Google Analytics 4 Event
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'cta_click', {
+                            'event_category': 'engagement',
+                            'event_label': buttonText,
+                            'button_location': buttonLocation,
+                            'value': 1
+                        });
+                    }
+
+                    // Facebook Pixel Event
+                    if (typeof fbq !== 'undefined') {
+                        fbq('track', 'Lead', {
+                            content_name: 'BytePlus Bootcamp Registration',
+                            content_category: 'Education',
+                            value: 0,
+                            currency: 'JPY'
+                        });
+                    }
+
+                    // LinkedIn Conversion Event
+                    if (typeof window.lintrk !== 'undefined') {
+                        window.lintrk('track', { conversion_id: 12345678 });
+                    }
+
+                    console.log('📊 Tracking: CTA Click -', buttonText, 'at', buttonLocation);
+                });
+            });
+
+            // Track section visibility (scroll depth)
+            const sections = document.querySelectorAll('section');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.5
+            };
+
+            const sectionObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        const sectionName = entry.target.className || 'unknown-section';
+
+                        // Track scroll depth in GA4
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'section_view', {
+                                'event_category': 'engagement',
+                                'event_label': sectionName,
+                                'value': 1
+                            });
+                        }
+
+                        console.log('📊 Tracking: Section View -', sectionName);
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(function(section) {
+                sectionObserver.observe(section);
+            });
+
+            // Track feature card hovers
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach(function(card) {
+                card.addEventListener('mouseenter', function() {
+                    const cardTitle = this.querySelector('h3')?.textContent || 'unknown';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'feature_hover', {
+                            'event_category': 'engagement',
+                            'event_label': cardTitle
+                        });
+                    }
+                });
+            });
+
+            console.log('✅ Event tracking initialized');
+        });
+
+        // Scroll-triggered animations for cards
+        const animateOnScroll = function() {
+            const cards = document.querySelectorAll('.feature-card, .agenda-item, .audience-card, .stat-item');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const cardObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '0';
+                        entry.target.style.transform = 'translateY(30px)';
+
+                        setTimeout(function() {
+                            entry.target.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, 100);
+
+                        cardObserver.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            cards.forEach(function(card) {
+                cardObserver.observe(card);
+            });
+
+            console.log('✅ Scroll animations initialized');
+        };
+
+        // Initialize scroll animations on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', animateOnScroll);
+        } else {
+            animateOnScroll();
+        }
+    </script>
+
+    <!-- Service Worker Registration (PWA) -->
+    <script>
+        // Register Service Worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registered:', registration.scope);
+
+                        // Check for updates every 24 hours
+                        setInterval(() => {
+                            registration.update();
+                        }, 24 * 60 * 60 * 1000);
+                    })
+                    .catch((error) => {
+                        console.error('❌ Service Worker registration failed:', error);
+                    });
+
+                // Handle service worker updates
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('🔄 Service Worker updated, reloading page...');
+                    window.location.reload();
+                });
+            });
+        } else {
+            console.log('ℹ️ Service Worker not supported in this browser');
+        }
+
+        // Install prompt for PWA
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('💡 PWA install prompt available');
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show custom install button (optional - can be implemented later)
+            // const installButton = document.getElementById('install-button');
+            // if (installButton) {
+            //     installButton.style.display = 'block';
+            //     installButton.addEventListener('click', () => {
+            //         deferredPrompt.prompt();
+            //         deferredPrompt.userChoice.then((choiceResult) => {
+            //             if (choiceResult.outcome === 'accepted') {
+            //                 console.log('✅ User accepted PWA install');
+            //             }
+            //             deferredPrompt = null;
+            //         });
+            //     });
+            // }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA installed successfully');
+            deferredPrompt = null;
+        });
+    </script>
+
+    <!-- Mobile Fixed CTA -->
+    <div class="mobile-cta-fixed">
+        <a href="#register" class="cta-button" aria-label="無料申し込みへ移動">
+            今すぐ無料申し込み
+        </a>
+    </div>
+
+</body>
+</html>

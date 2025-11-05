@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <circle cx="128" cy="128" r="120" fill="#FFF5ED" stroke="#FF6B00" stroke-width="4"/>
+  <!-- Chart bars -->
+  <rect x="60" y="140" width="25" height="60" fill="#FF6B00" rx="4"/>
+  <rect x="100" y="110" width="25" height="90" fill="#FF8C42" rx="4"/>
+  <rect x="140" y="90" width="25" height="110" fill="#FF6B00" rx="4"/>
+  <rect x="180" y="70" width="25" height="130" fill="#FF8C42" rx="4"/>
+  <!-- Trend arrow -->
+  <path d="M 45 75 L 210 40" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 195 35 L 210 40 L 205 55" fill="#667eea"/>
+</svg>

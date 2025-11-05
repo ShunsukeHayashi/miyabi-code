@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <circle cx="128" cy="128" r="120" fill="#FFF5ED" stroke="#FF6B00" stroke-width="4"/>
+  <!-- Coin -->
+  <circle cx="128" cy="128" r="60" fill="#FFD700" stroke="#FF6B00" stroke-width="4"/>
+  <circle cx="128" cy="128" r="50" fill="none" stroke="#FF8C42" stroke-width="2"/>
+  <!-- Yen symbol -->
+  <text x="108" y="150" fill="#FF6B00" font-family="Arial, sans-serif" font-size="48" font-weight="bold">¥</text>
+  <!-- Stacked coins behind -->
+  <ellipse cx="95" cy="180" rx="25" ry="8" fill="#FFD700" opacity="0.6"/>
+  <ellipse cx="95" cy="175" rx="25" ry="8" fill="#FFD700" opacity="0.7"/>
+  <ellipse cx="95" cy="170" rx="25" ry="8" fill="#FFD700" opacity="0.8"/>
+  <!-- Upward arrow -->
+  <path d="M 185 160 L 185 100 L 170 115 M 185 100 L 200 115" stroke="#4ADE80" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

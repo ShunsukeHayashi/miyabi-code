@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none">
+  <!-- Base Dark Background -->
+  <rect width="1920" height="1080" fill="#1A1A2E"/>
+
+  <!-- Gradient Definitions -->
+  <defs>
+    <!-- Subtle Radial Glow - Center -->
+    <radialGradient id="centerGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" style="stop-color:#FF6B00;stop-opacity:0.12" />
+      <stop offset="50%" style="stop-color:#FF6B00;stop-opacity:0.06" />
+      <stop offset="100%" style="stop-color:#FF6B00;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Subtle Vertical Gradient -->
+    <linearGradient id="verticalGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1F1F3A;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#1A1A2E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#151525;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Noise Texture (for depth) -->
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="discrete" tableValues="0 0 0 0.01 0.01"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <!-- Vertical Gradient Layer -->
+  <rect width="1920" height="1080" fill="url(#verticalGradient)"/>
+
+  <!-- Center Glow -->
+  <ellipse cx="960" cy="432" rx="960" ry="540" fill="url(#centerGlow)"/>
+
+  <!-- Subtle Noise Texture -->
+  <rect width="1920" height="1080" filter="url(#noise)" opacity="0.03"/>
+
+  <!-- Decorative Minimal Geometric Elements -->
+  <!-- Top Right Corner Accent -->
+  <circle cx="1680" cy="120" r="120" fill="#FF6B00" opacity="0.02"/>
+  <circle cx="1680" cy="120" r="80" fill="#FF6B00" opacity="0.03"/>
+  <circle cx="1680" cy="120" r="40" fill="#FF6B00" opacity="0.04"/>
+
+  <!-- Bottom Left Corner Accent -->
+  <circle cx="240" cy="960" r="160" fill="#667eea" opacity="0.02"/>
+  <circle cx="240" cy="960" r="100" fill="#667eea" opacity="0.03"/>
+
+  <!-- Subtle Grid Pattern (very faint) -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#FFFFFF" stroke-width="0.5" opacity="0.01"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Minimal Floating Elements -->
+  <!-- Small Dots (very subtle) -->
+  <circle cx="320" cy="200" r="4" fill="#FFFFFF" opacity="0.06"/>
+  <circle cx="1560" cy="320" r="3" fill="#FFFFFF" opacity="0.05"/>
+  <circle cx="1200" cy="840" r="5" fill="#FFFFFF" opacity="0.04"/>
+  <circle cx="480" cy="680" r="3" fill="#FFFFFF" opacity="0.05"/>
+  <circle cx="840" cy="160" r="4" fill="#FFFFFF" opacity="0.06"/>
+
+  <!-- Soft Horizontal Lines (horizon effect) -->
+  <line x1="0" y1="540" x2="1920" y2="540" stroke="#FFFFFF" stroke-width="1" opacity="0.015"/>
+  <line x1="0" y1="480" x2="1920" y2="480" stroke="#FFFFFF" stroke-width="0.5" opacity="0.01"/>
+  <line x1="0" y1="600" x2="1920" y2="600" stroke="#FFFFFF" stroke-width="0.5" opacity="0.01"/>
+</svg>

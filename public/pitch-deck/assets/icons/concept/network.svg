@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 64 64">
+  <!-- 3 nodes connected by lines - minimal network -->
+  <circle cx="16" cy="32" r="4" stroke="#111827" stroke-width="1.5" fill="none"/>
+  <circle cx="32" cy="20" r="4" stroke="#111827" stroke-width="1.5" fill="none"/>
+  <circle cx="48" cy="32" r="4" stroke="#111827" stroke-width="1.5" fill="none"/>
+  <!-- Connection lines -->
+  <path stroke="#111827" stroke-linecap="round" stroke-width="1.5"
+        d="M19.5 30.5l9-7M35.5 22.5l9 7"/>
+</svg>

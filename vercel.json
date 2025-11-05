@@ -1,8 +1,8 @@
 {
   "framework": null,
-  "buildCommand": "bash build.sh",
+  "buildCommand": null,
   "outputDirectory": "public",
-  "installCommand": "rm -f pnpm-lock.yaml package-lock.json yarn.lock && echo 'No installation required'",
+  "installCommand": null,
   "rewrites": [
     {
       "source": "/",

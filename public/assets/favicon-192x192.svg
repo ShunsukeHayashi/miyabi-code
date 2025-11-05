@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
+  <!-- Background -->
+  <rect width="192" height="192" rx="48" fill="#1A1A2E"/>
+
+  <!-- Gradient for B letter -->
+  <defs>
+    <linearGradient id="bGradient192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C42;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Subtle background glow -->
+    <radialGradient id="bgGlow192" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FF6B00;stop-opacity:0.12" />
+      <stop offset="100%" style="stop-color:#FF6B00;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background glow -->
+  <circle cx="96" cy="96" r="85" fill="url(#bgGlow192)"/>
+
+  <!-- "B" Letter -->
+  <text
+    x="96"
+    y="145"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="128"
+    font-weight="700"
+    fill="url(#bGradient192)"
+    text-anchor="middle"
+  >B</text>
+
+  <!-- Accent dots for visual interest -->
+  <circle cx="140" cy="58" r="6" fill="#FF6B00" opacity="0.6"/>
+  <circle cx="155" cy="70" r="4" fill="#FF8C42" opacity="0.5"/>
+  <circle cx="145" cy="125" r="5" fill="#FF6B00" opacity="0.4"/>
+</svg>

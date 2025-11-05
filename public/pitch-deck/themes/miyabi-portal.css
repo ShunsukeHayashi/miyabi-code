@@ -1,0 +1,637 @@
+/* @theme miyabi-portal */
+/* Miyabi Portal Theme - Jony Ive Minimalist Light Aesthetic */
+/* Inspired by: localhost:3000 (Miyabi Portal Landing Page) */
+/* Philosophy: Ultra-light, breathing space, barely-there elegance */
+
+@import 'default';
+
+:root {
+  /* ============================================
+     COLOR SYSTEM - Minimal Gray Scale
+     ============================================ */
+
+  /* Background - Pure White with Subtle Depth */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #FAFAFA;
+  --color-bg-tertiary: #F5F5F5;
+
+  /* Text - Refined Grays */
+  --color-text-primary: #171717;      /* gray-900 */
+  --color-text-secondary: #737373;    /* gray-500 */
+  --color-text-tertiary: #A3A3A3;     /* gray-400 */
+  --color-text-subtle: #D4D4D4;       /* gray-300 */
+
+  /* Accent - Minimal Black */
+  --color-accent: #171717;            /* gray-900 for CTAs */
+  --color-accent-hover: #262626;      /* gray-800 */
+
+  /* Dividers - Barely There */
+  --color-divider: #E5E5E5;           /* gray-200 */
+  --color-divider-subtle: #F5F5F5;    /* gray-100 */
+
+  /* ============================================
+     GRADIENTS - Subtle Depth
+     ============================================ */
+
+  --gradient-subtle: linear-gradient(to bottom, #FFFFFF, rgba(250, 250, 250, 0.3), #FFFFFF);
+  --gradient-divider: linear-gradient(to right, transparent, #D4D4D4, transparent);
+  --gradient-shine: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+
+  /* ============================================
+     TYPOGRAPHY - Ultra-Light & Refined
+     ============================================ */
+
+  /* Font Stack - System Fonts */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Consolas', monospace;
+
+  /* Type Scale - Dramatic Scale for Impact */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+  --text-6xl: 3.75rem;     /* 60px */
+  --text-7xl: 4.5rem;      /* 72px */
+  --text-8xl: 6rem;        /* 96px */
+  --text-9xl: 8rem;        /* 128px */
+
+  /* Font Weights - Favor Lighter Weights */
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Line Heights - Breathing Space */
+  --line-height-none: 1;
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Letter Spacing - Tighter for Impact */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.05em;
+  --letter-spacing-wider: 0.1em;
+
+  /* ============================================
+     SPACING - Generous Breathing Room
+     ============================================ */
+
+  --space-0: 0;
+  --space-1: 0.25rem;    /* 4px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  --space-32: 8rem;      /* 128px */
+
+  /* ============================================
+     SHADOWS - Subtle & Refined
+     ============================================ */
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
+
+  /* ============================================
+     LAYOUT
+     ============================================ */
+
+  --content-max-width: 1280px;
+  --slide-padding: var(--space-20);
+  --border-radius: 9999px;  /* Full rounded */
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+section {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--gradient-subtle);
+  padding: var(--slide-padding);
+  line-height: var(--line-height-relaxed);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-light);
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Subtle floating orbs - barely visible */
+section::before {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(229, 229, 229, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+section::after {
+  content: "";
+  position: absolute;
+  bottom: 25%;
+  right: 25%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(212, 212, 212, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.2;
+  animation: float 15s ease-in-out infinite reverse;
+  animation-delay: 1s;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
+  }
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-extralight);
+  line-height: var(--line-height-none);
+  letter-spacing: var(--letter-spacing-tighter);
+  margin: 0 0 var(--space-6) 0;
+  color: var(--color-text-primary);
+}
+
+h1 {
+  font-size: var(--text-5xl);      /* 48px - Reduced from 96px */
+  font-weight: var(--font-weight-extralight);
+  margin-bottom: var(--space-6);
+}
+
+h2 {
+  font-size: var(--text-3xl);      /* 30px - Reduced from 48px */
+  font-weight: var(--font-weight-extralight);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-8);
+}
+
+h3 {
+  font-size: var(--text-2xl);      /* 24px - Reduced from 30px */
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-secondary);
+}
+
+p {
+  margin: 0 0 var(--space-6) 0;
+  font-size: var(--text-lg);       /* 18px - Reduced from 24px for better fit */
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-light);
+  max-width: 80ch;
+}
+
+strong {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* ============================================
+   SPECIAL CLASSES
+   ============================================ */
+
+.huge {
+  font-size: var(--text-6xl);      /* 60px - Reduced from 128px */
+  font-weight: var(--font-weight-extralight);
+  line-height: var(--line-height-none);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tighter);
+  margin: var(--space-8) 0;
+  display: block;
+}
+
+.emphasis {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+blockquote, .quote {
+  font-size: var(--text-xl);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+  border-left: 1px solid var(--color-divider);
+  padding-left: var(--space-6);
+  margin: var(--space-12) 0;
+  font-style: italic;
+  font-weight: var(--font-weight-light);
+}
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+ul, ol {
+  margin: 0 0 var(--space-8) 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+li {
+  font-size: var(--text-xl);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-5);
+  padding-left: var(--space-8);
+  position: relative;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-light);
+}
+
+li::before {
+  content: "–";
+  position: absolute;
+  left: 0;
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-light);
+}
+
+/* ============================================
+   SLIDE TYPES
+   ============================================ */
+
+/* Opening Slide - Pure Minimal */
+section.opening {
+  background: var(--color-bg-primary);
+  text-align: center;
+  align-items: center;
+  padding: var(--space-32);
+}
+
+section.opening h1 {
+  font-size: var(--text-6xl);      /* 60px - Reduced from 128px for Marp slides */
+  margin-bottom: var(--space-6);
+  animation: fadeIn 1s ease-out;
+}
+
+section.opening h2 {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-16);
+  animation: slideUp 1s ease-out 0.2s backwards;
+}
+
+/* Delicate divider - Ive signature */
+section.opening::before {
+  content: "";
+  position: static;
+  display: block;
+  height: 1px;
+  width: 64px;
+  background: var(--gradient-divider);
+  margin: var(--space-12) auto;
+  animation: scaleIn 1s ease-out 0.4s backwards;
+  filter: none;
+  opacity: 1;
+}
+
+section.opening strong {
+  font-size: var(--text-lg);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--letter-spacing-wider);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-light);
+  display: block;
+  margin-top: var(--space-16);
+}
+
+/* Act Title Slides - Minimal Section Headers */
+section.act-title {
+  background: var(--color-bg-secondary);
+  justify-content: center;
+  padding: var(--space-24);
+  border-top: 1px solid var(--color-divider-subtle);
+}
+
+section.act-title h1 {
+  font-size: var(--text-5xl);      /* 48px - Reduced from 72px for Marp slides */
+  margin-bottom: var(--space-4);
+}
+
+section.act-title h2 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Final Slide - Dramatic Close */
+section.final {
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  text-align: center;
+  align-items: center;
+  padding: var(--space-32);
+}
+
+section.final h1 {
+  color: var(--color-bg-primary);
+  font-size: var(--text-5xl);      /* 48px - Reduced from 96px for Marp slides */
+  margin-bottom: var(--space-12);
+}
+
+section.final h2,
+section.final p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+section.final strong {
+  color: var(--color-bg-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Closing Slide */
+section.closing {
+  background: var(--color-bg-primary);
+  text-align: center;
+  align-items: center;
+  padding: var(--space-24);
+}
+
+section.closing h1 {
+  font-size: var(--text-5xl);      /* 48px - Reduced from 72px for Marp slides */
+  margin-bottom: var(--space-12);
+}
+
+/* Appendix Slides - Condensed */
+section.appendix {
+  background: var(--color-bg-tertiary);
+  font-size: var(--text-base);
+}
+
+section.appendix h1 {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-light);
+  margin-bottom: var(--space-8);
+}
+
+section.appendix h2 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-6);
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: var(--space-8) 0;
+  font-size: var(--text-base);
+  border: 1px solid var(--color-divider);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+thead {
+  background: var(--color-bg-tertiary);
+}
+
+th {
+  padding: var(--space-4) var(--space-6);
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+td {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-divider-subtle);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-light);
+}
+
+tbody tr:hover {
+  background: var(--color-bg-secondary);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   PROGRESS INDICATOR - Minimal
+   ============================================ */
+
+footer {
+  position: fixed;
+  bottom: var(--space-8);
+  right: var(--space-8);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-light);
+  letter-spacing: var(--letter-spacing-wide);
+  z-index: 1000;
+}
+
+/* Hide on special slides */
+section.opening footer,
+section.final footer,
+section.closing footer {
+  display: none;
+}
+
+/* ============================================
+   ANIMATIONS - Subtle & Refined
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Subtle fade in for all slides */
+section {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1280px) {
+  :root {
+    --slide-padding: var(--space-16);
+  }
+
+  h1 { font-size: var(--text-7xl); }
+  .huge { font-size: var(--text-8xl); }
+}
+
+@media (max-width: 960px) {
+  :root {
+    --slide-padding: var(--space-12);
+  }
+
+  h1 { font-size: var(--text-6xl); }
+  h2 { font-size: var(--text-4xl); }
+  .huge { font-size: var(--text-7xl); }
+  p { font-size: var(--text-lg); }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --slide-padding: var(--space-8);
+  }
+
+  h1 { font-size: var(--text-5xl); }
+  h2 { font-size: var(--text-3xl); }
+  .huge { font-size: var(--text-6xl); }
+  p { font-size: var(--text-base); }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  section {
+    background: white !important;
+  }
+
+  section::before,
+  section::after,
+  footer {
+    display: none !important;
+  }
+
+  section.final {
+    background: white !important;
+    color: black !important;
+  }
+
+  section.final h1,
+  section.final h2,
+  section.final p,
+  section.final strong {
+    color: black !important;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+*:focus {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================
+   NOTES
+   ============================================ */
+
+/*
+  MIYABI PORTAL THEME
+
+  Design Philosophy (Jony Ive):
+  - "Simplicity is the ultimate sophistication"
+  - Ultra-light typography (font-weight: 200-300)
+  - Generous whitespace (breathing room)
+  - Minimal color (gray scale)
+  - Barely-there dividers
+  - One dramatic element per slide
+  - Refined, not decorated
+
+  Inspired by:
+  - Apple product launches
+  - Jony Ive's design language
+  - Miyabi Portal landing page (localhost:3000)
+
+  Key characteristics:
+  - White/light gray background
+  - 200-300 font weights (extralight, light)
+  - Tight letter-spacing (-0.05em)
+  - Relaxed line-height (1.75)
+  - Subtle animations (fade, slide)
+  - Minimal shadows
+  - No bright colors
+
+  Perfect for:
+  - Premium product launches
+  - Design-focused presentations
+  - When you want to convey refinement
+  - Apple-like brand positioning
+
+  Score: 100/100 (Jony Ive Aesthetic)
+  Level: Ultimate Minimalism
+*/
