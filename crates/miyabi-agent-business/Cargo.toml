@@ -10,10 +10,10 @@ keywords = ["agents", "ai", "business", "strategy", "marketing"]
 categories = ["development-tools", "web-programming"]
 
 [dependencies]
-miyabi-agent-core = { version = "1.1.0", path = "../miyabi-agent-core" }
-miyabi-types = { version = "1.1.0", path = "../miyabi-types" }
-miyabi-core = { version = "1.1.0", path = "../miyabi-core" }
-miyabi-llm = { version = "1.1.0", path = "../miyabi-llm" }
+miyabi-agent-core = { path = "../miyabi-agent-core" }
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
+miyabi-llm = { path = "../miyabi-llm" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

@@ -1,0 +1,9 @@
+/private/tmp/pr-736-work/target/debug/deps/objc2_io_kit-662da4c7f34c83eb.d: /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/lib.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/consumes_argument.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/mod.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/hidsystem.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/macros.rs
+
+/private/tmp/pr-736-work/target/debug/deps/libobjc2_io_kit-662da4c7f34c83eb.rmeta: /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/lib.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/consumes_argument.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/mod.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/hidsystem.rs /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/macros.rs
+
+/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/lib.rs:
+/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/consumes_argument.rs:
+/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/mod.rs:
+/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/hidsystem.rs:
+/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/macros.rs:

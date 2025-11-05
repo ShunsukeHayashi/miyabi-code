@@ -56,6 +56,15 @@ impl ErrorCode {
     pub const TOOL_ERROR: Self = Self("TOOL_ERROR");
     pub const UNKNOWN_ERROR: Self = Self("UNKNOWN_ERROR");
 
+    // Workflow & Orchestration Errors
+    pub const WORKFLOW_ERROR: Self = Self("WORKFLOW_ERROR");
+    pub const STEP_ERROR: Self = Self("STEP_ERROR");
+    pub const STORAGE_ERROR: Self = Self("STORAGE_ERROR");
+
+    // Process & Command Errors
+    pub const PROCESS_ERROR: Self = Self("PROCESS_ERROR");
+    pub const COMMAND_ERROR: Self = Self("COMMAND_ERROR");
+
     /// Get the string representation of the error code
     pub fn as_str(&self) -> &'static str {
         self.0

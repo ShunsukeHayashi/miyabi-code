@@ -14,14 +14,14 @@ default = []
 git-worktree = []
 
 [dependencies]
-miyabi-agent-core = { version = "1.1.0", path = "../miyabi-agent-core" }
-miyabi-agent-integrations = { version = "1.1.0", path = "../miyabi-agent-integrations" }
-miyabi-types = { version = "1.1.0", path = "../miyabi-types" }
-miyabi-core = { version = "1.1.0", path = "../miyabi-core" }
-miyabi-llm = { version = "1.1.0", path = "../miyabi-llm" }
+miyabi-agent-core = { path = "../miyabi-agent-core" }
+miyabi-agent-integrations = { path = "../miyabi-agent-integrations" }
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
+miyabi-llm = { path = "../miyabi-llm" }
 # miyabi-potpie MERGED into miyabi-knowledge/potpie - use miyabi-knowledge instead
-miyabi-knowledge = { version = "1.1.0", path = "../miyabi-knowledge" }
-miyabi-claudable = { version = "1.1.0", path = "../miyabi-claudable" }
+miyabi-knowledge = { path = "../miyabi-knowledge" }
+miyabi-claudable = { path = "../miyabi-claudable" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

@@ -12,24 +12,24 @@ readme = "../README.md"
 
 [dependencies]
 # Core agent infrastructure
-miyabi-agent-core = { version = "1.1.0", path = "../miyabi-agent-core" }
+miyabi-agent-core = { path = "../miyabi-agent-core" }
 
 # Specialized agent crates (re-exported for backward compatibility)
-miyabi-agent-coordinator = { version = "1.1.0", path = "../miyabi-agent-coordinator" }
-miyabi-agent-codegen = { version = "1.1.0", path = "../miyabi-agent-codegen" }
-miyabi-agent-review = { version = "1.1.0", path = "../miyabi-agent-review" }
-miyabi-agent-workflow = { version = "1.1.0", path = "../miyabi-agent-workflow" }
-miyabi-agent-business = { version = "1.1.0", path = "../miyabi-agent-business" }
-miyabi-agent-integrations = { version = "1.1.0", path = "../miyabi-agent-integrations" }
+miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator" }
+miyabi-agent-codegen = { path = "../miyabi-agent-codegen" }
+miyabi-agent-review = { path = "../miyabi-agent-review" }
+miyabi-agent-workflow = { path = "../miyabi-agent-workflow" }
+miyabi-agent-business = { path = "../miyabi-agent-business" }
+miyabi-agent-integrations = { path = "../miyabi-agent-integrations" }
 
 # Core types
-miyabi-types = { version = "1.1.0", path = "../miyabi-types" }
+miyabi-types = { path = "../miyabi-types" }
 
 # LLM integration (for business agents)
-miyabi-llm = { version = "1.1.0", path = "../miyabi-llm", optional = true }
+miyabi-llm = { path = "../miyabi-llm", optional = true }
 
 # Optional: Knowledge base integration
-miyabi-knowledge = { version = "1.1.0", path = "../miyabi-knowledge", optional = true }
+miyabi-knowledge = { path = "../miyabi-knowledge", optional = true }
 
 # Async runtime & utilities
 tokio = { version = "1.43", features = ["full"] }
@@ -48,6 +48,6 @@ knowledge-integration = ["miyabi-knowledge"]
 llm-integration = ["miyabi-llm"]
 
 [dev-dependencies]
-miyabi-core = { version = "1.1.0", path = "../miyabi-core" }
+miyabi-core = { path = "../miyabi-core" }
 tempfile = "3.13"
 tracing-subscriber = "0.3"

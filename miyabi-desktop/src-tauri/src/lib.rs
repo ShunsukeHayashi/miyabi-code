@@ -13,13 +13,6 @@ mod worktree;
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
 use ai_naming::suggest_worktree_name;
 use automation::{AutomationConfig, AutomationManager, AutomationReadiness, AutomationSession};
-<<<<<<< HEAD
-use serde_json::Value;
-use config::{
-    clear_config, get_github_repository, get_github_token, save_github_repository,
-    save_github_token, AgentConfig, AgentsConfig,
-};
-=======
 use config::{AgentConfig, AgentsConfig};
 use events::EventEmitter;
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
@@ -29,8 +22,6 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, State};
 use tmux::{TmuxManager, TmuxSession};
-use tokio::sync::Mutex as TokioMutex;
->>>>>>> origin/main
 use voicevox::{
     check_voicevox_engine, generate_narration, get_speakers, start_voicevox_engine,
     NarrationRequest, NarrationResult, SpeakerConfig,
@@ -305,36 +296,6 @@ async fn tmux_check_session_exists(session_name: String) -> Result<bool, String>
     TmuxManager::check_session_exists(&session_name).await
 }
 
-#[tauri::command]
-async fn tmux_orchestra_status(session_name: Option<String>) -> Result<Value, String> {
-    let config_path = resolve_agents_config_path()?;
-    let repo_root = resolve_repo_root(&config_path)?;
-    let script_path = repo_root.join("scripts").join("miyabi_orchestra_status_exporter.py");
-
-    if !script_path.exists() {
-        return Err(format!(
-            "Status exporter script not found: {:?}",
-            script_path
-        ));
-    }
-
-    let session = session_name.unwrap_or_else(|| DEFAULT_ORCHESTRA_SESSION.to_string());
-    let output = Command::new(&script_path)
-        .arg("--session")
-        .arg(&session)
-        .output()
-        .await
-        .map_err(|e| format!("Failed to execute exporter script: {}", e))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("Exporter script failed: {}", stderr.trim()));
-    }
-
-    serde_json::from_slice::<Value>(&output.stdout)
-        .map_err(|e| format!("Invalid JSON from exporter: {}", e))
-}
-
 // ========== Automation Commands (Claude Code + Codex + Orchestrator) ==========
 
 #[tauri::command]
@@ -360,115 +321,6 @@ async fn get_automation_status(session_name: String) -> Result<AutomationSession
 #[tauri::command]
 async fn load_automation_config_from_env() -> Result<AutomationConfig, String> {
     AutomationManager::load_config_from_env()
-}
-
-// ========== Worktree Management Commands ==========
-
-#[tauri::command]
-async fn worktree_list(state: State<'_, AppState>) -> Result<Vec<Worktree>, String> {
-    // Clone manager to avoid holding lock across await
-    let manager = {
-        let mut manager_guard = state.worktree_manager.lock().await;
-
-        // Lazy initialize manager
-        if manager_guard.is_none() {
-            *manager_guard = Some(WorktreeManager::new().map_err(|e| e.to_string())?);
-        }
-
-        manager_guard.as_ref().unwrap().clone()
-    }; // Lock dropped here
-
-    manager.list_worktrees().await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn worktree_create_with_tmux(
-    issue_number: u64,
-    create_tmux: bool,
-    state: State<'_, AppState>,
-) -> Result<Worktree, String> {
-    // Clone manager to avoid holding lock across await
-    let manager = {
-        let mut manager_guard = state.worktree_manager.lock().await;
-
-        // Lazy initialize manager
-        if manager_guard.is_none() {
-            *manager_guard = Some(WorktreeManager::new().map_err(|e| e.to_string())?);
-        }
-
-        manager_guard.as_ref().unwrap().clone()
-    }; // Lock dropped here
-
-    manager
-        .create_worktree(issue_number, create_tmux)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn worktree_delete(worktree_id: String, state: State<'_, AppState>) -> Result<(), String> {
-    // Clone manager to avoid holding lock across await
-    let manager = {
-        let manager_guard = state.worktree_manager.lock().await;
-        manager_guard
-            .as_ref()
-            .ok_or_else(|| "Worktree manager not initialized".to_string())?
-            .clone()
-    }; // Lock dropped here
-
-    manager
-        .delete_worktree(&worktree_id)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn worktree_get_git_status(
-    worktree_id: String,
-    state: State<'_, AppState>,
-) -> Result<GitStatus, String> {
-    // Clone manager to avoid holding lock across await
-    let manager = {
-        let manager_guard = state.worktree_manager.lock().await;
-        manager_guard
-            .as_ref()
-            .ok_or_else(|| "Worktree manager not initialized".to_string())?
-            .clone()
-    }; // Lock dropped here
-
-    manager
-        .get_git_status(&worktree_id)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn ai_generate_name(
-    issue_title: String,
-    state: State<'_, AppState>,
-) -> Result<String, String> {
-    // Clone client to avoid holding lock across await
-    let client = {
-        let mut client_guard = state.ai_client.lock().await;
-
-        // Lazy initialize client
-        if client_guard.is_none() {
-            *client_guard = Some(AnthropicClient::default());
-        }
-
-        let client = client_guard.as_ref().unwrap();
-
-        if !client.is_configured() {
-            return Err("Anthropic API key not configured. Please set ANTHROPIC_API_KEY environment variable.".to_string());
-        }
-
-        client.clone()
-    }; // Lock dropped here
-
-    client
-        .generate_worktree_name(&issue_title)
-        .await
-        .map_err(|e| e.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -523,12 +375,6 @@ pub fn run() {
             list_issues_command,
             get_issue_command,
             update_issue_command,
-            // App config commands
-            save_github_token,
-            get_github_token,
-            save_github_repository,
-            get_github_repository,
-            clear_config,
             // Tmux commands
             tmux_start_agent,
             tmux_list_sessions,
@@ -536,7 +382,6 @@ pub fn run() {
             tmux_load_config,
             tmux_get_session_output,
             tmux_check_session_exists,
-            tmux_orchestra_status,
             // Automation commands
             get_automation_readiness,
             start_full_automation,

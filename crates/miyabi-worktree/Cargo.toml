@@ -11,8 +11,8 @@ categories = ["development-tools"]
 readme = "../README.md"
 
 [dependencies]
-miyabi-types = { version = "1.1.0", path = "../miyabi-types" }
-miyabi-core = { version = "1.1.0", path = "../miyabi-core" }
+miyabi-types = { path = "../miyabi-types" }
+miyabi-core = { path = "../miyabi-core" }
 git2 = { workspace = true }
 tokio = { workspace = true, features = ["sync", "process", "fs"] }
 futures = "0.3"
@@ -26,7 +26,7 @@ dunce = { workspace = true }
 regex = "1.10"
 
 [dev-dependencies]
-miyabi-agents = { version = "1.1.0", path = "../miyabi-agents" }
+miyabi-agents = { path = "../miyabi-agents" }
 async-trait = "0.1"
 tempfile = { workspace = true }
 serial_test = "3.0"
