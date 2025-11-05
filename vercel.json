@@ -1,11 +1,24 @@
 {
-  "buildCommand": "bash scripts/vercel-build.sh",
+  "framework": null,
+  "buildCommand": "bash build.sh",
   "outputDirectory": "public",
   "installCommand": "rm -f pnpm-lock.yaml package-lock.json yarn.lock && echo 'No installation required'",
   "rewrites": [
     {
       "source": "/",
-      "destination": "/landing-ive-design.html"
+      "destination": "/sekai/index.html"
+    },
+    {
+      "source": "/sekai",
+      "destination": "/sekai/index.html"
+    },
+    {
+      "source": "/sekai/original",
+      "destination": "/sekai/original.html"
+    },
+    {
+      "source": "/sekai/en",
+      "destination": "/sekai/en.html"
     },
     {
       "source": "/pitch-deck",

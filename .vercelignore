@@ -2,6 +2,7 @@
 /*
 !/docs/
 !/vercel.json
+!/build.sh
 
 # Ignore build artifacts
 node_modules/
