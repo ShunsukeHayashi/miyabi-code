@@ -1,9 +1,3 @@
-# Ignore all files except docs directory
-/*
-!/docs/**
-!/vercel.json
-!/build.sh
-
 # Ignore build artifacts
 node_modules/
 .next/
