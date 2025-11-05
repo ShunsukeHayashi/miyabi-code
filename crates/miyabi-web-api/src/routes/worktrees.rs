@@ -19,7 +19,7 @@ pub struct WorktreesListResponse {
     pub total: usize,
 }
 
-async fn list_worktrees() -> Json<WorktreesListResponse> {
+pub async fn list_worktrees() -> Json<WorktreesListResponse> {
     // Mock data - In production, this comes from miyabi-worktree crate
     let worktrees = vec![
         Worktree {
