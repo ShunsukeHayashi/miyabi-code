@@ -9,20 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
-name = "ahash"
-version = "0.8.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
-dependencies = [
- "cfg-if 1.0.4",
- "const-random",
- "getrandom 0.3.4",
- "once_cell",
- "version_check",
- "zerocopy",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1071,32 +1057,11 @@ dependencies = [
 
 [[package]]
 name = "dirs"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
-dependencies = [
- "dirs-sys 0.4.1",
-]
-
-[[package]]
-name = "dirs"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
 dependencies = [
- "dirs-sys 0.5.0",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
-dependencies = [
- "libc",
- "option-ext",
- "redox_users 0.4.6",
- "windows-sys 0.48.0",
+ "dirs-sys",
 ]
 
 [[package]]
@@ -1107,7 +1072,7 @@ checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
 dependencies = [
  "libc",
  "option-ext",
- "redox_users 0.5.2",
+ "redox_users",
  "windows-sys 0.61.2",
 ]
 
@@ -1528,7 +1493,7 @@ dependencies = [
  "indexmap 2.12.0",
  "slab",
  "tokio",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
  "tracing",
 ]
 
@@ -2712,7 +2677,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "dirs 6.0.0",
+ "dirs",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2785,10 +2750,10 @@ dependencies = [
  "colored",
  "comfy-table",
  "dialoguer",
- "dirs 6.0.0",
+ "dirs",
  "futures 0.3.31",
  "hostname",
- "indicatif 0.17.11",
+ "indicatif",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2824,7 +2789,7 @@ dependencies = [
  "chrono",
  "colored",
  "config",
- "dirs 6.0.0",
+ "dirs",
  "git2",
  "hostname",
  "miyabi-llm",
@@ -2848,8 +2813,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-dag"
+version = "1.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "criterion",
+ "petgraph 0.6.5",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-test",
+ "tracing",
+]
+
+[[package]]
 name = "miyabi-def-core"
-version = "0.1.1"
+version = "1.1.0"
 dependencies = [
  "anyhow",
  "dunce",
@@ -2929,7 +2911,7 @@ dependencies = [
 name = "miyabi-github"
 version = "1.1.0"
 dependencies = [
- "dirs 6.0.0",
+ "dirs",
  "miyabi-types",
  "octocrab",
  "serde",
@@ -2948,7 +2930,7 @@ dependencies = [
  "async-trait",
  "axum 0.7.9",
  "chrono",
- "dirs 6.0.0",
+ "dirs",
  "futures 0.3.31",
  "futures-util",
  "miyabi-core",
@@ -3178,7 +3160,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-workflow"
-version = "0.1.1"
+version = "1.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3191,28 +3173,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "miyabi-worktree"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "dirs 5.0.1",
- "futures 0.3.31",
- "miyabi-types",
- "rhai",
- "serde",
- "serde_json",
- "sled",
- "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
 ]
 
 [[package]]
@@ -3221,7 +3181,7 @@ version = "1.1.0"
 dependencies = [
  "async-trait",
  "chrono",
- "dirs 6.0.0",
+ "dirs",
  "dunce",
  "futures 0.3.31",
  "git2",
@@ -3489,9 +3449,6 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
-dependencies = [
- "portable-atomic",
-]
 
 [[package]]
 name = "once_cell_polyfill"
@@ -4270,17 +4227,6 @@ dependencies = [
 
 [[package]]
 name = "redox_users"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
-dependencies = [
- "getrandom 0.2.16",
- "libredox",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "redox_users"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4e608c6638b9c18977b00b475ac1f28d14e84b27d8d42f70e0bf1e3dec127ac"
@@ -4355,7 +4301,7 @@ dependencies = [
  "tokio",
  "tokio-native-tls",
  "tokio-rustls",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
  "tower 0.5.2",
  "tower-http 0.6.6",
  "tower-service",
@@ -4368,39 +4314,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "rhai"
-version = "1.23.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4e35aaaa439a5bda2f8d15251bc375e4edfac75f9865734644782c9701b5709"
-dependencies = [
- "ahash",
- "bitflags 2.10.0",
- "instant",
- "num-traits",
- "once_cell",
- "rhai_codegen",
- "serde",
- "smallvec",
- "smartstring",
- "thin-vec",
-]
-
-[[package]]
-name = "rhai_codegen"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4322a2a4e8cf30771dd9f27f7f37ca9ac8fe812dddd811096a98483080dabe6"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.108",
-]
-
-[[package]]
 name = "ring"
-version = "0.17.9"
+version = "0.17.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e75ec5e92c4d8aede845126adc388046234541629e76029599ed35a003c7ed24"
+checksum = "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7"
 dependencies = [
  "cc",
  "cfg-if 1.0.4",
@@ -4929,7 +4846,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b1fdf65dd6331831494dd616b30351c38e96e45921a27745cf98490458b90bb"
 dependencies = [
- "dirs 6.0.0",
+ "dirs",
 ]
 
 [[package]]
@@ -5029,18 +4946,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "smartstring"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fb72c633efbaa2dd666986505016c32c3044395ceaf881518399d2f4127ee29"
-dependencies = [
- "autocfg",
- "serde",
- "static_assertions",
- "version_check",
 ]
 
 [[package]]
@@ -5308,12 +5213,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
-
-[[package]]
 name = "statrs"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5442,15 +5341,6 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "thin-vec"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "144f754d318415ac792f9d69fc87abbbfc043ce2ef041c60f16ad828f638717d"
-dependencies = [
- "serde",
 ]
 
 [[package]]
@@ -5738,9 +5628,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.16"
+version = "0.7.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14307c986784f72ef81c89db7d9e28d6ac26d16213b109ea501696195e6e3ce5"
+checksum = "2efa149fe76073d6e8fd97ef4f4eca7b67f599660115591483572e406e165594"
 dependencies = [
  "bytes 1.10.1",
  "futures-core",
@@ -5769,7 +5659,7 @@ dependencies = [
  "simdutf8",
  "tokio",
  "tokio-rustls",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
 ]
 
 [[package]]
@@ -5936,7 +5826,7 @@ dependencies = [
  "rand 0.8.5",
  "slab",
  "tokio",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -5955,7 +5845,7 @@ dependencies = [
  "slab",
  "sync_wrapper",
  "tokio",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -5980,7 +5870,7 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "tokio",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -6007,7 +5897,7 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "tokio",
- "tokio-util 0.7.16",
+ "tokio-util 0.7.17",
  "tower 0.5.2",
  "tower-layer",
  "tower-service",
