@@ -6,11 +6,14 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:storybook/recommended"
   ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "warn",
@@ -62,20 +65,31 @@
       "warn",
       {
         "selector": "variable",
-        "format": ["camelCase", "UPPER_CASE", "PascalCase"],
+        "format": [
+          "camelCase",
+          "UPPER_CASE",
+          "PascalCase"
+        ],
         "leadingUnderscore": "allow"
       },
       {
         "selector": "function",
-        "format": ["camelCase", "PascalCase"]
+        "format": [
+          "camelCase",
+          "PascalCase"
+        ]
       },
       {
         "selector": "typeLike",
-        "format": ["PascalCase"]
+        "format": [
+          "PascalCase"
+        ]
       },
       {
         "selector": "interface",
-        "format": ["PascalCase"],
+        "format": [
+          "PascalCase"
+        ],
         "custom": {
           "regex": "^I[A-Z]",
           "match": false
@@ -88,7 +102,10 @@
         "prefer": "type-imports"
       }
     ],
-    "@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
+    "@typescript-eslint/consistent-type-definitions": [
+      "warn",
+      "interface"
+    ],
     "@typescript-eslint/array-type": [
       "warn",
       {
@@ -118,7 +135,11 @@
     "no-console": [
       "warn",
       {
-        "allow": ["warn", "error", "info"]
+        "allow": [
+          "warn",
+          "error",
+          "info"
+        ]
       }
     ],
     "no-debugger": "error",
@@ -126,9 +147,18 @@
     "no-eval": "error",
     "no-implied-eval": "error",
     "no-return-await": "off",
-    "@typescript-eslint/return-await": ["error", "in-try-catch"],
-    "eqeqeq": ["error", "always"],
-    "curly": ["error", "all"],
+    "@typescript-eslint/return-await": [
+      "error",
+      "in-try-catch"
+    ],
+    "eqeqeq": [
+      "error",
+      "always"
+    ],
+    "curly": [
+      "error",
+      "all"
+    ],
     "brace-style": "off",
     "@typescript-eslint/brace-style": [
       "warn",
@@ -138,7 +168,10 @@
       }
     ],
     "comma-dangle": "off",
-    "@typescript-eslint/comma-dangle": ["warn", "always-multiline"],
+    "@typescript-eslint/comma-dangle": [
+      "warn",
+      "always-multiline"
+    ],
     "quotes": "off",
     "@typescript-eslint/quotes": [
       "warn",
@@ -149,7 +182,10 @@
       }
     ],
     "semi": "off",
-    "@typescript-eslint/semi": ["error", "always"],
+    "@typescript-eslint/semi": [
+      "error",
+      "always"
+    ],
     "indent": "off",
     "@typescript-eslint/indent": [
       "warn",
@@ -176,25 +212,45 @@
       }
     ],
     "no-trailing-spaces": "warn",
-    "eol-last": ["warn", "always"],
+    "eol-last": [
+      "warn",
+      "always"
+    ],
     "prefer-const": "error",
     "no-var": "error",
-    "object-shorthand": ["warn", "always"],
+    "object-shorthand": [
+      "warn",
+      "always"
+    ],
     "prefer-template": "warn",
     "prefer-arrow-callback": "warn",
-    "arrow-body-style": ["warn", "as-needed"],
+    "arrow-body-style": [
+      "warn",
+      "as-needed"
+    ],
     "no-duplicate-imports": "error",
     "no-useless-constructor": "off",
     "@typescript-eslint/no-useless-constructor": "error",
     "@typescript-eslint/no-empty-function": [
       "warn",
       {
-        "allow": ["arrowFunctions"]
+        "allow": [
+          "arrowFunctions"
+        ]
       }
     ],
-    "complexity": ["warn", 15],
-    "max-depth": ["warn", 4],
-    "max-params": ["warn", 5],
+    "complexity": [
+      "warn",
+      15
+    ],
+    "max-depth": [
+      "warn",
+      4
+    ],
+    "max-params": [
+      "warn",
+      5
+    ],
     "max-lines": [
       "warn",
       {
@@ -229,7 +285,11 @@
   ],
   "overrides": [
     {
-      "files": ["*.test.ts", "*.spec.ts", "**/__tests__/**/*.ts"],
+      "files": [
+        "*.test.ts",
+        "*.spec.ts",
+        "**/__tests__/**/*.ts"
+      ],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-unsafe-assignment": "off",
@@ -239,14 +299,19 @@
       }
     },
     {
-      "files": ["scripts/**/*.ts"],
+      "files": [
+        "scripts/**/*.ts"
+      ],
       "rules": {
         "no-console": "off",
         "@typescript-eslint/no-floating-promises": "warn"
       }
     },
     {
-      "files": ["*.config.ts", "*.config.js"],
+      "files": [
+        "*.config.ts",
+        "*.config.js"
+      ],
       "rules": {
         "@typescript-eslint/no-var-requires": "off"
       }

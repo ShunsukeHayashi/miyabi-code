@@ -69,18 +69,30 @@ npm run start
 ```
 miyabi-dashboard/
 ├── app/
-│   ├── layout.tsx          # Root layout
-│   ├── page.tsx             # Main dashboard page
-│   └── globals.css          # Global styles
+│   ├── layout.tsx                    # Root layout
+│   ├── page.tsx                      # Main dashboard page
+│   ├── mission-control/              # 🎯 NEW: Issue #758 Mission Control
+│   │   └── page.tsx                  # Mission Control dashboard
+│   └── globals.css                   # Global styles
+├── components/
+│   └── mission-control/              # 🎯 NEW: Mission Control components
+│       ├── AgentBoard.tsx            # Agent status cards
+│       ├── TmaxlView.tsx             # Tmux session viewer
+│       ├── Timeline.tsx              # Event timeline
+│       ├── ReferenceHub.tsx          # Documentation links
+│       └── README.md                 # Component documentation
 ├── pages/api/
-│   ├── agents.ts            # Agent status API
-│   └── issues.ts            # GitHub Issues API
-├── components/              # Reusable components (TBD)
-├── lib/                     # Utility functions (TBD)
-├── public/                  # Static assets
-├── .env.local               # Environment variables
-├── tailwind.config.js       # Tailwind configuration
-├── tsconfig.json            # TypeScript configuration
+│   ├── agents.ts                     # Agent status API
+│   └── issues.ts                     # GitHub Issues API
+├── lib/
+│   ├── mockData.ts                   # 🎯 NEW: Mock data & types
+│   └── types.ts                      # Type definitions
+├── public/                           # Static assets
+├── MOCK_DATA.md                      # 🎯 NEW: Data structure reference
+├── INTEGRATION_GUIDE.md              # 🎯 NEW: API integration guide
+├── .env.local                        # Environment variables
+├── tailwind.config.js                # Tailwind configuration
+├── tsconfig.json                     # TypeScript configuration
 └── package.json
 ```
 
@@ -155,6 +167,36 @@ GitHub Issues を取得
 
 ---
 
+## 🎯 Mission Control Dashboard (Issue #758)
+
+**New Feature**: Command center interface for real-time agent orchestration and monitoring.
+
+### Components
+
+Four core panels for mission-critical visibility:
+
+1. **AgentBoard** - Monitor all 21 agents (7 coding + 14 business)
+2. **TmaxlView** - Visualize tmux sessions and parallel execution
+3. **Timeline** - Event history and alerts with severity levels
+4. **ReferenceHub** - Quick access to documentation and APIs
+
+### Quick Access
+
+- **URL**: http://localhost:3000/mission-control
+- **Component Docs**: [components/README.md](components/README.md)
+- **Data Reference**: [MOCK_DATA.md](MOCK_DATA.md)
+- **API Integration**: [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
+
+### Current Status
+
+- ✅ All 4 components implemented
+- ✅ Mock data structure defined
+- ✅ TypeScript types created
+- ✅ Comprehensive documentation written
+- 🔄 Ready for API integration (Phase 2)
+
+---
+
 ## 🚧 Roadmap
 
 ### Phase 1: MVP ✅
@@ -162,17 +204,20 @@ GitHub Issues を取得
 - [x] Dashboard UI 実装
 - [x] Agent ステータス表示
 - [x] GitHub API 統合
+- [x] **Mission Control prototype (Issue #758)** ✨
 
 ### Phase 2: リアルタイム更新
 - [ ] WebSocket 統合
 - [ ] Agent ステータスのリアルタイム更新
 - [ ] Issue の自動リフレッシュ
+- [ ] **Mission Control API integration**
 
 ### Phase 3: 高度な機能
 - [ ] Agent ログ表示
 - [ ] Issue フィルタリング (priority, label, assignee)
 - [ ] Agent の手動起動 / 停止
 - [ ] ダークモード / ライトモード切り替え
+- [ ] **Mission Control interactive features**
 
 ### Phase 4: デプロイ
 - [ ] Vercel デプロイ

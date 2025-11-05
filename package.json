@@ -1,46 +1,26 @@
 {
-  "name": "miyabi-private",
+  "name": "miyabi-dashboard",
   "version": "1.0.0",
-  "description": "Miyabi - 自律型開発フレームワーク",
-  "type": "module",
+  "main": "index.js",
   "scripts": {
-    "test": "vitest",
-    "test:mcp": "vitest tests/mcp/",
-    "test:mcp:unit": "vitest tests/mcp/miyabi-integration.test.ts",
-    "test:mcp:integration": "vitest tests/mcp/integration.test.ts",
-    "test:mcp:performance": "vitest tests/mcp/performance.test.ts",
-    "test:mcp:ci": "vitest tests/mcp/ --reporter=verbose --run",
-    "typecheck": "tsc --noEmit",
-    "build": "cargo build --release",
-    "build:debug": "cargo build",
-    "test:rust": "cargo test",
-    "test:rust:lib": "cargo test --lib",
-    "test:rust:integration": "cargo test --test integration",
-    "lint:rust": "cargo clippy -- -D warnings",
-    "fmt:rust": "cargo fmt",
-    "mcp:diagnose": "node scripts/test-mcp.sh diagnose",
-    "mcp:test": "node scripts/test-mcp.sh all",
-    "mcp:monitor": "node scripts/test-mcp.sh monitor",
-    "test:discord-notifications": "tsx packages/coding-agents/hooks/examples/discord-notification-example.ts"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "keywords": [
-    "miyabi",
-    "mcp",
-    "automation",
-    "ai",
-    "development"
-  ],
-  "author": "Miyabi Team",
-  "license": "MIT"
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "autoprefixer": "^10.4.21",
+    "next": "^14.2.33",
+    "postcss": "^8.5.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3"
+  }
 }
