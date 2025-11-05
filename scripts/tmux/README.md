@@ -25,6 +25,9 @@ npx tsx tmux-gradebook.ts Miyabi --json --output .ai/gradebook/report.json
 ### Conductor Timeline
 
 ```bash
+# Build the project first
+npm run build
+
 # Generate report once and display in console
 node dist/conductor-timeline/src/cli/conductorTimeline.js --session miyabi-refactor
 
@@ -39,9 +42,6 @@ node dist/conductor-timeline/src/cli/conductorTimeline.js --session miyabi-refac
 
 # Or use npm script
 npm run timeline -- --session miyabi-refactor --console-only
-
-# Build the project first
-npm run build
 ```
 
 ## Features

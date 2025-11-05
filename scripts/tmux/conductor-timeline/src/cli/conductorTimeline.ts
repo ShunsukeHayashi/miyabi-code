@@ -11,6 +11,7 @@
 
 import { TimelineAggregator } from '../aggregators/TimelineAggregator.js';
 import { ReportWriter } from '../formatters/ReportWriter.js';
+import { MissionControlClient } from '../clients/MissionControlClient.js';
 
 // ============================================================================
 // CLI Argument Parsing
@@ -25,9 +26,31 @@ interface CLIArgs {
   watchInterval?: number;
   consoleOnly?: boolean;
   help?: boolean;
+  missionControl: MissionControlOptions;
+}
+
+interface MissionControlOptions {
+  enabled: boolean;
+  url?: string;
+  token?: string;
+  retries: number;
+  timeoutMs: number;
+  backoffMs: number;
 }
 
 function parseArgs(): CLIArgs {
+  const envUrl = process.env.MISSION_CONTROL_API_URL;
+  const envToken = process.env.MISSION_CONTROL_API_TOKEN;
+  const envRetries = process.env.MISSION_CONTROL_API_RETRIES
+    ? parseInt(process.env.MISSION_CONTROL_API_RETRIES, 10)
+    : undefined;
+  const envTimeout = process.env.MISSION_CONTROL_API_TIMEOUT_MS
+    ? parseInt(process.env.MISSION_CONTROL_API_TIMEOUT_MS, 10)
+    : undefined;
+  const envBackoff = process.env.MISSION_CONTROL_API_BACKOFF_MS
+    ? parseInt(process.env.MISSION_CONTROL_API_BACKOFF_MS, 10)
+    : undefined;
+
   const args: CLIArgs = {
     sessionName: 'miyabi-refactor',
     windowMinutes: 60,
@@ -35,6 +58,14 @@ function parseArgs(): CLIArgs {
     watchInterval: 10,
     consoleOnly: false,
     help: false,
+    missionControl: {
+      enabled: Boolean(envUrl),
+      url: envUrl,
+      token: envToken,
+      retries: envRetries ?? 3,
+      timeoutMs: envTimeout ?? 10_000,
+      backoffMs: envBackoff ?? 2_000,
+    },
   };
 
   for (let i = 2; i < process.argv.length; i++) {
@@ -74,6 +105,31 @@ function parseArgs(): CLIArgs {
         args.consoleOnly = true;
         break;
 
+      case '--api-url':
+        args.missionControl.url = process.argv[++i];
+        args.missionControl.enabled = true;
+        break;
+
+      case '--api-token':
+        args.missionControl.token = process.argv[++i];
+        break;
+
+      case '--api-retries':
+        args.missionControl.retries = parseInt(process.argv[++i], 10);
+        break;
+
+      case '--api-timeout':
+        args.missionControl.timeoutMs = parseInt(process.argv[++i], 10);
+        break;
+
+      case '--api-backoff':
+        args.missionControl.backoffMs = parseInt(process.argv[++i], 10);
+        break;
+
+      case '--no-api':
+        args.missionControl.enabled = false;
+        break;
+
       case '--help':
       case '-h':
         args.help = true;
@@ -83,6 +139,18 @@ function parseArgs(): CLIArgs {
         console.error(`Unknown argument: ${arg}`);
         process.exit(1);
     }
+  }
+
+  if (!Number.isFinite(args.missionControl.retries) || args.missionControl.retries < 0) {
+    args.missionControl.retries = 3;
+  }
+
+  if (!Number.isFinite(args.missionControl.timeoutMs) || args.missionControl.timeoutMs <= 0) {
+    args.missionControl.timeoutMs = 10_000;
+  }
+
+  if (!Number.isFinite(args.missionControl.backoffMs) || args.missionControl.backoffMs <= 0) {
+    args.missionControl.backoffMs = 2_000;
   }
 
   return args;
@@ -110,7 +178,20 @@ OPTIONS:
   --watch                       Continuous monitoring mode
   --watch-interval <seconds>    Watch mode interval in seconds (default: 10)
   -c, --console-only            Output to console only (no tmux pane or file)
+  --api-url <url>               Mission Control API base URL (env: MISSION_CONTROL_API_URL)
+  --api-token <token>           Mission Control API token (env: MISSION_CONTROL_API_TOKEN)
+  --api-retries <n>             Number of retry attempts (default: 3)
+  --api-timeout <ms>            Request timeout in milliseconds (default: 10000)
+  --api-backoff <ms>            Initial backoff delay in milliseconds (default: 2000)
+  --no-api                      Disable Mission Control API delivery
   -h, --help                    Show this help message
+
+ENVIRONMENT:
+  MISSION_CONTROL_API_URL       Base URL for Mission Control web API
+  MISSION_CONTROL_API_TOKEN     Bearer token for authentication (optional)
+  MISSION_CONTROL_API_RETRIES   Override retry attempts
+  MISSION_CONTROL_API_TIMEOUT_MS  Override request timeout (milliseconds)
+  MISSION_CONTROL_API_BACKOFF_MS  Override initial backoff delay (milliseconds)
 
 EXAMPLES:
   # Generate report once and display in console
@@ -146,6 +227,8 @@ async function generateAndWriteReport(args: CLIArgs): Promise<void> {
   // Generate report
   const report = aggregator.generateReport(args.sessionName, args.windowMinutes);
 
+  let persistedLocally = false;
+
   // Write outputs
   if (args.consoleOnly) {
     writer.writeFullToConsole(report);
@@ -160,7 +243,25 @@ async function generateAndWriteReport(args: CLIArgs): Promise<void> {
 
     // Write to JSONL if specified
     if (args.jsonlPath) {
-      writer.appendToJSONL(report, args.jsonlPath);
+      persistedLocally = writer.appendToJSONL(report, args.jsonlPath);
+    }
+  }
+
+  if (args.missionControl.enabled && args.missionControl.url) {
+    try {
+      const client = new MissionControlClient({
+        baseUrl: args.missionControl.url,
+        token: args.missionControl.token,
+        retries: args.missionControl.retries,
+        timeoutMs: args.missionControl.timeoutMs,
+        backoffMs: args.missionControl.backoffMs,
+      });
+
+      const response = await client.sendTimeline(report, persistedLocally);
+      const pathInfo = response.path ? ` → ${response.path}` : '';
+      console.log(`🌐 Mission Control API: ${response.status} (stored=${response.stored})${pathInfo}`);
+    } catch (error) {
+      console.warn('⚠️  Mission Control API delivery failed:', error);
     }
   }
 }
@@ -187,7 +288,11 @@ async function main(): Promise<void> {
     // Set up interval
     const intervalMs = (args.watchInterval ?? 10) * 1000;
     setInterval(async () => {
-      await generateAndWriteReport(args);
+      try {
+        await generateAndWriteReport(args);
+      } catch (error) {
+        console.error('❌ Watch mode error:', error);
+      }
     }, intervalMs);
   } else {
     // One-time report

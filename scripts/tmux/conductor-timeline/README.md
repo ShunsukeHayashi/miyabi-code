@@ -63,7 +63,42 @@ Options:
   --watch                       Continuous monitoring mode
   --watch-interval <seconds>    Watch mode interval (default: 10)
   -c, --console-only            Output to console only
+  --api-url <url>               Mission Control API base URL (env: MISSION_CONTROL_API_URL)
+  --api-token <token>           Mission Control API token (optional)
+  --api-retries <n>             Number of retry attempts (default: 3)
+  --api-timeout <ms>            Request timeout in milliseconds (default: 10000)
+  --api-backoff <ms>            Initial retry backoff in milliseconds (default: 2000)
+  --no-api                      Disable Mission Control API delivery
   -h, --help                    Show help message
+
+Environment variables:
+  MISSION_CONTROL_API_URL         Base URL for Mission Control web API (e.g., http://localhost:8080/api)
+  MISSION_CONTROL_API_TOKEN       Optional bearer token for authentication
+  MISSION_CONTROL_API_RETRIES     Override retry attempts
+  MISSION_CONTROL_API_TIMEOUT_MS  Override request timeout (milliseconds)
+  MISSION_CONTROL_API_BACKOFF_MS  Override initial backoff delay (milliseconds)
+
+### Mission Control API Integration
+
+Send timeline data to the Miyabi Mission Control API while keeping local JSONL logs for offline analysis.
+
+```bash
+# Append to local JSONL and deliver to API (with env var configuration)
+export MISSION_CONTROL_API_URL="http://localhost:8080/api"
+export MISSION_CONTROL_API_TOKEN="$GITHUB_TOKEN"
+node dist/cli/conductorTimeline.js \
+  --session miyabi-refactor \
+  --jsonl .ai/logs/conductor_timeline.jsonl
+
+# Explicitly configure via CLI flags
+node dist/cli/conductorTimeline.js \
+  --session miyabi-refactor \
+  --jsonl .ai/logs/conductor_timeline.jsonl \
+  --api-url http://localhost:8080/api \
+  --api-token "$GITHUB_TOKEN"
+```
+
+When the CLI successfully writes to a local JSONL file, the API payload includes `persisted_locally: true` so the server can avoid duplicate storage. Remote hosts can skip local persistence and rely on the API to store the event stream.
 ```
 
 ## Architecture

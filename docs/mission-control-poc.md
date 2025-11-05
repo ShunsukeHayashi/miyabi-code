@@ -36,6 +36,11 @@
   - Query MCP `miyabi__get_status` for queue depth, active skills.
   - Inspect `.worktrees/` to map branches to agents/issues.
   - Provide summarized metrics: running/failed/completed counts, oldest pending run.
+- Current REST endpoints (2025-11-05):
+  - `GET /api/preflight` – environment readiness + token checks.
+  - `GET /api/agents` – enriched metadata for the 21 Miyabi agents.
+  - `GET /api/timeline` – summarized conductor timeline derived from `.ai/logs/conductor_timeline.jsonl`.
+  - `POST /api/timeline/events` – ingest timeline snapshots pushed by the Conductor Timeline CLI (`persisted_locally` hint prevents duplicate writes).
 
 ### 3.2 CLI Dashboard
 - Command: `miyabi mission-control [--watch]`.
@@ -73,4 +78,3 @@
 - [ ] Build dashboard page in `miyabi-dashboard`.
 - [ ] Add automated tests covering aggregator and API.
 - [ ] Document operational playbook (alert thresholds, cleanup steps).
-

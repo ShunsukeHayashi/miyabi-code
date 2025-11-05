@@ -19,3 +19,6 @@ export { TimelineAggregator } from './aggregators/TimelineAggregator.js';
 // Formatters
 export { ReportFormatter } from './formatters/ReportFormatter.js';
 export { ReportWriter } from './formatters/ReportWriter.js';
+
+// API client
+export { MissionControlClient, toMissionControlPayload } from './clients/MissionControlClient.js';
