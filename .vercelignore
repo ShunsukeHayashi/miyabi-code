@@ -4,6 +4,39 @@ node_modules/
 dist/
 target/
 
+# Ignore Rust source (only deploy docs + build script)
+crates/
+packages/
+src/
+Cargo.*
+rust-toolchain.toml
+
+# Ignore CI/CD files
+.github/
+.codex/
+.claude/
+.worktrees/
+.ai/
+
+# Ignore Cargo registry and build artifacts
+.cargo/
+
+# Ignore test files
+**/tests/
+**/*.test.*
+**/*.spec.*
+
+# Ignore development files
+.env
+.env.*
+.vscode/
+.idea/
+
+# Keep only these files
+!docs/**
+!vercel.json
+!build.sh
+
 # Ignore lock files
 pnpm-lock.yaml
 package-lock.json
