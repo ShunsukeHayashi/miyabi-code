@@ -1,0 +1,22 @@
+[package]
+name = "miyabi-llm-core"
+version.workspace = true
+edition = "2021"
+authors = ["Shunsuke Hayashi"]
+license = "MIT"
+description = "Core traits and types for Miyabi LLM - Unified LLM interface for Rust"
+keywords = ["llm", "ai", "gpt", "claude", "gemini"]
+categories = ["api-bindings", "asynchronous"]
+repository = "https://github.com/ShunsukeHayashi/Miyabi"
+readme = "README.md"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+async-trait = "0.1"
+thiserror = { workspace = true }
+futures = "0.3"
+
+[dev-dependencies]
+tokio = { workspace = true }
+tokio-test = "0.4"

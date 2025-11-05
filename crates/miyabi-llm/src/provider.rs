@@ -1,7 +1,7 @@
 //! LLM provider trait and implementations
 
-use crate::error::{LLMError, Result};
 use crate::types::{ChatMessage, LLMRequest, LLMResponse};
+use crate::{LLMError, Result};
 use async_trait::async_trait;
 use std::time::Duration;
 
@@ -403,7 +403,7 @@ impl LLMProvider for GPTOSSProvider {
             if e.is_timeout() {
                 LLMError::Timeout(self.timeout.as_millis() as u64)
             } else {
-                LLMError::HttpError(e)
+                LLMError::NetworkError(e.to_string())
             }
         })?;
 
@@ -418,7 +418,10 @@ impl LLMProvider for GPTOSSProvider {
         }
 
         // Parse response
-        let response_json: serde_json::Value = response.json().await?;
+        let response_json: serde_json::Value = response
+            .json()
+            .await
+            .map_err(|e| LLMError::ParseError(format!("Failed to parse response JSON: {}", e)))?;
 
         if self.is_ollama() {
             self.parse_ollama_response(&response_json)
@@ -446,7 +449,7 @@ impl LLMProvider for GPTOSSProvider {
             if e.is_timeout() {
                 LLMError::Timeout(self.timeout.as_millis() as u64)
             } else {
-                LLMError::HttpError(e)
+                LLMError::NetworkError(e.to_string())
             }
         })?;
 
@@ -459,7 +462,10 @@ impl LLMProvider for GPTOSSProvider {
             )));
         }
 
-        let response_json: serde_json::Value = response.json().await?;
+        let response_json: serde_json::Value = response
+            .json()
+            .await
+            .map_err(|e| LLMError::ParseError(format!("Failed to parse response JSON: {}", e)))?;
         let llm_response = self.parse_response(&response_json)?;
 
         Ok(ChatMessage::assistant(llm_response.text))

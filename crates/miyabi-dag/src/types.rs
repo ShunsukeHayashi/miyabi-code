@@ -1,27 +1,35 @@
-//! Core types for DAG construction
+//! Core types for DAG task graph
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::str::FromStr;
+use uuid::Uuid;
 
-/// Unique identifier for a task in the DAG
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct TaskId(String);
+/// Unique identifier for a task
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct TaskId(Uuid);
 
 impl TaskId {
-    /// Create a new TaskId from a string
-    pub fn new(id: impl Into<String>) -> Self {
-        Self(id.into())
+    /// Create a new task ID
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
     }
 
-    /// Get the inner string value
-    pub fn as_str(&self) -> &str {
+    /// Create from UUID
+    pub fn from_uuid(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+
+    /// Get the underlying UUID
+    pub fn as_uuid(&self) -> &Uuid {
         &self.0
     }
+}
 
-    /// Generate a TaskId from a file path
-    pub fn from_path(path: &Path) -> Self {
-        Self::new(path.to_string_lossy().into_owned())
+impl Default for TaskId {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -31,250 +39,195 @@ impl std::fmt::Display for TaskId {
     }
 }
 
-impl From<String> for TaskId {
-    fn from(s: String) -> Self {
-        Self::new(s)
+/// A code file with content and metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeFile {
+    /// File path
+    pub path: PathBuf,
+    /// File content
+    pub content: String,
+    /// Module path (e.g., "crate::module::submodule")
+    pub module_path: ModulePath,
+}
+
+impl CodeFile {
+    /// Create a new code file
+    pub fn new(path: PathBuf, content: String, module_path: ModulePath) -> Self {
+        Self {
+            path,
+            content,
+            module_path,
+        }
     }
 }
 
-impl From<&str> for TaskId {
-    fn from(s: &str) -> Self {
-        Self::new(s)
-    }
-}
-
-/// Module path in the codebase (e.g., "crate::module::submodule")
+/// Module path in Rust-style notation
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct ModulePath(String);
+pub struct ModulePath(Vec<String>);
 
 impl ModulePath {
-    /// Create a new ModulePath from a string
-    pub fn new(path: impl Into<String>) -> Self {
-        Self(path.into())
+    /// Create a new module path
+    pub fn new(segments: Vec<String>) -> Self {
+        Self(segments)
     }
 
-    /// Get the inner string value
-    pub fn as_str(&self) -> &str {
+    /// Get segments
+    pub fn segments(&self) -> &[String] {
         &self.0
     }
 
-    /// Parse module path from a file path
-    pub fn from_file_path(path: &Path, root: &Path) -> Option<Self> {
-        path.strip_prefix(root)
-            .ok()
-            .and_then(|p| p.to_str())
-            .map(|s| {
-                let module_path = s
-                    .trim_end_matches(".rs")
-                    .replace(['/', '\\'], "::");
-                Self::new(module_path)
-            })
+    /// Check if this path starts with another path
+    pub fn starts_with(&self, other: &ModulePath) -> bool {
+        if other.0.len() > self.0.len() {
+            return false;
+        }
+        self.0[..other.0.len()] == other.0[..]
+    }
+
+    /// Get parent module path
+    pub fn parent(&self) -> Option<ModulePath> {
+        if self.0.len() <= 1 {
+            None
+        } else {
+            Some(ModulePath(self.0[..self.0.len() - 1].to_vec()))
+        }
     }
 }
 
 impl std::fmt::Display for ModulePath {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.0.join("::"))
     }
 }
 
-impl From<String> for ModulePath {
-    fn from(s: String) -> Self {
-        Self::new(s)
+impl FromStr for ModulePath {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.split("::").map(|seg| seg.to_string()).collect()))
     }
 }
 
-impl From<&str> for ModulePath {
-    fn from(s: &str) -> Self {
-        Self::new(s)
-    }
-}
-
-/// A single code file with its content and metadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CodeFile {
-    /// File path relative to project root
-    pub path: PathBuf,
-    /// File content
-    pub content: String,
-    /// Module path derived from file path
-    pub module_path: ModulePath,
-    /// Import statements found in this file
-    pub imports: Vec<ModulePath>,
-}
-
-impl CodeFile {
-    /// Create a new CodeFile
-    pub fn new(
-        path: PathBuf,
-        content: String,
-        module_path: ModulePath,
-        imports: Vec<ModulePath>,
-    ) -> Self {
-        Self {
-            path,
-            content,
-            module_path,
-            imports,
-        }
-    }
-
-    /// Parse imports from Rust source code
-    pub fn parse_imports(content: &str) -> Vec<ModulePath> {
-        let mut imports = Vec::new();
-        for line in content.lines() {
-            let trimmed = line.trim();
-            if trimmed.starts_with("use ") || trimmed.starts_with("extern crate ") {
-                // Extract module path from use statement
-                // Example: "use crate::module::Type;" -> "crate::module"
-                if let Some(path_str) = Self::extract_module_from_use(trimmed) {
-                    imports.push(ModulePath::new(path_str));
-                }
-            }
-        }
-        imports
-    }
-
-    fn extract_module_from_use(line: &str) -> Option<String> {
-        // Simple parsing: extract text between "use" and ";"
-        // Remove "use " prefix
-        let line = line.strip_prefix("use ")?.trim();
-        // Remove trailing ";"
-        let line = line.strip_suffix(';').unwrap_or(line).trim();
-        // Remove "as" aliases
-        let line = if let Some(pos) = line.find(" as ") {
-            &line[..pos]
-        } else {
-            line
-        };
-        // Remove braces and wildcards
-        let line = line.split('{').next()?.trim();
-        let line = line.strip_suffix("::*").unwrap_or(line);
-        // Remove trailing `::`
-        let line = line.strip_suffix("::").unwrap_or(line);
-
-        Some(line.to_string())
-    }
-
-    /// Get the TaskId for this file
-    pub fn task_id(&self) -> TaskId {
-        TaskId::from_path(&self.path)
-    }
-}
-
-/// Collection of generated code files
+/// Generated code from θ₂ (Generation Phase)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeneratedCode {
-    /// List of code files
+    /// All generated files
     pub files: Vec<CodeFile>,
-    /// Project root path
-    pub root: PathBuf,
+    /// Metadata
+    pub metadata: HashMap<String, String>,
 }
 
 impl GeneratedCode {
-    /// Create a new GeneratedCode instance
-    pub fn new(files: Vec<CodeFile>, root: PathBuf) -> Self {
-        Self { files, root }
-    }
-
-    /// Create from a list of files
+    /// Create from files
     pub fn from_files(files: Vec<CodeFile>) -> Self {
         Self {
             files,
-            root: PathBuf::from("."),
+            metadata: HashMap::new(),
         }
     }
 
-    /// Get all unique module paths
-    pub fn all_modules(&self) -> HashSet<ModulePath> {
-        self.files
-            .iter()
-            .map(|f| f.module_path.clone())
-            .collect()
+    /// Add metadata
+    pub fn with_metadata(mut self, key: String, value: String) -> Self {
+        self.metadata.insert(key, value);
+        self
     }
 
-    /// Get all TaskIds
-    pub fn all_task_ids(&self) -> Vec<TaskId> {
-        self.files.iter().map(|f| f.task_id()).collect()
-    }
-
-    /// Find a file by its module path
-    pub fn find_by_module(&self, module: &ModulePath) -> Option<&CodeFile> {
-        self.files.iter().find(|f| &f.module_path == module)
-    }
-
-    /// Find a file by its task ID
-    pub fn find_by_task_id(&self, task_id: &TaskId) -> Option<&CodeFile> {
-        self.files.iter().find(|f| f.task_id() == *task_id)
+    /// Get file by path
+    pub fn get_file(&self, path: &PathBuf) -> Option<&CodeFile> {
+        self.files.iter().find(|f| &f.path == path)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// A task to be executed
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    /// Task ID
+    pub id: TaskId,
+    /// Task name/description
+    pub name: String,
+    /// File to process
+    pub file: CodeFile,
+    /// Worktree path (assigned during allocation)
+    pub worktree: Option<PathBuf>,
+    /// Estimated execution time in seconds
+    pub estimated_time: Option<u64>,
+}
 
-    #[test]
-    fn test_task_id_creation() {
-        let id = TaskId::new("test-task");
-        assert_eq!(id.as_str(), "test-task");
+impl Task {
+    /// Create a new task
+    pub fn new(id: TaskId, name: String, file: CodeFile) -> Self {
+        Self {
+            id,
+            name,
+            file,
+            worktree: None,
+            estimated_time: None,
+        }
     }
 
-    #[test]
-    fn test_module_path_creation() {
-        let path = ModulePath::new("crate::module::submodule");
-        assert_eq!(path.as_str(), "crate::module::submodule");
+    /// Assign worktree
+    pub fn with_worktree(mut self, worktree: PathBuf) -> Self {
+        self.worktree = Some(worktree);
+        self
     }
 
-    #[test]
-    fn test_parse_imports() {
-        let content = r#"
-            use std::collections::HashMap;
-            use crate::module::Type;
-            use super::parent;
-        "#;
-        let imports = CodeFile::parse_imports(content);
-        assert_eq!(imports.len(), 3);
-        assert_eq!(imports[0].as_str(), "std::collections::HashMap");
-        assert_eq!(imports[1].as_str(), "crate::module::Type");
-        assert_eq!(imports[2].as_str(), "super::parent");
+    /// Set estimated time
+    pub fn with_estimated_time(mut self, seconds: u64) -> Self {
+        self.estimated_time = Some(seconds);
+        self
+    }
+}
+
+/// A node in the task graph
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskNode {
+    /// Task ID
+    pub id: TaskId,
+    /// Task details
+    pub task: Task,
+    /// Dependencies (tasks that must complete before this one)
+    pub dependencies: Vec<TaskId>,
+    /// Dependents (tasks that depend on this one)
+    pub dependents: Vec<TaskId>,
+}
+
+impl TaskNode {
+    /// Create a new task node
+    pub fn new(task: Task) -> Self {
+        Self {
+            id: task.id,
+            task,
+            dependencies: Vec::new(),
+            dependents: Vec::new(),
+        }
     }
 
-    #[test]
-    fn test_parse_imports_with_braces() {
-        let content = "use std::collections::{HashMap, HashSet};";
-        let imports = CodeFile::parse_imports(content);
-        assert_eq!(imports.len(), 1);
-        assert_eq!(imports[0].as_str(), "std::collections");
+    /// Add a dependency
+    pub fn add_dependency(&mut self, dep_id: TaskId) {
+        if !self.dependencies.contains(&dep_id) {
+            self.dependencies.push(dep_id);
+        }
     }
 
-    #[test]
-    fn test_parse_imports_with_wildcard() {
-        let content = "use crate::prelude::*;";
-        let imports = CodeFile::parse_imports(content);
-        assert_eq!(imports.len(), 1);
-        assert_eq!(imports[0].as_str(), "crate::prelude");
+    /// Add a dependent
+    pub fn add_dependent(&mut self, dependent_id: TaskId) {
+        if !self.dependents.contains(&dependent_id) {
+            self.dependents.push(dependent_id);
+        }
     }
 
-    #[test]
-    fn test_generated_code_all_modules() {
-        let files = vec![
-            CodeFile::new(
-                PathBuf::from("src/a.rs"),
-                String::new(),
-                ModulePath::new("crate::a"),
-                vec![],
-            ),
-            CodeFile::new(
-                PathBuf::from("src/b.rs"),
-                String::new(),
-                ModulePath::new("crate::b"),
-                vec![],
-            ),
-        ];
-        let code = GeneratedCode::from_files(files);
-        let modules = code.all_modules();
-        assert_eq!(modules.len(), 2);
-        assert!(modules.contains(&ModulePath::new("crate::a")));
-        assert!(modules.contains(&ModulePath::new("crate::b")));
+    /// Check if task has no dependencies
+    pub fn is_root(&self) -> bool {
+        self.dependencies.is_empty()
+    }
+
+    /// Get number of dependencies
+    pub fn indegree(&self) -> usize {
+        self.dependencies.len()
+    }
+
+    /// Get number of dependents
+    pub fn outdegree(&self) -> usize {
+        self.dependents.len()
     }
 }

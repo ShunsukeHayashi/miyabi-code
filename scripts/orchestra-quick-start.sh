@@ -78,8 +78,8 @@ tmux split-window -v -t "$SESSION_NAME:$WINDOW_NAME.5" -c "$WORKING_DIR"
 
 echo -e "${GREEN}✅ Pane structure created (6 panes)${NC}"
 
-# Step 5: Start Claude Code in first 5 panes
-echo -e "${BLUE}🤖 Starting Claude Code in Agent panes...${NC}"
+# Step 5: Start Codex in first 5 panes
+echo -e "${BLUE}🤖 Starting Codex in Agent panes...${NC}"
 
 # Get pane IDs
 PANE_1=$(tmux list-panes -t "$SESSION_NAME:$WINDOW_NAME" -F "#{pane_id}" | sed -n 1p)
@@ -98,17 +98,17 @@ declare -A AGENT_PANES=(
     ["$PANE_5"]="ボタン (Deploy)"
 )
 
-# Start Claude Code in parallel
+# Start Codex in parallel
 for pane in "$PANE_1" "$PANE_2" "$PANE_3" "$PANE_4" "$PANE_5"; do
-    echo -e "${BLUE}  🎹 Starting Claude Code in ${AGENT_PANES[$pane]}...${NC}"
-    tmux send-keys -t "$pane" "cd '$WORKING_DIR' && cc" C-m
+    echo -e "${BLUE}  🎹 Starting Codex in ${AGENT_PANES[$pane]}...${NC}"
+    tmux send-keys -t "$pane" "cd '$WORKING_DIR' && codex" C-m
     sleep 0.5
 done &
 
 # Wait for all background jobs
 wait
 
-echo -e "${GREEN}✅ Claude Code started in all Agent panes${NC}"
+echo -e "${GREEN}✅ Codex started in all Agent panes${NC}"
 
 # Step 6: Start Water Spider in 6th pane
 echo -e "${BLUE}🕷️  Starting Water Spider v2.0...${NC}"
@@ -139,7 +139,7 @@ echo -e "  ${PANE_6} - 🕷️ クモ (Water Spider)"
 echo ""
 echo -e "${BLUE}🚀 Next Steps:${NC}"
 echo -e "  1. Attach to session: ${YELLOW}tmux attach-session -t $SESSION_NAME${NC}"
-echo -e "  2. Wait ~30 seconds for Claude Code to fully load"
+echo -e "  2. Wait ~30 seconds for Codex to fully load"
 echo -e "  3. Start assigning tasks to Agents!"
 echo ""
 echo -e "${BLUE}📚 Documentation:${NC}"

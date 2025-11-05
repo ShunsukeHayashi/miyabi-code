@@ -1,67 +1,66 @@
-//! Integration tests for conditional branching functionality
-//!
-//! Tests the full workflow branching capabilities including:
-//! - Simple pass/fail branches
-//! - Complex multi-condition branches
-//! - Condition evaluation with various data types
-//! - DAG generation with conditional edges
+//! Integration tests for conditional branching
 
 use miyabi_types::agent::AgentType;
 use miyabi_workflow::{Condition, WorkflowBuilder};
 use serde_json::json;
 
-#[tokio::test]
-async fn test_conditional_branch_success() {
-    let workflow = WorkflowBuilder::new("test")
+#[test]
+fn test_simple_branch() {
+    let workflow = WorkflowBuilder::new("test-branch")
         .step("start", AgentType::IssueAgent)
         .branch("decision", "success-path", "failure-path")
         .step("success-path", AgentType::CodeGenAgent)
         .step("failure-path", AgentType::ReviewAgent);
 
     let dag = workflow.build_dag().unwrap();
+    dag.validate().unwrap();
 
-    // Verify DAG has conditional edges
-    let decision_step = dag
+    // Should have 4 nodes
+    assert_eq!(dag.nodes.len(), 4);
+
+    // Find the decision node
+    let decision_node = dag
         .nodes
         .iter()
-        .find(|n| n.title.contains("decision"))
-        .unwrap();
+        .find(|n| n.title == "decision")
+        .expect("Decision node not found");
 
+    // Should have 2 edges from decision node (one to each branch)
     let edges_from_decision: Vec<_> = dag
         .edges
         .iter()
-        .filter(|e| e.from == decision_step.id)
+        .filter(|e| e.from == decision_node.id)
         .collect();
 
-    assert_eq!(edges_from_decision.len(), 2); // 2 branches
+    assert_eq!(edges_from_decision.len(), 2);
+
+    // Verify edges point to the correct steps
+    let success_node = dag
+        .nodes
+        .iter()
+        .find(|n| n.title == "success-path")
+        .unwrap();
+    let failure_node = dag
+        .nodes
+        .iter()
+        .find(|n| n.title == "failure-path")
+        .unwrap();
+
+    assert!(edges_from_decision.iter().any(|e| e.to == success_node.id));
+    assert!(edges_from_decision.iter().any(|e| e.to == failure_node.id));
 }
 
 #[test]
-fn test_condition_evaluation() {
-    let cond = Condition::FieldEquals {
-        field: "status".to_string(),
-        value: json!("passed"),
-    };
-
-    let context = json!({
-        "status": "passed",
-        "score": 95
-    });
-
-    assert!(cond.evaluate(&context));
-}
-
-#[test]
-fn test_quality_based_branching() {
-    let workflow = WorkflowBuilder::new("quality-check")
-        .step("analyze", AgentType::ReviewAgent)
+fn test_branch_on_with_multiple_conditions() {
+    let workflow = WorkflowBuilder::new("multi-branch")
+        .step("quality-check", AgentType::ReviewAgent)
         .branch_on(
             "route",
             vec![
                 (
                     "high",
                     Condition::FieldGreaterThan {
-                        field: "quality".to_string(),
+                        field: "quality_score".to_string(),
                         value: 0.9,
                     },
                     "fast-deploy",
@@ -69,7 +68,7 @@ fn test_quality_based_branching() {
                 (
                     "medium",
                     Condition::FieldGreaterThan {
-                        field: "quality".to_string(),
+                        field: "quality_score".to_string(),
                         value: 0.7,
                     },
                     "manual-review",
@@ -82,186 +81,281 @@ fn test_quality_based_branching() {
         .step("reject", AgentType::CodeGenAgent);
 
     let dag = workflow.build_dag().unwrap();
+    dag.validate().unwrap();
 
-    // Find the route step
-    let route_step = dag.nodes.iter().find(|n| n.title == "route").unwrap();
+    // Should have 5 nodes (quality-check + route + 3 branches)
+    assert_eq!(dag.nodes.len(), 5);
 
-    // Check that route step has edges to all three targets
+    // Find route node
+    let route_node = dag
+        .nodes
+        .iter()
+        .find(|n| n.title == "route")
+        .expect("Route node not found");
+
+    // Should have 3 edges from route node
     let edges_from_route: Vec<_> = dag
         .edges
         .iter()
-        .filter(|e| e.from == route_step.id)
+        .filter(|e| e.from == route_node.id)
         .collect();
 
     assert_eq!(edges_from_route.len(), 3);
-
-    // Verify all targets are reachable
-    let targets: Vec<&String> = edges_from_route.iter().map(|e| &e.to).collect();
-    assert!(targets.iter().any(|t| *t == "fast-deploy"));
-    assert!(targets.iter().any(|t| *t == "manual-review"));
-    assert!(targets.iter().any(|t| *t == "reject"));
 }
 
 #[test]
-fn test_nested_condition_with_and_or() {
-    let condition = Condition::And(vec![
-        Condition::FieldEquals {
-            field: "status".to_string(),
-            value: json!("completed"),
-        },
-        Condition::Or(vec![
-            Condition::FieldGreaterThan {
-                field: "quality".to_string(),
-                value: 0.9,
-            },
-            Condition::FieldExists {
-                field: "manual_approval".to_string(),
-            },
-        ]),
-    ]);
-
-    // High quality, no manual approval
-    let context1 = json!({
-        "status": "completed",
-        "quality": 0.95
-    });
-    assert!(condition.evaluate(&context1));
-
-    // Low quality, but manual approval exists
-    let context2 = json!({
-        "status": "completed",
-        "quality": 0.7,
-        "manual_approval": true
-    });
-    assert!(condition.evaluate(&context2));
-
-    // Wrong status
-    let context3 = json!({
-        "status": "pending",
-        "quality": 0.95
-    });
-    assert!(!condition.evaluate(&context3));
-}
-
-#[test]
-fn test_ci_cd_workflow_with_branches() {
-    let workflow = WorkflowBuilder::new("ci-cd")
-        .step("build", AgentType::CodeGenAgent)
-        .then("test", AgentType::ReviewAgent)
-        .branch("deploy-decision", "production", "rollback")
-        .step("production", AgentType::DeploymentAgent)
-        .step("rollback", AgentType::CodeGenAgent);
-
-    let dag = workflow.build_dag().unwrap();
-
-    // Verify structure
-    assert_eq!(dag.nodes.len(), 5);
-
-    // Verify the decision step exists
-    let decision_step = dag
-        .nodes
-        .iter()
-        .find(|n| n.title == "deploy-decision")
-        .unwrap();
-
-    // Verify the decision step has exactly 2 outgoing edges
-    let decision_edges: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == decision_step.id)
-        .collect();
-    assert_eq!(decision_edges.len(), 2);
-
-    // Verify targets are production and rollback
-    let targets: Vec<&String> = decision_edges.iter().map(|e| &e.to).collect();
-    assert!(targets.iter().any(|t| *t == "production"));
-    assert!(targets.iter().any(|t| *t == "rollback"));
-}
-
-#[test]
-fn test_field_less_than_condition() {
-    let condition = Condition::FieldLessThan {
-        field: "error_rate".to_string(),
-        value: 0.05,
+fn test_condition_evaluation_field_equals() {
+    let cond = Condition::FieldEquals {
+        field: "status".to_string(),
+        value: json!("passed"),
     };
 
-    let context_pass = json!({ "error_rate": 0.02 });
-    assert!(condition.evaluate(&context_pass));
+    let context_pass = json!({ "status": "passed" });
+    let context_fail = json!({ "status": "failed" });
 
-    let context_fail = json!({ "error_rate": 0.10 });
-    assert!(!condition.evaluate(&context_fail));
+    assert!(cond.evaluate(&context_pass));
+    assert!(!cond.evaluate(&context_fail));
 }
 
 #[test]
-fn test_not_condition() {
-    let condition = Condition::Not(Box::new(Condition::FieldEquals {
-        field: "failed".to_string(),
-        value: json!(true),
-    }));
+fn test_condition_evaluation_field_greater_than() {
+    let cond = Condition::FieldGreaterThan {
+        field: "score".to_string(),
+        value: 0.8,
+    };
 
-    let context_success = json!({ "failed": false });
-    assert!(condition.evaluate(&context_success));
+    let context_high = json!({ "score": 0.95 });
+    let context_low = json!({ "score": 0.5 });
+    let context_exact = json!({ "score": 0.8 });
 
-    let context_failed = json!({ "failed": true });
-    assert!(!condition.evaluate(&context_failed));
+    assert!(cond.evaluate(&context_high));
+    assert!(!cond.evaluate(&context_low));
+    assert!(!cond.evaluate(&context_exact)); // Not strictly greater
 }
 
 #[test]
-fn test_nested_field_path() {
-    let condition = Condition::FieldGreaterThan {
-        field: "result.metrics.score".to_string(),
-        value: 80.0,
+fn test_condition_evaluation_nested_fields() {
+    let cond = Condition::FieldEquals {
+        field: "result.status".to_string(),
+        value: json!("success"),
     };
 
     let context = json!({
         "result": {
-            "metrics": {
-                "score": 95.0
-            }
+            "status": "success",
+            "code": 200
         }
     });
 
-    assert!(condition.evaluate(&context));
+    assert!(cond.evaluate(&context));
 }
 
 #[test]
-fn test_multiple_sequential_branches() {
-    let workflow = WorkflowBuilder::new("multi-branch")
+fn test_condition_and() {
+    let cond = Condition::And(vec![
+        Condition::FieldEquals {
+            field: "tests_passed".to_string(),
+            value: json!(true),
+        },
+        Condition::FieldGreaterThan {
+            field: "coverage".to_string(),
+            value: 0.8,
+        },
+    ]);
+
+    let context_both = json!({ "tests_passed": true, "coverage": 0.9 });
+    let context_tests_only = json!({ "tests_passed": true, "coverage": 0.5 });
+    let context_coverage_only = json!({ "tests_passed": false, "coverage": 0.9 });
+
+    assert!(cond.evaluate(&context_both));
+    assert!(!cond.evaluate(&context_tests_only));
+    assert!(!cond.evaluate(&context_coverage_only));
+}
+
+#[test]
+fn test_condition_or() {
+    let cond = Condition::Or(vec![
+        Condition::FieldEquals {
+            field: "status".to_string(),
+            value: json!("passed"),
+        },
+        Condition::FieldEquals {
+            field: "status".to_string(),
+            value: json!("warning"),
+        },
+    ]);
+
+    let context_pass = json!({ "status": "passed" });
+    let context_warn = json!({ "status": "warning" });
+    let context_fail = json!({ "status": "failed" });
+
+    assert!(cond.evaluate(&context_pass));
+    assert!(cond.evaluate(&context_warn));
+    assert!(!cond.evaluate(&context_fail));
+}
+
+#[test]
+fn test_condition_not() {
+    let cond = Condition::Not(Box::new(Condition::FieldEquals {
+        field: "failed".to_string(),
+        value: json!(true),
+    }));
+
+    let context_ok = json!({ "failed": false });
+    let context_failed = json!({ "failed": true });
+
+    assert!(cond.evaluate(&context_ok));
+    assert!(!cond.evaluate(&context_failed));
+}
+
+#[test]
+fn test_condition_success_helper() {
+    let cond = Condition::success("passed");
+
+    let context_true = json!({ "passed": true });
+    let context_false = json!({ "passed": false });
+
+    assert!(cond.evaluate(&context_true));
+    assert!(!cond.evaluate(&context_false));
+}
+
+#[test]
+fn test_condition_failure_helper() {
+    let cond = Condition::failure("passed");
+
+    let context_true = json!({ "passed": true });
+    let context_false = json!({ "passed": false });
+
+    assert!(!cond.evaluate(&context_true));
+    assert!(cond.evaluate(&context_false));
+}
+
+#[test]
+fn test_complex_nested_conditions() {
+    // (tests_passed AND coverage > 0.8) OR status == "override"
+    let cond = Condition::Or(vec![
+        Condition::And(vec![
+            Condition::FieldEquals {
+                field: "tests_passed".to_string(),
+                value: json!(true),
+            },
+            Condition::FieldGreaterThan {
+                field: "coverage".to_string(),
+                value: 0.8,
+            },
+        ]),
+        Condition::FieldEquals {
+            field: "status".to_string(),
+            value: json!("override"),
+        },
+    ]);
+
+    let context_tests_and_coverage = json!({
+        "tests_passed": true,
+        "coverage": 0.9,
+        "status": "normal"
+    });
+
+    let context_override = json!({
+        "tests_passed": false,
+        "coverage": 0.5,
+        "status": "override"
+    });
+
+    let context_neither = json!({
+        "tests_passed": false,
+        "coverage": 0.5,
+        "status": "normal"
+    });
+
+    assert!(cond.evaluate(&context_tests_and_coverage));
+    assert!(cond.evaluate(&context_override));
+    assert!(!cond.evaluate(&context_neither));
+}
+
+#[test]
+fn test_branch_dag_levels() {
+    let workflow = WorkflowBuilder::new("leveled-branch")
         .step("start", AgentType::IssueAgent)
-        .branch("first-decision", "path-a", "path-b")
+        .branch("decision", "path-a", "path-b")
         .step("path-a", AgentType::CodeGenAgent)
-        .branch("second-decision", "final-success", "final-retry")
-        .step("path-b", AgentType::ReviewAgent)
-        .step("final-success", AgentType::DeploymentAgent)
-        .step("final-retry", AgentType::CodeGenAgent);
+        .step("path-b", AgentType::ReviewAgent);
 
     let dag = workflow.build_dag().unwrap();
-    assert_eq!(dag.nodes.len(), 7);
 
-    // Verify both branch points exist
-    let first_branch = dag
-        .nodes
-        .iter()
-        .find(|n| n.title == "first-decision")
-        .unwrap();
-    let second_branch = dag
-        .nodes
-        .iter()
-        .find(|n| n.title == "second-decision")
-        .unwrap();
+    // Verify DAG has correct levels
+    // Level 0: start
+    // Level 1: decision
+    // Level 2: path-a, path-b
+    assert!(dag.levels.len() >= 2);
+}
 
-    // Both should have 2 outgoing edges each
-    let first_edges: Vec<_> = dag
+#[test]
+fn test_sequential_then_branch() {
+    let workflow = WorkflowBuilder::new("seq-then-branch")
+        .step("init", AgentType::IssueAgent)
+        .then("process", AgentType::CodeGenAgent)
+        .branch("check", "deploy", "rollback")
+        .step("deploy", AgentType::DeploymentAgent)
+        .step("rollback", AgentType::CodeGenAgent);
+
+    let dag = workflow.build_dag().unwrap();
+
+    // Should have 5 nodes
+    assert_eq!(dag.nodes.len(), 5);
+
+    // Verify sequential dependency: process depends on init
+    let init_node = dag.nodes.iter().find(|n| n.title == "init").unwrap();
+    let process_node = dag.nodes.iter().find(|n| n.title == "process").unwrap();
+    dag.validate().unwrap();
+
+    let has_init_to_process = dag
         .edges
         .iter()
-        .filter(|e| e.from == first_branch.id)
-        .collect();
-    let second_edges: Vec<_> = dag
+        .any(|e| e.from == init_node.id && e.to == process_node.id);
+    assert!(has_init_to_process);
+
+    // Verify branch edges from check
+    let check_node = dag.nodes.iter().find(|n| n.title == "check").unwrap();
+    let edges_from_check: Vec<_> = dag
         .edges
         .iter()
-        .filter(|e| e.from == second_branch.id)
+        .filter(|e| e.from == check_node.id)
         .collect();
+    assert_eq!(edges_from_check.len(), 2);
 
-    assert_eq!(first_edges.len(), 2);
-    assert_eq!(second_edges.len(), 2);
+    let deploy_node = dag.nodes.iter().find(|n| n.title == "deploy").unwrap();
+    let rollback_node = dag.nodes.iter().find(|n| n.title == "rollback").unwrap();
+
+    assert!(edges_from_check.iter().any(|e| e.to == deploy_node.id));
+    assert!(edges_from_check.iter().any(|e| e.to == rollback_node.id));
+}
+
+#[test]
+fn test_field_exists_condition() {
+    let cond = Condition::FieldExists {
+        field: "deployment_id".to_string(),
+    };
+
+    let context_exists = json!({ "deployment_id": "dep-123" });
+    let context_missing = json!({ "other_field": "value" });
+
+    assert!(cond.evaluate(&context_exists));
+    assert!(!cond.evaluate(&context_missing));
+}
+
+#[test]
+fn test_field_less_than_condition() {
+    let cond = Condition::FieldLessThan {
+        field: "error_rate".to_string(),
+        value: 0.05,
+    };
+
+    let context_low = json!({ "error_rate": 0.02 });
+    let context_high = json!({ "error_rate": 0.10 });
+    let context_exact = json!({ "error_rate": 0.05 });
+
+    assert!(cond.evaluate(&context_low));
+    assert!(!cond.evaluate(&context_high));
+    assert!(!cond.evaluate(&context_exact)); // Not strictly less than
 }

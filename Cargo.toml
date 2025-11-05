@@ -15,6 +15,10 @@ members = [
     "crates/miyabi-agents",
     "crates/miyabi-github",
     "crates/miyabi-worktree",
+    "crates/miyabi-llm-core",
+    "crates/miyabi-llm-anthropic",
+    "crates/miyabi-llm-openai",
+    "crates/miyabi-llm-google",
     "crates/miyabi-llm",
     # "crates/miyabi-potpie",  # MERGED into miyabi-knowledge/potpie module
     "crates/miyabi-knowledge",
@@ -30,7 +34,10 @@ members = [
     # "crates/miyabi-scheduler",  # MERGED into miyabi-orchestrator
     "crates/miyabi-e2e-tests", "crates/miyabi-modes",  # E2E test framework
     "crates/miyabi-agent-swml",  # SWML Agent (Phase 1 implemented)
-    "crates/miyabi-workflow", "crates/miyabi-def-core",  # Workflow DSL - Mastra-style orchestration
+    "crates/miyabi-workflow",  # Workflow DSL - Mastra-style orchestration
+    "crates/miyabi-approval",  # Approval gates - Human-in-the-Loop
+    "crates/miyabi-dag",  # DAG task graph - θ₃ Allocation Phase
+    "crates/miyabi-def-core",  # miyabi_def core system
 ]
 exclude = [
     "miyabi-desktop/src-tauri",  # Tauri app has its own workspace

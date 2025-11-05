@@ -44,7 +44,7 @@
 //! # }
 //! ```
 
-use crate::error::{LLMError, Result};
+use crate::{LLMError, Result};
 use miyabi_types::Task;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

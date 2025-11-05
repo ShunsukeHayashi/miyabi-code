@@ -377,6 +377,17 @@ export function registerWorktreeHandlers() {
     return openWorktree(worktreePath);
   });
 
+  ipcMain.handle('worktrees:copyPath', async (_event, worktreePath: string) => {
+    try {
+      const { clipboard } = await import('electron');
+      clipboard.writeText(worktreePath);
+      return { success: true, message: 'Path copied to clipboard' };
+    } catch (error) {
+      console.error('[worktrees] Failed to copy path:', error);
+      return { success: false, message: 'Failed to copy path' };
+    }
+  });
+
   ipcMain.handle('worktrees:graph', async () => {
     return getWorktreeGraph();
   });

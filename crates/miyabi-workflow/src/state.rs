@@ -1,9 +1,126 @@
 //! Workflow state management
 
 use crate::error::{Result, WorkflowError};
+#[cfg(feature = "sqlite")]
+pub mod sqlite_store;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+
+/// Workflow execution status
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum WorkflowStatus {
+    /// Workflow is currently running
+    Running,
+    /// Workflow is paused (waiting for Human-in-the-Loop)
+    Paused {
+        /// Reason for pause (e.g., "Waiting for approval", "Manual pause")
+        reason: String,
+        /// Unix timestamp when paused
+        paused_at: u64,
+    },
+    /// Workflow completed successfully
+    Completed,
+    /// Workflow failed with error
+    Failed,
+}
+
+/// Complete workflow execution state
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionState {
+    /// Unique workflow instance ID
+    pub workflow_id: String,
+
+    /// Session ID for this execution
+    pub session_id: String,
+
+    /// Current executing step ID
+    pub current_step: Option<String>,
+
+    /// List of completed step IDs
+    pub completed_steps: Vec<String>,
+
+    /// List of failed step IDs
+    pub failed_steps: Vec<String>,
+
+    /// Results from each step
+    pub step_results: HashMap<String, serde_json::Value>,
+
+    /// Current workflow status
+    pub status: WorkflowStatus,
+
+    /// Creation timestamp (Unix epoch)
+    pub created_at: u64,
+
+    /// Last update timestamp (Unix epoch)
+    pub updated_at: u64,
+}
+
+impl ExecutionState {
+    /// Pause the workflow with a reason
+    pub fn pause(&mut self, reason: impl Into<String>) {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        self.status = WorkflowStatus::Paused {
+            reason: reason.into(),
+            paused_at: now,
+        };
+        self.updated_at = now;
+    }
+
+    /// Resume the workflow from paused state
+    pub fn resume(&mut self) {
+        if self.is_paused() {
+            self.status = WorkflowStatus::Running;
+            self.updated_at = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+        }
+    }
+
+    /// Check if workflow is paused
+    pub fn is_paused(&self) -> bool {
+        matches!(self.status, WorkflowStatus::Paused { .. })
+    }
+
+    /// Check if workflow can be resumed
+    pub fn can_resume(&self) -> bool {
+        self.is_paused()
+    }
+
+    /// Get pause duration in seconds (if paused)
+    pub fn pause_duration(&self) -> Option<u64> {
+        if let WorkflowStatus::Paused { paused_at, .. } = self.status {
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+            Some(now - paused_at)
+        } else {
+            None
+        }
+    }
+
+    /// Get pause reason (if paused)
+    pub fn pause_reason(&self) -> Option<&str> {
+        if let WorkflowStatus::Paused { reason, .. } = &self.status {
+            Some(reason)
+        } else {
+            None
+        }
+    }
+
+    /// Check if workflow has timed out (paused for >= timeout_seconds)
+    pub fn is_timed_out(&self, timeout_seconds: u64) -> bool {
+        self.pause_duration()
+            .map(|duration| duration >= timeout_seconds)
+            .unwrap_or(false)
+    }
+}
 
 /// Step execution context
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,8 +175,9 @@ impl StepContext {
             .get(key)
             .ok_or_else(|| WorkflowError::Other(format!("Metadata key '{}' not found", key)))
             .and_then(|v| {
-                serde_json::from_value(v.clone())
-                    .map_err(|e| WorkflowError::Other(format!("Failed to deserialize metadata: {}", e)))
+                serde_json::from_value(v.clone()).map_err(|e| {
+                    WorkflowError::Other(format!("Failed to deserialize metadata: {}", e))
+                })
             })
     }
 }
@@ -162,7 +280,13 @@ impl StateStore {
 
     /// Get default storage path
     fn default_path() -> PathBuf {
-        PathBuf::from("./data/workflow-state")
+        std::env::var("MIYABI_WORKFLOW_STATE_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                let mut base = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+                base.push(".miyabi/workflows");
+                base
+            })
     }
 
     /// Save step output
@@ -212,6 +336,107 @@ impl StateStore {
         }
         self.db.flush()?;
         Ok(())
+    }
+
+    /// Save execution state
+    pub fn save_execution(&self, state: &ExecutionState) -> Result<()> {
+        let key = format!("execution:{}", state.workflow_id);
+        let value = serde_json::to_vec(state)?;
+        self.db.insert(key.as_bytes(), value)?;
+        self.db.flush()?;
+        Ok(())
+    }
+
+    /// Load execution state
+    pub fn load_execution(&self, workflow_id: &str) -> Result<Option<ExecutionState>> {
+        let key = format!("execution:{}", workflow_id);
+        if let Some(value) = self.db.get(key.as_bytes())? {
+            Ok(Some(serde_json::from_slice(&value)?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Delete execution state
+    pub fn delete_execution(&self, workflow_id: &str) -> Result<()> {
+        let key = format!("execution:{}", workflow_id);
+        self.db.remove(key.as_bytes())?;
+        self.db.flush()?;
+        Ok(())
+    }
+
+    /// List all active workflows (Running or Paused)
+    pub fn list_active(&self) -> Result<Vec<ExecutionState>> {
+        let mut states = Vec::new();
+
+        for item in self.db.scan_prefix(b"execution:") {
+            let (_, value) = item?;
+            let state: ExecutionState = serde_json::from_slice(&value)?;
+
+            if matches!(
+                state.status,
+                WorkflowStatus::Running | WorkflowStatus::Paused { .. }
+            ) {
+                states.push(state);
+            }
+        }
+
+        Ok(states)
+    }
+
+    /// List all paused workflows
+    pub fn list_paused(&self) -> Result<Vec<ExecutionState>> {
+        let mut states = Vec::new();
+
+        for item in self.db.scan_prefix(b"execution:") {
+            let (_, value) = item?;
+            let state: ExecutionState = serde_json::from_slice(&value)?;
+
+            if matches!(state.status, WorkflowStatus::Paused { .. }) {
+                states.push(state);
+            }
+        }
+
+        Ok(states)
+    }
+
+    /// List paused workflows that have timed out (paused for >= timeout_seconds)
+    pub fn list_timed_out(&self, timeout_seconds: u64) -> Result<Vec<ExecutionState>> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        let mut states = Vec::new();
+
+        for item in self.db.scan_prefix(b"execution:") {
+            let (_, value) = item?;
+            let state: ExecutionState = serde_json::from_slice(&value)?;
+
+            if let WorkflowStatus::Paused { paused_at, .. } = state.status {
+                if now - paused_at >= timeout_seconds {
+                    states.push(state);
+                }
+            }
+        }
+
+        Ok(states)
+    }
+
+    /// List all workflows by status
+    pub fn list_by_status(&self, status: WorkflowStatus) -> Result<Vec<ExecutionState>> {
+        let mut states = Vec::new();
+
+        for item in self.db.scan_prefix(b"execution:") {
+            let (_, value) = item?;
+            let state: ExecutionState = serde_json::from_slice(&value)?;
+
+            if state.status == status {
+                states.push(state);
+            }
+        }
+
+        Ok(states)
     }
 }
 

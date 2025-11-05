@@ -15,6 +15,10 @@ interface FilterState {
 
 type WorktreesTab = 'list' | 'graph';
 
+function isWorktreeNode(node: GraphNodeUnion): node is WorktreeNode {
+  return node.kind === 'worktree';
+}
+
 function useFilteredWorktrees(
   graph: WorktreeGraph | null,
   filters: FilterState
@@ -22,7 +26,7 @@ function useFilteredWorktrees(
   return useMemo(() => {
     if (!graph) return [] as WorktreeNode[];
     return graph.nodes.filter((node): node is WorktreeNode => {
-      if (node.kind !== 'worktree') return false;
+      if (!isWorktreeNode(node)) return false;
       if (filters.activeOnly && node.worktree.status !== 'active') return false;
       if (filters.issue.trim()) {
         const issueNumber = node.worktree.issue_number?.toString() ?? '';
@@ -44,7 +48,8 @@ export function WorktreesView() {
   const filteredWorktrees = useFilteredWorktrees(graph, filters);
   const selectedWorktree = useMemo(() => {
     if (!graph || !selectedNodeId) return null;
-    return graph.nodes.find((node) => node.id === selectedNodeId && node.kind === 'worktree') ?? null;
+    const node = graph.nodes.find((candidate) => candidate.id === selectedNodeId);
+    return node && isWorktreeNode(node) ? node : null;
   }, [graph, selectedNodeId]);
 
   const loadGraph = useCallback(async () => {

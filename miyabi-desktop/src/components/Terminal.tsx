@@ -115,8 +115,7 @@ export function Terminal({ tabId, fontSize = 13, colorScheme = 'dark' }: Termina
   return (
     <div
       ref={terminalRef}
-      className="w-full h-full bg-gray-900 rounded-3xl overflow-hidden"
-      style={{ padding: '20px' }}
+      className="h-full w-full overflow-hidden rounded-lg bg-[var(--color-terminal-bg)] p-6 shadow-brand-md"
     />
   );
 }

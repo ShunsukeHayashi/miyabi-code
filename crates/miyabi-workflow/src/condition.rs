@@ -5,6 +5,10 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use tracing::warn;
+
+const MAX_EXPRESSION_OPERATIONS: u64 = 25_000;
+const MAX_EXPRESSION_CALL_DEPTH: usize = 32;
 
 /// Condition types for workflow branching
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -23,6 +27,9 @@ pub enum Condition {
 
     /// Check if a field exists in the context
     FieldExists { field: String },
+
+    /// Evaluate a custom expression against the context
+    Expression { expr: String },
 
     /// Multiple conditions (all must be true)
     And(Vec<Condition>),
@@ -75,6 +82,8 @@ impl Condition {
 
             Condition::FieldExists { field } => Self::get_field_value(context, field).is_some(),
 
+            Condition::Expression { expr } => evaluate_expression(expr, context),
+
             Condition::And(conditions) => conditions.iter().all(|c| c.evaluate(context)),
 
             Condition::Or(conditions) => conditions.iter().any(|c| c.evaluate(context)),
@@ -125,6 +134,71 @@ impl Condition {
         Condition::FieldEquals {
             field: field.into(),
             value: json!(false),
+        }
+    }
+}
+
+fn evaluate_expression(expr: &str, context: &Value) -> bool {
+    use rhai::{Engine, Scope};
+
+    if expr.trim().is_empty() {
+        return false;
+    }
+
+    let mut engine = Engine::new();
+    engine.set_max_operations(MAX_EXPRESSION_OPERATIONS);
+    engine.set_max_call_levels(MAX_EXPRESSION_CALL_DEPTH);
+
+    let mut scope = Scope::new();
+    inject_scope(&mut scope, context);
+
+    match engine.eval_with_scope::<bool>(&mut scope, expr) {
+        Ok(result) => result,
+        Err(err) => {
+            warn!(target: "miyabi_workflow::condition", "Failed to evaluate expression '{}': {}", expr, err);
+            false
+        }
+    }
+}
+
+fn inject_scope(scope: &mut rhai::Scope<'_>, context: &Value) {
+    scope.push_dynamic("context", json_to_dynamic(context));
+
+    if let Some(obj) = context.as_object() {
+        for (key, value) in obj {
+            scope.push_dynamic(key.as_str(), json_to_dynamic(value));
+        }
+    }
+}
+
+fn json_to_dynamic(value: &Value) -> rhai::Dynamic {
+    use rhai::{Array, Dynamic, Map};
+
+    match value {
+        Value::Null => Dynamic::UNIT,
+        Value::Bool(b) => Dynamic::from_bool(*b),
+        Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                Dynamic::from_int(i)
+            } else if let Some(u) = n.as_u64() {
+                Dynamic::from_int(u as i64)
+            } else if let Some(f) = n.as_f64() {
+                Dynamic::from_float(f)
+            } else {
+                Dynamic::UNIT
+            }
+        }
+        Value::String(s) => Dynamic::from(s.clone()),
+        Value::Array(items) => {
+            let array: Array = items.iter().map(json_to_dynamic).collect();
+            Dynamic::from_array(array)
+        }
+        Value::Object(obj) => {
+            let mut map = Map::new();
+            for (k, v) in obj {
+                map.insert(k.into(), json_to_dynamic(v));
+            }
+            Dynamic::from_map(map)
         }
     }
 }
@@ -353,5 +427,34 @@ mod tests {
             "quality": 0.95
         });
         assert!(!cond.evaluate(&context3));
+    }
+
+    #[test]
+    fn test_expression_condition_basic() {
+        let cond = Condition::Expression {
+            expr: "success && data.score > 0.85".to_string(),
+        };
+
+        let passing_context = json!({
+            "success": true,
+            "data": { "score": 0.9 }
+        });
+        assert!(cond.evaluate(&passing_context));
+
+        let failing_context = json!({
+            "success": true,
+            "data": { "score": 0.5 }
+        });
+        assert!(!cond.evaluate(&failing_context));
+    }
+
+    #[test]
+    fn test_expression_condition_invalid() {
+        let cond = Condition::Expression {
+            expr: "unknown_value > 5".to_string(),
+        };
+
+        let context = json!({ "value": 10 });
+        assert!(!cond.evaluate(&context));
     }
 }

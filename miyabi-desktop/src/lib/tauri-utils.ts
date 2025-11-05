@@ -23,7 +23,8 @@ export function isTauriAvailable(): boolean {
  */
 export async function safeInvoke<T>(
   command: string,
-  args?: Record<string, unknown>
+  args?: Record<string, unknown>,
+  options?: { suppressErrors?: boolean }
 ): Promise<T | null> {
   if (!isTauriAvailable()) {
     console.warn(
@@ -37,7 +38,10 @@ export async function safeInvoke<T>(
     const { invoke } = await import('@tauri-apps/api/core');
     return await invoke<T>(command, args);
   } catch (error) {
-    console.error(`[Tauri] Failed to invoke "${command}":`, error);
+    // Suppress logging for expected errors if requested
+    if (!options?.suppressErrors) {
+      console.error(`[Tauri] Failed to invoke "${command}":`, error);
+    }
     throw error;
   }
 }

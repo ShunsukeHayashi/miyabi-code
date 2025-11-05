@@ -15,6 +15,11 @@ use miyabi_types::{AgentConfig, AgentResult, Issue};
 use serde_json::json;
 use std::collections::HashMap;
 
+#[cfg(feature = "workflow_dsl")]
+use miyabi_workflow::{
+    ConditionalBranch, ExecutionState, StateStore, StepOutput, WorkflowBuilder, WorkflowStatus,
+};
+
 pub struct CoordinatorAgent {
     #[allow(dead_code)] // Reserved for future Agent configuration
     config: AgentConfig,
@@ -511,6 +516,304 @@ impl CoordinatorAgent {
 
         md
     }
+
+    /// Execute a workflow from WorkflowBuilder with state tracking
+    ///
+    /// This method integrates the WorkflowBuilder API with CoordinatorAgent's
+    /// execution capabilities, enabling:
+    /// - Workflow to DAG conversion
+    /// - Persistent state tracking with StateStore
+    /// - Conditional branching evaluation
+    /// - Step-by-step execution with state updates
+    ///
+    /// # Arguments
+    ///
+    /// * `workflow` - WorkflowBuilder instance defining the workflow
+    /// * `state_path` - Optional path for state persistence (defaults to "./data/workflow-state")
+    ///
+    /// # Returns
+    ///
+    /// * `Result<ExecutionState>` - Final execution state with all step results
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use miyabi_workflow::WorkflowBuilder;
+    /// use miyabi_types::agent::AgentType;
+    ///
+    /// let workflow = WorkflowBuilder::new("issue-resolution")
+    ///     .step("analyze", AgentType::IssueAgent)
+    ///     .then("implement", AgentType::CodeGenAgent)
+    ///     .then("review", AgentType::ReviewAgent);
+    ///
+    /// let coordinator = CoordinatorAgent::new(config);
+    /// let result = coordinator.execute_workflow(&workflow, None).await?;
+    /// ```
+    #[cfg(feature = "workflow_dsl")]
+    pub async fn execute_workflow(
+        &self,
+        workflow: &WorkflowBuilder,
+        state_path: Option<&str>,
+    ) -> Result<ExecutionState> {
+        // Convert workflow to DAG (clone since build_dag consumes self)
+        let dag = workflow
+            .clone()
+            .build_dag()
+            .map_err(|e| MiyabiError::Validation(format!("Failed to build DAG: {}", e)))?;
+
+        // Initialize state store
+        let state_store = if let Some(path) = state_path {
+            StateStore::with_path(path).map_err(|e| {
+                MiyabiError::Validation(format!("Failed to create state store: {}", e))
+            })?
+        } else {
+            StateStore::new().map_err(|e| {
+                MiyabiError::Validation(format!("Failed to create state store: {}", e))
+            })?
+        };
+
+        // Create initial execution state
+        let workflow_id = uuid::Uuid::new_v4().to_string();
+        let mut execution_state = ExecutionState {
+            workflow_id: workflow_id.clone(),
+            session_id: chrono::Utc::now().timestamp().to_string(),
+            current_step: None,
+            completed_steps: Vec::new(),
+            failed_steps: Vec::new(),
+            step_results: HashMap::new(),
+            status: WorkflowStatus::Running,
+            created_at: chrono::Utc::now().timestamp() as u64,
+            updated_at: chrono::Utc::now().timestamp() as u64,
+        };
+
+        // Save initial state
+        state_store
+            .save_execution(&execution_state)
+            .map_err(|e| MiyabiError::Validation(format!("Failed to save initial state: {}", e)))?;
+
+        tracing::info!(
+            "Starting workflow execution: {} ({})",
+            workflow_id,
+            dag.nodes.len()
+        );
+
+        // Track which steps to skip due to conditional branching
+        let mut skipped_steps: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+        // Execute DAG level by level
+        for (level_idx, level) in dag.levels.iter().enumerate() {
+            tracing::info!("Executing level {} with {} tasks", level_idx, level.len());
+
+            // Execute all tasks in this level (can be parallel, but for now sequential)
+            for task_id in level {
+                // Skip if this step is on a non-chosen branch
+                if skipped_steps.contains(task_id) {
+                    tracing::info!("Skipping step {} (not on chosen branch path)", task_id);
+                    continue;
+                }
+
+                execution_state.current_step = Some(task_id.clone());
+                execution_state.updated_at = chrono::Utc::now().timestamp() as u64;
+
+                // Save state before executing step
+                state_store
+                    .save_execution(&execution_state)
+                    .map_err(|e| MiyabiError::Validation(format!("Failed to save state: {}", e)))?;
+
+                // Find the task in DAG
+                let task = dag.nodes.iter().find(|n| &n.id == task_id).ok_or_else(|| {
+                    MiyabiError::Validation(format!("Task not found: {}", task_id))
+                })?;
+
+                tracing::info!("Executing step: {} ({})", task.title, task_id);
+
+                // Execute step (placeholder - actual agent execution would go here)
+                let step_result = self.execute_step_placeholder(task).await?;
+
+                // Update execution state
+                if step_result.success {
+                    execution_state.completed_steps.push(task_id.clone());
+                    tracing::info!("Step completed successfully: {}", task_id);
+                } else {
+                    execution_state.failed_steps.push(task_id.clone());
+                    execution_state.status = WorkflowStatus::Failed;
+                    tracing::error!("Step failed: {}", task_id);
+
+                    // Save final state and return error
+                    state_store.save_execution(&execution_state).map_err(|e| {
+                        MiyabiError::Validation(format!("Failed to save state: {}", e))
+                    })?;
+
+                    return Err(MiyabiError::Validation(format!(
+                        "Step {} failed: {}",
+                        task_id,
+                        step_result
+                            .error
+                            .unwrap_or_else(|| "Unknown error".to_string())
+                    )));
+                }
+
+                // Store step result
+                execution_state.step_results.insert(
+                    task_id.clone(),
+                    serde_json::to_value(&step_result).unwrap_or(serde_json::Value::Null),
+                );
+
+                // Save step output to state store
+                state_store
+                    .save_step(&workflow_id, task_id, &step_result)
+                    .map_err(|e| {
+                        MiyabiError::Validation(format!("Failed to save step output: {}", e))
+                    })?;
+
+                // Handle conditional branching
+                if let Some(ref metadata) = task.metadata {
+                    if let Some(is_cond) = metadata.get("is_conditional") {
+                        if is_cond.as_bool().unwrap_or(false) {
+                            // This is a conditional step - evaluate branches
+                            let branches: Vec<ConditionalBranch> = metadata
+                                .get("conditional_branches")
+                                .and_then(|v| serde_json::from_value(v.clone()).ok())
+                                .ok_or_else(|| {
+                                    MiyabiError::Validation(format!(
+                                        "Failed to deserialize conditional branches for {}",
+                                        task_id
+                                    ))
+                                })?;
+
+                            let branch_context = serde_json::json!({
+                                "success": step_result.success,
+                                "data": step_result.data.clone(),
+                            });
+
+                            // Evaluate branches to find which one to take
+                            let chosen_branch =
+                                Self::evaluate_branches(&branches, &branch_context)?;
+
+                            tracing::info!(
+                                "Conditional step {}: chose branch '{}' -> {}",
+                                task_id,
+                                chosen_branch.name,
+                                chosen_branch.next_step
+                            );
+
+                            // Mark all other branch paths for skipping
+                            for branch in &branches {
+                                if branch.next_step != chosen_branch.next_step {
+                                    // Find all descendant steps of this non-chosen branch
+                                    Self::mark_descendants_for_skip(
+                                        &branch.next_step,
+                                        &dag.edges,
+                                        &mut skipped_steps,
+                                    );
+                                }
+                            }
+
+                            // Store the chosen branch in step results for visibility
+                            execution_state.step_results.insert(
+                                format!("{}_chosen_branch", task_id),
+                                serde_json::json!({
+                                    "branch_name": chosen_branch.name,
+                                    "next_step": chosen_branch.next_step,
+                                }),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // Mark workflow as completed
+        execution_state.status = WorkflowStatus::Completed;
+        execution_state.current_step = None;
+        execution_state.updated_at = chrono::Utc::now().timestamp() as u64;
+
+        // Save final state
+        state_store
+            .save_execution(&execution_state)
+            .map_err(|e| MiyabiError::Validation(format!("Failed to save final state: {}", e)))?;
+
+        tracing::info!("Workflow execution completed: {}", workflow_id);
+
+        Ok(execution_state)
+    }
+
+    /// Placeholder for step execution
+    ///
+    /// In a full implementation, this would:
+    /// 1. Identify the assigned agent from task.assigned_agent
+    /// 2. Execute the agent with appropriate context
+    /// 3. Return the agent's result
+    ///
+    /// For now, returns a mock successful result
+    #[cfg(feature = "workflow_dsl")]
+    async fn execute_step_placeholder(&self, task: &Task) -> Result<StepOutput> {
+        // Simulate step execution
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+        Ok(StepOutput {
+            success: true,
+            data: serde_json::json!({
+                "task_id": task.id,
+                "task_title": task.title,
+                "agent_type": task.assigned_agent.as_ref().map(|a| format!("{:?}", a)),
+            }),
+            error: None,
+            duration_ms: 100,
+        })
+    }
+
+    /// Evaluate conditional branches and return the first matching branch
+    ///
+    /// Branches are evaluated in order, and the first branch whose condition
+    /// evaluates to true is chosen. If no conditions match, returns an error.
+    #[cfg(feature = "workflow_dsl")]
+    fn evaluate_branches(
+        branches: &[ConditionalBranch],
+        context: &serde_json::Value,
+    ) -> Result<ConditionalBranch> {
+        for branch in branches {
+            if branch.condition.evaluate(context) {
+                return Ok(branch.clone());
+            }
+        }
+
+        // No branch matched - this should not happen if there's an Always fallback
+        Err(MiyabiError::Validation(
+            "No conditional branch matched - ensure there's an Always fallback".to_string(),
+        ))
+    }
+
+    /// Mark all descendant steps of a given step for skipping
+    ///
+    /// This recursively finds all steps that depend on the given step
+    /// and marks them to be skipped during execution.
+    #[cfg(feature = "workflow_dsl")]
+    fn mark_descendants_for_skip(
+        start_step: &str,
+        edges: &[Edge],
+        skipped_steps: &mut std::collections::HashSet<String>,
+    ) {
+        // Find direct descendants
+        let mut to_process: Vec<String> = vec![start_step.to_string()];
+        let mut processed: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+        while let Some(step_id) = to_process.pop() {
+            if processed.contains(&step_id) {
+                continue;
+            }
+
+            processed.insert(step_id.clone());
+            skipped_steps.insert(step_id.clone());
+
+            // Find all edges that start from this step
+            for edge in edges {
+                if edge.from == step_id && !processed.contains(&edge.to) {
+                    to_process.push(edge.to.clone());
+                }
+            }
+        }
+    }
 }
 
 #[async_trait]
@@ -613,6 +916,68 @@ mod tests {
             updated_at: chrono::Utc::now(),
             url: "https://github.com/user/repo/issues/123".to_string(),
         }
+    }
+
+    #[cfg(feature = "workflow_dsl")]
+    #[tokio::test]
+    async fn test_execute_workflow_with_branching() {
+        use miyabi_workflow::WorkflowBuilder;
+        use tempfile::TempDir;
+
+        let config = create_test_config();
+        let coordinator = CoordinatorAgent::new(config);
+
+        let workflow = WorkflowBuilder::new("branch-demo")
+            .step("start", AgentType::IssueAgent)
+            .branch("decision", "deploy", "rollback")
+            .parallel(vec![
+                ("deploy", AgentType::DeploymentAgent),
+                ("rollback", AgentType::IssueAgent),
+            ]);
+
+        let temp_dir = TempDir::new().unwrap();
+        let state_path = temp_dir.path().to_str().unwrap();
+
+        let execution = coordinator
+            .execute_workflow(&workflow, Some(state_path))
+            .await
+            .expect("workflow execution");
+
+        assert_eq!(execution.status, WorkflowStatus::Completed);
+
+        let deploy_executed = execution.step_results.iter().any(|(key, value)| {
+            if key.ends_with("_chosen_branch") {
+                return false;
+            }
+            value
+                .get("data")
+                .and_then(|d| d.get("task_title"))
+                .and_then(|title| title.as_str())
+                == Some("deploy")
+        });
+        assert!(deploy_executed, "deploy branch should execute");
+
+        let rollback_executed = execution.step_results.iter().any(|(key, value)| {
+            if key.ends_with("_chosen_branch") {
+                return false;
+            }
+            value
+                .get("data")
+                .and_then(|d| d.get("task_title"))
+                .and_then(|title| title.as_str())
+                == Some("rollback")
+        });
+        assert!(!rollback_executed, "rollback branch should be skipped");
+
+        let chosen_branch = execution
+            .step_results
+            .iter()
+            .find(|(key, _)| key.ends_with("_chosen_branch"))
+            .expect("chosen branch metadata");
+        assert_eq!(
+            chosen_branch.1.get("branch_name").and_then(|v| v.as_str()),
+            Some("pass")
+        );
     }
 
     #[tokio::test]

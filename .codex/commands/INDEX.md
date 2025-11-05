@@ -1,7 +1,7 @@
 # Miyabi Slash Commands Index
 
-**Last Updated**: 2025-10-27
-**Total Commands**: 20
+**Last Updated**: 2025-11-04
+**Total Commands**: 21
 
 スラッシュコマンドの完全インデックス。カテゴリ別に整理されています。
 
@@ -31,6 +31,7 @@
 | `/check-benchmark` | 📊 Benchmarks | ベンチマーク実装チェック |
 | `/pattern3` | 🚀 Workflow | Pattern 3 Hybrid Orchestration起動 |
 | `/pattern3-report` | 📊 Reports | Pattern 3実行結果レポート生成 |
+| `/tmux-control` | 🤖 Agent | TmuxControlAgentでセッション管制 |
 
 ---
 
@@ -316,6 +317,27 @@ Infinity Sprintのログをリアルタイム監視し、イベント発生時�
 - タスク成功: "やったのだ！タスクが1つ完了したのだ！"
 - タスク失敗: "失敗したのだ！でも諦めないのだ！"
 - 全完了: "全部終わったのだ！お疲れ様なのだ！"
+
+---
+
+#### `/tmux-control` - tmux セッション管制
+**File**: `tmux-control.md` (4.3KB)
+**Usage**: `/tmux-control session=<name> pane=%n command="..." mode=send|capture|recover|status`
+
+TmuxControlAgent（つむっくん）が Codex から tmux セッションを整備し、安全な `send-keys`・ログ収集・復旧処理を自動化。
+
+**ユースケース**:
+- `/tmux-control mode=recover` で Infinity Mode のセッション再生成
+- `/tmux-control pane=%2 command="cd ... && ./scripts/miyabi-orchestra.sh coding-ensemble"` で実行コマンド注入
+- `/tmux-control pane=%4 mode=capture` でログ取得
+- `/tmux-control session=Miyabi mode=status` で健康状態確認
+
+**参考資料**:
+- `/docs/TMUX_AI_AGENT_CONTROL_GUIDE.md`
+- `.claude/guides/TMUX_AI_AGENT_CONTROL.md`
+- `.codex/agents/specs/coding/tmux-control-agent.md`
+
+復旧不能 (`mode=recover` で 3 回失敗) の場合は CoordinatorAgent に `status:critical` を返し、人間オペレーターへエスカレーション。
 
 ---
 

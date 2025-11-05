@@ -207,15 +207,11 @@ async fn test_agent_filtering() {
         all_logs.push(log);
     }
 
-<<<<<<< HEAD
     println!(
         "📝 Generated {} logs from {} agents",
         all_logs.len(),
         agents.len()
     );
-=======
-    println!("📝 Generated {} logs from {} agents", all_logs.len(), agents.len());
->>>>>>> origin/main
 
     // Test filtering by each agent
     for target_agent in &agents {
@@ -392,18 +388,10 @@ async fn test_realtime_updates() {
 
     // Verify timestamps are in ascending order (real-time)
     for i in 0..logs.len() - 1 {
-<<<<<<< HEAD
         let current_ts =
             chrono::DateTime::parse_from_rfc3339(&logs[i].timestamp).expect("Valid timestamp");
         let next_ts =
             chrono::DateTime::parse_from_rfc3339(&logs[i + 1].timestamp).expect("Valid timestamp");
-=======
-        let current_ts = chrono::DateTime::parse_from_rfc3339(&logs[i].timestamp)
-            .expect("Valid timestamp");
-        let next_ts = chrono::DateTime::parse_from_rfc3339(&logs[i + 1].timestamp)
-            .expect("Valid timestamp");
->>>>>>> origin/main
-
         assert!(
             next_ts >= current_ts,
             "Timestamps should be in ascending order"
@@ -470,14 +458,10 @@ async fn test_log_streaming_integration() {
         .filter(|log| log.agent_type.as_deref() == Some("CoordinatorAgent"))
         .count();
     println!("   - CoordinatorAgent: {} logs", coordinator_count);
-<<<<<<< HEAD
     assert_eq!(
         coordinator_count, 10,
         "CoordinatorAgent should have 10 logs"
     );
-=======
-    assert_eq!(coordinator_count, 10, "CoordinatorAgent should have 10 logs");
->>>>>>> origin/main
 
     for agent in &agents[1..] {
         // CodeGenAgent and ReviewAgent
@@ -494,27 +478,17 @@ async fn test_log_streaming_integration() {
         let count = logs.iter().filter(|log| log.level == *level).count();
         println!("   - {} level: {} logs", level, count);
         let expected = if i == 0 { 10 } else { 9 }; // INFO has one extra
-<<<<<<< HEAD
         assert_eq!(
             count, expected,
             "{} level should have {} logs",
             level, expected
         );
-=======
-        assert_eq!(count, expected, "{} level should have {} logs", level, expected);
->>>>>>> origin/main
     }
 
     // Test 3: Filter by agent AND level
     let coordinator_errors: Vec<&LDDLog> = logs
         .iter()
-<<<<<<< HEAD
         .filter(|log| log.agent_type.as_deref() == Some("CoordinatorAgent") && log.level == "ERROR")
-=======
-        .filter(|log| {
-            log.agent_type.as_deref() == Some("CoordinatorAgent") && log.level == "ERROR"
-        })
->>>>>>> origin/main
         .collect();
 
     println!("\n📊 Combined filter results:");

@@ -350,7 +350,7 @@ impl LlmClient for OpenAIClient {
                     .content
                     .clone()
                     .unwrap_or_else(|| "Task completed".to_string());
-                Ok(ToolCallResponse::Conclusion(text))
+                Ok(ToolCallResponse::Conclusion { text })
             }
             other => Err(LlmError::ApiError(format!(
                 "Unexpected finish_reason: {}",

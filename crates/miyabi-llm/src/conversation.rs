@@ -43,10 +43,10 @@
 //! ```
 
 use crate::context::LLMContext;
-use crate::error::{LLMError, Result};
 use crate::prompt::LLMPromptTemplate;
 use crate::provider::LLMProvider;
 use crate::types::{ChatMessage, ChatRole, LLMRequest, ReasoningEffort};
+use crate::{LLMError, Result};
 use serde::de::DeserializeOwned;
 use std::sync::Arc;
 
@@ -147,7 +147,9 @@ impl LLMConversation {
     /// Assistant's response text
     pub async fn ask_with_template(&mut self, template: &LLMPromptTemplate) -> Result<String> {
         let vars = self.context.to_prompt_variables();
-        let rendered = template.render(&vars)?;
+        let rendered = template.render(&vars).map_err(|err| {
+            LLMError::Unknown(format!("Failed to render prompt template: {}", err))
+        })?;
 
         self.ask(&rendered).await
     }

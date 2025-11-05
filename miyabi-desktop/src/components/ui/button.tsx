@@ -8,21 +8,24 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = "", variant = "default", size = "default", ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+    const baseStyles =
+      "inline-flex items-center justify-center gap-2 rounded-md font-medium text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50"
 
     const variants = {
-      default: "bg-blue-600 text-white hover:bg-blue-700",
-      destructive: "bg-red-600 text-white hover:bg-red-700",
-      outline: "border border-gray-300 bg-transparent hover:bg-gray-100",
-      secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300",
-      ghost: "hover:bg-gray-100",
-      link: "text-blue-600 underline-offset-4 hover:underline"
+      default: "bg-brand-primary text-white shadow-brand-xs hover:bg-brand-primary/90",
+      destructive: "bg-brand-danger text-white shadow-brand-xs hover:bg-brand-danger/90",
+      outline:
+        "border border-border bg-transparent text-brand-text-primary hover:bg-brand-primary-soft",
+      secondary:
+        "bg-brand-surface text-brand-text-primary shadow-brand-xs hover:bg-white hover:shadow-brand-sm",
+      ghost: "text-brand-text-secondary hover:bg-brand-primary-soft hover:text-brand-text-primary",
+      link: "text-brand-primary underline-offset-4 hover:underline"
     }
 
     const sizes = {
-      default: "h-10 px-4 py-2",
-      sm: "h-9 px-3",
-      lg: "h-11 px-8",
+      default: "h-10 px-4",
+      sm: "h-9 px-3 text-sm",
+      lg: "h-11 px-5 text-base",
       icon: "h-10 w-10"
     }
 

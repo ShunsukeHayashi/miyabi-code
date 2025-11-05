@@ -187,8 +187,8 @@ describe("Phase9 orchestrator integration", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Deployment completed for PR #42./i),
-      ).toBeInTheDocument();
+        screen.queryByText(/Deployment completed for PR #42./i),
+      ).to.not.be.null;
     });
   });
 });

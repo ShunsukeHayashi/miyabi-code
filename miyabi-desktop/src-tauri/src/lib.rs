@@ -8,25 +8,49 @@ mod worktree_graph;
 mod pty;
 mod tmux;
 mod voicevox;
+<<<<<<< HEAD
+mod websocket;
 mod worktree;
+mod worktree_graph;
+=======
+mod worktree;
+>>>>>>> origin/main
 
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
 use ai_naming::suggest_worktree_name;
 use automation::{AutomationConfig, AutomationManager, AutomationReadiness, AutomationSession};
+<<<<<<< HEAD
+use serde_json::Value;
+use config::{
+    clear_config, get_github_repository, get_github_token, save_github_repository,
+    save_github_token, AgentConfig, AgentsConfig,
+};
+=======
 use config::{AgentConfig, AgentsConfig};
+>>>>>>> origin/main
 use events::EventEmitter;
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
 use pty::{PtyManager, SessionInfo, TerminalSession};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+<<<<<<< HEAD
+use tauri::{AppHandle, Manager, State};
+use tmux::{TmuxManager, TmuxSession};
+use tokio::process::Command;
+=======
 use tauri::{AppHandle, State};
 use tmux::{TmuxManager, TmuxSession};
 use tokio::sync::Mutex as TokioMutex;
+>>>>>>> origin/main
 use voicevox::{
     check_voicevox_engine, generate_narration, get_speakers, start_voicevox_engine,
     NarrationRequest, NarrationResult, SpeakerConfig,
 };
+<<<<<<< HEAD
+use websocket::WebSocketServer;
+=======
+>>>>>>> origin/main
 use worktree::{
     cleanup_worktrees, create_worktree, get_worktree_status, list_worktrees, remove_worktree,
     WorktreeManagerState,
@@ -37,11 +61,21 @@ struct AppState {
     event_emitter: Arc<EventEmitter>,
 }
 
+<<<<<<< HEAD
+const DEFAULT_ORCHESTRA_SESSION: &str = "miyabi-refactor";
+
+// Initialize WorktreeManagerState from repository root
+fn init_worktree_manager() -> Result<WorktreeManagerState, String> {
+    // Find repository root
+    let mut current_dir =
+        env::current_dir().map_err(|e| format!("Failed to get current directory: {}", e))?;
+=======
 // Initialize WorktreeManagerState from repository root
 fn init_worktree_manager() -> Result<WorktreeManagerState, String> {
     // Find repository root
     let mut current_dir = env::current_dir()
         .map_err(|e| format!("Failed to get current directory: {}", e))?;
+>>>>>>> origin/main
 
     loop {
         if current_dir.join(".git").exists() {
@@ -297,6 +331,36 @@ async fn tmux_check_session_exists(session_name: String) -> Result<bool, String>
     TmuxManager::check_session_exists(&session_name).await
 }
 
+#[tauri::command]
+async fn tmux_orchestra_status(session_name: Option<String>) -> Result<Value, String> {
+    let config_path = resolve_agents_config_path()?;
+    let repo_root = resolve_repo_root(&config_path)?;
+    let script_path = repo_root.join("scripts").join("miyabi_orchestra_status_exporter.py");
+
+    if !script_path.exists() {
+        return Err(format!(
+            "Status exporter script not found: {:?}",
+            script_path
+        ));
+    }
+
+    let session = session_name.unwrap_or_else(|| DEFAULT_ORCHESTRA_SESSION.to_string());
+    let output = Command::new(&script_path)
+        .arg("--session")
+        .arg(&session)
+        .output()
+        .await
+        .map_err(|e| format!("Failed to execute exporter script: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Exporter script failed: {}", stderr.trim()));
+    }
+
+    serde_json::from_slice::<Value>(&output.stdout)
+        .map_err(|e| format!("Invalid JSON from exporter: {}", e))
+}
+
 // ========== Automation Commands (Claude Code + Codex + Orchestrator) ==========
 
 #[tauri::command]
@@ -450,8 +514,27 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+<<<<<<< HEAD
+            // Initialize WebSocket server
+            let ws_server = Arc::new(WebSocketServer::new());
+
+            // Start WebSocket server on port 9001
+            let ws_server_clone = ws_server.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = ws_server_clone.start(9001).await {
+                    eprintln!("❌ Failed to start WebSocket server: {}", e);
+                } else {
+                    println!("✅ WebSocket server started successfully on ws://127.0.0.1:9001");
+                }
+            });
+
+            // Initialize EventEmitter with AppHandle and WebSocket server
+            let event_emitter =
+                Arc::new(EventEmitter::new(app.handle().clone(), ws_server.clone()));
+=======
             // Initialize EventEmitter with AppHandle
             let event_emitter = Arc::new(EventEmitter::new(app.handle().clone()));
+>>>>>>> origin/main
 
             // Manage AppState with EventEmitter
             app.manage(AppState {
@@ -485,6 +568,12 @@ pub fn run() {
             list_issues_command,
             get_issue_command,
             update_issue_command,
+            // App config commands
+            save_github_token,
+            get_github_token,
+            save_github_repository,
+            get_github_repository,
+            clear_config,
             // Tmux commands
             tmux_start_agent,
             tmux_list_sessions,
@@ -492,12 +581,23 @@ pub fn run() {
             tmux_load_config,
             tmux_get_session_output,
             tmux_check_session_exists,
+            tmux_orchestra_status,
             // Automation commands
             get_automation_readiness,
             start_full_automation,
             stop_full_automation,
             get_automation_status,
             load_automation_config_from_env,
+<<<<<<< HEAD
+            // Window and Pane Monitoring/Control
+            automation::list_session_windows,
+            automation::list_window_panes,
+            automation::send_to_pane,
+            automation::get_pane_content,
+            automation::focus_window,
+            automation::focus_pane,
+=======
+>>>>>>> origin/main
             // Worktree commands
             list_worktrees,
             worktrees_graph_command,

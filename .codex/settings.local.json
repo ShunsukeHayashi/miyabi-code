@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tools/voicevox_enqueue.sh 'セッション開始なのだ！Miyabiプロジェクトで作業を始めるのだ！リアルタイムナレーションモード起動なのだ！' 3 1.0",
+            "command": "tools/session_start_narration.sh",
             "timeout": 5
           },
           {

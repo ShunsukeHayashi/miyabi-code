@@ -1,339 +1,255 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
-  Terminal as TerminalIcon,
-  Bot,
-  Settings,
-  Network,
-  Volume2,
-  ListTodo,
-  Rocket,
-  ShieldCheck,
-  Layers,
-  Zap,
+  Command,
+  GitBranch,
+  LayoutDashboard,
+  MonitorSmartphone,
+  Settings as SettingsIcon,
+  SquareKanban,
 } from "lucide-react";
-import { TerminalManager } from "./components/TerminalManager";
-import { AgentExecutionPanel } from "./components/AgentExecutionPanel";
-import { WorkflowDAGViewer } from "./components/WorkflowDAGViewer";
-import { NarrationPlayer } from "./components/NarrationPlayer";
-import { IssueDashboard } from "./components/IssueDashboard";
+import clsx from "clsx";
 import { SettingsPanel } from "./components/SettingsPanel";
-import { DeploymentDashboard } from "./components/DeploymentDashboard";
-import { AutoMergeSettings } from "./components/AutoMergeSettings";
-import { CommandPalette } from "./components/CommandPalette";
+import { TmuxMonitorPanelV2 } from "./components/TmuxMonitorPanelV2";
 import { TmuxManager } from "./components/TmuxManager";
-import { FullAutomationPanel } from "./components/FullAutomationPanel";
-import { TauriStatusIndicator } from "./components/TauriStatusIndicator";
+import { DashboardOverview } from "./components/DashboardOverview";
 import { WorktreesView } from "./views/Worktrees";
+import { IssueDashboard } from "./components/IssueDashboard";
+import { CommandPalette } from "./components/CommandPalette";
 import "./App.css";
 import { Phase9Provider } from "./context/Phase9Context";
+import { ToastProvider } from "./components/ui";
+
+type ViewId = "dashboard" | "monitor" | "worktrees" | "issues" | "settings";
+
+interface ViewDefinition {
+  id: ViewId;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+const VIEW_DEFINITIONS: ViewDefinition[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    description: "システム全体の概要",
+    icon: LayoutDashboard,
+  },
+  {
+    id: "monitor",
+    label: "tmux Monitor",
+    description: "tmuxセッションの監視と操作",
+    icon: MonitorSmartphone,
+  },
+  {
+    id: "worktrees",
+    label: "Worktrees",
+    description: "ワークツリーの可視化",
+    icon: GitBranch,
+  },
+  {
+    id: "issues",
+    label: "Issues",
+    description: "課題の状況と進捗",
+    icon: SquareKanban,
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    description: "アプリケーション設定",
+    icon: SettingsIcon,
+  },
+];
 
 function App() {
-  const [activePanel, setActivePanel] = useState("dashboard");
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [activeView, setActiveView] = useState<ViewId>("dashboard");
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const openPalette = useCallback(() => setIsPaletteOpen(true), []);
 
-  // Keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K for command palette
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setCommandPaletteOpen(true);
-      }
-      // Cmd/Ctrl + Shift + P for command palette (VS Code style)
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "p") {
-        e.preventDefault();
-        setCommandPaletteOpen(true);
-      }
-      // Cmd/Ctrl + 1-9 for quick panel switching
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
-        const panels = [
-          "dashboard",
-          "deployment",
-          "terminal",
-          "workflow",
-          "worktrees",
-          "narration",
-          "issues",
-          "auto-merge",
-          "tmux",
-          "automation",
-        ];
-        const num = parseInt(e.key);
-        if (num >= 1 && num <= panels.length) {
-          e.preventDefault();
-          setActivePanel(panels[num - 1]);
-        }
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        openPalette();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [openPalette]);
+
+  const activeViewDefinition = useMemo(
+    () => VIEW_DEFINITIONS.find((view) => view.id === activeView) ?? VIEW_DEFINITIONS[0],
+    [activeView]
+  );
+
+  const handleNavigate = useCallback(
+    (view: string) => {
+      if ((VIEW_DEFINITIONS as { id: ViewId }[]).some((item) => item.id === view)) {
+        setActiveView(view as ViewId);
+        setIsPaletteOpen(false);
+      }
+    },
+    [setActiveView, setIsPaletteOpen]
+  );
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case "dashboard":
+        return (
+          <div className="h-full overflow-y-auto">
+            <div className="mx-auto flex max-w-6xl flex-col gap-6 py-6">
+              <DashboardOverview />
+            </div>
+          </div>
+        );
+      case "monitor":
+        return (
+          <div className="h-full overflow-y-auto">
+            <div className="mx-auto flex max-w-6xl flex-col gap-6 py-6">
+              <TmuxManager />
+              <TmuxMonitorPanelV2 className="min-h-[480px] overflow-hidden" />
+            </div>
+          </div>
+        );
+      case "worktrees":
+        return (
+          <div className="h-full overflow-y-auto">
+            <div className="mx-auto max-w-6xl py-6">
+              <WorktreesView />
+            </div>
+          </div>
+        );
+      case "issues":
+        return (
+          <div className="h-full overflow-y-auto">
+            <div className="mx-auto max-w-5xl py-6">
+              <IssueDashboard />
+            </div>
+          </div>
+        );
+      case "settings":
+        return (
+          <div className="h-full overflow-y-auto">
+            <div className="mx-auto max-w-4xl py-6">
+              <SettingsPanel />
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Phase9Provider>
-      <div className="flex flex-col h-screen bg-white text-gray-900">
-        {/* Tauri Status Banner */}
-        <TauriStatusIndicator />
+      <ToastProvider>
+        <div className="app-shell flex h-screen bg-gray-50 text-gray-900 dark:bg-slate-950 dark:text-slate-100">
+          <aside className="hidden w-64 border-r border-gray-200 bg-white/80 px-6 pb-8 pt-10 backdrop-blur lg:flex lg:flex-col dark:border-slate-800 dark:bg-slate-900/80">
+            <div className="mb-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-gray-400">Miyabi</p>
+              <h1 className="mt-2 text-2xl font-light text-gray-900">Desktop</h1>
+            </div>
+            <nav className="flex-1 space-y-2">
+              {VIEW_DEFINITIONS.map((view) => {
+                const Icon = view.icon;
+                const isActive = activeView === view.id;
+                return (
+                  <button
+                    key={view.id}
+                    type="button"
+                    onClick={() => handleNavigate(view.id)}
+                    className={clsx(
+                      "flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition",
+                      isActive
+                        ? "border-gray-900 bg-gray-900 text-white shadow-sm"
+                        : "border-transparent bg-white text-gray-700 hover:border-gray-200 hover:bg-gray-50"
+                    )}
+                  >
+                    <span
+                      className={clsx(
+                        "flex h-10 w-10 items-center justify-center rounded-xl border text-sm",
+                        isActive
+                          ? "border-white/20 bg-white/10 text-white"
+                          : "border-gray-200 bg-gray-100 text-gray-600"
+                      )}
+                    >
+                      <Icon size={18} strokeWidth={1.5} />
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="text-sm font-medium tracking-wide">
+                        {view.label}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {view.description}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="mt-10 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400">
+              <p className="font-semibold text-gray-700">ショートカット</p>
+              <p className="mt-2 flex items-center gap-2">
+                <span className="rounded-md bg-white px-2 py-1 font-semibold text-gray-700 shadow-sm">⌘</span>
+                <span className="rounded-md bg-white px-2 py-1 font-semibold text-gray-700 shadow-sm">K</span>
+                <span className="text-gray-400">/</span>
+                <span className="rounded-md bg-white px-2 py-1 font-semibold text-gray-700 shadow-sm">Ctrl</span>
+                <span className="rounded-md bg-white px-2 py-1 font-semibold text-gray-700 shadow-sm">K</span>
+              </p>
+              <p className="mt-3 text-gray-500">コマンドパレットを開く</p>
+            </div>
+          </aside>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar - Ultra Minimal */}
-          <div className="w-20 bg-gray-50 border-r border-gray-200 flex flex-col items-center py-8 space-y-8">
-        <div className="text-3xl font-extralight text-gray-900">M</div>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-6 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+              <div className="flex items-center gap-3">
+                <div className="lg:hidden">
+                  <button
+                    type="button"
+                    onClick={openPalette}
+                    className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-500 hover:text-gray-900"
+                  >
+                    <Command size={14} />
+                    メニュー
+                  </button>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+                    {activeViewDefinition.description}
+                  </p>
+                  <h2 className="text-xl font-light text-gray-900">{activeViewDefinition.label}</h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={openPalette}
+                className="hidden items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-500 hover:text-gray-900 lg:inline-flex"
+              >
+                <Command size={16} />
+                コマンドパレット
+                <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">⌘K</span>
+              </button>
+            </header>
 
-        <nav className="flex-1 flex flex-col space-y-6">
-          <button
-            onClick={() => setActivePanel("dashboard")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "dashboard"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="エージェント実行 - AIエージェントを選択して実行"
-          >
-            <Bot size={24} strokeWidth={1.5} />
-          </button>
+            <main className="flex flex-1 flex-col overflow-hidden bg-gray-50">
+              <div className="flex-1 overflow-hidden p-4 sm:p-6">
+                <div className="h-full overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+                  {renderActiveView()}
+                </div>
+              </div>
+            </main>
+          </div>
 
-          <button
-            onClick={() => setActivePanel("deployment")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "deployment"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="Deployment Control"
-          >
-            <Rocket size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("terminal")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "terminal"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="ターミナル - コマンド実行と詳細ログ確認"
-          >
-            <TerminalIcon size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("workflow")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "workflow"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="ワークフローDAG - エージェントの実行フロー可視化"
-          >
-            <Network size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("narration")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "narration"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="VOICEVOX音声 - Git履歴から音声ガイド生成"
-          >
-            <Volume2 size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("issues")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "issues"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="GitHub Issues - Issue管理とカンバンボード"
-          >
-            <ListTodo size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("auto-merge")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "auto-merge"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="Auto-Merge Settings"
-          >
-            <ShieldCheck size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("tmux")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "tmux"
-                ? "bg-gray-900 text-white"
-                : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            title="Tmux Agent Manager - 外部コーディングエージェント管理"
-          >
-            <Layers size={24} strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setActivePanel("automation")}
-            className={`p-4 rounded-xl transition-all duration-200 ${
-              activePanel === "automation"
-                ? "bg-yellow-500 text-white"
-                : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"
-            }`}
-            title="Full Automation - Claude Code + Codex + Orchestrator完全自動化"
-          >
-            <Zap size={24} strokeWidth={1.5} />
-          </button>
-        </nav>
-
-        <button
-          onClick={() => setActivePanel("settings")}
-          className={`p-4 rounded-xl transition-all duration-200 ${
-            activePanel === "settings"
-              ? "bg-gray-900 text-white"
-              : "text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-          }`}
-          title="Settings"
-        >
-          <Settings size={24} strokeWidth={1.5} />
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Content Area - Breathable Space */}
-        <div className="flex-1 overflow-auto">
-          {activePanel === "dashboard" && <DashboardPanel />}
-          {activePanel === "deployment" && <DeploymentPanel />}
-          {activePanel === "terminal" && <TerminalPanel />}
-          {activePanel === "workflow" && <WorkflowPanel />}
-          {activePanel === "worktrees" && <WorktreesPanel />}
-          {activePanel === "narration" && <NarrationPanel />}
-          {activePanel === "issues" && <IssuesPanel />}
-          {activePanel === "auto-merge" && <AutoMergePanel />}
-          {activePanel === "tmux" && <TmuxPanel />}
-          {activePanel === "automation" && <FullAutomationPanel />}
-          {activePanel === "settings" && <SettingsPanelWrapper />}
+          <CommandPalette
+            isOpen={isPaletteOpen}
+            onClose={() => setIsPaletteOpen(false)}
+            onNavigate={handleNavigate}
+          />
         </div>
-
-        {/* Status Bar - Ultra Thin */}
-        <div className="h-10 bg-gray-50 border-t border-gray-200 flex items-center px-6 text-xs font-light text-gray-500">
-          <span>Agents: Idle</span>
-          <span className="mx-3">·</span>
-          <span>CPU: 12%</span>
-          <span className="mx-3">·</span>
-          <span>Memory: 2.3 GB</span>
-          <span className="mx-3">·</span>
-          <button
-            onClick={() => setCommandPaletteOpen(true)}
-            className="text-gray-400 hover:text-gray-900 transition-colors"
-          >
-            ⌘K でコマンドパレット
-          </button>
-        </div>
-      </div>
-
-        {/* Command Palette */}
-        <CommandPalette
-          isOpen={commandPaletteOpen}
-          onClose={() => setCommandPaletteOpen(false)}
-          onNavigate={(panel) => {
-            setActivePanel(panel);
-            setCommandPaletteOpen(false);
-          }}
-        />
-        </div>
-      </div>
+      </ToastProvider>
     </Phase9Provider>
-  );
-}
-
-function DashboardPanel() {
-  return <AgentExecutionPanel />;
-}
-
-function DeploymentPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <DeploymentDashboard />
-    </div>
-  );
-}
-
-function TerminalPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <TerminalManager />
-    </div>
-  );
-}
-
-function WorkflowPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <WorkflowDAGViewer />
-    </div>
-  );
-}
-
-function WorktreesPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <WorktreesView />
-    </div>
-  );
-}
-
-function NarrationPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <NarrationPlayer />
-    </div>
-  );
-}
-
-function IssuesPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <IssueDashboard />
-    </div>
-  );
-}
-
-function AutoMergePanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <AutoMergeSettings />
-    </div>
-  );
-}
-
-function TmuxPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <TmuxManager />
-    </div>
-  );
-}
-
-function AutomationPanel() {
-  return (
-    <div className="h-full flex flex-col">
-      <FullAutomationPanel />
-    </div>
-  );
-}
-
-function SettingsPanelWrapper() {
-  return (
-    <div className="h-full flex flex-col">
-      <SettingsPanel />
-    </div>
   );
 }
 

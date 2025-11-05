@@ -1,47 +1,48 @@
 [package]
 name = "miyabi-dag"
 version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
-homepage.workspace = true
-description.workspace = true
-keywords.workspace = true
-categories.workspace = true
+edition = "2021"
+authors = ["Shunsuke Hayashi"]
+license = "Apache-2.0"
+description = "DAG-based task graph for Miyabi Ω-System - θ₃ Allocation Phase"
+keywords = ["dag", "graph", "parallel", "task", "workflow"]
+categories = ["algorithms", "data-structures"]
+repository = "https://github.com/ShunsukeHayashi/Miyabi"
+readme = "README.md"
 
 [dependencies]
-# Graph algorithms
-petgraph = "0.6"
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+# Core dependencies
+miyabi-types = { version = "1.1.0", path = "../miyabi-types" }
 
 # Error handling
-thiserror = "1.0"
+thiserror = { workspace = true }
+anyhow = { workspace = true }
 
-# Async support
-tokio = { version = "1.35", features = ["full"] }
-async-trait = "0.1"
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Data structures
+petgraph = "0.6"  # Graph data structure library
+indexmap = { version = "2.0", features = ["serde"] }  # Ordered hash map
+
+# Regular expressions
+regex = "1.10"
 
 # Logging
-tracing = "0.1"
+tracing = { workspace = true }
 
-# Time utilities
-chrono = { version = "0.4", features = ["serde"] }
-
-# Internal dependencies
-# Temporarily commented out to test miyabi-dag independently
-# miyabi-types = { path = "../miyabi-types" }
-# miyabi-core = { path = "../miyabi-core" }
+# UUID generation
+uuid = { workspace = true }
 
 [dev-dependencies]
-tokio-test = "0.4"
-pretty_assertions = "1.4"
+# Testing
+insta = { workspace = true }
+serial_test = { workspace = true }
+
+# Benchmarking
 criterion = { version = "0.5", features = ["html_reports"] }
 
 [[bench]]
-name = "bench_dag"
+name = "dag_benchmark"
 harness = false

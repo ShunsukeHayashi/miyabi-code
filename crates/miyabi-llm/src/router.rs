@@ -1,13 +1,15 @@
-//! Hybrid LLM Router - Smart routing between Claude and OpenAI
+//! Hybrid LLM Router - Smart routing between Claude, OpenAI, and Google
 //!
-//! Implements cost-optimized routing strategy:
-//! - Claude Sonnet 4.5 for complex reasoning tasks
-//! - GPT-4o-mini for simple, fast tasks
+//! Implements 3-tier cost-optimized routing strategy:
+//! - GPT-4o-mini for simple, fast tasks ($0.15/1M tokens)
+//! - Gemini Flash for medium complexity tasks ($0.2/1M tokens)
+//! - Claude Sonnet 4.5 for complex reasoning tasks ($3.0/1M tokens)
 //!
-//! Cost reduction: 60% ($30/month → $12/month for 100 issues)
+//! Cost reduction: 60-70% vs pure Claude approach
 
 use crate::{
-    AnthropicClient, LlmClient, Message, OpenAIClient, Result, ToolCallResponse, ToolDefinition,
+    AnthropicClient, GoogleClient, LlmClient, Message, OpenAIClient, Result, ToolCallResponse,
+    ToolDefinition,
 };
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -17,9 +19,11 @@ use tokio::sync::RwLock;
 /// Task complexity level determining which LLM to use
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TaskComplexity {
-    /// Simple tasks: D1, D8, D11 (GPT-4o-mini)
+    /// Simple tasks: Documentation, formatting, typos (GPT-4o-mini)
     Simple,
-    /// Complex tasks: D2, D5, D15 (Claude Sonnet 4.5)
+    /// Medium tasks: Standard coding, testing, reviews (Gemini Flash)
+    Medium,
+    /// Complex tasks: Architecture, refactoring, security (Claude Sonnet 4.5)
     Complex,
 }
 
@@ -28,21 +32,21 @@ impl TaskComplexity {
     pub fn from_keywords(content: &str) -> Self {
         let content_lower = content.to_lowercase();
 
-        // Complex task indicators
+        // Complex task indicators (highest priority)
         let complex_keywords = [
             "refactor",
             "architecture",
             "design pattern",
             "deep reasoning",
-            "multi-step",
-            "complex logic",
-            "algorithm design",
             "system design",
             "security audit",
             "performance optimization",
+            "distributed system",
+            "concurrency",
+            "memory safety",
         ];
 
-        // Simple task indicators
+        // Simple task indicators (lowest priority)
         let simple_keywords = [
             "documentation",
             "comment",
@@ -54,24 +58,46 @@ impl TaskComplexity {
             "update version",
         ];
 
-        // Check for complex indicators first
+        // Medium task indicators (standard development)
+        let medium_keywords = [
+            "implement",
+            "add feature",
+            "bug fix",
+            "test",
+            "review",
+            "integration",
+            "api",
+            "endpoint",
+            "function",
+            "method",
+            "class",
+            "struct",
+        ];
+
+        // Check for complex indicators first (most expensive, best quality)
         if complex_keywords.iter().any(|kw| content_lower.contains(kw)) {
             return Self::Complex;
         }
 
-        // Check for simple indicators
+        // Check for simple indicators (cheapest, fastest)
         if simple_keywords.iter().any(|kw| content_lower.contains(kw)) {
             return Self::Simple;
         }
 
-        // Default to complex for safety (quality over cost)
-        Self::Complex
+        // Check for medium indicators
+        if medium_keywords.iter().any(|kw| content_lower.contains(kw)) {
+            return Self::Medium;
+        }
+
+        // Default to medium for unknown tasks (balanced approach)
+        Self::Medium
     }
 
     /// Get estimated cost per 1M tokens (input + output combined)
     pub fn estimated_cost_per_million_tokens(&self) -> f64 {
         match self {
             Self::Simple => 0.15,  // GPT-4o-mini: ~$0.15/1M tokens
+            Self::Medium => 0.20,  // Gemini Flash: ~$0.20/1M tokens
             Self::Complex => 3.00, // Claude Sonnet 4.5: ~$3/1M tokens (avg)
         }
     }
@@ -80,7 +106,17 @@ impl TaskComplexity {
     pub fn model_name(&self) -> &'static str {
         match self {
             Self::Simple => "gpt-4o-mini",
+            Self::Medium => "gemini-1.5-flash",
             Self::Complex => "claude-3-5-sonnet-20241022",
+        }
+    }
+
+    /// Get provider name for this complexity
+    pub fn provider_name(&self) -> &'static str {
+        match self {
+            Self::Simple => "openai",
+            Self::Medium => "google",
+            Self::Complex => "anthropic",
         }
     }
 }
@@ -92,10 +128,14 @@ pub struct CostMetrics {
     pub claude_tokens: u64,
     /// Total tokens processed by OpenAI
     pub openai_tokens: u64,
+    /// Total tokens processed by Google
+    pub google_tokens: u64,
     /// Number of Claude requests
     pub claude_requests: u64,
     /// Number of OpenAI requests
     pub openai_requests: u64,
+    /// Number of Google requests
+    pub google_requests: u64,
     /// Estimated total cost (USD)
     pub estimated_cost_usd: f64,
 }
@@ -110,6 +150,12 @@ impl CostMetrics {
                 self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
                     * TaskComplexity::Simple.estimated_cost_per_million_tokens();
             }
+            TaskComplexity::Medium => {
+                self.google_tokens += tokens;
+                self.google_requests += 1;
+                self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
+                    * TaskComplexity::Medium.estimated_cost_per_million_tokens();
+            }
             TaskComplexity::Complex => {
                 self.claude_tokens += tokens;
                 self.claude_requests += 1;
@@ -121,12 +167,12 @@ impl CostMetrics {
 
     /// Get total tokens processed
     pub fn total_tokens(&self) -> u64 {
-        self.claude_tokens + self.openai_tokens
+        self.claude_tokens + self.openai_tokens + self.google_tokens
     }
 
     /// Get total requests
     pub fn total_requests(&self) -> u64 {
-        self.claude_requests + self.openai_requests
+        self.claude_requests + self.openai_requests + self.google_requests
     }
 
     /// Get cost savings vs pure Claude
@@ -152,19 +198,25 @@ impl CostMetrics {
 
 /// Hybrid LLM Router
 ///
-/// Routes requests to Claude or OpenAI based on task complexity
+/// Routes requests to Claude, OpenAI, or Google based on task complexity
 pub struct HybridRouter {
     claude_client: AnthropicClient,
     openai_client: OpenAIClient,
+    google_client: GoogleClient,
     metrics: Arc<RwLock<CostMetrics>>,
 }
 
 impl HybridRouter {
     /// Create a new hybrid router
-    pub fn new(claude_client: AnthropicClient, openai_client: OpenAIClient) -> Self {
+    pub fn new(
+        claude_client: AnthropicClient,
+        openai_client: OpenAIClient,
+        google_client: GoogleClient,
+    ) -> Self {
         Self {
             claude_client,
             openai_client,
+            google_client,
             metrics: Arc::new(RwLock::new(CostMetrics::default())),
         }
     }
@@ -173,16 +225,14 @@ impl HybridRouter {
     pub fn from_env() -> Result<Self> {
         let claude_client = AnthropicClient::from_env()?;
         let openai_client = OpenAIClient::from_env()?;
-        Ok(Self::new(claude_client, openai_client))
+        let google_client = GoogleClient::from_env()?.with_flash(); // Use Flash for cost-effectiveness
+        Ok(Self::new(claude_client, openai_client, google_client))
     }
 
     /// Determine task complexity from messages
     fn determine_complexity(&self, messages: &[Message]) -> TaskComplexity {
         // Analyze the last user message for complexity indicators
-        let last_message = messages
-            .iter()
-            .rev()
-            .find(|m| m.role == crate::message::Role::User);
+        let last_message = messages.iter().rev().find(|m| m.role == crate::Role::User);
 
         if let Some(msg) = last_message {
             TaskComplexity::from_keywords(&msg.content)
@@ -207,6 +257,7 @@ impl HybridRouter {
         let complexity = self.determine_complexity(messages);
         let client: &dyn LlmClient = match complexity {
             TaskComplexity::Simple => &self.openai_client,
+            TaskComplexity::Medium => &self.google_client,
             TaskComplexity::Complex => &self.claude_client,
         };
         (complexity, client)
@@ -255,7 +306,7 @@ impl LlmClient for HybridRouter {
                 .iter()
                 .map(|tc| (tc.name.len() + tc.arguments.to_string().len()) / 4)
                 .sum::<usize>() as u64,
-            ToolCallResponse::Conclusion(text) => (text.len() / 4) as u64,
+            ToolCallResponse::Conclusion { text } => (text.len() / 4) as u64,
             ToolCallResponse::NeedApproval { action, reason } => {
                 ((action.len() + reason.len()) / 4) as u64
             }
@@ -267,6 +318,14 @@ impl LlmClient for HybridRouter {
             .record_request(complexity, estimated_tokens);
 
         Ok(response)
+    }
+
+    fn provider_name(&self) -> &str {
+        "hybrid-router"
+    }
+
+    fn model_name(&self) -> &str {
+        "gpt-4o-mini + gemini-1.5-flash + claude-3-5-sonnet"
     }
 }
 
@@ -291,6 +350,26 @@ mod tests {
     }
 
     #[test]
+    fn test_complexity_from_keywords_medium() {
+        assert_eq!(
+            TaskComplexity::from_keywords("Implement new API endpoint"),
+            TaskComplexity::Medium
+        );
+        assert_eq!(
+            TaskComplexity::from_keywords("Add feature for user authentication"),
+            TaskComplexity::Medium
+        );
+        assert_eq!(
+            TaskComplexity::from_keywords("Bug fix in the payment integration"),
+            TaskComplexity::Medium
+        );
+        assert_eq!(
+            TaskComplexity::from_keywords("Write tests for the struct"),
+            TaskComplexity::Medium
+        );
+    }
+
+    #[test]
     fn test_complexity_from_keywords_complex() {
         assert_eq!(
             TaskComplexity::from_keywords("Refactor the authentication system"),
@@ -304,14 +383,18 @@ mod tests {
             TaskComplexity::from_keywords("Perform security audit on the codebase"),
             TaskComplexity::Complex
         );
+        assert_eq!(
+            TaskComplexity::from_keywords("Implement distributed system consensus"),
+            TaskComplexity::Complex
+        );
     }
 
     #[test]
     fn test_complexity_default() {
-        // Unknown tasks default to complex
+        // Unknown tasks default to medium
         assert_eq!(
             TaskComplexity::from_keywords("Some random task"),
-            TaskComplexity::Complex
+            TaskComplexity::Medium
         );
     }
 
@@ -324,37 +407,85 @@ mod tests {
             metrics.record_request(TaskComplexity::Simple, 10_000);
         }
 
+        // Record 10 medium requests (10k tokens each)
+        for _ in 0..10 {
+            metrics.record_request(TaskComplexity::Medium, 10_000);
+        }
+
         // Record 5 complex requests (10k tokens each)
         for _ in 0..5 {
             metrics.record_request(TaskComplexity::Complex, 10_000);
         }
 
         assert_eq!(metrics.openai_tokens, 100_000);
+        assert_eq!(metrics.google_tokens, 100_000);
         assert_eq!(metrics.claude_tokens, 50_000);
         assert_eq!(metrics.openai_requests, 10);
+        assert_eq!(metrics.google_requests, 10);
         assert_eq!(metrics.claude_requests, 5);
-        assert_eq!(metrics.total_tokens(), 150_000);
-        assert_eq!(metrics.total_requests(), 15);
+        assert_eq!(metrics.total_tokens(), 250_000);
+        assert_eq!(metrics.total_requests(), 25);
 
         // Cost calculation:
         // OpenAI: 100k tokens × $0.15/1M = $0.015
+        // Google: 100k tokens × $0.20/1M = $0.020
         // Claude: 50k tokens × $3.00/1M = $0.15
-        // Total: $0.165
-        assert!((metrics.estimated_cost_usd - 0.165).abs() < 0.001);
+        // Total: $0.185
+        assert!((metrics.estimated_cost_usd - 0.185).abs() < 0.001);
 
-        // Pure Claude cost: 150k tokens × $3.00/1M = $0.45
-        // Savings: $0.45 - $0.165 = $0.285
-        // Percentage: 63.3%
+        // Pure Claude cost: 250k tokens × $3.00/1M = $0.75
+        // Savings: $0.75 - $0.185 = $0.565
+        // Percentage: 75.3%
         let savings = metrics.savings_percentage();
-        assert!(savings > 60.0 && savings < 65.0);
+        assert!(savings > 73.0 && savings < 78.0);
+    }
+
+    #[test]
+    fn test_cost_metrics_3tier_breakdown() {
+        let mut metrics = CostMetrics::default();
+
+        // Simulate realistic workload distribution:
+        // 30% simple, 50% medium, 20% complex
+        for _ in 0..30 {
+            metrics.record_request(TaskComplexity::Simple, 10_000);
+        }
+        for _ in 0..50 {
+            metrics.record_request(TaskComplexity::Medium, 10_000);
+        }
+        for _ in 0..20 {
+            metrics.record_request(TaskComplexity::Complex, 10_000);
+        }
+
+        assert_eq!(metrics.total_requests(), 100);
+        assert_eq!(metrics.total_tokens(), 1_000_000);
+
+        // Cost breakdown:
+        // OpenAI: 300k × $0.15/1M = $0.045
+        // Google: 500k × $0.20/1M = $0.100
+        // Claude: 200k × $3.00/1M = $0.600
+        // Total: $0.745
+        assert!((metrics.estimated_cost_usd - 0.745).abs() < 0.001);
+
+        // Pure Claude: 1M × $3.00/1M = $3.00
+        // Savings: $3.00 - $0.745 = $2.255 (75.2%)
+        let savings = metrics.savings_percentage();
+        assert!(savings > 74.0 && savings < 76.0);
     }
 
     #[test]
     fn test_model_names() {
         assert_eq!(TaskComplexity::Simple.model_name(), "gpt-4o-mini");
+        assert_eq!(TaskComplexity::Medium.model_name(), "gemini-1.5-flash");
         assert_eq!(
             TaskComplexity::Complex.model_name(),
             "claude-3-5-sonnet-20241022"
         );
+    }
+
+    #[test]
+    fn test_provider_names() {
+        assert_eq!(TaskComplexity::Simple.provider_name(), "openai");
+        assert_eq!(TaskComplexity::Medium.provider_name(), "google");
+        assert_eq!(TaskComplexity::Complex.provider_name(), "anthropic");
     }
 }

@@ -377,9 +377,11 @@ export function FullAutomationPanel() {
       return;
     }
     try {
-      const status = await safeInvoke<AutomationSession>('get_automation_status', {
-        sessionName: config.session_name,
-      });
+      const status = await safeInvoke<AutomationSession>(
+        'get_automation_status',
+        { sessionName: config.session_name },
+        { suppressErrors: true } // Suppress "session does not exist" errors
+      );
 
       if (status) {
         setSession(status);
@@ -387,7 +389,7 @@ export function FullAutomationPanel() {
         setSession(null);
       }
     } catch (err) {
-      // Session doesn't exist - this is OK
+      // Session doesn't exist - this is expected when no automation is running
       setSession(null);
     }
   }

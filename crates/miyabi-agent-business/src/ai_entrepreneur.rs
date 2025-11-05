@@ -32,7 +32,8 @@ impl AIEntrepreneurAgent {
         let provider = GPTOSSProvider::new_mac_mini_lan()
             .or_else(|_| GPTOSSProvider::new_mac_mini_tailscale())
             .or_else(|_| {
-                let groq_key = env::var("GROQ_API_KEY").map_err(|_| LLMError::MissingApiKey)?;
+                let groq_key = env::var("GROQ_API_KEY")
+                    .map_err(|_| LLMError::MissingApiKey("GROQ_API_KEY".to_string()))?;
                 GPTOSSProvider::new_groq(&groq_key)
             })
             .map_err(crate::llm_error_to_miyabi)?;

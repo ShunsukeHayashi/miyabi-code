@@ -31,7 +31,7 @@ export function Tabs({ defaultValue = "", value: controlledValue, onValueChange,
 export function TabsList({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1 ${className}`}
+      className={`inline-flex items-center gap-1 rounded-lg bg-brand-primary-soft p-1 ${className}`}
       {...props}
     >
       {children}
@@ -49,10 +49,9 @@ export function TabsTrigger({ value, className, children, ...props }: TabsTrigge
 
   return (
     <button
-      className={`inline-flex items-center justify-center px-4 py-2 text-sm font-light rounded-lg
-                  transition-all duration-default
-                  focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2
-                  ${isSelected ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"}
+      className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-default
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white
+                  ${isSelected ? "bg-white text-brand-text-primary shadow-brand-xs" : "text-brand-text-muted hover:text-brand-text-primary"}
                   ${className}`}
       onClick={() => onValueChange(value)}
       {...props}

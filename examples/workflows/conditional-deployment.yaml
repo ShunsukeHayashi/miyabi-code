@@ -1,0 +1,45 @@
+# Conditional Deployment Workflow
+#
+# This workflow demonstrates conditional branching:
+# - If code quality is high (>= 0.8), deploy directly
+# - Otherwise, send back for fixes
+
+name: conditional-deployment
+version: "1.0.0"
+
+steps:
+  - name: generate-code
+    type: step
+    agent: CodeGenAgent
+    description: Generate initial code implementation
+
+  - name: quality-check
+    type: then
+    agent: ReviewAgent
+    description: Check code quality score
+
+  - name: deployment-decision
+    type: branch
+    agent: CoordinatorAgent
+    description: Decide deployment path based on quality
+    branches:
+      - condition:
+          field: quality_score
+          operator: ">="
+          value: 0.8
+        next_step: deploy-production
+      - condition:
+          field: quality_score
+          operator: "<"
+          value: 0.8
+        next_step: request-fixes
+
+  - name: deploy-production
+    type: then
+    agent: DeploymentAgent
+    description: Deploy to production environment
+
+  - name: request-fixes
+    type: then
+    agent: IssueAgent
+    description: Create issue requesting code improvements

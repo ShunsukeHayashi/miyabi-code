@@ -326,6 +326,9 @@ impl AutomationManager {
                 Self::create_window(session_name, window_name, "bash", repo_root_str).await?
             };
 
+            // Give tmux a moment to initialize the window before splitting panes
+            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+
             Self::setup_monitoring_dashboard(session_name, window_idx, repo_root_str).await?;
 
             monitoring_window = Some(window_idx);
@@ -521,32 +524,84 @@ impl AutomationManager {
 
         let target = format!("{}:{}", session_name, window_index);
 
-        // Split horizontal (top/bottom)
-        Command::new("tmux")
+        // Step 1: Split horizontal (creates left and right panes)
+        let output = Command::new("tmux")
             .args(["split-window", "-h", "-t", &target, "-c", repo_root])
             .output()
             .await
             .map_err(|e| format!("Failed to split window horizontally: {}", e))?;
 
-        // Split left pane vertically
-        let pane_0 = format!("{}.0", target);
-        Command::new("tmux")
-            .args(["split-window", "-v", "-t", &pane_0, "-c", repo_root])
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to split window horizontally: {}", stderr));
+        }
+
+        // Wait for panes to be ready
+        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+
+        // Step 2: Select left pane and split vertically
+        // First select the left pane explicitly (tmux pane indices start at 1, not 0)
+        let output = Command::new("tmux")
+            .args(["select-pane", "-t", &format!("{}.1", target)])
             .output()
             .await
-            .map_err(|e| format!("Failed to split pane 0: {}", e))?;
+            .map_err(|e| format!("Failed to select pane 1: {}", e))?;
 
-        // Split right pane vertically
-        let pane_1 = format!("{}.1", target);
-        Command::new("tmux")
-            .args(["split-window", "-v", "-t", &pane_1, "-c", repo_root])
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to select pane 1: {}", stderr));
+        }
+
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+
+        // Now split the selected pane vertically
+        let output = Command::new("tmux")
+            .args(["split-window", "-v", "-c", repo_root])
             .output()
             .await
-            .map_err(|e| format!("Failed to split pane 1: {}", e))?;
+            .map_err(|e| format!("Failed to split left pane vertically: {}", e))?;
 
-        // Send commands to each pane
-        // Pane 0 (top-left): Agent status
-        Self::send_keys(session_name, window_index, 0,
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to split left pane: {}", stderr));
+        }
+
+        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+
+        // Step 3: Select right pane and split vertically
+        // After the previous split, the right pane should be at index 3
+        // Layout: [1: top-left] [2: bottom-left] [3: right]
+        let output = Command::new("tmux")
+            .args(["select-pane", "-t", &format!("{}.3", target)])
+            .output()
+            .await
+            .map_err(|e| format!("Failed to select right pane: {}", e))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to select right pane: {}", stderr));
+        }
+
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+
+        // Split the right pane vertically
+        let output = Command::new("tmux")
+            .args(["split-window", "-v", "-c", repo_root])
+            .output()
+            .await
+            .map_err(|e| format!("Failed to split right pane vertically: {}", e))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to split right pane: {}", stderr));
+        }
+
+        // Final wait before sending commands
+        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+
+        // Send commands to each pane (tmux pane indices start at 1)
+        // Pane 1 (top-left): Agent status
+        Self::send_keys(session_name, window_index, 1,
             &format!("cd {} && while true; do clear; ps aux | grep miyabi | grep -v grep | tail -20; sleep 5; done", repo_root)
         ).await?;
 
@@ -562,16 +617,16 @@ impl AutomationManager {
         )
         .await?;
 
-        // Pane 1 (top-right): Codex tasks
-        Self::send_keys(session_name, window_index, 1,
+        // Pane 3 (top-right): Codex tasks
+        Self::send_keys(session_name, window_index, 3,
             &format!("cd {} && while true; do clear; ls -lht .ai/logs 2>/dev/null | head -20; sleep 5; done", repo_root)
         ).await?;
 
-        // Pane 3 (bottom-right): Logs
+        // Pane 4 (bottom-right): Logs
         Self::send_keys(
             session_name,
             window_index,
-            3,
+            4,
             &format!(
                 "cd {} && tail -f .ai/logs/$(date +%Y-%m-%d).log 2>/dev/null || echo 'No logs yet'",
                 repo_root
@@ -589,22 +644,8 @@ impl AutomationManager {
         pane_index: usize,
         command: &str,
     ) -> Result<(), String> {
-        use tokio::process::Command;
-
         let target = format!("{}:{}.{}", session_name, window_index, pane_index);
-
-        let output = Command::new("tmux")
-            .args(["send-keys", "-t", &target, command, "C-m"])
-            .output()
-            .await
-            .map_err(|e| format!("Failed to send keys: {}", e))?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("Failed to send keys to pane: {}", stderr));
-        }
-
-        Ok(())
+        send_tmux_payload(&target, command).await
     }
 
     /// Get automation session status
@@ -643,6 +684,343 @@ impl AutomationManager {
 
         Ok(session)
     }
+}
+
+const TMUX_SEND_DELAY_MS: u64 = 100;
+
+async fn send_tmux_payload(target: &str, command: &str) -> Result<(), String> {
+    let cleaned = command.replace('\r', "");
+    let trimmed = cleaned.trim_end_matches('\n');
+
+    if trimmed.is_empty() {
+        return send_tmux_enter(target).await;
+    }
+
+    for line in trimmed.split('\n') {
+        if line.is_empty() {
+            send_tmux_enter(target).await?;
+            continue;
+        }
+
+        if let Some(control_key) = normalize_control_sequence(line) {
+            send_tmux_control(target, control_key).await?;
+            continue;
+        }
+
+        send_tmux_text(target, line).await?;
+    }
+
+    Ok(())
+}
+
+async fn send_tmux_text(target: &str, text: &str) -> Result<(), String> {
+    use tokio::process::Command;
+    use tokio::time::{sleep, Duration};
+
+    let output = Command::new("tmux")
+        .args(["send-keys", "-t", target, text])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to send command: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to send command: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    sleep(Duration::from_millis(TMUX_SEND_DELAY_MS)).await;
+    send_tmux_enter(target).await
+}
+
+async fn send_tmux_enter(target: &str) -> Result<(), String> {
+    use tokio::process::Command;
+
+    let output = Command::new("tmux")
+        .args(["send-keys", "-t", target, "Enter"])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to send Enter key: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to send Enter key: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    Ok(())
+}
+
+async fn send_tmux_control(target: &str, key: &str) -> Result<(), String> {
+    use tokio::process::Command;
+
+    let output = Command::new("tmux")
+        .args(["send-keys", "-t", target, key])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to send control sequence: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to send control sequence: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    Ok(())
+}
+
+fn normalize_control_sequence(sequence: &str) -> Option<&'static str> {
+    match sequence {
+        "\u{0003}" => Some("C-c"),
+        "\u{0004}" => Some("C-d"),
+        "\u{001A}" => Some("C-z"),
+        seq if seq.eq_ignore_ascii_case("c-c") => Some("C-c"),
+        seq if seq.eq_ignore_ascii_case("ctrl+c") => Some("C-c"),
+        seq if seq.eq_ignore_ascii_case("c-d") => Some("C-d"),
+        seq if seq.eq_ignore_ascii_case("ctrl+d") => Some("C-d"),
+        seq if seq.eq_ignore_ascii_case("c-z") => Some("C-z"),
+        seq if seq.eq_ignore_ascii_case("ctrl+z") => Some("C-z"),
+        _ => None,
+    }
+}
+
+// ========== Window and Pane Monitoring/Control ==========
+
+/// Detailed window information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TmuxWindowInfo {
+    pub session_name: String,
+    pub index: usize,
+    pub name: String,
+    pub active: bool,
+    pub pane_count: usize,
+}
+
+/// Detailed pane information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TmuxPaneInfo {
+    pub session_name: String,
+    pub window_index: usize,
+    pub pane_index: usize,
+    pub pane_id: String,
+    pub active: bool,
+    pub width: usize,
+    pub height: usize,
+    pub current_path: String,
+    pub current_command: String,
+}
+
+/// List all windows in a session
+#[tauri::command]
+pub async fn list_session_windows(session_name: String) -> Result<Vec<TmuxWindowInfo>, String> {
+    use tokio::process::Command;
+
+    // Get window list with format: session:index:name:active:pane_count
+    let output = Command::new("tmux")
+        .args([
+            "list-windows",
+            "-t",
+            &session_name,
+            "-F",
+            "#{session_name}:#{window_index}:#{window_name}:#{window_active}:#{window_panes}",
+        ])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to list windows: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to list windows: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    let output_str = String::from_utf8_lossy(&output.stdout);
+    let mut windows = Vec::new();
+
+    for line in output_str.lines() {
+        let parts: Vec<&str> = line.split(':').collect();
+        if parts.len() >= 5 {
+            windows.push(TmuxWindowInfo {
+                session_name: parts[0].to_string(),
+                index: parts[1].parse().unwrap_or(0),
+                name: parts[2].to_string(),
+                active: parts[3] == "1",
+                pane_count: parts[4].parse().unwrap_or(0),
+            });
+        }
+    }
+
+    Ok(windows)
+}
+
+/// List all panes in a window
+#[tauri::command]
+pub async fn list_window_panes(
+    session_name: String,
+    window_index: usize,
+) -> Result<Vec<TmuxPaneInfo>, String> {
+    use tokio::process::Command;
+
+    let target = format!("{}:{}", session_name, window_index);
+
+    // Get pane list with detailed info
+    let output = Command::new("tmux")
+        .args([
+            "list-panes",
+            "-t",
+            &target,
+            "-F",
+            "#{session_name}:#{window_index}:#{pane_index}:#{pane_id}:#{pane_active}:#{pane_width}:#{pane_height}:#{pane_current_path}:#{pane_current_command}",
+        ])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to list panes: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to list panes: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    let output_str = String::from_utf8_lossy(&output.stdout);
+    let mut panes = Vec::new();
+
+    for line in output_str.lines() {
+        let parts: Vec<&str> = line.split(':').collect();
+        if parts.len() >= 9 {
+            panes.push(TmuxPaneInfo {
+                session_name: parts[0].to_string(),
+                window_index: parts[1].parse().unwrap_or(0),
+                pane_index: parts[2].parse().unwrap_or(0),
+                pane_id: parts[3].to_string(),
+                active: parts[4] == "1",
+                width: parts[5].parse().unwrap_or(0),
+                height: parts[6].parse().unwrap_or(0),
+                current_path: parts[7].to_string(),
+                current_command: parts[8].to_string(),
+            });
+        }
+    }
+
+    Ok(panes)
+}
+
+/// Send command to a specific pane
+#[tauri::command]
+pub async fn send_to_pane(
+    session_name: String,
+    window_index: usize,
+    pane_index: usize,
+    pane_id: Option<String>,
+    command: String,
+) -> Result<(), String> {
+    let target = pane_id
+        .as_deref()
+        .map(|id| id.to_string())
+        .unwrap_or_else(|| format!("{}:{}.{}", session_name, window_index, pane_index));
+    send_tmux_payload(&target, &command).await
+}
+
+/// Get pane content (last N lines)
+#[tauri::command]
+pub async fn get_pane_content(
+    session_name: String,
+    window_index: usize,
+    pane_index: usize,
+    pane_id: Option<String>,
+    lines: Option<usize>,
+) -> Result<String, String> {
+    use tokio::process::Command;
+
+    let target = pane_id
+        .as_deref()
+        .map(|id| id.to_string())
+        .unwrap_or_else(|| format!("{}:{}.{}", session_name, window_index, pane_index));
+    let lines_count = lines.unwrap_or(100);
+
+    // Capture pane content
+    let output = Command::new("tmux")
+        .args([
+            "capture-pane",
+            "-t",
+            &target,
+            "-p",
+            "-S",
+            &format!("-{}", lines_count),
+        ])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to capture pane: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to capture pane: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
+/// Focus on a specific window
+#[tauri::command]
+pub async fn focus_window(session_name: String, window_index: usize) -> Result<(), String> {
+    use tokio::process::Command;
+
+    let target = format!("{}:{}", session_name, window_index);
+
+    let output = Command::new("tmux")
+        .args(["select-window", "-t", &target])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to select window: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to select window: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    Ok(())
+}
+
+/// Focus on a specific pane
+#[tauri::command]
+pub async fn focus_pane(
+    session_name: String,
+    window_index: usize,
+    pane_index: usize,
+    pane_id: Option<String>,
+) -> Result<(), String> {
+    use tokio::process::Command;
+
+    let target = pane_id
+        .as_deref()
+        .map(|id| id.to_string())
+        .unwrap_or_else(|| format!("{}:{}.{}", session_name, window_index, pane_index));
+
+    let output = Command::new("tmux")
+        .args(["select-pane", "-t", &target])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to select pane: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to select pane: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

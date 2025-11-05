@@ -117,14 +117,15 @@ impl MiyabiClient {
         let config = AgentConfig {
             agent_type,
             github_token: token.clone(),
-            repo_owner: owner,
-            repo_name: repo,
+            repo_owner: owner.clone(),
+            repo_name: repo.clone(),
             issue_number: issue,
         };
 
         // Initialize GitHub client
-        let github_client = GitHubClient::new(token.clone())
-            .map_err(|e| IntegrationError::Other(anyhow::anyhow!("GitHub client error: {}", e)))?;
+        let github_client = GitHubClient::new(token.clone(), owner, repo).map_err(|e| {
+            IntegrationError::Other(anyhow::anyhow!("GitHub client error: {}", e))
+        })?;
 
         // Create coordinator agent (for now, always use Coordinator)
         let coordinator = CoordinatorAgent::new(config.clone(), github_client);

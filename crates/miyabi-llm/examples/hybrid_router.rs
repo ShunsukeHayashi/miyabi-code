@@ -1,11 +1,16 @@
-//! Hybrid Router Example
+//! Hybrid Router example - Intelligent routing between 3 providers
 //!
-//! Demonstrates cost-optimized routing between Claude and OpenAI
+//! Demonstrates 3-tier cost-optimized routing:
+//! - Simple tasks → GPT-4o-mini ($0.15/1M)
+//! - Medium tasks → Gemini Flash ($0.20/1M)
+//! - Complex tasks → Claude Sonnet 4.5 ($3.00/1M)
 //!
 //! Run with:
 //! ```bash
-//! export ANTHROPIC_API_KEY=sk-xxx
-//! export OPENAI_API_KEY=sk-xxx
+//! export ANTHROPIC_API_KEY="sk-ant-xxx"
+//! export OPENAI_API_KEY="sk-xxx"
+//! export GOOGLE_API_KEY="xxx"
+//!
 //! cargo run --example hybrid_router
 //! ```
 
@@ -13,45 +18,107 @@ use miyabi_llm::{HybridRouter, LlmClient, Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize logging
+    // Initialize tracing
     tracing_subscriber::fmt::init();
+
+    println!("=== Hybrid Router - Intelligent 3-Tier Routing ===\n");
 
     // Create hybrid router from environment variables
     let router = HybridRouter::from_env()?;
 
-    println!("🚀 Hybrid Router Example\n");
-    println!("Cost Optimization: 60% savings vs pure Claude\n");
+    // Test cases with different complexity levels
+    let test_cases = vec![
+        (
+            "Simple: Documentation",
+            "Add documentation comment for this function",
+        ),
+        ("Simple: Typo fix", "Fix typo in the README file"),
+        (
+            "Medium: API implementation",
+            "Implement a new REST API endpoint for user authentication",
+        ),
+        (
+            "Medium: Bug fix",
+            "Bug fix in the payment integration module",
+        ),
+        (
+            "Medium: Test writing",
+            "Write unit tests for the struct validation logic",
+        ),
+        (
+            "Complex: Architecture",
+            "Design a new architecture for a distributed system with high scalability",
+        ),
+        (
+            "Complex: Refactoring",
+            "Refactor the authentication system to improve security",
+        ),
+        (
+            "Complex: Performance",
+            "Performance optimization for concurrent request handling",
+        ),
+    ];
 
-    // Example 1: Simple task (routed to GPT-4o-mini)
-    println!("=== Example 1: Simple Documentation Task ===");
-    let simple_messages = vec![Message::user(
-        "Add documentation comments to this function:\nfn add(a: i32, b: i32) -> i32 { a + b }",
-    )];
+    println!("Running {} test cases...\n", test_cases.len());
 
-    let response1 = router.chat(simple_messages).await?;
-    println!("Response: {}\n", response1);
+    for (label, prompt) in test_cases {
+        println!("Test: {}", label);
+        println!("Prompt: \"{}\"", prompt);
 
-    // Example 2: Complex task (routed to Claude Sonnet 4.5)
-    println!("=== Example 2: Complex Refactoring Task ===");
-    let complex_messages = vec![Message::user(
-        "Refactor this authentication system to use modern security patterns with JWT tokens",
-    )];
+        let messages = vec![Message::user(prompt)];
 
-    let response2 = router.chat(complex_messages).await?;
-    println!("Response: {}\n", response2);
+        match router.chat(messages).await {
+            Ok(response) => {
+                // Truncate long responses
+                let display_response = if response.len() > 100 {
+                    format!("{}...", &response[..100])
+                } else {
+                    response
+                };
+                println!("Response: {}", display_response);
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+            }
+        }
+        println!();
+    }
 
-    // Show cost metrics
+    // Display cost metrics
     let metrics = router.get_metrics().await;
-    println!("\n=== Cost Metrics ===");
-    println!("Claude requests: {}", metrics.claude_requests);
-    println!("OpenAI requests: {}", metrics.openai_requests);
-    println!("Total tokens: {}", metrics.total_tokens());
-    println!("Estimated cost: ${:.4}", metrics.estimated_cost_usd);
+
+    println!("=== Cost Metrics ===");
+    println!("Provider Breakdown:");
     println!(
-        "Cost savings: ${:.4}",
-        metrics.cost_savings_vs_pure_claude()
+        "  OpenAI (Simple):  {} requests, {} tokens",
+        metrics.openai_requests, metrics.openai_tokens
     );
-    println!("Savings %: {:.1}%", metrics.savings_percentage());
+    println!(
+        "  Google (Medium):  {} requests, {} tokens",
+        metrics.google_requests, metrics.google_tokens
+    );
+    println!(
+        "  Claude (Complex): {} requests, {} tokens",
+        metrics.claude_requests, metrics.claude_tokens
+    );
+    println!();
+    println!(
+        "Total: {} requests, {} tokens",
+        metrics.total_requests(),
+        metrics.total_tokens()
+    );
+    println!();
+    println!("Cost Analysis:");
+    println!("  Actual cost:    ${:.4}", metrics.estimated_cost_usd);
+    println!(
+        "  Pure Claude:    ${:.4}",
+        (metrics.total_tokens() as f64 / 1_000_000.0) * 3.0
+    );
+    println!(
+        "  Savings:        ${:.4} ({:.1}%)",
+        metrics.cost_savings_vs_pure_claude(),
+        metrics.savings_percentage()
+    );
 
     Ok(())
 }

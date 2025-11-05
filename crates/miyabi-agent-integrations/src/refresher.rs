@@ -134,7 +134,7 @@ impl RefresherAgent {
             .as_ref()
             .ok_or_else(|| MiyabiError::Config("repo_name not configured".to_string()))?;
 
-        let client = GitHubClient::new(repo_owner, repo_name, &github_token)?;
+        let client = GitHubClient::new(&github_token, repo_owner.clone(), repo_name.clone())?;
 
         // Fetch all open issues
         let issues = client.list_issues(Some(State::Open), vec![]).await?;

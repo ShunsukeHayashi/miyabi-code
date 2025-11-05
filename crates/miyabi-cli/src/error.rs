@@ -34,6 +34,18 @@ pub enum CliError {
     #[error("Execution error: {0}")]
     ExecutionError(String),
 
+    #[error("Configuration error: {0}")]
+    Config(String),
+
+    #[error("Missing environment variable: {var}")]
+    MissingEnvironmentVariable { var: String },
+
+    #[error("{0}")]
+    NotFound(String),
+
+    #[error("Execution error: {0}")]
+    Execution(String),
+
     #[error("Miyabi error: {0}")]
     Miyabi(#[from] miyabi_types::error::MiyabiError),
 

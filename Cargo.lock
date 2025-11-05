@@ -9,6 +9,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "ahash"
+version = "0.8.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
+dependencies = [
+ "cfg-if 1.0.4",
+ "const-random",
+ "getrandom 0.3.4",
+ "once_cell",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -614,6 +628,7 @@ dependencies = [
  "encode_unicode",
  "libc",
  "once_cell",
+ "unicode-width",
  "windows-sys 0.59.0",
 ]
 
@@ -1057,11 +1072,32 @@ dependencies = [
 
 [[package]]
 name = "dirs"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
+dependencies = [
+ "dirs-sys 0.4.1",
+]
+
+[[package]]
+name = "dirs"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
 dependencies = [
- "dirs-sys",
+ "dirs-sys 0.5.0",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users 0.4.6",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1072,7 +1108,7 @@ checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
 dependencies = [
  "libc",
  "option-ext",
- "redox_users",
+ "redox_users 0.5.2",
  "windows-sys 0.61.2",
 ]
 
@@ -1493,7 +1529,7 @@ dependencies = [
  "indexmap 2.12.0",
  "slab",
  "tokio",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
  "tracing",
 ]
 
@@ -1954,6 +1990,19 @@ dependencies = [
  "hashbrown 0.16.0",
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "indicatif"
+version = "0.17.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "183b3088984b400f4cfac3620d5e076c84da5364016b4f49473de574b2586235"
+dependencies = [
+ "console 0.15.11",
+ "number_prefix",
+ "portable-atomic",
+ "unicode-width",
+ "web-time",
 ]
 
 [[package]]
@@ -2527,6 +2576,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.17",
  "tokio",
+ "tonic 0.14.2",
  "tracing",
 ]
 
@@ -2543,12 +2593,14 @@ dependencies = [
  "miyabi-github",
  "miyabi-llm",
  "miyabi-types",
+ "miyabi-workflow",
  "serde",
  "serde_json",
  "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2558,7 +2610,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "indicatif",
+ "indicatif 0.18.2",
  "miyabi-core",
  "miyabi-knowledge",
  "miyabi-types",
@@ -2677,7 +2729,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "dirs",
+ "dirs 6.0.0",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2699,6 +2751,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-approval"
+version = "1.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "miyabi-core",
+ "miyabi-types",
+ "miyabi-workflow",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sled",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "miyabi-benchmark"
 version = "1.1.0"
 dependencies = [
@@ -2706,7 +2778,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "clap",
- "indicatif",
+ "indicatif 0.18.2",
  "miyabi-agents",
  "miyabi-core",
  "miyabi-types",
@@ -2750,10 +2822,11 @@ dependencies = [
  "colored",
  "comfy-table",
  "dialoguer",
- "dirs",
+ "dirs 6.0.0",
  "futures 0.3.31",
  "hostname",
- "indicatif",
+ "indicatif 0.17.11",
+ "miyabi-a2a",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2761,6 +2834,7 @@ dependencies = [
  "miyabi-agent-review",
  "miyabi-agent-workflow",
  "miyabi-agents",
+ "miyabi-approval",
  "miyabi-core",
  "miyabi-github",
  "miyabi-knowledge",
@@ -2779,6 +2853,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-test",
+ "uuid",
 ]
 
 [[package]]
@@ -2789,7 +2864,7 @@ dependencies = [
  "chrono",
  "colored",
  "config",
- "dirs",
+ "dirs 6.0.0",
  "git2",
  "hostname",
  "miyabi-llm",
@@ -2816,30 +2891,19 @@ dependencies = [
 name = "miyabi-dag"
 version = "1.1.0"
 dependencies = [
- "async-trait",
- "chrono",
- "criterion",
- "petgraph 0.6.5",
- "pretty_assertions",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tokio-test",
- "tracing",
-]
-
-[[package]]
-name = "miyabi-def-core"
-version = "1.1.0"
-dependencies = [
  "anyhow",
- "dunce",
+ "criterion",
+ "indexmap 2.12.0",
+ "insta",
+ "miyabi-types",
+ "petgraph 0.6.5",
+ "regex",
  "serde",
  "serde_json",
- "serde_yaml",
+ "serial_test",
  "thiserror 2.0.17",
- "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2911,7 +2975,9 @@ dependencies = [
 name = "miyabi-github"
 version = "1.1.0"
 dependencies = [
- "dirs",
+ "chrono",
+ "dirs 6.0.0",
+ "miyabi-core",
  "miyabi-types",
  "octocrab",
  "serde",
@@ -2930,7 +2996,7 @@ dependencies = [
  "async-trait",
  "axum 0.7.9",
  "chrono",
- "dirs",
+ "dirs 6.0.0",
  "futures 0.3.31",
  "futures-util",
  "miyabi-core",
@@ -2965,6 +3031,10 @@ dependencies = [
  "bytes 1.10.1",
  "futures 0.3.31",
  "insta",
+ "miyabi-llm-anthropic",
+ "miyabi-llm-core",
+ "miyabi-llm-google",
+ "miyabi-llm-openai",
  "miyabi-types",
  "mockito",
  "regex",
@@ -2977,6 +3047,73 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "miyabi-llm-anthropic"
+version = "1.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "bytes 1.10.1",
+ "chrono",
+ "dotenvy",
+ "futures 0.3.31",
+ "miyabi-llm-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
+name = "miyabi-llm-core"
+version = "1.1.0"
+dependencies = [
+ "async-trait",
+ "futures 0.3.31",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
+name = "miyabi-llm-google"
+version = "1.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures 0.3.31",
+ "miyabi-llm-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-llm-openai"
+version = "1.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "bytes 1.10.1",
+ "chrono",
+ "dotenvy",
+ "futures 0.3.31",
+ "miyabi-llm-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
 ]
 
 [[package]]
@@ -3117,6 +3254,7 @@ dependencies = [
  "dotenvy",
  "futures 0.3.31",
  "jsonwebtoken",
+ "miyabi-approval",
  "miyabi-github",
  "miyabi-llm",
  "miyabi-telegram",
@@ -3164,11 +3302,14 @@ version = "1.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "dirs 5.0.1",
  "futures 0.3.31",
  "miyabi-types",
+ "rhai",
  "serde",
  "serde_json",
  "sled",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -3181,7 +3322,7 @@ version = "1.1.0"
 dependencies = [
  "async-trait",
  "chrono",
- "dirs",
+ "dirs 6.0.0",
  "dunce",
  "futures 0.3.31",
  "git2",
@@ -3386,6 +3527,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "number_prefix"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
+
+[[package]]
 name = "objc2-core-foundation"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3406,9 +3553,9 @@ dependencies = [
 
 [[package]]
 name = "octocrab"
-version = "0.47.1"
+version = "0.47.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76f50b2657b7e31c849c612c4ca71527861631fe3c392f931fb28990b045f972"
+checksum = "0860f9250b6db66c5a4b46e00b381f063c58ad06a90f95f9ef701dd8679bb2c6"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -3449,6 +3596,9 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+dependencies = [
+ "portable-atomic",
+]
 
 [[package]]
 name = "once_cell_polyfill"
@@ -4227,6 +4377,17 @@ dependencies = [
 
 [[package]]
 name = "redox_users"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
+dependencies = [
+ "getrandom 0.2.16",
+ "libredox",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "redox_users"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4e608c6638b9c18977b00b475ac1f28d14e84b27d8d42f70e0bf1e3dec127ac"
@@ -4301,7 +4462,7 @@ dependencies = [
  "tokio",
  "tokio-native-tls",
  "tokio-rustls",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
  "tower 0.5.2",
  "tower-http 0.6.6",
  "tower-service",
@@ -4314,10 +4475,39 @@ dependencies = [
 ]
 
 [[package]]
-name = "ring"
-version = "0.17.14"
+name = "rhai"
+version = "1.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7"
+checksum = "f4e35aaaa439a5bda2f8d15251bc375e4edfac75f9865734644782c9701b5709"
+dependencies = [
+ "ahash",
+ "bitflags 2.10.0",
+ "instant",
+ "num-traits",
+ "once_cell",
+ "rhai_codegen",
+ "serde",
+ "smallvec",
+ "smartstring",
+ "thin-vec",
+]
+
+[[package]]
+name = "rhai_codegen"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4322a2a4e8cf30771dd9f27f7f37ca9ac8fe812dddd811096a98483080dabe6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.108",
+]
+
+[[package]]
+name = "ring"
+version = "0.17.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e75ec5e92c4d8aede845126adc388046234541629e76029599ed35a003c7ed24"
 dependencies = [
  "cc",
  "cfg-if 1.0.4",
@@ -4846,7 +5036,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b1fdf65dd6331831494dd616b30351c38e96e45921a27745cf98490458b90bb"
 dependencies = [
- "dirs",
+ "dirs 6.0.0",
 ]
 
 [[package]]
@@ -4946,6 +5136,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "smartstring"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fb72c633efbaa2dd666986505016c32c3044395ceaf881518399d2f4127ee29"
+dependencies = [
+ "autocfg",
+ "serde",
+ "static_assertions",
+ "version_check",
 ]
 
 [[package]]
@@ -5213,6 +5415,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
 name = "statrs"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5341,6 +5549,15 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "thin-vec"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "144f754d318415ac792f9d69fc87abbbfc043ce2ef041c60f16ad828f638717d"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -5628,9 +5845,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.17"
+version = "0.7.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2efa149fe76073d6e8fd97ef4f4eca7b67f599660115591483572e406e165594"
+checksum = "14307c986784f72ef81c89db7d9e28d6ac26d16213b109ea501696195e6e3ce5"
 dependencies = [
  "bytes 1.10.1",
  "futures-core",
@@ -5659,7 +5876,7 @@ dependencies = [
  "simdutf8",
  "tokio",
  "tokio-rustls",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
 ]
 
 [[package]]
@@ -5826,7 +6043,7 @@ dependencies = [
  "rand 0.8.5",
  "slab",
  "tokio",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -5845,7 +6062,7 @@ dependencies = [
  "slab",
  "sync_wrapper",
  "tokio",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -5870,7 +6087,7 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "tokio",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -5897,7 +6114,7 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "tokio",
- "tokio-util 0.7.17",
+ "tokio-util 0.7.16",
  "tower 0.5.2",
  "tower-layer",
  "tower-service",

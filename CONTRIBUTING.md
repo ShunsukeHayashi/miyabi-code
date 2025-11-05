@@ -196,6 +196,12 @@ All development MUST follow LDD protocol:
    EOF
    ```
 
+### AI-generated artifacts
+
+- `.ai/metrics`, `.ai/improvements`, `.ai/state` は一時生成物です。リポジトリでは自動的に無視されるため、コミット前に `scripts/cleanup-ai-artifacts.sh` を実行してクリーンな状態を維持してください。
+- `.ai/plans/**` は issue ごとの計画履歴として保持します。不要な旧バージョンを削除する場合は最新のものを残し、レビュー用の情報が維持されるようにしてください。
+- `.ai/logs`, `.ai/parallel-reports`, `.ai/issues` などコミット対象のフォルダは機密情報が含まれていないかを確認し、必要最小限のファイルのみをコミットしてください。
+
 ## 🤖 Agent Development
 
 ### Creating a New Agent

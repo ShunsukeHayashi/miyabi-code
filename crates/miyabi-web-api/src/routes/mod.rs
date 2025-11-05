@@ -1,6 +1,7 @@
 use axum::Router;
 
 pub mod agents;
+pub mod approval;
 pub mod auth;
 pub mod codegen;
 pub mod dashboard;

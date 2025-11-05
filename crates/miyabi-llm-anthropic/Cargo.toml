@@ -1,0 +1,29 @@
+[package]
+name = "miyabi-llm-anthropic"
+version.workspace = true
+edition = "2021"
+authors = ["Shunsuke Hayashi"]
+license = "MIT"
+description = "Anthropic Claude SDK for Miyabi LLM - Unified LLM interface for Rust"
+keywords = ["anthropic", "claude", "ai", "llm", "sdk"]
+categories = ["api-bindings", "asynchronous"]
+repository = "https://github.com/ShunsukeHayashi/Miyabi"
+readme = "README.md"
+
+[dependencies]
+miyabi-llm-core = { version = "1.1.0", path = "../miyabi-llm-core" }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+async-trait = "0.1"
+thiserror = { workspace = true }
+tokio = { workspace = true }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+futures = "0.3"
+async-stream = "0.3"
+bytes = "1.0"
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+dotenvy = "0.15"

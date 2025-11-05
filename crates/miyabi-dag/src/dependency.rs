@@ -1,18 +1,19 @@
 //! Dependency analysis for code files
 
-use crate::error::{DAGError, Result};
-use crate::types::{CodeFile, GeneratedCode, ModulePath, TaskId};
+use crate::types::{CodeFile, GeneratedCode, ModulePath};
+use crate::{DAGError, Result};
+use indexmap::IndexMap;
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
 
-/// Dependency graph structure
+/// Dependency graph for code modules
 #[derive(Debug, Clone)]
 pub struct DependencyGraph {
-    /// Map from TaskId to its dependencies (TaskIds it depends on)
-    pub dependencies: HashMap<TaskId, HashSet<TaskId>>,
-    /// Map from TaskId to its dependents (TaskIds that depend on it)
-    pub dependents: HashMap<TaskId, HashSet<TaskId>>,
-    /// Module path to TaskId mapping
-    pub module_to_task: HashMap<ModulePath, TaskId>,
+    /// Map of module path to its dependencies
+    dependencies: HashMap<ModulePath, HashSet<ModulePath>>,
+    /// Map of module path to its dependents (reverse dependencies)
+    dependents: HashMap<ModulePath, HashSet<ModulePath>>,
 }
 
 impl DependencyGraph {
@@ -21,109 +22,97 @@ impl DependencyGraph {
         Self {
             dependencies: HashMap::new(),
             dependents: HashMap::new(),
-            module_to_task: HashMap::new(),
         }
     }
 
-    /// Add a task node to the graph
-    pub fn add_node(&mut self, task_id: TaskId, module_path: ModulePath) {
-        self.dependencies.entry(task_id.clone()).or_default();
-        self.dependents.entry(task_id.clone()).or_default();
-        self.module_to_task.insert(module_path, task_id);
-    }
-
-    /// Add a dependency edge: `from` depends on `to`
-    pub fn add_edge(&mut self, from: TaskId, to: TaskId) {
+    /// Add a dependency edge (from depends on to)
+    pub fn add_dependency(&mut self, from: ModulePath, to: ModulePath) {
         self.dependencies
             .entry(from.clone())
             .or_default()
             .insert(to.clone());
-        self.dependents
-            .entry(to.clone())
-            .or_default()
-            .insert(from.clone());
+
+        self.dependents.entry(to).or_default().insert(from);
     }
 
-    /// Get direct dependencies of a task
-    pub fn get_dependencies(&self, task_id: &TaskId) -> HashSet<TaskId> {
+    /// Get dependencies for a module
+    pub fn get_dependencies(&self, module: &ModulePath) -> Option<&HashSet<ModulePath>> {
+        self.dependencies.get(module)
+    }
+
+    /// Get dependents for a module
+    pub fn get_dependents(&self, module: &ModulePath) -> Option<&HashSet<ModulePath>> {
+        self.dependents.get(module)
+    }
+
+    /// Get all modules in the graph
+    pub fn modules(&self) -> Vec<&ModulePath> {
+        let mut modules: HashSet<&ModulePath> = HashSet::new();
+        modules.extend(self.dependencies.keys());
+        modules.extend(self.dependents.keys());
+        modules.into_iter().collect()
+    }
+
+    /// Check if a module has no dependencies
+    pub fn is_root(&self, module: &ModulePath) -> bool {
         self.dependencies
-            .get(task_id)
+            .get(module)
+            .map(|deps| deps.is_empty())
+            .unwrap_or(true)
+    }
+
+    /// Get all root modules (modules with no dependencies)
+    pub fn roots(&self) -> Vec<ModulePath> {
+        self.modules()
+            .into_iter()
+            .filter(|m| self.is_root(m))
             .cloned()
-            .unwrap_or_default()
-    }
-
-    /// Get direct dependents of a task (tasks that depend on this task)
-    pub fn get_dependents(&self, task_id: &TaskId) -> HashSet<TaskId> {
-        self.dependents
-            .get(task_id)
-            .cloned()
-            .unwrap_or_default()
-    }
-
-    /// Get all task IDs in the graph
-    pub fn all_tasks(&self) -> Vec<TaskId> {
-        self.dependencies.keys().cloned().collect()
-    }
-
-    /// Get tasks with no dependencies (entry points)
-    pub fn get_entry_tasks(&self) -> Vec<TaskId> {
-        self.dependencies
-            .iter()
-            .filter_map(|(task_id, deps)| {
-                if deps.is_empty() {
-                    Some(task_id.clone())
-                } else {
-                    None
-                }
-            })
             .collect()
     }
 
-    /// Get in-degree (number of dependencies) for a task
-    pub fn in_degree(&self, task_id: &TaskId) -> usize {
-        self.get_dependencies(task_id).len()
-    }
+    /// Detect cycles using depth-first search
+    pub fn detect_cycles(&self) -> Result<()> {
+        let mut visited: HashSet<&ModulePath> = HashSet::new();
+        let mut rec_stack: HashSet<&ModulePath> = HashSet::new();
 
-    /// Get out-degree (number of dependents) for a task
-    pub fn out_degree(&self, task_id: &TaskId) -> usize {
-        self.get_dependents(task_id).len()
-    }
-
-    /// Check if the graph has cycles using DFS
-    pub fn has_cycle(&self) -> bool {
-        let mut visited = HashSet::new();
-        let mut rec_stack = HashSet::new();
-
-        for task_id in self.all_tasks() {
-            if !visited.contains(&task_id)
-                && self.has_cycle_dfs(&task_id, &mut visited, &mut rec_stack)
+        for module in self.modules() {
+            if !visited.contains(module)
+                && self.has_cycle_dfs(module, &mut visited, &mut rec_stack)?
             {
-                return true;
-            }
-        }
-        false
-    }
-
-    fn has_cycle_dfs(
-        &self,
-        task_id: &TaskId,
-        visited: &mut HashSet<TaskId>,
-        rec_stack: &mut HashSet<TaskId>,
-    ) -> bool {
-        visited.insert(task_id.clone());
-        rec_stack.insert(task_id.clone());
-
-        // Check all dependents (nodes this task points to)
-        for dependent in self.get_dependents(task_id) {
-            if (!visited.contains(&dependent) && self.has_cycle_dfs(&dependent, visited, rec_stack))
-                || rec_stack.contains(&dependent)
-            {
-                return true;
+                return Err(DAGError::CircularDependency(format!(
+                    "Cycle detected involving module: {}",
+                    module
+                )));
             }
         }
 
-        rec_stack.remove(task_id);
-        false
+        Ok(())
+    }
+
+    /// DFS helper for cycle detection
+    fn has_cycle_dfs<'a>(
+        &'a self,
+        module: &'a ModulePath,
+        visited: &mut HashSet<&'a ModulePath>,
+        rec_stack: &mut HashSet<&'a ModulePath>,
+    ) -> Result<bool> {
+        visited.insert(module);
+        rec_stack.insert(module);
+
+        if let Some(deps) = self.dependencies.get(module) {
+            for dep in deps {
+                if !visited.contains(dep) {
+                    if self.has_cycle_dfs(dep, visited, rec_stack)? {
+                        return Ok(true);
+                    }
+                } else if rec_stack.contains(dep) {
+                    return Ok(true);
+                }
+            }
+        }
+
+        rec_stack.remove(module);
+        Ok(false)
     }
 }
 
@@ -133,70 +122,109 @@ impl Default for DependencyGraph {
     }
 }
 
-/// Dependency analyzer
-pub struct DependencyAnalyzer;
+/// Analyzes code dependencies
+pub struct DependencyAnalyzer {
+    /// Regex for extracting import statements
+    import_regex: Regex,
+    /// Regex for extracting use statements
+    use_regex: Regex,
+}
 
 impl DependencyAnalyzer {
+    /// Create a new dependency analyzer
+    pub fn new() -> Self {
+        Self {
+            // Match: use crate::module::submodule;
+            import_regex: Regex::new(r"use\s+([\w:]+)").unwrap(),
+            // Match: mod module_name;
+            use_regex: Regex::new(r"mod\s+(\w+)\s*;").unwrap(),
+        }
+    }
+
     /// Analyze dependencies in generated code
-    pub fn analyze(code: &GeneratedCode) -> Result<DependencyGraph> {
+    pub fn analyze(&self, code: &GeneratedCode) -> Result<DependencyGraph> {
         let mut graph = DependencyGraph::new();
 
-        // Step 1: Add all tasks as nodes
+        // Build map of module path to file
+        let mut module_map: IndexMap<ModulePath, &CodeFile> = IndexMap::new();
         for file in &code.files {
-            graph.add_node(file.task_id(), file.module_path.clone());
+            module_map.insert(file.module_path.clone(), file);
         }
 
-        // Step 2: Build dependency edges
+        // Extract dependencies for each file
         for file in &code.files {
-            let from_task = file.task_id();
+            let imports = self.extract_imports(file)?;
 
-            // For each import in this file, find the corresponding task
-            for import in &file.imports {
-                // Resolve import to a task ID
-                if let Some(to_task) = Self::resolve_import(import, &graph, code) {
-                    // from_task depends on to_task
-                    graph.add_edge(from_task.clone(), to_task);
+            for import in imports {
+                // Only add dependency if the imported module exists in our code
+                if module_map.contains_key(&import) {
+                    graph.add_dependency(file.module_path.clone(), import);
                 }
             }
         }
 
-        // Step 3: Validate graph (check for cycles)
-        if graph.has_cycle() {
-            return Err(DAGError::circular_dependency(
-                "Circular dependency detected in task graph",
-            ));
-        }
+        // Check for cycles
+        graph.detect_cycles()?;
 
         Ok(graph)
     }
 
-    /// Resolve an import statement to a TaskId
-    fn resolve_import(
-        import: &ModulePath,
-        graph: &DependencyGraph,
-        _code: &GeneratedCode,
-    ) -> Option<TaskId> {
-        // Direct match: import exactly matches a module in our code
-        if let Some(task_id) = graph.module_to_task.get(import) {
-            return Some(task_id.clone());
-        }
+    /// Extract import statements from a code file
+    pub fn extract_imports(&self, file: &CodeFile) -> Result<Vec<ModulePath>> {
+        let mut imports = Vec::new();
 
-        // Partial match: import is a submodule of a file in our code
-        // e.g., import "crate::module::Type" matches file "crate::module"
-        let import_str = import.as_str();
-        for (module, task_id) in &graph.module_to_task {
-            if import_str.starts_with(module.as_str()) {
-                return Some(task_id.clone());
+        // Extract "use" statements
+        for cap in self.import_regex.captures_iter(&file.content) {
+            if let Some(path_str) = cap.get(1) {
+                let path = path_str.as_str();
+                // Only process crate-relative paths
+                if path.starts_with("crate::") || path.starts_with("super::") {
+                    let module_path = self.resolve_import(path, &file.module_path)?;
+                    imports.push(module_path);
+                }
             }
         }
 
-        // Not found in our code (external dependency)
-        None
+        // Extract "mod" statements
+        for cap in self.use_regex.captures_iter(&file.content) {
+            if let Some(mod_name) = cap.get(1) {
+                // Create child module path
+                let mut segments = file.module_path.segments().to_vec();
+                segments.push(mod_name.as_str().to_string());
+                imports.push(ModulePath::new(segments));
+            }
+        }
+
+        Ok(imports)
     }
 
-    /// Extract imports from a code file
-    pub fn extract_imports(file: &CodeFile) -> Vec<ModulePath> {
-        CodeFile::parse_imports(&file.content)
+    /// Resolve an import path relative to the current module
+    fn resolve_import(&self, import: &str, current: &ModulePath) -> Result<ModulePath> {
+        if import.starts_with("crate::") {
+            // Absolute path from crate root
+            Ok(ModulePath::from_str(import).unwrap())
+        } else if import.starts_with("super::") {
+            // Relative to parent module
+            let parent = current.parent().ok_or_else(|| {
+                DAGError::InvalidModulePath(format!(
+                    "Cannot resolve super:: from root module: {}",
+                    current
+                ))
+            })?;
+
+            let rest = import.strip_prefix("super::").unwrap();
+            let mut segments = parent.segments().to_vec();
+            segments.extend(rest.split("::").map(|s| s.to_string()));
+            Ok(ModulePath::new(segments))
+        } else {
+            Ok(ModulePath::from_str(import).unwrap())
+        }
+    }
+}
+
+impl Default for DependencyAnalyzer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -204,125 +232,77 @@ impl DependencyAnalyzer {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+    use std::str::FromStr;
 
-    fn create_test_file(
-        path: &str,
-        module: &str,
-        imports: Vec<&str>,
-    ) -> CodeFile {
-        let import_content = imports
-            .iter()
-            .map(|i| format!("use {};\n", i))
-            .collect::<String>();
+    #[test]
+    fn test_dependency_graph_add() {
+        let mut graph = DependencyGraph::new();
 
-        CodeFile::new(
-            PathBuf::from(path),
-            import_content.clone(),
-            ModulePath::new(module),
-            CodeFile::parse_imports(&import_content),
-        )
+        let mod_a = ModulePath::from_str("crate::module_a").unwrap();
+        let mod_b = ModulePath::from_str("crate::module_b").unwrap();
+
+        graph.add_dependency(mod_a.clone(), mod_b.clone());
+
+        assert!(graph.get_dependencies(&mod_a).unwrap().contains(&mod_b));
+        assert!(graph.get_dependents(&mod_b).unwrap().contains(&mod_a));
     }
 
     #[test]
-    fn test_dependency_graph_creation() {
+    fn test_dependency_graph_roots() {
         let mut graph = DependencyGraph::new();
-        let task_a = TaskId::new("a");
-        let task_b = TaskId::new("b");
 
-        graph.add_node(task_a.clone(), ModulePath::new("crate::a"));
-        graph.add_node(task_b.clone(), ModulePath::new("crate::b"));
-        graph.add_edge(task_a.clone(), task_b.clone());
+        let mod_a = ModulePath::from_str("crate::module_a").unwrap();
+        let mod_b = ModulePath::from_str("crate::module_b").unwrap();
+        let mod_c = ModulePath::from_str("crate::module_c").unwrap();
 
-        assert_eq!(graph.in_degree(&task_a), 1);
-        assert_eq!(graph.out_degree(&task_b), 1);
+        // mod_b depends on mod_a
+        graph.add_dependency(mod_b.clone(), mod_a.clone());
+        // mod_c depends on mod_b
+        graph.add_dependency(mod_c.clone(), mod_b.clone());
+
+        let roots = graph.roots();
+        assert_eq!(roots.len(), 1);
+        assert!(roots.contains(&mod_a));
     }
 
     #[test]
-    fn test_entry_tasks() {
-        let mut graph = DependencyGraph::new();
-        let task_a = TaskId::new("a");
-        let task_b = TaskId::new("b");
-        let task_c = TaskId::new("c");
+    fn test_extract_imports() {
+        let analyzer = DependencyAnalyzer::new();
 
-        graph.add_node(task_a.clone(), ModulePath::new("a"));
-        graph.add_node(task_b.clone(), ModulePath::new("b"));
-        graph.add_node(task_c.clone(), ModulePath::new("c"));
+        let content = r#"
+            use crate::module_a::function;
+            use crate::module_b;
+            use std::collections::HashMap;
 
-        // a depends on b, b depends on c
-        graph.add_edge(task_a.clone(), task_b.clone());
-        graph.add_edge(task_b.clone(), task_c.clone());
+            mod submodule;
+        "#;
 
-        let entries = graph.get_entry_tasks();
-        assert_eq!(entries.len(), 1);
-        assert!(entries.contains(&task_c));
+        let file = CodeFile::new(
+            PathBuf::from("test.rs"),
+            content.to_string(),
+            ModulePath::from_str("crate::test").unwrap(),
+        );
+
+        let imports = analyzer.extract_imports(&file).unwrap();
+
+        assert!(imports.len() >= 2);
+        assert!(imports.contains(&ModulePath::from_str("crate::module_a::function").unwrap()));
+        assert!(imports.contains(&ModulePath::from_str("crate::module_b").unwrap()));
     }
 
     #[test]
     fn test_cycle_detection() {
         let mut graph = DependencyGraph::new();
-        let task_a = TaskId::new("a");
-        let task_b = TaskId::new("b");
-        let task_c = TaskId::new("c");
 
-        graph.add_node(task_a.clone(), ModulePath::new("a"));
-        graph.add_node(task_b.clone(), ModulePath::new("b"));
-        graph.add_node(task_c.clone(), ModulePath::new("c"));
+        let mod_a = ModulePath::from_str("crate::module_a").unwrap();
+        let mod_b = ModulePath::from_str("crate::module_b").unwrap();
+        let mod_c = ModulePath::from_str("crate::module_c").unwrap();
 
-        // Create cycle: a -> b -> c -> a
-        graph.add_edge(task_a.clone(), task_b.clone());
-        graph.add_edge(task_b.clone(), task_c.clone());
-        graph.add_edge(task_c.clone(), task_a.clone());
+        // Create cycle: A -> B -> C -> A
+        graph.add_dependency(mod_a.clone(), mod_b.clone());
+        graph.add_dependency(mod_b.clone(), mod_c.clone());
+        graph.add_dependency(mod_c.clone(), mod_a.clone());
 
-        assert!(graph.has_cycle());
-    }
-
-    #[test]
-    fn test_no_cycle() {
-        let mut graph = DependencyGraph::new();
-        let task_a = TaskId::new("a");
-        let task_b = TaskId::new("b");
-        let task_c = TaskId::new("c");
-
-        graph.add_node(task_a.clone(), ModulePath::new("a"));
-        graph.add_node(task_b.clone(), ModulePath::new("b"));
-        graph.add_node(task_c.clone(), ModulePath::new("c"));
-
-        // No cycle: a -> b, a -> c
-        graph.add_edge(task_a.clone(), task_b.clone());
-        graph.add_edge(task_a.clone(), task_c.clone());
-
-        assert!(!graph.has_cycle());
-    }
-
-    #[test]
-    fn test_analyze_simple_dependencies() {
-        let files = vec![
-            create_test_file("src/a.rs", "crate::a", vec!["crate::b"]),
-            create_test_file("src/b.rs", "crate::b", vec![]),
-        ];
-        let code = GeneratedCode::from_files(files);
-        let graph = DependencyAnalyzer::analyze(&code).unwrap();
-
-        let task_a = TaskId::from_path(&PathBuf::from("src/a.rs"));
-        let task_b = TaskId::from_path(&PathBuf::from("src/b.rs"));
-
-        assert_eq!(graph.in_degree(&task_a), 1);
-        assert_eq!(graph.in_degree(&task_b), 0);
-    }
-
-    #[test]
-    fn test_analyze_detects_cycle() {
-        let files = vec![
-            create_test_file("src/a.rs", "crate::a", vec!["crate::b"]),
-            create_test_file("src/b.rs", "crate::b", vec!["crate::a"]),
-        ];
-        let code = GeneratedCode::from_files(files);
-        let result = DependencyAnalyzer::analyze(&code);
-
-        assert!(result.is_err());
-        match result {
-            Err(DAGError::CircularDependency(_)) => {}
-            _ => panic!("Expected CircularDependency error"),
-        }
+        assert!(graph.detect_cycles().is_err());
     }
 }

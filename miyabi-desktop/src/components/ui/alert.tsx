@@ -6,11 +6,11 @@ export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const variantStyles = {
-  default: "border-gray-200 bg-gray-50 text-gray-900",
-  success: "border-green-200 bg-green-50 text-green-900",
-  warning: "border-orange-200 bg-orange-50 text-orange-900",
-  error: "border-red-200 bg-red-50 text-red-900",
-}
+  default: "border-border bg-brand-primary-soft text-brand-text-primary",
+  success: "border-brand-success/30 bg-brand-success/10 text-brand-success",
+  warning: "border-brand-warning/30 bg-brand-warning/10 text-brand-warning",
+  error: "border-brand-danger/30 bg-brand-danger/10 text-brand-danger",
+} satisfies Record<NonNullable<AlertProps["variant"]>, string>
 
 const variantIcons = {
   default: Info,
@@ -25,7 +25,7 @@ export function Alert({ variant = "default", className, children, ...props }: Al
   return (
     <div
       role="alert"
-      className={`flex gap-3 rounded-xl border p-4 ${variantStyles[variant]} ${className}`}
+      className={`flex gap-3 rounded-lg border p-4 shadow-brand-xs ${variantStyles[variant]} ${className}`}
       {...props}
     >
       <Icon className="h-5 w-5 flex-shrink-0" strokeWidth={1.5} />
@@ -36,7 +36,7 @@ export function Alert({ variant = "default", className, children, ...props }: Al
 
 export function AlertTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h5 className={`mb-1 font-normal ${className}`} {...props}>
+    <h5 className={`mb-1 font-medium text-body ${className}`} {...props}>
       {children}
     </h5>
   )
@@ -44,7 +44,7 @@ export function AlertTitle({ className, children, ...props }: React.HTMLAttribut
 
 export function AlertDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <div className={`text-sm font-light opacity-90 ${className}`} {...props}>
+    <div className={`text-body-sm font-light text-brand-text-secondary ${className}`} {...props}>
       {children}
     </div>
   )

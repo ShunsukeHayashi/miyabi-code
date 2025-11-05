@@ -134,6 +134,54 @@ claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
 
 ---
 
+## 🔁 Rule 4: Relay & Skill Proxy Protocol
+
+**"エージェント間のトリガーを必ず自動化し、必要なコマンドはホスト側で代行実行する"**
+
+### 4-1. メッセージリレーの必須フォーマット
+
+- 各エージェントはタスク完了／中断時に、次担当へ `[送信元→送信先]` 形式のメッセージを送る。
+- 例: `[カエデ→サクラ] レビュー依頼: タイムライン集計スクリプトUTC補正`
+- 送信は `tmux send-keys -t <PANE> "message" && sleep 0.1 && tmux send-keys -t <PANE> Enter` を厳守。
+
+### 4-2. Skill Proxy を使ったコマンド実行
+
+- Codexからスキルを直接叩けない場合は、メッセージ内に `[[exec:実行したいコマンド]]` を埋め込み、`miyabi-skill-proxy` がホスト側で実行する。
+- Skill Proxy 起動方法:
+
+```bash
+./scripts/miyabi-skill-proxy.sh watch --session miyabi-refactor --interval 5
+```
+
+- コマンド例: `[[exec:miyabi agent run --issue 715 --task refactor]]`
+
+### 4-3. リレー監視
+
+- `scripts/miyabi-relay-watchdog.sh` を定期的に実行し、必須メッセージが流れているか確認する。
+
+```bash
+./scripts/miyabi-relay-watchdog.sh --session miyabi-refactor
+```
+
+- 未達成のリレーがあれば即座に手動で補填し、原因をConductorレポートに記録すること。
+
+### 4-4. tmux ペインマッピング
+
+- `.ai/orchestra/pane-map.json` に現在のペインIDを記録する。`orchestra-set-pane-ui.sh` はこのファイルを優先して利用する。
+- 例:
+
+```json
+{
+  "カンナ": "%52",
+  "カエデ": "%53",
+  "サクラ": "%55",
+  "ツバキ": "%51",
+  "ボタン": "%54"
+}
+```
+
+---
+
 ## 🎯 Summary
 
 | Rule | Check | Documentation |

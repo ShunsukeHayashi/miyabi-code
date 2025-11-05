@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import DashboardView from './views/DashboardView';
-import WorktreesView from './views/WorktreesView';
-import { useDashboard } from './hooks/useDashboard';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import NotificationToast from './components/NotificationToast';
+
+const enableUnifiedDashboardPreview = true;
 
 export default function App() {
   const [appVersion, setAppVersion] = useState<string>('');
-  const [activeView, setActiveView] = useState<NavKey>('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -22,26 +24,39 @@ export default function App() {
     };
   }, []);
 
-  const navItems = useMemo(
-    () => [
-      { key: 'dashboard' as const, label: 'Dashboard', icon: '🏠' },
-      { key: 'worktrees' as const, label: 'Worktrees', icon: '🌲' },
-      { key: 'agents' as const, label: 'Agents', icon: '🤖' },
-      { key: 'issues' as const, label: 'Issues', icon: '📋' },
-      { key: 'history' as const, label: 'History', icon: '📊' },
-      { key: 'settings' as const, label: 'Settings', icon: '⚙️' },
-    ],
-    []
-  );
+  const navItems = useMemo(() => {
+    const core = [
+      { key: 'dashboard' as const, label: 'Dashboard', icon: '🏠', path: '/dashboard' },
+      { key: 'worktrees' as const, label: 'Worktrees', icon: '🌲', path: '/worktrees' },
+      { key: 'agents' as const, label: 'Agents', icon: '🤖', path: '/agents' },
+      { key: 'issues' as const, label: 'Issues', icon: '📋', path: '/issues' },
+      { key: 'history' as const, label: 'History', icon: '📊', path: '/history' },
+      { key: 'settings' as const, label: 'Settings', icon: '⚙️', path: '/settings' },
+    ];
 
-  const dashboard = useDashboard();
+    if (!enableUnifiedDashboardPreview) {
+      return core;
+    }
 
-  const activeNav = navItems.find((n) => n.key === activeView) ?? navItems[0];
+    return [
+      { key: 'unified-preview' as const, label: 'Unified (Preview)', icon: '🧭', path: '/unified-dashboard' },
+      ...core,
+    ];
+  }, []);
+
+  // Determine active navigation item based on current path
+  const activeNav = navItems.find((n) => location.pathname === n.path) ?? navItems[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="border-b border-background-lighter">
+      {/* Notification Toast Overlay */}
+      <NotificationToast position="top-right" />
+
+      {/* Header - Draggable window region */}
+      <header
+        className="border-b border-background-lighter"
+        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      >
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="text-2xl font-extralight">Miyabi Desktop</div>
@@ -51,7 +66,7 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex h-[calc(100vh-73px)]">
+      <main className="flex h-[calc(100vh-73px)]" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         {/* Sidebar */}
         <aside className="w-64 border-r border-background-lighter bg-background-light">
           <nav className="p-4 space-y-2">
@@ -60,8 +75,8 @@ export default function App() {
                 key={item.key}
                 icon={item.icon}
                 label={item.label}
-                active={item.key === activeView}
-                onClick={() => setActiveView(item.key)}
+                active={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
               />
             ))}
           </nav>
@@ -71,35 +86,21 @@ export default function App() {
         <div className="flex-1 p-8">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-4xl font-extralight mb-8">{activeNav.label}</h1>
-
-            {(() => {
-              switch (activeView) {
-                case 'dashboard':
-                  return (
-                    <DashboardView
-                      data={dashboard.data}
-                      loading={dashboard.loading}
-                      error={dashboard.error}
-                      onNavigate={(view) => setActiveView(view as NavKey)}
-                    />
-                  );
-                case 'worktrees':
-                  return <WorktreesView />;
-                default:
-                  return <PlaceholderView view={activeView} />;
-              }
-            })()}
+            <Outlet />
           </div>
         </div>
       </main>
 
       {/* Status Bar */}
-      <footer className="border-t border-background-lighter bg-background-light">
+      <footer
+        className="border-t border-background-lighter bg-background-light"
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
         <div className="flex items-center justify-between px-6 py-2 text-xs text-foreground-muted">
           <div>Ready</div>
           <div className="flex items-center gap-4">
             <span>Miyabi Desktop MVP</span>
-            <span>Sprint 0 - Foundation</span>
+            <span>Sprints 0-7 Complete ✅</span>
           </div>
         </div>
       </footer>
@@ -108,6 +109,7 @@ export default function App() {
 }
 
 type NavKey =
+  | 'unified-preview'
   | 'dashboard'
   | 'worktrees'
   | 'agents'
@@ -140,7 +142,7 @@ function NavItem({ icon, label, active = false, onClick }: NavItemProps) {
 }
 
 function PlaceholderView({ view }: { view: NavKey }) {
-  const descriptions: Record<Exclude<NavKey, 'dashboard'>, string> = {
+  const descriptions: Record<Exclude<NavKey, 'dashboard' | 'unified-preview'>, string> = {
     worktrees: 'Monitor active branches and worktree health. This view will display active worktrees, orphan detection, and clean-up actions.',
     agents: 'Manage and configure Miyabi agent assignments, parameters, and dependencies.',
     issues: 'Review GitHub issues, track progress, and manage synchronization between worktrees and tasks.',
@@ -152,7 +154,11 @@ function PlaceholderView({ view }: { view: NavKey }) {
     return null;
   }
 
-  const titleMap: Record<Exclude<NavKey, 'dashboard'>, string> = {
+  if (view === 'unified-preview') {
+    return null;
+  }
+
+  const titleMap: Record<Exclude<NavKey, 'dashboard' | 'unified-preview'>, string> = {
     worktrees: '🌲 Worktrees',
     agents: '🤖 Agents',
     issues: '📋 Issues',

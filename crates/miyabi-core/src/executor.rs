@@ -344,7 +344,7 @@ impl TaskExecutor {
                     // Continue loop - LLM will decide next action
                 }
 
-                ToolCallResponse::Conclusion(summary) => {
+                ToolCallResponse::Conclusion { text: summary } => {
                     info!("Task completed with conclusion: {}", summary);
 
                     // Calculate total duration

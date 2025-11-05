@@ -2,8 +2,8 @@
 
 > VS Code-like Electron desktop application for Miyabi autonomous development platform
 
-**Version**: 0.1.0 (MVP - Sprint 0)
-**Status**: 🚧 In Development
+**Version**: 0.1.0 (MVP - Sprints 0-7 Complete)
+**Status**: 🚧 In Development (Polishing & Release Prep)
 **Platform**: macOS (initial), Windows/Linux (future)
 
 ---
@@ -14,12 +14,12 @@ Miyabi Desktop is a native Electron application that provides a rich, unified ex
 
 **Key Features** (MVP):
 - ✅ **Sprint 0**: Foundation (Electron + React + TypeScript + Vite)
-- ⏳ **Sprint 2**: Project Management (F-1)
-- ⏳ **Sprint 3**: Worktree Visualization (F-2)
-- ⏳ **Sprint 4**: Agent Execution Monitoring (F-3)
-- ⏳ **Sprint 5**: Issue Management (F-4)
-- ⏳ **Sprint 6**: Task History Browser (F-5) + System Health Dashboard (F-6)
-- ⏳ **Sprint 7**: Native Notifications (F-11) + Polish
+- ✅ **Sprint 2**: Project Management (F-1)
+- ✅ **Sprint 3**: Worktree Visualization (F-2)
+- ✅ **Sprint 4**: Agent Execution Monitoring (F-3)
+- ✅ **Sprint 5**: Issue Management (F-4)
+- ✅ **Sprint 6**: Task History Browser (F-5) + System Health Dashboard (F-6)
+- ✅ **Sprint 7**: Native Notifications (F-11) + Polish
 - ⏳ **Sprint 8**: Release Preparation
 
 ---
@@ -266,34 +266,41 @@ npm run build:linux
 - [x] IPC communication layer
 - [x] Basic UI layout
 
-### Sprint 1: Foundation (Week 1)
-- [ ] Window management
-- [ ] Native menu bar
-- [ ] React Router setup
+### Sprint 1: Foundation (Week 1) ✅
+- [x] Window management
+- [x] Native menu bar
+- [x] React Router setup
 
-### Sprint 2: Dashboard Integration (Week 2)
-- [ ] File watcher (chokidar)
-- [ ] CLI executor (spawn miyabi commands)
-- [ ] Project management (F-1)
+### Sprint 2: Dashboard Integration (Week 2) ✅
+- [x] File watcher (chokidar)
+- [x] CLI executor (spawn miyabi commands)
+- [x] Project management (F-1)
 
-### Sprint 3: Worktree Visualization (Week 3)
-- [ ] Worktree data fetching
-- [ ] Worktree list UI
-- [ ] Worktree actions (delete, open, copy)
+### Sprint 3: Worktree Visualization (Week 3) ✅
+- [x] Worktree data fetching
+- [x] Worktree list UI
+- [x] Worktree actions (delete, open, copy)
 
-### Sprint 4: Agent Monitoring (Week 4)
-- [ ] Agent data fetching
-- [ ] Real-time log streaming
-- [ ] Pause/Cancel actions
+### Sprint 4: Agent Monitoring (Week 4) ✅
+- [x] Agent data fetching
+- [x] Real-time log streaming
+- [x] Pause/Cancel actions
+- [x] Agent status tracking
+- [x] AgentsView UI with live updates
 
-### Sprint 5: Issue Management (Week 5)
-- [ ] GitHub API integration (Octokit)
-- [ ] Issue caching (SQLite)
-- [ ] Issue list & filters
+### Sprint 5: Issue Management (Week 5) ✅
+- [x] GitHub API integration (Octokit)
+- [x] Issue caching (SQLite)
+- [x] Issue list & filters
+- [x] Search functionality
+- [x] IssuesView UI with detailed view
 
-### Sprint 6: History & Health (Week 6)
-- [ ] Task history browser (F-5)
-- [ ] System health dashboard (F-6)
+### Sprint 6: History & Health (Week 6) ✅
+- [x] Task history database (SQLite)
+- [x] System health monitoring
+- [x] Task execution recording
+- [x] Statistics and analytics
+- [x] Real-time health metrics (CPU, memory, disk)
 
 ### Sprint 7: Polish & Notifications (Week 7)
 - [ ] Native notifications (F-11)
@@ -344,4 +351,4 @@ MIT
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-**Sprint 0 - Foundation Complete** | **Next: Sprint 1 (Week 1)**
+**Sprints 0-3 Complete** | **Next: Sprint 4 (Agent Monitoring)**

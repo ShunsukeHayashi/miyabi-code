@@ -1,0 +1,39 @@
+# Parallel Testing Workflow
+#
+# This workflow demonstrates parallel task execution:
+# - Run unit tests, integration tests, and security scans in parallel
+# - Then aggregate results and deploy
+
+name: parallel-testing
+version: "1.0.0"
+
+steps:
+  - name: generate-code
+    type: step
+    agent: CodeGenAgent
+    description: Generate code implementation
+
+  - name: run-tests
+    type: parallel
+    agent: CoordinatorAgent
+    description: Run all tests in parallel
+    parallel_tasks:
+      - name: unit-tests
+        agent: CodeGenAgent
+        description: Run unit tests
+      - name: integration-tests
+        agent: ReviewAgent
+        description: Run integration tests
+      - name: security-scan
+        agent: ReviewAgent
+        description: Run security vulnerability scan
+
+  - name: aggregate-results
+    type: then
+    agent: CoordinatorAgent
+    description: Aggregate all test results
+
+  - name: deploy
+    type: then
+    agent: DeploymentAgent
+    description: Deploy if all tests pass

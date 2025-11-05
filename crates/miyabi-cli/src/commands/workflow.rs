@@ -6,8 +6,8 @@ use crate::config::ConfigLoader;
 use crate::error::{CliError, Result};
 use colored::Colorize;
 use miyabi_agent_coordinator::CoordinatorAgent;
-use miyabi_types::AgentConfig;
-use miyabi_workflow::WorkflowBuilder;
+use miyabi_types::{agent::AgentType, AgentConfig};
+use miyabi_workflow::{Condition, WorkflowBuilder};
 use std::path::PathBuf;
 
 /// Workflow CLI command
@@ -149,27 +149,33 @@ impl WorkflowCommand {
 
             match step_def.step_type.as_str() {
                 "step" => {
-                    builder.step(&step_def.name, agent_type);
+                    builder = builder.step(&step_def.name, agent_type);
                 }
                 "then" => {
-                    builder.then(&step_def.name, agent_type);
+                    builder = builder.then(&step_def.name, agent_type);
                 }
                 "parallel" => {
                     // For parallel, we'd need to handle multiple agents
                     // For now, treat as sequential step
-                    builder.then(&step_def.name, agent_type);
+                    builder = builder.then(&step_def.name, agent_type);
                 }
                 "branch" => {
-                    if let Some(branches) = &step_def.branches {
-                        // Simple branching: take first two branches
-                        if branches.len() >= 2 {
-                            builder.branch(
-                                &step_def.name,
-                                &branches[0].next_step,
-                                &branches[1].next_step,
-                            );
-                        }
-                    }
+                    let branches = step_def.branches.as_ref().ok_or_else(|| {
+                        CliError::Config(format!(
+                            "Branch step '{}' must include branch definitions",
+                            step_def.name
+                        ))
+                    })?;
+
+                    let parsed = self.parse_branch_definitions(&step_def.name, branches)?;
+                    let branch_args: Vec<(&str, Condition, &str)> = parsed
+                        .iter()
+                        .map(|(name, condition, next)| {
+                            (name.as_str(), condition.clone(), next.as_str())
+                        })
+                        .collect();
+
+                    builder = builder.branch_on(&step_def.name, branch_args);
                 }
                 unknown => return Err(CliError::Config(format!("Unknown step type: {}", unknown))),
             }
@@ -189,6 +195,62 @@ impl WorkflowCommand {
             "deployment" | "deploymentagent" => Ok(AgentType::DeploymentAgent),
             "refresher" | "refresheragent" => Ok(AgentType::RefresherAgent),
             unknown => Err(CliError::Config(format!("Unknown agent type: {}", unknown))),
+        }
+    }
+
+    fn parse_branch_definitions(
+        &self,
+        step_name: &str,
+        branches: &[BranchDefinition],
+    ) -> Result<Vec<(String, Condition, String)>> {
+        if branches.is_empty() {
+            return Err(CliError::Config(format!(
+                "Branch step '{}' must define at least one branch",
+                step_name
+            )));
+        }
+
+        let mut parsed = Vec::with_capacity(branches.len());
+        for (idx, branch) in branches.iter().enumerate() {
+            let condition =
+                self.parse_branch_condition(step_name, idx, branch.condition.as_ref())?;
+            let branch_name = branch
+                .name
+                .clone()
+                .unwrap_or_else(|| format!("{}-branch-{}", step_name, idx));
+            parsed.push((branch_name, condition, branch.next_step.clone()));
+        }
+
+        Ok(parsed)
+    }
+
+    fn parse_branch_condition(
+        &self,
+        step_name: &str,
+        index: usize,
+        condition: Option<&ConditionDefinition>,
+    ) -> Result<Condition> {
+        match condition {
+            None => Ok(Condition::Always),
+            Some(definition) => {
+                if let Some(field) = &definition.field {
+                    if let Some(equals) = &definition.equals {
+                        Ok(Condition::FieldEquals {
+                            field: field.clone(),
+                            value: equals.clone(),
+                        })
+                    } else {
+                        Ok(Condition::FieldExists {
+                            field: field.clone(),
+                        })
+                    }
+                } else {
+                    Err(CliError::Config(format!(
+                        "Branch {} in step '{}' must specify a 'field' when providing a condition",
+                        index, step_name
+                    )))
+                }
+            }
         }
     }
 }
@@ -215,6 +277,8 @@ struct StepDefinition {
 /// Branch definition for conditional steps
 #[derive(Debug, Clone, serde::Deserialize)]
 struct BranchDefinition {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     condition: Option<ConditionDefinition>,
     next_step: String,

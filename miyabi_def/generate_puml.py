@@ -244,6 +244,179 @@ class PlantUMLGenerator:
 
         return "\n".join(puml)
 
+    @staticmethod
+    def generate_overview_diagram():
+        """High-level C4 container overview diagram."""
+        return "\n".join([
+            "@startuml miyabi_overview",
+            "!include <C4/C4_Container>",
+            "",
+            "LAYOUT_WITH_LEGEND()",
+            "",
+            "title Miyabi Definition Automation Overview",
+            "",
+            "Person(human, \"Human Operator\", \"Provides first intent input\")",
+            "",
+            "System_Boundary(intents, \"Intent Capture\") {",
+            "    System(intentFile, \"Intent YAML\", \"project/intent/objective\")",
+            "}",
+            "",
+            "System_Boundary(pipeline, \"Definition Automation Pipeline\") {",
+            "    Container(intentParser, \"Intent Parser\", \"Python\", \"Validates intent, builds template plan\")",
+            "    Container(variableLoader, \"Variable Loader\", \"YAML\", \"Aggregates base + intent overrides\")",
+            "    Container(templateEngine, \"Jinja2 Renderer\", \"Jinja2\", \"Applies templates with merged context\")",
+            "}",
+            "",
+            "System_Boundary(outputs, \"Generated Artefacts\") {",
+            "    Container(definitions, \"Generated YAML Bundle\", \"entities.yaml, agents.yaml, ...\")",
+            "    Container(puml, \"PlantUML Diagrams\", \"entities.puml, overview.puml\", \"Visual schemas\")",
+            "}",
+            "",
+            "System_Boundary(runtime, \"Runtime Consumers\") {",
+            "    System_Ext(orchestra, \"Miyabi Orchestra\", \"21 Agents / Infinity Mode\")",
+            "    System_Ext(tmuxControl, \"TmuxControlAgent\", \"AI-driven tmux operations\")",
+            "    System_Ext(docs, \"Documentation\", \"Automation Guide, Specs\")",
+            "}",
+            "",
+            "Rel(human, intentFile, \"Describe intent, constraints\")",
+            "Rel(intentFile, intentParser, \"Parse & validate\", \"--intent\")",
+            "Rel(intentParser, variableLoader, \"Select template plan, share context\")",
+            "Rel(variableLoader, templateEngine, \"Provide merged variables\")",
+            "Rel(templateEngine, definitions, \"Render YAML bundle\")",
+            "Rel(templateEngine, puml, \"Emit diagrams via generate_puml.py\")",
+            "Rel(definitions, orchestra, \"Provision agents/workflows\")",
+            "Rel(definitions, tmuxControl, \"Expose agent specs\")",
+            "Rel(definitions, docs, \"Sync documentation\")",
+            "Rel(puml, docs, \"Embed diagrams\")",
+            "",
+            "note top of intentParser",
+            "  Template aliases: world, entities, workflows...",
+            "  Intent fallback: default template order",
+            "end note",
+            "",
+            "note bottom of tmuxControl",
+            "  Uses TmuxControlAgent docs & commands",
+            "  generated via /tmux-control",
+            "end note",
+            "",
+            "SHOW_LEGEND()",
+            "@enduml",
+        ])
+
+    @staticmethod
+    def generate_automation_flow_diagram():
+        """Automation flow activity diagram from intent to monitoring."""
+        lines = [
+            "@startuml miyabi_automation_flow",
+            "skinparam activityBackgroundColor #f8fafc",
+            "skinparam activityBorderColor #2563eb",
+            "skinparam activityDiamondBackgroundColor #e0f2fe",
+            "skinparam activityDiamondBorderColor #2563eb",
+            "skinparam shadowing false",
+            "",
+            "title Miyabi Intent → Automation Flow (Layered Detail)",
+            "start",
+            "",
+            "partition \"Intent\" {",
+            "  :1.0 Intent Overview;",
+            "  partition \"1.x Intent Detailing\" {",
+            "    :1.1 Compose Intent YAML\\n"
+            "      - project / intent / outputs / variables;\\n"
+            "      - reference docs/miyabi-def-automation.md;",
+            "    :1.2 Schema Validation\\n"
+            "      - intent-schema.yaml\\n"
+            "      - enforce required keys & types;",
+            "    :1.3 Persist Intent\\n"
+            "      - save under miyabi_def/intents/\\n"
+            "      - version via git commit;",
+            "  }",
+            "  note right",
+            "    Key fields:\\n"
+            "    • project.name / summary\\n"
+            "    • intent.objective / constraints\\n"
+            "    • outputs.templates aliases\\n"
+            "    • variables.* overrides\\n"
+            "    • agents.include / exclude",
+            "  end note",
+            "}",
+            "",
+            "partition \"Pipeline\" {",
+            "  partition \"2.x Planning\" {",
+            "    :2.1 Resolve Template Aliases\\n"
+            "      - world → world_definition.yaml.j2\\n"
+            "      - agents → agents.yaml.j2;",
+            "    :2.2 Build Template Plan\\n"
+            "      - order = DEFAULT_TEMPLATE_ORDER\\n"
+            "      - override via intent.outputs.templates;",
+            "  }",
+            "  partition \"3.x Variable Handling\" {",
+            "    :3.1 Load Base Variables\\n"
+            "      - variables/*.yaml (entities, workflows…);",
+            "    :3.2 Deep Merge Overrides\\n"
+            "      - intent.variables → base dict\\n"
+            "      - inject `intent` context;",
+            "  }",
+            "  partition \"4.x Rendering\" {",
+            "    :4.1 Render Templates\\n"
+            "      - Environment: Jinja2\\n"
+            "      - Output: generated/*.yaml;",
+            "    :4.2 Validate Outputs\\n"
+            "      - optional schema linting\\n"
+            "      - diff vs previous run;",
+            "  }",
+            "  partition \"5.x Artefacts\" {",
+            "    :5.1 Generate PlantUML\\n"
+            "      - entities / agents / overview / automation_flow;",
+            "    :5.2 Update Docs\\n"
+            "      - docs/miyabi-def-automation.md\\n"
+            "      - changelog / release notes;",
+            "  }",
+            "}",
+            "",
+            "partition \"Knowledge Sync\" {",
+            "  :6.0 Knowledge Distribution;",
+            "  partition \"6.x Claude/Codex\" {",
+            "    :6.1 Update Agent Specs\\n"
+            "      - .claude/agents/specs\\n"
+            "      - .codex/agents/specs;",
+            "    :6.2 Refresh Command Docs\\n"
+            "      - /tmux-control etc.\\n"
+            "      - INDEX.md に反映;",
+            "    :6.3 Publish Guides\\n"
+            "      - guides/TMUX_AI_AGENT_CONTROL.md\\n"
+            "      - docs/miyabi-def-automation.md;",
+            "  }",
+            "}",
+            "",
+            "partition \"Runtime\" {",
+            "  partition \"7.x Automation\" {",
+            "    :7.1 CoordinatorAgent→Task DAG;",
+            "    :7.2 CodeGen/Review/PRAgent Execution;",
+            "    :7.3 DeploymentAgent handles delivery;",
+            "    :7.4 TmuxControlAgent supervises tmux panes;",
+            "  }",
+            "  partition \"8.x Monitoring\" {",
+            "    :8.1 Metrics Capture (.ai/metrics);",
+            "    :8.2 Infinity Logs & Alerts;",
+            "    :8.3 Reporting (/daily-update, /pattern3-report);",
+            "    :8.4 Feedback to Intent Backlog;",
+            "  }",
+            "}",
+            "",
+            "repeat",
+            "  if (Need intent refinement?) then (yes)",
+            "    :Adjust intent YAML\\n"
+            "      - Update constraints/targets\\n"
+            "      - Append learnings & rerun;",
+            "  endif",
+            "repeat while (Need intent refinement?)",
+            "stop",
+            "",
+            "@enduml",
+        ]
+
+        return "\n".join(lines)
+
     def generate_all(self):
         """Generate all PlantUML diagrams."""
         # Create output directory
@@ -255,6 +428,8 @@ class PlantUMLGenerator:
             "entities.puml": self.generate_entity_diagram,
             "agents.puml": self.generate_agent_diagram,
             "workflow.puml": self.generate_workflow_diagram,
+            "overview.puml": self.generate_overview_diagram,
+            "automation_flow.puml": self.generate_automation_flow_diagram,
         }
 
         for filename, generator_func in diagrams.items():

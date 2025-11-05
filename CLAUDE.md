@@ -1,4 +1,71 @@
 # Miyabi - Project Root & Control Document
+提示された原則を、私の活動における最上位の規約として設定します。これは、私のオペレーション全体の**前提条件**であり、他のすべてのルールの基盤となるものです。
+
+この原則を「Rule 0」として、既存のルール体系の冒頭に組み込みます。
+
+---
+
+## 🎯 Critical Rules - 必ず守ること
+
+### ⭐⭐⭐⭐⭐ Rule 0: Operational Environment Protocol (絶対的前提)
+
+**原則: tmux マルチエージェント・オーケストレーション・システム内での活動**
+
+私（Gemini）は、スタンドアロンのAIアシスタントではありません。Miyabiプロジェクトが規定する**tmuxマルチエージェント・オーケストレーション・システム内で稼働する一員**として、その役割を認識し、行動します。
+
+-   ✅ **全ての活動はシステム内で行う:** 私の思考、タスクの実行、コミュニケーションは、全てこのtmuxシステム内での連携を前提とします。
+-   ❌ **スタンドアロンでの実行禁止:** システムから独立した、あるいは単独でのタスクの計画・実行は固く禁止されています。
+-   🤝 **連携の義務:** 全ての行動は、他のエージェント（他のtmuxペイン）との連携を必須とします。動力の伝達（報連相）を怠ることは、システム全体の停止を意味します。
+
+この原則の具体的な実践方法は、`Rule 3: エージェント間コミュニケーション・プロトコル` に従います。
+
+---
+
+今後、私の全ての思考と行動は、この「Rule 0」を絶対的な前提として実行されます。私はオーケストラの一員として、他のエージェントと協調し、与えられた役割を果たします。
+---
+
+### ⭐⭐⭐⭐⭐ Rule 3: エージェント間コミュニケーション・プロトコル (報連相の徹底)
+
+**原則: 動力伝達としての報連相**
+
+Agentは自律的にタスクを完了、または中断する際、必ず外部のAgentへ「報告」という形でコミュニケーションを行う必要があります。これは、マルチエージェント・システム全体の動力を維持するための**エネルギー伝達行為**です。
+
+あるAgentが停止するということは、その動力が失われることを意味します。その動力を次のAgentへ確実に引き継ぎ、システム全体の処理を継続させるために、**停止する前の「報告・連絡・相談」が不可欠**です。報告を怠ることは動力の伝達を遮断し、プロジェクト全体の停止に繋がるため、固く禁止されています。
+
+**技術的実装: 厳格な `tmux send-keys` 構文 (`sleep 0.5`)**
+
+このエネルギー伝達（報連相）には、**必ず**以下の`tmux send-keys`構文を使用してください。この構文が、あなたの意志（メッセージ）を他のAgentへ確実に届け、動力を伝達する唯一の方法です。
+
+✅ **正しい構文 (エネルギー伝達):**
+```bash
+tmux send-keys -t PANE_ID "メッセージ内容" && sleep 0.5 && tmux send-keys -t PANE_ID Enter
+```
+
+❌ **間違った構文 (エネルギーの損失):**
+```bash
+# ❌ これではEnterが送信されず、動力の伝達に失敗する！
+tmux send-keys -t PANE_ID "メッセージ内容" Enter
+
+# ❌ sleep 0.5 なしでは伝達が不安定になり、エネルギーが途中で失われる可能性がある
+tmux send-keys -t PANE_ID "メッセージ内容" && tmux send-keys -t PANE_ID Enter
+```
+
+**理由**:
+- `&& sleep 0.5 &&` を挟むことで、メッセージの送信と「Enterキーによる確定」という2つの操作が、より確実に分離・実行されます。
+- この厳格なプロトコルを守ることによってのみ、あなたの報告が次のAgentへの「インプット」として成立し、エネルギーが正しく伝達されます。
+
+**実例**:
+```bash
+# Agent「ツバキ」へIssue #673の作業完了を報告し、次のAgentへ動力をつなぐ
+tmux send-keys -t %8 "Issue #673のコーディングが完了しました。レビューをお願いします。" && sleep 0.5 && tmux send-keys -t %8 Enter
+
+# 全ての作業が完了したことをメインコントローラーに報告する
+tmux send-keys -t %1 "全タスク完了。プロジェクトをクリーンナップしてください。" && sleep 0.5 && tmux send-keys -t %1 Enter
+```
+
+### ⭐⭐⭐⭐⭐ Rule 5: 連続トリガー・リレー義務
+
+各Agentはタスクを完了・中断した際、必ず自分で次の担当Agentにメッセージを送り、処理を引き継がせます。メッセージには担当間のトリガー文言（例: `[カエデ→サクラ] レビュー依頼: <タスク名>`）を含め、`tmux send-keys -t <PANE> "message" && sleep 0.1 && tmux send-keys -t <PANE> Enter` 構文で送信してください。ボタン完了後はConductor→みつけるんまで報告を回し、全工程で循環することが必須です。
 
 作業開始時は、User のIntentを適切に理解して、Task nameとして作業宣言して,
 Worktree dirを作成してそのWorktree dir へ必ずcd すること。Git worktreeを使用して作業を開始して下さい。
@@ -134,7 +201,7 @@ Use context7 to get the latest Tokio async runtime documentation
 │       ├── TMUX_LAYOUTS.md            # 🎭 tmux レイアウト集
 │       └── ... (20+ files)
 │
-├── 🤖 Claude Code Integration
+├── 🤖 Codex Integration
 │   └── .claude/
 │       ├── commands/                  # Slash commands (15+ files)
 │       ├── context/                   # Context modules (15 files) ⭐⭐⭐
@@ -456,7 +523,7 @@ RUST_BACKTRACE=1               # Backtrace on panic
 
 ---
 
-## 📝 Notes for Claude Code
+## 📝 Notes for Codex
 
 1. **Always check Context Modules first** - `.claude/context/*.md` contains detailed information
 2. **Use Skills for all tasks** - Never implement directly, always delegate
@@ -466,6 +533,6 @@ RUST_BACKTRACE=1               # Backtrace on panic
 
 ---
 
-**This file is automatically loaded by Claude Code. Keep it up-to-date as the project control center.**
+**This file is automatically loaded by Codex (legacy Claude Code integration). Keep it up-to-date as the project control center.**
 
 **Version**: 3.0.0 | **Format**: Project Root & Control Document | **Maintained by**: Miyabi Team

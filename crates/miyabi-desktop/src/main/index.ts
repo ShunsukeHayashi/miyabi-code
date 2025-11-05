@@ -3,6 +3,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { registerDashboardHandlers } from './services/dashboard';
 import { registerWorktreeHandlers } from './services/worktrees';
+import { registerFileWatcherHandlers } from './services/file-watcher';
+import { registerCLIExecutorHandlers } from './services/cli-executor';
+import { registerProjectManagerHandlers } from './services/project-manager';
+import { registerAgentMonitorHandlers } from './services/agent-monitor';
+import { registerGitHubHandlers } from './services/github';
+import { registerHistoryHandlers } from './services/history';
+import { registerNotificationHandlers } from './services/notifications';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -149,6 +156,13 @@ app.on('ready', createWindow);
 // Register IPC handlers
 registerDashboardHandlers();
 registerWorktreeHandlers();
+registerFileWatcherHandlers();
+registerCLIExecutorHandlers();
+registerProjectManagerHandlers();
+registerAgentMonitorHandlers();
+registerGitHubHandlers();
+registerHistoryHandlers();
+registerNotificationHandlers();
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -173,36 +187,6 @@ ipcMain.handle('app:getName', () => {
 
 ipcMain.handle('app:getPath', (_, name: 'home' | 'appData' | 'userData' | 'temp') => {
   return app.getPath(name);
-});
-
-// Agent handlers (placeholder - will be implemented in Sprint 4)
-ipcMain.handle('agent:getRunning', async () => {
-  return [];
-});
-
-ipcMain.handle('agent:pause', async (_, agentId: string) => {
-  console.log('Pause agent:', agentId);
-  return { success: true };
-});
-
-ipcMain.handle('agent:cancel', async (_, agentId: string) => {
-  console.log('Cancel agent:', agentId);
-  return { success: true };
-});
-
-// Project handlers (placeholder - will be implemented in Sprint 2)
-ipcMain.handle('project:open', async (_, projectPath: string) => {
-  console.log('Open project:', projectPath);
-  return {
-    name: 'Miyabi Project',
-    path: projectPath,
-    lastOpened: Date.now(),
-  };
-});
-
-ipcMain.handle('project:close', async () => {
-  console.log('Close project');
-  return { success: true };
 });
 
 // System info

@@ -1,6 +1,5 @@
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { ChevronDown } from "lucide-react"
 
 export interface DropdownProps {
   trigger: React.ReactNode

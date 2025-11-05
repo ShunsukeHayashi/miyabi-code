@@ -1,46 +1,44 @@
-//! miyabi-dag - DAG-based task graph construction for Omega System θ₃
+//! # miyabi-dag
 //!
-//! This crate implements the Allocation Phase (θ₃) of the Omega System,
-//! which transforms generated code into a Directed Acyclic Graph (DAG) of
-//! executable tasks for parallel processing.
+//! DAG-based task graph for Miyabi Ω-System implementing θ₃ (Allocation Phase).
 //!
-//! # Overview
+//! ## Overview
 //!
-//! **Function**: `θ₃: Code → TaskGraph`
+//! This crate provides functionality to transform generated code into a Directed Acyclic Graph (DAG)
+//! of executable tasks, enabling parallel execution based on dependencies.
 //!
-//! **Algorithm**:
-//! 1. Analyze dependencies between code files/modules
-//! 2. Perform topological sort to determine execution order
-//! 3. Group independent tasks for parallel execution
-//! 4. Assign resources (worktrees) to tasks
+//! **Ω-System Phase**: θ₃: Code → TaskGraph
 //!
-//! # Example
+//! ## Features
 //!
-//! ```rust,no_run
+//! - **DAG Construction**: Build task graphs from code dependencies
+//! - **Dependency Analysis**: Analyze file/module dependencies
+//! - **Topological Sort**: Order tasks using Kahn's algorithm
+//! - **Parallelization**: Group independent tasks for concurrent execution
+//! - **Resource Allocation**: Assign worktrees to parallel tasks
+//!
+//! ## Example
+//!
+//! ```no_run
 //! use miyabi_dag::{DAGBuilder, GeneratedCode};
 //!
-//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let builder = DAGBuilder::new(4); // max 4 parallel tasks
 //! let code = GeneratedCode::from_files(vec![/* ... */]);
-//! let graph = builder.build(&code)?;
+//! let task_graph = builder.build(code).unwrap();
 //!
-//! println!("Graph has {} levels", graph.levels().len());
-//! println!("Max parallelism: {}", graph.max_parallel_tasks());
-//! # Ok(())
-//! # }
+//! for level in task_graph.levels() {
+//!     println!("Level {}: {} parallel tasks", level.level, level.tasks.len());
+//! }
 //! ```
 
-pub mod builder;
-pub mod dependency;
-pub mod error;
-pub mod graph;
-pub mod topological;
-pub mod types;
+mod builder;
+mod dependency;
+mod error;
+mod graph;
+mod types;
 
 pub use builder::DAGBuilder;
+pub use dependency::{DependencyAnalyzer, DependencyGraph};
 pub use error::{DAGError, Result};
-pub use graph::{TaskGraph, TaskLevel, TaskNode};
-pub use types::{GeneratedCode, CodeFile, ModulePath, TaskId};
-
-#[cfg(test)]
-mod tests;
+pub use graph::{TaskGraph, TaskLevel};
+pub use types::{CodeFile, GeneratedCode, ModulePath, Task, TaskId, TaskNode};

@@ -1,350 +1,386 @@
 # miyabi-llm
 
-LLM abstraction layer for Miyabi - GPT-OSS-20B integration
+Unified LLM abstraction layer for Miyabi - Multi-provider support with intelligent routing.
+
+[![Crates.io](https://img.shields.io/crates/v/miyabi-llm.svg)](https://crates.io/crates/miyabi-llm)
+[![Documentation](https://docs.rs/miyabi-llm/badge.svg)](https://docs.rs/miyabi-llm)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Features
 
-- **Provider abstraction**: Unified trait for all LLM providers
-- **GPT-OSS-20B support**: Native support for OpenAI's open-source model (Apache 2.0 license)
-- **Multiple backends**: vLLM, Ollama, Groq
+- **3 LLM Providers**: Anthropic Claude, OpenAI GPT, Google Gemini
+- **Intelligent Routing**: 3-tier cost-optimized HybridRouter (75% cost savings)
+- **Streaming Support**: Real-time text generation via Server-Sent Events
+- **Tool Calling**: Structured function calls with JSON schema validation
 - **Async/await**: Built on tokio for high performance
-- **Function calling**: Support for structured function calls (planned)
-- **Reasoning levels**: Low, Medium, High reasoning effort
+- **Type-safe API**: Strongly typed Rust interface
+- **Unified Interface**: Same API across all providers
 
 ## Installation
 
-Add this to your `Cargo.toml`:
-
 ```toml
 [dependencies]
-miyabi-llm = { version = "1.0.0", path = "../miyabi-llm" }
+miyabi-llm = "0.1"
 ```
 
 ## Quick Start
 
-### Groq (Recommended for quick start)
+### HybridRouter (Recommended)
+
+Intelligent routing with 75% cost savings:
 
 ```rust
-use miyabi_llm::{LLMProvider, GPTOSSProvider, LLMRequest, ReasoningEffort};
+use miyabi_llm::{HybridRouter, LlmClient, Message, Role};
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Initialize Groq provider
-    let provider = GPTOSSProvider::new_groq("gsk_xxxxx")?;
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create router from environment variables
+    let router = HybridRouter::from_env()?;
 
-    // Create request
-    let request = LLMRequest::new("Write a Rust function to calculate factorial")
-        .with_temperature(0.2)
-        .with_max_tokens(512)
-        .with_reasoning_effort(ReasoningEffort::Medium);
-
-    // Generate response
-    let response = provider.generate(&request).await?;
-    println!("Generated: {}", response.text);
-    println!("Tokens used: {}", response.tokens_used);
+    // Simple tasks → GPT-4o-mini ($0.15/1M)
+    let messages = vec![Message::new(
+        Role::User,
+        "Add documentation for this function".to_string()
+    )];
+    let response = router.chat(messages).await?;
+    println!("{}", response);
 
     Ok(())
 }
 ```
 
-### vLLM (Recommended for production)
+### Individual Providers
 
-```bash
-# Start vLLM server
-vllm serve openai/gpt-oss-20b
-```
+#### Anthropic Claude - Best for complex reasoning
 
 ```rust
-use miyabi_llm::{LLMProvider, GPTOSSProvider, LLMRequest};
+use miyabi_llm::{AnthropicClient, LlmClient, Message, Role};
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Initialize vLLM provider
-    let provider = GPTOSSProvider::new_vllm("http://localhost:8000")?;
-
-    // Create request
-    let request = LLMRequest::new("Explain Rust ownership");
-
-    // Generate response
-    let response = provider.generate(&request).await?;
-    println!("{}", response.text);
-
-    Ok(())
-}
+let claude = AnthropicClient::from_env()?.with_sonnet();
+let messages = vec![Message::new(Role::User, "Explain quantum computing".to_string())];
+let response = claude.chat(messages).await?;
 ```
 
-### Ollama (Recommended for development)
-
-```bash
-# Pull model
-ollama pull gpt-oss:20b
-
-# Run model
-ollama run gpt-oss:20b
-```
+#### OpenAI GPT - Best for simple, fast tasks
 
 ```rust
-use miyabi_llm::{LLMProvider, GPTOSSProvider, LLMRequest};
+use miyabi_llm::{OpenAIClient, LlmClient, Message, Role};
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Initialize Ollama provider
-    let provider = GPTOSSProvider::new_ollama()?;
-
-    // Create request
-    let request = LLMRequest::new("Write a hello world program in Rust");
-
-    // Generate response
-    let response = provider.generate(&request).await?;
-    println!("{}", response.text);
-
-    Ok(())
-}
+let openai = OpenAIClient::from_env()?.with_gpt4o_mini();
+let messages = vec![Message::new(Role::User, "Fix this typo".to_string())];
+let response = openai.chat(messages).await?;
 ```
 
-## API Reference
-
-### `LLMProvider` trait
-
-Core trait for all LLM providers.
+#### Google Gemini - Best for medium complexity
 
 ```rust
-#[async_trait]
-pub trait LLMProvider: Send + Sync {
-    /// Generate text from a prompt
-    async fn generate(&self, request: &LLMRequest) -> Result<LLMResponse>;
+use miyabi_llm::{GoogleClient, LlmClient, Message, Role};
 
-    /// Chat completion with message history
-    async fn chat(&self, messages: &[ChatMessage]) -> Result<ChatMessage>;
-
-    /// Call a function using function calling
-    async fn call_function(&self, name: &str, args: serde_json::Value) -> Result<serde_json::Value>;
-
-    /// Get model name
-    fn model_name(&self) -> &str;
-
-    /// Get maximum tokens supported
-    fn max_tokens(&self) -> usize;
-}
+let google = GoogleClient::from_env()?.with_flash();
+let messages = vec![Message::new(Role::User, "Implement REST API".to_string())];
+let response = google.chat(messages).await?;
 ```
 
-### `GPTOSSProvider`
+## Streaming
 
-GPT-OSS-20B provider implementation.
-
-**Constructors**:
-- `GPTOSSProvider::new_groq(api_key)` - Groq provider
-- `GPTOSSProvider::new_vllm(endpoint)` - vLLM provider
-- `GPTOSSProvider::new_ollama()` - Ollama provider
-
-**Builder methods**:
-- `.with_model(model)` - Set custom model name
-- `.with_timeout(duration)` - Set request timeout
-
-### `LLMRequest`
-
-Request configuration for LLM inference.
+Real-time text generation:
 
 ```rust
-pub struct LLMRequest {
-    pub prompt: String,
-    pub temperature: f32,
-    pub max_tokens: usize,
-    pub reasoning_effort: ReasoningEffort,
-}
-```
+use miyabi_llm::{GoogleClient, LlmStreamingClient, Message, Role};
+use futures::StreamExt;
 
-**Builder methods**:
-- `LLMRequest::new(prompt)` - Create new request with defaults
-- `.with_temperature(temp)` - Set temperature (0.0-2.0)
-- `.with_max_tokens(tokens)` - Set max tokens
-- `.with_reasoning_effort(effort)` - Set reasoning level
+let client = GoogleClient::from_env()?.with_flash();
+let messages = vec![Message::new(Role::User, "Write a story".to_string())];
 
-### `ReasoningEffort`
-
-Reasoning effort level for inference.
-
-- `ReasoningEffort::Low` - Fast inference for simple tasks
-- `ReasoningEffort::Medium` - Balanced quality and speed (default)
-- `ReasoningEffort::High` - High quality reasoning for complex tasks
-
-### `LLMResponse`
-
-Response from LLM inference.
-
-```rust
-pub struct LLMResponse {
-    pub text: String,
-    pub tokens_used: u32,
-    pub finish_reason: String,
-    pub function_call: Option<FunctionCall>,
-}
-```
-
-## Chat Completion
-
-```rust
-use miyabi_llm::{LLMProvider, GPTOSSProvider, ChatMessage};
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let provider = GPTOSSProvider::new_groq("gsk_xxxxx")?;
-
-    let messages = vec![
-        ChatMessage::system("You are a helpful Rust programming assistant"),
-        ChatMessage::user("How do I create a Vec in Rust?"),
-    ];
-
-    let response = provider.chat(&messages).await?;
-    println!("{}", response.content);
-
-    Ok(())
-}
-```
-
-## Error Handling
-
-```rust
-use miyabi_llm::{LLMProvider, GPTOSSProvider, LLMRequest, LLMError};
-
-#[tokio::main]
-async fn main() {
-    let provider = GPTOSSProvider::new_groq("invalid_key").unwrap();
-    let request = LLMRequest::new("test");
-
-    match provider.generate(&request).await {
-        Ok(response) => println!("{}", response.text),
-        Err(LLMError::ApiError(msg)) => eprintln!("API error: {}", msg),
-        Err(LLMError::Timeout(ms)) => eprintln!("Timeout after {}ms", ms),
+let mut stream = client.chat_stream(messages).await?;
+while let Some(chunk) = stream.next().await {
+    match chunk {
+        Ok(text) => print!("{}", text),
         Err(e) => eprintln!("Error: {}", e),
     }
 }
 ```
 
-## Cost Comparison
+## Tool Calling
 
-### Groq (Pay-per-use)
+Function calling with JSON schema:
 
-- **Input**: $0.10 / 1M tokens
-- **Output**: $0.50 / 1M tokens
-- **Speed**: 1000+ tokens/second
-- **Best for**: Prototyping, low-frequency use
+```rust
+use miyabi_llm::{AnthropicClient, LlmClient, Message, Role, ToolDefinition, ToolCallResponse};
+use serde_json::json;
 
-**Example cost** (500 Agent executions/month):
-- Input: 1M tokens × $0.10 = $0.10
-- Output: 0.5M tokens × $0.50 = $0.25
-- **Total: $0.35/month** ($4.20/year)
+let client = AnthropicClient::from_env()?;
+let messages = vec![Message::new(Role::User, "What's the weather in Tokyo?".to_string())];
 
-### vLLM (Self-hosted)
+let tools = vec![ToolDefinition {
+    name: "get_weather".to_string(),
+    description: "Get current weather".to_string(),
+    parameters: json!({
+        "type": "object",
+        "properties": {
+            "location": {"type": "string"}
+        },
+        "required": ["location"]
+    }),
+}];
 
-- **Infrastructure**: AWS p3.2xlarge @ $3.06/hour
-- **Monthly**: $2,203 (24/7) or $539 (8h/day × 22days)
-- **Best for**: Production, high-frequency use
-
-### Ollama (Local)
-
-- **Hardware**: NVIDIA RTX 4080 16GB (~$1,200)
-- **Electricity**: ~$6.76/month
-- **Best for**: Development, privacy-sensitive applications
-
-## Performance
-
-| Provider | Speed | Latency | Cost/1M tokens |
-|----------|-------|---------|----------------|
-| Groq     | 1000+ t/s | ~1-2s | $0.10 in, $0.50 out |
-| vLLM     | 500-1000 t/s | ~2-3s | Self-hosted |
-| Ollama   | 50-100 t/s | ~5-15s | Self-hosted |
-
-## Configuration
-
-### Environment Variables
-
-```bash
-# Groq API key (required for Groq provider)
-export GROQ_API_KEY="gsk_xxxxxxxxxxxxx"
-
-# vLLM endpoint (optional, default: http://localhost:8000)
-export VLLM_ENDPOINT="http://localhost:8000"
-
-# Ollama endpoint (optional, default: http://localhost:11434)
-export OLLAMA_ENDPOINT="http://localhost:11434"
+let response = client.chat_with_tools(messages, tools).await?;
+match response {
+    ToolCallResponse::ToolCalls(calls) => {
+        for call in calls {
+            println!("Function: {} with args: {:?}", call.name, call.arguments);
+        }
+    }
+    ToolCallResponse::Conclusion { text } => println!("{}", text),
+}
 ```
 
-### .miyabi.yml
+## HybridRouter - 3-Tier Intelligent Routing
 
-```yaml
-llm:
-  provider: "groq"  # "vllm" | "ollama" | "groq"
+### Cost Optimization Strategy
 
-  groq:
-    api_key: "${GROQ_API_KEY}"
-    model: "openai/gpt-oss-20b"
+| Complexity | Provider | Cost/1M tokens | Use Cases |
+|------------|----------|----------------|-----------|
+| Simple | GPT-4o-mini | $0.15 | Documentation, typos, formatting |
+| Medium | Gemini Flash | $0.20 | API endpoints, tests, bug fixes |
+| Complex | Claude Sonnet | $3.00 | Architecture, refactoring, security |
 
-  vllm:
-    endpoint: "http://localhost:8000"
+### Automatic Routing
 
-  ollama:
-    model: "gpt-oss:20b"
+The router analyzes your prompts and automatically routes to the optimal provider:
 
-  default_temperature: 0.2
-  default_max_tokens: 4096
-  default_reasoning_effort: "medium"
+```rust
+use miyabi_llm::{HybridRouter, LlmClient, Message, Role};
+
+let router = HybridRouter::from_env()?;
+
+// Simple task → GPT-4o-mini
+let response1 = router.chat(vec![Message::new(
+    Role::User,
+    "Add documentation comment".to_string()
+)]).await?;
+
+// Medium task → Gemini Flash
+let response2 = router.chat(vec![Message::new(
+    Role::User,
+    "Implement API endpoint".to_string()
+)]).await?;
+
+// Complex task → Claude Sonnet
+let response3 = router.chat(vec![Message::new(
+    Role::User,
+    "Refactor authentication system".to_string()
+)]).await?;
+```
+
+### Cost Metrics
+
+Track cost savings in real-time:
+
+```rust
+let metrics = router.get_metrics().await;
+println!("Total requests: {}", metrics.total_requests());
+println!("Total tokens: {}", metrics.total_tokens());
+println!("Actual cost: ${:.4}", metrics.estimated_cost_usd);
+println!("Savings: {:.1}%", metrics.savings_percentage());
+```
+
+**Expected savings**: 75% cost reduction vs pure Claude approach
+
+## Environment Variables
+
+```bash
+# Required API keys
+export ANTHROPIC_API_KEY="sk-ant-xxx"
+export OPENAI_API_KEY="sk-xxx"
+export GOOGLE_API_KEY="xxx"  # or GEMINI_API_KEY
+```
+
+Get your API keys:
+- [Anthropic Console](https://console.anthropic.com/)
+- [OpenAI Platform](https://platform.openai.com/)
+- [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+## Provider Comparison
+
+### Models
+
+| Provider | Model | Context | Max Output | Speed | Cost (in/out per 1M) |
+|----------|-------|---------|------------|-------|---------------------|
+| Anthropic | Claude 3.5 Sonnet | 200K | 4K | Medium | $3.00 / $15.00 |
+| OpenAI | GPT-4o-mini | 128K | 16K | Fast | $0.15 / $0.60 |
+| Google | Gemini 1.5 Flash | 1M | 8K | Fast | $0.075 / $0.30 |
+| Google | Gemini 1.5 Pro | 2M | 8K | Medium | $1.25 / $5.00 |
+
+### Features
+
+| Feature | Anthropic | OpenAI | Google |
+|---------|-----------|--------|--------|
+| Streaming | ✅ | ✅ | ✅ |
+| Tool calling | ✅ | ✅ | ✅ |
+| Vision | ✅ | ✅ | ✅ |
+| JSON mode | ✅ | ✅ | ❌ |
+
+## API Reference
+
+### `LlmClient` Trait
+
+Core trait for all providers:
+
+```rust
+#[async_trait]
+pub trait LlmClient: Send + Sync {
+    async fn chat(&self, messages: Vec<Message>) -> Result<String>;
+    async fn chat_with_tools(
+        &self,
+        messages: Vec<Message>,
+        tools: Vec<ToolDefinition>
+    ) -> Result<ToolCallResponse>;
+    fn provider_name(&self) -> &str;
+    fn model_name(&self) -> &str;
+}
+```
+
+### `LlmStreamingClient` Trait
+
+Streaming support:
+
+```rust
+#[async_trait]
+pub trait LlmStreamingClient: LlmClient {
+    async fn chat_stream(&self, messages: Vec<Message>) -> Result<StreamResponse>;
+}
+```
+
+### `Message`
+
+Chat message structure:
+
+```rust
+pub struct Message {
+    pub role: Role,  // User, Assistant, System
+    pub content: String,
+}
+```
+
+### `ToolDefinition`
+
+Function definition:
+
+```rust
+pub struct ToolDefinition {
+    pub name: String,
+    pub description: String,
+    pub parameters: serde_json::Value,  // JSON Schema
+}
+```
+
+### `ToolCallResponse`
+
+Tool call result:
+
+```rust
+pub enum ToolCallResponse {
+    ToolCalls(Vec<ToolCall>),
+    Conclusion { text: String },
+    NeedApproval { action: String, reason: String },
+}
+```
+
+## Examples
+
+See the [examples/](examples/) directory:
+
+- [`basic_usage.rs`](examples/basic_usage.rs) - All 3 providers
+- [`hybrid_router.rs`](examples/hybrid_router.rs) - Intelligent routing
+- [`streaming.rs`](examples/streaming.rs) - Streaming from all providers
+
+Run examples:
+
+```bash
+cargo run --example basic_usage
+cargo run --example hybrid_router
+cargo run --example streaming
 ```
 
 ## Testing
 
 ```bash
-# Run tests
+# Run all tests
 cargo test --package miyabi-llm
 
-# Run tests with output
-cargo test --package miyabi-llm -- --nocapture
-
 # Run specific test
-cargo test --package miyabi-llm test_provider_creation_groq
+cargo test --package miyabi-llm test_hybrid_router
+
+# With output
+cargo test --package miyabi-llm -- --nocapture
 ```
 
-## Examples
+## Error Handling
 
-See the [examples/](examples/) directory for more examples:
+```rust
+use miyabi_llm::{LlmError, AnthropicClient, LlmClient};
 
-- `basic.rs` - Basic usage example
-- `chat.rs` - Chat completion example
-- `streaming.rs` - Streaming responses (planned)
-- `function_calling.rs` - Function calling example (planned)
+match client.chat(messages).await {
+    Ok(response) => println!("{}", response),
+    Err(LlmError::MissingApiKey(key)) => eprintln!("Missing: {}", key),
+    Err(LlmError::NetworkError(msg)) => eprintln!("Network: {}", msg),
+    Err(LlmError::ApiError(msg)) => eprintln!("API: {}", msg),
+    Err(LlmError::ParseError(msg)) => eprintln!("Parse: {}", msg),
+    Err(e) => eprintln!("Error: {}", e),
+}
+```
 
-## Roadmap
+## Architecture
 
-- [x] Core LLMProvider trait
-- [x] GPTOSSProvider implementation
-- [x] Groq support
-- [x] vLLM support
-- [x] Ollama support
-- [x] Basic chat completion
-- [ ] Streaming responses
-- [ ] Function calling
-- [ ] Token counting utilities
-- [ ] Retry logic with exponential backoff
-- [ ] Response caching
+```
+miyabi-llm/ (Integration crate)
+├── miyabi-llm-core/       # Core traits & types
+├── miyabi-llm-anthropic/  # Claude client
+├── miyabi-llm-openai/     # GPT client
+└── miyabi-llm-google/     # Gemini client
+```
+
+## Migration Guide
+
+### From v0.1.0 (2-provider) to v0.1.1 (3-provider)
+
+**Before (2 providers)**:
+
+```rust
+let router = HybridRouter::new(claude, openai);
+```
+
+**After (3 providers)**:
+
+```rust
+let router = HybridRouter::new(claude, openai, google);
+// or
+let router = HybridRouter::from_env()?;  // Recommended
+```
+
+**TaskComplexity enum**:
+
+- Added `Medium` variant
+- Default changed from `Complex` to `Medium`
+- CostMetrics now tracks Google usage
+
+## Contributing
+
+Contributions welcome! Please see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## License
 
 Apache-2.0
 
-## Contributing
+## Links
 
-Contributions are welcome! Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+- [Documentation](https://docs.rs/miyabi-llm)
+- [GitHub Repository](https://github.com/ShunsukeHayashi/Miyabi)
+- [Miyabi Project](https://github.com/ShunsukeHayashi/Miyabi)
 
-## Related Projects
+## Provider Documentation
 
-- [Miyabi](https://github.com/ShunsukeHayashi/Miyabi) - Complete autonomous AI development operations platform
-- [miyabi-agents](../miyabi-agents/) - Agent implementations using miyabi-llm
-- [GPT-OSS](https://github.com/openai/gpt-oss) - OpenAI's open-source model
-
-## References
-
-- [OpenAI GPT-OSS Official Announcement](https://openai.com/index/introducing-gpt-oss/)
-- [Hugging Face Model Card](https://huggingface.co/openai/gpt-oss-20b)
-- [vLLM Documentation](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)
-- [Ollama Documentation](https://ollama.com/library/gpt-oss:20b)
-- [Groq API Documentation](https://console.groq.com/docs/model/openai/gpt-oss-20b)
+- [Anthropic Claude](https://docs.anthropic.com/)
+- [OpenAI GPT](https://platform.openai.com/docs/)
+- [Google Gemini](https://ai.google.dev/docs)

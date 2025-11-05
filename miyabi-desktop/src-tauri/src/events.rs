@@ -5,7 +5,10 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use std::sync::Arc;
+use tauri::{AppHandle, Emitter};
+
+use crate::websocket::WebSocketServer;
 
 // ==================== Event Type Definitions ====================
 
@@ -125,12 +128,16 @@ pub struct SystemEvent {
 #[derive(Clone)]
 pub struct EventEmitter {
     app_handle: AppHandle,
+    ws_server: Arc<WebSocketServer>,
 }
 
 impl EventEmitter {
-    /// Create a new EventEmitter with the given Tauri AppHandle
-    pub fn new(app_handle: AppHandle) -> Self {
-        Self { app_handle }
+    /// Create a new EventEmitter with the given Tauri AppHandle and WebSocket server
+    pub fn new(app_handle: AppHandle, ws_server: Arc<WebSocketServer>) -> Self {
+        Self {
+            app_handle,
+            ws_server,
+        }
     }
 
     /// Emit an agent event
@@ -147,30 +154,70 @@ impl EventEmitter {
     /// })?;
     /// ```
     pub fn emit_agent_event(&self, event: AgentEvent) -> Result<(), String> {
+        // Emit to Tauri event system (Desktop app)
         self.app_handle
-            .emit_all("agent:event", event)
-            .map_err(|e| format!("Failed to emit agent event: {}", e))
+            .emit("agent:event", &event)
+            .map_err(|e| format!("Failed to emit agent event: {}", e))?;
+
+        // Broadcast to WebSocket clients (Dashboard)
+        let ws_server = self.ws_server.clone();
+        let event_clone = event.clone();
+        tokio::spawn(async move {
+            let _ = ws_server.broadcast("agent:event", event_clone).await;
+        });
+
+        Ok(())
     }
 
     /// Emit a worktree event
     pub fn emit_worktree_event(&self, event: WorktreeEvent) -> Result<(), String> {
+        // Emit to Tauri event system
         self.app_handle
-            .emit_all("worktree:event", event)
-            .map_err(|e| format!("Failed to emit worktree event: {}", e))
+            .emit("worktree:event", &event)
+            .map_err(|e| format!("Failed to emit worktree event: {}", e))?;
+
+        // Broadcast to WebSocket clients
+        let ws_server = self.ws_server.clone();
+        let event_clone = event.clone();
+        tokio::spawn(async move {
+            let _ = ws_server.broadcast("worktree:event", event_clone).await;
+        });
+
+        Ok(())
     }
 
     /// Emit a GitHub event
     pub fn emit_github_event(&self, event: GitHubEvent) -> Result<(), String> {
+        // Emit to Tauri event system
         self.app_handle
-            .emit_all("github:event", event)
-            .map_err(|e| format!("Failed to emit GitHub event: {}", e))
+            .emit("github:event", &event)
+            .map_err(|e| format!("Failed to emit GitHub event: {}", e))?;
+
+        // Broadcast to WebSocket clients
+        let ws_server = self.ws_server.clone();
+        let event_clone = event.clone();
+        tokio::spawn(async move {
+            let _ = ws_server.broadcast("github:event", event_clone).await;
+        });
+
+        Ok(())
     }
 
     /// Emit a system event
     pub fn emit_system_event(&self, event: SystemEvent) -> Result<(), String> {
+        // Emit to Tauri event system
         self.app_handle
-            .emit_all("system:event", event)
-            .map_err(|e| format!("Failed to emit system event: {}", e))
+            .emit("system:event", &event)
+            .map_err(|e| format!("Failed to emit system event: {}", e))?;
+
+        // Broadcast to WebSocket clients
+        let ws_server = self.ws_server.clone();
+        let event_clone = event.clone();
+        tokio::spawn(async move {
+            let _ = ws_server.broadcast("system:event", event_clone).await;
+        });
+
+        Ok(())
     }
 }
 

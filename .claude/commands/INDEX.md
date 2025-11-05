@@ -1,7 +1,7 @@
 # Miyabi Slash Commands Index
 
-**Last Updated**: 2025-10-31
-**Total Commands**: 21
+**Last Updated**: 2025-11-04
+**Total Commands**: 22
 
 スラッシュコマンドの完全インデックス。カテゴリ別に整理されています。
 
@@ -33,6 +33,7 @@
 | `/pattern3-report` | 📊 Reports | Pattern 3実行結果レポート生成 |
 | `/claude-code-x` | 🤖 Agent | Claude Codeバックグラウンド自律実行 |
 | `/codex` | 🤖 Agent | Codex X統合（GPT-5/o3並列実行） |
+| `/tmux-control` | 🤖 Agent | TmuxControlAgentでセッション管制 |
 
 ---
 
@@ -423,6 +424,27 @@ GPT-5 Codex/o3によるゼロバグ品質コード生成（外部統合）。
 - Background 1 (Codex X): Zero-bug品質コード
 - Background 2 (Claude Code X): 高速ドキュメント
 - 生産性140%向上を実現
+
+---
+
+#### `/tmux-control` - tmux セッション管制
+**File**: `tmux-control.md` (4.5KB)
+**Usage**: `/tmux-control session=<name> pane=%n command="..." mode=send|capture|recover|status`
+
+TmuxControlAgent（つむっくん）が `send-keys` の安全注入、ログ収集、復旧シーケンスを管理して tmux セッションを安定化。Infinity Mode や Orchestra の CLI 操作を AI 主導で行う際の基盤コマンド。
+
+**主なユースケース**:
+- セッション整備: `/tmux-control mode=recover`
+- コマンド投入: `/tmux-control pane=%2 command="cd ... && ./scripts/miyabi-orchestra.sh coding-ensemble"`
+- ログ取得: `/tmux-control pane=%4 mode=capture`
+- 状態確認: `/tmux-control session=Miyabi mode=status`
+
+**参照資料**:
+- `/docs/TMUX_AI_AGENT_CONTROL_GUIDE.md`
+- `.claude/guides/TMUX_AI_AGENT_CONTROL.md`
+- `.claude/agents/specs/coding/tmux-control-agent.md`
+
+復旧不能な場合は CoordinatorAgent に `status:critical` を返し、人間オペレーターへ通知する設計。
 
 ---
 

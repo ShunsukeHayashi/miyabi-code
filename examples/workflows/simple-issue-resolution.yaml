@@ -1,0 +1,31 @@
+# Simple Issue Resolution Workflow
+#
+# This workflow demonstrates basic sequential task execution:
+# 1. Analyze the issue
+# 2. Generate code
+# 3. Review the code
+# 4. Deploy if review passes
+
+name: simple-issue-resolution
+version: "1.0.0"
+
+steps:
+  - name: analyze-issue
+    type: step
+    agent: IssueAgent
+    description: Analyze the GitHub issue and extract requirements
+
+  - name: generate-code
+    type: then
+    agent: CodeGenAgent
+    description: Generate code based on issue requirements
+
+  - name: review-code
+    type: then
+    agent: ReviewAgent
+    description: Review generated code for quality and security
+
+  - name: deploy
+    type: then
+    agent: DeploymentAgent
+    description: Deploy the reviewed code to production

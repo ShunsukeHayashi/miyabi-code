@@ -5,8 +5,8 @@ export type { InputProps } from "./input"
 export { Textarea } from "./textarea"
 export type { TextareaProps } from "./textarea"
 
-export { Select, SelectOption } from "./select"
-export type { SelectProps, SelectOptionProps } from "./select"
+export { Select } from "./select"
+export type { SelectProps } from "./select"
 
 // Form Components
 export { Checkbox } from "./checkbox"
@@ -26,29 +26,17 @@ export {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from "./dialog"
-export type {
-  DialogProps,
-  DialogContentProps,
-  DialogHeaderProps,
-  DialogTitleProps,
-  DialogDescriptionProps,
-  DialogFooterProps,
-  DialogCloseProps,
-} from "./dialog"
+export type { DialogProps } from "./dialog"
 
 export { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "./sheet"
-export type {
-  SheetProps,
-  SheetContentProps,
-  SheetHeaderProps,
-  SheetTitleProps,
-  SheetDescriptionProps,
-} from "./sheet"
+export type { SheetProps } from "./sheet"
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs"
 export type { TabsProps, TabsTriggerProps, TabsContentProps } from "./tabs"
+
+export { SegmentedControl } from "./segmented-control"
+export type { SegmentedControlProps, SegmentedControlOption } from "./segmented-control"
 
 // Feedback Components
 export { Alert, AlertTitle, AlertDescription } from "./alert"

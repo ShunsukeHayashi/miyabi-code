@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { safeInvoke, isTauriAvailable } from '../lib/tauri-utils';
 import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
-import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -38,6 +37,50 @@ interface AgentsConfig {
   coding_agents: AgentConfig[];
 }
 
+interface OrchestraPaneStatus {
+  pane_id: string;
+  title: string;
+  current_command: string;
+  active: boolean;
+  width: number;
+  height: number;
+  current_path: string;
+  recent_output?: string[];
+}
+
+interface RelayPatternStatus {
+  pattern: string;
+  status: string;
+  pane_id: string;
+  found: boolean;
+}
+
+interface SkillProxyStatus {
+  log_file: string;
+  recent_log: string[];
+  active: boolean;
+  recent_executions: Array<{
+    pane_id?: string;
+    command?: string;
+    timestamp?: string;
+  }>;
+}
+
+interface OrchestraStatus {
+  session: string;
+  updated_at: string;
+  pane_map: Record<string, string>;
+  panes: OrchestraPaneStatus[];
+  relay: {
+    patterns: RelayPatternStatus[];
+    summary?: {
+      missing_count: number;
+      missing_patterns: RelayPatternStatus[];
+    };
+  };
+  skill_proxy: SkillProxyStatus;
+}
+
 function getAgentSuffix(agentName: string): string {
   return agentName
     .toLowerCase()
@@ -67,10 +110,11 @@ export function TmuxManager() {
   const [gwrStatus, setGwrStatus] = useState('');
   const [gwrLoading, setGwrLoading] = useState(false);
   const [gwrError, setGwrError] = useState<string | null>(null);
-  const [gwrWorktrees, setGwrWorktrees] = useState<GwrWorktree[]>([]);
-  const [gwrStatus, setGwrStatus] = useState('');
-  const [gwrLoading, setGwrLoading] = useState(false);
-  const [gwrError, setGwrError] = useState<string | null>(null);
+  const [orchestraStatus, setOrchestraStatus] = useState<OrchestraStatus | null>(null);
+  const [orchestraError, setOrchestraError] = useState<string | null>(null);
+  const [orchestraLoading, setOrchestraLoading] = useState(false);
+  const [showMissingOnly, setShowMissingOnly] = useState(false);
+  const [expandedPaneId, setExpandedPaneId] = useState<string | null>(null);
 
   useEffect(() => {
     const available = isTauriAvailable();
@@ -108,6 +152,18 @@ export function TmuxManager() {
     if (runtimeReady) {
       void loadGwrData();
     }
+  }, [runtimeReady]);
+
+  useEffect(() => {
+    if (!runtimeReady) {
+      return undefined;
+    }
+
+    void refreshOrchestraStatus();
+    const interval = setInterval(() => {
+      void refreshOrchestraStatus();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [runtimeReady]);
 
   function ensureRuntime(message?: string): boolean {
@@ -173,6 +229,31 @@ export function TmuxManager() {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
       console.error('[TmuxManager] Failed to refresh sessions:', err);
+    }
+  }
+
+  async function refreshOrchestraStatus(sessionName?: string, showSpinner = false) {
+    if (!ensureRuntime()) {
+      return;
+    }
+    try {
+      if (showSpinner) {
+        setOrchestraLoading(true);
+      }
+      setOrchestraError(null);
+      const payload = await safeInvoke<OrchestraStatus>('tmux_orchestra_status',
+        sessionName
+          ? { sessionName, session_name: sessionName }
+          : {}
+      );
+      setOrchestraStatus(payload);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setOrchestraError(message);
+    } finally {
+      if (showSpinner) {
+        setOrchestraLoading(false);
+      }
     }
   }
 
@@ -369,6 +450,14 @@ export function TmuxManager() {
     return <Badge variant="outline">Unknown</Badge>;
   }
 
+  const orchestraUpdatedAt = orchestraStatus ? new Date(orchestraStatus.updated_at) : null;
+  const relayPatterns = orchestraStatus?.relay?.patterns ?? [];
+  const relaySummary = orchestraStatus?.relay?.summary;
+  const filteredPatterns = showMissingOnly
+    ? relayPatterns.filter((pattern) => !pattern.found)
+    : relayPatterns;
+  const missingCount = relaySummary?.missing_count ?? 0;
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -409,11 +498,175 @@ export function TmuxManager() {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
-          <p className="font-semibold">Error</p>
-          <p className="text-sm">{error}</p>
-        </div>
+      <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+        <p className="font-semibold">Error</p>
+        <p className="text-sm">{error}</p>
+      </div>
       )}
+
+      <Card className="shadow-sm">
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div>
+            <CardTitle>Orchestra Monitor</CardTitle>
+            <CardDescription>
+              tmux セッション全体のリレー状況とスキル実行状態をミラーリングします。
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              void refreshOrchestraStatus(undefined, true);
+            }}
+            disabled={orchestraLoading || !runtimeReady}
+          >
+            <RefreshCw className={`w-4 h-4 ${orchestraLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!runtimeReady && (
+            <p className="text-sm text-muted-foreground">
+              デスクトップランタイム起動後に状態を取得します。
+            </p>
+          )}
+          {runtimeReady && orchestraError && (
+            <div className="text-sm text-red-600">
+              状態取得に失敗しました: {orchestraError}
+            </div>
+          )}
+          {runtimeReady && !orchestraError && !orchestraStatus && (
+            <p className="text-sm text-muted-foreground">状態を取得中...</p>
+          )}
+
+          {runtimeReady && orchestraStatus && (
+            <div className="space-y-5">
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <div>
+                  <span className="font-semibold text-foreground">Session:</span> {orchestraStatus.session}
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">Last Update:</span>{' '}
+                  {orchestraUpdatedAt ? orchestraUpdatedAt.toLocaleTimeString() : 'N/A'}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">Skill Proxy:</span>
+                  <Badge variant={orchestraStatus.skill_proxy.active ? 'default' : 'secondary'}>
+                    {orchestraStatus.skill_proxy.active ? 'Active' : 'Idle'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">Missing Triggers:</span>
+                  <Badge variant={missingCount > 0 ? 'destructive' : 'default'}>
+                    {missingCount}
+                  </Badge>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMissingOnly((value) => !value)}
+                >
+                  {showMissingOnly ? 'すべて表示' : '未達のみ表示'}
+                </Button>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Relay Chain</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {filteredPatterns.length === 0 && showMissingOnly ? (
+                    <span className="text-xs text-muted-foreground">未達トリガーはありません。</span>
+                  ) : (
+                    filteredPatterns.map((pattern) => (
+                      <Badge
+                        key={pattern.pattern}
+                        variant={pattern.found ? 'default' : 'destructive'}
+                        className={pattern.found ? 'bg-green-500/90' : 'bg-red-500/80'}
+                      >
+                        {pattern.pattern} {pattern.found ? '✅' : '⚠️'}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Panes</h3>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {orchestraStatus.panes.map((pane) => {
+                    const isExpanded = expandedPaneId === pane.pane_id;
+                    return (
+                      <div
+                        key={pane.pane_id}
+                        className="border border-border rounded-md p-3 bg-muted/30"
+                      >
+                        <div className="flex items-center justify-between text-sm font-semibold text-foreground">
+                          <span>{pane.title}</span>
+                          <Badge variant={pane.active ? 'default' : 'secondary'}>{pane.active ? 'Active' : 'Idle'}</Badge>
+                        </div>
+                        <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                          <div>
+                            <span className="font-semibold">Pane:</span> {pane.pane_id}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Cmd:</span> {pane.current_command || '—'}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Path:</span> {pane.current_path}
+                          </div>
+                        </div>
+                        {pane.recent_output && pane.recent_output.length > 0 && (
+                          <details
+                            className="mt-2"
+                            open={isExpanded}
+                            onToggle={(event) => {
+                              if (event.currentTarget.open) {
+                                setExpandedPaneId(pane.pane_id);
+                              } else if (expandedPaneId === pane.pane_id) {
+                                setExpandedPaneId(null);
+                              }
+                            }}
+                          >
+                            <summary className="cursor-pointer text-xs text-muted-foreground">
+                              直近ログを表示
+                            </summary>
+                            <pre className="bg-background/70 mt-1 max-h-48 overflow-y-auto rounded border border-border/50 p-2 text-[11px] leading-relaxed whitespace-pre-wrap">
+                              {pane.recent_output.slice(-20).join('\n')}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Recent Skill Executions</h3>
+                {orchestraStatus.skill_proxy.recent_executions.length === 0 ? (
+                  <p className="text-xs text-muted-foreground mt-1">実行履歴はまだありません。</p>
+                ) : (
+                  <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                    {orchestraStatus.skill_proxy.recent_executions.map((exec, index) => (
+                      <li key={`${exec.timestamp}-${index}`} className="flex flex-wrap gap-2">
+                        <span className="font-mono">{exec.timestamp || 'unknown-time'}</span>
+                        <span>({exec.pane_id || 'pane?'})</span>
+                        <span className="font-semibold text-foreground">{exec.command}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {orchestraStatus.skill_proxy.recent_log.length > 0 && (
+                  <details className="mt-3">
+                    <summary className="text-xs text-muted-foreground cursor-pointer">ログを表示</summary>
+                    <pre className="bg-muted mt-2 p-2 rounded text-[11px] whitespace-pre-wrap max-h-48 overflow-y-auto">
+                      {orchestraStatus.skill_proxy.recent_log.join('\n')}
+                    </pre>
+                  </details>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Agent Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -1,276 +1,492 @@
-import { useState, useEffect } from "react";
-import { Save, Check, AlertCircle } from "lucide-react";
-import { DEFAULT_SPEAKERS } from "../lib/voicevox-api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertCircle,
+  Check,
+  Info,
+  Loader2,
+  Monitor,
+  Moon,
+  Play,
+  Save,
+  Square,
+  Sun,
+} from "lucide-react";
+import { SegmentedControl } from "./ui/segmented-control";
+import {
+  DEFAULT_REPOSITORY,
+  type AppSettings,
+  loadSettings as loadAppSettings,
+  saveSettings as persistSettings,
+} from "../lib/settings";
+import { DEFAULT_SPEAKERS, generateNarration } from "../lib/voicevox-api";
+import { setThemePreference } from "../lib/theme-manager";
 
-interface Settings {
-  githubToken: string;
-  githubRepo: string;
-  voicevoxSpeakerId: number;
-  theme: "light" | "dark" | "system";
-}
+const SAMPLE_PREVIEW_TEXT =
+  "こちらはMiyabiデスクトップのナレーションテストです。保存前に音声をご確認ください。";
+
+const DEFAULT_SETTINGS: AppSettings = {
+  githubToken: "",
+  githubRepo: DEFAULT_REPOSITORY,
+  voicevoxSpeakerId: 3,
+  theme: "light",
+  agentExecutionEnabled: true,
+};
+
+const THEME_OPTIONS = [
+  {
+    value: "light" as const,
+    label: "Light",
+    icon: <Sun className="h-4 w-4" />,
+  },
+  {
+    value: "dark" as const,
+    label: "Dark",
+    icon: <Moon className="h-4 w-4" />,
+  },
+  {
+    value: "system" as const,
+    label: "System",
+    icon: <Monitor className="h-4 w-4" />,
+  },
+];
 
 export function SettingsPanel() {
-  const [settings, setSettings] = useState<Settings>({
-    githubToken: "",
-    githubRepo: "ShunsukeHayashi/Miyabi",
-    voicevoxSpeakerId: 3,
-    theme: "light",
-  });
-  const [saved, setSaved] = useState(false);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [initialSettings, setInitialSettings] = useState<AppSettings | null>(null);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSettings();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const toastTimeoutRef = useRef<number | null>(null);
+
+  const stopPreview = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audioRef.current = null;
+    }
+    setIsPreviewPlaying(false);
+    setIsPreviewLoading(false);
   }, []);
 
-  const loadSettings = () => {
-    // Load from localStorage
-    const stored = localStorage.getItem("miyabi-settings");
-    if (stored) {
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = window.setTimeout(() => setToastMessage(null), 3000);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const hydrate = async () => {
       try {
-        const parsed = JSON.parse(stored);
-        setSettings({ ...settings, ...parsed });
-      } catch (e) {
-        console.error("Failed to parse settings:", e);
+        const loaded = await loadAppSettings();
+        if (!mounted) {
+          return;
+        }
+        setSettings(loaded);
+        setInitialSettings(loaded);
+      } catch (loadError) {
+        if (!mounted) {
+          return;
+        }
+        const message =
+          loadError instanceof Error ? loadError.message : "設定の読み込みに失敗しました";
+        setError(message);
+      } finally {
+        if (mounted) {
+          setIsLoadingSettings(false);
+        }
       }
+    };
+
+    hydrate();
+
+    return () => {
+      mounted = false;
+      stopPreview();
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, [stopPreview]);
+
+  useEffect(() => {
+    return () => {
+      stopPreview();
+    };
+  }, [stopPreview, settings.voicevoxSpeakerId]);
+
+  const isDirty = useMemo(() => {
+    if (!initialSettings) {
+      return false;
     }
 
-    // Load from environment variables (if available via Tauri)
-    const envToken = import.meta.env.VITE_GITHUB_TOKEN;
-    const envRepo = import.meta.env.VITE_GITHUB_REPOSITORY;
-    if (envToken) setSettings((s) => ({ ...s, githubToken: envToken }));
-    if (envRepo) setSettings((s) => ({ ...s, githubRepo: envRepo }));
+    return (
+      initialSettings.githubToken !== settings.githubToken ||
+      initialSettings.githubRepo !== settings.githubRepo ||
+      initialSettings.voicevoxSpeakerId !== settings.voicevoxSpeakerId ||
+      initialSettings.theme !== settings.theme ||
+      initialSettings.agentExecutionEnabled !== settings.agentExecutionEnabled
+    );
+  }, [initialSettings, settings]);
+
+  const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+    setSettings((prev) => {
+      if (key === "voicevoxSpeakerId" && prev.voicevoxSpeakerId !== value) {
+        stopPreview();
+        setPreviewError(null);
+      }
+      if (key === "theme" && prev.theme !== value) {
+        setThemePreference(value as AppSettings["theme"]);
+      }
+      return { ...prev, [key]: value };
+    });
+    setError(null);
   };
 
-  const saveSettings = () => {
-    setLoading(true);
+  const handleSave = useCallback(async () => {
+    if (isSaving || !isDirty) {
+      return;
+    }
+
+    const trimmedToken = settings.githubToken.trim();
+    const trimmedRepo = settings.githubRepo.trim();
+
+    if (!trimmedToken) {
+      setError("GitHub Token を入力してください");
+      return;
+    }
+
+    if (!trimmedRepo) {
+      setError("GitHub Repository を入力してください");
+      return;
+    }
+
+    const payload: AppSettings = {
+      ...settings,
+      githubToken: trimmedToken,
+      githubRepo: trimmedRepo,
+    };
+
+    setIsSaving(true);
     setError(null);
 
     try {
-      // Validate settings
-      if (!settings.githubToken) {
-        setError("GitHub Token is required");
-        setLoading(false);
-        return;
-      }
-
-      if (!settings.githubRepo) {
-        setError("GitHub Repository is required");
-        setLoading(false);
-        return;
-      }
-
-      // Save to localStorage
-      localStorage.setItem("miyabi-settings", JSON.stringify(settings));
-
-      // Show success message
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save settings");
+      await persistSettings(payload);
+      setSettings(payload);
+      setInitialSettings(payload);
+      setLastSavedAt(new Date().toISOString());
+      showToast("設定を保存しました");
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error ? saveError.message : "設定の保存に失敗しました";
+      setError(message);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
-  };
+  }, [isDirty, isSaving, settings, showToast]);
 
-  const updateSetting = <K extends keyof Settings>(
-    key: K,
-    value: Settings[K]
-  ) => {
-    setSettings({ ...settings, [key]: value });
-    setSaved(false);
-  };
+  const handlePreview = useCallback(async () => {
+    if (isPreviewPlaying) {
+      stopPreview();
+      return;
+    }
+
+    setPreviewError(null);
+    setIsPreviewLoading(true);
+
+    try {
+      const result = await generateNarration({
+        text: SAMPLE_PREVIEW_TEXT,
+        speaker_id: settings.voicevoxSpeakerId,
+      });
+
+      if (!result.success || !result.metadata?.audio_path) {
+        throw new Error(result.error || "音声プレビューの生成に失敗しました");
+      }
+
+      const audio = new Audio(`asset://${result.metadata.audio_path}`);
+      audio.onended = () => setIsPreviewPlaying(false);
+      audioRef.current = audio;
+
+      await audio.play();
+      setIsPreviewPlaying(true);
+    } catch (previewErr) {
+      stopPreview();
+      const message =
+        previewErr instanceof Error
+          ? previewErr.message
+          : "音声プレビューでエラーが発生しました";
+      setPreviewError(message);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }, [isPreviewPlaying, settings.voicevoxSpeakerId, stopPreview]);
+
+  const formattedLastSaved =
+    lastSavedAt != null ? new Date(lastSavedAt).toLocaleString() : "未保存";
 
   return (
-    <div className="px-12 py-24 overflow-y-auto h-full">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="mb-24">
-          <h1 className="text-6xl font-extralight tracking-tighter text-gray-900 mb-4">
-            Settings
-          </h1>
-          <div className="h-px w-24 bg-gray-300"></div>
-        </div>
-
-        {/* Success Message */}
-        {saved && (
-          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center space-x-3 text-green-700">
-            <Check size={20} />
-            <span className="text-sm font-light">
-              Settings saved successfully
-            </span>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center space-x-3 text-red-700">
-            <AlertCircle size={20} />
-            <span className="text-sm font-light">{error}</span>
-          </div>
-        )}
-
-        {/* Settings Form */}
-        <div className="space-y-12">
-          {/* GitHub Settings */}
-          <section>
-            <h2 className="text-2xl font-light text-gray-900 mb-6">
-              GitHub Integration
-            </h2>
-
-            <div className="space-y-6">
+    <div className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex-1 overflow-y-auto px-10 py-16 sm:px-16 lg:px-24">
+        <div className="mx-auto max-w-4xl space-y-8 pb-24">
+          <header className="space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <label className="block text-lg font-light text-gray-900 mb-4">
-                  GitHub Token
-                </label>
-                <input
-                  type="password"
-                  value={settings.githubToken}
-                  onChange={(e) => updateSetting("githubToken", e.target.value)}
-                  placeholder="ghp_xxxxxxxxxxxxx"
-                  className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-gray-900 text-lg font-light transition-all duration-200"
-                />
-                <p className="mt-2 text-sm font-light text-gray-500">
-                  Generate a token at{" "}
-                  <a
-                    href="https://github.com/settings/tokens"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    github.com/settings/tokens
-                  </a>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-4xl font-extralight tracking-tight text-gray-900 sm:text-5xl">
+                    Settings
+                  </h1>
+                  {isDirty && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      未保存の変更あり
+                    </span>
+                  )}
+                </div>
+                <p className="mt-3 max-w-2xl text-sm font-light text-gray-500">
+                  GitHub連携、VOICEVOX、外観設定をまとめて管理できます。変更は保存すると即座に適用されます。
                 </p>
               </div>
+              <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                <Info className="h-4 w-4" />
+                <span>最終保存: {formattedLastSaved}</span>
+              </div>
+            </div>
+            <div className="h-px w-24 bg-gray-200" />
+          </header>
 
+          {error && (
+            <div className="flex items-start gap-3 rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+              <AlertCircle className="mt-[2px] h-5 w-5 flex-shrink-0" />
               <div>
-                <label className="block text-lg font-light text-gray-900 mb-4">
-                  GitHub Repository
-                </label>
-                <input
-                  type="text"
-                  value={settings.githubRepo}
-                  onChange={(e) => updateSetting("githubRepo", e.target.value)}
-                  placeholder="owner/repository"
-                  className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-gray-900 text-lg font-light transition-all duration-200"
-                />
-                <p className="mt-2 text-sm font-light text-gray-500">
-                  Format: owner/repository (e.g., ShunsukeHayashi/Miyabi)
-                </p>
+                <p className="font-medium">エラーが発生しました</p>
+                <p className="mt-1 font-light">{error}</p>
               </div>
             </div>
-          </section>
+          )}
 
-          {/* VOICEVOX Settings */}
-          <section>
-            <h2 className="text-2xl font-light text-gray-900 mb-6">
-              VOICEVOX Configuration
-            </h2>
+          <section className="space-y-6">
+            <div className="rounded-3xl border border-gray-200 bg-white/60 p-8 shadow-sm backdrop-blur">
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-light text-gray-900">GitHub Integration</h2>
+                  <p className="text-sm font-light text-gray-500">
+                    MiyabiエージェントがPRやIssueを操作するための認証情報です。
+                  </p>
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-lg font-light text-gray-900 mb-4">
-                Default Speaker
-              </label>
-              <select
-                value={settings.voicevoxSpeakerId}
-                onChange={(e) =>
-                  updateSetting("voicevoxSpeakerId", Number(e.target.value))
-                }
-                className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-gray-900 text-lg font-light transition-all duration-200"
-              >
-                {DEFAULT_SPEAKERS.map((speaker) => (
-                  <option key={speaker.id} value={speaker.id}>
-                    {speaker.name} (ID: {speaker.id})
-                  </option>
-                ))}
-              </select>
-              <p className="mt-2 text-sm font-light text-gray-500">
-                Select the default speaker for narration generation
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-800">GitHub Token</label>
+                  <input
+                    type="password"
+                    value={settings.githubToken}
+                    disabled={isLoadingSettings || isSaving}
+                    onChange={(event) => updateSetting("githubToken", event.target.value)}
+                    placeholder="ghp_xxxxxxxxxxxxx"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-light text-gray-900 transition hover:border-gray-300 focus:border-gray-900 focus:outline-none"
+                  />
+                  <p className="text-xs font-light text-gray-500">
+                    Personal access token を{" "}
+                    <a
+                      href="https://github.com/settings/tokens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline-offset-2 transition hover:text-blue-600 hover:underline"
+                    >
+                      github.com/settings/tokens
+                    </a>{" "}
+                    で作成して入力してください。
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-800">
+                    GitHub Repository
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.githubRepo}
+                    disabled={isLoadingSettings || isSaving}
+                    onChange={(event) => updateSetting("githubRepo", event.target.value)}
+                    placeholder="owner/repository"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-light text-gray-900 transition hover:border-gray-300 focus:border-gray-900 focus:outline-none"
+                  />
+                  <p className="text-xs font-light text-gray-500">
+                    例: <span className="font-medium text-gray-700">ShunsukeHayashi/Miyabi</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-gray-200 bg-white/60 p-8 shadow-sm backdrop-blur">
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-light text-gray-900">VOICEVOX Configuration</h2>
+                  <p className="text-sm font-light text-gray-500">
+                    ナレーション生成時に使用するデフォルトスピーカーと音声プレビューを確認できます。
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-800">Default Speaker</label>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <select
+                      value={settings.voicevoxSpeakerId}
+                      disabled={isLoadingSettings || isSaving || isPreviewLoading}
+                      onChange={(event) =>
+                        updateSetting("voicevoxSpeakerId", Number(event.target.value))
+                      }
+                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-light text-gray-900 transition hover:border-gray-300 focus:border-gray-900 focus:outline-none sm:max-w-sm"
+                    >
+                      {DEFAULT_SPEAKERS.map((speaker) => (
+                        <option key={speaker.id} value={speaker.id}>
+                          {speaker.name} (ID: {speaker.id})
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={handlePreview}
+                      disabled={isPreviewLoading || isLoadingSettings}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isPreviewLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          プレビュー生成中…
+                        </>
+                      ) : isPreviewPlaying ? (
+                        <>
+                          <Square className="h-4 w-4" />
+                          停止
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4" />
+                          試聴
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs font-light text-gray-500">
+                    VOICEVOXエンジンが起動済みである必要があります。試聴は短いサンプル文で生成されます。
+                  </p>
+                  {previewError && (
+                    <p className="text-xs font-medium text-red-500">{previewError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-gray-200 bg-white/60 p-8 shadow-sm backdrop-blur">
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-light text-gray-900">Appearance</h2>
+                  <p className="text-sm font-light text-gray-500">
+                    テーマを切り替えてアプリ全体の見た目を調整します。今後より細かなカスタマイズを追加予定です。
+                  </p>
+                </div>
+              </div>
+
+              <SegmentedControl
+                options={THEME_OPTIONS}
+                value={settings.theme}
+                onChange={(theme) => updateSetting("theme", theme)}
+                aria-label="テーマの切り替え"
+              />
+
+              <p className="mt-4 text-xs font-light text-gray-500">
+                システム設定に合わせる場合は「System」を選択してください。
               </p>
             </div>
-          </section>
 
-          {/* Appearance Settings */}
-          <section>
-            <h2 className="text-2xl font-light text-gray-900 mb-6">
-              Appearance
-            </h2>
+            <div className="rounded-3xl border border-gray-200 bg-white/60 p-8 shadow-sm backdrop-blur">
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-light text-gray-900">About</h2>
+                  <p className="text-sm font-light text-gray-500">
+                    アプリケーションのバージョン情報と実行環境です。
+                  </p>
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-lg font-light text-gray-900 mb-4">
-                Theme
-              </label>
-              <div className="grid grid-cols-3 gap-4">
-                {(["light", "dark", "system"] as const).map((theme) => (
-                  <button
-                    key={theme}
-                    onClick={() => updateSetting("theme", theme)}
-                    className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
-                      settings.theme === theme
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-200 bg-gray-50 text-gray-900 hover:border-gray-400"
-                    }`}
-                  >
-                    <div className="text-lg font-light capitalize">{theme}</div>
-                  </button>
-                ))}
-              </div>
-              <p className="mt-4 text-sm font-light text-gray-500">
-                Note: Theme customization will be fully implemented in a future
-                update
-              </p>
-            </div>
-          </section>
-
-          {/* Application Info */}
-          <section>
-            <h2 className="text-2xl font-light text-gray-900 mb-6">About</h2>
-            <div className="p-6 bg-gray-50 rounded-2xl space-y-2">
-              <div className="flex justify-between text-sm font-light">
-                <span className="text-gray-500">Application</span>
-                <span className="text-gray-900">Miyabi Desktop</span>
-              </div>
-              <div className="flex justify-between text-sm font-light">
-                <span className="text-gray-500">Version</span>
-                <span className="text-gray-900">0.1.0</span>
-              </div>
-              <div className="flex justify-between text-sm font-light">
-                <span className="text-gray-500">Framework</span>
-                <span className="text-gray-900">Tauri 2.0 + React</span>
+              <div className="grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-6 text-sm font-light text-gray-700 sm:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-gray-400">Application</span>
+                  <span className="font-medium text-gray-900">Miyabi Desktop</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-gray-400">Version</span>
+                  <span className="font-medium text-gray-900">0.1.0</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-gray-400">Framework</span>
+                  <span className="font-medium text-gray-900">Tauri 2.0 + React</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-gray-400">Repository</span>
+                  <span className="font-medium text-gray-900">{settings.githubRepo}</span>
+                </div>
               </div>
             </div>
           </section>
-
-          {/* Save Button */}
-          <div className="pt-6">
-            <button
-              onClick={saveSettings}
-              disabled={loading || saved}
-              className={`px-8 py-4 text-lg font-light rounded-2xl transition-all duration-200 flex items-center space-x-3 ${
-                saved
-                  ? "bg-green-500 text-white"
-                  : loading
-                  ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-gray-900 text-white hover:bg-gray-800"
-              }`}
-            >
-              {saved ? (
-                <>
-                  <Check size={20} />
-                  <span>Saved</span>
-                </>
-              ) : (
-                <>
-                  <Save size={20} />
-                  <span>{loading ? "Saving..." : "Save Changes"}</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </div>
+
+      <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-10 py-4 sm:px-16 lg:px-24">
+          <div className="text-xs font-light text-gray-500">
+            変更内容を保存すると、Miyabiエージェントにすぐ反映されます。
+          </div>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!isDirty || isSaving || isLoadingSettings}
+            className="inline-flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-3 text-sm font-medium text-white transition enabled:hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                保存中…
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                変更を保存
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {toastMessage && (
+        <div className="pointer-events-none fixed bottom-6 right-6 z-50 w-full max-w-xs rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-lg shadow-gray-200/80">
+          <div className="flex items-center gap-3 text-gray-800">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
+              <Check className="h-4 w-4 text-emerald-600" />
+            </span>
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 export default SettingsPanel;

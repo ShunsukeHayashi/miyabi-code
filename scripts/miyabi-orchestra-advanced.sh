@@ -51,10 +51,9 @@ get_agent_name() {
 get_exec_command() {
     local exec_env="$1"
     case "$exec_env" in
-        claude) echo "cc" ;;       # Claude Code
-        codex) echo "codex" ;;     # OpenAI Codex (if installed)
-        cursor) echo "cursor" ;;   # Cursor AI
-        *) echo "cc" ;;            # Default to Claude Code
+        codex|claude) echo "codex" ;;   # Codex CLI (legacy 'claude' alias)
+        cursor) echo "cursor" ;;        # Cursor AI
+        *) echo "codex" ;;              # Default to Codex
     esac
 }
 
@@ -62,7 +61,7 @@ get_exec_command() {
 check_exec_env() {
     local exec_env="$1"
     case "$exec_env" in
-        claude|codex|cursor) return 0 ;;
+        codex|claude|cursor) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -270,7 +269,7 @@ set_pane_border_color() {
 add_agent() {
     local agent_type="$1"
     local session="${2:-1}"
-    local exec_env="${3:-claude}"
+    local exec_env="${3:-codex}"
 
     echo -e "${CYAN}🤖 Adding agent: ${agent_type}${RESET}"
 
@@ -298,7 +297,7 @@ add_agent() {
 clone_agent() {
     local agent_type="$1"
     local session="${2:-1}"
-    local exec_env="${3:-claude}"
+    local exec_env="${3:-codex}"
 
     # Count existing instances
     local count=$(count_agent_instances "$agent_type" "$session")
@@ -367,7 +366,7 @@ switch_environment() {
 
     if ! check_exec_env "$env"; then
         echo -e "${RED}Unknown environment: ${env}${RESET}"
-        echo -e "Available: claude codex cursor"
+        echo -e "Available: codex cursor (legacy alias: claude)"
         return 1
     fi
 
@@ -455,7 +454,7 @@ EOF
                 ;;
             5)
                 read -p "Pane ID (e.g., %2): " pane
-                echo "Available environments: claude, codex, cursor"
+                echo "Available environments: codex, cursor (legacy alias: claude)"
                 read -p "Environment: " env
                 switch_environment "$pane" "$env"
                 ;;

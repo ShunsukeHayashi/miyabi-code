@@ -38,12 +38,12 @@ if [ -z "$TMUX" ]; then
     exit 1
 fi
 
-# Check if claude is available
-if ! command -v claude &> /dev/null; then
-    echo -e "${RED}❌ 'claude' command not found${NC}"
+# Check if codex is available
+if ! command -v codex &> /dev/null; then
+    echo -e "${RED}❌ 'codex' command not found${NC}"
     echo ""
-    echo -e "${YELLOW}📌 Install Claude Code:${NC}"
-    echo "  https://claude.com/claude-code"
+    echo -e "${YELLOW}📌 Install Codex CLI:${NC}"
+    echo "  Refer to internal setup docs for Codex installation"
     exit 1
 fi
 
@@ -125,18 +125,9 @@ if [[ "$response" =~ ^[Yy]$ ]]; then
     # Get pane IDs
     PANE_IDS=($(tmux list-panes -F "#{pane_id}" | grep -v "^$(tmux display-message -p '#{pane_id}')$"))
 
-    # Check for --dangerously-skip-permissions preference
-    echo -e "${YELLOW}⚙️  Use --dangerously-skip-permissions flag? (y/n)${NC}"
-    echo -e "${YELLOW}⚠️  Warning: This skips all permission prompts. Use at your own risk.${NC}"
-    read -r dangerous_response
+    AGENT_CMD="codex"
 
-    if [[ "$dangerous_response" =~ ^[Yy]$ ]]; then
-        CC_CMD="claude --dangerously-skip-permissions"
-    else
-        CC_CMD="claude"
-    fi
-
-    # Start Claude Code in each pane
+    # Start Codex in each pane
     AGENT_NAMES=("🎹 カエデ (CodeGen)" "🎺 サクラ (Review)" "🥁 ツバキ (PR)" "🎷 ボタン (Deploy)" "📊 Analytics" "✍️  Content")
     AGENT_NUM=0
     for pane_id in "${PANE_IDS[@]}"; do
@@ -146,7 +137,7 @@ if [[ "$response" =~ ^[Yy]$ ]]; then
 
         tmux send-keys -t "$pane_id" "cd $PROJECT_ROOT" C-m
         sleep 0.5
-        tmux send-keys -t "$pane_id" "$CC_CMD" C-m
+        tmux send-keys -t "$pane_id" "$AGENT_CMD" C-m
         sleep 1
     done
 

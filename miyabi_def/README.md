@@ -107,7 +107,17 @@ python generate.py --list-templates
 
 # 利用可能な変数ファイル一覧
 python generate.py --list-variables
+
+# Intent を用いた動的生成
+python generate.py --intent intents/sample-product-intent.yaml
 ```
+
+#### Intent 駆動生成について
+
+- Intent ファイル（YAML）にプロジェクト目的や生成対象テンプレートを記述すると、  
+  `generate.py` が自動的にテンプレート順序と変数を決定し、成果物を出力します。
+- Intent のスキーマは `intent-schema.yaml`、例は `intents/sample-product-intent.yaml` を参照。
+- 詳細な手順は `../docs/miyabi-def-automation.md` にまとめています。
 
 ### 3. 生成されたファイルの確認
 

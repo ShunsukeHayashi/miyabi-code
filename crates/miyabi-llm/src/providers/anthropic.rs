@@ -344,7 +344,7 @@ impl LlmClient for AnthropicClient {
             "end_turn" | "max_tokens" | "stop_sequence" => {
                 // Task completed or reached limit
                 let text = self.extract_text(&anthropic_response)?;
-                Ok(ToolCallResponse::Conclusion(text))
+                Ok(ToolCallResponse::Conclusion { text })
             }
             other => Err(LlmError::ApiError(format!(
                 "Unexpected stop_reason: {}",

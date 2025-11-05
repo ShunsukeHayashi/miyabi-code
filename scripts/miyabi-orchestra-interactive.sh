@@ -57,16 +57,16 @@ else
     echo -e "  ${GREEN}${CHECK}${NC} tmux session detected"
 fi
 
-# Claude Code check
-if ! command -v claude &> /dev/null; then
-    echo -e "  ${RED}${CROSS}${NC} claude command not found"
+# Codex check
+if ! command -v codex &> /dev/null; then
+    echo -e "  ${RED}${CROSS}${NC} codex command not found"
     echo ""
     echo -e "${YELLOW}  ${ARROW} 解決方法:${NC}"
-    echo -e "     https://claude.com/claude-code からインストール"
+    echo -e "     Codex CLI をセットアップしてください（社内ドキュメント参照）"
     echo ""
     exit 1
 else
-    echo -e "  ${GREEN}${CHECK}${NC} Claude Code available"
+    echo -e "  ${GREEN}${CHECK}${NC} Codex available"
 fi
 
 # Detect tmux prefix
@@ -229,7 +229,7 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo -e "${BOLD}🎼 Agentを起動しますか？${NC}"
 echo ""
-echo -e "  ${GREEN}y)${NC} はい - すべてのAgent paneでClaude Codeを起動"
+echo -e "  ${GREEN}y)${NC} はい - すべてのAgent paneでCodexを起動"
 echo -e "  ${YELLOW}n)${NC} いいえ - 手動で起動する"
 echo ""
 
@@ -243,32 +243,7 @@ while true; do
             echo -e "${GREEN}${ARROW} Agentを起動中...${NC}"
             echo ""
 
-            # Permissions check
-            echo -e "${YELLOW}Claude Code起動オプション:${NC}"
-            echo -e "  ${GREEN}1)${NC} 安全モード (推奨) - 各操作で確認"
-            echo -e "  ${RED}2)${NC} 高速モード - 確認スキップ (--dangerously-skip-permissions)"
-            echo ""
-
-            while true; do
-                echo -ne "${YELLOW}選択 [1/2]: ${NC}"
-                read -r perm_choice
-
-                case "$perm_choice" in
-                    1)
-                        CC_CMD="claude"
-                        break
-                        ;;
-                    2)
-                        CC_CMD="claude --dangerously-skip-permissions"
-                        break
-                        ;;
-                    *)
-                        echo -e "${RED}1 または 2 を入力してください${NC}"
-                        ;;
-                esac
-            done
-
-            echo ""
+            AGENT_CMD="codex"
 
             # Start agents
             AGENT_PANES=$(tmux list-panes -F "#{pane_id}" | grep -v "^$CURRENT_PANE$")
@@ -289,7 +264,7 @@ while true; do
                 echo -e "  ${CYAN}${ARROW}${NC} $AGENT_NAME を起動中... ($pane_id)"
                 tmux send-keys -t "$pane_id" "cd $PROJECT_ROOT" C-m 2>/dev/null || true
                 sleep 0.3
-                tmux send-keys -t "$pane_id" "$CC_CMD" C-m 2>/dev/null || true
+                tmux send-keys -t "$pane_id" "$AGENT_CMD" C-m 2>/dev/null || true
                 sleep 0.8
             done
 
@@ -302,7 +277,7 @@ while true; do
             echo -e "${YELLOW}${ARROW} 手動起動を選択しました${NC}"
             echo ""
             echo -e "  各paneで以下のコマンドを実行してください:"
-            echo -e "  ${CYAN}cd $PROJECT_ROOT && claude${NC}"
+            echo -e "  ${CYAN}cd $PROJECT_ROOT && codex${NC}"
             break
             ;;
         *)

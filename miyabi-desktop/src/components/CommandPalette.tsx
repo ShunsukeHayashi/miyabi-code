@@ -1,11 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, Terminal as TerminalIcon, Bot, Network, Volume2, ListTodo, Settings } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import type { ReactNode } from "react";
+import {
+  Command as CommandIcon,
+  GitBranch,
+  LayoutDashboard,
+  ListTodo,
+  MonitorSmartphone,
+  Search,
+  Settings,
+} from "lucide-react";
 
 interface Command {
   id: string;
   title: string;
   description: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   action: () => void;
   keywords: string[];
 }
@@ -21,56 +30,51 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const commands: Command[] = [
-    {
-      id: "dashboard",
-      title: "エージェント実行",
-      description: "AIエージェントを選択して実行",
-      icon: <Bot size={18} />,
-      action: () => onNavigate("dashboard"),
-      keywords: ["agent", "execute", "エージェント", "実行", "ai"],
-    },
-    {
-      id: "terminal",
-      title: "ターミナル",
-      description: "コマンド実行と詳細ログ確認",
-      icon: <TerminalIcon size={18} />,
-      action: () => onNavigate("terminal"),
-      keywords: ["terminal", "command", "log", "ターミナル", "コマンド", "ログ"],
-    },
-    {
-      id: "workflow",
-      title: "ワークフローDAG",
-      description: "エージェントの実行フロー可視化",
-      icon: <Network size={18} />,
-      action: () => onNavigate("workflow"),
-      keywords: ["workflow", "dag", "graph", "ワークフロー", "グラフ"],
-    },
-    {
-      id: "narration",
-      title: "VOICEVOX音声",
-      description: "Git履歴から音声ガイド生成",
-      icon: <Volume2 size={18} />,
-      action: () => onNavigate("narration"),
-      keywords: ["voice", "audio", "voicevox", "音声", "ボイス"],
-    },
-    {
-      id: "issues",
-      title: "GitHub Issues",
-      description: "Issue管理とカンバンボード",
-      icon: <ListTodo size={18} />,
-      action: () => onNavigate("issues"),
-      keywords: ["issue", "github", "kanban", "イシュー", "課題"],
-    },
-    {
-      id: "settings",
-      title: "設定",
-      description: "アプリケーション設定",
-      icon: <Settings size={18} />,
-      action: () => onNavigate("settings"),
-      keywords: ["settings", "config", "preferences", "設定", "環境設定"],
-    },
-  ];
+  const commands: Command[] = useMemo(
+    () => [
+      {
+        id: "dashboard",
+        title: "ダッシュボード概要",
+        description: "システム全体の状態を俯瞰",
+        icon: <LayoutDashboard size={18} />,
+        action: () => onNavigate("dashboard"),
+        keywords: ["dashboard", "overview", "ダッシュボード", "概要"],
+      },
+      {
+        id: "monitor",
+        title: "tmuxモニタ",
+        description: "tmuxセッションの監視と制御",
+        icon: <MonitorSmartphone size={18} />,
+        action: () => onNavigate("monitor"),
+        keywords: ["tmux", "monitor", "session", "モニタ", "セッション"],
+      },
+      {
+        id: "worktrees",
+        title: "Worktrees",
+        description: "ワークツリーの状態を確認",
+        icon: <GitBranch size={18} />,
+        action: () => onNavigate("worktrees"),
+        keywords: ["worktree", "graph", "ワークツリー", "git"],
+      },
+      {
+        id: "issues",
+        title: "Issue ダッシュボード",
+        description: "課題の優先度と進捗を追跡",
+        icon: <ListTodo size={18} />,
+        action: () => onNavigate("issues"),
+        keywords: ["issue", "board", "課題", "タスク"],
+      },
+      {
+        id: "settings",
+        title: "アプリ設定",
+        description: "通知やエージェント設定を変更",
+        icon: <Settings size={18} />,
+        action: () => onNavigate("settings"),
+        keywords: ["settings", "config", "設定", "preferences"],
+      },
+    ],
+    [onNavigate]
+  );
 
   const filteredCommands = commands.filter((cmd) => {
     if (!query) return true;
@@ -131,7 +135,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
       >
         {/* Search Input */}
         <div className="flex items-center border-b border-gray-200 px-6 py-4">
-          <Search size={20} className="text-gray-400 mr-3" />
+          <Search size={20} className="mr-3 text-gray-400" />
           <input
             ref={inputRef}
             type="text"
@@ -159,7 +163,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
                       : "hover:bg-gray-50"
                   }`}
                 >
-                  <div className="flex items-center justify-center w-10 h-10 mr-4 rounded-lg bg-gray-900 text-white">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-900 text-white">
                     {cmd.icon}
                   </div>
                   <div className="flex-1 text-left">
@@ -188,6 +192,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>コマンドパレット</span>
             <div className="flex items-center space-x-4">
+              <span className="flex items-center gap-1"><CommandIcon size={14} /> ⌘K / Ctrl+K</span>
               <span>↑↓ 選択</span>
               <span>⏎ 実行</span>
               <span>Esc 閉じる</span>

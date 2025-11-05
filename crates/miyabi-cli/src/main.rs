@@ -11,8 +11,21 @@ mod worktree;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    AgentCommand, CleanupCommand, InfinityCommand, InitCommand, InstallCommand, KnowledgeCommand,
-    LoopCommand, ModeCommand, ParallelCommand, SetupCommand, StatusCommand, WorktreeCommand,
+    A2ACommand,
+    AgentCommand,
+    ApprovalCommand,
+    CleanupCommand,
+    InfinityCommand,
+    InitCommand,
+    InstallCommand,
+    KnowledgeCommand,
+    LoopCommand,
+    ModeCommand,
+    ParallelCommand,
+    SetupCommand,
+    StatusCommand,
+    // WorkflowCommand, // Temporarily disabled
+    WorktreeCommand,
     WorktreeSubcommand,
 };
 use error::Result;
@@ -96,6 +109,11 @@ enum Commands {
         #[command(subcommand)]
         command: KnowledgeCommand,
     },
+    /// Approval management (approve, reject, list)
+    Approval {
+        #[command(subcommand)]
+        command: commands::approval::ApprovalSubcommand,
+    },
     /// Worktree management (list, prune, remove)
     Worktree {
         #[command(subcommand)]
@@ -140,6 +158,20 @@ enum Commands {
         /// Resume from previous run
         #[arg(long)]
         resume: bool,
+    },
+    // Temporarily disabled until Issue #719 is merged
+    // /// Execute workflow from YAML/JSON definition
+    // Workflow {
+    //     /// Path to workflow definition file (YAML or JSON)
+    //     file: std::path::PathBuf,
+    //     /// State persistence directory (default: .miyabi/workflows)
+    //     #[arg(long)]
+    //     state_dir: Option<std::path::PathBuf>,
+    // },
+    /// Agent-to-Agent (A2A) communication
+    A2a {
+        #[command(subcommand)]
+        command: A2ACommand,
     },
 }
 
@@ -233,6 +265,10 @@ async fn main() -> Result<()> {
             }
         }
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
+        Some(Commands::Approval { command }) => {
+            let approval_cmd = ApprovalCommand { command };
+            Ok(approval_cmd.execute().await?)
+        }
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
@@ -263,6 +299,12 @@ async fn main() -> Result<()> {
             };
             cmd.execute().await
         }
+        // Temporarily disabled until Issue #719 is merged
+        // Some(Commands::Workflow { file, state_dir }) => {
+        //     let cmd = WorkflowCommand::new(file, state_dir);
+        //     cmd.execute().await
+        // }
+        Some(Commands::A2a { command }) => command.execute().await,
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());

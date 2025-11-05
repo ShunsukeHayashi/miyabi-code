@@ -1,0 +1,36 @@
+[package]
+name = "miyabi-llm-google"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Google Gemini API client for Miyabi LLM - Provider-specific implementation"
+keywords = ["llm", "gemini", "google", "ai", "api"]
+categories = ["api-bindings", "web-programming"]
+
+[dependencies]
+# Core LLM traits
+miyabi-llm-core = { version = "1.1.0", path = "../miyabi-llm-core" }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = "0.3"
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

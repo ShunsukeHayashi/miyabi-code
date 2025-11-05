@@ -9,6 +9,10 @@ description = "Workflow DSL for Miyabi - Graph-based agent orchestration with .t
 keywords = ["workflow", "dsl", "orchestration", "agents", "async"]
 categories = ["asynchronous", "development-tools"]
 
+[features]
+default = []
+sqlite = []
+
 [dependencies]
 # Core dependencies
 miyabi-types = { path = "../miyabi-types" }
@@ -20,6 +24,8 @@ async-trait = "0.1"
 # Serialization
 serde = { workspace = true }
 serde_json = { workspace = true }
+# Expression evaluation
+rhai = { version = "1.23.6", features = ["serde"] }
 
 # Error handling
 thiserror = { workspace = true }
@@ -30,6 +36,7 @@ tracing = { workspace = true }
 
 # State persistence
 sled = "0.34"
+dirs = "5"
 
 # Futures
 futures = "0.3"
@@ -37,3 +44,4 @@ futures = "0.3"
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = "0.3"
+tempfile = { workspace = true }

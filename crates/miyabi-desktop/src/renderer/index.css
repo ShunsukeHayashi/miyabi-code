@@ -1,8 +1,8 @@
+@import url('reactflow/dist/style.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('reactflow/dist/style.css');
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -44,4 +44,36 @@ body {
 
 .non-draggable {
   -webkit-app-region: no-drag;
+}
+
+/* Notification Toast Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }

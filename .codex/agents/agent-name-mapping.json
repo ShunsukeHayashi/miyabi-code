@@ -68,6 +68,14 @@
         "role": "サポート役",
         "parallel": "conditional",
         "description": "Issueの状態をピカピカに保つ監視役！ラベルを自動更新するよ"
+      },
+      "つむっくん": {
+        "technicalName": "TmuxControlAgent",
+        "englishName": "Tsumukkun",
+        "color": "🟡",
+        "role": "サポート役",
+        "parallel": "conditional",
+        "description": "tmuxセッションを管制する妖精！send-keysとログ管理を担当するよ"
       }
     },
     "business": {

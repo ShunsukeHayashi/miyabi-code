@@ -16,7 +16,7 @@ async fn test_task_lifecycle() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
     let storage = GitHubTaskStorage::new(
         token,
-        "ShunsukeHayashi".to_string(),
+        "customer-cloud".to_string(),
         "miyabi-private".to_string(),
     )
     .expect("Failed to create storage");
@@ -92,7 +92,7 @@ async fn test_task_filtering() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
     let storage = GitHubTaskStorage::new(
         token,
-        "ShunsukeHayashi".to_string(),
+        "customer-cloud".to_string(),
         "miyabi-private".to_string(),
     )
     .expect("Failed to create storage");
@@ -122,7 +122,7 @@ async fn test_nonexistent_task() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
     let storage = GitHubTaskStorage::new(
         token,
-        "ShunsukeHayashi".to_string(),
+        "customer-cloud".to_string(),
         "miyabi-private".to_string(),
     )
     .expect("Failed to create storage");
@@ -147,7 +147,7 @@ async fn test_cursor_pagination() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
     let storage = GitHubTaskStorage::new(
         token,
-        "ShunsukeHayashi".to_string(),
+        "customer-cloud".to_string(),
         "miyabi-private".to_string(),
     )
     .expect("Failed to create storage");
