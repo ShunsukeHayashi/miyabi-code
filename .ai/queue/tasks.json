@@ -1,0 +1,96 @@
+{
+  "version": "3.0.0",
+  "updated_at": "2025-11-03T14:50:00Z",
+  "mode": "MANUAL_ACTIVE",
+  "conductor": "カンナ",
+  "active_tasks": [
+    {
+      "task_id": "MANUAL-001",
+      "issue_number": 673,
+      "title": "feat: Integrate @humanu/orchestra (gwr) into miyabi-desktop",
+      "priority": "P2-Medium",
+      "assigned_to": "サクラ（Codex-2）",
+      "pane": "%8",
+      "status": "instruction_sent",
+      "estimated_duration": "40-50min",
+      "started_at": "2025-11-03T14:47:00Z"
+    },
+    {
+      "task_id": "MANUAL-002",
+      "issue_number": 642,
+      "title": "[Phase 2.3] ビジネスエージェントUI統合 - カテゴリアイコン統一",
+      "priority": "P2-Medium",
+      "assigned_to": "ボタン（Codex-4）",
+      "pane": "%10",
+      "status": "instruction_sent",
+      "estimated_duration": "30-40min",
+      "started_at": "2025-11-03T14:48:00Z"
+    },
+    {
+      "task_id": "MANUAL-003",
+      "issue_number": 679,
+      "title": "feat: Worktrees view with details and cleanup actions",
+      "priority": "P4-None",
+      "assigned_to": "カエデ（Codex-1）",
+      "pane": "%7",
+      "status": "instruction_sent",
+      "estimated_duration": "45-60min",
+      "started_at": "2025-11-03T14:49:00Z",
+      "parallel_prs": [
+        704,
+        691
+      ]
+    },
+    {
+      "task_id": "MANUAL-004",
+      "issue_number": 650,
+      "title": "[Phase 5] エラーハンドリング改善 - 実装",
+      "priority": "P3-Low",
+      "assigned_to": "ツバキ（Codex-3）",
+      "pane": "%11",
+      "status": "instruction_sent",
+      "estimated_duration": "40-50min",
+      "started_at": "2025-11-03T14:50:00Z",
+      "parallel_pr": 693
+    },
+    {
+      "task_id": "AUTO-1762155436",
+      "issue_number": 688,
+      "assigned_to": "カエデ",
+      "pane": "%6",
+      "status": "instruction_sent",
+      "assigned_at": "2025-11-03T07:37:16"
+    }
+  ],
+  "pr_pending_review": [
+    {
+      "pr": 704,
+      "issue": 624,
+      "agent": "カエデ"
+    },
+    {
+      "pr": 691,
+      "issue": 624,
+      "agent": "カエデ"
+    },
+    {
+      "pr": 693,
+      "issue": 639,
+      "agent": "ツバキ"
+    }
+  ],
+  "next_tasks_queue": [
+    {
+      "issue_number": 643,
+      "title": "[Phase 2.4] ビジネスエージェントUI統合 - エージェント検索機能",
+      "priority": "P3-Low",
+      "for_agent": "ボタン（完了後）"
+    },
+    {
+      "issue_number": 670,
+      "title": "feat(desktop): Tmux統合による外部コーディングエージェント管理機能の実装",
+      "priority": "P4-None",
+      "for_agent": "サクラ（完了後）"
+    }
+  ]
+}

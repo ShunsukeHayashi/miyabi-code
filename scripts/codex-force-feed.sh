@@ -20,7 +20,7 @@ log_feed() {
 CODEX_AGENTS=(
     "Codex-1|%7"
     "Codex-2|%8"
-    "Codex-3|%9"
+    "Codex-3|%11"
     "Codex-4|%10"
 )
 

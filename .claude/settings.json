@@ -25,24 +25,7 @@
         "description": "Warn before executing bash commands"
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Task",
-        "command": "jq -r '.tool_input' | .claude/hooks/agent-worktree-post.sh",
-        "description": "Cleanup worktree after Sub-Agent execution (Orchestrator pattern)",
-        "timeout": 120000
-      },
-      {
-        "matcher": "Edit|Write",
-        "command": ".claude/hooks/validate-rust.sh",
-        "description": "Validate Rust code after editing/writing files"
-      },
-      {
-        "matcher": "Bash",
-        "command": ".claude/hooks/agent-event.sh progress $AGENT_ID $ISSUE_NUMBER 50 \"Command executed: $TOOL_INPUT\"",
-        "description": "Send agent progress event after bash execution"
-      }
-    ],
+    "PostToolUse": [],
     "Stop": [
       {
         "command": ".claude/hooks/session-continue.sh",

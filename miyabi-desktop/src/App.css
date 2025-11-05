@@ -114,3 +114,20 @@ button {
     background-color: #0f0f0f69;
   }
 }
+
+/* Performance optimizations for log streaming */
+.log-container {
+  /* GPU acceleration */
+  transform: translateZ(0);
+  will-change: scroll-position;
+
+  /* Layout performance - prevents layout thrashing */
+  contain: layout style paint;
+
+  /* Hardware acceleration for smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+
+  /* Optimize rendering */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}

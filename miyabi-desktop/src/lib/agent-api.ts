@@ -147,20 +147,44 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
     color: "#ec4899", // Pink
   },
   {
-    type: "self_analysis_agent",
-    displayName: "自己分析Agent",
-    characterName: "自己分析",
-    category: "business-strategy",
-    description: "キャリア・スキル分析",
-    color: "#a855f7", // Purple
-  },
-  {
     type: "product_concept_agent",
     displayName: "プロダクトコンセプトAgent",
     characterName: "コンセプト",
     category: "business-strategy",
     description: "USP・収益モデル設計",
     color: "#14b8a6", // Teal
+  },
+  {
+    type: "product_design_agent",
+    displayName: "プロダクト設計Agent",
+    characterName: "プロダクト設計",
+    category: "business-strategy",
+    description: "サービス詳細・UX設計",
+    color: "#6366f1", // Indigo
+  },
+  {
+    type: "funnel_design_agent",
+    displayName: "ファネル設計Agent",
+    characterName: "ファネル設計",
+    category: "business-strategy",
+    description: "顧客導線最適化",
+    color: "#f59e0b", // Amber
+  },
+  {
+    type: "persona_agent",
+    displayName: "ペルソナAgent",
+    characterName: "ペルソナ",
+    category: "business-strategy",
+    description: "ターゲット顧客定義",
+    color: "#3b82f6", // Blue
+  },
+  {
+    type: "self_analysis_agent",
+    displayName: "自己分析Agent",
+    characterName: "自己分析",
+    category: "business-strategy",
+    description: "キャリア・スキル分析",
+    color: "#a855f7", // Purple
   },
 
   // Business Agents - Marketing
@@ -187,6 +211,22 @@ export const AVAILABLE_AGENTS: AgentMetadata[] = [
     category: "business-marketing",
     description: "動画・記事・教材制作",
     color: "#84cc16", // Lime
+  },
+  {
+    type: "sns_strategy_agent",
+    displayName: "SNS戦略Agent",
+    characterName: "SNS戦略",
+    category: "business-marketing",
+    description: "SNSキャンペーン計画",
+    color: "#0ea5e9", // Sky
+  },
+  {
+    type: "youtube_agent",
+    displayName: "YouTubeAgent",
+    characterName: "YouTube",
+    category: "business-marketing",
+    description: "動画チャンネル最適化",
+    color: "#ef4444", // Red
   },
 
   // Business Agents - Sales

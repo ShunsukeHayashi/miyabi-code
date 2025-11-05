@@ -1,0 +1,32 @@
+[package]
+name = "miyabi-def-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Miyabi definition system - YAML-based source of truth for entities, relations, labels, workflows"
+keywords = ["miyabi", "definition", "yaml", "entities", "framework"]
+categories = ["config", "data-structures"]
+
+[dependencies]
+# Core dependencies
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+
+# YAML parsing
+serde_yaml = "0.9"
+
+# Path utilities
+dunce.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lib]
+name = "miyabi_def_core"
+path = "src/lib.rs"

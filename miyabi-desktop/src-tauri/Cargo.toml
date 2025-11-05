@@ -29,13 +29,12 @@ tokio = { version = "1", features = ["full"] }
 miyabi-pty-manager = { path = "../../crates/miyabi-pty-manager" }
 miyabi-worktree = { path = "../../crates/miyabi-worktree" }
 miyabi-types = { path = "../../crates/miyabi-types" }
-miyabi-core = { path = "../../crates/miyabi-core" }
 uuid = { version = "1", features = ["v4"] }
 reqwest = { version = "0.12", features = ["json"] }
 serde_yaml = "0.9"
 anyhow = "1.0"
-chrono = "0.4"
-
-[dev-dependencies]
-tempfile = "3.15"
-
+chrono = { version = "0.4", features = ["serde"] }
+git2 = "0.20"
+regex = "1.10"
+async-openai = { version = "0.24", default-features = false, features = ["rustls"] }
+num_cpus = "1.16"

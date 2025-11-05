@@ -2788,7 +2788,7 @@ dependencies = [
  "dirs 6.0.0",
  "futures 0.3.31",
  "hostname",
- "indicatif",
+ "indicatif 0.17.11",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2848,20 +2848,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "miyabi-dag"
-version = "1.1.0"
+name = "miyabi-def-core"
+version = "0.1.1"
 dependencies = [
- "async-trait",
- "chrono",
- "criterion",
- "petgraph 0.6.5",
- "pretty_assertions",
+ "anyhow",
+ "dunce",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "serde_yaml",
+ "thiserror 2.0.17",
  "tokio",
- "tokio-test",
- "tracing",
 ]
 
 [[package]]
@@ -3182,7 +3178,24 @@ dependencies = [
 
 [[package]]
 name = "miyabi-workflow"
-version = "1.1.0"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures 0.3.31",
+ "miyabi-types",
+ "serde",
+ "serde_json",
+ "sled",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "miyabi-worktree"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",

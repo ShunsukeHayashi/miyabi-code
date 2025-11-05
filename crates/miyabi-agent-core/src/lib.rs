@@ -9,7 +9,8 @@ pub mod hooks;
 pub mod observable;
 pub mod orchestration;
 pub mod prompt_enhancement;
-pub mod rules_context;
+// TODO: Re-enable after miyabi_core::rules is implemented
+// pub mod rules_context;
 
 pub use auto_index_hook::AutoIndexHook;
 pub use base::BaseAgent;
@@ -17,4 +18,4 @@ pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, Metr
 pub use observable::{LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
 pub use prompt_enhancement::{AgentPromptEnhancer, PromptEnhancementConfig, PromptTemplate};
-pub use rules_context::RulesContext;
+// pub use rules_context::RulesContext;

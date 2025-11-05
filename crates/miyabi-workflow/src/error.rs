@@ -35,14 +35,6 @@ pub enum WorkflowError {
     #[error("Step '{0}' not found in workflow")]
     StepNotFound(String),
 
-    /// Empty workflow (no steps defined)
-    #[error("Workflow must have at least one step")]
-    EmptyWorkflow,
-
-    /// Circular dependency detected
-    #[error("Circular dependency detected in workflow")]
-    CircularDependency,
-
     /// Invalid workflow configuration
     #[error("Invalid workflow configuration: {0}")]
     InvalidConfiguration(String),

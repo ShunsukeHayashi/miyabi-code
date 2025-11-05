@@ -1,24 +1,25 @@
 mod agent;
-mod agent_state;
 mod ai_naming;
 mod automation;
 mod config;
-mod dashboard;
+mod events;
 mod github;
+mod worktree_graph;
 mod pty;
 mod tmux;
 mod voicevox;
 mod worktree;
 
 use agent::{execute_agent, AgentExecutionRequest, AgentExecutionResult};
-use ai_naming::AnthropicClient;
+use ai_naming::suggest_worktree_name;
 use automation::{AutomationConfig, AutomationManager, AutomationReadiness, AutomationSession};
-use config::AgentsConfig;
+use config::{AgentConfig, AgentsConfig};
+use events::EventEmitter;
 use github::{get_issue, list_issues, update_issue, GitHubIssue, IssueState, UpdateIssueRequest};
 use pty::{PtyManager, SessionInfo, TerminalSession};
 use std::env;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, State};
 use tmux::{TmuxManager, TmuxSession};
 use tokio::sync::Mutex as TokioMutex;
@@ -26,12 +27,35 @@ use voicevox::{
     check_voicevox_engine, generate_narration, get_speakers, start_voicevox_engine,
     NarrationRequest, NarrationResult, SpeakerConfig,
 };
-use worktree::{GitStatus, Worktree, WorktreeManager};
+use worktree::{
+    cleanup_worktrees, create_worktree, get_worktree_status, list_worktrees, remove_worktree,
+    WorktreeManagerState,
+};
 
 struct AppState {
     pty_manager: Mutex<PtyManager>,
-    worktree_manager: TokioMutex<Option<WorktreeManager>>,
-    ai_client: TokioMutex<Option<AnthropicClient>>,
+    event_emitter: Arc<EventEmitter>,
+}
+
+// Initialize WorktreeManagerState from repository root
+fn init_worktree_manager() -> Result<WorktreeManagerState, String> {
+    // Find repository root
+    let mut current_dir = env::current_dir()
+        .map_err(|e| format!("Failed to get current directory: {}", e))?;
+
+    loop {
+        if current_dir.join(".git").exists() {
+            return WorktreeManagerState::new(&current_dir)
+                .map_err(|e| format!("Failed to initialize WorktreeManager: {}", e));
+        }
+
+        match current_dir.parent() {
+            Some(parent) => current_dir = parent.to_path_buf(),
+            None => {
+                return Err("Failed to locate repository root (no .git directory found)".to_string())
+            }
+        }
+    }
 }
 
 #[tauri::command]
@@ -188,6 +212,13 @@ async fn update_issue_command(
     app_handle: AppHandle,
 ) -> Result<GitHubIssue, String> {
     update_issue(request, app_handle).await
+}
+
+// ========== Worktree Graph Commands ==========
+
+#[tauri::command(name = "worktrees:graph")]
+async fn worktrees_graph_command() -> Result<worktree_graph::WorktreeGraph, String> {
+    worktree_graph::build_worktree_graph().await
 }
 
 // ========== Tmux Commands ==========
@@ -404,13 +435,33 @@ async fn ai_generate_name(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize worktree manager (log error but don't fail app startup)
+    let worktree_manager = match init_worktree_manager() {
+        Ok(manager) => manager,
+        Err(e) => {
+            eprintln!("Warning: Failed to initialize WorktreeManager: {}", e);
+            eprintln!("Worktree functionality will be disabled.");
+            // Create a dummy manager or handle gracefully
+            // For now, we'll panic to force proper setup
+            panic!("WorktreeManager initialization failed: {}", e);
+        }
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState {
-            pty_manager: Mutex::new(PtyManager::new()),
-            worktree_manager: TokioMutex::new(None),
-            ai_client: TokioMutex::new(None),
+        .setup(|app| {
+            // Initialize EventEmitter with AppHandle
+            let event_emitter = Arc::new(EventEmitter::new(app.handle().clone()));
+
+            // Manage AppState with EventEmitter
+            app.manage(AppState {
+                pty_manager: Mutex::new(PtyManager::new()),
+                event_emitter: event_emitter.clone(),
+            });
+
+            Ok(())
         })
+        .manage(worktree_manager)
         .invoke_handler(tauri::generate_handler![
             spawn_terminal,
             spawn_terminal_managed,
@@ -448,11 +499,14 @@ pub fn run() {
             get_automation_status,
             load_automation_config_from_env,
             // Worktree commands
-            worktree_list,
-            worktree_create_with_tmux,
-            worktree_delete,
-            worktree_get_git_status,
-            ai_generate_name,
+            list_worktrees,
+            worktrees_graph_command,
+            create_worktree,
+            remove_worktree,
+            get_worktree_status,
+            cleanup_worktrees,
+            // AI Naming commands
+            suggest_worktree_name,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

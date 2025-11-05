@@ -39,22 +39,74 @@ orchestra:
   tmux:
     session_name: "miyabi-orchestra"
     working_directory: "/Users/shunsuke/Dev/miyabi-private"
+    theme:
+      name: "Dark Grayscale"
+      description: "Unified dark grayscale palette for all panes"
+      palette:
+        window_inactive_bg: "#1d1d1d"
+        window_inactive_fg: "#d7d7d7"
+        window_active_bg: "#242424"
+        window_active_fg: "#ffffff"
+        border_inactive: "#555555"
+        border_active: "#ffffff"
+        status_bg: "#2d2d2d"
+        status_fg: "#e5e5e5"
 
   panes:
     conductor:
       id: "%1"
+      agent_id: "human.operator"
+      agent: "HumanConductor"
+      character: "あなた（人間指揮者）"
+      emoji: "🎼"
+      role: "Human Orchestrator"
+      skills: []
+      responsibilities:
+        - "Overall task coordination"
+        - "High-level decision making"
+        - "Agent monitoring"
+        - "Manual intervention when needed"
+
+    issue:
+      id: "%10"
+      agent_id: "agents.coding[3]"
+      agent: "IssueAgent"
+      character: "みつけるん"
+      emoji: "🔍"
+      role: "Issue Analysis & Triage"
+      workflow: "W1"
+      skills:
+        - "issue-analysis"
+      responsibilities:
+        - "Issue本文解析"
+        - "Label自動推定 (57-label system)"
+        - "優先度評価"
+        - "state:pending付与"
+      communication:
+        reports_to: "しきるん"
+        trigger_keyword: "トリアージ完了"
+        next_agent: "CoordinatorAgent"
+
+    coordinator:
+      id: "%11"
       agent_id: "agents.coding[0]"
       agent: "CoordinatorAgent"
-      character: "カンナ"
+      character: "しきるん"
       emoji: "🎼"
-      role: "Orchestrator"
+      role: "Task Decomposition & Planning"
+      workflow: "W2"
       skills:
         - "agent-execution"
       responsibilities:
-        - "Overall task coordination"
-        - "Agent assignment"
-        - "Progress monitoring"
-        - "Escalation handling"
+        - "IssueをTask配列に分解"
+        - "DAG構築"
+        - "Agent割り当て"
+        - "推定時間算出"
+        - "GitHub commentに計画投稿"
+      communication:
+        reports_to: "カエデ"
+        trigger_keyword: "計画完了|タスク分解完了"
+        next_agent: "CodeGenAgent"
 
     codegen:
       id: "%2"
@@ -63,6 +115,7 @@ orchestra:
       character: "カエデ"
       emoji: "🎹"
       role: "Code Implementation"
+      workflow: "W3"
       skills:
         - "rust-development"
         - "agent-execution"
@@ -70,6 +123,10 @@ orchestra:
         - "Code generation"
         - "Unit test creation"
         - "Documentation writing"
+      communication:
+        reports_to: "サクラ"
+        trigger_keyword: "実装完了|コード完了"
+        next_agent: "ReviewAgent"
 
     review:
       id: "%5"
@@ -78,6 +135,7 @@ orchestra:
       character: "サクラ"
       emoji: "🎺"
       role: "Code Review"
+      workflow: "W4"
       skills:
         - "security-audit"
         - "debugging-troubleshooting"
@@ -87,6 +145,10 @@ orchestra:
         - "Security analysis"
         - "Performance check"
         - "Best practices validation"
+      communication:
+        reports_to: "ツバキ"
+        trigger_keyword: "レビュー完了|承認"
+        next_agent: "PRAgent"
 
     pr:
       id: "%3"
@@ -95,6 +157,7 @@ orchestra:
       character: "ツバキ"
       emoji: "🥁"
       role: "Pull Request Management"
+      workflow: "W3"
       skills:
         - "git-workflow"
       responsibilities:
@@ -102,6 +165,10 @@ orchestra:
         - "PR description generation"
         - "Merge management"
         - "Git history management"
+      communication:
+        reports_to: "ボタン"
+        trigger_keyword: "PR作成完了|PR完了"
+        next_agent: "DeploymentAgent"
 
     deploy:
       id: "%4"
@@ -110,6 +177,7 @@ orchestra:
       character: "ボタン"
       emoji: "🎷"
       role: "Deployment"
+      workflow: "W5"
       skills:
         - "agent-execution"
       responsibilities:
@@ -117,6 +185,10 @@ orchestra:
         - "Production monitoring"
         - "Rollback if needed"
         - "Release notes generation"
+      communication:
+        reports_to: "あなた（人間指揮者）"
+        trigger_keyword: "デプロイ完了"
+        next_agent: "HumanConductor"
 
     monitor:
       id: "%6"
@@ -138,6 +210,20 @@ orchestra:
     log_file: ".ai/logs/water-spider-relay.log"
 
     rules:
+      - id: "R0"
+        trigger_agent: "みつけるん"
+        trigger_keyword: "トリアージ完了"
+        target_agent: "しきるん"
+        message: "みつけるんがIssueトリアージを完了しました。タスク分解を開始してください。"
+        workflow_stage: "W1 → W2"
+
+      - id: "R00"
+        trigger_agent: "しきるん"
+        trigger_keyword: "計画完了|タスク分解完了"
+        target_agent: "カエデ"
+        message: "しきるんがタスク分解を完了しました。実装を開始してください。"
+        workflow_stage: "W2 → W3"
+
       - id: "R1"
         trigger_agent: "カエデ"
         trigger_keyword: "実装完了"
@@ -210,12 +296,14 @@ orchestra:
       queue_dir: "/tmp/voicevox_queue"
 
       speaker_mapping:
-        カンナ: 3   # ずんだもん（ノーマル）
-        カエデ: 3   # ずんだもん（ノーマル）
-        サクラ: 1   # 四国めたん（ノーマル）
-        ツバキ: 8   # 春日部つむぎ（ノーマル）
-        ボタン: 14  # 冥鳴ひまり（ノーマル）
-        クモ: 3     # ずんだもん（ノーマル）
+        あなた（人間指揮者）: 3    # ずんだもん（ノーマル）
+        みつけるん: 46              # 小夜/SAYO（ノーマル）
+        しきるん: 47                # ナースロボ_タイプT（ノーマル）
+        カエデ: 3                   # ずんだもん（ノーマル）
+        サクラ: 1                   # 四国めたん（ノーマル）
+        ツバキ: 8                   # 春日部つむぎ（ノーマル）
+        ボタン: 14                  # 冥鳴ひまり（ノーマル）
+        クモ: 3                     # ずんだもん（ノーマル）
 
       events:
         - event: "task_complete"
@@ -242,17 +330,17 @@ workflows:
     - id: "W1"
       name: "Issue_Creation_Triage"
       stages: 8
-      responsible_agents: ["カンナ", "スミレ"]
+      responsible_agents: ["みつけるん"]
 
     - id: "W2"
       name: "Task_Decomposition"
       stages: 7
-      responsible_agents: ["カンナ"]
+      responsible_agents: ["しきるん"]
 
     - id: "W3"
       name: "Code_Implementation"
       stages: 9
-      responsible_agents: ["カエデ"]
+      responsible_agents: ["カエデ", "ツバキ"]
 
     - id: "W4"
       name: "Code_Review"
@@ -262,7 +350,7 @@ workflows:
     - id: "W5"
       name: "Deployment"
       stages: 6
-      responsible_agents: ["ツバキ", "ボタン"]
+      responsible_agents: ["ボタン"]
 
 agents:
   # Reference to miyabi_def/generated/agents.yaml
@@ -270,17 +358,17 @@ agents:
 
   total: 21
 
-  active_in_orchestra: 5  # カンナ, カエデ, サクラ, ツバキ, ボタン
+  active_in_orchestra: 6  # みつけるん, しきるん, カエデ, サクラ, ツバキ, ボタン (+ 1 human conductor)
 
   coding_agents:
     total: 7
     list:
-      - CoordinatorAgent   # カンナ (active)
-      - CodeGenAgent       # カエデ (active)
-      - ReviewAgent        # サクラ (active)
-      - IssueAgent         # スミレ (standby)
-      - PRAgent            # ツバキ (active)
-      - DeploymentAgent    # ボタン (active)
+      - IssueAgent         # みつけるん (active) - W1
+      - CoordinatorAgent   # しきるん (active) - W2
+      - CodeGenAgent       # カエデ (active) - W3
+      - ReviewAgent        # サクラ (active) - W4
+      - PRAgent            # ツバキ (active) - W3
+      - DeploymentAgent    # ボタン (active) - W5
       - RefresherAgent     # アサガオ (standby)
 
   business_agents:

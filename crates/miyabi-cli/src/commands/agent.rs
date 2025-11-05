@@ -28,7 +28,6 @@ macro_rules! impl_business_agent_runner {
     };
 }
 
-
 pub struct AgentCommand {
     pub agent_type: String,
     pub issue: Option<u64>,

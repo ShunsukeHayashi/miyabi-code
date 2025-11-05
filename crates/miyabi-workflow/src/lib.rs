@@ -1,38 +1,31 @@
-//! Miyabi Workflow - DAG-based workflow orchestration
+//! Miyabi Workflow DSL
 //!
-//! This crate provides a fluent API for building complex task workflows
-//! using a Directed Acyclic Graph (DAG) structure with support for
-//! sequential, parallel, and conditional execution.
+//! Graph-based agent orchestration with fluent API for building complex workflows.
 //!
-//! # Examples
+//! # Features
 //!
-//! ```
-//! use miyabi_workflow::WorkflowBuilder;
-//! use miyabi_types::agent::AgentType;
+//! - `.then()` - Sequential execution
+//! - `.branch()` - Conditional branching
+//! - `.parallel()` - Concurrent execution
+//! - State persistence with sled
 //!
-//! let workflow = WorkflowBuilder::new("issue-resolution")
-//!     .step("analyze", AgentType::IssueAgent)
-//!     .then("implement", AgentType::CodeGenAgent)
-//!     .parallel(vec![
-//!         ("test", AgentType::ReviewAgent),
-//!         ("lint", AgentType::ReviewAgent),
-//!     ])
-//!     .build_dag()
-//!     .unwrap();
+//! # Example
 //!
-//! assert_eq!(workflow.nodes.len(), 4);
-//! assert_eq!(workflow.levels.len(), 3);
+//! ```rust,no_run
+//! use miyabi_workflow::*;
+//!
+//! // Define a workflow
+//! let workflow = Workflow::new("my-workflow")
+//!     .then(task_a)
+//!     .parallel(vec![task_b, task_c])
+//!     .then(task_d);
 //! ```
 
-pub mod builder;
-pub mod condition;
 pub mod error;
 pub mod state;
 
-pub use builder::{Step, StepType, WorkflowBuilder};
-pub use condition::{Condition, ConditionalBranch};
-pub use error::{Result, WorkflowError};
-pub use state::{
-    ExecutionState, StateStore, StepContext, StepOutput, WorkflowOutput, WorkflowState,
-    WorkflowStatus,
-};
+pub use error::{WorkflowError, Result};
+pub use state::{StepContext, StepOutput, WorkflowOutput, StateStore};
+
+/// Workflow DSL version
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");

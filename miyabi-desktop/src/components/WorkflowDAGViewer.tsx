@@ -14,6 +14,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { AgentMetadata, AVAILABLE_AGENTS } from "../lib/agent-api";
+import { AgentIcon } from "./AgentIcon";
 
 /**
  * Agent Node data structure
@@ -53,9 +54,10 @@ function AgentNode({ data }: { data: AgentNodeData }) {
     >
       {/* Status Indicator */}
       <div className="flex items-center justify-between mb-2">
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: agent.color }}
+        <AgentIcon
+          agentType={agent.type}
+          backgroundColor={agent.color}
+          size={18}
         />
         <span className="text-xl">{statusIcons[status]}</span>
       </div>

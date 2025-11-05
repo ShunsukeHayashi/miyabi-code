@@ -1,189 +1,215 @@
-//! AI-powered worktree naming using Anthropic Claude API
+//! AI-Powered Naming Service
 //!
-//! Generates concise, descriptive names for Git worktrees based on GitHub Issue titles.
+//! Provides intelligent naming suggestions for worktrees and branches using Anthropic API.
+//! Generates human-readable, context-aware names based on Issue titles and descriptions.
 
 use anyhow::{Context, Result};
-use reqwest::Client;
+use async_openai::{
+    config::OpenAIConfig,
+    types::{
+        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageArgs,
+        ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs,
+    },
+    Client,
+};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::env;
 
-/// Anthropic API client for generating worktree names
-#[derive(Clone)]
-pub struct AnthropicClient {
-    api_key: String,
-    client: Client,
-    model: String,
+/// AI naming suggestion
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamingSuggestion {
+    /// Suggested branch name (kebab-case, git-friendly)
+    pub branch_name: String,
+    /// Human-readable display name
+    pub display_name: String,
+    /// Brief explanation of the naming choice
+    pub explanation: String,
 }
 
-#[derive(Debug, Serialize)]
-struct AnthropicRequest {
-    model: String,
-    max_tokens: usize,
-    messages: Vec<Message>,
+/// Naming context from Issue
+#[derive(Debug, Clone, Deserialize)]
+pub struct NamingContext {
+    /// Issue number
+    pub issue_number: u64,
+    /// Issue title
+    pub title: String,
+    /// Issue description (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Issue labels (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
 }
 
-#[derive(Debug, Serialize)]
-struct Message {
-    role: String,
-    content: String,
+/// AI naming service
+pub struct AINamingService {
+    client: Client<OpenAIConfig>,
 }
 
-#[derive(Debug, Deserialize)]
-struct AnthropicResponse {
-    content: Vec<Content>,
-}
+impl AINamingService {
+    /// Create new AI naming service
+    pub fn new() -> Result<Self> {
+        // Get Anthropic API key from environment
+        let api_key = env::var("ANTHROPIC_API_KEY")
+            .context("ANTHROPIC_API_KEY environment variable not set")?;
 
-#[derive(Debug, Deserialize)]
-struct Content {
-    text: String,
-}
+        // Configure client for Anthropic API
+        let config = OpenAIConfig::new()
+            .with_api_key(api_key)
+            .with_api_base("https://api.anthropic.com/v1");
 
-impl AnthropicClient {
-    /// Create a new AnthropicClient
-    ///
-    /// # Arguments
-    /// * `api_key` - Anthropic API key (from ANTHROPIC_API_KEY environment variable)
-    ///
-    /// # Example
-    /// ```
-    /// use miyabi_desktop_lib::ai_naming::AnthropicClient;
-    ///
-    /// let api_key = std::env::var("ANTHROPIC_API_KEY").unwrap();
-    /// let client = AnthropicClient::new(api_key);
-    /// ```
-    pub fn new(api_key: String) -> Self {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .expect("Failed to create HTTP client");
+        let client = Client::with_config(config);
 
-        Self {
-            api_key,
-            client,
-            model: "claude-3-5-sonnet-20241022".to_string(),
-        }
+        Ok(Self { client })
     }
 
-    /// Generate a worktree name from an issue title
-    ///
-    /// Generates a concise, kebab-case name (max 30 characters) suitable for Git worktree naming.
-    ///
-    /// # Arguments
-    /// * `issue_title` - The GitHub Issue title
-    ///
-    /// # Returns
-    /// A kebab-case string representing a suitable worktree name
-    ///
-    /// # Example
-    /// ```no_run
-    /// # use miyabi_desktop_lib::ai_naming::AnthropicClient;
-    /// # async fn example() -> anyhow::Result<()> {
-    /// let client = AnthropicClient::new("api-key".to_string());
-    /// let name = client.generate_worktree_name("Fix memory leak in logger.rs").await?;
-    /// // name might be: "fix-logger-memory-leak"
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn generate_worktree_name(&self, issue_title: &str) -> Result<String> {
-        let prompt = format!(
-            "Generate a concise Git worktree name in kebab-case (max 30 characters) for this GitHub Issue:\n\n\"{}\"\n\nRequirements:\n- Use kebab-case (lowercase with hyphens)\n- Maximum 30 characters\n- Be descriptive but concise\n- Focus on the core problem or feature\n- Do NOT include \"issue\" or numbers\n- Return ONLY the name, no explanation\n\nExample: \"fix-memory-leak-logger\"",
-            issue_title
+    /// Generate naming suggestions for a worktree/branch
+    pub async fn suggest_name(&self, context: NamingContext) -> Result<NamingSuggestion> {
+        // Build prompt for Claude
+        let system_prompt = r#"You are a Git branch naming expert. Generate a concise, descriptive branch name following these rules:
+1. Use kebab-case (lowercase with hyphens)
+2. Max 50 characters
+3. Start with a category prefix: feature/, bugfix/, refactor/, docs/, test/, chore/
+4. Be descriptive but concise
+5. Use common abbreviations when appropriate (e.g., 'impl' for implementation, 'integ' for integration)
+
+Respond in JSON format:
+{
+  "branch_name": "feature/example-branch",
+  "display_name": "Example Feature Branch",
+  "explanation": "Brief explanation of naming choice"
+}
+"#;
+
+        let user_prompt = format!(
+            "Issue #{}: {}\n\n{}{}",
+            context.issue_number,
+            context.title,
+            context
+                .description
+                .as_ref()
+                .map(|d| format!("Description: {}\n\n", d))
+                .unwrap_or_default(),
+            context
+                .labels
+                .as_ref()
+                .map(|l| format!("Labels: {}", l.join(", ")))
+                .unwrap_or_default()
         );
 
-        let request = AnthropicRequest {
-            model: self.model.clone(),
-            max_tokens: 100,
-            messages: vec![Message {
-                role: "user".to_string(),
-                content: prompt,
-            }],
-        };
+        // Create chat completion request
+        let messages = vec![
+            ChatCompletionRequestMessage::System(
+                ChatCompletionRequestSystemMessageArgs::default()
+                    .content(system_prompt)
+                    .build()?,
+            ),
+            ChatCompletionRequestMessage::User(
+                ChatCompletionRequestUserMessageArgs::default()
+                    .content(user_prompt)
+                    .build()?,
+            ),
+        ];
 
+        let request = CreateChatCompletionRequestArgs::default()
+            .model("claude-3-5-sonnet-20241022")
+            .messages(messages)
+            .temperature(0.7)
+            .max_tokens(200u32)
+            .build()?;
+
+        // Call Anthropic API
         let response = self
             .client
-            .post("https://api.anthropic.com/v1/messages")
-            .header("x-api-key", &self.api_key)
-            .header("anthropic-version", "2023-06-01")
-            .header("content-type", "application/json")
-            .json(&request)
-            .send()
+            .chat()
+            .create(request)
             .await
-            .context("Failed to send request to Anthropic API")?;
+            .context("Failed to call Anthropic API")?;
 
-        let status = response.status();
-        if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            anyhow::bail!("Anthropic API returned error {}: {}", status, error_text);
-        }
-
-        let api_response: AnthropicResponse = response
-            .json()
-            .await
-            .context("Failed to parse Anthropic API response")?;
-
-        let name = api_response
-            .content
+        // Parse response
+        let content = response
+            .choices
             .first()
-            .map(|c| c.text.trim().to_string())
-            .unwrap_or_else(|| "worktree".to_string());
+            .and_then(|choice| choice.message.content.as_ref())
+            .context("No response content from API")?;
 
-        // Validate and sanitize the name
-        let sanitized = self.sanitize_worktree_name(&name);
+        // Parse JSON response
+        let suggestion: NamingSuggestion = serde_json::from_str(content)
+            .context("Failed to parse AI response as JSON")?;
 
-        Ok(sanitized)
+        Ok(suggestion)
     }
 
-    /// Sanitize and validate worktree name
-    fn sanitize_worktree_name(&self, name: &str) -> String {
-        // First convert spaces to hyphens, then filter
-        let mut sanitized = name
-            .trim()
-            .to_lowercase()
-            .replace(' ', "-")
+    /// Generate fallback name if AI service is unavailable
+    pub fn generate_fallback_name(context: &NamingContext) -> NamingSuggestion {
+        // Simple fallback: issue-{number}-{sanitized-title}
+        let sanitized_title: String = context
+            .title
             .chars()
-            .filter(|c| c.is_alphanumeric() || *c == '-')
-            .collect::<String>();
+            .take(30)
+            .map(|c| {
+                if c.is_alphanumeric() {
+                    c.to_lowercase().to_string()
+                } else if c.is_whitespace() {
+                    "-".to_string()
+                } else {
+                    "".to_string()
+                }
+            })
+            .collect::<String>()
+            .split("--")
+            .collect::<Vec<_>>()
+            .join("-");
 
-        // Remove leading/trailing hyphens
-        sanitized = sanitized.trim_matches('-').to_string();
+        // Determine prefix from labels
+        let prefix = context
+            .labels
+            .as_ref()
+            .and_then(|labels| {
+                if labels.iter().any(|l| l.contains("feature")) {
+                    Some("feature")
+                } else if labels.iter().any(|l| l.contains("bug")) {
+                    Some("bugfix")
+                } else if labels.iter().any(|l| l.contains("refactor")) {
+                    Some("refactor")
+                } else if labels.iter().any(|l| l.contains("docs")) {
+                    Some("docs")
+                } else if labels.iter().any(|l| l.contains("test")) {
+                    Some("test")
+                } else {
+                    None
+                }
+            })
+            .unwrap_or("feature");
 
-        // Replace multiple consecutive hyphens with single hyphen
-        while sanitized.contains("--") {
-            sanitized = sanitized.replace("--", "-");
+        let branch_name = format!("{}/issue-{}-{}", prefix, context.issue_number, sanitized_title);
+
+        NamingSuggestion {
+            branch_name,
+            display_name: format!("Issue #{}: {}", context.issue_number, context.title),
+            explanation: "Generated using fallback naming (AI service unavailable)".to_string(),
         }
-
-        // Truncate to 30 characters
-        if sanitized.len() > 30 {
-            // Try to truncate at a hyphen to keep words intact
-            if let Some(pos) = sanitized[..30].rfind('-') {
-                sanitized.truncate(pos);
-            } else {
-                sanitized.truncate(30);
-            }
-        }
-
-        // Fallback to generic name if empty
-        if sanitized.is_empty() {
-            sanitized = "worktree".to_string();
-        }
-
-        sanitized
-    }
-
-    /// Check if API key is configured
-    pub fn is_configured(&self) -> bool {
-        !self.api_key.is_empty() && self.api_key != "test-key"
     }
 }
 
-impl Default for AnthropicClient {
-    /// Create client from ANTHROPIC_API_KEY environment variable
-    fn default() -> Self {
-        let api_key = std::env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| String::new());
-        Self::new(api_key)
+/// Tauri command: Generate AI naming suggestion
+#[tauri::command]
+pub async fn suggest_worktree_name(context: NamingContext) -> Result<NamingSuggestion, String> {
+    // Try AI service first
+    match AINamingService::new() {
+        Ok(service) => {
+            match service.suggest_name(context.clone()).await {
+                Ok(suggestion) => Ok(suggestion),
+                Err(_) => {
+                    // Fallback if API call fails
+                    Ok(AINamingService::generate_fallback_name(&context))
+                }
+            }
+        }
+        Err(_) => {
+            // Use fallback if service initialization fails
+            Ok(AINamingService::generate_fallback_name(&context))
+        }
     }
 }
 
@@ -192,76 +218,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_new_client() {
-        let client = AnthropicClient::new("test-key".to_string());
-        assert_eq!(client.api_key, "test-key");
-        assert_eq!(client.model, "claude-3-5-sonnet-20241022");
+    fn test_fallback_naming() {
+        let context = NamingContext {
+            issue_number: 673,
+            title: "Integrate @humanu/orchestra (gwr) into miyabi-desktop".to_string(),
+            description: None,
+            labels: Some(vec!["enhancement".to_string(), "feature".to_string()]),
+        };
+
+        let suggestion = AINamingService::generate_fallback_name(&context);
+
+        assert!(suggestion.branch_name.starts_with("feature/issue-673"));
+        assert!(suggestion.branch_name.contains("integrate"));
+        assert_eq!(suggestion.display_name, "Issue #673: Integrate @humanu/orchestra (gwr) into miyabi-desktop");
     }
 
     #[test]
-    fn test_sanitize_worktree_name() {
-        let client = AnthropicClient::new("test-key".to_string());
+    fn test_fallback_naming_bugfix() {
+        let context = NamingContext {
+            issue_number: 100,
+            title: "Fix memory leak in logger".to_string(),
+            description: None,
+            labels: Some(vec!["bug".to_string()]),
+        };
 
-        assert_eq!(
-            client.sanitize_worktree_name("Fix Memory Leak"),
-            "fix-memory-leak"
-        );
-        assert_eq!(
-            client.sanitize_worktree_name("Add--Multiple---Hyphens"),
-            "add-multiple-hyphens"
-        );
-        assert_eq!(
-            client.sanitize_worktree_name("Trailing Hyphen-"),
-            "trailing-hyphen"
-        );
-        assert_eq!(
-            client.sanitize_worktree_name("-Leading Hyphen"),
-            "leading-hyphen"
-        );
-        assert_eq!(
-            client.sanitize_worktree_name("Special!@#$%Characters"),
-            "specialcharacters"
-        );
-        assert_eq!(
-            client.sanitize_worktree_name(
-                "This is a very long worktree name that exceeds thirty characters"
-            ),
-            "this-is-a-very-long-worktree"
-        );
-        assert_eq!(client.sanitize_worktree_name(""), "worktree");
-        assert_eq!(client.sanitize_worktree_name("---"), "worktree");
-    }
+        let suggestion = AINamingService::generate_fallback_name(&context);
 
-    #[test]
-    fn test_is_configured() {
-        let client = AnthropicClient::new("test-key".to_string());
-        assert!(!client.is_configured()); // "test-key" is excluded
-
-        let client = AnthropicClient::new("sk-ant-api03-xxx".to_string());
-        assert!(client.is_configured());
-
-        let client = AnthropicClient::new(String::new());
-        assert!(!client.is_configured());
-    }
-
-    #[tokio::test]
-    #[ignore] // Requires valid API key
-    async fn test_generate_worktree_name_integration() {
-        let api_key = std::env::var("ANTHROPIC_API_KEY").unwrap_or_default();
-        if api_key.is_empty() {
-            return; // Skip test if no API key
-        }
-
-        let client = AnthropicClient::new(api_key);
-        let name = client
-            .generate_worktree_name("Fix memory leak in logger.rs")
-            .await
-            .unwrap();
-
-        assert!(!name.is_empty());
-        assert!(name.len() <= 30);
-        assert!(name.contains('-'));
-        assert!(!name.contains(' '));
-        assert_eq!(name, name.to_lowercase());
+        assert!(suggestion.branch_name.starts_with("bugfix/issue-100"));
     }
 }

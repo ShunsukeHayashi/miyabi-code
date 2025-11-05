@@ -7,10 +7,13 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+  root: __dirname,
   test: {
     globals: true,
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
+    include: ["./src/**/*.test.{ts,tsx}", "./tests/**/*.test.{ts,tsx}"],
+    exclude: ["**/node_modules/**", "**/dist/**", "../**"],
     coverage: {
       reporter: ["text", "html"],
     },

@@ -29,6 +29,42 @@ claude mcp list
 
 **詳細**: [.claude/MCP_INTEGRATION_PROTOCOL.md](.claude/MCP_INTEGRATION_PROTOCOL.md)
 
+### ⭐⭐⭐⭐⭐ Rule 3: tmux send-keys Protocol (CRITICAL)
+
+**tmux pane内のClaude Codeセッションにメッセージを送信する際は、必ず以下の構文を使用**
+
+✅ **正しい構文** (必須):
+```bash
+tmux send-keys -t PANE_ID "メッセージ内容" && sleep 0.1 && tmux send-keys -t PANE_ID Enter
+```
+
+❌ **間違った構文** (絶対禁止):
+```bash
+# ❌ これではEnterが送信されない！
+tmux send-keys -t PANE_ID "メッセージ内容" Enter
+
+# ❌ sleepなしでは不安定
+tmux send-keys -t PANE_ID "メッセージ内容" && tmux send-keys -t PANE_ID Enter
+```
+
+**理由**:
+- `Enter`を引数として渡すだけでは、Claude Codeのインプットボックスで確実にEnterキーが押されない
+- `&& sleep 0.1 &&`で確実に2回目のsend-keysを実行することで、Enterキーが正しく送信される
+- この構文を守らないと、メッセージが入力されたまま送信されず、Agentが動作しない
+
+**実例**:
+```bash
+# Agent起動
+tmux send-keys -t %6 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.1 && tmux send-keys -t %6 Enter
+
+# タスク割り当て
+tmux send-keys -t %8 "あなたは「ツバキ」です。Issue #673に取り組んでください" && sleep 0.1 && tmux send-keys -t %8 Enter
+
+# /clearコマンド
+tmux send-keys -t %2 "/clear" && sleep 0.1 && tmux send-keys -t %2 Enter
+```
+
+**詳細**: [.claude/TMUX_OPERATIONS.md](.claude/TMUX_OPERATIONS.md)
 
 ### ⭐⭐⭐⭐⭐ Rule 4: Context7 Usage
 
@@ -101,13 +137,16 @@ Use context7 to get the latest Tokio async runtime documentation
 ├── 🤖 Claude Code Integration
 │   └── .claude/
 │       ├── commands/                  # Slash commands (15+ files)
-│       ├── context/                   # Context modules (11 files) ⭐⭐⭐
+│       ├── context/                   # Context modules (15 files) ⭐⭐⭐
 │       │   ├── INDEX.md               # Context index
 │       │   ├── core-rules.md          # Critical rules
+│       │   ├── miyabi-definition.md   # miyabi_def system
+│       │   ├── swml-framework.md      # SWML/Ω theoretical foundation
+│       │   ├── omega-phases.md        # θ₁-θ₆ implementation
 │       │   ├── agents.md              # Agent details
 │       │   ├── architecture.md        # System architecture
 │       │   ├── worktree.md            # Worktree protocol
-│       │   └── ... (11 modules)
+│       │   └── ... (15 modules)
 │       ├── agents/                    # Agent specs & prompts
 │       │   ├── specs/                 # 21 Agent specifications
 │       │   └── prompts/               # 6 Execution prompts
@@ -292,6 +331,9 @@ Skill tool with command "rust-development"
 | Priority | Module | File | Description |
 |----------|--------|------|-------------|
 | ⭐⭐⭐⭐⭐ | **Core Rules** | `core-rules.md` | MCP First, Benchmark Protocol, Context7 |
+| ⭐⭐⭐⭐⭐ | **Miyabi Definition** | `miyabi-definition.md` | miyabi_def system: YAML+Jinja2 source of truth |
+| ⭐⭐⭐⭐⭐ | **SWML Framework** | `swml-framework.md` | Ω Function theoretical foundation |
+| ⭐⭐⭐⭐⭐ | **Omega Phases** | `omega-phases.md` | θ₁-θ₆ implementation guide |
 | ⭐⭐⭐⭐ | **Agents** | `agents.md` | 14 Agents実装済み + 10 Agents計画中 |
 | ⭐⭐⭐⭐ | **Architecture** | `architecture.md` | Cargo Workspace, GitHub OS, Worktree |
 | ⭐⭐⭐ | **Development** | `development.md` | Rust/TypeScript規約、テスト、CI/CD |

@@ -1065,8 +1065,8 @@
 
 ### 7.4 1年以内のマイルストーン
 
-- Month 9: Phase 1完了（4 Agents稼働）
-- Month 12: Phase 2開始、追加6 Agents導入開始
+- Month 9: Phase 1完了（6 Coding Agents稼働 - W1-W5 Full Workflow Coverage）
+- Month 12: Phase 2開始、追加Business Agents導入開始
 
 ---
 

@@ -2,37 +2,38 @@
 name = "miyabi-workflow"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-homepage.workspace = true
-description.workspace = true
-keywords.workspace = true
-categories.workspace = true
+description = "Workflow DSL for Miyabi - Graph-based agent orchestration with .then(), .branch(), .parallel()"
+keywords = ["workflow", "dsl", "orchestration", "agents", "async"]
+categories = ["asynchronous", "development-tools"]
 
 [dependencies]
+# Core dependencies
 miyabi-types = { path = "../miyabi-types" }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = "0.1"
+
+# Serialization
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = { workspace = true }
-anyhow = { workspace = true }
-thiserror = { workspace = true }
-async-trait = "0.1"
-tracing = { workspace = true }
 
-# Conditional branching
-rhai = { version = "1.23.6", features = ["serde"] }
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
 
 # State persistence
 sled = "0.34"
-uuid = { workspace = true }
-chrono = { workspace = true }
-dirs = "5"
 
 # Futures
 futures = "0.3"
 
 [dev-dependencies]
-tempfile = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = "0.3"

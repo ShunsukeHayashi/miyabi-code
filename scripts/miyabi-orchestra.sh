@@ -60,9 +60,9 @@ case "$ENSEMBLE" in
         # Create 5 panes
         tmux split-window -h
         tmux split-window -v
-        tmux select-pane -t 0
+        tmux select-pane -t 1
         tmux split-window -v
-        tmux select-pane -t 2
+        tmux select-pane -t 3
         tmux split-window -v
 
         # Apply layout
@@ -80,10 +80,10 @@ case "$ENSEMBLE" in
         tmux split-window -h
         tmux split-window -v
         tmux split-window -v
-        tmux select-pane -t 0
+        tmux select-pane -t 1
         tmux split-window -v
         tmux split-window -v
-        tmux select-pane -t 0
+        tmux select-pane -t 1
 
         # Apply layout
         tmux select-layout tiled
@@ -108,7 +108,7 @@ echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}🎭 Orchestra Stage Layout:${NC}"
 echo ""
-echo -e "  ${MAGENTA}Pane 0${NC}: 🎼 Conductor (You - 指揮者)"
+echo -e "  ${MAGENTA}Pane 1${NC}: 🎼 Conductor (You - 指揮者)"
 tmux list-panes -F "  Pane #{pane_index}: #{pane_id} (#{pane_width}x#{pane_height})" | tail -n +2 | \
     awk '{printf "  %s🎭 Agent %s: %s %s\n", "'${CYAN}'", substr($2,1,1), substr($2,2), "'${NC}'"}'
 echo ""
@@ -164,7 +164,7 @@ echo ""
 echo -e "  1. ${CYAN}Review orchestra layout:${NC}"
 echo -e "     tmux list-panes -F \"#{pane_index}: #{pane_id}\""
 echo ""
-echo -e "  2. ${CYAN}Assign roles to agents${NC} (from Conductor pane 0):"
+echo -e "  2. ${CYAN}Assign roles to agents${NC} (from Conductor pane 1):"
 echo -e "     tmux send-keys -t %XX \"あなたは[エージェント名]です。[役割]\" Enter"
 echo ""
 echo -e "     ${YELLOW}Example - Coding Ensemble:${NC}"

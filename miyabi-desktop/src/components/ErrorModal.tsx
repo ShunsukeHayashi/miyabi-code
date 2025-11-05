@@ -1,127 +1,115 @@
-/**
- * ErrorModal Component
- *
- * Displays user-friendly error messages with actionable solutions and retry functionality.
- */
-
-import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { ErrorInfo } from '../lib/errors';
+import { AlertCircle, AlertTriangle, Info, ExternalLink, X } from "lucide-react";
+import type { ErrorInfo } from "../lib/errors";
 
 export interface ErrorModalProps {
-  error: ErrorInfo;
+  error: ErrorInfo | null;
   onClose: () => void;
   onRetry?: () => void;
 }
 
-/**
- * ErrorModal component
- * Displays error information with severity-specific styling and actions
- */
+const severityConfig: Record<
+  ErrorInfo["severity"],
+  { container: string; icon: JSX.Element; badge: string }
+> = {
+  error: {
+    container: "bg-red-50 border-red-200",
+    icon: <AlertCircle className="w-6 h-6 text-red-600" />,
+    badge: "エラー",
+  },
+  warning: {
+    container: "bg-yellow-50 border-yellow-200",
+    icon: <AlertTriangle className="w-6 h-6 text-yellow-600" />,
+    badge: "警告",
+  },
+  info: {
+    container: "bg-blue-50 border-blue-200",
+    icon: <Info className="w-6 h-6 text-blue-600" />,
+    badge: "情報",
+  },
+};
+
 export function ErrorModal({ error, onClose, onRetry }: ErrorModalProps) {
-  const severityColors = {
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-    info: 'bg-blue-50 border-blue-200',
-  };
+  if (!error) {
+    return null;
+  }
 
-  const severityIcons = {
-    error: <AlertCircle className="w-6 h-6 text-red-600" aria-hidden="true" />,
-    warning: <AlertTriangle className="w-6 h-6 text-yellow-600" aria-hidden="true" />,
-    info: <Info className="w-6 h-6 text-blue-600" aria-hidden="true" />,
-  };
-
-  const severityTextColors = {
-    error: 'text-red-900',
-    warning: 'text-yellow-900',
-    info: 'text-blue-900',
-  };
-
-  // Close modal on Escape key
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
-  };
+  const severity = severityConfig[error.severity];
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-      onKeyDown={handleKeyDown}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="error-modal-title"
-      aria-describedby="error-modal-description"
-    >
-      <div
-        className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="flex-shrink-0">{severityIcons[error.severity]}</div>
-          <div className="flex-1 min-w-0">
-            <h2
-              id="error-modal-title"
-              className={`text-xl font-bold mb-2 ${severityTextColors[error.severity]}`}
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
+          <div className="flex items-start space-x-4">
+            <div
+              className={`w-12 h-12 rounded-xl bg-white border flex items-center justify-center shadow-inner ${severity.container}`}
             >
-              {error.title}
-            </h2>
-            <p id="error-modal-description" className="text-gray-700 text-sm">
-              {error.message}
-            </p>
+              {severity.icon}
+            </div>
+            <div>
+              <div className="flex items-center space-x-2 mb-1">
+                <span className="text-xs font-semibold tracking-wide uppercase text-gray-400">
+                  {severity.badge}
+                </span>
+                <span className="text-xs text-gray-300">•</span>
+                <span className="text-xs font-mono text-gray-400">{error.code}</span>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900">{error.title}</h2>
+              <p className="text-sm text-gray-600 mt-2 leading-relaxed">{error.message}</p>
+            </div>
           </div>
+
           <button
             onClick={onClose}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900
-                       focus-visible:ring-offset-2 rounded"
-            aria-label="閉じる"
+            aria-label="Close error dialog"
+            className="text-gray-400 hover:text-gray-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Actions */}
-        <div
-          className={`p-4 rounded-lg border ${severityColors[error.severity]} mb-6`}
-        >
-          <h3 className={`font-semibold mb-3 ${severityTextColors[error.severity]}`}>
-            解決方法:
-          </h3>
-          <ul className="space-y-2 text-sm text-gray-700">
-            {error.actions.map((action, idx) => (
-              <li key={idx} className="flex gap-2">
-                <span className="flex-shrink-0 text-gray-400">→</span>
-                <span className="flex-1">{action}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="px-6 py-5 space-y-4">
+          <div className={`rounded-xl border p-4 space-y-3 ${severity.container}`}>
+            <div className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
+              <span>推奨されるアクション</span>
+            </div>
+            <ul className="space-y-2">
+              {error.actions.map((action, index) => (
+                <li key={index} className="flex items-start space-x-3 text-sm text-gray-700">
+                  <span className="text-gray-400">{index + 1}.</span>
+                  <span className="leading-relaxed">{action}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {error.helpUrl && (
+            <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 flex items-center justify-between">
+              <div className="text-sm text-blue-800 font-medium">サポートドキュメントを見る</div>
+              <a
+                href={error.helpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 space-x-2"
+              >
+                <span>開く</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          )}
         </div>
 
-        {/* Footer Buttons */}
-        <div className="flex gap-3">
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center space-x-3">
           {onRetry && (
             <button
-              onClick={() => {
-                onRetry();
-                onClose();
-              }}
-              className="flex-1 py-2.5 px-4 bg-gray-900 text-white rounded-lg
-                         hover:bg-gray-800 transition-colors font-medium
-                         focus:outline-none focus-visible:ring-2
-                         focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+              onClick={onRetry}
+              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
             >
-              再試行
+              再試行する
             </button>
           )}
           <button
             onClick={onClose}
-            className={`py-2.5 px-4 border border-gray-300 rounded-lg
-                        hover:bg-gray-50 transition-colors font-medium
-                        focus:outline-none focus-visible:ring-2
-                        focus-visible:ring-gray-900 focus-visible:ring-offset-2
-                        ${onRetry ? 'flex-1' : 'w-full'}`}
+            className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
             閉じる
           </button>
@@ -130,5 +118,3 @@ export function ErrorModal({ error, onClose, onRetry }: ErrorModalProps) {
     </div>
   );
 }
-
-export default ErrorModal;

@@ -8,6 +8,16 @@ CONDUCTOR_PANE="%1"
 LOG_FILE="$WORKING_DIR/.ai/logs/water-spider.log"
 RELAY_LOG_FILE="$WORKING_DIR/.ai/logs/water-spider-relay.log"
 TASK_QUEUE_FILE="$WORKING_DIR/.ai/queue/tasks.json"
+TMUX_THEME_FILE="$HOME/.tmux.miyabi.conf"
+TMUX_INACTIVE_BG="#1d1d1d"
+TMUX_ACTIVE_BG="#242424"
+TMUX_INACTIVE_FG="#d7d7d7"
+TMUX_ACTIVE_FG="#ffffff"
+TMUX_THEME_FILE="$HOME/.tmux.miyabi.conf"
+TMUX_INACTIVE_BG="#1d1d1d"
+TMUX_ACTIVE_BG="#242424"
+TMUX_INACTIVE_FG="#d7d7d7"
+TMUX_ACTIVE_FG="#ffffff"
 
 # Performance Management
 PERF_MANAGER="$WORKING_DIR/scripts/water-spider-performance-manager.sh"
@@ -22,38 +32,112 @@ SLA_MAX_TASK_DURATION=3600      # 最大タスク時間: 60分
 SLA_MAX_IDLE_TIME=300           # 最大アイドル時間: 5分
 AUTO_REBALANCE_THRESHOLD=0.3    # 自動リバランス閾値（30%エラー率）
 
-# Agent定義
-declare -A AGENTS=(
-    ["%2"]="カエデ"
-    ["%5"]="サクラ"
-    ["%3"]="ツバキ"
-    ["%4"]="ボタン"
-    ["%7"]="Codex-1"
-    ["%8"]="Codex-2"
-    ["%9"]="Codex-3"
-    ["%10"]="Codex-4"
-)
+PANE_IDS=()
+AGENT_NAMES=()
 
-# 逆引きマップ（Agent名からPane IDを取得）
-declare -A AGENT_PANES=(
-    ["カエデ"]="%2"
-    ["サクラ"]="%5"
-    ["ツバキ"]="%3"
-    ["ボタン"]="%4"
-    ["Codex-1"]="%7"
-    ["Codex-2"]="%8"
-    ["Codex-3"]="%9"
-    ["Codex-4"]="%10"
-)
+normalize_agent_name() {
+    local pane_title="$1"
+    case "$pane_title" in
+        *"カエデ"*) echo "カエデ" ;;
+        *"サクラ"*) echo "サクラ" ;;
+        *"ツバキ | pr-management"*) echo "ツバキ-PR" ;;
+        *"ツバキ"*) echo "ツバキ" ;;
+        *"ボタン"*) echo "ボタン" ;;
+        *"スミレ"*) echo "スミレ" ;;
+        *"カスミ"*) echo "カスミ" ;;
+        *"モミジ"*) echo "モミジ" ;;
+        *"アヤメ"*) echo "アヤメ" ;;
+        *"キキョウ"*) echo "キキョウ" ;;
+        *"Conductor"*) echo "しきるん" ;;
+        *"みつけるん"*) echo "みつけるん" ;;
+        *"水蜘蛛"*) echo "クモ" ;;
+        *"Water Spider"*) echo "クモ" ;;
+        *"Codex-1"*) echo "Codex-1" ;;
+        *"Codex-2"*) echo "Codex-2" ;;
+        *"Codex-3"*) echo "Codex-3" ;;
+        *"Codex-4"*) echo "Codex-4" ;;
+        "")
+            echo ""
+            ;;
+        *)
+            echo "$pane_title"
+            ;;
+    esac
+}
 
-# タスク連鎖ルール定義
-declare -A TASK_CHAIN_RULES=(
-    ["カエデ|実装完了"]="サクラ|カエデが実装を完了しました。コードレビューを開始してください。"
-    ["カエデ|コード完了"]="サクラ|カエデがコードを完了しました。レビューを開始してください。"
-    ["サクラ|レビュー完了"]="ツバキ|サクラがレビューを完了しました。PR作成を開始してください。"
-    ["サクラ|承認"]="ツバキ|サクラが承認しました。PR作成を開始してください。"
-    ["ツバキ|PR作成完了"]="ボタン|ツバキがPRを作成しました。デプロイを開始してください。"
-    ["ツバキ|PR完了"]="ボタン|ツバキがPR完了しました。デプロイしてください。"
+refresh_agent_registry() {
+    PANE_IDS=()
+    AGENT_NAMES=()
+
+    if ! command -v tmux >/dev/null 2>&1; then
+        return
+    fi
+
+    local delimiter='__WS_DELIM__'
+    local panes
+    panes=$(tmux list-panes -a -F "#{pane_id}${delimiter}#{pane_title}" 2>/dev/null || true)
+
+    while IFS= read -r pane_line; do
+        [ -z "$pane_line" ] && continue
+
+        if [[ "$pane_line" != *"$delimiter"* ]]; then
+            continue
+        fi
+
+        local pane_id="${pane_line%%${delimiter}*}"
+        local pane_title="${pane_line#*${delimiter}}"
+        [ -z "$pane_id" ] && continue
+
+        local agent_name
+        agent_name=$(normalize_agent_name "$pane_title")
+        if [ -z "$agent_name" ] || [ "$agent_name" = "$pane_title" ]; then
+            agent_name="Pane-${pane_id}"
+        fi
+
+        PANE_IDS+=("$pane_id")
+        AGENT_NAMES+=("$agent_name")
+    done <<< "$panes"
+}
+
+resolve_agent_pane() {
+    local agent_name="$1"
+    local idx
+    for idx in "${!AGENT_NAMES[@]}"; do
+        if [ "${AGENT_NAMES[$idx]}" = "$agent_name" ]; then
+            echo "${PANE_IDS[$idx]}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+was_message_processed() {
+    local hash="$1"
+    local entry
+    for entry in "${LAST_PROCESSED_MESSAGES[@]}"; do
+        if [ "$entry" = "$hash" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+mark_message_processed() {
+    local hash="$1"
+    LAST_PROCESSED_MESSAGES+=("$hash")
+}
+
+# タスク連鎖ルール定義 - W1-W5完全自動化対応
+TASK_CHAIN_RULES_LIST=(
+    "みつけるん|トリアージ完了:しきるん|みつけるんがIssueトリアージを完了しました。タスク分解を開始してください。"
+    "しきるん|計画完了:カエデ|しきるんがタスク分解を完了しました。実装を開始してください。"
+    "しきるん|タスク分解完了:カエデ|しきるんがタスク分解を完了しました。実装を開始してください。"
+    "カエデ|実装完了:サクラ|カエデが実装を完了しました。コードレビューを開始してください。"
+    "カエデ|コード完了:サクラ|カエデがコードを完了しました。レビューを開始してください。"
+    "サクラ|レビュー完了:ツバキ|サクラがレビューを完了しました。PR作成を開始してください。"
+    "サクラ|承認:ツバキ|サクラが承認しました。PR作成を開始してください。"
+    "ツバキ|PR作成完了:ボタン|ツバキがPRを作成しました。デプロイを開始してください。"
+    "ツバキ|PR完了:ボタン|ツバキがPR完了しました。デプロイしてください。"
 )
 
 # 設定
@@ -63,7 +147,7 @@ RECOVERY_ATTEMPTS=3
 MESSAGE_RELAY_INTERVAL=5  # メッセージ中継チェック間隔（秒）
 
 # 最後に処理したメッセージを記録（重複防止）
-declare -A LAST_PROCESSED_MESSAGES
+LAST_PROCESSED_MESSAGES=()
 
 # ログ関数
 log_message() {
@@ -77,6 +161,30 @@ log_relay() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $message" | tee -a "$RELAY_LOG_FILE"
 }
 
+# tmuxテーマをダークグレースケールに統一
+apply_tmux_dark_grayscale_theme() {
+    if ! command -v tmux >/dev/null 2>&1; then
+        return
+    fi
+
+    # tmuxサーバーが動作していない場合は何もしない
+    if ! tmux list-sessions >/dev/null 2>&1; then
+        return
+    fi
+
+    if [ -f "$TMUX_THEME_FILE" ]; then
+        tmux source-file "$TMUX_THEME_FILE" >/dev/null 2>&1 && \
+            log_message "[Water Spider] 🎨 tmuxテーマを ${TMUX_THEME_FILE} から再適用"
+        return
+    fi
+
+    tmux set-option -g window-style "bg=${TMUX_INACTIVE_BG},fg=${TMUX_INACTIVE_FG}" >/dev/null 2>&1 || true
+    tmux set-option -g window-active-style "bg=${TMUX_ACTIVE_BG},fg=${TMUX_ACTIVE_FG}" >/dev/null 2>&1 || true
+    tmux set-option -g pane-border-style "fg=#555555,bg=${TMUX_INACTIVE_BG}" >/dev/null 2>&1 || true
+    tmux set-option -g pane-active-border-style "fg=${TMUX_ACTIVE_FG},bold,bg=${TMUX_ACTIVE_BG}" >/dev/null 2>&1 || true
+    log_message "[Water Spider] 🎨 tmuxテーマをダークグレースケールで適用（フォールバック）"
+}
+
 # ========================================
 # タスクキュー管理機能
 # ========================================
@@ -84,17 +192,15 @@ log_relay() {
 # Agent別のVOICEVOX Speaker ID取得
 get_agent_speaker_id() {
     case "$1" in
-        "カンナ") echo "3" ;;    # ずんだもん（ノーマル）
-        "カエデ") echo "2" ;;    # 四国めたん（ノーマル）
-        "サクラ") echo "8" ;;    # 春日部つむぎ（ノーマル）
-        "ツバキ") echo "10" ;;   # 雨晴はう（ノーマル）
-        "ボタン") echo "14" ;;   # 冥鳴ひまり（ノーマル）
-        "クモ") echo "1" ;;      # ずんだもん（あまあま）
-        "Codex-1") echo "11" ;;  # 波音リツ（ノーマル）
-        "Codex-2") echo "12" ;;  # 玄野武宏（ノーマル）
-        "Codex-3") echo "13" ;;  # 白上虎太郎（ノーマル）
-        "Codex-4") echo "16" ;;  # 青山龍星（ノーマル）
-        *) echo "3" ;;           # デフォルト: ずんだもん
+        "カンナ") echo "3" ;;         # ずんだもん（ノーマル）
+        "みつけるん") echo "46" ;;    # 小夜/SAYO（ノーマル）
+        "しきるん") echo "47" ;;      # ナースロボ_タイプT（ノーマル）
+        "カエデ") echo "3" ;;         # ずんだもん（ノーマル）
+        "サクラ") echo "1" ;;         # 四国めたん（ノーマル）
+        "ツバキ") echo "8" ;;         # 春日部つむぎ（ノーマル）
+        "ボタン") echo "14" ;;        # 冥鳴ひまり（ノーマル）
+        "クモ") echo "3" ;;           # ずんだもん（ノーマル）
+        *) echo "3" ;;                # デフォルト: ずんだもん
     esac
 }
 
@@ -184,23 +290,79 @@ assign_task_to_agent() {
 
     log_message "[Auto-Assign] 📋 Issue #${task_id} (${task_priority}) を ${agent_name} に割り当て"
 
-    # Agent種別に応じた指示
+    # Agent種別に応じた指示 - W1-W5対応 + Rust Commands最適化
     local instruction=""
     case "$agent_name" in
+        "みつけるん")
+            instruction="Issue #${task_id}「${task_title}」のトリアージを行ってください。issue-analysisスキルを使用して、適切なLabel (57-label system) を推定し、優先度を設定し、state:pendingを付与してください。完了したら [みつけるん] トリアージ完了 と発言してください。"
+            ;;
+        "しきるん")
+            instruction="Issue #${task_id}「${task_title}」をTask配列に分解し、DAGを構築し、Agent割り当てを行ってください。agent-executionスキルを使用してください。完了したら [しきるん] タスク分解完了 と発言してください。"
+            ;;
         "カエデ")
-            instruction="Issue #${task_id}「${task_title}」を実装してください。agent-executionスキルを使用してください。完了したら [カエデ] 実装完了 と発言してください。"
+            instruction="Issue #${task_id}「${task_title}」を実装してください。
+
+【実装フェーズ】
+1. agent-executionスキルとrust-developmentスキルを使用
+2. コード実装・テスト作成
+
+【検証フェーズ - Rust Commands一括実行】
+以下を&&チェーンでシーケンシャルに実行してください。1つでも失敗したら即座に停止して報告してください:
+- cargo build --release
+- cargo test --all
+- cargo clippy -- -D warnings
+
+【完了報告】
+全て成功したら [カエデ] 実装完了 と発言してください。失敗した場合は [カエデ] エラー: {詳細} と報告してください。"
             ;;
         "サクラ")
-            instruction="Issue #${task_id}「${task_title}」のコードレビューを実行してください。security-auditスキルを使用してください。完了したら [サクラ] レビュー完了 と発言してください。"
+            instruction="Issue #${task_id}「${task_title}」のコードレビューを実行してください。
+
+【レビューフェーズ - Rust Commands一括実行】
+以下を&&チェーンでシーケンシャルに実行してください:
+- cargo audit（セキュリティ脆弱性チェック）
+- cargo clippy -- -D warnings -W clippy::all（コード品質）
+- cargo test --all（テスト実行）
+
+【品質評価】
+1. 品質スコア算出（0-100点）
+2. セキュリティissue列挙
+3. 改善推奨事項まとめ
+
+【完了報告】
+GitHub commentに投稿して [サクラ] レビュー完了 と発言してください。エラー時は [サクラ] エラー: {詳細} と報告してください。"
             ;;
         "ツバキ")
-            instruction="Issue #${task_id}「${task_title}」のPRを作成してください。git-workflowスキルを使用してください。完了したら [ツバキ] PR作成完了 と発言してください。"
+            instruction="Issue #${task_id}「${task_title}」のPRを作成してください。
+
+【PR作成前チェック - Rust Commands一括実行】
+以下を&&チェーンでシーケンシャルに実行してください:
+- cargo fmt -- --check（フォーマットチェック）
+- cargo clippy -- -D warnings（Lintチェック）
+- cargo test --all（テスト実行）
+
+【PR作成】
+1. 全チェック成功後、git-workflowスキルでPR作成
+2. Conventional Commits形式でコミットメッセージ作成
+
+【完了報告】
+[ツバキ] PR作成完了 と発言してください。エラー時は [ツバキ] エラー: {詳細} と報告してください。"
             ;;
         "ボタン")
-            instruction="Issue #${task_id}「${task_title}」をデプロイしてください。完了したら [ボタン] デプロイ完了 と発言してください。"
-            ;;
-        "Codex-1"|"Codex-2"|"Codex-3"|"Codex-4")
-            instruction="Issue #${task_id}「${task_title}」をcodexスキルで実装してください。完了したら [${agent_name}] 実装完了 と発言してください。"
+            instruction="Issue #${task_id}「${task_title}」をデプロイしてください。
+
+【デプロイ前検証 - Rust Commands一括実行】
+以下を&&チェーンでシーケンシャルに実行してください:
+- cargo build --release --all（リリースビルド）
+- cargo test --release --all（リリーステスト）
+
+【デプロイ実行】
+1. 全検証成功後、デプロイ実行
+2. ヘルスチェック確認
+3. Issueクローズ
+
+【完了報告】
+[ボタン] デプロイ完了 と発言してください。エラー時は [ボタン] エラー: {詳細} と報告してください。"
             ;;
         *)
             instruction="Issue #${task_id}「${task_title}」を処理してください。"
@@ -266,7 +428,12 @@ on_task_complete_assign_next() {
     local next_task=$(get_next_task_from_queue)
 
     if [ ! -z "$next_task" ]; then
-        local pane_id="${AGENT_PANES[$completed_agent]}"
+        local pane_id
+        pane_id=$(resolve_agent_pane "$completed_agent") || pane_id=""
+        if [ -z "$pane_id" ]; then
+            log_message "[Auto-Assign] ⚠️ ${completed_agent}のpaneが見つからずタスク割り当てをスキップ"
+            return
+        fi
         local next_task_info=$(jq -r ".tasks[] | select(.issue_number == \"$next_task\")" "$TASK_QUEUE_FILE" 2>/dev/null)
         local next_task_title=$(echo "$next_task_info" | jq -r '.title // "不明"')
 
@@ -298,7 +465,7 @@ on_task_complete_assign_next() {
 # Conductorに報告
 report_to_conductor() {
     local message="$1"
-    if tmux list-panes -F '#{pane_id}' | grep -q "^${CONDUCTOR_PANE}$"; then
+    if tmux list-panes -a -F '#{pane_id}' | grep -q "^${CONDUCTOR_PANE}$"; then
         tmux send-keys -t "$CONDUCTOR_PANE" "$message" && sleep 0.5 && tmux send-keys -t "$CONDUCTOR_PANE" Enter
     fi
 }
@@ -356,8 +523,9 @@ detect_and_relay_messages() {
     local recent_output=$(tmux capture-pane -t "$source_pane" -p | tail -20)
 
     # 各ルールをチェック
-    for rule_key in "${!TASK_CHAIN_RULES[@]}"; do
-        IFS='|' read -r trigger_agent trigger_keyword <<< "$rule_key"
+    for rule in "${TASK_CHAIN_RULES_LIST[@]}"; do
+        IFS=':' read -r trigger_part target_part <<< "$rule"
+        IFS='|' read -r trigger_agent trigger_keyword <<< "$trigger_part"
 
         # 現在のAgentがトリガーAgentと一致するか確認
         if [ "$source_agent" != "$trigger_agent" ]; then
@@ -369,18 +537,19 @@ detect_and_relay_messages() {
             # 重複チェック
             local message_hash=$(echo "${source_agent}:${trigger_keyword}" | md5)
 
-            if [ "${LAST_PROCESSED_MESSAGES[$message_hash]}" == "1" ]; then
+            if was_message_processed "$message_hash"; then
                 # 既に処理済み
                 continue
             fi
 
             # 処理済みとしてマーク
-            LAST_PROCESSED_MESSAGES[$message_hash]="1"
+            mark_message_processed "$message_hash"
 
             # ルール値を解析
-            IFS='|' read -r target_agent relay_message <<< "${TASK_CHAIN_RULES[$rule_key]}"
+            IFS='|' read -r target_agent relay_message <<< "$target_part"
 
-            local target_pane="${AGENT_PANES[$target_agent]}"
+            local target_pane
+            target_pane=$(resolve_agent_pane "$target_agent") || target_pane=""
 
             if [ -z "$target_pane" ]; then
                 log_relay "[Relay] ⚠️ ${target_agent}のpane IDが見つかりません"
@@ -405,8 +574,8 @@ detect_and_relay_messages() {
         # 重複チェック（タスク完了の場合も）
         local completion_hash=$(echo "${source_agent}:completion:${completion_keyword}" | md5)
 
-        if [ "${LAST_PROCESSED_MESSAGES[$completion_hash]}" != "1" ]; then
-            LAST_PROCESSED_MESSAGES[$completion_hash]="1"
+        if ! was_message_processed "$completion_hash"; then
+            mark_message_processed "$completion_hash"
 
             # 次のタスクを自動割り当て
             on_task_complete_assign_next "$source_agent" "$completion_keyword"
@@ -421,11 +590,12 @@ message_relay_loop() {
 
     while true; do
         # 全Agentの出力を監視
-        for pane_id in "${!AGENTS[@]}"; do
-            agent_name="${AGENTS[$pane_id]}"
+        for idx in "${!PANE_IDS[@]}"; do
+            local pane_id="${PANE_IDS[$idx]}"
+            local agent_name="${AGENT_NAMES[$idx]}"
 
             # pane存在確認
-            if ! tmux list-panes -F '#{pane_id}' | grep -q "^${pane_id}$"; then
+            if ! tmux list-panes -a -F '#{pane_id}' | grep -q "^${pane_id}$"; then
                 continue
             fi
 
@@ -476,14 +646,22 @@ check_session_alive() {
     local agent_name="$2"
 
     # pane存在確認
-    if ! tmux list-panes -F '#{pane_id}' | grep -q "^${pane_id}$"; then
+    if ! tmux list-panes -a -F '#{pane_id}' | grep -q "^${pane_id}$"; then
         log_message "[Water Spider] ❌ ${agent_name}のpaneが存在しません"
         return 1
+    fi
+
+    if [[ "$agent_name" == Pane-* ]]; then
+        return 0
     fi
 
     # Claude Code起動確認
     local output=$(tmux capture-pane -t "$pane_id" -p | tail -5)
     if echo "$output" | grep -q "bypass permissions"; then
+        return 0
+    fi
+
+    if echo "$output" | grep -Eq "❯|[$#] $|% $|▶"; then
         return 0
     else
         log_message "[Water Spider] ⚠️ ${agent_name}のClaude Codeセッション異常"
@@ -545,11 +723,12 @@ generate_dashboard() {
     echo "│ Agent Status                                      │"
     echo "├──────────────────────────────────────────────────┤"
 
-    for pane_id in "${!AGENTS[@]}"; do
-        agent_name="${AGENTS[$pane_id]}"
+    for idx in "${!PANE_IDS[@]}"; do
+        local pane_id="${PANE_IDS[$idx]}"
+        local agent_name="${AGENT_NAMES[$idx]}"
 
         # pane存在確認
-        if ! tmux list-panes -F '#{pane_id}' | grep -q "^${pane_id}$"; then
+        if ! tmux list-panes -a -F '#{pane_id}' | grep -q "^${pane_id}$"; then
             printf "│ %-20s [❌ OFFLINE]                   │\n" "$agent_name ($pane_id)"
             continue
         fi
@@ -597,21 +776,34 @@ main_loop() {
         "$PERF_MANAGER" dashboard 2>/dev/null || true
     fi
 
+    refresh_agent_registry
+
     local cycle=0
 
     while true; do
         cycle=$((cycle + 1))
         log_message "[Water Spider] 📊 監視サイクル #${cycle} 開始"
 
+        refresh_agent_registry
+
         # ダッシュボード生成
         generate_dashboard "$cycle"
 
         # 全Agentにping送信
-        for pane_id in "${!AGENTS[@]}"; do
-            agent_name="${AGENTS[$pane_id]}"
+        for idx in "${!PANE_IDS[@]}"; do
+            local pane_id="${PANE_IDS[$idx]}"
+            local agent_name="${AGENT_NAMES[$idx]}"
+
+            if [[ "$agent_name" == Pane-* ]]; then
+                # Passive monitoring: pane存在のみ確認
+                if ! tmux list-panes -a -F '#{pane_id}' | grep -q "^${pane_id}$"; then
+                    log_message "[Water Spider] ⚠️ ${agent_name}のpaneが存在しません"
+                fi
+                continue
+            fi
 
             # pane存在確認
-            if ! tmux list-panes -F '#{pane_id}' | grep -q "^${pane_id}$"; then
+            if ! tmux list-panes -a -F '#{pane_id}' | grep -q "^${pane_id}$"; then
                 log_message "[Water Spider] ⚠️ ${agent_name}のpaneが存在しません"
                 report_to_conductor "[Water Spider] ⚠️ ${agent_name}のpane消失 - 確認してください"
                 continue
@@ -634,8 +826,13 @@ main_loop() {
         sleep $PING_TIMEOUT
 
         # 応答確認
-        for pane_id in "${!AGENTS[@]}"; do
-            agent_name="${AGENTS[$pane_id]}"
+        for idx in "${!PANE_IDS[@]}"; do
+            local pane_id="${PANE_IDS[$idx]}"
+            local agent_name="${AGENT_NAMES[$idx]}"
+
+            if [[ "$agent_name" == Pane-* ]]; then
+                continue
+            fi
 
             if ! check_response "$pane_id" "$agent_name"; then
                 # 復旧試行
@@ -644,8 +841,13 @@ main_loop() {
         done
 
         # 🤖 自律管理: アイドルエージェント検出と自動タスク割り当て
-        for pane_id in "${!AGENTS[@]}"; do
-            agent_name="${AGENTS[$pane_id]}"
+        for idx in "${!PANE_IDS[@]}"; do
+            local pane_id="${PANE_IDS[$idx]}"
+            local agent_name="${AGENT_NAMES[$idx]}"
+
+            if [[ "$agent_name" == Pane-* ]]; then
+                continue
+            fi
 
             # 現在のタスクステータス確認
             local agent_task=$(jq -r ".tasks[] | select(.assigned_agent == \"$agent_name\" and .status == \"in_progress\") | .issue_number" "$TASK_QUEUE_FILE" 2>/dev/null)
@@ -701,7 +903,10 @@ main_loop() {
             log_message "[Performance] ⚖️ SLA違反チェック中..."
 
             local violations_detected=0
-            for agent in "${AGENTS[@]}"; do
+            for agent in "${AGENT_NAMES[@]}"; do
+                if [[ "$agent" == Pane-* ]]; then
+                    continue
+                fi
                 if [ -x "$PERF_MANAGER" ]; then
                     if ! "$PERF_MANAGER" sla "$agent" 2>/dev/null; then
                         violations_detected=$((violations_detected + 1))
@@ -767,6 +972,9 @@ cleanup() {
 # 初期化
 mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$(dirname "$RELAY_LOG_FILE")"
+
+# tmuxテーマ適用
+apply_tmux_dark_grayscale_theme
 
 # シグナルハンドラ
 trap cleanup SIGINT SIGTERM

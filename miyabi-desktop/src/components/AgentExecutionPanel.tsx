@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { List, type ListImperativeAPI } from 'react-window';
 import { Play, AlertCircle, CheckCircle, Clock, RefreshCw, ExternalLink, Terminal, GitBranch, FileText } from "lucide-react";
 import {
   AgentType,
@@ -11,8 +12,7 @@ import {
   getAgentsByCategory,
 } from "../lib/agent-api";
 import { listIssues, type GitHubIssue } from "../lib/github-api";
-import { ErrorModal } from "./ErrorModal";
-import { getErrorInfo, type ErrorInfo } from "../lib/errors";
+import { AgentIcon } from "./AgentIcon";
 
 interface AgentExecution {
   executionId: string;
@@ -24,6 +24,29 @@ interface AgentExecution {
   startTime: number;
 }
 
+// Custom props for LogRow (excluding forbidden keys)
+type LogRowCustomProps = {
+  output: string[];
+};
+
+// Full props including those provided by List
+type LogRowProps = {
+  ariaAttributes: {
+    "aria-posinset": number;
+    "aria-setsize": number;
+    role: "listitem";
+  };
+  index: number;
+  style: React.CSSProperties;
+} & LogRowCustomProps;
+
+// Log row component optimized with memoization
+const LogRowComponent = ({ index, style, output }: LogRowProps): React.ReactElement => (
+  <div style={style} className="mb-1 font-mono text-sm text-gray-100">
+    {output[index]}
+  </div>
+);
+
 export function AgentExecutionPanel() {
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
   const [issueNumber, setIssueNumber] = useState<string>("");
@@ -33,11 +56,29 @@ export function AgentExecutionPanel() {
   const [loadingIssues, setLoadingIssues] = useState(false);
   const [errorModal, setErrorModal] = useState<ErrorInfo | null>(null);
   const outputEndRef = useRef<HTMLDivElement>(null);
+  const logBufferRef = useRef<string[]>([]);
+  const listRef = useRef<ListImperativeAPI | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState(600);
 
   // Load open issues on mount
   useEffect(() => {
     loadOpenIssues();
   }, []);
+
+  // Update container height dynamically
+  useEffect(() => {
+    const updateHeight = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.clientHeight;
+        setContainerHeight(height > 0 ? height : 600);
+      }
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, [activeExecution]);
 
   const loadOpenIssues = async () => {
     setLoadingIssues(true);
@@ -51,6 +92,28 @@ export function AgentExecutionPanel() {
       setLoadingIssues(false);
     }
   };
+
+  // Batched log update mechanism
+  const flushLogs = useCallback(() => {
+    if (logBufferRef.current.length === 0) return;
+
+    const bufferedLogs = [...logBufferRef.current];
+    logBufferRef.current = [];
+
+    setActiveExecution((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        output: [...prev.output, ...bufferedLogs],
+      };
+    });
+  }, []);
+
+  // Flush logs every 100ms
+  useEffect(() => {
+    const interval = setInterval(flushLogs, 100);
+    return () => clearInterval(interval);
+  }, [flushLogs]);
 
   // Listen to agent status updates
   useEffect(() => {
@@ -116,13 +179,8 @@ export function AgentExecutionPanel() {
         activeExecution.executionId,
         (line: string) => {
           console.log('[DEBUG] Received agent output:', line);
-          setActiveExecution((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              output: [...prev.output, line],
-            };
-          });
+          // Buffer the log line for batched update
+          logBufferRef.current.push(line);
         }
       );
       console.log('[DEBUG] Output listener setup complete');
@@ -185,13 +243,8 @@ export function AgentExecutionPanel() {
         executionId,
         (line: string) => {
           console.log('[DEBUG] Received agent output:', line);
-          setActiveExecution((prev) => {
-            if (!prev || prev.executionId !== executionId) return prev;
-            return {
-              ...prev,
-              output: [...prev.output, line],
-            };
-          });
+          // Buffer the log line for batched update
+          logBufferRef.current.push(line);
         }
       );
       console.log('[DEBUG] Output listener registered for:', executionId);
@@ -265,10 +318,12 @@ export function AgentExecutionPanel() {
               }`}
             >
               <div className="flex items-center space-x-3 mb-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: agent.color }}
-                ></div>
+                <AgentIcon
+                  agentType={agent.type}
+                  backgroundColor={agent.color}
+                  size={18}
+                  className={selectedAgent === agent.type ? "shadow-md" : ""}
+                />
                 <span className="font-light">{agent.characterName}</span>
               </div>
               <p className="text-xs font-light opacity-80">
@@ -333,9 +388,19 @@ export function AgentExecutionPanel() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-light text-gray-900 mb-1">
-                {selectedAgentMetadata?.displayName || "No Agent Selected"}
-              </h2>
+              <div className="flex items-center space-x-3 mb-1">
+                {selectedAgentMetadata && (
+                  <AgentIcon
+                    agentType={selectedAgentMetadata.type}
+                    backgroundColor={selectedAgentMetadata.color}
+                    size={22}
+                    className="shadow-sm"
+                  />
+                )}
+                <h2 className="text-2xl font-light text-gray-900">
+                  {selectedAgentMetadata?.displayName || "No Agent Selected"}
+                </h2>
+              </div>
               {activeExecution && (
                 <div className="flex items-center space-x-4 text-sm font-light text-gray-500">
                   <span className="flex items-center space-x-1">
@@ -373,18 +438,22 @@ export function AgentExecutionPanel() {
         </div>
 
         {/* Output Display */}
-        <div className="flex-1 overflow-y-auto bg-gray-900 p-6 font-mono text-sm text-gray-100">
+        <div ref={containerRef} className="flex-1 overflow-y-auto bg-gray-900 p-6 font-mono text-sm text-gray-100 log-container">
           {activeExecution ? (
             <>
               {activeExecution.output.length > 0 ? (
-                <>
-                  {activeExecution.output.map((line, index) => (
-                    <div key={index} className="mb-1">
-                      {line}
-                    </div>
-                  ))}
+                <div style={{ height: '100%', width: '100%' }}>
+                  <List
+                    listRef={listRef}
+                    defaultHeight={containerHeight}
+                    rowCount={activeExecution.output.length}
+                    rowHeight={24}
+                    rowComponent={LogRowComponent}
+                    rowProps={{ output: activeExecution.output }}
+                    style={{ scrollbarGutter: 'stable' }}
+                  />
                   <div ref={outputEndRef} />
-                </>
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-8 p-8">
                   {/* Status Icon and Message */}
@@ -559,10 +628,12 @@ export function AgentExecutionPanel() {
                       }`}
                     >
                       <div className="flex items-center space-x-3 flex-1">
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: agent?.color }}
-                        ></div>
+                        <AgentIcon
+                          agentType={execution.agentType}
+                          backgroundColor={agent?.color}
+                          size={16}
+                          className={isActive ? "shadow-sm" : ""}
+                        />
                         <div className="flex-1 min-w-0">
                           <div className={`text-sm font-light truncate ${isActive ? "text-white" : "text-gray-900"}`}>
                             {agent?.characterName}

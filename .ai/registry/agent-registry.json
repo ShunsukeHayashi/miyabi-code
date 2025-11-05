@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "created_at": "2025-11-02T23:07:12Z",
+  "agents": {
+    "カンナ": {
+      "pane_id": "%1",
+      "type": "conductor",
+      "status": "active",
+      "role": "orchestrator"
+    },
+    "クモ": {
+      "pane_id": "%6",
+      "type": "monitor",
+      "status": "active",
+      "role": "water-spider"
+    },
+    "カエデ": {
+      "pane_id": "%4",
+      "type": "codex",
+      "status": "active",
+      "role": "ai-coding",
+      "created_at": "2025-11-03T05:37:38Z"
+    },
+    "サクラ": {
+      "pane_id": "%4",
+      "type": "codex",
+      "status": "active",
+      "role": "code-review",
+      "created_at": "2025-11-03T05:37:39Z"
+    },
+    "ツバキ": {
+      "pane_id": "%4",
+      "type": "codex",
+      "status": "active",
+      "role": "pr-management",
+      "created_at": "2025-11-03T05:37:41Z"
+    },
+    "ボタン": {
+      "pane_id": "%4",
+      "type": "deploy",
+      "status": "active",
+      "role": "deployment"
+    },
+    "Codex-1": {
+      "pane_id": "%7",
+      "type": "codex",
+      "status": "active",
+      "role": "ai-coding"
+    },
+    "Codex-2": {
+      "pane_id": "%8",
+      "type": "codex",
+      "status": "active",
+      "role": "ai-coding"
+    },
+    "Codex-3": {
+      "pane_id": "%9",
+      "type": "codex",
+      "status": "active",
+      "role": "ai-coding"
+    },
+    "Codex-4": {
+      "pane_id": "%10",
+      "type": "codex",
+      "status": "active",
+      "role": "ai-coding"
+    },
+    "Conductor": {
+      "pane_id": "%4",
+      "type": "conductor",
+      "status": "active",
+      "role": "orchestration",
+      "created_at": "2025-11-03T05:37:36Z"
+    }
+  },
+  "next_pane_id": 15
+}

@@ -1,226 +1,311 @@
-/**
- * Error Handling Library for Miyabi Desktop
- *
- * Provides user-friendly error messages with actionable solutions.
- */
+import { isTauriAvailable } from "./tauri-utils";
+
+export type ErrorSeverity = "error" | "warning" | "info";
 
 export interface ErrorInfo {
+  code: string;
   title: string;
   message: string;
   actions: string[];
-  severity: 'error' | 'warning' | 'info';
+  severity: ErrorSeverity;
+  helpUrl?: string;
 }
 
-/**
- * Comprehensive error message definitions
- * Maps error codes to user-friendly information
- */
-export const ERROR_MESSAGES: Record<string, ErrorInfo> = {
-  // GitHub API Errors
+type ErrorCatalog = Record<string, Omit<ErrorInfo, "code">>;
+
+export const ERROR_MESSAGES: ErrorCatalog = {
   github_token_invalid: {
-    title: 'GitHub Token が無効です',
-    message: '入力されたGitHub Personal Access Tokenが無効、または期限切れの可能性があります。',
+    title: "GitHub Token が無効です",
+    message:
+      "入力されたGitHub Personal Access Tokenが無効、または期限切れの可能性があります。",
     actions: [
-      'Settings → GitHub Tokenを確認してください',
-      '新しいTokenを生成してください: https://github.com/settings/tokens',
-      '必要な権限 (repo, workflow) が付与されているか確認してください',
+      "Settings → GitHub Tokenを確認してください",
+      "新しいTokenを生成してください: https://github.com/settings/tokens",
+      "Token権限に「repo」と「workflow」が含まれているか確認してください",
     ],
-    severity: 'error',
+    severity: "error",
   },
-
   github_api_rate_limit: {
-    title: 'GitHub API レート制限',
-    message: 'GitHub APIの利用上限に達しました。1時間後に再試行してください。',
+    title: "GitHub API レート制限",
+    message: "GitHub APIの利用上限に達しました。1時間後に再試行してください。",
     actions: [
-      '1時間待機してください',
-      'Personal Access Tokenを使用すると制限が緩和されます',
-      'GitHub Statusページで障害情報を確認してください',
+      "1時間待機してください",
+      "Personal Access Tokenを使用すると制限が緩和されます",
     ],
-    severity: 'warning',
+    severity: "warning",
   },
-
-  github_api_network_error: {
-    title: 'ネットワーク接続エラー',
-    message: 'GitHub APIへの接続に失敗しました。ネットワーク接続を確認してください。',
+  repository_not_found: {
+    title: "リポジトリが見つかりません",
+    message:
+      "指定されたGitHubリポジトリが存在しないか、アクセス権限がありません。",
     actions: [
-      'インターネット接続を確認してください',
-      'VPNやプロキシ設定を確認してください',
-      'ファイアウォール設定を確認してください',
+      "Settings → Repositoryを確認してください",
+      "リポジトリ名が「owner/repository」形式であることを確認してください",
+      "GitHubでリポジトリが存在するか確認してください",
     ],
-    severity: 'error',
+    severity: "error",
   },
-
-  // Agent Execution Errors
-  agent_execution_failed: {
-    title: 'エージェント実行失敗',
-    message: 'エージェントの実行中にエラーが発生しました。',
-    actions: [
-      'ログを確認してください',
-      'Issue番号が正しいか確認してください',
-      'リポジトリへのアクセス権限を確認してください',
-    ],
-    severity: 'error',
-  },
-
-  agent_timeout: {
-    title: 'エージェント実行タイムアウト',
-    message: 'エージェントの実行がタイムアウトしました。処理が長時間続いています。',
-    actions: [
-      'タスクを分割して再実行してください',
-      'システムリソースを確認してください',
-      'Miyabiのログを確認してください',
-    ],
-    severity: 'warning',
-  },
-
-  agent_not_found: {
-    title: 'エージェントが見つかりません',
-    message: '指定されたエージェントタイプが存在しません。',
-    actions: [
-      'エージェント名が正しいか確認してください',
-      '利用可能なエージェント一覧を確認してください',
-      'Miyabiのバージョンを最新に更新してください',
-    ],
-    severity: 'error',
-  },
-
-  // Issue Management Errors
   issue_not_found: {
-    title: 'Issue が見つかりません',
-    message: '指定されたIssue番号が存在しません。',
+    title: "Issueが見つかりません",
+    message:
+      "指定されたIssue番号が存在しないか、このリポジトリに属していません。",
     actions: [
-      'Issue番号が正しいか確認してください',
-      'リポジトリが正しいか確認してください',
-      'Issueが削除されていないか確認してください',
+      "Issue番号が正しいか確認してください",
+      "GitHub上でIssueが存在するか確認してください",
+      "オープンなIssueのみが一覧に表示されます",
     ],
-    severity: 'error',
+    severity: "info",
   },
-
-  issue_access_denied: {
-    title: 'Issue アクセス拒否',
-    message: '指定されたIssueへのアクセス権限がありません。',
+  agent_execution_failed: {
+    title: "エージェント実行が失敗しました",
+    message:
+      "エージェントの実行中にエラーが発生しました。詳細はログを確認してください。",
     actions: [
-      'リポジトリへのアクセス権限を確認してください',
-      'プライベートリポジトリの場合、Tokenの権限を確認してください',
-      'リポジトリオーナーに権限を依頼してください',
+      "ターミナルパネルで詳細ログを確認してください",
+      "Issue番号が正しいか確認してください",
+      "もう一度実行してみてください",
     ],
-    severity: 'error',
+    severity: "error",
   },
-
-  // Deployment Errors
-  deployment_failed: {
-    title: 'デプロイメント失敗',
-    message: 'デプロイメント処理中にエラーが発生しました。',
+  agent_timeout: {
+    title: "エージェントが応答しません",
+    message: "実行がタイムアウトしました。環境が正しく稼働しているか確認してください。",
     actions: [
-      'デプロイメントログを確認してください',
-      'CI/CDパイプラインのステータスを確認してください',
-      'デプロイメント設定を確認してください',
+      "tmuxセッションが動作しているか確認してください",
+      "再度エージェントを実行してください",
+      "問題が継続する場合はログを添付してIssueを作成してください",
     ],
-    severity: 'error',
+    severity: "warning",
   },
-
-  deployment_rollback_failed: {
-    title: 'ロールバック失敗',
-    message: 'デプロイメントのロールバックに失敗しました。',
+  tauri_runtime_missing: {
+    title: "Tauri ランタイムが必要です",
+    message:
+      "デスクトップ機能を利用するにはTauriランタイムでアプリを実行する必要があります。",
     actions: [
-      '手動でロールバックを実行してください',
-      'バックアップから復元してください',
-      'システム管理者に連絡してください',
+      "`npm run tauri dev` でアプリを起動してください",
+      "ブラウザモードではエージェント実行機能は利用できません",
     ],
-    severity: 'error',
+    severity: "warning",
   },
-
-  // VOICEVOX Errors
-  voicevox_connection_error: {
-    title: 'VOICEVOX 接続エラー',
-    message: 'VOICEVOXサーバーへの接続に失敗しました。',
+  worktree_creation_failed: {
+    title: "Git Worktree を作成できませんでした",
+    message:
+      "Worktreeの生成に失敗しました。既存のWorktreeが残っているか、Git状態に問題があります。",
     actions: [
-      'VOICEVOXエンジンが起動しているか確認してください',
-      'ポート番号（デフォルト: 50021）が正しいか確認してください',
-      'ファイアウォール設定を確認してください',
+      "`git worktree list` で残っているWorktreeを確認してください",
+      "`git worktree prune` を実行して不要なWorktreeを削除してください",
+      "必要に応じて `.worktrees/` ディレクトリを手動で整理してください",
     ],
-    severity: 'warning',
+    severity: "error",
   },
-
-  voicevox_synthesis_failed: {
-    title: 'VOICEVOX 音声合成失敗',
-    message: '音声合成処理中にエラーが発生しました。',
+  network_timeout: {
+    title: "ネットワークタイムアウト",
+    message: "リクエストがタイムアウトしました。通信環境を確認してから再試行してください。",
     actions: [
-      'テキスト内容を確認してください（特殊文字など）',
-      'VOICEVOXエンジンを再起動してください',
-      '話者IDが正しいか確認してください',
+      "インターネット接続を確認してください",
+      "VPN/Proxy設定が通信を妨げていないか確認してください",
+      "数分後に再度実行してください",
     ],
-    severity: 'warning',
+    severity: "warning",
   },
-
-  // Configuration Errors
-  config_load_failed: {
-    title: '設定ファイル読み込みエラー',
-    message: '設定ファイルの読み込みに失敗しました。',
+  permission_denied: {
+    title: "アクセス権限が不足しています",
+    message:
+      "必要なファイルまたはディレクトリへのアクセス権限が不足しています。権限設定を確認してください。",
     actions: [
-      '設定ファイルの形式を確認してください',
-      '設定ファイルのパスが正しいか確認してください',
-      '設定をリセットして再起動してください',
+      "対象ファイル/ディレクトリのアクセス権限を確認してください",
+      "必要に応じて `chmod` などで権限を付与してください",
+      "別のユーザーで実行している場合はアクセス権を統一してください",
     ],
-    severity: 'error',
+    severity: "error",
   },
-
-  config_save_failed: {
-    title: '設定保存エラー',
-    message: '設定の保存に失敗しました。',
+  session_conflict: {
+    title: "セッションが既に存在します",
+    message:
+      "既存のtmuxセッションまたはエージェント実行が残っているため、新しいセッションを開始できません。",
     actions: [
-      'ディスク容量を確認してください',
-      'ファイルへの書き込み権限を確認してください',
-      'アプリケーションを再起動してください',
+      "`tmux list-sessions` で既存セッションを確認してください",
+      "不要なセッションを `tmux kill-session -t <name>` で終了してください",
+      "Miyabi CLIの `miyabi status --watch` で状態を確認してください",
     ],
-    severity: 'error',
+    severity: "info",
   },
-
-  // Unknown/Generic Errors
   unknown_error: {
-    title: '予期しないエラー',
-    message: '予期しないエラーが発生しました。',
+    title: "不明なエラーが発生しました",
+    message:
+      "予期しないエラーが発生しました。ログを確認の上、必要に応じてIssueを作成してください。",
     actions: [
-      'アプリケーションを再起動してください',
-      'ログを確認してエラー詳細を調べてください',
-      'GitHub Issueで報告してください',
+      "コンソールログを確認してください",
+      "もう一度実行してみてください",
+      "状況を記録してIssueを作成してください",
     ],
-    severity: 'error',
+    severity: "error",
   },
 };
 
-/**
- * Extract error code from error object
- * @param error - Error object or string
- * @returns Error code string
- */
-export function extractErrorCode(error: unknown): string {
-  if (typeof error === 'string') {
-    return error;
+export function getErrorInfo(code: string): ErrorInfo {
+  const entry = ERROR_MESSAGES[code] ?? ERROR_MESSAGES.unknown_error;
+  return { code, ...entry };
+}
+
+export interface ErrorResolution {
+  code: string;
+  info: ErrorInfo;
+  details?: string;
+}
+
+const TRANSIENT_ERROR_CODES = new Set<string>([
+  "github_api_rate_limit",
+  "network_timeout",
+  "agent_timeout",
+]);
+
+export function isTransientError(code: string): boolean {
+  return TRANSIENT_ERROR_CODES.has(code);
+}
+
+function extractCodeFromError(error: unknown): string | undefined {
+  if (!error) {
+    return undefined;
+  }
+
+  if (typeof error === "string") {
+    return matchErrorCodeFromMessage(error);
   }
 
   if (error instanceof Error) {
-    // Check for error code property
-    if ('code' in error && typeof error.code === 'string') {
-      return error.code;
+    const anyError = error as Error & { code?: string };
+    if (anyError.code && typeof anyError.code === "string") {
+      return anyError.code;
     }
+    return matchErrorCodeFromMessage(anyError.message);
+  }
 
-    // Extract from error message
-    const match = error.message.match(/\[([A-Z_]+)\]/);
-    if (match) {
-      return match[1].toLowerCase();
+  if (typeof error === "object") {
+    const maybeError = error as { code?: unknown; message?: unknown };
+    if (typeof maybeError.code === "string") {
+      return maybeError.code;
+    }
+    if (typeof maybeError.message === "string") {
+      return matchErrorCodeFromMessage(maybeError.message);
     }
   }
 
-  return 'unknown_error';
+  return undefined;
 }
 
-/**
- * Get error info from error object
- * @param error - Error object or string
- * @returns ErrorInfo object
- */
-export function getErrorInfo(error: unknown): ErrorInfo {
-  const errorCode = extractErrorCode(error);
-  return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown_error;
+function matchErrorCodeFromMessage(message: string): string | undefined {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("tauri") && normalized.includes("not available")) {
+    return "tauri_runtime_missing";
+  }
+  if (normalized.includes("worktree") && normalized.includes("failed")) {
+    return "worktree_creation_failed";
+  }
+  if (normalized.includes("permission denied")) {
+    return "permission_denied";
+  }
+  if (normalized.includes("rate limit") || normalized.includes("status: 429")) {
+    return "github_api_rate_limit";
+  }
+  if (normalized.includes("token") && normalized.includes("invalid")) {
+    return "github_token_invalid";
+  }
+  if (normalized.includes("repository") && normalized.includes("not found")) {
+    return "repository_not_found";
+  }
+  if (normalized.includes("issue") && normalized.includes("not found")) {
+    return "issue_not_found";
+  }
+  if (normalized.includes("timeout")) {
+    return "network_timeout";
+  }
+  if (normalized.includes("session") && normalized.includes("exists")) {
+    return "session_conflict";
+  }
+  if (normalized.includes("agent") && normalized.includes("failed")) {
+    return "agent_execution_failed";
+  }
+  return undefined;
+}
+
+export function resolveError(error: unknown, fallbackCode?: string): ErrorResolution {
+  const detectedCode = extractCodeFromError(error) ?? fallbackCode ?? "unknown_error";
+  const info = getErrorInfo(detectedCode);
+
+  const details =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+      ? error
+      : undefined;
+
+  return {
+    code: info.code,
+    info,
+    details,
+  };
+}
+
+export class AgentExecutionError extends Error {
+  public readonly code: string;
+  public readonly causeError?: unknown;
+  public readonly metadata?: Record<string, unknown>;
+
+  constructor(
+    code: string,
+    message: string,
+    options?: { cause?: unknown; metadata?: Record<string, unknown> }
+  ) {
+    super(message);
+    this.name = "AgentExecutionError";
+    this.code = code;
+    this.causeError = options?.cause;
+    this.metadata = options?.metadata;
+  }
+}
+
+export function toAgentExecutionError(
+  error: unknown,
+  fallbackCode?: string,
+  metadata?: Record<string, unknown>
+): AgentExecutionError {
+  if (error instanceof AgentExecutionError) {
+    return error;
+  }
+
+  const resolution = resolveError(error, fallbackCode);
+  return new AgentExecutionError(resolution.code, resolution.info.message, {
+    cause: error,
+    metadata,
+  });
+}
+
+export function logErrorEvent(
+  scope: string,
+  error: AgentExecutionError,
+  extra?: Record<string, unknown>
+): void {
+  const timestamp = new Date().toISOString();
+  const context = {
+    timestamp,
+    scope,
+    code: error.code,
+    message: error.message,
+    metadata: error.metadata,
+    cause: error.causeError,
+    extra,
+    tauriAvailable: isTauriAvailable(),
+  };
+
+  // Use a collapsed group so logs stay tidy but can be expanded when needed
+  // eslint-disable-next-line no-console
+  console.groupCollapsed?.(`[AgentError][${scope}] ${error.code} @ ${timestamp}`);
+  // eslint-disable-next-line no-console
+  console.error(error);
+  // eslint-disable-next-line no-console
+  console.table?.(context);
+  // eslint-disable-next-line no-console
+  console.groupEnd?.();
 }

@@ -1,0 +1,175 @@
+{
+  "version": "4.0.0",
+  "last_updated": "2025-11-03T16:20:00",
+  "architecture": "4-window",
+  "windows": {
+    "Core": {
+      "index": 1,
+      "purpose": "W1-W5 Core Development Flow",
+      "layout": "tiled",
+      "agents": {
+        "%1": {
+          "name": "Conductor",
+          "emoji": "🎼",
+          "role": "全体調整・タスク割り当て",
+          "workflow": "W0",
+          "type": "coordinator"
+        },
+        "%6": {
+          "name": "カエデ",
+          "emoji": "🎹",
+          "role": "コード実装",
+          "workflow": "W3",
+          "type": "coding"
+        },
+        "%2": {
+          "name": "サクラ",
+          "emoji": "🎺",
+          "role": "コードレビュー",
+          "workflow": "W4",
+          "type": "coding"
+        },
+        "%7": {
+          "name": "キキョウ",
+          "emoji": "🌸",
+          "role": "Issue分析・トリアージ",
+          "workflow": "W1",
+          "type": "coding"
+        },
+        "%8": {
+          "name": "ツバキ",
+          "emoji": "🥁",
+          "role": "PR作成・管理",
+          "workflow": "W5",
+          "type": "coding"
+        },
+        "%11": {
+          "name": "ボタン",
+          "emoji": "🎷",
+          "role": "デプロイ・リリース",
+          "workflow": "W5",
+          "type": "coding"
+        }
+      }
+    },
+    "Business": {
+      "index": 2,
+      "purpose": "Business Strategy & Growth",
+      "layout": "tiled",
+      "agents": {
+        "%12": {
+          "name": "スミレ",
+          "emoji": "🎻",
+          "role": "Issue状態監視・自動更新",
+          "workflow": "Monitor",
+          "type": "business"
+        },
+        "%10": {
+          "name": "カスミ",
+          "emoji": "📊",
+          "role": "マーケット分析",
+          "workflow": "Analysis",
+          "type": "business"
+        },
+        "%5": {
+          "name": "モミジ",
+          "emoji": "✍️",
+          "role": "コンテンツ制作",
+          "workflow": "Content",
+          "type": "business"
+        },
+        "%3": {
+          "name": "アヤメ",
+          "emoji": "📈",
+          "role": "データ分析・PDCA",
+          "workflow": "Analytics",
+          "type": "business"
+        },
+        "%4": {
+          "name": "ツバキ-PR",
+          "emoji": "🆕",
+          "role": "PR管理特化",
+          "workflow": "W5",
+          "type": "business"
+        }
+      }
+    },
+    "Monitor": {
+      "index": 3,
+      "purpose": "Monitoring & Observability",
+      "layout": "even-vertical",
+      "components": {
+        "%36": {
+          "name": "Water Spider Review",
+          "emoji": "✳",
+          "role": "KPI・メトリクス表示",
+          "type": "dashboard"
+        },
+        "%56": {
+          "name": "Water Spider",
+          "emoji": "🕷️",
+          "role": "Agent監視・自動復旧",
+          "type": "monitor"
+        }
+      }
+    },
+    "Utility": {
+      "index": 4,
+      "purpose": "Tools & Experiments",
+      "layout": "even-horizontal",
+      "components": {
+        "%25": {
+          "name": "Codex",
+          "role": "Issue #688専用実行",
+          "type": "utility"
+        },
+        "%26": {
+          "name": "Next Steps",
+          "emoji": "✳",
+          "role": "計画・メモ",
+          "type": "utility"
+        }
+      }
+    }
+  },
+  "agent_types": {
+    "coding": ["カエデ", "サクラ", "キキョウ", "ツバキ", "ボタン"],
+    "business": ["スミレ", "カスミ", "モミジ", "アヤメ", "ツバキ-PR"],
+    "coordinator": ["Conductor"],
+    "monitor": ["Water Spider"],
+    "utility": ["Codex", "Next Steps"]
+  },
+  "workflow_mapping": {
+    "W0": ["Conductor"],
+    "W1": ["キキョウ"],
+    "W3": ["カエデ"],
+    "W4": ["サクラ"],
+    "W5": ["ツバキ", "ボタン", "ツバキ-PR"]
+  },
+  "pane_to_agent": {
+    "%1": "Conductor",
+    "%2": "サクラ",
+    "%3": "アヤメ",
+    "%4": "ツバキ-PR",
+    "%5": "モミジ",
+    "%6": "カエデ",
+    "%7": "キキョウ",
+    "%8": "ツバキ",
+    "%10": "カスミ",
+    "%11": "ボタン",
+    "%12": "スミレ"
+  },
+  "agent_to_pane": {
+    "Conductor": "%1",
+    "サクラ": "%2",
+    "アヤメ": "%3",
+    "ツバキ-PR": "%4",
+    "モミジ": "%5",
+    "カエデ": "%6",
+    "キキョウ": "%7",
+    "ツバキ": "%8",
+    "カスミ": "%10",
+    "ボタン": "%11",
+    "スミレ": "%12"
+  }
+}

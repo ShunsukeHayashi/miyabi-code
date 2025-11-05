@@ -30,7 +30,7 @@ log_message() {
 report_to_conductor() {
     local message="$1"
     if tmux list-panes -F '#{pane_id}' | grep -q "^${CONDUCTOR_PANE}$"; then
-        tmux send-keys -t "$CONDUCTOR_PANE" "$message" && sleep 0.1 && tmux send-keys -t "$CONDUCTOR_PANE" Enter
+        tmux send-keys -t "$CONDUCTOR_PANE" "$message" && sleep 0.5 && tmux send-keys -t "$CONDUCTOR_PANE" Enter
     fi
 }
 
@@ -40,7 +40,7 @@ send_ping() {
     local agent_name="$2"
     local ping_message="cd '$WORKING_DIR' && [$agent_name] ping応答OK と発言してください。（30秒以内）"
 
-    tmux send-keys -t "$pane_id" "$ping_message" && sleep 0.1 && tmux send-keys -t "$pane_id" Enter
+    tmux send-keys -t "$pane_id" "$ping_message" && sleep 0.5 && tmux send-keys -t "$pane_id" Enter
     log_message "[Water Spider] 🏓 ${agent_name}にping送信"
 }
 
@@ -101,7 +101,7 @@ auto_recovery() {
         log_message "[Water Spider] 🔄 ${agent_name}復旧試行 #${i}"
 
         # /clear送信
-        tmux send-keys -t "$pane_id" "cd '$WORKING_DIR' && /clear" && sleep 0.1 && tmux send-keys -t "$pane_id" Enter
+        tmux send-keys -t "$pane_id" "cd '$WORKING_DIR' && /clear" && sleep 0.5 && tmux send-keys -t "$pane_id" Enter
         sleep 5
 
         # セッション確認

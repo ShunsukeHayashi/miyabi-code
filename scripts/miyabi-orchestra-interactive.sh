@@ -349,7 +349,7 @@ ${YELLOW}【クイックスタートExample】${NC}
 
   # カエデ（Agent 1）にテストタスク
   $(echo "$PANE_LIST" | head -2 | tail -1 | while IFS=: read -r idx id; do
-    echo "tmux send-keys -t $id \"あなたは「カエデ」です。自己紹介をして、tmux send-keys -t $CURRENT_PANE '[カエデ] 準備OK!' && sleep 0.1 && tmux send-keys -t $CURRENT_PANE Enter で報告してください\" Enter"
+    echo "tmux send-keys -t $id \"あなたは「カエデ」です。自己紹介をして、tmux send-keys -t $CURRENT_PANE '[カエデ] 準備OK!' && sleep 0.5 && tmux send-keys -t $CURRENT_PANE Enter で報告してください\" Enter"
   done)
 
 ${YELLOW}【詳細ドキュメント】${NC}

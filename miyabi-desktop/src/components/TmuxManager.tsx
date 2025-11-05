@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { safeInvoke, isTauriAvailable } from '../lib/tauri-utils';
+import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
+import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -61,6 +63,14 @@ export function TmuxManager() {
     issueNumber: string;
   }>({ open: false, agentName: '', issueNumber: '' });
   const [runtimeReady, setRuntimeReady] = useState(() => isTauriAvailable());
+  const [gwrWorktrees, setGwrWorktrees] = useState<GwrWorktree[]>([]);
+  const [gwrStatus, setGwrStatus] = useState('');
+  const [gwrLoading, setGwrLoading] = useState(false);
+  const [gwrError, setGwrError] = useState<string | null>(null);
+  const [gwrWorktrees, setGwrWorktrees] = useState<GwrWorktree[]>([]);
+  const [gwrStatus, setGwrStatus] = useState('');
+  const [gwrLoading, setGwrLoading] = useState(false);
+  const [gwrError, setGwrError] = useState<string | null>(null);
 
   useEffect(() => {
     const available = isTauriAvailable();
@@ -75,6 +85,7 @@ export function TmuxManager() {
 
     void loadConfig();
     void refreshSessions();
+    void loadGwrData();
   }, []);
 
   // Poll for session outputs every 2 seconds
@@ -92,6 +103,12 @@ export function TmuxManager() {
     }, 2000);
     return () => clearInterval(interval);
   }, [sessions, runtimeReady]);
+
+  useEffect(() => {
+    if (runtimeReady) {
+      void loadGwrData();
+    }
+  }, [runtimeReady]);
 
   function ensureRuntime(message?: string): boolean {
     if (!runtimeReady) {
@@ -156,6 +173,28 @@ export function TmuxManager() {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
       console.error('[TmuxManager] Failed to refresh sessions:', err);
+    }
+  }
+
+  async function loadGwrData() {
+    if (!ensureRuntime()) {
+      return;
+    }
+    try {
+      setGwrLoading(true);
+      setGwrError(null);
+      const [worktrees, status] = await Promise.all([
+        listGwrWorktrees(),
+        getGwrStatus()
+      ]);
+      setGwrWorktrees(worktrees);
+      setGwrStatus(status);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setGwrError(message);
+      console.error('[TmuxManager] Failed to load GWR data:', err);
+    } finally {
+      setGwrLoading(false);
     }
   }
 
@@ -536,10 +575,100 @@ export function TmuxManager() {
       {/* Loading State */}
       {loading && agents.length === 0 && (
         <div className="text-center py-12">
-          <RefreshCw className="w-12 h-12 mx-auto text-muted-foreground animate-spin mb-4" />
-          <p className="text-lg font-semibold">Loading agents...</p>
-        </div>
-      )}
+      <RefreshCw className="w-12 h-12 mx-auto text-muted-foreground animate-spin mb-4" />
+      <p className="text-lg font-semibold">Loading agents...</p>
+    </div>
+  )}
+
+      <Card className="border-purple-200/70 bg-purple-50/40">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <CardTitle>GWR Orchestrator Overview</CardTitle>
+            <CardDescription>
+              Live Git worktree data via <code className="bg-purple-100 px-1 py-0.5 rounded">@humanu/orchestra</code>.
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setGwrError(null);
+              void loadGwrData();
+            }}
+            disabled={gwrLoading || !runtimeReady}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${gwrLoading ? 'animate-spin' : ''}`} />
+            Refresh GWR
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {gwrLoading && (
+            <div className="flex items-center gap-2 text-xs font-medium text-purple-700">
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              Updating orchestration data...
+            </div>
+          )}
+
+          {gwrError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+              {gwrError}
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-purple-900/80 mb-2">
+              Worktrees detected
+            </h3>
+            <div className="overflow-hidden rounded-md border border-purple-100 bg-white shadow-sm">
+              <table className="min-w-full text-sm">
+                <thead className="bg-purple-100/70 text-purple-900 text-xs uppercase tracking-wide">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-semibold">Branch</th>
+                    <th className="px-3 py-2 text-left font-semibold">Head</th>
+                    <th className="px-3 py-2 text-left font-semibold">Path</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gwrWorktrees.map((tree) => (
+                    <tr
+                      key={`${tree.branch}-${tree.path}`}
+                      className={tree.active ? 'bg-purple-50/60' : 'bg-white'}
+                    >
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {tree.active && (
+                            <span className="inline-flex h-2.5 w-2.5 rounded-full bg-purple-500 animate-pulse" />
+                          )}
+                          <span className="font-medium">{tree.branch}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 font-mono text-xs text-gray-600">{tree.head}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600">{tree.path}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {gwrWorktrees.length === 0 && !gwrLoading && (
+                <div className="px-3 py-4 text-sm text-muted-foreground">
+                  No worktrees returned by gwr. Create a worktree to populate this view.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-purple-900/80 mb-2">
+              Current worktree status
+            </h3>
+            <pre className="bg-gray-950/95 text-gray-100 text-xs rounded-lg p-4 max-h-52 overflow-auto font-mono leading-relaxed">
+              {gwrStatus ? gwrStatus : 'No status output available.'}
+            </pre>
+            <p className="text-xs text-muted-foreground mt-2">
+              Run <code className="bg-gray-900 text-white px-1 py-0.5 rounded">gwr</code> inside the desktop terminal to open the full TUI experience.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Issue Number Dialog */}
       {issueNumberDialog.open && (

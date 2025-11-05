@@ -23,6 +23,7 @@ import { CommandPalette } from "./components/CommandPalette";
 import { TmuxManager } from "./components/TmuxManager";
 import { FullAutomationPanel } from "./components/FullAutomationPanel";
 import { TauriStatusIndicator } from "./components/TauriStatusIndicator";
+import { WorktreesView } from "./views/Worktrees";
 import "./App.css";
 import { Phase9Provider } from "./context/Phase9Context";
 
@@ -45,7 +46,18 @@ function App() {
       }
       // Cmd/Ctrl + 1-9 for quick panel switching
       if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
-        const panels = ["dashboard", "deployment", "terminal", "workflow", "narration", "issues", "auto-merge", "tmux", "automation"];
+        const panels = [
+          "dashboard",
+          "deployment",
+          "terminal",
+          "workflow",
+          "worktrees",
+          "narration",
+          "issues",
+          "auto-merge",
+          "tmux",
+          "automation",
+        ];
         const num = parseInt(e.key);
         if (num >= 1 && num <= panels.length) {
           e.preventDefault();
@@ -200,6 +212,7 @@ function App() {
           {activePanel === "deployment" && <DeploymentPanel />}
           {activePanel === "terminal" && <TerminalPanel />}
           {activePanel === "workflow" && <WorkflowPanel />}
+          {activePanel === "worktrees" && <WorktreesPanel />}
           {activePanel === "narration" && <NarrationPanel />}
           {activePanel === "issues" && <IssuesPanel />}
           {activePanel === "auto-merge" && <AutoMergePanel />}
@@ -264,6 +277,14 @@ function WorkflowPanel() {
   return (
     <div className="h-full flex flex-col">
       <WorkflowDAGViewer />
+    </div>
+  );
+}
+
+function WorktreesPanel() {
+  return (
+    <div className="h-full flex flex-col">
+      <WorktreesView />
     </div>
   );
 }

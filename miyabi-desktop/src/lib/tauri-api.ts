@@ -67,3 +67,22 @@ export async function killSessionsByManager(managerId: string): Promise<number> 
   const result = await safeInvoke<number>('kill_sessions_by_manager', { managerId });
   return result || 0;
 }
+
+// ========== GWR (@humanu/orchestra) APIs ==========
+
+export interface GwrWorktree {
+  branch: string;
+  head: string;
+  path: string;
+  active: boolean;
+}
+
+export async function listGwrWorktrees(): Promise<GwrWorktree[]> {
+  const result = await safeInvoke<GwrWorktree[]>('gwr_list_worktrees');
+  return result || [];
+}
+
+export async function getGwrStatus(): Promise<string> {
+  const result = await safeInvoke<string>('gwr_status');
+  return result || '';
+}
