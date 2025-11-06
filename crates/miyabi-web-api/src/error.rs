@@ -7,6 +7,8 @@ use axum::{
 };
 use serde::Serialize;
 use thiserror::Error;
+use miyabi_types::error::{ErrorCode, UnifiedError};
+use std::any::Any;
 
 /// Application result type
 pub type Result<T> = std::result::Result<T, AppError>;
@@ -148,6 +150,89 @@ impl IntoResponse for AppError {
     }
 }
 
+// ============================================================================
+// UnifiedError Implementation
+// ============================================================================
+
+impl UnifiedError for AppError {
+    fn code(&self) -> ErrorCode {
+        match self {
+            Self::Database(_) => ErrorCode::STORAGE_ERROR,
+            Self::Authentication(_) => ErrorCode::AUTH_ERROR,
+            Self::Authorization(_) => ErrorCode::AUTH_ERROR,
+            Self::NotFound(_) => ErrorCode::FILE_NOT_FOUND,
+            Self::Validation(_) => ErrorCode::VALIDATION_ERROR,
+            Self::Configuration(_) => ErrorCode::CONFIG_ERROR,
+            Self::Server(_) => ErrorCode::INTERNAL_ERROR,
+            Self::ExternalApi(_) => ErrorCode::HTTP_ERROR,
+            Self::Jwt(_) => ErrorCode::AUTH_ERROR,
+            Self::Telegram(_) => ErrorCode::HTTP_ERROR,
+            Self::Internal(_) => ErrorCode::INTERNAL_ERROR,
+        }
+    }
+
+    fn user_message(&self) -> String {
+        match self {
+            Self::Database(_) => {
+                "A database error occurred. Please try again later or contact support.".to_string()
+            }
+            Self::Authentication(msg) => format!(
+                "Authentication failed: {}. Please check your credentials and try again.",
+                msg
+            ),
+            Self::Authorization(msg) => format!(
+                "Access denied: {}. You don't have permission to access this resource.",
+                msg
+            ),
+            Self::NotFound(msg) => format!(
+                "Resource not found: {}. The requested resource may not exist or has been removed.",
+                msg
+            ),
+            Self::Validation(msg) => format!(
+                "Invalid input: {}. Please check your data and try again.",
+                msg
+            ),
+            Self::Configuration(msg) => format!(
+                "Server configuration error: {}. Please contact the administrator.",
+                msg
+            ),
+            Self::Server(msg) => format!(
+                "Server error: {}. Please try again later.",
+                msg
+            ),
+            Self::ExternalApi(msg) => format!(
+                "External service error: {}. The external service may be temporarily unavailable.",
+                msg
+            ),
+            Self::Telegram(msg) => format!(
+                "Telegram API error: {}. Please check your Telegram bot configuration.",
+                msg
+            ),
+            Self::Internal(msg) => format!(
+                "An internal error occurred: {}. Please try again or contact support.",
+                msg
+            ),
+            // Reuse existing thiserror messages for other variants
+            _ => self.to_string(),
+        }
+    }
+
+    fn context(&self) -> Option<&dyn Any> {
+        match self {
+            Self::Authentication(msg) => Some(msg as &dyn Any),
+            Self::Authorization(msg) => Some(msg as &dyn Any),
+            Self::NotFound(msg) => Some(msg as &dyn Any),
+            Self::Validation(msg) => Some(msg as &dyn Any),
+            Self::Configuration(msg) => Some(msg as &dyn Any),
+            Self::Server(msg) => Some(msg as &dyn Any),
+            Self::ExternalApi(msg) => Some(msg as &dyn Any),
+            Self::Telegram(msg) => Some(msg as &dyn Any),
+            Self::Internal(msg) => Some(msg as &dyn Any),
+            _ => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -162,5 +247,53 @@ mod tests {
     fn test_authentication_error() {
         let err = AppError::Authentication("Invalid credentials".to_string());
         assert_eq!(err.to_string(), "Authentication error: Invalid credentials");
+    }
+
+    #[test]
+    fn test_app_error_codes() {
+        let error = AppError::Authentication("invalid".to_string());
+        assert_eq!(error.code(), ErrorCode::AUTH_ERROR);
+
+        let error = AppError::NotFound("user".to_string());
+        assert_eq!(error.code(), ErrorCode::FILE_NOT_FOUND);
+
+        let error = AppError::Validation("bad input".to_string());
+        assert_eq!(error.code(), ErrorCode::VALIDATION_ERROR);
+
+        let error = AppError::Configuration("missing key".to_string());
+        assert_eq!(error.code(), ErrorCode::CONFIG_ERROR);
+
+        let error = AppError::ExternalApi("service down".to_string());
+        assert_eq!(error.code(), ErrorCode::HTTP_ERROR);
+    }
+
+    #[test]
+    fn test_user_messages() {
+        let error = AppError::Authentication("bad token".to_string());
+        let msg = error.user_message();
+        assert!(msg.contains("Authentication failed"));
+        assert!(msg.contains("bad token"));
+
+        let error = AppError::NotFound("page".to_string());
+        let msg = error.user_message();
+        assert!(msg.contains("not found"));
+        assert!(msg.contains("page"));
+
+        let error = AppError::Validation("required field".to_string());
+        let msg = error.user_message();
+        assert!(msg.contains("Invalid input"));
+        assert!(msg.contains("required field"));
+    }
+
+    #[test]
+    fn test_context_extraction() {
+        let error = AppError::Authentication("error".to_string());
+        assert!(error.context().is_some());
+
+        let error = AppError::NotFound("item".to_string());
+        assert!(error.context().is_some());
+
+        let error = AppError::Database(sqlx::Error::RowNotFound);
+        assert!(error.context().is_none());
     }
 }

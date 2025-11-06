@@ -1,6 +1,8 @@
 //! CLI error types
 
 use thiserror::Error;
+use miyabi_types::error::{ErrorCode, UnifiedError};
+use std::any::Any;
 
 #[derive(Debug, Error)]
 pub enum CliError {
@@ -66,6 +68,107 @@ pub enum CliError {
 }
 
 pub type Result<T> = std::result::Result<T, CliError>;
+
+// ============================================================================
+// UnifiedError Implementation
+// ============================================================================
+
+impl UnifiedError for CliError {
+    fn code(&self) -> ErrorCode {
+        match self {
+            Self::InvalidProjectName(_) => ErrorCode::VALIDATION_ERROR,
+            Self::ProjectExists(_) => ErrorCode::VALIDATION_ERROR,
+            Self::NotGitRepository => ErrorCode::GIT_ERROR,
+            Self::InvalidAgentType(_) => ErrorCode::VALIDATION_ERROR,
+            Self::AgentNotRegistered(_) => ErrorCode::AGENT_ERROR,
+            Self::AgentTaskTemplateMissing(_) => ErrorCode::FILE_NOT_FOUND,
+            Self::MissingIssueNumber => ErrorCode::VALIDATION_ERROR,
+            Self::GitConfig(_) => ErrorCode::GIT_ERROR,
+            Self::InvalidInput(_) => ErrorCode::INVALID_INPUT,
+            Self::ExecutionError(_) => ErrorCode::PROCESS_ERROR,
+            Self::Miyabi(e) => e.code(),
+            Self::Knowledge(e) => e.code(),
+            Self::Mode(e) => e.code(),
+            Self::Io(e) => match e.kind() {
+                std::io::ErrorKind::NotFound => ErrorCode::FILE_NOT_FOUND,
+                std::io::ErrorKind::PermissionDenied => ErrorCode::PERMISSION_DENIED,
+                _ => ErrorCode::IO_ERROR,
+            },
+            Self::Json(_) => ErrorCode::PARSE_ERROR,
+            Self::Serialization(_) => ErrorCode::PARSE_ERROR,
+        }
+    }
+
+    fn user_message(&self) -> String {
+        match self {
+            Self::InvalidProjectName(name) => format!(
+                "Invalid project name '{}'. Project names must follow naming conventions.",
+                name
+            ),
+            Self::ProjectExists(path) => format!(
+                "Project directory '{}' already exists. Please choose a different name or remove the existing directory.",
+                path
+            ),
+            Self::NotGitRepository => {
+                "Not in a git repository. Please run this command from within a git repository.".to_string()
+            }
+            Self::InvalidAgentType(agent) => format!(
+                "Invalid agent type '{}'. Please check available agent types.",
+                agent
+            ),
+            Self::AgentNotRegistered(agent) => format!(
+                "Agent '{}' is not registered. Please register the agent before execution.",
+                agent
+            ),
+            Self::AgentTaskTemplateMissing(agent) => format!(
+                "Task template for agent '{}' is missing. Please check agent configuration.",
+                agent
+            ),
+            Self::MissingIssueNumber => {
+                "Issue number is required for agent execution. Please provide an issue number.".to_string()
+            }
+            Self::GitConfig(msg) => format!(
+                "Git configuration error: {}. Please check your git setup.",
+                msg
+            ),
+            Self::InvalidInput(msg) => format!(
+                "Invalid input: {}. Please check your command parameters.",
+                msg
+            ),
+            Self::ExecutionError(msg) => format!(
+                "Execution failed: {}. Please check the logs for more details.",
+                msg
+            ),
+            Self::Serialization(msg) => format!(
+                "Serialization error: {}. The data format may be invalid.",
+                msg
+            ),
+            Self::Miyabi(e) => e.user_message(),
+            Self::Knowledge(e) => e.user_message(),
+            Self::Mode(e) => e.user_message(),
+            // Reuse existing thiserror messages for other variants
+            _ => self.to_string(),
+        }
+    }
+
+    fn context(&self) -> Option<&dyn Any> {
+        match self {
+            Self::InvalidProjectName(name) => Some(name as &dyn Any),
+            Self::ProjectExists(path) => Some(path as &dyn Any),
+            Self::InvalidAgentType(agent) => Some(agent as &dyn Any),
+            Self::AgentNotRegistered(agent) => Some(agent as &dyn Any),
+            Self::AgentTaskTemplateMissing(agent) => Some(agent as &dyn Any),
+            Self::GitConfig(msg) => Some(msg as &dyn Any),
+            Self::InvalidInput(msg) => Some(msg as &dyn Any),
+            Self::ExecutionError(msg) => Some(msg as &dyn Any),
+            Self::Serialization(msg) => Some(msg as &dyn Any),
+            Self::Miyabi(e) => e.context(),
+            Self::Knowledge(e) => e.context(),
+            Self::Mode(e) => e.context(),
+            _ => None,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

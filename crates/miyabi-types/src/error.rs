@@ -26,6 +26,7 @@ impl ErrorCode {
     pub const PARSE_ERROR: Self = Self("PARSE_ERROR");
     pub const INVALID_FORMAT: Self = Self("INVALID_FORMAT");
     pub const INVALID_SYNTAX: Self = Self("INVALID_SYNTAX");
+    pub const REGEX_ERROR: Self = Self("REGEX_ERROR");
 
     // Configuration Errors
     pub const CONFIG_ERROR: Self = Self("CONFIG_ERROR");

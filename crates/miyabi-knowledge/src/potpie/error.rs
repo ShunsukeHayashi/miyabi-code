@@ -1,6 +1,8 @@
 //! Error types for Potpie integration
 
 use thiserror::Error;
+use miyabi_types::error::{ErrorCode, UnifiedError};
+use std::any::Any;
 
 /// Result type for Potpie operations
 pub type Result<T> = std::result::Result<T, PotpieError>;
@@ -68,6 +70,68 @@ impl PotpieError {
     }
 }
 
+// ============================================================================
+// UnifiedError Implementation
+// ============================================================================
+
+impl UnifiedError for PotpieError {
+    fn code(&self) -> ErrorCode {
+        match self {
+            Self::HttpError(_) => ErrorCode::HTTP_ERROR,
+            Self::ApiError { .. } => ErrorCode::HTTP_ERROR,
+            Self::JsonError(_) => ErrorCode::PARSE_ERROR,
+            Self::ConfigError(_) => ErrorCode::CONFIG_ERROR,
+            Self::ServiceUnavailable(_) => ErrorCode::HTTP_ERROR,
+            Self::Timeout(_) => ErrorCode::TIMEOUT_ERROR,
+            Self::AuthError(_) => ErrorCode::AUTH_ERROR,
+            Self::InvalidResponse(_) => ErrorCode::PARSE_ERROR,
+        }
+    }
+
+    fn user_message(&self) -> String {
+        match self {
+            Self::ApiError { status, message } => format!(
+                "Potpie API returned error {}: {}. Please check your API configuration or contact Potpie support.",
+                status, message
+            ),
+            Self::ConfigError(msg) => format!(
+                "Potpie configuration error: {}. Please verify your Potpie API key and settings.",
+                msg
+            ),
+            Self::ServiceUnavailable(msg) => format!(
+                "Potpie service is currently unavailable: {}. Consider using Git fallback or try again later.",
+                msg
+            ),
+            Self::Timeout(seconds) => format!(
+                "Potpie API request timed out after {}s. The service may be experiencing high load. Try again or use Git fallback.",
+                seconds
+            ),
+            Self::AuthError(msg) => format!(
+                "Potpie authentication failed: {}. Please check your API key and permissions.",
+                msg
+            ),
+            Self::InvalidResponse(msg) => format!(
+                "Received invalid response from Potpie API: {}. Please try again or report this issue.",
+                msg
+            ),
+            // Reuse existing thiserror messages for other variants
+            _ => self.to_string(),
+        }
+    }
+
+    fn context(&self) -> Option<&dyn Any> {
+        match self {
+            Self::ApiError { status, .. } => Some(status as &dyn Any),
+            Self::ConfigError(msg) => Some(msg as &dyn Any),
+            Self::ServiceUnavailable(msg) => Some(msg as &dyn Any),
+            Self::Timeout(seconds) => Some(seconds as &dyn Any),
+            Self::AuthError(msg) => Some(msg as &dyn Any),
+            Self::InvalidResponse(msg) => Some(msg as &dyn Any),
+            _ => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,5 +149,65 @@ mod tests {
         assert!(PotpieError::Timeout(30).should_fallback_to_git());
         assert!(PotpieError::ConfigError("test".to_string()).should_fallback_to_git());
         assert!(!PotpieError::AuthError("test".to_string()).should_fallback_to_git());
+    }
+
+    #[test]
+    fn test_potpie_error_codes() {
+        let error = PotpieError::ApiError {
+            status: 404,
+            message: "Not Found".to_string(),
+        };
+        assert_eq!(error.code(), ErrorCode::HTTP_ERROR);
+
+        let error = PotpieError::Timeout(30);
+        assert_eq!(error.code(), ErrorCode::TIMEOUT_ERROR);
+
+        let error = PotpieError::AuthError("invalid key".to_string());
+        assert_eq!(error.code(), ErrorCode::AUTH_ERROR);
+
+        let error = PotpieError::ConfigError("missing key".to_string());
+        assert_eq!(error.code(), ErrorCode::CONFIG_ERROR);
+    }
+
+    #[test]
+    fn test_user_messages() {
+        let error = PotpieError::ApiError {
+            status: 500,
+            message: "Internal Server Error".to_string(),
+        };
+        let msg = error.user_message();
+        assert!(msg.contains("500"));
+        assert!(msg.contains("Internal Server Error"));
+
+        let error = PotpieError::Timeout(60);
+        let msg = error.user_message();
+        assert!(msg.contains("60s"));
+        assert!(msg.contains("timed out"));
+
+        let error = PotpieError::ServiceUnavailable("maintenance".to_string());
+        let msg = error.user_message();
+        assert!(msg.contains("unavailable"));
+        assert!(msg.contains("maintenance"));
+    }
+
+    #[test]
+    fn test_context_extraction() {
+        let error = PotpieError::ApiError {
+            status: 404,
+            message: "Not Found".to_string(),
+        };
+        assert!(error.context().is_some());
+
+        let error = PotpieError::Timeout(30);
+        assert!(error.context().is_some());
+
+        let error = PotpieError::AuthError("invalid".to_string());
+        assert!(error.context().is_some());
+
+        let error = PotpieError::HttpError(reqwest::Error::new(
+            reqwest::error::Kind::Request,
+            None::<std::io::Error>,
+        ));
+        assert!(error.context().is_none());
     }
 }
