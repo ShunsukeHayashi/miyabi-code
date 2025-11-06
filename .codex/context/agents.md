@@ -1,16 +1,74 @@
 # Agent System - Autonomous Agents
 
-**Last Updated**: 2025-10-26
-**Version**: 2.0.1
-**Priority**: ⭐⭐⭐⭐
+**Last Updated**: 2025-11-03
+**Version**: 3.0.0
+**Priority**: ⭐⭐⭐⭐⭐
+
+**🎭 Miyabi Orchestra v2.0 Deployed**: 6 Coding Agents + 14 Business Agents
+**✅ W1-W5 Complete Coverage**: 100% Workflow Automation Achieved
+
+## 🔒 Agent実行前の必須プロトコル
+
+**全てのAgent実行・タスク開始時に以下を必ず実行**
+
+### ✅ 作業開始チェックリスト
+
+```bash
+□ Step 1: gh issue view <number> でIssue確認
+□ Step 2: gh issue comment で作業宣言（他Agentとのバッティング防止）
+□ Step 3: gh issue edit でラベル変更（Ready → In Progress）
+□ Step 4: git worktree作成 & 移動
+□ Step 5: 作業開始
+```
+
+**詳細**: [CLAUDE.md](../../CLAUDE.md) の「必須作業プロトコル」を参照
+
+---
 
 ## 🤖 Agent概要
 
 Miyabiは自律型Agentシステムを提供します：
-- **✅ 実装済み** (14個): Business Agents - Rust実装完了
-- **📋 計画中** (10個): Spec fileのみ、今後実装予定
+- **✅ 実装済み** (20個):
+  - **Coding Agents** (6個) - tmux Orchestra v2.0でデプロイ済み ⭐ NEW
+  - **Business Agents** (14個) - Rust実装完了
+- **📋 計画中** (4個): Spec fileのみ、今後実装予定
 
-## ✅ 実装済みAgent (14個)
+## ✅ 実装済みAgent (20個)
+
+### 🎭 Coding Agents (6個) - tmux Orchestra v2.0デプロイ済み ⭐ NEW
+
+**Deployment**: Miyabi Orchestra v2.0 (tmux-based parallel execution)
+**Coverage**: W1-W5 Complete Workflow (100% automation)
+
+| Agent | Character | Pane | Workflow | Status |
+|-------|-----------|------|----------|--------|
+| **IssueAgent** | みつけるん | %10 | W1: Issue Triage | ✅ Active |
+| **CoordinatorAgent** | しきるん | %11 | W2: Task Decomposition | ✅ Active |
+| **CodeGenAgent** | カエデ | %2 | W3: Code Implementation | ✅ Active |
+| **ReviewAgent** | サクラ | %5 | W4: Code Review | ✅ Active |
+| **PRAgent** | ツバキ | %3 | W3: Pull Request | ✅ Active |
+| **DeploymentAgent** | ボタン | %4 | W5: Deployment | ✅ Active |
+
+**Quick Access**: `.claude/agents/tmux_agents_control.md` - tmux操作リファレンス
+
+**Workflow Chain**:
+```
+みつけるん (W1: Triage)
+    ↓
+しきるん (W2: Task Decomposition)
+    ↓
+カエデ (W3: Implementation)
+    ↓
+サクラ (W4: Review)
+    ↓
+ツバキ (W3: PR Creation)
+    ↓
+ボタン (W5: Deployment)
+```
+
+**Auto-Relay**: Water Spider v2.0が自動でメッセージ中継・タスク割り当て実行
+
+---
 
 ### 💼 Business Agents (14個) - Rust実装完了
 
@@ -36,12 +94,13 @@ Miyabiは自律型Agentシステムを提供します：
 
 ---
 
-## 📋 計画中Agent (10個 - Spec fileのみ)
+## 📋 計画中Agent (4個 - Spec fileのみ)
 
-### 🔧 Coding Agents (3個)
+### 🔧 Coding Agents (4個)
 
 | Agent | 役割 | ステータス |
 |-------|------|-----------|
+| **RefresherAgent** | Issue状態監視・自動更新 | 📋 Spec作成済み |
 | **DiscordCommunityAgent** | Discordコミュニティ管理・運営 | 📋 Spec作成済み |
 | **HooksIntegrationAgent** | Git Hooks統合・自動化 | 📋 Spec作成済み |
 | **ImageGenAgent** | 画像生成（開発用） | 📋 Spec作成済み |
@@ -58,24 +117,25 @@ Miyabiは自律型Agentシステムを提供します：
 | **NarrationAgent** | 音声ナレーション生成（VOICEVOX） | 📋 Spec作成済み |
 | **ImageGenAgent** | 画像生成（ビジネス用） | 📋 Spec作成済み |
 
-### 🎯 参考: 過去の7 Coding Agents構想
+### ✅ Coding Agents実装履歴
 
-従来は7個のCoding Agentsを個別crateとして開発する予定でした：
+| Agent | Character | 従来名 | 実装方式 | Status |
+|-------|-----------|--------|----------|--------|
+| IssueAgent | みつけるん | みつけるん | tmux Orchestra v2.0 | ✅ Deployed |
+| CoordinatorAgent | しきるん | しきるん | tmux Orchestra v2.0 | ✅ Deployed |
+| CodeGenAgent | カエデ | つくるん | tmux Orchestra v2.0 | ✅ Deployed |
+| ReviewAgent | サクラ | めだまん | tmux Orchestra v2.0 | ✅ Deployed |
+| PRAgent | ツバキ | まとめるん | tmux Orchestra v2.0 | ✅ Deployed |
+| DeploymentAgent | ボタン | はこぶん | tmux Orchestra v2.0 | ✅ Deployed |
+| RefresherAgent | アサガオ | つなぐん | - | 📋 Planned |
 
-| Agent | 役割 | 現状 |
-|-------|------|------|
-| CoordinatorAgent (しきるん) | タスク統括・DAG分解 | 🔄 統合Agent設計に移行中 |
-| CodeGenAgent (つくるん) | AI駆動コード生成 | 🔄 統合Agent設計に移行中 |
-| ReviewAgent (めだまん) | コード品質レビュー | 🔄 統合Agent設計に移行中 |
-| IssueAgent (みつけるん) | Issue分析・ラベリング | 🔄 統合Agent設計に移行中 |
-| PRAgent (まとめるん) | PR自動作成 | 🔄 統合Agent設計に移行中 |
-| DeploymentAgent (はこぶん) | CI/CDデプロイ | 🔄 統合Agent設計に移行中 |
-| RefresherAgent (つなぐん) | Issue状態監視 | 🔄 統合Agent設計に移行中 |
-
-**設計変更の理由**:
-- 個別crateよりも統合Agentの方が柔軟性が高い
-- 役割の境界が曖昧で、統合した方が効率的
-- Business Agentsの成功パターンを適用
+**実装方針の転換** (2025-11-03):
+- ❌ **旧**: 個別Rust crateとして実装
+- ✅ **新**: Claude Code + tmux Orchestraで実装
+  - より柔軟な実行環境
+  - リアルタイムモニタリング可能
+  - Water Spider v2.0による自動管理
+  - 100% W1-W5カバレッジ達成
 
 ---
 
@@ -116,14 +176,14 @@ impl BaseAgent for MyAgent {
 
 ## 📚 Agent仕様ドキュメント
 
-**実装済みAgent仕様**: `.codex/agents/specs/business/*.md` (14ファイル)
+**実装済みAgent仕様**: `.claude/agents/specs/business/*.md` (14ファイル)
 - `ai-entrepreneur-agent.md`, `product-concept-agent.md`, `analytics-agent.md`, etc.
 
 **計画中Agent仕様**:
-- Coding: `.codex/agents/specs/coding/*.md` (10 specs: 7基本 + 3計画中)
-- Business: `.codex/agents/specs/business/*.md` (7 specs: 追加Agent)
+- Coding: `.claude/agents/specs/coding/*.md` (10 specs: 7基本 + 3計画中)
+- Business: `.claude/agents/specs/business/*.md` (7 specs: 追加Agent)
 
-**実行プロンプト**: `.codex/agents/prompts/` (Business/Coding)
+**実行プロンプト**: `.claude/agents/prompts/` (Business/Coding)
 - Worktree内での実行ガイド
 - ステップバイステップ手順
 - 成功基準とチェックリスト
@@ -176,10 +236,15 @@ let result = agent.execute(&task).await?;
 - 14個のBusiness Agents実装完了
 - Rust crateとして提供
 
-**Phase 2: Coding Agents** (📋 計画中 v1.2.0)
-- 統合Agent設計に移行
-- 3個の追加Agent（Discord, Hooks, ImageGen）
+**Phase 2: Coding Agents** (✅ 完了 v2.0.0) ⭐ NEW
+- 6個のCoding AgentsをtmuxOrchestraとしてデプロイ完了
+- W1-W5完全自動化達成（100%カバレッジ）
+- Water Spider v2.0による自動管理実現
 
-**Phase 3: Advanced Business Agents** (📋 計画中 v1.3.0)
+**Phase 3: Additional Agents** (📋 計画中 v2.1.0)
+- RefresherAgent実装
+- 3個の追加Coding Agent（Discord, Hooks, ImageGen）
+
+**Phase 4: Advanced Business Agents** (📋 計画中 v2.2.0)
 - 7個の高度なBusiness Agents
 - AI秘書、デザイン戦略、コンテンツ生成等

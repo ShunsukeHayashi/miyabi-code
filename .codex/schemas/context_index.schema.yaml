@@ -1,0 +1,98 @@
+# Context Index Schema
+# Codexコンテキストモジュール管理 - Just-In-Time Loading
+
+$schema: http://json-schema.org/draft-07/schema#
+title: Context Index
+description: Codexコンテキストモジュール索引とロード管理
+
+type: object
+properties:
+  version:
+    type: string
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+    description: スキーマバージョン
+
+  modules:
+    type: array
+    description: コンテキストモジュール定義
+    items:
+      $ref: '#/definitions/ContextModule'
+
+required:
+  - version
+  - modules
+
+definitions:
+  ContextModule:
+    type: object
+    properties:
+      id:
+        type: string
+        pattern: '^[a-z-]+$'
+        description: モジュールID (ファイル名と一致)
+      file:
+        type: string
+        pattern: '^[a-z-]+\.md$'
+        description: "ファイル名 (例: core-rules.md)"
+      name:
+        type: string
+        description: モジュール名
+      priority:
+        type: integer
+        minimum: 1
+        maximum: 5
+        description: "優先度 (5=P0, 4=P1, 3=P2, 2=P3, 1=P4)"
+      category:
+        type: string
+        enum:
+          - rules
+          - architecture
+          - development
+          - operations
+          - reference
+        description: カテゴリ
+      tags:
+        type: array
+        items:
+          type: string
+        description: タグ
+      auto_load:
+        type: boolean
+        default: false
+        description: 自動ロード (P0モジュールはtrue推奨)
+      load_conditions:
+        type: object
+        properties:
+          keywords:
+            type: array
+            items:
+              type: string
+            description: ロード条件キーワード
+          task_types:
+            type: array
+            items:
+              type: string
+            description: ロード条件タスクタイプ
+        description: Just-In-Timeロード条件
+      dependencies:
+        type: array
+        items:
+          type: string
+        description: 依存モジュールID
+      description:
+        type: string
+        description: モジュール説明
+      size_kb:
+        type: number
+        minimum: 0
+        description: ファイルサイズ (KB)
+      last_updated:
+        type: string
+        format: date
+        description: 最終更新日
+    required:
+      - id
+      - file
+      - name
+      - priority
+      - category

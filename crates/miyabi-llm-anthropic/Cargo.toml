@@ -11,7 +11,7 @@ repository = "https://github.com/ShunsukeHayashi/Miyabi"
 readme = "README.md"
 
 [dependencies]
-miyabi-llm-core = { version = "1.1.0", path = "../miyabi-llm-core" }
+miyabi-llm-core = { path = "../miyabi-llm-core" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

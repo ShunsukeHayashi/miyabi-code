@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hooks Configuration",
+  "description": "Codex Hooks設定 - イベント駆動型フックシステム",
+  "type": "object",
+  "patternProperties": {
+    "^[a-z_]+$": {
+      "$ref": "#/definitions/HookDefinition"
+    }
+  },
+  "definitions": {
+    "HookDefinition": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "type": "string",
+          "enum": [
+            "session_start",
+            "session_end",
+            "tool_before",
+            "tool_after",
+            "agent_start",
+            "agent_complete",
+            "agent_error",
+            "worktree_create",
+            "worktree_cleanup"
+          ],
+          "description": "トリガーイベント"
+        },
+        "command": {
+          "type": "string",
+          "description": "実行するコマンド (.codex/hooks/配下のスクリプトパス)"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000,
+          "default": 10000,
+          "description": "タイムアウト時間 (ミリ秒, 最大60秒)"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "フック有効/無効"
+        },
+        "conditions": {
+          "type": "object",
+          "properties": {
+            "tool_names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "トリガーするツール名 (tool_before/tool_after用)"
+            },
+            "agent_types": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "トリガーするAgent名 (agent_*用)"
+            },
+            "file_patterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "ファイルパターン (globパターン)"
+            }
+          },
+          "description": "フック実行条件"
+        },
+        "env": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Z_]+$": {
+              "type": "string"
+            }
+          },
+          "description": "環境変数"
+        },
+        "description": {
+          "type": "string",
+          "description": "フックの説明"
+        }
+      },
+      "required": ["event", "command"],
+      "additionalProperties": false
+    }
+  }
+}

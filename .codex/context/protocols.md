@@ -7,7 +7,7 @@
 
 ## 📋 タスク管理プロトコル
 
-**詳細仕様**: `.codex/prompts/task-management-protocol.md`
+**詳細仕様**: `.claude/prompts/task-management-protocol.md`
 
 ### Todo作成基準
 
@@ -68,14 +68,14 @@ pending → in_progress → completed
 
 ## 📋 報告プロトコル
 
-**テンプレート**: `.codex/templates/reporting-protocol.md`
+**テンプレート**: `.claude/templates/reporting-protocol.md`
 
-### Codexからの報告形式
+### Claude Codeからの報告形式
 
 ```markdown
-## 📋 Codex からの作業報告
+## 📋 Claude Code からの作業報告
 
-**報告者**: Codex (AI Assistant)
+**報告者**: Claude Code (AI Assistant)
 **報告日時**: YYYY-MM-DD
 **セッション**: [セッション名/タスク名]
 
@@ -84,7 +84,7 @@ pending → in_progress → completed
 ### ✅ 完了した作業
 
 #### 1. [作業項目名]
-**担当**: Codex
+**担当**: Claude Code
 - 作業内容の詳細
 - 実施した変更
 
@@ -102,7 +102,7 @@ pending → in_progress → completed
 
 ### 🎯 動作確認結果
 
-**確認者**: Codex
+**確認者**: Claude Code
 
 ✅ [確認項目1]
 ✅ [確認項目2]
@@ -111,7 +111,7 @@ pending → in_progress → completed
 
 ### ⚠️ 注意事項
 
-**報告者**: Codex
+**報告者**: Claude Code
 
 1. [注意点1]
 2. [注意点2]
@@ -120,7 +120,7 @@ pending → in_progress → completed
 
 ### 🚀 次のステップ（提案）
 
-**提案者**: Codex
+**提案者**: Claude Code
 
 1. [提案1]
 2. [提案2]
@@ -128,16 +128,16 @@ pending → in_progress → completed
 ---
 
 **報告終了**
-Codex
+Claude Code
 ```
 
 ### 報告ルール
 
-1. **報告者の明記**: 全ての報告で「Codex」として名乗る
-2. **担当者の明記**: 各作業項目に「担当: Codex」を記載
-3. **確認者の明記**: 動作確認結果に「確認者: Codex」を記載
-4. **提案者の明記**: 次のステップ提案に「提案者: Codex」を記載
-5. **報告終了の明記**: 報告の最後に「**報告終了** Codex」を記載
+1. **報告者の明記**: 全ての報告で「Claude Code」として名乗る
+2. **担当者の明記**: 各作業項目に「担当: Claude Code」を記載
+3. **確認者の明記**: 動作確認結果に「確認者: Claude Code」を記載
+4. **提案者の明記**: 次のステップ提案に「提案者: Claude Code」を記載
+5. **報告終了の明記**: 報告の最後に「**報告終了** Claude Code」を記載
 
 ### 適用範囲
 
@@ -153,5 +153,5 @@ Codex
 
 ## 📖 Detailed Documentation
 
-- **Task Management Protocol**: `.codex/prompts/task-management-protocol.md` (完全仕様)
-- **Reporting Protocol**: `.codex/templates/reporting-protocol.md` (テンプレート)
+- **Task Management Protocol**: `.claude/prompts/task-management-protocol.md` (完全仕様)
+- **Reporting Protocol**: `.claude/templates/reporting-protocol.md` (テンプレート)
