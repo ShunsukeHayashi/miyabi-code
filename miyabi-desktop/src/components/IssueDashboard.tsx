@@ -8,6 +8,7 @@ import {
   type GitHubIssue,
   type IssueLabel,
 } from "../lib/github-api";
+import { IssueDetailPanel } from "./IssueDetailPanel";
 
 export function IssueDashboard() {
   const [issues, setIssues] = useState<GitHubIssue[]>([]);
@@ -16,6 +17,7 @@ export function IssueDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<GitHubIssue | null>(null);
 
   useEffect(() => {
     loadIssues();
@@ -169,7 +171,11 @@ export function IssueDashboard() {
                 {/* Issue Cards */}
                 <div className="space-y-3">
                   {stateIssues.map((issue) => (
-                    <IssueCard key={issue.number} issue={issue} />
+                    <IssueCard
+                      key={issue.number}
+                      issue={issue}
+                      onClick={() => setSelectedIssue(issue)}
+                    />
                   ))}
                 </div>
               </div>
@@ -177,6 +183,19 @@ export function IssueDashboard() {
           })}
         </div>
       </div>
+
+      {/* Detail Panel */}
+      {selectedIssue && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-30 z-40"
+            onClick={() => setSelectedIssue(null)}
+          />
+          {/* Detail Panel */}
+          <IssueDetailPanel issue={selectedIssue} onClose={() => setSelectedIssue(null)} />
+        </>
+      )}
     </div>
   );
 }
@@ -184,13 +203,17 @@ export function IssueDashboard() {
 /**
  * Issue Card Component
  */
-function IssueCard({ issue }: { issue: GitHubIssue }) {
-  const openInBrowser = () => {
+function IssueCard({ issue, onClick }: { issue: GitHubIssue; onClick: () => void }) {
+  const openInBrowser = (e: React.MouseEvent) => {
+    e.stopPropagation();
     window.open(issue.html_url, "_blank");
   };
 
   return (
-    <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl hover:border-gray-900 transition-all duration-200 cursor-pointer group">
+    <div
+      onClick={onClick}
+      className="p-4 bg-gray-50 border border-gray-200 rounded-xl hover:border-gray-900 transition-all duration-200 cursor-pointer group"
+    >
       {/* Issue Number & Link */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-light text-gray-500">#{issue.number}</span>
