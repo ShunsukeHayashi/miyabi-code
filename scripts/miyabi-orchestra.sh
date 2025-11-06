@@ -91,12 +91,24 @@ case "$ENSEMBLE" in
         echo -e "${GREEN}✅ Hybrid Ensemble Stage Ready${NC}"
         ;;
 
+    full-orchestra|21agent|full)
+        echo -e "${GREEN}🎭 Preparing ${MAGENTA}Full Orchestra${GREEN} Stage - ${YELLOW}21 AGENTS!${NC}"
+        echo -e "   ${CYAN}All 21 Agents in Full Power Parallel Execution${NC}"
+        echo ""
+        echo -e "${YELLOW}⚠️  Large scale operation - requires significant resources${NC}"
+        echo ""
+
+        # Execute full orchestra script
+        exec "${SCRIPT_DIR}/miyabi-orchestra-full.sh"
+        ;;
+
     *)
         echo -e "${RED}❌ Unknown ensemble: $ENSEMBLE${NC}"
         echo ""
         echo -e "${YELLOW}🎼 Available ensembles:${NC}"
-        echo "  coding-ensemble (or 5pane) - Conductor + 4 Coding Agents"
-        echo "  hybrid-ensemble (or 7pane) - Conductor + 3 Coding + 3 Business Agents"
+        echo "  coding-ensemble (or 5pane)  - Conductor + 4 Coding Agents"
+        echo "  hybrid-ensemble (or 7pane)  - Conductor + 3 Coding + 3 Business Agents"
+        echo "  full-orchestra  (or 21agent) - All 21 Agents in Full Power! 🚀"
         echo ""
         echo -e "${YELLOW}Example:${NC}"
         echo "  ./scripts/miyabi-orchestra.sh coding-ensemble"
