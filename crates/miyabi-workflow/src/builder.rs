@@ -10,6 +10,7 @@ use miyabi_types::{
 use std::collections::HashSet;
 
 /// Builder for constructing agent workflows
+#[derive(Clone)]
 pub struct WorkflowBuilder {
     name: String,
     steps: Vec<Step>,
@@ -27,7 +28,7 @@ pub struct Step {
 }
 
 /// Conditional branch definition
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ConditionalBranch {
     /// Branch name
     pub name: String,
@@ -228,6 +229,19 @@ impl WorkflowBuilder {
         let mut edges = Vec::new();
 
         for step in &self.steps {
+            // Add metadata for conditional steps
+            let metadata = if let StepType::Conditional { branches } = &step.step_type {
+                let mut meta = std::collections::HashMap::new();
+                meta.insert("is_conditional".to_string(), serde_json::json!(true));
+                meta.insert(
+                    "conditional_branches".to_string(),
+                    serde_json::to_value(branches).unwrap_or(serde_json::Value::Null),
+                );
+                Some(meta)
+            } else {
+                None
+            };
+
             let task = Task {
                 id: step.id.clone(),
                 title: step.name.clone(),
@@ -240,7 +254,7 @@ impl WorkflowBuilder {
                 status: None,
                 start_time: None,
                 end_time: None,
-                metadata: None,
+                metadata,
                 severity: None,
                 impact: None,
             };

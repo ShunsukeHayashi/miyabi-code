@@ -15,10 +15,10 @@ readme = "../README.md"
 miyabi-types = { path = "../miyabi-types" }
 
 # LLM SDK crates
-miyabi-llm-core = { version = "1.1.0", path = "../miyabi-llm-core" }
-miyabi-llm-anthropic = { version = "1.1.0", path = "../miyabi-llm-anthropic" }
-miyabi-llm-openai = { version = "1.1.0", path = "../miyabi-llm-openai" }
-miyabi-llm-google = { version = "1.1.0", path = "../miyabi-llm-google" }
+miyabi-llm-core = { path = "../miyabi-llm-core" }
+miyabi-llm-anthropic = { path = "../miyabi-llm-anthropic" }
+miyabi-llm-openai = { path = "../miyabi-llm-openai" }
+miyabi-llm-google = { path = "../miyabi-llm-google" }
 
 # Async runtime
 tokio = { workspace = true }

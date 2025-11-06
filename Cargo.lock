@@ -205,6 +205,7 @@ checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
 dependencies = [
  "async-trait",
  "axum-core 0.4.5",
+ "axum-macros",
  "base64 0.22.1",
  "bytes 1.10.1",
  "futures-util",
@@ -298,6 +299,17 @@ dependencies = [
  "sync_wrapper",
  "tower-layer",
  "tower-service",
+]
+
+[[package]]
+name = "axum-macros"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57d123550fa8d071b7255cb0cc04dc302baa6c8c4a79f55701552684d8399bce"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.108",
 ]
 
 [[package]]
@@ -2426,6 +2438,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.17",
  "tokio",
+ "tonic 0.14.2",
  "tracing",
 ]
 
@@ -2442,12 +2455,14 @@ dependencies = [
  "miyabi-github",
  "miyabi-llm",
  "miyabi-types",
+ "miyabi-workflow",
  "serde",
  "serde_json",
  "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2595,6 +2610,26 @@ dependencies = [
  "toml 0.9.8",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "miyabi-approval"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "miyabi-core",
+ "miyabi-types",
+ "miyabi-workflow",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sled",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2780,7 +2815,9 @@ dependencies = [
 name = "miyabi-github"
 version = "0.1.1"
 dependencies = [
+ "chrono",
  "dirs 6.0.0",
+ "miyabi-core",
  "miyabi-types",
  "octocrab",
  "serde",
@@ -2789,6 +2826,31 @@ dependencies = [
  "tokio",
  "tokio-test",
  "tracing",
+]
+
+[[package]]
+name = "miyabi-historical"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "axum 0.7.9",
+ "chrono",
+ "insta",
+ "miyabi-llm",
+ "miyabi-types",
+ "qdrant-client",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "serial_test",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tower 0.4.13",
+ "tower-http 0.5.2",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -2834,6 +2896,10 @@ dependencies = [
  "bytes 1.10.1",
  "futures 0.3.31",
  "insta",
+ "miyabi-llm-anthropic",
+ "miyabi-llm-core",
+ "miyabi-llm-google",
+ "miyabi-llm-openai",
  "miyabi-types",
  "mockito",
  "regex",
@@ -2846,6 +2912,73 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "miyabi-llm-anthropic"
+version = "0.1.1"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "bytes 1.10.1",
+ "chrono",
+ "dotenvy",
+ "futures 0.3.31",
+ "miyabi-llm-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
+name = "miyabi-llm-core"
+version = "0.1.1"
+dependencies = [
+ "async-trait",
+ "futures 0.3.31",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
+name = "miyabi-llm-google"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures 0.3.31",
+ "miyabi-llm-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "miyabi-llm-openai"
+version = "0.1.1"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "bytes 1.10.1",
+ "chrono",
+ "dotenvy",
+ "futures 0.3.31",
+ "miyabi-llm-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
 ]
 
 [[package]]
@@ -2986,6 +3119,7 @@ dependencies = [
  "dotenvy",
  "futures 0.3.31",
  "jsonwebtoken",
+ "miyabi-approval",
  "miyabi-github",
  "miyabi-llm",
  "miyabi-telegram",

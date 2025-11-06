@@ -8,6 +8,23 @@
 
 **トラブル時は**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - よくある問題と解決策
 
+## 🤖 モデルプロファイルと切り替え
+
+Claude Code を利用する場面でも、Codex CLI 同様に gpt-5 系モデルへ切り替え可能です。タスク特性に応じて以下を目安に `codex -m <model-name>` または `.claude/settings.local.json` の `model` フィールドを更新してください。
+
+- **gpt-5-codex-low**: 低レイテンシ・低コスト重視。短いコード修正、差分レビュー、Lint 対応など即応タスクで Claude Sonnet 4 の代替として利用。  
+  `codex -m gpt-5-codex-low`
+- **gpt-5-codex-medium**: 推論力とコストのバランス型。複数ファイルを跨ぐリファクタリングや Issue/PR 下書きなど日常開発の標準モデル。  
+  `codex -m gpt-5-codex-medium`
+- **gpt-5-codex-high**: 長大なコードベース解析や高度推論が必要な設計レビュー、性能チューニング検討時に使用。  
+  `codex -m gpt-5-codex-high`
+- **gpt-5-base**: ビジネス要件整理、ロードマップ策定、ドキュメント生成など自然言語中心の推論タスクに最適。  
+  `codex -m gpt-5-base`
+- **gpt-5-longcontext**: 膨大な議事録・設計資料を通読し、依存関係確認や意思決定履歴のトレースを行う際に選択。  
+  `codex -m gpt-5-longcontext`
+
+> 運用Tips: モデル切り替え後は `.claude/settings.local.json` でも同じモデル名に揃えることで、Claude Code 起動時に自動適用されます。
+
 ## 📁 ディレクトリ構造
 
 ```

@@ -25,6 +25,19 @@ tracing = { workspace = true }
 async-trait = "0.1"
 futures = "0.3"
 
+[features]
+default = ["workflow_dsl"]
+workflow_dsl = ["dep:miyabi-workflow", "dep:uuid"]
+
+[dependencies.miyabi-workflow]
+path = "../miyabi-workflow"
+optional = true
+
+[dependencies.uuid]
+version = "1.11"
+features = ["v4"]
+optional = true
+
 [dev-dependencies]
 miyabi-agent-business = { path = "../miyabi-agent-business" }
 tempfile = "3.13"

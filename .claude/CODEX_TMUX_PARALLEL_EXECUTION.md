@@ -1,8 +1,13 @@
 # 🎭 Miyabi Orchestra - tmuxによるClaude Code並列実行（Codex Integration）
 
+**⚠️ 注意**: このドキュメントは参考情報として保持されていますが、最新の運用ガイドは以下を参照してください:
+- **推奨**: [ORCHESTRA_COMPLETE_GUIDE.md](./ORCHESTRA_COMPLETE_GUIDE.md) - 標準化された運用手順 (v1.1.0)
+- **哲学**: [MIYABI_PARALLEL_ORCHESTRA.md](./MIYABI_PARALLEL_ORCHESTRA.md) - 雅なる並列実行
+
 **Based on**: Claude Code Company concept
 **Adapted for**: Miyabi Project with 6 Agents (みつけるん, しきるん, カエデ, サクラ, ツバキ, ボタン)
 **Version**: 2.0.0 - W1-W5 Complete Workflow Coverage
+**Last Updated**: 2025-11-03 (古い情報を含む可能性があります)
 
 ---
 

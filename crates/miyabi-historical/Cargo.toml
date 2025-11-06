@@ -1,0 +1,54 @@
+[package]
+name = "miyabi-historical"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Historical AI personality system and API - Oda Nobunaga, Sakamoto Ryoma, Tokugawa Ieyasu"
+keywords = ["ai", "prompt", "historical", "character", "api"]
+categories = ["command-line-utilities", "web-programming::http-server"]
+
+[lib]
+name = "miyabi_historical"
+path = "src/lib.rs"
+
+[[bin]]
+name = "miyabi-historical-api"
+path = "src/bin/miyabi-historical-api.rs"
+
+[dependencies]
+# Workspace dependencies
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+reqwest.workspace = true
+
+# YAML parsing
+serde_yaml = "0.9"
+
+# Qdrant client
+qdrant-client = "1.7"
+
+# Web framework (for API)
+axum = { version = "0.7", features = ["macros"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Time handling
+chrono = "0.4"
+
+# Internal dependencies
+miyabi-types = { path = "../miyabi-types" }
+miyabi-llm = { path = "../miyabi-llm" }
+
+[dev-dependencies]
+tokio-test = "0.4"
+insta.workspace = true
+serial_test.workspace = true
