@@ -1,6 +1,11 @@
 # Miyabi × Kamui tmux Integration Guide
 
+**⚠️ 注意**: このドキュメントは Kamui 特有の tmux 設定に関する参考情報です。最新の運用ガイドは以下を参照してください:
+- **推奨**: [ORCHESTRA_COMPLETE_GUIDE.md](./ORCHESTRA_COMPLETE_GUIDE.md) - 標準化された運用手順
+- **tmux基礎**: [../docs/TMUX_QUICKSTART.md](../docs/TMUX_QUICKSTART.md) - 5分入門
+
 **Kamui tmux設定でMiyabiエージェント軍を動かす完全ガイド**
+**Last Updated**: 2025-10-15 (Kamui特有の設定情報)
 
 ---
 

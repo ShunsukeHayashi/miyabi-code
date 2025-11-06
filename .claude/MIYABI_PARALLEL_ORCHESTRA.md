@@ -216,31 +216,33 @@ content-marketing-strategyスキル使用。
 
 ### エージェント → 指揮者への報告形式
 
-**基本テンプレート**:
+**基本テンプレート** (sleep 0.5 必須):
 ```bash
-tmux send-keys -t %22 '[エージェント名] 報告内容' && sleep 0.1 && tmux send-keys -t %22 Enter
+tmux send-keys -t %22 '[エージェント名] 報告内容' && sleep 0.5 && tmux send-keys -t %22 Enter
 ```
+
+**⚠️ 重要**: `sleep 0.5` を必ず使用してください。`0.1` では不安定です。
 
 **報告例**:
 
 **成功報告**:
 ```bash
-tmux send-keys -t %22 '[カエデ] Issue #270コード実装完了。46行追加、3テスト追加。全テストパス。' && sleep 0.1 && tmux send-keys -t %22 Enter
+tmux send-keys -t %22 '[カエデ] Issue #270コード実装完了。46行追加、3テスト追加。全テストパス。' && sleep 0.5 && tmux send-keys -t %22 Enter
 ```
 
 **進捗報告**:
 ```bash
-tmux send-keys -t %22 '[サクラ] レビュー進行中。現在70%完了。品質スコア予想: 85/100。' && sleep 0.1 && tmux send-keys -t %22 Enter
+tmux send-keys -t %22 '[サクラ] レビュー進行中。現在70%完了。品質スコア予想: 85/100。' && sleep 0.5 && tmux send-keys -t %22 Enter
 ```
 
 **エスカレーション**:
 ```bash
-tmux send-keys -t %22 '[ツバキ] PR作成でエラー発生。GitHub API認証失敗。指示を仰ぎます。' && sleep 0.1 && tmux send-keys -t %22 Enter
+tmux send-keys -t %22 '[ツバキ] PR作成でエラー発生。GitHub API認証失敗。指示を仰ぎます。' && sleep 0.5 && tmux send-keys -t %22 Enter
 ```
 
 **完了宣言**:
 ```bash
-tmux send-keys -t %22 '[ボタン] デプロイ完了。本番環境へのリリース成功。ヘルスチェックOK。' && sleep 0.1 && tmux send-keys -t %22 Enter
+tmux send-keys -t %22 '[ボタン] デプロイ完了。本番環境へのリリース成功。ヘルスチェックOK。' && sleep 0.5 && tmux send-keys -t %22 Enter
 ```
 
 ---
@@ -410,11 +412,24 @@ miyabi parallel --issues 270,271,272,273,274,275 --concurrency 6
 
 ## 🔗 関連ドキュメント
 
-- **技術詳細**: [TMUX_OPERATIONS.md](./TMUX_OPERATIONS.md)
-- **クイックスタート**: [../docs/TMUX_QUICKSTART.md](../docs/TMUX_QUICKSTART.md)
-- **レイアウト**: [../docs/TMUX_LAYOUTS.md](../docs/TMUX_LAYOUTS.md)
+### 最新ガイド (2025-11-06更新)
+- **完全運用ガイド**: [ORCHESTRA_COMPLETE_GUIDE.md](./ORCHESTRA_COMPLETE_GUIDE.md) - 標準化された運用手順
+- **Orchestra設定**: [orchestra-config.yaml](./orchestra-config.yaml) - Master configuration
+- **YAML Schema**: [schemas/orchestra-config.schema.yaml](./schemas/orchestra-config.schema.yaml) - 設定検証
+
+### クイックスタート
+- **3ステップガイド**: [../docs/QUICK_START_3STEPS.md](../docs/QUICK_START_3STEPS.md) - 3分でセットアップ
+- **tmux基本操作**: [../docs/TMUX_QUICKSTART.md](../docs/TMUX_QUICKSTART.md) - 5分入門
+
+### 技術詳細
+- **tmux操作**: [TMUX_OPERATIONS.md](./TMUX_OPERATIONS.md)
+- **レイアウト集**: [../docs/TMUX_LAYOUTS.md](../docs/TMUX_LAYOUTS.md)
+- **UI/UX改善**: [../docs/VISUAL_GUIDE.md](../docs/VISUAL_GUIDE.md)
+
+### システム定義
 - **エージェント仕様**: [./context/agents.md](./context/agents.md)
 - **Worktree運用**: [./context/worktree.md](./context/worktree.md)
+- **miyabi_def統合**: [MIYABI_ORCHESTRA_INTEGRATION.md](./MIYABI_ORCHESTRA_INTEGRATION.md)
 
 ---
 
