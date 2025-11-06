@@ -1,0 +1,25 @@
+@startuml
+title 本日のハイライト・タイムライン - 2025-11-06
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+concise "開発フロー" as dev
+
+@0
+dev is "Full Orchestra\nMode実装"
+
+@1
+dev is "GitHub-Lark\n同期実装"
+
+@2
+dev is "CLAUDE.md\nv4.0完成"
+
+@3
+dev is "Complete!"
+
+highlight 0 to 1 #FFE4E1 : 21 Agents並列実行基盤
+highlight 1 to 2 #E0FFE0 : TypeScript実装+テスト
+highlight 2 to 3 #FFFACD : Agent Operating Manual
+
+@enduml

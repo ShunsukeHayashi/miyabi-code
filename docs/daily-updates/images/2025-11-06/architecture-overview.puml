@@ -1,0 +1,69 @@
+@startuml
+title Miyabi Full Orchestra Architecture - 2025-11-06
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+package "tmux Session: miyabi-orchestra" {
+
+  package "Window 1: Coding Agents (9 panes)" {
+    [つくるん\nCodeGenAgent] as tsukurun #FFE4E1
+    [なおすん\nBugFixAgent] as naosun #FFE4E1
+    [きれいん\nRefactorAgent] as kireiin #FFE4E1
+  }
+
+  package "Window 2: Review Agents (6 panes)" {
+    [めだまん\nReviewAgent] as medaman #E0FFE0
+    [まもるん\nSecurityAgent] as mamorun #E0FFE0
+  }
+
+  package "Window 3: Business Agents (6 panes)" {
+    [かきこちゃん\nNoteAgent] as kakiko #FFFACD
+    [えがくん\nImageGenAgent] as egakun #FFFACD
+  }
+}
+
+database "Git Worktree" {
+  folder ".worktrees/" {
+    [agent-tsukurun/]
+    [agent-naosun/]
+    [agent-kakiko/]
+  }
+}
+
+cloud "GitHub" {
+  [Issues]
+  [Pull Requests]
+}
+
+cloud "Lark" {
+  [Tasks]
+  [Messages]
+}
+
+tsukurun --> [agent-tsukurun/] : Works in
+naosun --> [agent-naosun/] : Works in
+kakiko --> [agent-kakiko/] : Works in
+
+[agent-tsukurun/] --> [Pull Requests] : Creates PR
+[Issues] <--> [Tasks] : Sync via\nmiyabi-lark-sync
+
+tsukurun -right-> medaman : tmux send-keys\n"Review Request"
+medaman -right-> kakiko : tmux send-keys\n"Document Update"
+
+note right of [Issues]
+  **New: GitHub-Lark Sync**
+  - Bidirectional sync
+  - Real-time updates
+  - Label mapping
+end note
+
+note bottom of tsukurun
+  **New: Agent Communication**
+  - tmux send-keys protocol
+  - Continuous trigger relay
+  - 0.5s sleep for stability
+end note
+
+@enduml

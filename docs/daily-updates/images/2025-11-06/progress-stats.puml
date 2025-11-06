@@ -1,0 +1,40 @@
+@startuml
+title 開発進捗統計 - 2025-11-06
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "Noto Sans CJK JP"
+
+rectangle "今日の成果" {
+  card "コミット数" as commits #90EE90 {
+    **3件**
+  }
+
+  card "ファイル変更" as files #87CEEB {
+    **16件**
+  }
+
+  card "追加行数" as additions #FFD700 {
+    **+7,806行**
+  }
+
+  card "削除行数" as deletions #FFA07A {
+    **-426行**
+  }
+}
+
+commits -[hidden]right-> files
+files -[hidden]right-> additions
+additions -[hidden]right-> deletions
+
+note bottom of commits
+  過去1週間平均: 2.5件
+  今日は平均的
+end note
+
+note bottom of additions
+  **過去最大級！**
+  GitHub-Lark同期実装が大きく寄与
+end note
+
+@enduml
