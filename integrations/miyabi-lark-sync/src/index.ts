@@ -38,6 +38,12 @@ validateEnv();
 
 const app = express();
 
+type RawBodyRequest = express.Request & { rawBody?: Buffer };
+
+const captureRawBody = (req: express.Request, _res: express.Response, buf: Buffer): void => {
+  (req as RawBodyRequest).rawBody = Buffer.from(buf);
+};
+
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15分
@@ -48,7 +54,11 @@ const limiter = rateLimit({
 });
 
 app.use('/webhooks', limiter);
-app.use(express.json());
+app.use(
+  express.json({
+    verify: captureRawBody,
+  })
+);
 
 //============================================================================
 // API Clients
@@ -78,18 +88,20 @@ const syncMapping = new Map<number, {
 /**
  * GitHub Webhook署名を検証
  */
-function verifyGitHubSignature(payload: string, signature: string): boolean {
-  if (!signature || !signature.startsWith('sha256=')) {
+function verifyGitHubSignature(payload: Buffer, signatureHeader?: string): boolean {
+  if (!signatureHeader || !signatureHeader.startsWith('sha256=')) {
     return false;
   }
 
   const hmac = crypto.createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET!);
-  const digest = 'sha256=' + hmac.update(payload, 'utf8').digest('hex');
+  const digest = hmac.update(payload).digest('hex');
+  const expectedSignature = `sha256=${digest}`;
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(digest)
-  );
+  if (signatureHeader.length !== expectedSignature.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expectedSignature));
 }
 
 /**
@@ -106,10 +118,10 @@ function verifyLarkToken(token: string): boolean {
 /**
  * GitHub Webhook Handler
  */
-app.post('/webhooks/github', async (req, res) => {
+app.post('/webhooks/github', async (req: RawBodyRequest, res) => {
   // Webhook署名検証
-  const signature = req.headers['x-hub-signature-256'] as string;
-  const payload = JSON.stringify(req.body);
+  const signature = req.headers['x-hub-signature-256'] as string | undefined;
+  const payload = req.rawBody ?? Buffer.from(JSON.stringify(req.body ?? {}));
 
   if (!verifyGitHubSignature(payload, signature)) {
     console.error('❌ Invalid GitHub webhook signature');
