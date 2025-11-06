@@ -39,7 +39,7 @@ CoordinatorAgent (Main Process)
   "task": { /* Task詳細 */ },
   "issue": { /* Issue詳細 */ },
   "config": { /* Agent設定 */ },
-  "promptPath": ".codex/agents/prompts/coding/codegen-agent-prompt.md",
+  "promptPath": ".claude/agents/prompts/coding/codegen-agent-prompt.md",
   "worktreeInfo": { /* Worktree情報 */ }
 }
 ```
@@ -67,7 +67,7 @@ git worktree add .worktrees/issue-270 -b worktree/issue-270
 ### Phase 3: Execution
 ```bash
 cd .worktrees/issue-270
-# Codex実行（Agent固有プロンプト使用）
+# Claude Code実行（Agent固有プロンプト使用）
 # git commit（Conventional Commits準拠）
 ```
 

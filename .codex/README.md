@@ -1,6 +1,6 @@
-# .codex/ - Codex プロジェクト設定
+# .claude/ - Claude Code プロジェクト設定
 
-このディレクトリには、Autonomous Operations プロジェクトで Codex による開発を最適化するための設定ファイルとツールが含まれています。
+このディレクトリには、Autonomous Operations プロジェクトで Claude Code による開発を最適化するための設定ファイルとツールが含まれています。
 
 ## 🚀 クイックスタート
 
@@ -8,10 +8,27 @@
 
 **トラブル時は**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - よくある問題と解決策
 
+## 🤖 モデルプロファイルと切り替え
+
+Claude Code を利用する場面でも、Codex CLI 同様に gpt-5 系モデルへ切り替え可能です。タスク特性に応じて以下を目安に `codex -m <model-name>` または `.claude/settings.local.json` の `model` フィールドを更新してください。
+
+- **gpt-5-codex-low**: 低レイテンシ・低コスト重視。短いコード修正、差分レビュー、Lint 対応など即応タスクで Claude Sonnet 4 の代替として利用。  
+  `codex -m gpt-5-codex-low`
+- **gpt-5-codex-medium**: 推論力とコストのバランス型。複数ファイルを跨ぐリファクタリングや Issue/PR 下書きなど日常開発の標準モデル。  
+  `codex -m gpt-5-codex-medium`
+- **gpt-5-codex-high**: 長大なコードベース解析や高度推論が必要な設計レビュー、性能チューニング検討時に使用。  
+  `codex -m gpt-5-codex-high`
+- **gpt-5-base**: ビジネス要件整理、ロードマップ策定、ドキュメント生成など自然言語中心の推論タスクに最適。  
+  `codex -m gpt-5-base`
+- **gpt-5-longcontext**: 膨大な議事録・設計資料を通読し、依存関係確認や意思決定履歴のトレースを行う際に選択。  
+  `codex -m gpt-5-longcontext`
+
+> 運用Tips: モデル切り替え後は `.claude/settings.local.json` でも同じモデル名に揃えることで、Claude Code 起動時に自動適用されます。
+
 ## 📁 ディレクトリ構造
 
 ```
-.codex/
+.claude/
 ├── README.md                    # このファイル
 ├── QUICK_START.md              # 🚀 3分で始めるMiyabi（初心者向け）
 ├── TROUBLESHOOTING.md          # 🔧 トラブルシューティングガイド
@@ -38,7 +55,7 @@
 │   ├── miyabi-todos.md          # /miyabi-todos - TODO検出
 │   └── security-scan.md         # /security-scan - セキュリティスキャン
 │
-├── hooks/                       # Codex Hooks（4個）
+├── hooks/                       # Claude Hooks（4個）
 │   ├── auto-format.sh           # 自動フォーマット（ESLint/Prettier）
 │   ├── validate-typescript.sh   # TypeScript検証（型チェック）
 │   ├── log-commands.sh          # コマンドログ（LDD準拠）
@@ -140,10 +157,10 @@ miyabi --help      # CLIヘルプ表示
 
 ## 🔌 MCP Servers
 
-Agentic OSは5つのMCPサーバーを統合し、Codexの機能を拡張しています。
+Agentic OSは5つのMCPサーバーを統合し、Claude Codeの機能を拡張しています。
 
 ### 設定ファイル
-`.codex/mcp.json` に全MCPサーバーが定義されています。
+`.claude/mcp.json` に全MCPサーバーが定義されています。
 
 ### 利用可能なMCPサーバー
 
@@ -189,7 +206,7 @@ uvicorn main:app --port 8888
 
 ### MCPサーバーの有効化/無効化
 
-`.codex/mcp.json` の `disabled` フラグで制御:
+`.claude/mcp.json` の `disabled` フラグで制御:
 
 ```json
 {
@@ -256,7 +273,7 @@ Agent実行イベントをMiyabi Dashboardに送信
 
 ```bash
 # 設定ファイルコピー
-cp .codex/settings.example.json .codex/settings.local.json
+cp .claude/settings.example.json .claude/settings.local.json
 
 # 環境変数設定
 cp .env.example .env
@@ -266,7 +283,7 @@ vim .env  # API keys設定
 ### 2. カスタムコマンド実行
 
 ```bash
-# Codex内で実行
+# Claude Code内で実行
 /test          # テスト実行
 /agent-run     # Agent実行
 /verify        # 動作確認
@@ -276,21 +293,21 @@ vim .env  # API keys設定
 ### 3. フック有効化
 
 ```bash
-cd .codex/hooks
+cd .claude/hooks
 chmod +x *.sh
 
 # Gitフックとして登録（オプション）
 # Option 1: 自動フォーマットのみ
-ln -s ../../.codex/hooks/auto-format.sh .git/hooks/pre-commit
+ln -s ../../.claude/hooks/auto-format.sh .git/hooks/pre-commit
 
 # Option 2: Rust検証のみ
-ln -s ../../.codex/hooks/validate-rust.sh .git/hooks/pre-commit
+ln -s ../../.claude/hooks/validate-rust.sh .git/hooks/pre-commit
 
 # Option 3: 両方実行（カスタムスクリプト作成）
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
-.codex/hooks/auto-format.sh
-.codex/hooks/validate-rust.sh
+.claude/hooks/auto-format.sh
+.claude/hooks/validate-rust.sh
 EOF
 chmod +x .git/hooks/pre-commit
 ```
@@ -303,7 +320,7 @@ chmod +x .git/hooks/pre-commit
 - Entity-Relation Model（完全版・簡易版）
 - Agent Workflow（21 Agents）
 - Label System（53ラベル）
-- .codex/ディレクトリ構造図
+- .claude/ディレクトリ構造図
 - MCP統合アーキテクチャ図
 - その他システム図（7図）
 
@@ -339,7 +356,7 @@ chmod +x .git/hooks/pre-commit
     "commitMessage": "conventional-japanese"
   },
   "hooks": {
-    "userPromptSubmit": ".codex/hooks/log-commands.sh"
+    "userPromptSubmit": ".claude/hooks/log-commands.sh"
   }
 }
 ```
@@ -357,9 +374,9 @@ chmod +x .git/hooks/pre-commit
 ---
 
 **最終更新**: 2025-10-12
-**統合完了**: 2025-10-12 - `.codex/diagrams/`を`docs/diagrams/`へ統合
-**管理**: Codex Autonomous System
+**統合完了**: 2025-10-12 - `.claude/diagrams/`を`docs/diagrams/`へ統合
+**管理**: Claude Code Autonomous System
 
-🤖 Generated with [Codex](https://claude.com/claude-code)
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>

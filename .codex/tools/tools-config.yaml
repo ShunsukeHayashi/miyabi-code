@@ -1,0 +1,89 @@
+version: "1.0.0"
+
+builtin_tools:
+  Read:
+    enabled: true
+    restrictions:
+      allowed_paths:
+        - "/Users/shunsuke/Dev/miyabi-private/**"
+      max_file_size_mb: 10
+
+  Write:
+    enabled: true
+    restrictions:
+      allowed_paths:
+        - "/Users/shunsuke/Dev/miyabi-private/**"
+      denied_paths:
+        - "**/.git/**"
+        - "**/node_modules/**"
+        - "**/target/**"
+
+  Edit:
+    enabled: true
+    restrictions:
+      allowed_paths:
+        - "/Users/shunsuke/Dev/miyabi-private/**"
+
+  Bash:
+    enabled: true
+    default_params:
+      timeout: 120000  # 2 minutes
+
+  Grep:
+    enabled: true
+    default_params:
+      output_mode: "files_with_matches"
+      head_limit: 100
+
+  Glob:
+    enabled: true
+
+mcp_tools:
+  - server_name: "miyabi"
+    tool_name: "github_issue_list"
+    enabled: true
+    aliases:
+      - "list-issues"
+    description: "List GitHub issues with optional filters"
+
+  - server_name: "miyabi"
+    tool_name: "github_issue_get"
+    enabled: true
+    aliases:
+      - "get-issue"
+    description: "Fetch metadata for a single GitHub issue"
+
+  - server_name: "miyabi"
+    tool_name: "knowledge_search"
+    enabled: true
+    aliases:
+      - "search-knowledge"
+    description: "Search Miyabi knowledge base"
+
+  - server_name: "miyabi"
+    tool_name: "session_spawn"
+    enabled: true
+    description: "Spawn new agent session"
+
+  - server_name: "filesystem"
+    tool_name: "read_text_file"
+    enabled: true
+    description: "Read text files"
+
+  - server_name: "context7"
+    tool_name: "get-library-docs"
+    enabled: true
+    description: "Fetch library documentation from Context7"
+
+custom_tools:
+  - name: "miyabi_analyzer"
+    script_path: ".codex/tools/custom/miyabi_analyzer.sh"
+    enabled: false
+    input_schema:
+      type: "object"
+      properties:
+        target:
+          type: "string"
+    output_format: "json"
+    timeout_ms: 30000
+    description: "Analyze Miyabi project structure and health"

@@ -1,0 +1,150 @@
+# Tools Configuration Schema
+# Codexツール管理 - Built-in / MCP / Custom tools
+
+$schema: http://json-schema.org/draft-07/schema#
+title: Tools Configuration
+description: Codexツール管理システム設定
+
+type: object
+properties:
+  version:
+    type: string
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+    description: スキーマバージョン
+
+  builtin_tools:
+    type: object
+    description: Claude Code標準ツール設定
+    properties:
+      Read:
+        $ref: '#/definitions/BuiltinToolConfig'
+      Write:
+        $ref: '#/definitions/BuiltinToolConfig'
+      Edit:
+        $ref: '#/definitions/BuiltinToolConfig'
+      Bash:
+        $ref: '#/definitions/BuiltinToolConfig'
+      Grep:
+        $ref: '#/definitions/BuiltinToolConfig'
+      Glob:
+        $ref: '#/definitions/BuiltinToolConfig'
+    additionalProperties:
+      $ref: '#/definitions/BuiltinToolConfig'
+
+  mcp_tools:
+    type: array
+    description: MCP Server提供ツール
+    items:
+      $ref: '#/definitions/MCPToolConfig'
+
+  custom_tools:
+    type: array
+    description: カスタムツール (.codex/tools/custom/)
+    items:
+      $ref: '#/definitions/CustomToolConfig'
+
+required:
+  - version
+  - builtin_tools
+  - mcp_tools
+  - custom_tools
+
+definitions:
+  BuiltinToolConfig:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        default: true
+        description: ツール有効/無効
+      default_params:
+        type: object
+        additionalProperties: true
+        description: デフォルトパラメータ
+      restrictions:
+        type: object
+        properties:
+          allowed_paths:
+            type: array
+            items:
+              type: string
+            description: 許可するパス (Glob)
+          denied_paths:
+            type: array
+            items:
+              type: string
+            description: 拒否するパス (Glob)
+          max_file_size_mb:
+            type: number
+            minimum: 0
+            description: 最大ファイルサイズ (MB)
+        description: 実行制限
+    required:
+      - enabled
+
+  MCPToolConfig:
+    type: object
+    properties:
+      server_name:
+        type: string
+        description: MCPサーバー名
+      tool_name:
+        type: string
+        description: ツール名
+      enabled:
+        type: boolean
+        default: true
+        description: ツール有効/無効
+      aliases:
+        type: array
+        items:
+          type: string
+        description: エイリアス名
+      default_params:
+        type: object
+        additionalProperties: true
+        description: デフォルトパラメータ
+      description:
+        type: string
+        description: ツールの説明
+    required:
+      - server_name
+      - tool_name
+
+  CustomToolConfig:
+    type: object
+    properties:
+      name:
+        type: string
+        pattern: '^[a-z_]+$'
+        description: ツール名 (小文字とアンダースコアのみ)
+      script_path:
+        type: string
+        description: スクリプトパス (.codex/tools/custom/配下)
+      enabled:
+        type: boolean
+        default: true
+        description: ツール有効/無効
+      input_schema:
+        type: object
+        description: 入力パラメータのJSONスキーマ
+      output_format:
+        type: string
+        enum:
+          - text
+          - json
+          - yaml
+        default: text
+        description: 出力フォーマット
+      timeout_ms:
+        type: integer
+        minimum: 0
+        maximum: 300000
+        default: 30000
+        description: タイムアウト (ミリ秒, 最大5分)
+      description:
+        type: string
+        description: ツールの説明
+    required:
+      - name
+      - script_path

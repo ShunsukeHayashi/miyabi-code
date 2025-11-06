@@ -1,0 +1,45 @@
+{
+  "auto_format": {
+    "event": "tool_after",
+    "command": ".codex/hooks/auto-format.sh",
+    "timeout_ms": 10000,
+    "enabled": false,
+    "conditions": {
+      "tool_names": ["Write", "Edit"],
+      "file_patterns": ["*.rs", "*.ts", "*.tsx", "*.js"]
+    },
+    "description": "コード自動フォーマット (Rust/TypeScript)"
+  },
+  "validate_typescript": {
+    "event": "tool_after",
+    "command": ".codex/hooks/validate-typescript.sh",
+    "timeout_ms": 15000,
+    "enabled": false,
+    "conditions": {
+      "tool_names": ["Write", "Edit"],
+      "file_patterns": ["*.ts", "*.tsx"]
+    },
+    "description": "TypeScript型チェック"
+  },
+  "log_commands": {
+    "event": "tool_after",
+    "command": ".codex/hooks/log-commands.sh",
+    "timeout_ms": 5000,
+    "enabled": true,
+    "description": "全ツール実行ログ"
+  },
+  "agent_start_log": {
+    "event": "agent_start",
+    "command": ".codex/hooks/agent-event.sh",
+    "timeout_ms": 3000,
+    "enabled": true,
+    "description": "Agent開始ログ"
+  },
+  "agent_complete_log": {
+    "event": "agent_complete",
+    "command": ".codex/hooks/agent-event.sh",
+    "timeout_ms": 3000,
+    "enabled": true,
+    "description": "Agent完了ログ"
+  }
+}
