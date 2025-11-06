@@ -1,0 +1,146 @@
+@startuml
+!theme vibrant
+
+title Miyabi Priority Matrix - Issue Distribution by Priority & Milestone
+
+scale 1.2
+
+' Define priority levels with colors
+skinparam rectangle {
+    BackgroundColor<<P0>> #D32F2F
+    BorderColor<<P0>> #B71C1C
+    FontColor<<P0>> white
+    FontSize<<P0>> 14
+    FontStyle<<P0>> bold
+}
+
+skinparam rectangle {
+    BackgroundColor<<P1>> #F57C00
+    BorderColor<<P1>> #E65100
+    FontColor<<P1>> white
+    FontSize<<P1>> 12
+    FontStyle<<P1>> bold
+}
+
+skinparam rectangle {
+    BackgroundColor<<P2>> #FBC02D
+    BorderColor<<P2>> #F9A825
+    FontColor<<P2>> #000000
+    FontSize<<P2>> 12
+}
+
+skinparam rectangle {
+    BackgroundColor<<P3>> #81C784
+    BorderColor<<P3>> #66BB6A
+    FontColor<<P3>> white
+    FontSize<<P3>> 11
+}
+
+' P0-Critical (1 issue - 2%)
+rectangle "🔥 P0-CRITICAL\n1 issue (2%)" <<P0>> as P0 {
+    card "M33: Benchmark\n#402 Full-scale SWE-bench" as P0_1
+}
+
+' P1-High (15 issues - 23%)
+rectangle "⚠️ P1-HIGH\n15 issues (23%)" <<P1>> as P1 {
+    package "M33: Benchmark (4)" {
+        card "#396 SWE-bench Epic" as P1_1
+        card "#397 AgentBench Epic" as P1_2
+        card "#400 Miyabi Wrapper" as P1_3
+        card "#403 Analysis & Submit" as P1_4
+    }
+    package "M35: Web UI (2)" {
+        card "#407 Integrated Report" as P1_5
+        card "#416 Refactor Agents" as P1_6
+    }
+    package "M36: LINE Bot (3)" {
+        card "#363 Image Assets" as P1_7
+        card "#365 Stripe Payment" as P1_8
+        card "#366 Performance Opt" as P1_9
+    }
+    package "M38: Desktop (1)" {
+        card "#635 Tauri Init" as P1_10
+    }
+    package "M39: KAMUI (3)" {
+        card "#612 KAMUI Epic" as P1_11
+        card "#615 Worktree Mgmt" as P1_12
+        card "#624 TUI Display v2" as P1_13
+    }
+    package "M41: Infra (2)" {
+        card "#558 Rust FFI" as P1_14
+        card "#669 ClickFunnels" as P1_15
+    }
+}
+
+' P2-Medium (35 issues - 55%)
+rectangle "📊 P2-MEDIUM\n35 issues (55%)" <<P2>> as P2 {
+    package "M33: Benchmark (3)" {
+        card "#398-399, #401" as P2_bench
+    }
+    package "M35: Web UI (7)" {
+        card "#430, #434, #642" as P2_ui1
+        card "#466-468" as P2_perf
+    }
+    package "M36: LINE Bot (1)" {
+        card "#372 A/B Testing" as P2_line
+    }
+    package "M38: Desktop (6)" {
+        card "#670, #679-683" as P2_desk
+    }
+    package "M39: KAMUI (5)" {
+        card "#616-618, #620-621" as P2_kamui
+    }
+    package "M40: Historical (6)" {
+        card "#532-537" as P2_hist
+    }
+    package "M41: Infra (7)" {
+        card "#559, #609-611" as P2_infra1
+        card "#745, #750-751" as P2_infra2
+    }
+}
+
+' P3-Low (13 issues - 20%)
+rectangle "📝 P3-LOW\n13 issues (20%)" <<P3>> as P3 {
+    package "M33: Benchmark (0)" {
+        card "None" as P3_bench
+    }
+    package "M35: Web UI (5)" {
+        card "#417 Business Agents" as P3_1
+        card "#424 Testing" as P3_2
+        card "#435 Animations" as P3_3
+        card "#469 Memory Prof" as P3_4
+    }
+    package "M38: Desktop (1)" {
+        card "#708 Test Config" as P3_5
+    }
+    package "M39: KAMUI (2)" {
+        card "#619 Bridge Crate" as P3_6
+    }
+    package "M40: Historical (1)" {
+        card "#532 Epic (P3)" as P3_7
+    }
+    package "M41: Infra (4)" {
+        card "#746, #774" as P3_8
+    }
+}
+
+' Add legend
+legend bottom
+  |= Priority |= Count |= % |= Description |
+  | 🔥 P0-Critical | 1 | 2% | Production down, data loss, security |
+  | ⚠️ P1-High | 15 | 23% | Major features, significant bugs |
+  | 📊 P2-Medium | 35 | 55% | Standard features, regular bugs |
+  | 📝 P3-Low | 13 | 20% | Nice-to-have, minor improvements |
+  |= **Total** |= **64** |= **100%** |= |
+endlegend
+
+note as N1
+  **Highest Priority Items:**
+  1. #402 (P0) - Full SWE-bench evaluation
+  2. #612 (P1) - KAMUI 4D Epic
+  3. #635 (P1) - Desktop App Init
+  4. #396-397 (P1) - Benchmark Epics
+  5. #615 (P1) - Worktree Management
+end note
+
+@enduml

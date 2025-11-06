@@ -1,0 +1,149 @@
+@startuml
+!theme vibrant
+
+title Miyabi Issue Distribution - 64 Open Issues (2025-11-06)
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 12
+skinparam titleFontSize 18
+skinparam titleFontStyle bold
+
+' Define colors for milestones
+skinparam package<<benchmark>> {
+    BackgroundColor #E1BEE7
+    BorderColor #673AB7
+    FontColor #673AB7
+}
+
+skinparam package<<webui>> {
+    BackgroundColor #BBDEFB
+    BorderColor #2196F3
+    FontColor #2196F3
+}
+
+skinparam package<<linebot>> {
+    BackgroundColor #E1BEE7
+    BorderColor #9C27B0
+    FontColor #9C27B0
+}
+
+skinparam package<<desktop>> {
+    BackgroundColor #B2EBF2
+    BorderColor #00BCD4
+    FontColor #00BCD4
+}
+
+skinparam package<<kamui>> {
+    BackgroundColor #FFCDD2
+    BorderColor #F44336
+    FontColor #F44336
+}
+
+skinparam package<<historical>> {
+    BackgroundColor #DCEDC8
+    BorderColor #8BC34A
+    FontColor #8BC34A
+}
+
+skinparam package<<infra>> {
+    BackgroundColor #FFE0B2
+    BorderColor #FF9800
+    FontColor #FF9800
+}
+
+package "Benchmark Evaluation\n(M33 - 13 issues)" <<benchmark>> {
+    rectangle "SWE-bench Pro Epic\n#396" as swe
+    rectangle "Sub-Issues\n#398-403\n(6 issues)" as swe_sub
+    rectangle "AgentBench Epic\n#397" as agent
+    rectangle "Sub-Issues\n#404-407\n(4 issues)" as agent_sub
+    rectangle "ClickFunnels\n#669" as click
+
+    swe -down-> swe_sub
+    agent -down-> agent_sub
+}
+
+package "Web UI Complete\n(M35 - 14 issues)" <<webui>> {
+    rectangle "Refactoring\n#416, #417" as refactor
+    rectangle "Testing\n#424" as test
+    rectangle "Mobile/PWA\n#430" as mobile
+    rectangle "UI Features\n#434, #435\n#642, #643" as ui
+    rectangle "DAG/Workflow\n#649, #651" as dag
+    rectangle "Performance\n#466-469\n(4 issues)" as perf
+}
+
+package "LINE Bot Release\n(M36 - 4 issues)" <<linebot>> {
+    rectangle "Image Prep\n#363" as img
+    rectangle "Stripe\n#365" as stripe
+    rectangle "Performance\n#366" as line_perf
+    rectangle "A/B Testing\n#372" as ab
+}
+
+package "Desktop App MVP\n(M38 - 8 issues)" <<desktop>> {
+    rectangle "Init + Tauri\n#635" as init
+    rectangle "Tmux Integration\n#670" as tmux
+    rectangle "Features\n#679-684\n(6 issues)" as desk_feat
+    rectangle "Tests\n#708" as desk_test
+
+    init -down-> tmux
+    init -down-> desk_feat
+}
+
+package "KAMUI 4D Integration\n(M39 - 9 issues)" <<kamui>> {
+    rectangle "Epic\n#612" as kamui_epic
+    rectangle "Worktree Mgmt\n#615" as worktree
+    rectangle "TUI Display\n#616, #624" as tui
+    rectangle "Git Graph\n#617" as git
+    rectangle "Agent Monitor\n#618" as monitor
+    rectangle "Bridge/API\n#619, #620" as bridge
+    rectangle "3D Dashboard\n#621" as dash3d
+
+    kamui_epic -down-> worktree
+    kamui_epic -down-> tui
+    kamui_epic -down-> git
+    kamui_epic -down-> monitor
+    kamui_epic -down-> bridge
+    kamui_epic -down-> dash3d
+}
+
+package "Historical AI Project\n(M40 - 6 issues)" <<historical>> {
+    rectangle "Epic\n#532" as hist_epic
+    rectangle "RAG Pipeline\n#533" as rag
+    rectangle "Character AI\n#534" as char
+    rectangle "API Server\n#535" as api
+    rectangle "UI\n#536" as hist_ui
+    rectangle "Business\n#537" as biz
+
+    hist_epic -down-> rag
+    hist_epic -down-> char
+    hist_epic -down-> api
+}
+
+package "Core Infrastructure\n(M41 - 10 issues)" <<infra>> {
+    rectangle "SDK Integration\n#558, #559" as sdk
+    rectangle "Planning Spikes\n#609-611\n(3 issues)" as spikes
+    rectangle "Operations\n#745, #746\n#750, #751\n(4 issues)" as ops
+    rectangle "Lark Sync\n#774" as lark
+}
+
+' Show relationships between milestones
+kamui_epic ..> init : enables
+refactor ..> init : supports
+sdk ..> agent : integrates
+
+note right of swe
+  **Priority Distribution**
+  P0: 1 issue (2%)
+  P1: 15 issues (23%)
+  P2: 35 issues (55%)
+  P3: 13 issues (20%)
+end note
+
+note left of kamui_epic
+  **Agent Distribution**
+  codegen: 28
+  coordinator: 9
+  deployment: 5
+  review: 4
+end note
+
+@enduml

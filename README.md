@@ -6,6 +6,9 @@ Miyabi の Agent ステータス、Issue 一覧、開発進捗をリアルタイ
 
 ---
 
+> ⚠️ **Restructuring Notice (November 6, 2025 – February 28, 2026)**  
+> Miyabi is in the middle of the ecosystem restructuring described in `.ai/plans/MASTER_RESTRUCTURING_PLAN.md`. During this window the repository layout, crate boundaries, and deployment workflows will evolve. Expect breaking moves (e.g., crate extraction, new package namespaces) on a weekly cadence. Track week-by-week progress in `.ai/metrics/restructuring-progress.md` once published and report blockers via GitHub issues tagged `restructuring`.
+
 ## 📊 Features
 
 - **Agent Status Monitor**: 7つのAgent (Coordinator, CodeGen, Review, PR, Deployment, Issue, Refresher) の実行状況をリアルタイム表示
@@ -15,65 +18,147 @@ Miyabi の Agent ステータス、Issue 一覧、開発進捗をリアルタイ
 
 ---
 
-## 🚀 Quick Start
+## 🧭 Architecture Overview
 
-**🚀 New Commands • 📚 8000+ Lines Docs (Quality: 98/100) • 📦 Single Binary (8.0MB) • ✅ 577 Tests • 🎯 UX Score: 10.5/10**
+Miyabi now follows a three-layer architecture aligned with the restructuring roadmap:
 
-```bash
-cd miyabi-dashboard
-npm install
+1. **Foundation Layer** – Core libraries that model data, persistence, LLM access, observability, and Git orchestration. These crates are the reusable building blocks slated for crates.io publication.
+2. **Platform Layer** – The runtime that powers Miyabi itself: autonomous agents, orchestrator, workflow DSL, approval and session systems, and the APIs that expose them.
+3. **Integrations Layer** – User experiences and channel adapters (CLI, desktop, dashboards, Discord/LINE/Telegram bridges, narration, visualization) that sit on top of the platform.
+
+```
+          Integrations Layer
+   ┌──────────────────────────────┐
+   │  Web UI · Desktop · Bots     │
+   │  Voice Guide · Visualizers   │
+   └────────▲──────────┬──────────┘
+            │          │ Events / APIs
+   ┌────────┴──────────▼──────────┐
+   │        Platform Layer         │
+   │  Agents · Orchestrator · CLI  │
+   │  Workflow · MCP · Web API     │
+   └────────▲──────────┬──────────┘
+            │          │ SDK / Types
+   ┌────────┴──────────▼──────────┐
+   │       Foundation Layer        │
+   │  Types · LLM · Knowledge      │
+   │  Persistence · Telemetry      │
+   └──────────────────────────────┘
 ```
 
-**📚 Learn More**: [For Beginners 👶](docs/tutorials/MIYABI_FOR_BEGINNERS.md) | [Release Notes](https://github.com/ShunsukeHayashi/miyabi-private/releases/tag/v0.1.1) | [3-Step Quick Start 🚀](docs/QUICK_START_3STEPS.md) | [Orchestra Guide 🎭](.claude/MIYABI_ORCHESTRA_INTEGRATION.md) | [tmux Quick Start ⌨️](docs/TMUX_QUICKSTART.md)
+Foundation crates are being hardened first (Phase 0–2), Platform crates are extracted and simplified next (Phase 2–3), and Integrations settle once the new APIs are stable (Phase 4–5). Follow the restructuring plan for detailed timelines.
 
-`.env.local` を作成：
+## 📦 Crate Catalog (53)
+
+The table below captures every crate or package tracked during the restructuring. Status reflects the current state (some specs still need Cargo manifests, and a few frontends are TypeScript packages scheduled for crate extraction).
+
+| Layer | Package | Description | Status |
+|-------|---------|-------------|--------|
+| Foundation | `miyabi-benchmark` | Benchmark evaluation harness against SWE-bench Pro, AgentBench, HAL, and Galileo suites. | Rust crate |
+| Foundation | `miyabi-core` | Shared config, logging, retry, and filesystem primitives used by every Miyabi crate. | Rust crate |
+| Foundation | `miyabi-dag` | Task DAG builder for the Ω-system allocation phase (θ₃). | Rust crate |
+| Foundation | `miyabi-def-core` | Schema definitions and resolvers for the YAML-based Miyabi knowledge graph. | Rust crate |
+| Foundation | `miyabi-knowledge` | Vector knowledge service with embeddings, ingestion, and search pipelines. | Rust crate |
+| Foundation | `miyabi-llm` | Provider-agnostic LLM interface orchestrating requests and streaming responses. | Rust crate |
+| Foundation | `miyabi-llm-anthropic` | Anthropic Claude backend implementing the unified LLM traits. | Rust crate |
+| Foundation | `miyabi-llm-core` | Core traits, tokenizer utilities, and error types for Miyabi LLM providers. | Rust crate |
+| Foundation | `miyabi-llm-google` | Google Gemini API client for the LLM abstraction. | Rust crate |
+| Foundation | `miyabi-llm-openai` | OpenAI GPT provider implementation for the LLM abstraction. | Rust crate |
+| Foundation | `miyabi-persistence` | SQLite persistence layer tracking 5-Worlds execution and telemetry. | Rust crate |
+| Foundation | `miyabi-pty-manager` | Cross-platform PTY orchestration with cancellation and output streaming. | Rust crate |
+| Foundation | `miyabi-search` | Semantic vector search layer built on top of miyabi-knowledge and Qdrant. | Design spec (manifest pending) |
+| Foundation | `miyabi-security` | Security analysis toolkit for generated code: static scans, sandbox orchestration, threat reports. | Design spec (manifest pending) |
+| Foundation | `miyabi-telemetry` | Unified logging, metrics, and tracing primitives shared across agents. | Design spec (manifest pending) |
+| Foundation | `miyabi-types` | Canonical type system for agents, tasks, issues, workflows, and metrics. | Rust crate |
+| Foundation | `miyabi-worktree` | Git worktree lifecycle manager with pooling, cleanup, and state tracking. | Rust crate |
+| Platform | `miyabi-a2a` | Agent-to-Agent datastore and messaging bridge for multi-agent workflows. | Rust crate |
+| Platform | `miyabi-agent-business` | Business domain specialist agents covering strategy, finance, and GTM. | Rust crate |
+| Platform | `miyabi-agent-codegen` | Code generation agent with multi-worktree execution and retry orchestration. | Rust crate |
+| Platform | `miyabi-agent-coordinator` | Coordinator agent that decomposes GitHub issues into executable DAGs. | Rust crate |
+| Platform | `miyabi-agent-core` | Base traits, lifecycles, and utilities shared across all agent crates. | Rust crate |
+| Platform | `miyabi-agent-integrations` | Adapters that let agents call external services such as Discord and Potpie. | Rust crate |
+| Platform | `miyabi-agent-issue` | Issue triage agent inferring labels, complexity, and implementation guidance. | Rust crate |
+| Platform | `miyabi-agent-review` | Review agent performing lint, security, and quality scoring for patches. | Rust crate |
+| Platform | `miyabi-agent-swml` | Implementation of Shunsuke’s World Model Logic with convergence guarantees. | Rust crate |
+| Platform | `miyabi-agent-workflow` | Workflow automation agents for PR creation, deployment, and status updates. | Rust crate |
+| Platform | `miyabi-agents` | Legacy umbrella crate aggregating the original seven Miyabi agents. | Rust crate |
+| Platform | `miyabi-approval` | Human-in-the-loop approval gates and policy enforcement for risky operations. | Rust crate |
+| Platform | `miyabi-cli` | Primary command-line interface exposing Miyabi operations to operators. | Rust crate |
+| Platform | `miyabi-e2e-tests` | End-to-end regression harness covering multi-agent runs and CLI flows. | Rust crate |
+| Platform | `miyabi-integration` | Rust facade (`MiyabiClient`) consumed by external tooling such as Codex. | Design spec (manifest pending) |
+| Platform | `miyabi-mcp-server` | Model Context Protocol server exposing agents to compatible IDEs and runtimes. | Rust crate |
+| Platform | `miyabi-modes` | YAML-driven mode system for configuring agent personalities, tools, and prompts. | Rust crate |
+| Platform | `miyabi-orchestrator` | HTTP control plane for long-lived Claude Code sessions, scheduling, and telemetry. | Rust crate |
+| Platform | `miyabi-session-manager` | Session registry that hands off Claude contexts between agents safely. | Rust crate |
+| Platform | `miyabi-web-api` | Axum service that backs the dashboard and external API clients. | Rust crate |
+| Platform | `miyabi-web-ui-api` | Internal API crate powering dashboard widgets and data hydration. | Rust crate |
+| Platform | `miyabi-workflow` | Composable workflow DSL for building complex agent orchestration graphs. | Rust crate |
+| Integrations | `codex-miyabi` | Thin CLI to exercise miyabi-integration for Codex × Miyabi Phase 1. | Rust crate |
+| Integrations | `miyabi-claudable` | Claudable API client used for generating UI scaffolding and prompts. | Rust crate |
+| Integrations | `miyabi-desktop (frontend)` | Electron/Vite frontend targeting local operators during the restructure. | TypeScript package (crate planned) |
+| Integrations | `miyabi-desktop (tauri)` | Tauri-based desktop shell bundling the CLI and orchestrator for offline control. | Rust crate |
+| Integrations | `miyabi-discord-mcp-server` | MCP-compliant bridge for running Miyabi agents inside Discord channels. | Rust crate |
+| Integrations | `miyabi-github` | GitHub REST API client with issue, PR, and label orchestration helpers. | Rust crate |
+| Integrations | `miyabi-historical` | Historical persona services delivering Tokugawa/Oda/Ryoma advisor endpoints. | Rust crate |
+| Integrations | `miyabi-line` | LINE messaging adapter delivering NLP-driven issue creation and notifications. | Rust crate |
+| Integrations | `miyabi-telegram` | Telegram bot adapter for agent control, alerts, and conversational ops. | Rust crate |
+| Integrations | `miyabi-tui` | Tokio/ratatui terminal UI for operators preferring keyboard workflows. | Rust crate |
+| Integrations | `miyabi-viz` | Visualization tools for dependency graphs and architecture heatmaps. | Rust crate |
+| Integrations | `miyabi-voice-guide` | VOICEVOX-powered narration hooks broadcasting agent telemetry. | Rust crate |
+| Integrations | `miyabi-web-ui (frontend)` | Next.js/Vite dashboard surface for monitoring agents and progress. | TypeScript package (crate planned) |
+| Integrations | `miyabi-webhook` | Signature-verified webhook relay for agent-to-agent event fan-out. | Rust crate |
+
+## 🚀 Quick Start (Updated November 6, 2025)
+
+**Prerequisites**
+- Node.js ≥ 20 (aligns with Next.js 14 runtime requirements)
+- pnpm ≥ 9 (recommended; `pnpm-lock.yaml` is canonical) or npm ≥ 10
+- GitHub personal access token with `repo` scope for full dashboard functionality
+
+**Install dependencies**
 
 ```bash
-GITHUB_TOKEN=your_github_personal_access_token
+pnpm install
+# or: npm install
+```
+
+**Configure environment**
+
+Create `.env.local` at the repository root (or copy from `.env.example`):
+
+```bash
+# Required: GitHub Access
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxx
 GITHUB_REPO=customer-cloud/miyabi-private
+
+# Required: LLM Provider (at least one)
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxx  # Primary (Claude 3.5 Sonnet)
+
+# Optional: Additional LLM Providers
+# OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx          # Fallback (GPT-4o)
+# GOOGLE_API_KEY=xxxxxxxxxxxxxxxx              # Alternative (Gemini 1.5 Pro)
+# GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxx            # Fast inference (Llama 3)
 ```
 
-**v0.1.1の新機能** ✨:
-- 🚀 `miyabi work-on` - シンプルな新コマンド
-- 🎯 `miyabi init --interactive` - 対話形式のセットアップ
-- 📚 8000+行の新ドキュメント（品質: 98/100）
-- 🎭 Miyabi Orchestra v2.0完全統合
-- 📐 YAML Schema validation system
-- 🎨 プロアクティブなエラーメッセージ
+**Note**: Most Miyabi agents require `ANTHROPIC_API_KEY`. For full documentation of all environment variables, see [.env.example](.env.example).
 
-権限: `repo` (Full control of private repositories)
-
-### 3. 開発サーバー起動
+**Run the dashboard locally**
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
-http://localhost:3000 でアクセス
+Open http://localhost:3000 in your browser. Hot reloading is enabled by default.
 
-#### 🚀 Quick Start Guides (Phase 4 新規追加)
-- **3分でセットアップ**: [QUICK_START_3STEPS.md](docs/QUICK_START_3STEPS.md) - 3ステップで始めるMiyabi Orchestra
-- **あなた専用ガイド**: [YOUR_CURRENT_SETUP.md](docs/YOUR_CURRENT_SETUP.md) - Claude Code interactive mode完全ガイド
-- **tmux 5分入門**: [TMUX_QUICKSTART.md](docs/TMUX_QUICKSTART.md) - tmux基本操作
-- **レイアウト集**: [TMUX_LAYOUTS.md](docs/TMUX_LAYOUTS.md) - ASCII art視覚化
-- **UI/UX改善**: [VISUAL_GUIDE.md](docs/VISUAL_GUIDE.md) - インターフェース最適化
-
-#### 🎭 Orchestra Integration (Phase 4 新規追加)
-- **完全統合ガイド**: [MIYABI_ORCHESTRA_INTEGRATION.md](.claude/MIYABI_ORCHESTRA_INTEGRATION.md) - miyabi_def統合 (3.0.0)
-- **Master Configuration**: [orchestra-config.yaml](.claude/orchestra-config.yaml) - 490行の完全設定
-- **YAML Schema**: [orchestra-config.schema.yaml](.claude/schemas/orchestra-config.schema.yaml) - JSON Schema Draft 07
-- **Schema Documentation**: [schemas/README.md](.claude/schemas/README.md) - スキーマ完全ガイド
-
-#### 📖 従来のガイド
-- **🚀 初心者向け**: [Miyabi for Beginners](docs/tutorials/MIYABI_FOR_BEGINNERS.md) - 完全ガイド
-- **⚙️ Operations**: [Getting Started](docs/operations/GETTING_STARTED.md) - 運用開始ガイド
-- **🤖 Agent詳細**: [AGENTS.md](AGENTS.md) - 全21 Agents
-- **📚 全ドキュメント**: [docs/README.md](docs/README.md) - 458ファイル完全インデックス
+**Build, lint, and test**
 
 ```bash
-npm run build
-npm run start
+pnpm lint
+pnpm build
+pnpm start
 ```
+
+Optional subsystems such as VOICEVOX narration or orchestration simulators are documented in `docs/integration/` and `.claude/`. Expect command names and package locations to shift as Phase 2+ extractions land; check release notes and the restructuring metrics dashboard before automating against internal paths.
 
 ---
 
@@ -89,6 +174,19 @@ npm run start
 ## 📂 Project Structure
 
 ```
+miyabi-private/
+├─ app/                       # Next.js App Router entrypoints and route handlers
+├─ components/                # Reusable UI primitives (moving to packages/ during Phase 4)
+├─ services/                  # GitHub + orchestration data fetching helpers
+├─ lib/                       # Client/server shared utilities
+├─ crates/                    # Rust workspace (orchestrator, LLM SDK, analysis tooling)
+├─ scripts/                   # Automation and CLI wrappers (to be split per app in Phase 5)
+├─ docs/                      # Product, integration, and restructuring documentation
+├─ .ai/                       # Planning artifacts including MASTER_RESTRUCTURING_PLAN.md
+└─ packages/ (planned)        # Target location for extracted TypeScript libraries
+```
+
+Phase 0–2 work will rehome selected crates into dedicated repositories and populate `packages/` with typed SDKs consumed by the dashboard. If automation depends on path names, subscribe to release notes for migration timelines.
 
 **詳細ドキュメント**:
 - [User Guide](crates/miyabi-knowledge/USER_GUIDE.md)

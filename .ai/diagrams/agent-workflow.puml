@@ -1,0 +1,139 @@
+@startuml
+!theme vibrant
+
+title Miyabi Agent Workflow - Issue Assignment & Execution Flow
+
+skinparam actorStyle awesome
+skinparam rectangleBackgroundColor #E3F2FD
+skinparam rectangleBorderColor #2196F3
+skinparam arrowColor #1976D2
+skinparam noteBackgroundColor #FFF9C4
+skinparam noteBorderColor #F57F17
+
+' Actors
+actor "User" as user #FFB74D
+actor "CoordinatorAgent\n(9 issues)" as coordinator #FF79C6
+actor "CodeGenAgent\n(28 issues)" as codegen #00D9FF
+actor "ReviewAgent\n(4 issues)" as review #00FF88
+actor "DeploymentAgent\n(5 issues)" as deploy #FF4444
+
+' Issue Sources
+rectangle "Issue Board\n64 Open Issues" as board {
+    rectangle "📥 Pending\n(All issues)" as pending
+    rectangle "🎯 Planning\n(10 issues)" as planning
+    rectangle "🏗️ Implementation\n(45 issues)" as impl
+    rectangle "🧪 Testing\n(5 issues)" as testing
+    rectangle "🚀 Deployment\n(4 issues)" as deployment
+}
+
+' Milestone Groups
+package "Milestones" {
+    rectangle "M33: Benchmark\n13 issues" as m33 #E1BEE7
+    rectangle "M35: Web UI\n14 issues" as m35 #BBDEFB
+    rectangle "M36: LINE Bot\n4 issues" as m36 #E1BEE7
+    rectangle "M38: Desktop\n8 issues" as m38 #B2EBF2
+    rectangle "M39: KAMUI\n9 issues" as m39 #FFCDD2
+    rectangle "M40: Historical\n6 issues" as m40 #DCEDC8
+    rectangle "M41: Infrastructure\n10 issues" as m41 #FFE0B2
+}
+
+' Worktree System
+rectangle "Git Worktree System" as worktree {
+    rectangle "Parallel Execution\nMulti-Agent" as parallel
+    rectangle "Isolation\nPer-Issue Branch" as isolation
+}
+
+' Workflow
+user --> board : Create/Prioritize
+board --> pending
+
+pending --> coordinator : Epic Coordination
+pending --> codegen : Feature Development
+pending --> review : Code Review
+pending --> deploy : Infrastructure
+
+coordinator --> planning : Plan Phase
+codegen --> impl : Implementation Phase
+review --> testing : Review Phase
+deploy --> deployment : Deploy Phase
+
+planning --> m33
+planning --> m39
+planning --> m40
+
+impl --> m35
+impl --> m38
+impl --> m39
+impl --> m41
+
+testing --> m33
+testing --> m35
+
+deployment --> m36
+deployment --> m41
+
+' Worktree integration
+coordinator --> worktree : Branch Creation
+codegen --> worktree : Parallel Work
+review --> worktree : Review Branch
+deploy --> worktree : Deploy Branch
+
+worktree --> parallel
+worktree --> isolation
+
+' Completion flow
+parallel --> user : PR Created
+isolation --> user : Results
+
+note right of coordinator
+  **Coordinator Agent**
+  - Epic management
+  - Task breakdown
+  - Dependency tracking
+  - Issues: #396, #397, #404-406, #559, #612
+end note
+
+note right of codegen
+  **CodeGen Agent**
+  - Feature implementation
+  - Bug fixes
+  - Refactoring
+  - 28 issues assigned
+  - Most active agent
+end note
+
+note right of review
+  **Review Agent**
+  - Code quality
+  - Documentation
+  - Analysis reports
+  - Issues: #401, #403, #407
+end note
+
+note right of deploy
+  **Deployment Agent**
+  - CI/CD setup
+  - Infrastructure
+  - Environment config
+  - Issues: #398, #402, #558, #774
+end note
+
+note bottom of worktree
+  **Worktree Isolation**
+  - Each issue gets dedicated branch
+  - Parallel execution without conflicts
+  - Clean separation of concerns
+  - Automatic cleanup on completion
+end note
+
+legend bottom left
+  |= Phase |= Count |= Agent |
+  | 📥 Pending | All | Unassigned |
+  | 🎯 Planning | 10 | Coordinator |
+  | 🏗️ Implementation | 45 | CodeGen |
+  | 🧪 Testing | 5 | Review |
+  | 🚀 Deployment | 4 | Deployment |
+  |= **Total** |= **64** |= |
+endlegend
+
+@enduml

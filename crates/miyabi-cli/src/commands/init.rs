@@ -107,7 +107,18 @@ impl InitCommand {
         println!("  {} ReviewAgent (Quality checks)", "✅".green());
         println!();
 
-        self.execute_simple().await?;
+        let repo_visibility = if connect_github {
+            let make_private = Confirm::with_theme(&ColorfulTheme::default())
+                .with_prompt("Create as a PRIVATE GitHub repository?")
+                .default(true)
+                .interact()
+                .map_err(|e| CliError::GitConfig(e.to_string()))?;
+            Some(make_private)
+        } else {
+            None
+        };
+
+        self.execute_simple(repo_visibility).await?;
 
         // Interactive-specific success message
         println!();
@@ -125,7 +136,90 @@ impl InitCommand {
         Ok(())
     }
 
-    async fn execute_simple(&self) -> Result<()> {
+    fn create_github_repository(&self, project_dir: &Path, private_repo: bool) -> Result<()> {
+        use std::process::Command;
+
+        println!(
+            "  {} Creating GitHub repository ({})...",
+            "🔗".green(),
+            if private_repo { "private" } else { "public" }
+        );
+
+        let gh_check = Command::new("gh").arg("--version").output().map_err(|_| {
+            CliError::GitConfig(
+                "gh CLI not found. Install from https://cli.github.com/".to_string(),
+            )
+        })?;
+
+        if !gh_check.status.success() {
+            return Err(CliError::GitConfig(
+                "gh CLI could not be executed. Verify installation.".to_string(),
+            ));
+        }
+
+        let gh_auth = Command::new("gh")
+            .args(["auth", "status"])
+            .output()
+            .map_err(|e| CliError::GitConfig(format!("Failed to check gh auth status: {}", e)))?;
+
+        if !gh_auth.status.success() {
+            return Err(CliError::GitConfig(
+                "GitHub authentication required. Run: gh auth login".to_string(),
+            ));
+        }
+
+        let add_status = Command::new("git")
+            .args(["add", "."])
+            .current_dir(project_dir)
+            .status()
+            .map_err(|e| CliError::GitConfig(format!("Failed to stage files: {}", e)))?;
+
+        if !add_status.success() {
+            return Err(CliError::GitConfig(
+                "Failed to stage files for initial commit".to_string(),
+            ));
+        }
+
+        let commit_output = Command::new("git")
+            .args(["commit", "-m", "chore: bootstrap Miyabi project"])
+            .current_dir(project_dir)
+            .output()
+            .map_err(|e| CliError::GitConfig(format!("Failed to run git commit: {}", e)))?;
+
+        if !commit_output.status.success() {
+            let stderr = String::from_utf8_lossy(&commit_output.stderr);
+            return Err(CliError::GitConfig(format!(
+                "Failed to create initial commit: {}",
+                stderr.trim()
+            )));
+        }
+
+        let mut args = vec!["repo", "create", &self.name];
+        args.push(if private_repo {
+            "--private"
+        } else {
+            "--public"
+        });
+        args.extend_from_slice(&["--source=.", "--remote=origin", "--push"]);
+
+        let gh_create = Command::new("gh")
+            .args(&args)
+            .current_dir(project_dir)
+            .output()
+            .map_err(|e| CliError::GitConfig(format!("Failed to run gh repo create: {}", e)))?;
+
+        if !gh_create.status.success() {
+            let stderr = String::from_utf8_lossy(&gh_create.stderr);
+            return Err(CliError::GitConfig(format!(
+                "gh repo create failed: {}",
+                stderr.trim()
+            )));
+        }
+
+        Ok(())
+    }
+
+    fn validate_project_name    async fn execute_simple(&self, repo_visibility: Option<bool>) -> Result<()> {
         if !self.interactive {
             println!("{}", "🚀 Initializing new Miyabi project...".cyan().bold());
         }
@@ -144,6 +238,32 @@ impl InitCommand {
 
         // Create configuration files
         self.create_config_files(&project_dir)?;
+
+        if let Some(private_repo) = repo_visibility {
+            match self.create_github_repository(&project_dir, private_repo) {
+                Ok(_) => println!(
+                    "  {} GitHub repository created ({}).",
+                    "✅".green(),
+                    if private_repo { "private" } else { "public" }
+                ),
+                Err(err) => {
+                    eprintln!(
+                        "  {} Failed to create GitHub repository: {}",
+                        "⚠️".yellow(),
+                        err
+                    );
+                    eprintln!(
+                        "     Run `gh repo create {} {} --source=. --remote=origin --push` later.",
+                        self.name,
+                        if private_repo {
+                            "--private"
+                        } else {
+                            "--public"
+                        }
+                    );
+                }
+            }
+        }
 
         println!();
         println!("{}", "✅ Project initialized successfully!".green().bold());

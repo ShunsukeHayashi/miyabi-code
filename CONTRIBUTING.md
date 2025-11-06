@@ -100,6 +100,26 @@ git --version  # v2.40+
    # Edit .env with your API keys
    ```
 
+   **Required environment variables**:
+   - `GITHUB_TOKEN` - GitHub personal access token ([Generate here](https://github.com/settings/tokens))
+     - Scopes: `repo`, `workflow`, `write:packages`
+     - **Recommended**: Use `gh auth login` instead for better security
+   - `ANTHROPIC_API_KEY` - Claude API key ([Get from console.anthropic.com](https://console.anthropic.com/))
+     - Required for all AI agents
+     - Models: Claude 3.5 Sonnet (primary)
+
+   **Optional environment variables** (see [.env.example](.env.example) for full list):
+   - `OPENAI_API_KEY` - OpenAI API key for GPT-4o fallback
+   - `GOOGLE_API_KEY` or `GEMINI_API_KEY` - Google Gemini API key
+   - `GROQ_API_KEY` - Groq API key for fast inference
+
+   **For local testing without LLM**:
+   Most tests will skip LLM-dependent tests automatically if API keys are not set. To run all tests:
+   ```bash
+   export ANTHROPIC_API_KEY=your_key_here
+   cargo test --all
+   ```
+
 5. **Verify setup**
    ```bash
    npm run typecheck  # Should pass with 0 errors

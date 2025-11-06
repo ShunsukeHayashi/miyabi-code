@@ -1,0 +1,74 @@
+@startgantt
+title Miyabi Project Milestones - Q4 2025 to Q2 2026
+printscale weekly
+projectscale weekly
+
+<style>
+ganttDiagram {
+    timeline {
+        BackgroundColor #E8F5E9
+    }
+    milestone {
+        BackgroundColor #4CAF50
+        FontColor white
+    }
+    task {
+        BackgroundColor #2196F3
+        FontColor white
+    }
+    closed {
+        BackgroundColor #9E9E9E
+    }
+}
+</style>
+
+' Define date range
+Project starts 2025-11-06
+
+' Completed Milestone
+[Week 12: MVP Launch (M34)] as [M34] happens at 2026-01-14
+[M34] is colored in #9E9E9E
+[M34] links to [[https://github.com/customer-cloud/miyabi-private/milestone/34]]
+
+' Active Milestones - chronological order
+[Week 16: Web UI Complete (M35)\n14 issues] as [M35] lasts 67 days and is 40% completed
+[M35] starts 2025-12-07
+[M35] is colored in #2196F3
+[M35] links to [[https://github.com/customer-cloud/miyabi-private/milestone/35]]
+
+[Core Infrastructure Q1 (M41)\n10 issues] as [M41] lasts 114 days and is 20% completed
+[M41] starts 2025-11-06
+[M41] is colored in #FF9800
+[M41] links to [[https://github.com/customer-cloud/miyabi-private/milestone/41]]
+
+[Week 18: LINE Bot (M36)\n4 issues] as [M36] lasts 111 days and is 30% completed
+[M36] starts 2025-11-06
+[M36] is colored in #9C27B0
+[M36] links to [[https://github.com/customer-cloud/miyabi-private/milestone/36]]
+
+[KAMUI 4D Integration (M39)\n9 issues] as [M39] lasts 115 days and is 10% completed
+[M39] starts 2025-11-06
+[M39] is colored in #F44336
+[M39] links to [[https://github.com/customer-cloud/miyabi-private/milestone/39]]
+
+[Desktop App MVP (M38)\n8 issues] as [M38] lasts 130 days and is 5% completed
+[M38] starts 2025-11-06
+[M38] is colored in #00BCD4
+[M38] links to [[https://github.com/customer-cloud/miyabi-private/milestone/38]]
+
+[Historical AI Project (M40)\n6 issues] as [M40] lasts 146 days and is 0% completed
+[M40] starts 2025-11-06
+[M40] is colored in #8BC34A
+[M40] links to [[https://github.com/customer-cloud/miyabi-private/milestone/40]]
+
+[Benchmark Evaluation (M33)\n13 issues] as [M33] lasts 167 days and is 15% completed
+[M33] starts 2025-11-06
+[M33] is colored in #673AB7
+[M33] links to [[https://github.com/customer-cloud/miyabi-private/milestone/33]]
+
+' Dependencies
+[M35] -> [M36]
+[M39] -> [M38]
+[M41] -> [M33]
+
+@endgantt
