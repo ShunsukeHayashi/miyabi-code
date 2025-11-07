@@ -1,8 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/miyabi-prompt-engine",
-    "crates/miyabi-seedance-api",
+    "crates/miyabi-tmux-orchestrator",
     "crates/miyabi-core",
     "crates/miyabi-types",
     "crates/miyabi-cli",

@@ -3112,6 +3112,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-tmux-orchestrator"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "miyabi-types"
 version = "0.1.1"
 dependencies = [
