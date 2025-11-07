@@ -1,0 +1,27 @@
+[package]
+name = "miyabi-logging-monitor"
+version = "0.1.0"
+edition = "2021"
+description = "Logging and monitoring system for Miyabi video generation pipeline"
+
+[dependencies]
+# Core
+tokio = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging & Tracing
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

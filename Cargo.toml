@@ -35,7 +35,7 @@ members = [
     "crates/miyabi-e2e-tests", "crates/miyabi-modes",  # E2E test framework
     "crates/miyabi-agent-swml",  # SWML Agent (Phase 1 implemented)
     "crates/miyabi-workflow",  # Workflow DSL - Mastra-style orchestration
-    "crates/miyabi-historical",  # Merged: miyabi-historical-ai + miyabi-historical-api
+    "crates/miyabi-historical", "crates/miyabi-logging-monitor",  # Merged: miyabi-historical-ai + miyabi-historical-api
     # "crates/miyabi-historical-ai",  # MERGED into miyabi-historical/ai module
     # "crates/miyabi-historical-api",  # MERGED into miyabi-historical/api module
 ]
