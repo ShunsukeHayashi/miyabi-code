@@ -3062,6 +3062,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "miyabi-prompt-engine"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "miyabi-session-manager"
 version = "0.1.1"
 dependencies = [

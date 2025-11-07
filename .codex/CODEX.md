@@ -325,7 +325,7 @@ Skill tool with command "rust-development"
 tmux send-keys -t <PANE_ID> "<MESSAGE>" && sleep 0.5 && tmux send-keys -t <PANE_ID> Enter
 
 # T2: Agent Startup
-tmux send-keys -t <PANE_ID> "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t <PANE_ID> Enter
+tmux send-keys -t <PANE_ID> "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t <PANE_ID> Enter
 
 # T3: Clear Session
 tmux send-keys -t <PANE_ID> "/clear" && sleep 0.5 && tmux send-keys -t <PANE_ID> Enter

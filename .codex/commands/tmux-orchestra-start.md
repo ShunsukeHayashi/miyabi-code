@@ -22,10 +22,10 @@
 
 **並列起動コマンド**:
 ```bash
-tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.1 && tmux send-keys -t %2 Enter & \
-tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.1 && tmux send-keys -t %5 Enter & \
-tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.1 && tmux send-keys -t %3 Enter & \
-tmux send-keys -t %4 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.1 && tmux send-keys -t %4 Enter & \
+tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.1 && tmux send-keys -t %2 Enter & \
+tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.1 && tmux send-keys -t %5 Enter & \
+tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.1 && tmux send-keys -t %3 Enter & \
+tmux send-keys -t %4 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.1 && tmux send-keys -t %4 Enter & \
 wait
 ```
 

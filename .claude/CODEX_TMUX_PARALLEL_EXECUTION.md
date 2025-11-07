@@ -61,12 +61,12 @@ tmux list-panes -F "#{pane_index}: #{pane_id} #{pane_current_command} #{pane_act
 
 **全6 Agentに一括起動 (Orchestra v2.0)**:
 ```bash
-tmux send-keys -t %10 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %10 Enter & \
-tmux send-keys -t %11 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %11 Enter & \
-tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %2 Enter & \
-tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %5 Enter & \
-tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %3 Enter & \
-tmux send-keys -t %4 "cd '/Users/shunsuke/Dev/miyabi-private' && cc" && sleep 0.5 && tmux send-keys -t %4 Enter & \
+tmux send-keys -t %10 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t %10 Enter & \
+tmux send-keys -t %11 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t %11 Enter & \
+tmux send-keys -t %2 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t %2 Enter & \
+tmux send-keys -t %5 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t %5 Enter & \
+tmux send-keys -t %3 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t %3 Enter & \
+tmux send-keys -t %4 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t %4 Enter & \
 wait
 ```
 
