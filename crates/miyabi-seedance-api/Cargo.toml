@@ -1,0 +1,29 @@
+[package]
+name = "miyabi-seedance-api"
+version = "0.1.0"
+edition = "2021"
+description = "BytePlus Seedance API client for Miyabi video generation"
+
+[dependencies]
+# Core
+tokio = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
