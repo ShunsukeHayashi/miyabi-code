@@ -41,7 +41,7 @@ url = "2.5"
 # http = "1.0"  # Commented out - using axum's http re-export to avoid version conflicts
 
 # JWT authentication (Issue #276) - moved from dev-dependencies
-jsonwebtoken = "9.3"
+jsonwebtoken = "10.2"
 
 # Async stream utilities
 futures = "0.3"
