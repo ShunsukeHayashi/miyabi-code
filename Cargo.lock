@@ -984,32 +984,11 @@ dependencies = [
 
 [[package]]
 name = "dirs"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
-dependencies = [
- "dirs-sys 0.4.1",
-]
-
-[[package]]
-name = "dirs"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
 dependencies = [
- "dirs-sys 0.5.0",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
-dependencies = [
- "libc",
- "option-ext",
- "redox_users 0.4.6",
- "windows-sys 0.48.0",
+ "dirs-sys",
 ]
 
 [[package]]
@@ -1020,7 +999,7 @@ checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
 dependencies = [
  "libc",
  "option-ext",
- "redox_users 0.5.2",
+ "redox_users",
  "windows-sys 0.61.2",
 ]
 
@@ -2606,7 +2585,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "dirs 6.0.0",
+ "dirs",
  "miyabi-agent-business",
  "miyabi-agent-codegen",
  "miyabi-agent-coordinator",
@@ -2699,7 +2678,7 @@ dependencies = [
  "colored",
  "comfy-table",
  "dialoguer",
- "dirs 6.0.0",
+ "dirs",
  "futures 0.3.31",
  "hostname",
  "indicatif",
@@ -2738,7 +2717,7 @@ dependencies = [
  "chrono",
  "colored",
  "config",
- "dirs 6.0.0",
+ "dirs",
  "git2",
  "hostname",
  "miyabi-llm",
@@ -2831,7 +2810,7 @@ name = "miyabi-github"
 version = "0.1.1"
 dependencies = [
  "chrono",
- "dirs 6.0.0",
+ "dirs",
  "miyabi-core",
  "miyabi-types",
  "octocrab",
@@ -2876,7 +2855,7 @@ dependencies = [
  "async-trait",
  "axum 0.7.9",
  "chrono",
- "dirs 5.0.1",
+ "dirs",
  "futures 0.3.31",
  "futures-util",
  "miyabi-core",
@@ -3260,7 +3239,7 @@ version = "0.1.1"
 dependencies = [
  "async-trait",
  "chrono",
- "dirs 5.0.1",
+ "dirs",
  "dunce",
  "futures 0.3.31",
  "git2",
@@ -4242,17 +4221,6 @@ dependencies = [
 
 [[package]]
 name = "redox_users"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
-dependencies = [
- "getrandom 0.2.16",
- "libredox",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "redox_users"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4e608c6638b9c18977b00b475ac1f28d14e84b27d8d42f70e0bf1e3dec127ac"
@@ -4851,7 +4819,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b1fdf65dd6331831494dd616b30351c38e96e45921a27745cf98490458b90bb"
 dependencies = [
- "dirs 6.0.0",
+ "dirs",
 ]
 
 [[package]]
