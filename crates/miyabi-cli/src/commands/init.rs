@@ -48,7 +48,7 @@ impl InitCommand {
         if self.interactive {
             self.execute_interactive().await
         } else {
-            self.execute_simple().await
+            self.execute_simple(Some(self.private)).await
         }
     }
 
@@ -219,7 +219,7 @@ impl InitCommand {
         Ok(())
     }
 
-    fn validate_project_name    async fn execute_simple(&self, repo_visibility: Option<bool>) -> Result<()> {
+    async fn execute_simple(&self, repo_visibility: Option<bool>) -> Result<()> {
         if !self.interactive {
             println!("{}", "🚀 Initializing new Miyabi project...".cyan().bold());
         }
