@@ -5,8 +5,9 @@ use axum::{
 use futures::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::process::Command;
 use tokio::sync::broadcast;
-use tracing::info;
+use tracing::{info, error, debug};
 
 /// WebSocket events that can be broadcasted to all connected clients
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -166,7 +167,113 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
     info!("WebSocket client disconnected");
 }
 
+/// Get agent status from tmux panes
+/// Returns a list of agents with their current status
+fn get_agent_status_from_tmux() -> Vec<(String, String)> {
+    // Try to get panes from miyabi-orchestra session
+    let output = Command::new("tmux")
+        .args(&[
+            "list-panes",
+            "-t",
+            "miyabi-orchestra",
+            "-F",
+            "#{pane_id}:#{pane_current_command}:#{pane_title}",
+        ])
+        .output();
+
+    let output = match output {
+        Ok(output) if output.status.success() => output,
+        Ok(output) => {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            debug!("tmux list-panes failed: {}", stderr);
+            return Vec::new();
+        }
+        Err(e) => {
+            error!("Failed to execute tmux command: {}", e);
+            return Vec::new();
+        }
+    };
+
+    let output_str = String::from_utf8_lossy(&output.stdout);
+    let mut agents = Vec::new();
+
+    // Known agent pane mapping (based on miyabi-orchestra setup)
+    let agent_names = vec![
+        "Coordinator",
+        "CodeGen",
+        "Review",
+        "PR",
+        "Deployment",
+        "Issue",
+        "Refresher",
+    ];
+
+    for (idx, line) in output_str.lines().enumerate() {
+        if line.trim().is_empty() {
+            continue;
+        }
+
+        let parts: Vec<&str> = line.split(':').collect();
+        if parts.len() < 2 {
+            continue;
+        }
+
+        let _pane_id = parts[0];
+        let command = parts[1];
+
+        // Determine agent name and status
+        let agent_name = if idx < agent_names.len() {
+            format!("{}Agent", agent_names[idx])
+        } else {
+            format!("Agent{}", idx)
+        };
+
+        // Determine status based on command
+        let status = if command.contains("claude") {
+            "Running"
+        } else if command.contains("bash") || command.contains("zsh") {
+            "Idle"
+        } else {
+            "Unknown"
+        };
+
+        agents.push((agent_name, status.to_string()));
+    }
+
+    agents
+}
+
+/// Helper function to start a background task that broadcasts real agent status
+pub fn start_agent_monitor(state: Arc<WsState>) {
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(1));
+
+        loop {
+            interval.tick().await;
+
+            // Get agent status from tmux
+            let agents = get_agent_status_from_tmux();
+
+            if agents.is_empty() {
+                debug!("No agents found in tmux session");
+                continue;
+            }
+
+            // Broadcast status for each agent
+            for (agent_type, status) in agents {
+                state.broadcast(WsEvent::AgentStatus {
+                    agent_type,
+                    status,
+                    issue_number: None,
+                    timestamp: chrono::Utc::now().to_rfc3339(),
+                });
+            }
+        }
+    });
+}
+
 /// Helper function to start a background task that simulates real-time events
+/// This is kept for backward compatibility and testing
 pub fn start_event_simulator(state: Arc<WsState>) {
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(5));

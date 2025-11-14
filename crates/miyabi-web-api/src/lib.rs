@@ -30,6 +30,7 @@ pub mod models;
 pub mod routes;
 pub mod services;
 pub mod websocket;
+pub mod ws;
 
 use axum::{
     routing::{get, post},
@@ -156,6 +157,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // Create WebSocket manager
     let ws_manager = Arc::new(websocket::WebSocketManager::new());
 
+    // Start agent status monitor (polls tmux every 1 second)
+    websocket::start_agent_monitor(ws_manager.clone());
+
     // Create event broadcaster
     let event_broadcaster = events::EventBroadcaster::new();
 
@@ -187,7 +191,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Health check
         .route("/health", get(routes::health::health_check))
         // Telegram Bot Webhook - Does NOT require database
-        .route("/telegram/webhook", post(routes::telegram::handle_webhook));
+        .route("/telegram/webhook", post(routes::telegram::handle_webhook))
+        // WebSocket endpoint for real-time updates
+        .route("/ws", get(routes::websocket::websocket_handler));
 
     // COMMENTED OUT: These routes require database (will re-enable with Firebase)
     // // Authentication routes

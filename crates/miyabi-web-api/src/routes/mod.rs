@@ -9,6 +9,7 @@ pub mod deployments;
 pub mod health;
 pub mod issues;
 pub mod logs;
+pub mod logs_stream;
 pub mod mission_control;
 pub mod preflight;
 pub mod prs;
