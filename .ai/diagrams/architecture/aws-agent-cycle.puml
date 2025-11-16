@@ -1,0 +1,154 @@
+@startuml AWS Agent 6-Phase Optimization Cycle
+!theme plain
+
+title AWS Agent - 6-Phase Optimization Cycle (θ₁-θ₆)
+
+skinparam state {
+    BackgroundColor<<world>> LightSkyBlue
+    BackgroundColor<<phase>> LightGreen
+}
+
+state "World₀\n(Initial State)\n\nCost: $280/month\nSecurity: 72\nUtilization: 60%" as world0 <<world>>
+
+state "θ₁: Understand\n理解\n\nAWS Resource Discovery" as theta1 <<phase>> {
+    state "Scan EC2 Instances" as scan_ec2
+    state "Scan S3 Buckets" as scan_s3
+    state "Scan RDS Databases" as scan_rds
+    state "Analyze Costs" as analyze_cost
+    state "Assess Security" as assess_sec
+
+    [*] --> scan_ec2
+    scan_ec2 --> scan_s3
+    scan_s3 --> scan_rds
+    scan_rds --> analyze_cost
+    analyze_cost --> assess_sec
+    assess_sec --> [*]
+}
+
+state "θ₂: Generate\n生成\n\nInfrastructure Planning" as theta2 <<phase>> {
+    state "Cost Optimization Plan" as cost_plan
+    state "Security Improvement Plan" as sec_plan
+    state "Generate Terraform" as gen_tf
+    state "Generate CloudFormation" as gen_cf
+
+    [*] --> cost_plan
+    [*] --> sec_plan
+    cost_plan --> gen_tf
+    sec_plan --> gen_cf
+    gen_tf --> [*]
+    gen_cf --> [*]
+}
+
+state "θ₃: Allocate\n配分\n\nResource Allocation" as theta3 <<phase>> {
+    state "Right-size EC2" as rightsize
+    state "Storage Tier Selection" as storage_tier
+    state "Auto-Scaling Config" as autoscale
+    state "Reserved Instance Plan" as ri_plan
+
+    [*] --> rightsize
+    rightsize --> storage_tier
+    storage_tier --> autoscale
+    autoscale --> ri_plan
+    ri_plan --> [*]
+}
+
+state "θ₄: Execute\n実行\n\nDeployment Execution" as theta4 <<phase>> {
+    state "Deploy Terraform" as deploy_tf
+    state "Apply Security Config" as apply_sec
+    state "Validate Deployment" as validate
+    state "Rollback if Failed" as rollback
+
+    [*] --> deploy_tf
+    deploy_tf --> apply_sec
+    apply_sec --> validate
+    validate --> [*] : Success
+    validate --> rollback : Failed
+    rollback --> [*]
+}
+
+state "θ₅: Integrate\n統合\n\nSystem Integration" as theta5 <<phase>> {
+    state "Setup CloudWatch" as setup_cw
+    state "Configure Alarms" as config_alarm
+    state "VOICEVOX Notifications" as voicevox
+    state "Discord Integration" as discord
+
+    [*] --> setup_cw
+    setup_cw --> config_alarm
+    config_alarm --> voicevox
+    voicevox --> discord
+    discord --> [*]
+}
+
+state "θ₆: Learn\n学習\n\nContinuous Learning" as theta6 <<phase>> {
+    state "Analyze Effectiveness" as analyze
+    state "Detect Anomalies" as detect
+    state "Predict Future Needs" as predict
+    state "Update Strategies" as update
+
+    [*] --> analyze
+    analyze --> detect
+    detect --> predict
+    predict --> update
+    update --> [*]
+}
+
+state "World₁\n(After 1 Cycle)\n\nCost: $250/month\nSecurity: 85\nUtilization: 70%" as world1 <<world>>
+
+state "World₂\n(After 2 Cycles)\n\nCost: $220/month\nSecurity: 88\nUtilization: 75%" as world2 <<world>>
+
+state "World_∞\n(Optimal State)\n\nCost: $180/month\nSecurity: 95\nUtilization: 80%" as world_inf <<world>>
+
+[*] --> world0
+
+world0 --> theta1 : Start Cycle
+theta1 --> theta2
+theta2 --> theta3
+theta3 --> theta4
+theta4 --> theta5
+theta5 --> theta6
+theta6 --> world1
+
+world1 --> theta1 : Continue
+theta1 --> theta2
+theta2 --> theta3
+theta3 --> theta4
+theta4 --> theta5
+theta5 --> theta6
+theta6 --> world2
+
+world2 --> theta1 : Continue
+theta1 --> theta2
+theta2 --> theta3
+theta3 --> theta4
+theta4 --> theta5
+theta5 --> theta6
+theta6 --> world_inf : Converge
+
+world_inf --> [*] : Optimal
+
+note right of theta1
+  **AWS SDK Integration**
+  - aws-sdk-ec2
+  - aws-sdk-s3
+  - aws-sdk-rds
+  - Cost Explorer API
+  - Security Hub API
+end note
+
+note right of theta4
+  **Safety Mechanisms**
+  - Pre-deployment backup
+  - Terraform plan review
+  - Canary deployment
+  - Auto-rollback on failure
+end note
+
+note bottom of world_inf
+  **Convergence Criteria**
+  - Cost reduction: > 30%
+  - Security score: > 90
+  - No further optimizations
+  - Stable for 7 days
+end note
+
+@enduml

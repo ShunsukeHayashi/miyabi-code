@@ -75,11 +75,7 @@ pub struct SlaViolation {
 
 impl SlaViolation {
     /// Create a new SLA violation record
-    pub fn new(
-        metric_name: String,
-        actual_value: f64,
-        threshold: SlaThreshold,
-    ) -> Self {
+    pub fn new(metric_name: String, actual_value: f64, threshold: SlaThreshold) -> Self {
         Self {
             id: Uuid::new_v4(),
             metric_name,
@@ -141,11 +137,8 @@ impl SlaMonitor {
                     metric_name, value, threshold.min_value, threshold.max_value
                 );
 
-                let violation = SlaViolation::new(
-                    metric_name.to_string(),
-                    value,
-                    threshold.clone(),
-                );
+                let violation =
+                    SlaViolation::new(metric_name.to_string(), value, threshold.clone());
 
                 let mut violations = self.violations.write().await;
                 violations.push(violation);

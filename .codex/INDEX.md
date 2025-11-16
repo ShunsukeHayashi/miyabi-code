@@ -1,7 +1,7 @@
 # 📚 .codex Directory - Master Index
 
-**Version**: 4.0.0 (Codex Overhaul Phase 2 Complete)
-**Date**: 2025-11-06
+**Version**: 4.1.0 (AIfactory Integration Added)
+**Date**: 2025-11-12
 **Purpose**: Central navigation hub for all Codex resources
 
 ---
@@ -47,6 +47,8 @@
 | [CODEX.md](CODEX.md) | メインコントロール文書 | ⭐⭐⭐⭐⭐ |
 | [context/core-rules.md](context/core-rules.md) | MCP First, Benchmark Protocol | ⭐⭐⭐⭐⭐ |
 | [context/miyabi-definition.md](context/miyabi-definition.md) | miyabi_def system | ⭐⭐⭐⭐⭐ |
+| [context/pantheon-society.md](context/pantheon-society.md) | 🌍 **NEW** - Pantheon Society基盤 | ⭐⭐⭐⭐ |
+| [context/aifactory-integration.md](context/aifactory-integration.md) | 🆕 AIfactory統合 | ⭐⭐⭐⭐ |
 | [context/agents.md](context/agents.md) | 21 Agents詳細 | ⭐⭐⭐⭐ |
 
 ### 🤖 Agent System
@@ -56,7 +58,14 @@
 | [agents/README.md](agents/README.md) | Agent system overview | ⭐⭐⭐⭐ |
 | [agents/AGENT_CHARACTERS.md](agents/AGENT_CHARACTERS.md) | キャラクター設定 | ⭐⭐⭐ |
 | [agents/specs/coding/](agents/specs/coding/) | 11 Coding Agent仕様 | ⭐⭐⭐ |
-| [agents/specs/business/](agents/specs/business/) | 14 Business Agent仕様 | ⭐⭐⭐ |
+| [agents/specs/business/](agents/specs/business/) | 19 Business Agent仕様 🆕 | ⭐⭐⭐ |
+
+**New Business Agents** (AIfactory Integration):
+- `course-generator-agent.md` - AI course generation
+- `document-generator-agent.md` - Business document generation
+- `content-search-agent.md` - Semantic search
+- `payment-processor-agent.md` - Payment processing
+- `approval-workflow-agent.md` - Approval workflows
 
 ### ⚡ Commands (32 Slash Commands)
 
@@ -144,7 +153,7 @@
 
 ---
 
-## 📚 Context Modules (15 Modules)
+## 📚 Context Modules (16 Modules)
 
 **Location**: `context/` directory
 
@@ -154,6 +163,8 @@
 | P0 | Miyabi Definition | miyabi-definition.md |
 | P0 | SWML Framework | swml-framework.md |
 | P0 | Omega Phases | omega-phases.md |
+| P1 | Pantheon Society 🌍 NEW | pantheon-society.md |
+| P1 | AIfactory Integration 🆕 NEW | aifactory-integration.md |
 | P1 | Agents | agents.md |
 | P1 | Architecture | architecture.md |
 | P2 | Development | development.md |
@@ -213,6 +224,7 @@
 
 ## 📝 Version History
 
+- **v4.1.0** (2025-11-12): Pantheon Society追加 - 歴史的人物×神話的存在によるAI社会基盤
 - **v4.0.0** (2025-11-06): Codex Overhaul Phase 2完了 - guides/, hooks/, tools/, schemas/ 新設
 - **v3.0.0** (2025-10-30): Business Agents完成、Lark統合
 - **v2.0.0** (2025-10-27): Context modules整理

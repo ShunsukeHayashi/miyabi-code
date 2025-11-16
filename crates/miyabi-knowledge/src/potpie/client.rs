@@ -82,10 +82,7 @@ impl PotpieClient {
                 .await
                 .map_err(|e| PotpieError::InvalidResponse(format!("Failed to parse JSON: {}", e)))
         } else {
-            let message = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
+            let message = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
 
             Err(PotpieError::ApiError {
                 status: status.as_u16(),
@@ -98,12 +95,7 @@ impl PotpieClient {
     pub async fn health_check(&self) -> Result<bool> {
         debug!("Performing Potpie health check");
 
-        match self
-            .http_client
-            .get(format!("{}/health", self.config.api_url))
-            .send()
-            .await
-        {
+        match self.http_client.get(format!("{}/health", self.config.api_url)).send().await {
             Ok(response) => {
                 if response.status() == StatusCode::OK {
                     Ok(true)
@@ -113,11 +105,11 @@ impl PotpieClient {
                         response.status()
                     )))
                 }
-            }
+            },
             Err(e) => {
                 warn!("Potpie health check failed: {}", e);
                 Err(PotpieError::ServiceUnavailable(e.to_string()))
-            }
+            },
         }
     }
 
@@ -187,10 +179,7 @@ impl PotpieClient {
         base_commit: &str,
         head_commit: &str,
     ) -> Result<ChangeDetection> {
-        info!(
-            "Detecting changes between {} and {}",
-            base_commit, head_commit
-        );
+        info!("Detecting changes between {} and {}", base_commit, head_commit);
 
         #[derive(Serialize)]
         struct ChangesRequest {

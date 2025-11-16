@@ -79,11 +79,11 @@ impl EventBroadcaster {
             Ok(count) => {
                 tracing::debug!("Broadcasted event to {} subscribers", count);
                 count
-            }
+            },
             Err(e) => {
                 tracing::warn!("Failed to broadcast event: {}", e);
                 0
-            }
+            },
         }
     }
 
@@ -195,7 +195,7 @@ mod tests {
                 execution_id: id, ..
             } => {
                 assert_eq!(id, execution_id);
-            }
+            },
             _ => panic!("Expected ExecutionStarted event"),
         }
     }
@@ -221,7 +221,7 @@ mod tests {
             ) => {
                 assert_eq!(p1, 50);
                 assert_eq!(p2, 50);
-            }
+            },
             _ => panic!("Expected ExecutionProgress events"),
         }
     }
@@ -238,7 +238,7 @@ mod tests {
         match event {
             AgentEvent::ExecutionProgress { progress, .. } => {
                 assert_eq!(progress, 100);
-            }
+            },
             _ => panic!("Expected ExecutionProgress event"),
         }
     }

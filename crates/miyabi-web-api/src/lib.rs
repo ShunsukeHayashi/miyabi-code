@@ -180,10 +180,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     };
 
     // Configure CORS
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any).allow_headers(Any);
 
     // Build API routes - TEMPORARY: Only Telegram and Health for scratch implementation
     // TODO: Re-enable database routes after implementing Firebase/Firestore from scratch
@@ -241,11 +238,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     let app = Router::new()
         // .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi())) // Temporarily disabled
         .nest("/api/v1", api_routes)
-        .layer(
-            ServiceBuilder::new()
-                .layer(TraceLayer::new_for_http())
-                .layer(cors),
-        )
+        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()).layer(cors))
         .with_state(state);
 
     Ok(app)

@@ -41,11 +41,7 @@ async fn test_health_endpoint_responds() {
         .await
         .expect("Failed to send request to health endpoint");
 
-    assert_eq!(
-        response.status(),
-        200,
-        "Health endpoint should return 200 OK"
-    );
+    assert_eq!(response.status(), 200, "Health endpoint should return 200 OK");
 }
 
 #[tokio::test]
@@ -53,11 +49,7 @@ async fn test_health_endpoint_returns_json() {
     let client = create_client();
     let url = format!("{}/api/v1/health", get_api_url());
 
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send request");
+    let response = client.get(&url).send().await.expect("Failed to send request");
 
     let content_type = response.headers().get("content-type");
     assert!(
@@ -74,31 +66,14 @@ async fn test_health_endpoint_structure() {
     let client = create_client();
     let url = format!("{}/api/v1/health", get_api_url());
 
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send request");
+    let response = client.get(&url).send().await.expect("Failed to send request");
 
-    let body: serde_json::Value = response
-        .json()
-        .await
-        .expect("Failed to parse health response");
+    let body: serde_json::Value = response.json().await.expect("Failed to parse health response");
 
-    assert!(
-        body.get("status").is_some(),
-        "Health response should have 'status' field"
-    );
-    assert!(
-        body.get("version").is_some(),
-        "Health response should have 'version' field"
-    );
+    assert!(body.get("status").is_some(), "Health response should have 'status' field");
+    assert!(body.get("version").is_some(), "Health response should have 'version' field");
 
-    assert_eq!(
-        body["status"].as_str().unwrap(),
-        "ok",
-        "Status should be 'ok'"
-    );
+    assert_eq!(body["status"].as_str().unwrap(), "ok", "Status should be 'ok'");
 }
 
 #[tokio::test]
@@ -107,11 +82,7 @@ async fn test_health_endpoint_latency() {
     let url = format!("{}/api/v1/health", get_api_url());
 
     let start = std::time::Instant::now();
-    let _response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send request");
+    let _response = client.get(&url).send().await.expect("Failed to send request");
     let elapsed = start.elapsed();
 
     println!("Health endpoint latency: {:?}", elapsed);
@@ -131,11 +102,7 @@ async fn test_telegram_webhook_endpoint_exists() {
     let url = format!("{}/api/v1/telegram/webhook", get_api_url());
 
     // GET should return 405 Method Not Allowed (expects POST)
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send GET request to webhook");
+    let response = client.get(&url).send().await.expect("Failed to send GET request to webhook");
 
     assert!(
         response.status() == 405 || response.status() == 404,
@@ -250,17 +217,10 @@ async fn test_cors_headers_present() {
     let client = create_client();
     let url = format!("{}/api/v1/health", get_api_url());
 
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send request");
+    let response = client.get(&url).send().await.expect("Failed to send request");
 
     // Check for CORS headers
-    let has_cors = response
-        .headers()
-        .get("access-control-allow-origin")
-        .is_some();
+    let has_cors = response.headers().get("access-control-allow-origin").is_some();
     assert!(has_cors, "Response should include CORS headers");
 }
 
@@ -269,11 +229,7 @@ async fn test_security_headers_present() {
     let client = create_client();
     let url = format!("{}/api/v1/health", get_api_url());
 
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send request");
+    let response = client.get(&url).send().await.expect("Failed to send request");
 
     // Cloud Run adds security headers
     println!("Response headers: {:?}", response.headers());
@@ -289,17 +245,9 @@ async fn test_nonexistent_endpoint_returns_404() {
     let client = create_client();
     let url = format!("{}/api/v1/nonexistent", get_api_url());
 
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to send request");
+    let response = client.get(&url).send().await.expect("Failed to send request");
 
-    assert_eq!(
-        response.status(),
-        404,
-        "Nonexistent endpoint should return 404"
-    );
+    assert_eq!(response.status(), 404, "Nonexistent endpoint should return 404");
 }
 
 #[tokio::test]
@@ -316,10 +264,7 @@ async fn test_malformed_json_handling() {
         .expect("Failed to send request");
 
     // Should handle invalid JSON gracefully
-    assert!(
-        response.status().is_client_error(),
-        "Invalid JSON should return client error"
-    );
+    assert!(response.status().is_client_error(), "Invalid JSON should return client error");
 }
 
 // ============================================================================
@@ -347,14 +292,8 @@ async fn test_health_endpoint_performance() {
     println!("  Max latency: {:?}", max);
     println!("  Iterations: {}", iterations);
 
-    assert!(
-        avg < Duration::from_secs(2),
-        "Average latency should be under 2 seconds"
-    );
-    assert!(
-        max < Duration::from_secs(5),
-        "Max latency should be under 5 seconds"
-    );
+    assert!(avg < Duration::from_secs(2), "Average latency should be under 2 seconds");
+    assert!(max < Duration::from_secs(5), "Max latency should be under 5 seconds");
 }
 
 #[tokio::test]
@@ -385,10 +324,7 @@ async fn test_concurrent_requests() {
 
     let success_count = results.iter().filter(|r| **r).count();
 
-    println!(
-        "Concurrent requests: {}/{} successful",
-        success_count, concurrent_requests
-    );
+    println!("Concurrent requests: {}/{} successful", success_count, concurrent_requests);
     assert!(
         success_count >= concurrent_requests - 1,
         "At least {} concurrent requests should succeed",
@@ -416,19 +352,12 @@ async fn test_service_version_accessible() {
     let client = create_client();
     let url = format!("{}/api/v1/health", get_api_url());
 
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to connect to service");
+    let response = client.get(&url).send().await.expect("Failed to connect to service");
 
     let body: serde_json::Value = response.json().await.expect("Failed to parse JSON");
 
     println!("Service version: {}", body["version"]);
-    assert!(
-        body["version"].as_str().is_some(),
-        "Service should report version"
-    );
+    assert!(body["version"].as_str().is_some(), "Service should report version");
 }
 
 // ============================================================================
@@ -440,10 +369,7 @@ mod helpers {
     /// Parse response and return JSON
     #[allow(dead_code)]
     pub async fn parse_json(response: reqwest::Response) -> serde_json::Value {
-        response
-            .json()
-            .await
-            .expect("Failed to parse response body")
+        response.json().await.expect("Failed to parse response body")
     }
 
     /// Check if response is success

@@ -1,0 +1,30 @@
+{
+  "name": "paper-",
+  "version": "1.0.0",
+  "description": "MCP server generated from: ",
+  "metadata": {
+    "arxiv_id": "",
+    "language": "",
+    "generated_at": "2025-11-09T05:53:02+09:00",
+    "generator": "miyabi-paper2agent"
+  },
+  "command": "python",
+  "args": ["-m", "paper_.mcp_server"],
+  "tools": [
+    {
+      "name": "execute",
+      "description": "Execute paper implementation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Input query"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+
+  ]
+}

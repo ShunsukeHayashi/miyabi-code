@@ -66,10 +66,7 @@ impl TelegramClient {
 
     /// Send a message with full options
     pub async fn send_message_full(&self, request: SendMessageRequest) -> Result<Message> {
-        debug!(
-            "Sending message to chat_id={}: {}",
-            request.chat_id, request.text
-        );
+        debug!("Sending message to chat_id={}: {}", request.chat_id, request.text);
 
         let response: ApiResponse<Message> = self
             .http_client
@@ -86,9 +83,7 @@ impl TelegramClient {
                 .result
                 .ok_or_else(|| TelegramError::ApiError("No result in response".to_string()))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             warn!("Failed to send message: {}", error_msg);
             Err(TelegramError::ApiError(error_msg))
         }
@@ -174,8 +169,7 @@ impl TelegramClient {
             inline_keyboard: keyboard_buttons,
         };
 
-        self.send_message_with_keyboard(chat_id, text, keyboard)
-            .await
+        self.send_message_with_keyboard(chat_id, text, keyboard).await
     }
 
     /// Answer a callback query
@@ -213,9 +207,7 @@ impl TelegramClient {
             info!("Callback query answered successfully");
             Ok(response.result.unwrap_or(true))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             warn!("Failed to answer callback query: {}", error_msg);
             Err(TelegramError::ApiError(error_msg))
         }
@@ -225,13 +217,8 @@ impl TelegramClient {
     pub async fn get_me(&self) -> Result<User> {
         debug!("Getting bot information");
 
-        let response: ApiResponse<User> = self
-            .http_client
-            .get(self.api_url("getMe"))
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: ApiResponse<User> =
+            self.http_client.get(self.api_url("getMe")).send().await?.json().await?;
 
         if response.ok {
             info!("Bot information retrieved");
@@ -239,9 +226,7 @@ impl TelegramClient {
                 .result
                 .ok_or_else(|| TelegramError::ApiError("No result in response".to_string()))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             Err(TelegramError::ApiError(error_msg))
         }
     }
@@ -270,9 +255,7 @@ impl TelegramClient {
             info!("Webhook set successfully");
             Ok(response.result.unwrap_or(true))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             warn!("Failed to set webhook: {}", error_msg);
             Err(TelegramError::ApiError(error_msg))
         }
@@ -294,9 +277,7 @@ impl TelegramClient {
             info!("Webhook deleted successfully");
             Ok(response.result.unwrap_or(true))
         } else {
-            let error_msg = response
-                .description
-                .unwrap_or_else(|| "Unknown error".to_string());
+            let error_msg = response.description.unwrap_or_else(|| "Unknown error".to_string());
             Err(TelegramError::ApiError(error_msg))
         }
     }
@@ -325,9 +306,6 @@ mod tests {
         assert_eq!(keyboard.inline_keyboard.len(), 1);
         assert_eq!(keyboard.inline_keyboard[0].len(), 2);
         assert_eq!(keyboard.inline_keyboard[0][0].text, "Yes");
-        assert_eq!(
-            keyboard.inline_keyboard[0][0].callback_data,
-            Some("yes".to_string())
-        );
+        assert_eq!(keyboard.inline_keyboard[0][0].callback_data, Some("yes".to_string()));
     }
 }

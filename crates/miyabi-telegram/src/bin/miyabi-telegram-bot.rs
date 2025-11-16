@@ -43,9 +43,7 @@ async fn main() -> Result<()> {
     let bot_token = std::env::var("TELEGRAM_BOT_TOKEN")
         .context("TELEGRAM_BOT_TOKEN environment variable is required")?;
 
-    let chat_id = std::env::var("TELEGRAM_CHAT_ID")
-        .ok()
-        .and_then(|s| s.parse::<i64>().ok());
+    let chat_id = std::env::var("TELEGRAM_CHAT_ID").ok().and_then(|s| s.parse::<i64>().ok());
 
     let github_token =
         std::env::var("GITHUB_TOKEN").context("GITHUB_TOKEN environment variable is required")?;
@@ -69,11 +67,11 @@ async fn main() -> Result<()> {
                 "✅ Connected to Telegram as: @{}",
                 user.username.unwrap_or_else(|| user.first_name.clone())
             );
-        }
+        },
         Err(e) => {
             error!("❌ Failed to connect to Telegram: {}", e);
             return Err(e.into());
-        }
+        },
     }
 
     // Set webhook
@@ -104,9 +102,7 @@ async fn main() -> Result<()> {
     info!("🚀 Server listening on {}", addr);
     info!("📡 Webhook endpoint: {}/webhook", webhook_url);
 
-    let listener = tokio::net::TcpListener::bind(&addr)
-        .await
-        .context("Failed to bind to port")?;
+    let listener = tokio::net::TcpListener::bind(&addr).await.context("Failed to bind to port")?;
 
     axum::serve(listener, app).await.context("Server error")?;
 
@@ -146,10 +142,8 @@ async fn process_update(state: AppState, update: Update) -> Result<()> {
         if let Some(text) = message.text {
             let chat_id = message.chat.id;
             let user = message.from.as_ref();
-            let username = user
-                .and_then(|u| u.username.as_ref())
-                .map(|s| s.as_str())
-                .unwrap_or("Unknown");
+            let username =
+                user.and_then(|u| u.username.as_ref()).map(|s| s.as_str()).unwrap_or("Unknown");
 
             info!("📨 Message from @{}: {}", username, text);
 
@@ -220,7 +214,7 @@ async fn handle_command(state: &AppState, chat_id: i64, command: &str) -> Result
                 .telegram_client
                 .send_message_with_keyboard(chat_id, message, keyboard)
                 .await?;
-        }
+        },
 
         "/help" => {
             let message = r#"💡 *詳しい説明*
@@ -259,7 +253,7 @@ AIアシスタントです。
 「最初から見る」→ /start"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
 
         "/examples" => {
             let message = r#"📚 *こんな風に話してください*
@@ -302,7 +296,7 @@ AIアシスタントです。
                 .telegram_client
                 .send_message_with_keyboard(chat_id, message, keyboard)
                 .await?;
-        }
+        },
 
         "/status" => {
             let message = r#"✅ *今の状態*
@@ -320,7 +314,7 @@ Miyabi v0.1.1
 何でも話しかけてください！ 😊"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
 
         _ => {
             let message = r#"❓ *そのコマンドは使えません*
@@ -335,7 +329,7 @@ Miyabi v0.1.1
 例：「ダークモードを追加して」"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
     }
 
     Ok(())
@@ -356,10 +350,7 @@ async fn handle_natural_language(
 ⏳ 今、内容を確認しています
 📝 少しだけ待っててください..."#;
 
-    state
-        .telegram_client
-        .send_message(chat_id, analyzing_msg)
-        .await?;
+    state.telegram_client.send_message(chat_id, analyzing_msg).await?;
 
     // TODO: Use Anthropic Claude API to analyze intent and extract Issue details
     // For now, create a simple task
@@ -385,18 +376,13 @@ async fn handle_natural_language(
         task_title
     );
 
-    state
-        .telegram_client
-        .send_message(chat_id, &analysis_message)
-        .await?;
+    state.telegram_client.send_message(chat_id, &analysis_message).await?;
 
     // Create GitHub Issue (internally - user doesn't need to know)
     match create_github_issue(state, &task_title, text, username).await {
         Ok(task_number) => {
-            let task_url = format!(
-                "https://github.com/ShunsukeHayashi/Miyabi/issues/{}",
-                task_number
-            );
+            let task_url =
+                format!("https://github.com/ShunsukeHayashi/Miyabi/issues/{}", task_number);
 
             let success_message = format!(
                 r#"🎉 *登録できました！*
@@ -439,7 +425,7 @@ async fn handle_natural_language(
                 .telegram_client
                 .send_message_with_keyboard(chat_id, &success_message, keyboard)
                 .await?;
-        }
+        },
         Err(e) => {
             error!("Failed to create task: {}", e);
 
@@ -455,11 +441,8 @@ async fn handle_natural_language(
 
 困ったら「助けて」って言ってください！"#;
 
-            state
-                .telegram_client
-                .send_message(chat_id, error_message)
-                .await?;
-        }
+            state.telegram_client.send_message(chat_id, error_message).await?;
+        },
     }
 
     Ok(())
@@ -471,19 +454,15 @@ async fn handle_callback(
     callback_query: &miyabi_telegram::types::CallbackQuery,
     data: &str,
 ) -> Result<()> {
-    let chat_id = callback_query
-        .message
-        .as_ref()
-        .map(|m| m.chat.id)
-        .unwrap_or(0);
+    let chat_id = callback_query.message.as_ref().map(|m| m.chat.id).unwrap_or(0);
 
     match data {
         "show_examples" => {
             handle_command(state, chat_id, "/examples").await?;
-        }
+        },
         "show_help" => {
             handle_command(state, chat_id, "/help").await?;
-        }
+        },
         "get_started" => {
             let message = r#"🚀 *やってみよう！*
 
@@ -512,7 +491,7 @@ async fn handle_callback(
 さあ、何がしたいですか？ 😊"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
         "try_now" => {
             let message = r#"✨ *やってみよう！*
 
@@ -528,7 +507,7 @@ async fn handle_callback(
 普通に書けば大丈夫！ 💬"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
         "new_task" => {
             let message = r#"➕ *次は何しますか？*
 
@@ -543,12 +522,12 @@ async fn handle_callback(
 何でも言ってくださいね！ 😊"#;
 
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
         _ => {
             warn!("Unknown callback data: {}", data);
             let message = "申し訳ございません、そのボタンの機能はまだ実装されていません。";
             state.telegram_client.send_message(chat_id, message).await?;
-        }
+        },
     }
 
     Ok(())

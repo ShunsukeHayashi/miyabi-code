@@ -14,10 +14,7 @@ async fn cleanup_stale_worktrees() {
     use tokio::process::Command;
 
     // List all worktrees
-    let output = Command::new("git")
-        .args(["worktree", "list", "--porcelain"])
-        .output()
-        .await;
+    let output = Command::new("git").args(["worktree", "list", "--porcelain"]).output().await;
 
     if let Ok(output) = output {
         if output.status.success() {
@@ -65,7 +62,7 @@ async fn test_parallel_execution_basic() {
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
             return;
-        }
+        },
     };
 
     // Create 5 mock tasks
@@ -162,14 +159,8 @@ async fn test_parallel_execution_basic() {
     eprintln!("[Test]   Timeout: {}", result.timeout_count);
     eprintln!("[Test]   Total duration: {}ms", result.total_duration_ms);
     eprintln!("[Test]   Success rate: {:.1}%", result.success_rate());
-    eprintln!(
-        "[Test]   Average duration: {:.1}ms",
-        result.average_duration_ms()
-    );
-    eprintln!(
-        "[Test]   Max concurrent: {}",
-        max_concurrent.load(Ordering::SeqCst)
-    );
+    eprintln!("[Test]   Average duration: {:.1}ms", result.average_duration_ms());
+    eprintln!("[Test]   Max concurrent: {}", max_concurrent.load(Ordering::SeqCst));
 
     assert_eq!(result.total_tasks, 5);
     assert_eq!(result.success_count, 5);
@@ -214,7 +205,7 @@ async fn test_parallel_execution_with_failures() {
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
             return;
-        }
+        },
     };
 
     let tasks = vec![
@@ -292,7 +283,7 @@ async fn test_parallel_execution_with_timeout() {
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
             return;
-        }
+        },
     };
 
     let tasks = vec![
@@ -359,25 +350,19 @@ async fn test_execute_simple() {
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
             return;
-        }
+        },
     };
 
     let issue_numbers = vec![4001, 4002, 4003];
 
     let result = pool
-        .execute_simple(
-            issue_numbers,
-            move |worktree_path, issue_number| async move {
-                eprintln!(
-                    "[Test] Processing issue #{} in worktree {:?}",
-                    issue_number, worktree_path
-                );
+        .execute_simple(issue_numbers, move |worktree_path, issue_number| async move {
+            eprintln!("[Test] Processing issue #{} in worktree {:?}", issue_number, worktree_path);
 
-                tokio::time::sleep(Duration::from_millis(200)).await;
+            tokio::time::sleep(Duration::from_millis(200)).await;
 
-                Ok(())
-            },
-        )
+            Ok(())
+        })
         .await;
 
     eprintln!("[Test] Simple execution completed");
@@ -409,7 +394,7 @@ async fn test_pool_statistics() {
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
             return;
-        }
+        },
     };
 
     // Get initial stats
@@ -461,7 +446,7 @@ async fn test_parallel_execution_benchmark() {
         Err(e) => {
             eprintln!("Failed to create pool: {}", e);
             return;
-        }
+        },
     };
 
     // Create 10 tasks

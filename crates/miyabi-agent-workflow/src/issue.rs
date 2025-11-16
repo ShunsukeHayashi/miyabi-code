@@ -29,11 +29,7 @@ impl IssueAgent {
         tracing::info!("Analyzing issue #{}: {}", issue.number, issue.title);
 
         // Combine title and body for keyword analysis
-        let combined_text = format!(
-            "{} {}",
-            issue.title.to_lowercase(),
-            issue.body.to_lowercase()
-        );
+        let combined_text = format!("{} {}", issue.title.to_lowercase(), issue.body.to_lowercase());
 
         // 1. Determine issue type
         let issue_type = self.infer_issue_type(&combined_text, &issue.labels);

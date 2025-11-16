@@ -125,11 +125,11 @@ impl KnowledgeCommand {
                     json_output,
                 )
                 .await
-            }
+            },
             Self::Stats { workspace } => show_stats(workspace.clone(), json_output).await,
             Self::Index { workspace, reindex } => {
                 index_workspace(workspace, *reindex, json_output).await
-            }
+            },
             Self::Config {
                 auto_index,
                 delay_seconds,
@@ -146,10 +146,10 @@ impl KnowledgeCommand {
                     json_output,
                 )
                 .await
-            }
+            },
             Self::ClearCache { workspace, yes } => {
                 clear_cache(workspace.clone(), *yes, json_output).await
-            }
+            },
             Self::Serve { port, open } => serve_dashboard(*port, *open, json_output).await,
         }
     }
@@ -253,11 +253,7 @@ async fn search_knowledge(
 
             println!(
                 "  Timestamp: {}",
-                result
-                    .timestamp
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-                    .dimmed()
+                result.timestamp.format("%Y-%m-%d %H:%M:%S").to_string().dimmed()
             );
 
             // Content preview
@@ -411,14 +407,8 @@ async fn manage_config(
                     "❌ No".red()
                 }
             );
-            println!(
-                "  Delay: {} seconds",
-                config.auto_index.delay_seconds.to_string().cyan()
-            );
-            println!(
-                "  Retry Count: {}",
-                config.auto_index.retry_count.to_string().cyan()
-            );
+            println!("  Delay: {} seconds", config.auto_index.delay_seconds.to_string().cyan());
+            println!("  Retry Count: {}", config.auto_index.retry_count.to_string().cyan());
             println!("\n{}", "Vector DB:".bold());
             println!("  Type: {}", config.vector_db.db_type);
             println!("  Host: {}", config.vector_db.host);
@@ -482,17 +472,10 @@ async fn manage_config(
             });
             println!("{}", serde_json::to_string_pretty(&json)?);
         } else {
-            println!(
-                "\n{} Configuration saved to: {}",
-                "💾".green(),
-                expanded_path.bold()
-            );
+            println!("\n{} Configuration saved to: {}", "💾".green(), expanded_path.bold());
         }
     } else if !json_output {
-        println!(
-            "{}",
-            "ℹ️  No changes made. Use --show to view current configuration.".yellow()
-        );
+        println!("{}", "ℹ️  No changes made. Use --show to view current configuration.".yellow());
     }
 
     Ok(())
@@ -510,11 +493,7 @@ async fn clear_cache(
             .map(|w| format!("workspace '{}'", w))
             .unwrap_or_else(|| "all workspaces".to_string());
 
-        println!(
-            "{} This will delete index cache for {}",
-            "⚠️".yellow(),
-            workspace_desc.bold()
-        );
+        println!("{} This will delete index cache for {}", "⚠️".yellow(), workspace_desc.bold());
         print!("Are you sure? (y/N): ");
         use std::io::{self, Write};
         io::stdout().flush()?;
@@ -551,10 +530,7 @@ async fn clear_cache(
             if deleted_count == 1 { "" } else { "s" },
             workspace_desc
         );
-        println!(
-            "{} Next indexing will be a full rebuild (slower)",
-            "ℹ️".cyan()
-        );
+        println!("{} Next indexing will be a full rebuild (slower)", "ℹ️".cyan());
     } else {
         println!("{} No cache files found", "ℹ️".cyan());
     }

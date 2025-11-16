@@ -1,0 +1,405 @@
+@startuml 18-Codex-Parallel-Architecture-Detailed
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v17.0/dist
+!include AWSPUML/AWSCommon.puml
+!include AWSPUML/Compute/EC2.puml
+!include AWSPUML/General/User.puml
+
+' Styling
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam linetype ortho
+
+' Title
+title 18 Codex並列実行アーキテクチャ（詳細版）\nPhase 1: MUGEN (12 Codex) + MAJIN (6 Codex)\n\n**System Overview**: ローカルPC→SSH→EC2→tmux→Codex CLI→OpenAI API
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Local PC (Master Orchestrator)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "ローカルPC (MacBook Pro)\nOS: macOS 15.x" as LOCAL #aliceblue {
+  actor "Developer\n(User)" as user
+
+  rectangle "Master Orchestrator" as master #lightgreen {
+    component "Control Scripts" as control {
+      [master-orchestrator.sh\n- start/stop/status\n- SSH接続管理]
+      [monitor-18-codex.sh\n- リアルタイム監視\n- CPU/Memory表示]
+      [setup-phase1-18-codex.sh\n- 初期セットアップ\n- 環境構築]
+    }
+
+    component "Development Tools" as devtools {
+      [VS Code\n- Remote-SSH\n- Multi-root Workspace\n- Terminal統合]
+      [SSH Clients\n- mugen: ~/.ssh/config\n- majin: ~/.ssh/config]
+    }
+
+    component "Configuration" as config {
+      [OpenAI API Key\n- 環境変数管理\n- 認証情報]
+      [VS Code Settings\n- settings.json\n- keybindings.json]
+      [Git Config\n- .gitconfig\n- Hooks設定]
+    }
+  }
+
+  database "Tasks & Logs" as tasks {
+    folder "tasks/codex-test" {
+      [test-task-1.md\n- Task ID: 1\n- MUGEN Codex-1]
+      [test-task-2.md\n- Task ID: 2\n- MUGEN Codex-2]
+      [...\n- Tasks 3-17]
+      [test-task-18.md\n- Task ID: 18\n- MAJIN Codex-6]
+    }
+    folder ".ai/logs" {
+      [codex-1.log ~ codex-18.log\n- 各Codexの実行ログ]
+      [execution.log\n- 全体実行ログ]
+      [issue-master-log.md\n- プロジェクト進捗]
+    }
+    folder ".ai/plans" {
+      [codex-200-parallel-execution.md\n- 実装プラン\n- リソース分析]
+    }
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' MUGEN Sub-Orchestrator (12 Codex)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "MUGEN (無限)\nEC2: r5.4xlarge (us-west-2)\nIP: 44.250.27.197\nOS: Ubuntu 22.04 LTS\nSpecs: 16 vCPU, 124GB RAM, 194GB Disk" as MUGEN #lightblue {
+
+  rectangle "Sub-Orchestrator" as mugen_sub #lightyellow {
+    component "Orchestration" {
+      [sub-orchestrator-mugen.sh\n- tmuxセッション管理\n- 12 Codex起動\n- ログ収集]
+      [tmux: mugen-codex\n- Session管理\n- Window 0-11: Codex\n- Window 12: Monitor]
+    }
+  }
+
+  rectangle "Runtime Environment" as mugen_runtime #wheat {
+    component "Installed Software" {
+      [Node.js 20.19.5]
+      [npm 10.8.2]
+      [OpenAI Codex CLI\n(@openai/codex)]
+      [tmux 3.x]
+      [Git 2.x]
+    }
+
+    component "Project Directory" {
+      [~/projects/miyabi-private\n- Worktree構成\n- タスクファイル\n- ログディレクトリ]
+    }
+  }
+
+  rectangle "12 Codex Instances\n(各1 vCPU, 1GB RAM割当)" as mugen_codex #white {
+    component "Window 0" #lightgreen {
+      [Codex-1\nTask: test-task-1.md\nPID: XXXXX\nStatus: Running]
+    }
+    component "Window 1" #lightgreen {
+      [Codex-2\nTask: test-task-2.md\nPID: XXXXX\nStatus: Running]
+    }
+    component "Windows 2-10" #lightgreen {
+      [Codex-3 ~ Codex-11\n(同様の構成)]
+    }
+    component "Window 11" #lightgreen {
+      [Codex-12\nTask: test-task-12.md\nPID: XXXXX\nStatus: Running]
+    }
+  }
+
+  rectangle "Monitor Dashboard\n(tmux Window 12)" as mugen_monitor #lightcyan {
+    component "Real-time Metrics" {
+      [CPU Usage: 12/16 vCPU (75%)\nLoad Avg: 10.5, 9.8, 8.2]
+      [Memory: 12GB/124GB (9.7%)\nSwap: 0GB]
+      [Disk: 57GB/194GB (29.4%)\nI/O: 150 MB/s]
+      [Codex Processes: 12\nActive Tasks: 12]
+      [Network: TX 5 Mbps, RX 50 Mbps\n(OpenAI API通信)]
+    }
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' MAJIN Sub-Orchestrator (6 Codex)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "MAJIN (魔神)\nEC2: t3.2xlarge (ap-northeast-1)\nIP: 54.92.67.11\nOS: Ubuntu 22.04 LTS\nSpecs: 8 vCPU, 30GB RAM, 194GB Disk" as MAJIN #lightpink {
+
+  rectangle "Sub-Orchestrator" as majin_sub #lightyellow {
+    component "Orchestration" {
+      [sub-orchestrator-majin.sh\n- tmuxセッション管理\n- 6 Codex起動\n- ログ収集]
+      [tmux: majin-codex\n- Session管理\n- Window 0-5: Codex\n- Window 6: Monitor]
+    }
+  }
+
+  rectangle "Runtime Environment" as majin_runtime #wheat {
+    component "Installed Software" {
+      [Node.js 20.19.5]
+      [npm 10.8.2]
+      [OpenAI Codex CLI\n(@openai/codex)]
+      [tmux 3.x]
+      [Git 2.x]
+    }
+
+    component "Project Directory" {
+      [~/projects/miyabi-private\n- Worktree構成\n- タスクファイル\n- ログディレクトリ]
+    }
+  }
+
+  rectangle "6 Codex Instances\n(各1 vCPU, 1GB RAM割当)" as majin_codex #white {
+    component "Window 0" #lightgreen {
+      [Codex-13\nTask: test-task-13.md\nPID: XXXXX\nStatus: Running]
+    }
+    component "Windows 1-4" #lightgreen {
+      [Codex-14 ~ Codex-17\n(同様の構成)]
+    }
+    component "Window 5" #lightgreen {
+      [Codex-18\nTask: test-task-18.md\nPID: XXXXX\nStatus: Running]
+    }
+  }
+
+  rectangle "Monitor Dashboard\n(tmux Window 6)" as majin_monitor #lightcyan {
+    component "Real-time Metrics" {
+      [CPU Usage: 6/8 vCPU (75%)\nLoad Avg: 5.5, 5.2, 4.8]
+      [Memory: 6GB/30GB (20%)\nSwap: 0GB]
+      [Disk: 31GB/194GB (16%)\nI/O: 80 MB/s]
+      [Codex Processes: 6\nActive Tasks: 6]
+      [Network: TX 2.5 Mbps, RX 25 Mbps\n(OpenAI API通信)]
+    }
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' External Services
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cloud "OpenAI API\n(api.openai.com)" as openai #lavender {
+  rectangle "API Gateway" as api_gateway {
+    [Codex API Endpoint\nhttps://api.openai.com/v1/chat/completions]
+  }
+
+  rectangle "Models" as models {
+    [GPT-5 (Default)\n- Fast reasoning\n- Cost-effective]
+    [o3 (Optional)\n- Advanced reasoning\n- Higher cost]
+    [GPT-4o (Fallback)\n- Multimodal\n- Stable]
+  }
+
+  rectangle "Rate Limiting" as ratelimit {
+    [Concurrent Requests: 18\nRate: 500 req/min\nTokens: 2M TPM]
+  }
+
+  rectangle "Authentication" as auth {
+    [API Key Validation\nBearer Token\nRequest Signing]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Control Flow (User → Master → Sub-Orchestrators)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+user --> control : "1. セットアップ実行\n./setup-phase1-18-codex.sh"
+user --> devtools : "2. VS Code接続\nRemote-SSH"
+user --> control : "3. マスターOrc起動\n./master-orchestrator.sh start"
+
+control --> config : "API Key読み込み\n設定ファイル確認"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' SSH Connections & Setup
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+control -[#blue]-> mugen_sub : "**SSH接続 (Port 22)**\n1. 認証 (SSH Key)\n2. サブOrc転送\n3. 実行権限付与\n4. 起動コマンド"
+control -[#red]-> majin_sub : "**SSH接続 (Port 22)**\n1. 認証 (SSH Key)\n2. サブOrc転送\n3. 実行権限付与\n4. 起動コマンド"
+
+config -[#green]-> mugen_runtime : "**設定同期 (rsync)**\n- VS Code settings\n- Git config\n- API Keys"
+config -[#green]-> majin_runtime : "**設定同期 (rsync)**\n- VS Code settings\n- Git config\n- API Keys"
+
+control --> tasks : "**タスク配信**\n- 18個のMarkdownファイル生成\n- タスクID割当 (1-18)"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Task Distribution & Execution
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+tasks -[#orange]-> mugen_sub : "**タスク転送 (scp)**\nTasks 1-12"
+tasks -[#purple]-> majin_sub : "**タスク転送 (scp)**\nTasks 13-18"
+
+mugen_sub -[#blue]-> mugen_codex : "**tmux起動**\n1. 12 Windows作成\n2. 各Windowでcodex起動\n3. Task File読込\n4. 並列実行開始"
+
+majin_sub -[#red]-> majin_codex : "**tmux起動**\n1. 6 Windows作成\n2. 各Windowでcodex起動\n3. Task File読込\n4. 並列実行開始"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' API Communication (Codex → OpenAI)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+mugen_codex -[#darkgreen]-> api_gateway : "**API Requests (HTTPS)**\n- 12並列リクエスト\n- Task内容送信\n- Bearer Token認証"
+majin_codex -[#darkgreen]-> api_gateway : "**API Requests (HTTPS)**\n- 6並列リクエスト\n- Task内容送信\n- Bearer Token認証"
+
+api_gateway --> auth : "認証確認"
+api_gateway --> ratelimit : "Rate Limit確認"
+api_gateway --> models : "モデル選択・実行"
+
+models -[#darkgreen]-> mugen_codex : "**API Responses**\n- 生成コード\n- 実行結果\n- トークン使用量"
+models -[#darkgreen]-> majin_codex : "**API Responses**\n- 生成コード\n- 実行結果\n- トークン使用量"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Monitoring & Logging
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+mugen_codex -[#brown]-> mugen_monitor : "**メトリクス収集**\n- プロセスID\n- CPU/Memory使用率\n- Task進捗"
+majin_codex -[#brown]-> majin_monitor : "**メトリクス収集**\n- プロセスID\n- CPU/Memory使用率\n- Task進捗"
+
+mugen_monitor ..[#blue].> control : "**リアルタイム送信 (SSH)**\n- watch -n 5 コマンド\n- ステータス更新"
+majin_monitor ..[#red].> control : "**リアルタイム送信 (SSH)**\n- watch -n 5 コマンド\n- ステータス更新"
+
+mugen_codex -[#gray]-> tasks : "**ログ出力**\n.ai/logs/codex-{1-12}.log"
+majin_codex -[#gray]-> tasks : "**ログ出力**\n.ai/logs/codex-{13-18}.log"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' User Interaction (VS Code)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+devtools ..[#purple].> mugen_sub : "**VS Code Remote-SSH**\n- リモートターミナル\n- tmux attach"
+devtools ..[#purple].> majin_sub : "**VS Code Remote-SSH**\n- リモートターミナル\n- tmux attach"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Notes
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+note right of LOCAL
+  **Master Orchestrator (ローカルPC)**
+
+  **役割**:
+  - 全体制御・監視
+  - VS Code統合開発環境
+  - タスク配信・ログ収集
+  - SSH接続管理
+
+  **技術スタック**:
+  - Bash Scripts (5ファイル)
+  - VS Code + Remote-SSH拡張
+  - SSH (OpenSSH 9.x)
+  - rsync (設定同期)
+
+  **セキュリティ**:
+  - SSH公開鍵認証
+  - API Key環境変数管理
+  - 接続暗号化 (TLS 1.3)
+end note
+
+note right of MUGEN
+  **MUGEN (無限) - Primary Execution Node**
+
+  **キャパシティ**:
+  - 並列実行: 12 Codex
+  - CPU割当: 各1 vCPU (合計12/16)
+  - Memory割当: 各1GB (合計12GB/124GB)
+  - 予約リソース: 4 vCPU (システム用)
+
+  **パフォーマンス目標**:
+  - CPU使用率: 70-80%
+  - Load Average: < 12.0
+  - タスク完了率: > 95%
+  - エラー率: < 5%
+
+  **技術スタック**:
+  - Ubuntu 22.04 LTS
+  - Node.js 20.19.5
+  - OpenAI Codex CLI
+  - tmux 3.x
+
+  **コスト**:
+  - インスタンス: r5.4xlarge
+  - 時間単価: $1.008/hour
+  - 月額: $734.40 (24/7稼働)
+end note
+
+note right of MAJIN
+  **MAJIN (魔神) - Secondary Execution Node**
+
+  **キャパシティ**:
+  - 並列実行: 6 Codex
+  - CPU割当: 各1 vCPU (合計6/8)
+  - Memory割当: 各1GB (合計6GB/30GB)
+  - 予約リソース: 2 vCPU (システム用)
+
+  **パフォーマンス目標**:
+  - CPU使用率: 75-85%
+  - Load Average: < 6.0
+  - タスク完了率: > 95%
+  - エラー率: < 5%
+
+  **技術スタック**:
+  - Ubuntu 22.04 LTS
+  - Node.js 20.19.5
+  - OpenAI Codex CLI
+  - tmux 3.x
+
+  **コスト**:
+  - インスタンス: t3.2xlarge (推定)
+  - 時間単価: $0.3328/hour
+  - 月額: $242.16 (24/7稼働)
+end note
+
+note bottom of openai
+  **OpenAI Codex API**
+
+  **API仕様**:
+  - Endpoint: https://api.openai.com/v1/chat/completions
+  - Model: GPT-5 (Default), o3 (Optional)
+  - 認証: Bearer Token (API Key)
+  - Protocol: HTTPS/2 (TLS 1.3)
+
+  **Rate Limits**:
+  - 並列リクエスト: 18 (12 MUGEN + 6 MAJIN)
+  - Rate: 500 requests/minute
+  - Tokens: 2M TPM (Tokens Per Minute)
+  - Timeout: 60 seconds/request
+
+  **Cost Structure**:
+  - Input: $0.15 / 1M tokens
+  - Output: $0.60 / 1M tokens
+  - Estimated: $50-100/day (18並列, 8h稼働)
+
+  **Error Handling**:
+  - 429 Too Many Requests → Retry (Exponential Backoff)
+  - 500 Internal Server Error → Retry (3回まで)
+  - 401 Unauthorized → API Key確認
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Legend
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+legend right
+  **凡例 (Legend)**
+
+  |= Symbol |= Meaning |= Description |
+  | → | 制御フロー | SSH接続、コマンド実行 |
+  | ..> | ステータス報告 | リアルタイムメトリクス送信 |
+  | -[#blue]-> | MUGEN制御 | MUGENへの制御指示 |
+  | -[#red]-> | MAJIN制御 | MAJINへの制御指示 |
+  | -[#green]-> | 設定同期 | rsync/scp転送 |
+  | -[#darkgreen]-> | API通信 | OpenAI API呼び出し |
+  | -[#brown]-> | メトリクス | 監視データ収集 |
+  | -[#gray]-> | ログ出力 | ファイル書き込み |
+
+  **色分け (Colors)**:
+  |= Color |= Component Type |
+  | #lightgreen | 実行中Codex |
+  | #lightcyan | モニタリング |
+  | #lightyellow | オーケストレーター |
+  | #wheat | ランタイム環境 |
+  | #lavender | 外部API |
+  | #aliceblue | ローカル環境 |
+  | #lightblue | MUGEN環境 |
+  | #lightpink | MAJIN環境 |
+
+  **Performance Metrics**:
+  - Total Codex: 18 (MUGEN 12 + MAJIN 6)
+  - Total vCPU: 18/24 (75%)
+  - Total Memory: 18GB/154GB (11.7%)
+  - Total Disk: 88GB/388GB (22.7%)
+  - Parallel Efficiency: 85-90%
+  - Expected Speedup: 15-16x
+
+  **Key Files**:
+  - setup-phase1-18-codex.sh: セットアップ
+  - master-orchestrator.sh: 制御
+  - sub-orchestrator-{mugen,majin}.sh: 実行
+  - monitor-18-codex.sh: 監視
+end legend
+
+@enduml

@@ -1,5 +1,6 @@
 import { AlertCircle, AlertTriangle, Info, ExternalLink, X } from "lucide-react";
 import type { ErrorInfo } from "../lib/errors";
+import type { ReactElement } from "react";
 
 export interface ErrorModalProps {
   error: ErrorInfo | null;
@@ -9,7 +10,7 @@ export interface ErrorModalProps {
 
 const severityConfig: Record<
   ErrorInfo["severity"],
-  { container: string; icon: JSX.Element; badge: string }
+  { container: string; icon: ReactElement; badge: string }
 > = {
   error: {
     container: "bg-red-50 border-red-200",

@@ -41,12 +41,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Ok(text) => {
                             print!("{}", text);
                             io::stdout().flush()?;
-                        }
+                        },
                         Err(e) => eprintln!("\n   Stream error: {}", e),
                     }
                 }
                 println!("\n");
-            }
+            },
             Err(e) => println!("   Error: {}\n", e),
         }
     } else {
@@ -67,12 +67,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Ok(text) => {
                             print!("{}", text);
                             io::stdout().flush()?;
-                        }
+                        },
                         Err(e) => eprintln!("\n   Stream error: {}", e),
                     }
                 }
                 println!("\n");
-            }
+            },
             Err(e) => println!("   Error: {}\n", e),
         }
     } else {
@@ -94,12 +94,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Ok(text) => {
                             print!("{}", text);
                             io::stdout().flush()?;
-                        }
+                        },
                         Err(e) => eprintln!("\n   Stream error: {}", e),
                     }
                 }
                 println!("\n");
-            }
+            },
             Err(e) => println!("   Error: {}\n", e),
         }
     } else {

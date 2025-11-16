@@ -366,10 +366,7 @@ impl FiveWorldsResult {
             .iter()
             .filter(|(_, r)| r.success)
             .max_by(|(_, a), (_, b)| {
-                a.score
-                    .total
-                    .partial_cmp(&b.score.total)
-                    .unwrap_or(std::cmp::Ordering::Equal)
+                a.score.total.partial_cmp(&b.score.total).unwrap_or(std::cmp::Ordering::Equal)
             })
             .map(|(world_id, _)| *world_id);
 

@@ -63,9 +63,7 @@ async fn test_phase4_execute_agent_run_missing_worktree() {
 
     let mut executor = ClaudeCodeExecutor::new(config);
 
-    let result = executor
-        .execute_agent_run(999, PathBuf::from("/nonexistent/worktree"))
-        .await;
+    let result = executor.execute_agent_run(999, PathBuf::from("/nonexistent/worktree")).await;
 
     assert!(result.is_err());
     let err = result.unwrap_err();
@@ -194,11 +192,7 @@ async fn test_phase4_execution_result_validation() {
     assert_eq!(execution_result.world_results.len(), 5);
 
     // Count actual successful worlds
-    let actual_successful = execution_result
-        .world_results
-        .iter()
-        .filter(|r| r.success)
-        .count();
+    let actual_successful = execution_result.world_results.iter().filter(|r| r.success).count();
     assert_eq!(actual_successful, 4);
 
     // Verify confidence calculation

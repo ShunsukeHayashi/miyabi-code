@@ -146,14 +146,14 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
                 Message::Ping(_data) => {
                     // Echo back pong
                     info!("Received ping");
-                }
+                },
                 Message::Pong(_) => {
                     info!("Received pong");
-                }
+                },
                 Message::Text(text) => {
                     info!("Received text message: {}", text);
-                }
-                _ => {}
+                },
+                _ => {},
             }
         }
     });

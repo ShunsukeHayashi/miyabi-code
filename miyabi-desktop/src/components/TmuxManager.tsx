@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { safeInvoke, isTauriAvailable } from '../lib/tauri-utils';
 import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
-import { listGwrWorktrees, getGwrStatus, GwrWorktree } from '../lib/tauri-api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -107,10 +106,6 @@ export function TmuxManager() {
     issueNumber: string;
   }>({ open: false, agentName: '', issueNumber: '' });
   const [runtimeReady, setRuntimeReady] = useState(() => isTauriAvailable());
-  const [gwrWorktrees, setGwrWorktrees] = useState<GwrWorktree[]>([]);
-  const [gwrStatus, setGwrStatus] = useState('');
-  const [gwrLoading, setGwrLoading] = useState(false);
-  const [gwrError, setGwrError] = useState<string | null>(null);
   const [gwrWorktrees, setGwrWorktrees] = useState<GwrWorktree[]>([]);
   const [gwrStatus, setGwrStatus] = useState('');
   const [gwrLoading, setGwrLoading] = useState(false);

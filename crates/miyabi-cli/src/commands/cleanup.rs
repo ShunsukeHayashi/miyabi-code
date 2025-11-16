@@ -29,12 +29,9 @@ impl CleanupCommand {
     pub async fn execute(&self) -> Result<()> {
         println!(
             "{}",
-            format!(
-                "🧹 Worktree Cleanup{}",
-                if self.dry_run { " (DRY RUN)" } else { "" }
-            )
-            .cyan()
-            .bold()
+            format!("🧹 Worktree Cleanup{}", if self.dry_run { " (DRY RUN)" } else { "" })
+                .cyan()
+                .bold()
         );
         println!();
 
@@ -85,23 +82,16 @@ impl CleanupCommand {
                             additional
                         );
                         println!();
-                    }
+                    },
                     Ok(_) => {
                         // Nothing left to clean; still provide a hint when force/all requested
-                        println!(
-                            "  {} No remaining worktrees after initial cleanup",
-                            "ℹ".blue()
-                        );
+                        println!("  {} No remaining worktrees after initial cleanup", "ℹ".blue());
                         println!();
-                    }
+                    },
                     Err(err) => {
-                        println!(
-                            "  {} Failed to remove some worktrees: {}",
-                            "⚠️".yellow(),
-                            err
-                        );
+                        println!("  {} Failed to remove some worktrees: {}", "⚠️".yellow(), err);
                         println!();
-                    }
+                    },
                 }
             }
         }
@@ -125,10 +115,7 @@ impl CleanupCommand {
         println!("  Found {} worktree(s):", worktrees.len());
         println!();
 
-        let would_clean: Vec<_> = worktrees
-            .iter()
-            .filter(|wt| self.should_clean(wt))
-            .collect();
+        let would_clean: Vec<_> = worktrees.iter().filter(|wt| self.should_clean(wt)).collect();
 
         if would_clean.is_empty() {
             println!("  ✅ No worktrees would be cleaned");
@@ -175,27 +162,11 @@ impl CleanupCommand {
         if report.total_cleaned() == 0 {
             println!("  ✅ No worktrees were cleaned");
         } else {
-            println!(
-                "  {} Orphaned worktrees cleaned: {}",
-                "✓".green(),
-                report.orphaned_cleaned
-            );
-            println!(
-                "  {} Idle worktrees cleaned: {}",
-                "✓".green(),
-                report.idle_cleaned
-            );
-            println!(
-                "  {} Stuck worktrees cleaned: {}",
-                "✓".green(),
-                report.stuck_cleaned
-            );
+            println!("  {} Orphaned worktrees cleaned: {}", "✓".green(), report.orphaned_cleaned);
+            println!("  {} Idle worktrees cleaned: {}", "✓".green(), report.idle_cleaned);
+            println!("  {} Stuck worktrees cleaned: {}", "✓".green(), report.stuck_cleaned);
             println!();
-            println!(
-                "  {} Total cleaned: {}",
-                "📊".cyan(),
-                report.total_cleaned()
-            );
+            println!("  {} Total cleaned: {}", "📊".cyan(), report.total_cleaned());
             println!(
                 "  {} Disk space freed: {} MB",
                 "💾".cyan(),

@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("   Provider: {}", claude.provider_name());
                 println!("   Model: {}", claude.model_name());
                 println!("   Response: {}\n", response);
-            }
+            },
             Err(e) => println!("   Error: {}\n", e),
         }
     } else {
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("   Provider: {}", openai.provider_name());
                 println!("   Model: {}", openai.model_name());
                 println!("   Response: {}\n", response);
-            }
+            },
             Err(e) => println!("   Error: {}\n", e),
         }
     } else {
@@ -63,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("   Provider: {}", google.provider_name());
                 println!("   Model: {}", google.model_name());
                 println!("   Response: {}\n", response);
-            }
+            },
             Err(e) => println!("   Error: {}\n", e),
         }
     } else {

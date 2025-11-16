@@ -141,17 +141,13 @@ impl DeploymentAgent {
 
         // Parse "test result: ok. X passed; Y failed"
         if let Some(line) = output.lines().find(|l| l.contains("test result:")) {
-            if let Some(passed_str) = line
-                .split("passed")
-                .next()
-                .and_then(|s| s.split_whitespace().last())
+            if let Some(passed_str) =
+                line.split("passed").next().and_then(|s| s.split_whitespace().last())
             {
                 passed = passed_str.parse().unwrap_or(0);
             }
-            if let Some(failed_str) = line
-                .split("failed")
-                .next()
-                .and_then(|s| s.split_whitespace().last())
+            if let Some(failed_str) =
+                line.split("failed").next().and_then(|s| s.split_whitespace().last())
             {
                 failed = failed_str.parse().unwrap_or(0);
             }
@@ -192,11 +188,11 @@ impl DeploymentAgent {
                     } else {
                         last_error = Some(format!("HTTP {}", status));
                     }
-                }
+                },
                 Err(e) => {
                     tracing::warn!("Health check attempt {} failed: {}", attempt, e);
                     last_error = Some(e.to_string());
-                }
+                },
             }
 
             if attempt < retries {
@@ -235,10 +231,7 @@ impl DeploymentAgent {
         };
 
         let project_id = firebase_project.as_ref().ok_or_else(|| {
-            MiyabiError::Config(format!(
-                "Firebase project not configured for {:?}",
-                environment
-            ))
+            MiyabiError::Config(format!("Firebase project not configured for {:?}", environment))
         })?;
 
         tracing::info!("Deploying to Firebase project: {}", project_id);
@@ -266,10 +259,7 @@ impl DeploymentAgent {
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         if !success {
-            return Err(MiyabiError::Unknown(format!(
-                "Firebase deploy failed: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Unknown(format!("Firebase deploy failed: {}", stderr)));
         }
 
         // Extract deployment URL from output
@@ -339,10 +329,8 @@ impl BaseAgent for DeploymentAgent {
             .as_ref()
             .ok_or_else(|| MiyabiError::Validation("Task metadata is missing".to_string()))?;
 
-        let environment_str = metadata
-            .get("environment")
-            .and_then(|v| v.as_str())
-            .unwrap_or("staging");
+        let environment_str =
+            metadata.get("environment").and_then(|v| v.as_str()).unwrap_or("staging");
 
         let environment = match environment_str {
             "production" => Environment::Production,
@@ -399,10 +387,7 @@ impl BaseAgent for DeploymentAgent {
         let escalation = if environment == Environment::Production && !health_result.success {
             let mut context = HashMap::new();
             context.insert("environment".to_string(), serde_json::json!("production"));
-            context.insert(
-                "health_check".to_string(),
-                serde_json::to_value(&health_result)?,
-            );
+            context.insert("health_check".to_string(), serde_json::to_value(&health_result)?);
 
             Some(EscalationInfo {
                 reason: "Production deployment health check failed".to_string(),
@@ -413,14 +398,8 @@ impl BaseAgent for DeploymentAgent {
             })
         } else if !build_result.success || !test_result.success {
             let mut context = HashMap::new();
-            context.insert(
-                "build_success".to_string(),
-                serde_json::json!(build_result.success),
-            );
-            context.insert(
-                "test_success".to_string(),
-                serde_json::json!(test_result.success),
-            );
+            context.insert("build_success".to_string(), serde_json::json!(build_result.success));
+            context.insert("test_success".to_string(), serde_json::json!(test_result.success));
 
             Some(EscalationInfo {
                 reason: "Build or test failed".to_string(),
@@ -435,20 +414,11 @@ impl BaseAgent for DeploymentAgent {
 
         // Construct result data
         let mut data = HashMap::new();
-        data.insert(
-            "environment".to_string(),
-            serde_json::to_value(environment)?,
-        );
+        data.insert("environment".to_string(), serde_json::to_value(environment)?);
         data.insert("build".to_string(), serde_json::to_value(&build_result)?);
         data.insert("tests".to_string(), serde_json::to_value(&test_result)?);
-        data.insert(
-            "deployment".to_string(),
-            serde_json::to_value(&deploy_result)?,
-        );
-        data.insert(
-            "health_check".to_string(),
-            serde_json::to_value(&health_result)?,
-        );
+        data.insert("deployment".to_string(), serde_json::to_value(&deploy_result)?);
+        data.insert("health_check".to_string(), serde_json::to_value(&health_result)?);
         if let Some(ref rollback) = rollback_result {
             data.insert("rollback".to_string(), serde_json::to_value(rollback)?);
         }
@@ -706,9 +676,7 @@ mod tests {
         // Should fail due to missing Firebase configuration
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(error
-            .to_string()
-            .contains("Firebase project not configured"));
+        assert!(error.to_string().contains("Firebase project not configured"));
     }
 
     #[test]

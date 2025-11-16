@@ -1,0 +1,92 @@
+{
+  "name": "paper-alphagenome",
+  "version": "1.0.0",
+  "description": "MCP server for AlphaGenome - AI for genomic variant interpretation",
+  "metadata": {
+    "arxiv_id": "2509.06917",
+    "language": "python",
+    "generated_at": "2025-11-09T05:53:51+09:00",
+    "generator": "miyabi-paper2agent",
+    "paper_title": "Paper2Agent: Reimagining Research Papers As Interactive and Reliable AI Agents",
+    "original_repository": "https://github.com/google-deepmind/alphagenome"
+  },
+  "command": "python",
+  "args": ["-m", "alphagenome.mcp_server"],
+  "tools": [
+    {
+      "name": "linkcode_resolve",
+      "description": "Execute linkcode_resolve from paper implementation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input data for linkcode_resolve"
+          }
+        },
+        "required": ["input"]
+      }
+    }
+,
+    {
+      "name": "main",
+      "description": "Execute main from paper implementation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input data for main"
+          }
+        },
+        "required": ["input"]
+      }
+    }
+,
+    {
+      "name": "seqlogo",
+      "description": "Execute seqlogo from paper implementation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input data for seqlogo"
+          }
+        },
+        "required": ["input"]
+      }
+    }
+,
+    {
+      "name": "_add_letter_to_axis",
+      "description": "Execute _add_letter_to_axis from paper implementation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input data for _add_letter_to_axis"
+          }
+        },
+        "required": ["input"]
+      }
+    }
+,
+    {
+      "name": "plot_contact_map",
+      "description": "Execute plot_contact_map from paper implementation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Input data for plot_contact_map"
+          }
+        },
+        "required": ["input"]
+      }
+    }
+
+  ]
+}

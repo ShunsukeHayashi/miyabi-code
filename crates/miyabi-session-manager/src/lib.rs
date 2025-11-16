@@ -295,10 +295,7 @@ impl SessionManager {
     ) -> Result<Uuid> {
         let session_id = Uuid::new_v4();
 
-        info!(
-            "🚀 Spawning session {} for {} ({})",
-            session_id, agent_name, purpose
-        );
+        info!("🚀 Spawning session {} for {} ({})", session_id, agent_name, purpose);
 
         // セッションログファイル
         let log_file = self.log_dir.join(format!("{}.log", session_id));
@@ -383,10 +380,7 @@ impl SessionManager {
             self.storage.save(&parent).await?;
         }
 
-        info!(
-            "✅ Handoff complete: {} → {}",
-            from_session_id, new_session_id
-        );
+        info!("✅ Handoff complete: {} → {}", from_session_id, new_session_id);
 
         Ok(new_session_id)
     }

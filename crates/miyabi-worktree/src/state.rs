@@ -81,7 +81,7 @@ impl WorktreeStateManager {
                     );
                 }
                 root
-            }
+            },
             Err(err) => {
                 tracing::debug!(
                     "WorktreeStateManager fallback to provided path {:?}: {}",
@@ -89,7 +89,7 @@ impl WorktreeStateManager {
                     err
                 );
                 project_root.clone()
-            }
+            },
         };
 
         let worktree_base = resolved_root.join(".worktrees");
@@ -143,10 +143,7 @@ impl WorktreeStateManager {
         }
 
         // Get branch name from directory name (e.g., "issue-123" -> "issue-123")
-        let dir_name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("unknown");
+        let dir_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("unknown");
         let branch = dir_name.to_string();
 
         // Extract issue number from directory name
@@ -254,7 +251,7 @@ impl WorktreeStateManager {
                 Ok(_) => cleaned += 1,
                 Err(e) => {
                     errors.push(format!("{} ({})", worktree.path.display(), e));
-                }
+                },
             }
         }
 
@@ -277,10 +274,8 @@ impl WorktreeStateManager {
             .map_err(|e| MiyabiError::Io(std::io::Error::other(e.to_string())))?;
 
         // Create a map of issue numbers to task metadata
-        let task_map: std::collections::HashMap<u64, _> = all_tasks
-            .into_iter()
-            .filter_map(|t| t.issue_number.map(|n| (n, t)))
-            .collect();
+        let task_map: std::collections::HashMap<u64, _> =
+            all_tasks.into_iter().filter_map(|t| t.issue_number.map(|n| (n, t))).collect();
 
         // Check each worktree
         for worktree in worktrees {
@@ -307,10 +302,7 @@ impl WorktreeStateManager {
         // - "issue-123-feature"
         // - "123-bugfix"
 
-        if let Some(captures) = regex::Regex::new(r"issue[_-]?(\d+)")
-            .ok()?
-            .captures(dir_name)
-        {
+        if let Some(captures) = regex::Regex::new(r"issue[_-]?(\d+)").ok()?.captures(dir_name) {
             return captures.get(1)?.as_str().parse().ok();
         }
 
@@ -349,8 +341,8 @@ impl WorktreeStateManager {
                     TaskStatus::Running => return Ok(WorktreeStatusDetailed::Active),
                     TaskStatus::Success | TaskStatus::Failed | TaskStatus::Cancelled => {
                         return Ok(WorktreeStatusDetailed::Idle);
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 }
             }
         }
@@ -383,9 +375,7 @@ impl WorktreeStateManager {
     fn has_uncommitted_changes(&self, path: &Path) -> Result<bool> {
         let repo = git2::Repository::open(path).map_err(|e| MiyabiError::Git(e.to_string()))?;
 
-        let statuses = repo
-            .statuses(None)
-            .map_err(|e| MiyabiError::Git(e.to_string()))?;
+        let statuses = repo.statuses(None).map_err(|e| MiyabiError::Git(e.to_string()))?;
 
         Ok(!statuses.is_empty())
     }
@@ -469,10 +459,7 @@ mod tests {
             .current_dir(repo_path)
             .output()
             .expect("git init should be invokable");
-        assert!(
-            init_output.status.success(),
-            "git init did not exit successfully"
-        );
+        assert!(init_output.status.success(), "git init did not exit successfully");
 
         let subdir = repo_path.join("nested");
         std::fs::create_dir(&subdir).unwrap();

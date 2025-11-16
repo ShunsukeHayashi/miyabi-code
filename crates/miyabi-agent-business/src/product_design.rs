@@ -57,16 +57,13 @@ Create a comprehensive product design as JSON with product architecture, user ex
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::ProductDesignAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::ProductDesignAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let product_design: ProductDesign = serde_json::from_str(&response).map_err(|e| {
@@ -261,10 +258,7 @@ impl BaseAgent for ProductDesignAgent {
             "content_types_count": product_design.content_strategy.blog_posts.len() + product_design.content_strategy.documentation.len() + product_design.content_strategy.video_content.len() + product_design.content_strategy.social_media.len()
         });
 
-        tracing::info!(
-            "ProductDesignAgent completed product design generation: {}",
-            summary
-        );
+        tracing::info!("ProductDesignAgent completed product design generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

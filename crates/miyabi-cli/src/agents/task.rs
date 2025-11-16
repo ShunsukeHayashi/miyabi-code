@@ -46,18 +46,13 @@ impl TaskFactory {
         metadata: Option<HashMap<String, serde_json::Value>>,
         include_default_issue_metadata: bool,
     ) -> Task {
-        let title = template
-            .title_template
-            .replace("{issue}", &issue_number.to_string());
-        let description = template
-            .description_template
-            .replace("{issue}", &issue_number.to_string());
+        let title = template.title_template.replace("{issue}", &issue_number.to_string());
+        let description =
+            template.description_template.replace("{issue}", &issue_number.to_string());
 
         let mut metadata = metadata.unwrap_or_default();
         if include_default_issue_metadata {
-            metadata
-                .entry("issue_number".to_string())
-                .or_insert(json!(issue_number));
+            metadata.entry("issue_number".to_string()).or_insert(json!(issue_number));
         }
 
         Task {

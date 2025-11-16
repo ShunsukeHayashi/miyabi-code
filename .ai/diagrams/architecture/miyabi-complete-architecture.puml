@@ -1,0 +1,521 @@
+@startuml Miyabi-Complete-Architecture
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v17.0/dist
+!include AWSPUML/AWSCommon.puml
+!include AWSPUML/Compute/EC2.puml
+!include AWSPUML/General/User.puml
+
+' Styling
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+' Title
+title **Miyabi - 完全自律型開発フレームワーク**\n統合アーキテクチャ図（Complete Architecture）\n\n**GitHub as OS + 18 Codex並列実行 + tmux Orchestra + 21 Agents + VOICEVOX + Claude Code**
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' GitHub Ecosystem (GitHub as OS)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cloud "GitHub Ecosystem\n(GitHub as OS)" as github #lightsteelblue {
+  rectangle "Issue Management" as issues {
+    [57 Label System\n11 Categories\n- feature/*\n- bug/*\n- refactor/*\n- docs/*\n- test/*\n- workflow/*\n- priority/*\n- size/*\n- status/*\n- agent/*\n- org/*]
+
+    [Issue Queue\nBacklog: 100+\nActive: 20\nDone: 500+]
+  }
+
+  rectangle "Pull Requests" as prs {
+    [PR Automation\n- Auto-create from Agent\n- Conventional Commits\n- Draft PR workflow]
+
+    [Review Process\n- Agent Review\n- Human Approval\n- Merge Strategy]
+  }
+
+  rectangle "GitHub Actions" as actions {
+    [CI/CD Pipeline\n- Self-Hosted Runners\n- MUGEN/MAJIN execution\n- Parallel test/build]
+
+    [Webhook Handler\n- Issue events\n- PR events\n- Agent triggers]
+  }
+
+  rectangle "Projects" as projects {
+    [Project Boards\n- Sprint管理\n- 階層的Issue管理\n- Milestone追跡]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Local PC (Master Control Center)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "ローカルPC (Master Control Center)\nMacBook Pro - macOS 15.x" as LOCAL #aliceblue {
+
+  actor "Developer\n(水蜘蛛役)" as user
+
+  rectangle "Master Orchestrator" as master #lightgreen {
+    component "18 Codex Control" as codex_control {
+      [master-orchestrator.sh\n- 18 Codex制御\n- MUGEN/MAJIN管理]
+      [monitor-18-codex.sh\n- リアルタイム監視]
+    }
+
+    component "Miyabi CLI" as miyabi_cli {
+      [miyabi agent run\n- 21 Agent実行\n- Worktree分離]
+      [miyabi cleanup\n- Worktree管理]
+      [miyabi status\n- 全体ステータス]
+    }
+
+    component "tmux Orchestra" as tmux_orch {
+      [Water Spider Monitor\n- Agent間連携監視\n- 動力の伝達管理]
+      [Conductor Pane\n- 司令塔\n- タスク配分]
+      [9 Agent Panes\n- カエデ/サクラ/ツバキ等\n- 並列実行]
+    }
+
+    component "Development Tools" as devtools {
+      [Claude Code 2.0.36\n- AI Assistant\n- Autonomous Agent]
+      [VS Code\n- Remote-SSH\n- Multi-root Workspace]
+      [Git + Worktree\n- 並列開発環境]
+    }
+  }
+
+  database "Local Storage" as local_storage {
+    folder ".ai/" {
+      [plans/\n- 実装計画]
+      [logs/\n- 実行ログ]
+      [metrics/\n- パフォーマンス]
+      [reports/\n- KPIダッシュボード]
+      [diagrams/\n- PlantUML図]
+    }
+
+    folder ".worktrees/" {
+      [issue-708/\n- 各Issueごと]
+      [phase1-18-codex-setup/]
+      [pr-773-fix/]
+    }
+
+    folder "tasks/" {
+      [codex-test/\n- 18タスクファイル]
+      [agent-tasks/\n- Agent用タスク]
+    }
+  }
+
+  rectangle "Configuration" as config {
+    [CLAUDE.md\n- Agent Operating Manual\n- P0/P1/P2 Rules]
+    [.claude/context/*.md\n- 15 Context Modules]
+    [.claude/Skills/*.md\n- 15 Skills]
+    [miyabi.toml\n- プロジェクト設定]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' MUGEN EC2 (無限)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "MUGEN (無限)\nAWS EC2: r5.4xlarge (us-west-2)\nIP: 44.250.27.197\n16 vCPU, 124GB RAM, 194GB Disk" as MUGEN #lightblue {
+
+  rectangle "Sub-Orchestrator" as mugen_sub #lightyellow {
+    [sub-orchestrator-mugen.sh\n- tmux: mugen-codex\n- 12 Codex起動]
+  }
+
+  rectangle "12 Codex Instances" as mugen_codex {
+    component "Codex 1-4" #lightgreen {
+      [OpenAI Codex CLI\n- GPT-5/o3\n- Task execution]
+    }
+    component "Codex 5-8" #lightgreen {
+      [同上]
+    }
+    component "Codex 9-12" #lightgreen {
+      [同上]
+    }
+  }
+
+  rectangle "Miyabi Agents (Heavy)" as mugen_agents #wheat {
+    [Business Agents\n- AI Entrepreneur\n- Market Research\n- Product Design\n- Marketing\n- Sales/CRM\n- Analytics]
+
+    [Development Agents\n- CodeGen\n- Review\n- Deployment]
+  }
+
+  rectangle "Runtime" as mugen_runtime {
+    [Node.js 20.19.5\nnpm 10.8.2\nClaude Code\nRust toolchain]
+    [Git Worktree Pool\n- Parallel execution\n- Isolation]
+  }
+
+  database "MUGEN Storage" as mugen_storage {
+    [~/projects/miyabi-private\n- Main repository\n- Worktrees]
+    [.ai/logs/codex-{1-12}.log]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' MAJIN EC2 (魔神)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "MAJIN (魔神)\nAWS EC2: t3.2xlarge (ap-northeast-1)\nIP: 54.92.67.11\n8 vCPU, 30GB RAM, 194GB Disk" as MAJIN #lightpink {
+
+  rectangle "Sub-Orchestrator" as majin_sub #lightyellow {
+    [sub-orchestrator-majin.sh\n- tmux: majin-codex\n- 6 Codex起動]
+  }
+
+  rectangle "6 Codex Instances" as majin_codex {
+    component "Codex 13-15" #lightgreen {
+      [OpenAI Codex CLI\n- GPT-5/o3\n- Task execution]
+    }
+    component "Codex 16-18" #lightgreen {
+      [同上]
+    }
+  }
+
+  rectangle "Miyabi Agents (Light)" as majin_agents #wheat {
+    [Issue Agent\n- Label inference\n- Priority assignment]
+
+    [PR Agent\n- Auto PR creation\n- Conventional Commits]
+
+    [Refresher Agent\n- Status monitoring\n- Auto update]
+  }
+
+  rectangle "Runtime" as majin_runtime {
+    [Node.js 20.19.5\nnpm 10.8.2\nClaude Code\nRust toolchain]
+    [Git Worktree Pool]
+  }
+
+  database "MAJIN Storage" as majin_storage {
+    [~/projects/miyabi-private]
+    [.ai/logs/codex-{13-18}.log]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' External Services
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cloud "OpenAI API" as openai #lavender {
+  [GPT-5 (Default)\no3 (Advanced)\nGPT-4o (Fallback)]
+  [Rate: 18並列\n500 req/min\n2M TPM]
+}
+
+cloud "Communication Services" as comms #lightyellow {
+  rectangle "Lark (Feishu)" {
+    [Webhook Integration\n- Miyabi Dev Coordination\n- Hackathon 2025]
+    [Real-time Notifications\n- Agent完了通知\n- エラーアラート]
+  }
+
+  rectangle "Discord" {
+    [Miyabi Community\n- 開発進捗報告\n- Issue Discussion]
+  }
+
+  rectangle "Telegram" {
+    [miyabi-telegram-bot\n- コマンド実行\n- ステータス確認]
+  }
+}
+
+cloud "Audio Services" as audio #lightcyan {
+  rectangle "VOICEVOX" {
+    [Text-to-Speech\n- ゆっくり音声\n- 開発進捗ナレーション]
+    [Git Commit → Audio\n- 自動音声ガイド生成]
+  }
+}
+
+cloud "Knowledge Base" as knowledge #wheat {
+  rectangle "Qdrant Vector DB" {
+    [Code Embeddings\n- AST Context\n- Semantic Search]
+  }
+
+  rectangle "Context7" {
+    [Library Documentation\n- Auto-fetch latest docs\n- API Reference]
+  }
+
+  rectangle "Potpie Integration" {
+    [Codebase Analysis\n- Graph-based context\n- Intelligent retrieval]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Miyabi Framework Components
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Miyabi Framework\n(15+ Rust Crates)" as framework #mistyrose {
+
+  rectangle "Core Components" as core {
+    [miyabi-core\n- Task metadata\n- Session management\n- Security/Approval]
+
+    [miyabi-llm\n- Multi-provider\n- Router/Load balancer\n- Streaming support]
+
+    [miyabi-github\n- Issues/PRs/Labels\n- Projects/Webhooks\n- Authentication]
+  }
+
+  rectangle "Agent System" as agent_system {
+    [miyabi-agent-core\n- Observable pattern\n- Hooks system\n- Orchestration]
+
+    [miyabi-agent-coordinator\n- DAG execution\n- Parallel orchestration\n- LLM-based decision]
+
+    [miyabi-agent-codegen\n- Code generation\n- Documentation\n- Worktree isolation]
+  }
+
+  rectangle "Business Agents (14種)" as business_agents {
+    [miyabi-agent-business\n- Self Analysis\n- Market Research\n- Persona Design\n- Product Concept\n- Product Design\n- Content Creation\n- Funnel Design\n- SNS Strategy\n- Marketing\n- Sales\n- CRM\n- Analytics\n- AI Entrepreneur\n- YouTube Optimization]
+  }
+
+  rectangle "Infrastructure" as infra {
+    [miyabi-worktree\n- Git worktree pool\n- Parallel isolation\n- Cleanup/Telemetry]
+
+    [miyabi-orchestrator\n- Headless mode\n- Claude Code executor\n- Remote execution]
+
+    [miyabi-knowledge\n- Vector embeddings\n- AST context\n- Hybrid search]
+  }
+
+  rectangle "Integration" as integration {
+    [miyabi-a2a\n- Agent-to-Agent\n- gRPC/HTTP/WebSocket\n- Push notifications]
+
+    [miyabi-discord-mcp-server\n- MCP integration\n- Community management]
+
+    [miyabi-telegram\n- Bot commands\n- Status queries]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Entity-Relation Model (Core Data Structure)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Entity-Relation Model\n(14 Entities, 39 Relations)" as erm #honeydew {
+
+  rectangle "Core Entities" as entities {
+    [Issue\n- ID, Title, Body\n- Labels, Status\n- Assignees]
+
+    [PR (Pull Request)\n- Branch, Commits\n- Review, Merge]
+
+    [Agent\n- Type, Config\n- State, Results]
+
+    [Worktree\n- Path, Branch\n- Status, Cleanup]
+
+    [Task\n- Type, Priority\n- Dependencies\n- Execution trace]
+  }
+
+  rectangle "Relations" as relations {
+    [Issue → Agent\n(1:N, assigned_to)]
+    [Agent → Worktree\n(1:1, executes_in)]
+    [Worktree → PR\n(1:1, produces)]
+    [PR → Issue\n(N:1, resolves)]
+    [Task → Agent\n(N:1, executed_by)]
+    [...計39リレーション]
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Main Flow: Issue → Agent → Code → PR → Merge
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+user --> github : "1. Issue作成\n57ラベル体系で分類"
+github --> master : "2. Webhook通知\nIssue event"
+
+master --> miyabi_cli : "3. Agent選択\n- Issue分析\n- Agent割当"
+
+miyabi_cli --> tmux_orch : "4. tmux Orchestration\n- Conductor指示\n- Agent pane起動"
+
+tmux_orch --> codex_control : "5. Codex起動判断\n- Heavy task → MUGEN\n- Light task → MAJIN"
+
+codex_control -[#blue]-> mugen_sub : "6a. MUGEN実行\n- SSH接続\n- Task配信"
+codex_control -[#red]-> majin_sub : "6b. MAJIN実行\n- SSH接続\n- Task配信"
+
+mugen_sub --> mugen_codex : "7a. 12 Codex並列\n- tmux windows\n- Task execution"
+majin_sub --> majin_codex : "7b. 6 Codex並列\n- tmux windows\n- Task execution"
+
+mugen_codex -[#darkgreen]-> openai : "8a. API呼び出し\n12並列リクエスト"
+majin_codex -[#darkgreen]-> openai : "8b. API呼び出し\n6並列リクエスト"
+
+openai -[#darkgreen]-> mugen_codex : "9a. Code生成\nレスポンス返却"
+openai -[#darkgreen]-> majin_codex : "9b. Code生成\nレスポンス返却"
+
+mugen_codex --> mugen_agents : "10a. Agent実行\nBusiness/Dev Agents"
+majin_codex --> majin_agents : "10b. Agent実行\nIssue/PR/Refresher"
+
+mugen_agents --> framework : "11. Framework利用\n15+ Rust crates"
+majin_agents --> framework : "11. Framework利用"
+
+framework --> knowledge : "12. Knowledge検索\n- Vector DB\n- Context7\n- Potpie"
+
+framework --> erm : "13. データ操作\nEntity-Relation Model"
+
+erm --> github : "14. PR作成\n- Conventional Commits\n- Auto review"
+
+github --> comms : "15. 通知送信\n- Lark\n- Discord\n- Telegram"
+
+github --> audio : "16. 音声ガイド生成\nVOICEVOX"
+
+github --> actions : "17. CI/CD実行\n- Self-hosted runners\n- MUGEN/MAJIN"
+
+actions --> github : "18. Merge\nIssue完了"
+
+github ..> user : "19. 完了通知\nPush notification"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Monitoring & Feedback Loop
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+mugen_codex -[#brown]-> local_storage : "Logs/Metrics"
+majin_codex -[#brown]-> local_storage : "Logs/Metrics"
+
+local_storage ..> user : "KPI Dashboard\n実行状況可視化"
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Notes
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+note top of github
+  **GitHub as OS**
+
+  全てのタスクはGitHub Issueとして管理
+  - 57ラベル体系（11カテゴリ）
+  - 階層的Issue管理
+  - Project Board統合
+
+  Pull Request自動化
+  - Agent自動作成
+  - Conventional Commits準拠
+  - Draft PR workflow
+end note
+
+note right of LOCAL
+  **Master Control Center**
+
+  **3つの制御層**:
+  1. 18 Codex制御（MUGEN/MAJIN）
+  2. Miyabi CLI（21 Agent実行）
+  3. tmux Orchestra（水蜘蛛システム）
+
+  **開発環境統合**:
+  - Claude Code 2.0.36
+  - VS Code Remote-SSH
+  - Git Worktree並列開発
+
+  **5つの実行スクリプト**:
+  - setup-phase1-18-codex.sh
+  - master-orchestrator.sh
+  - sub-orchestrator-{mugen,majin}.sh
+  - monitor-18-codex.sh
+end note
+
+note right of MUGEN
+  **MUGEN (無限) - Primary Node**
+
+  **並列実行キャパシティ**:
+  - 12 Codex並列
+  - 5-6 Heavy Agents同時実行
+  - CPU: 16 vCPU (使用: 70-80%)
+  - Memory: 124GB (使用: ~12GB)
+
+  **主要用途**:
+  - Business Agent実行
+  - Code Generation
+  - Review/Deployment
+  - ベンチマーク
+
+  **コスト**: $734.40/月 (24/7)
+end note
+
+note right of MAJIN
+  **MAJIN (魔神) - Secondary Node**
+
+  **並列実行キャパシティ**:
+  - 6 Codex並列
+  - 3-4 Light Agents同時実行
+  - CPU: 8 vCPU (使用: 75-85%)
+  - Memory: 30GB (使用: ~6GB)
+
+  **主要用途**:
+  - Issue処理
+  - PR作成
+  - Status monitoring
+  - CI/CDパイプライン
+
+  **コスト**: $242.16/月 (24/7)
+end note
+
+note bottom of framework
+  **Miyabi Framework**
+
+  **Cargo Workspace構成**:
+  - 15+ Rust crates
+  - 27,421 files
+  - 500,000+ LOC
+
+  **主要crates**:
+  - miyabi-core: 基盤機能
+  - miyabi-agent-*: Agent実装
+  - miyabi-llm: LLM統合
+  - miyabi-github: GitHub統合
+  - miyabi-knowledge: RAG/Vector DB
+  - miyabi-worktree: Git Worktree管理
+
+  **21 Agents**:
+  - Coding Agents: 7種
+  - Business Agents: 14種
+end note
+
+note bottom of erm
+  **Entity-Relation Model**
+
+  **14 Core Entities**:
+  Issue, PR, Agent, Worktree, Task,
+  Label, Milestone, Project, User,
+  Comment, Webhook, Notification,
+  Session, ExecutionTrace
+
+  **39 Relations**:
+  - 1:N (27個)
+  - N:1 (8個)
+  - N:M (4個)
+
+  **ドキュメント**:
+  docs/ENTITY_RELATION_MODEL.md
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Legend
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+legend right
+  **Miyabi - 完全自律型開発フレームワーク**
+
+  **System Components**:
+  |= Component |= Description |
+  | GitHub as OS | Issue管理、PR自動化、CI/CD |
+  | 18 Codex並列 | MUGEN 12 + MAJIN 6 |
+  | 21 Agents | Coding 7 + Business 14 |
+  | tmux Orchestra | 水蜘蛛システム、並列実行 |
+  | 15+ Rust Crates | Miyabi Framework |
+  | 57 Label System | 11カテゴリ、階層的分類 |
+  | Entity-Relation | 14 Entities, 39 Relations |
+  | VOICEVOX | 音声ガイド、ゆっくり解説 |
+
+  **Data Flow**:
+  |= Symbol |= Meaning |
+  | → | 制御フロー、コマンド |
+  | ..> | 通知、ステータス報告 |
+  | -[#blue]-> | MUGEN制御 |
+  | -[#red]-> | MAJIN制御 |
+  | -[#darkgreen]-> | OpenAI API通信 |
+  | -[#brown]-> | ログ/メトリクス |
+
+  **Performance**:
+  - Total Codex: 18 (MUGEN 12 + MAJIN 6)
+  - Total Agents: 21 (Coding 7 + Business 14)
+  - Total vCPU: 24 (MUGEN 16 + MAJIN 8)
+  - Total Memory: 154GB (MUGEN 124 + MAJIN 30)
+  - Parallel Efficiency: 85-90%
+  - Expected Speedup: 15-16x
+
+  **Cost (24/7 Operation)**:
+  - MUGEN: $734.40/月
+  - MAJIN: $242.16/月
+  - OpenAI API: $50-100/日 (推定)
+  - Total: ~$1,500-3,000/月
+
+  **Key Documents**:
+  - CLAUDE.md: Agent Operating Manual
+  - AGENTS.md: 21 Agent仕様
+  - docs/ENTITY_RELATION_MODEL.md
+  - docs/LABEL_SYSTEM_GUIDE.md
+  - .ai/plans/codex-200-parallel-execution.md
+
+  **Version**: 1.0.0 | **Date**: 2025-11-11
+  **Status**: Phase 1 Ready (18 Codex)
+  **Next**: Phase 2 (100 Codex), Phase 3 (200 Codex)
+end legend
+
+@enduml

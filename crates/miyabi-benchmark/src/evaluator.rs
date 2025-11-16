@@ -161,12 +161,9 @@ impl SWEBenchProEvaluator {
                     model_patch: patch,
                     model_name_or_path: self.config.model_name.clone(),
                 })
-            }
+            },
             Ok(Err(e)) => {
-                error!(
-                    "Patch generation failed for instance {}: {}",
-                    instance.instance_id, e
-                );
+                error!("Patch generation failed for instance {}: {}", instance.instance_id, e);
 
                 // Return empty patch on error (official harness will mark as failed)
                 Ok(PatchOutput {
@@ -174,7 +171,7 @@ impl SWEBenchProEvaluator {
                     model_patch: String::new(),
                     model_name_or_path: self.config.model_name.clone(),
                 })
-            }
+            },
             Err(_) => {
                 error!(
                     "Patch generation timed out for instance: {} after {}s",
@@ -187,7 +184,7 @@ impl SWEBenchProEvaluator {
                     model_patch: String::new(),
                     model_name_or_path: self.config.model_name.clone(),
                 })
-            }
+            },
         }
     }
 
@@ -208,10 +205,7 @@ impl SWEBenchProEvaluator {
         // Create worktree from base commit
         let worktree_path = PathBuf::from(&self.config.worktree_base).join(worktree_name);
 
-        debug!(
-            "🔧 git worktree add {:?} {}",
-            worktree_path, instance.base_commit
-        );
+        debug!("🔧 git worktree add {:?} {}", worktree_path, instance.base_commit);
 
         let output = Command::new("git")
             .args([
@@ -226,10 +220,7 @@ impl SWEBenchProEvaluator {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            error!(
-                "❌ Git worktree creation failed for {}: {}",
-                worktree_name, stderr
-            );
+            error!("❌ Git worktree creation failed for {}: {}", worktree_name, stderr);
             return Err(anyhow!("Git worktree creation failed: {}", stderr));
         }
 
@@ -277,11 +268,7 @@ impl SWEBenchProEvaluator {
                 return Err(anyhow!("Git clone failed: {}", stderr));
             }
 
-            info!(
-                "✅ Repository cloned: {} ({:.2}s)",
-                repo,
-                clone_duration.as_secs_f64()
-            );
+            info!("✅ Repository cloned: {} ({:.2}s)", repo, clone_duration.as_secs_f64());
         } else {
             debug!("📁 Repository already exists: {:?}", repo_path);
         }
@@ -327,7 +314,7 @@ impl SWEBenchProEvaluator {
                     "Successfully generated fix with Claude for instance: {}",
                     instance.instance_id
                 );
-            }
+            },
             Err(e) => {
                 warn!(
                     "Claude API generation failed for instance {}: {}. Creating placeholder fix.",
@@ -335,7 +322,7 @@ impl SWEBenchProEvaluator {
                 );
                 // Fallback: Create a placeholder fix
                 self.create_placeholder_fix(instance, worktree_path)?;
-            }
+            },
         }
 
         Ok(())
@@ -351,10 +338,7 @@ impl SWEBenchProEvaluator {
 
         let api_start = Instant::now();
 
-        debug!(
-            "🤖 Preparing Claude API request for instance: {}",
-            instance.instance_id
-        );
+        debug!("🤖 Preparing Claude API request for instance: {}", instance.instance_id);
 
         // Check for API key
         let api_key = env::var("ANTHROPIC_API_KEY")
@@ -413,30 +397,18 @@ impl SWEBenchProEvaluator {
                 error_text,
                 api_duration.as_secs_f64()
             );
-            return Err(anyhow!(
-                "Claude API returned error {}: {}",
-                status,
-                error_text
-            ));
+            return Err(anyhow!("Claude API returned error {}: {}", status, error_text));
         }
 
-        let response_json: serde_json::Value = response
-            .json()
-            .await
-            .context("Failed to parse Claude API response")?;
+        let response_json: serde_json::Value =
+            response.json().await.context("Failed to parse Claude API response")?;
 
         // Extract usage statistics if available
         if let Some(usage) = response_json.get("usage") {
             debug!(
                 "📊 Claude API usage: input_tokens={}, output_tokens={}",
-                usage
-                    .get("input_tokens")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0),
-                usage
-                    .get("output_tokens")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0)
+                usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0),
+                usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0)
             );
         }
 
@@ -465,10 +437,7 @@ impl SWEBenchProEvaluator {
             &format!("Fix: {} (Claude-generated)", instance.instance_id),
         )?;
 
-        info!(
-            "✅ Claude-generated fix committed for instance: {}",
-            instance.instance_id
-        );
+        info!("✅ Claude-generated fix committed for instance: {}", instance.instance_id);
 
         Ok(())
     }
@@ -490,10 +459,7 @@ impl SWEBenchProEvaluator {
 
         std::fs::write(&fix_doc_path, fix_content).context("Failed to write placeholder fix")?;
 
-        self.commit_fix(
-            worktree_path,
-            &format!("Fix: {} (placeholder)", instance.instance_id),
-        )?;
+        self.commit_fix(worktree_path, &format!("Fix: {} (placeholder)", instance.instance_id))?;
 
         Ok(())
     }
@@ -508,10 +474,7 @@ impl SWEBenchProEvaluator {
             .context("Failed to stage changes")?;
 
         if !git_add.status.success() {
-            return Err(anyhow!(
-                "git add failed: {}",
-                String::from_utf8_lossy(&git_add.stderr)
-            ));
+            return Err(anyhow!("git add failed: {}", String::from_utf8_lossy(&git_add.stderr)));
         }
 
         // Commit
@@ -542,10 +505,7 @@ impl SWEBenchProEvaluator {
             .context("Failed to generate patch")?;
 
         if !output.status.success() {
-            return Err(anyhow!(
-                "Git diff failed: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ));
+            return Err(anyhow!("Git diff failed: {}", String::from_utf8_lossy(&output.stderr)));
         }
 
         let patch = String::from_utf8(output.stdout).context("Patch is not valid UTF-8")?;
@@ -593,10 +553,7 @@ impl SWEBenchProEvaluator {
                 );
             }
         } else {
-            debug!(
-                "⏭️  Worktree does not exist, skipping cleanup: {}",
-                worktree_name
-            );
+            debug!("⏭️  Worktree does not exist, skipping cleanup: {}", worktree_name);
         }
 
         Ok(())
@@ -677,18 +634,10 @@ impl SWEBenchProEvaluator {
                 {
                     let mut stats = stats.lock().unwrap();
                     stats.total_duration_secs += duration;
-                    stats.min_duration_secs = Some(
-                        stats
-                            .min_duration_secs
-                            .map(|m| m.min(duration))
-                            .unwrap_or(duration),
-                    );
-                    stats.max_duration_secs = Some(
-                        stats
-                            .max_duration_secs
-                            .map(|m| m.max(duration))
-                            .unwrap_or(duration),
-                    );
+                    stats.min_duration_secs =
+                        Some(stats.min_duration_secs.map(|m| m.min(duration)).unwrap_or(duration));
+                    stats.max_duration_secs =
+                        Some(stats.max_duration_secs.map(|m| m.max(duration)).unwrap_or(duration));
                 }
 
                 (idx, instance.instance_id.clone(), result, duration)
@@ -724,7 +673,7 @@ impl SWEBenchProEvaluator {
                         stats.lock().unwrap().failed += 1;
                     }
                     results.push(patch);
-                }
+                },
                 Ok((idx, instance_id, Err(e), duration)) => {
                     error!(
                         "❌ [{}/{}] Failed: {} ({:.2}s) - Error: {}",
@@ -736,11 +685,11 @@ impl SWEBenchProEvaluator {
                     );
                     stats.lock().unwrap().failed += 1;
                     return Err(e);
-                }
+                },
                 Err(e) => {
                     error!("💥 Task panicked: {}", e);
                     return Err(anyhow!("Task panicked: {}", e));
-                }
+                },
             }
         }
 
@@ -805,11 +754,7 @@ impl SWEBenchProEvaluator {
         patches: &[PatchOutput],
         output_path: &Path,
     ) -> Result<()> {
-        info!(
-            "Generating Predictions JSONL: {} patches -> {:?}",
-            patches.len(),
-            output_path
-        );
+        info!("Generating Predictions JSONL: {} patches -> {:?}", patches.len(), output_path);
 
         let mut lines = Vec::with_capacity(patches.len());
 
@@ -823,10 +768,7 @@ impl SWEBenchProEvaluator {
         std::fs::write(output_path, content)
             .context(format!("Failed to write JSONL to {:?}", output_path))?;
 
-        info!(
-            "Predictions JSONL generated successfully: {} lines",
-            patches.len()
-        );
+        info!("Predictions JSONL generated successfully: {} lines", patches.len());
 
         Ok(())
     }
@@ -854,16 +796,10 @@ impl SWEBenchProEvaluator {
         max_workers: usize,
         instance_ids: Option<Vec<String>>,
     ) -> Result<PathBuf> {
-        info!(
-            "Running official SWE-bench harness: run_id={}, workers={}",
-            run_id, max_workers
-        );
+        info!("Running official SWE-bench harness: run_id={}, workers={}", run_id, max_workers);
 
         if !predictions_path.exists() {
-            return Err(anyhow!(
-                "Predictions file not found: {:?}",
-                predictions_path
-            ));
+            return Err(anyhow!("Predictions file not found: {:?}", predictions_path));
         }
 
         // Build command - swe-bench-pro official harness
@@ -886,9 +822,7 @@ impl SWEBenchProEvaluator {
         info!("Executing command: {:?}", cmd);
 
         // Execute command (requires docker for swe-bench-pro containers)
-        let output = cmd
-            .output()
-            .context("Failed to execute swebench.harness.run_evaluation")?;
+        let output = cmd.output().context("Failed to execute swebench.harness.run_evaluation")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -925,10 +859,7 @@ impl SWEBenchProEvaluator {
         instances: &[SWEBenchInstance],
         output_dir: &Path,
     ) -> Result<PathBuf> {
-        info!(
-            "Starting evaluation with official harness: {} instances",
-            instances.len()
-        );
+        info!("Starting evaluation with official harness: {} instances", instances.len());
 
         // 1. Generate patches (using Miyabi)
         info!("Step 1/3: Generating patches with Miyabi...");
@@ -942,11 +873,8 @@ impl SWEBenchProEvaluator {
 
         // 3. Run official harness
         info!("Step 3/3: Running official SWE-bench harness...");
-        let run_id = format!(
-            "{}-{}",
-            self.config.model_name,
-            chrono::Local::now().format("%Y%m%d-%H%M%S")
-        );
+        let run_id =
+            format!("{}-{}", self.config.model_name, chrono::Local::now().format("%Y%m%d-%H%M%S"));
         let results_dir = self
             .run_official_harness(&predictions_path, &run_id, self.config.concurrency, None)
             .await?;

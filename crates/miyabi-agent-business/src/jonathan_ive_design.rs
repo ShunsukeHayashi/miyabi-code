@@ -72,16 +72,13 @@ Provide a comprehensive design review as JSON including:
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::JonathanIveDesignAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::JonathanIveDesignAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let design_review: DesignReview = serde_json::from_str(&response).map_err(|e| {
@@ -181,10 +178,7 @@ impl BaseAgent for JonathanIveDesignAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "JonathanIveDesignAgent starting design review for task: {}",
-            task.id
-        );
+        tracing::info!("JonathanIveDesignAgent starting design review for task: {}", task.id);
 
         // Generate design review using LLM
         let design_review = self.generate_design_review(task).await?;
@@ -221,10 +215,7 @@ impl BaseAgent for JonathanIveDesignAgent {
             "recommendations_count": design_review.recommendations.len()
         });
 
-        tracing::info!(
-            "JonathanIveDesignAgent completed design review: {}",
-            summary
-        );
+        tracing::info!("JonathanIveDesignAgent completed design review: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

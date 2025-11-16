@@ -184,17 +184,17 @@ impl FeedbackEntry {
                 } else {
                     labels.push("📝 priority:P2-Medium".to_string());
                 }
-            }
+            },
             FeedbackType::Feature => {
                 labels.push("✨ type:feature".to_string());
                 labels.push("📝 priority:P3-Low".to_string());
-            }
+            },
             FeedbackType::Question => {
                 labels.push("❓ type:question".to_string());
-            }
+            },
             FeedbackType::General => {
                 labels.push("💬 type:discussion".to_string());
-            }
+            },
         }
 
         labels.push("👥 community".to_string());

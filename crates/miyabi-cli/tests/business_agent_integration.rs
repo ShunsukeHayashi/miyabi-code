@@ -48,10 +48,7 @@ fn create_test_task(id: &str, title: &str, description: &str) -> Task {
         status: None,
         start_time: None,
         end_time: None,
-        metadata: Some(HashMap::from([(
-            "test".to_string(),
-            serde_json::json!(true),
-        )])),
+        metadata: Some(HashMap::from([("test".to_string(), serde_json::json!(true))])),
     }
 }
 
@@ -77,12 +74,12 @@ async fn test_ai_entrepreneur_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             // Just verify the agent was created successfully
             assert_eq!(agent.agent_type(), AgentType::AIEntrepreneurAgent);
-        }
+        },
     }
 }
 
@@ -103,11 +100,11 @@ async fn test_product_concept_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::ProductConceptAgent);
-        }
+        },
     }
 }
 
@@ -128,11 +125,11 @@ async fn test_product_design_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::ProductDesignAgent);
-        }
+        },
     }
 }
 
@@ -153,11 +150,11 @@ async fn test_funnel_design_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::FunnelDesignAgent);
-        }
+        },
     }
 }
 
@@ -178,11 +175,11 @@ async fn test_persona_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::PersonaAgent);
-        }
+        },
     }
 }
 
@@ -203,11 +200,11 @@ async fn test_self_analysis_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::SelfAnalysisAgent);
-        }
+        },
     }
 }
 
@@ -228,11 +225,11 @@ async fn test_market_research_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::MarketResearchAgent);
-        }
+        },
     }
 }
 
@@ -253,11 +250,11 @@ async fn test_marketing_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::MarketingAgent);
-        }
+        },
     }
 }
 
@@ -278,11 +275,11 @@ async fn test_content_creation_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::ContentCreationAgent);
-        }
+        },
     }
 }
 
@@ -303,11 +300,11 @@ async fn test_sns_strategy_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::SNSStrategyAgent);
-        }
+        },
     }
 }
 
@@ -328,11 +325,11 @@ async fn test_youtube_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::YouTubeAgent);
-        }
+        },
     }
 }
 
@@ -353,11 +350,11 @@ async fn test_sales_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::SalesAgent);
-        }
+        },
     }
 }
 
@@ -378,11 +375,11 @@ async fn test_crm_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::CRMAgent);
-        }
+        },
     }
 }
 
@@ -403,11 +400,11 @@ async fn test_analytics_agent_integration() {
     match result {
         Ok(agent_result) => {
             assert_eq!(agent_result.status, ResultStatus::Success);
-        }
+        },
         Err(_) => {
             // Expected in test environment without API keys
             assert_eq!(agent.agent_type(), AgentType::AnalyticsAgent);
-        }
+        },
     }
 }
 
@@ -425,10 +422,7 @@ async fn test_business_agent_workflow_integration() {
     );
 
     let self_analysis_result = self_analysis_agent.execute(&self_analysis_task).await;
-    assert_eq!(
-        self_analysis_agent.agent_type(),
-        AgentType::SelfAnalysisAgent
-    );
+    assert_eq!(self_analysis_agent.agent_type(), AgentType::SelfAnalysisAgent);
 
     // 2. Market Research
     let market_research_agent = MarketResearchAgent::new(config.clone());
@@ -439,10 +433,7 @@ async fn test_business_agent_workflow_integration() {
     );
 
     let market_research_result = market_research_agent.execute(&market_research_task).await;
-    assert_eq!(
-        market_research_agent.agent_type(),
-        AgentType::MarketResearchAgent
-    );
+    assert_eq!(market_research_agent.agent_type(), AgentType::MarketResearchAgent);
 
     // 3. Product Concept
     let product_concept_agent = ProductConceptAgent::new(config.clone());
@@ -453,10 +444,7 @@ async fn test_business_agent_workflow_integration() {
     );
 
     let product_concept_result = product_concept_agent.execute(&product_concept_task).await;
-    assert_eq!(
-        product_concept_agent.agent_type(),
-        AgentType::ProductConceptAgent
-    );
+    assert_eq!(product_concept_agent.agent_type(), AgentType::ProductConceptAgent);
 
     // 4. Marketing Strategy
     let marketing_agent = MarketingAgent::new(config.clone());
@@ -503,10 +491,7 @@ async fn test_business_agent_error_handling() {
     let result = agent.execute(&invalid_task).await;
     // In test environment, this might succeed with mock data, but the structure should be correct
     if let Ok(agent_result) = result {
-        assert!(matches!(
-            agent_result.status,
-            ResultStatus::Success | ResultStatus::Failed
-        ));
+        assert!(matches!(agent_result.status, ResultStatus::Success | ResultStatus::Failed));
     }
 }
 
@@ -516,21 +501,9 @@ async fn test_business_agent_concurrent_execution() {
 
     // Test concurrent execution of multiple business agents
     let tasks = vec![
-        (
-            "concurrent-1",
-            "Concurrent Task 1",
-            "First concurrent business task",
-        ),
-        (
-            "concurrent-2",
-            "Concurrent Task 2",
-            "Second concurrent business task",
-        ),
-        (
-            "concurrent-3",
-            "Concurrent Task 3",
-            "Third concurrent business task",
-        ),
+        ("concurrent-1", "Concurrent Task 1", "First concurrent business task"),
+        ("concurrent-2", "Concurrent Task 2", "Second concurrent business task"),
+        ("concurrent-3", "Concurrent Task 3", "Third concurrent business task"),
     ];
 
     let mut handles = Vec::new();

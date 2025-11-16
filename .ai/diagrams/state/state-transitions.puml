@@ -1,0 +1,314 @@
+@startuml State-Transitions
+' 状態遷移図: Miyabi全体の状態管理
+
+skinparam state {
+  BackgroundColor<<Issue>> LightBlue
+  BackgroundColor<<Agent>> LightGreen
+  BackgroundColor<<Task>> LightYellow
+  BackgroundColor<<Worktree>> LightCoral
+  BackgroundColor<<PR>> LightCyan
+  BackgroundColor<<Codex>> LightGoldenRodYellow
+}
+
+title **Miyabi - State Transition Diagram**\n完全自律型開発フローの状態管理
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Issue State Machine
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+state "Issue Lifecycle" as IssueLifecycle <<Issue>> {
+  [*] --> Open : Issue作成
+
+  Open --> Triaged : Label自動推論\n(IssueAgent)
+
+  Triaged --> Assigned : Agent割当\n(Orchestrator)
+
+  Assigned --> InProgress : Agent開始
+
+  InProgress --> Blocked : エラー発生
+  Blocked --> InProgress : 解決
+
+  InProgress --> Review : Code完成\nPR作成
+
+  Review --> Changes : 修正要求
+  Changes --> Review : 修正完了
+
+  Review --> Approved : Review承認
+
+  Approved --> Merged : PR Merge
+
+  Merged --> Closed : Issue完了
+
+  Closed --> [*]
+
+  Open --> Closed : 重複/無効
+  Triaged --> Closed : キャンセル
+}
+
+note right of IssueLifecycle
+  **Issue Labels (57体系)**
+  - feature/*, bug/*, refactor/*
+  - priority/p0-p4
+  - size/xs-xl
+  - status/*
+  - agent/*
+  - org/*
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Agent State Machine
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+state "Agent Lifecycle" as AgentLifecycle <<Agent>> {
+  [*] --> Idle : Agent起動
+
+  Idle --> Initializing : Task割当
+
+  Initializing --> Ready : Context読込完了\nWorktree作成
+
+  Ready --> Running : Task実行開始
+
+  Running --> Waiting : 依存待ち\n(他Agent)
+  Waiting --> Running : 依存解決
+
+  Running --> Suspended : 中断要求
+  Suspended --> Running : 再開
+
+  Running --> Completed : 成功
+  Running --> Failed : エラー
+
+  Failed --> Retry : 自動リトライ\n(< 3回)
+  Retry --> Running
+
+  Failed --> Escalated : 手動介入必要
+  Escalated --> Running : 問題解決
+
+  Completed --> Idle : 次Task待機
+  Failed --> Idle : リセット
+
+  Idle --> [*] : Agent停止
+}
+
+note right of AgentLifecycle
+  **21 Agents**
+  - Coding: 7 (CodeGen, Review, etc.)
+  - Business: 14 (Marketing, Sales, etc.)
+
+  **State Triggers**
+  - tmux send-keys (Agent間通信)
+  - GitHub webhook (Issue/PR events)
+  - Timer (Refresher Agent)
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Task State Machine
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+state "Task Lifecycle" as TaskLifecycle <<Task>> {
+  [*] --> Pending : Task生成
+
+  Pending --> Queued : Queue追加
+
+  Queued --> Scheduled : Codex割当\n(MUGEN/MAJIN)
+
+  Scheduled --> Running : 実行開始
+
+  Running --> Testing : Code生成完了
+
+  Testing --> Success : Test通過\n(cargo test)
+  Testing --> Failed : Test失敗
+
+  Failed --> Debugging : エラー解析
+  Debugging --> Running : 修正実行
+
+  Success --> Validated : Lint通過\n(cargo clippy)
+  Validated --> Failed : Lint Error
+
+  Validated --> Completed : 全検証完了
+
+  Completed --> [*]
+  Failed --> [*] : 諦め
+}
+
+note right of TaskLifecycle
+  **Task Types**
+  - Coding Task (Heavy → MUGEN)
+  - Issue/PR Task (Light → MAJIN)
+  - Business Task (Very Heavy → MUGEN)
+
+  **Parallel Execution**
+  - Phase 1: 18 Codex (12+6)
+  - Phase 2: 100 Codex
+  - Phase 3: 200 Codex
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Worktree State Machine
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+state "Worktree Lifecycle" as WorktreeLifecycle <<Worktree>> {
+  [*] --> Creating : git worktree add
+
+  Creating --> Active : Branch作成完了
+
+  Active --> Clean : 変更なし
+  Active --> Dirty : ファイル変更
+
+  Dirty --> Staged : git add
+
+  Staged --> Committed : git commit
+
+  Committed --> Pushed : git push
+
+  Pushed --> PRCreated : gh pr create
+
+  PRCreated --> Merged : PR merge
+
+  Merged --> Removing : Cleanup開始
+
+  Removing --> Removed : git worktree remove
+
+  Removed --> [*]
+
+  Active --> Removing : Task失敗\nCleanup
+  Dirty --> Removing : Abort
+  Staged --> Removing : Cancel
+}
+
+note right of WorktreeLifecycle
+  **Worktree Strategy**
+  - 1 Issue = 1 Worktree
+  - 並列開発の分離
+  - 自動クリーンアップ
+
+  **Worktree Locations**
+  .worktrees/
+  ├── issue-123/
+  ├── issue-456/
+  └── phase1-18-codex-setup/
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PR State Machine
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+state "PR Lifecycle" as PRLifecycle <<PR>> {
+  [*] --> Draft : gh pr create --draft
+
+  Draft --> Open : Ready for Review
+
+  Open --> CI_Running : GitHub Actions起動
+
+  CI_Running --> CI_Failed : Test失敗
+  CI_Failed --> FixingCI : 修正Push
+  FixingCI --> CI_Running
+
+  CI_Running --> CI_Passed : Test成功
+
+  CI_Passed --> InReview : Reviewer割当
+
+  InReview --> ChangesRequested : 修正依頼
+  ChangesRequested --> Updating : 修正実施
+  Updating --> InReview : Re-review
+
+  InReview --> Approved : Review承認
+
+  Approved --> Mergeable : Merge可能
+
+  Mergeable --> Merged : Squash & Merge
+
+  Merged --> [*]
+
+  Open --> Closed : PR Close\n(no merge)
+  InReview --> Closed
+
+  Closed --> [*]
+}
+
+note right of PRLifecycle
+  **PR Conventions**
+  - Conventional Commits形式
+  - Draft → Open → Merge
+  - 自動CI/CD (GitHub Actions)
+  - Self-hosted runners (MUGEN/MAJIN)
+
+  **PR Template**
+  ## Summary
+  - 3 bullet points
+
+  ## Test Plan
+  - Checklist
+
+  🤖 Generated with Claude Code
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Codex State Machine (New for 18-Codex Architecture)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+state "Codex Instance Lifecycle" as CodexLifecycle <<Codex>> {
+  [*] --> Booting : npm install -g @openai/codex
+
+  Booting --> Configured : API Key設定
+
+  Configured --> Idle : tmux window起動
+
+  Idle --> Loading : Task file読込
+
+  Loading --> Executing : codex --stdin実行
+
+  Executing --> API_Call : OpenAI API Request
+
+  API_Call --> Rate_Limited : 429 Error
+  Rate_Limited --> Waiting : Backoff
+  Waiting --> API_Call : Retry
+
+  API_Call --> Generating : Response受信
+
+  Generating --> Completed : Code生成完了
+  Generating --> Error : API Error
+
+  Error --> Retry_Task : < 3回
+  Retry_Task --> Loading
+
+  Error --> Failed_Task : >= 3回
+
+  Completed --> Idle : 次Task待機
+  Failed_Task --> Idle
+
+  Idle --> Shutdown : Session終了
+  Shutdown --> [*]
+}
+
+note right of CodexLifecycle
+  **18 Codex Instances**
+  - MUGEN: Codex 1-12 (12並列)
+  - MAJIN: Codex 13-18 (6並列)
+
+  **Monitoring**
+  - CPU使用率リアルタイム
+  - Memory使用量
+  - API Rate Limit残
+  - Task完了数/失敗数
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Cross-State Interactions (複合状態遷移)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IssueLifecycle --> AgentLifecycle : Assign
+AgentLifecycle --> TaskLifecycle : Generate Tasks
+TaskLifecycle --> WorktreeLifecycle : Create Worktree
+TaskLifecycle --> CodexLifecycle : Codex実行
+WorktreeLifecycle --> PRLifecycle : Create PR
+PRLifecycle --> IssueLifecycle : Close Issue
+
+note bottom
+  **状態遷移の連鎖**
+  Issue作成 → Agent割当 → Task生成 → Codex実行 → Code生成 → Worktree管理 → PR作成 → Merge → Issue完了
+
+  **自律的制御**
+  全ての状態遷移は自動化されており、人間の介入は最小限（Review/Approve のみ）
+end note
+
+@enduml

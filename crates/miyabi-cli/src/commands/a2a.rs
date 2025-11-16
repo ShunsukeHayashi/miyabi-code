@@ -101,7 +101,7 @@ impl A2ACommand {
                     *priority,
                 )
                 .await
-            }
+            },
             A2ACommand::List {
                 status,
                 context,
@@ -209,11 +209,7 @@ impl A2ACommand {
             .map_err(|e| CliError::Execution(format!("Failed to create task: {}", e)))?;
 
         println!("{}", "✅ Task created successfully!".green().bold());
-        println!(
-            "  {} {}",
-            "Task ID:".cyan(),
-            task_id.to_string().yellow().bold()
-        );
+        println!("  {} {}", "Task ID:".cyan(), task_id.to_string().yellow().bold());
         println!("  {} {}", "Title:".cyan(), title);
         println!("  {} {:?}", "Type:".cyan(), &task_type);
         if let Some(ctx) = context {
@@ -253,10 +249,7 @@ impl A2ACommand {
             return Ok(());
         }
 
-        println!(
-            "{}",
-            format!("📋 Found {} tasks:", tasks.len()).cyan().bold()
-        );
+        println!("{}", format!("📋 Found {} tasks:", tasks.len()).cyan().bold());
         println!();
 
         for task in tasks {
@@ -269,12 +262,7 @@ impl A2ACommand {
                 TaskStatus::Cancelled => status_str.dimmed(),
             };
 
-            println!(
-                "  {} {} {}",
-                "ID:".cyan(),
-                task.id.to_string().bold(),
-                status_colored
-            );
+            println!("  {} {} {}", "ID:".cyan(), task.id.to_string().bold(), status_colored);
             println!("    {} {}", "Title:".dimmed(), task.title);
             println!("    {} {:?}", "Type:".dimmed(), task.task_type);
             if let Some(ctx) = task.context_id {
@@ -366,10 +354,7 @@ impl A2ACommand {
             .await
             .map_err(|e| CliError::Execution(format!("Failed to delete task: {}", e)))?;
 
-        println!(
-            "{}",
-            "✅ Task deleted (closed) successfully!".green().bold()
-        );
+        println!("{}", "✅ Task deleted (closed) successfully!".green().bold());
         println!("  {} {}", "Task ID:".cyan(), id.to_string().yellow().bold());
 
         Ok(())

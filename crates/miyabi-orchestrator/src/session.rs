@@ -119,10 +119,7 @@ impl SessionManager {
         worktree_path: PathBuf,
     ) -> Result<SessionId> {
         let session_id = Uuid::new_v4().to_string();
-        info!(
-            "Spawning headless session: id={}, command={}",
-            session_id, command
-        );
+        info!("Spawning headless session: id={}, command={}", session_id, command);
 
         // Create session log directory
         let session_log_dir = self.config.log_dir.join(&session_id);
@@ -185,22 +182,19 @@ impl SessionManager {
                 } else {
                     SessionStatus::Failed
                 };
-                debug!(
-                    "Session {} exited with status: {:?}",
-                    session_id, new_status
-                );
+                debug!("Session {} exited with status: {:?}", session_id, new_status);
                 session.status = new_status.clone();
                 Ok(new_status)
-            }
+            },
             Ok(None) => {
                 // Still running
                 debug!("Session {} is still running", session_id);
                 Ok(SessionStatus::Running)
-            }
+            },
             Err(e) => {
                 warn!("Failed to check session status: {}", e);
                 Err(SchedulerError::Io(e))
-            }
+            },
         }
     }
 
@@ -223,7 +217,7 @@ impl SessionManager {
             match status {
                 SessionStatus::Completed | SessionStatus::Failed | SessionStatus::TimedOut => {
                     return Ok(status);
-                }
+                },
                 SessionStatus::Running => {
                     if start.elapsed() > timeout {
                         warn!(
@@ -243,11 +237,11 @@ impl SessionManager {
 
                     // Wait before next check
                     tokio::time::sleep(Duration::from_secs(1)).await;
-                }
+                },
                 SessionStatus::Pending => {
                     warn!("Session {} is in Pending state during wait", session_id);
                     tokio::time::sleep(Duration::from_secs(1)).await;
-                }
+                },
             }
         }
     }
@@ -292,17 +286,14 @@ impl SessionManager {
             match parse_error_logs(session.output_file.clone()).await {
                 Ok(errors) => {
                     debug!("Error logs:\n{}", errors);
-                }
+                },
                 Err(e) => {
                     warn!("Failed to parse error logs: {}", e);
-                }
+                },
             }
         }
 
-        info!(
-            "Result collected: session={}, success={}",
-            session_id, result.success
-        );
+        info!("Result collected: session={}, success={}", session_id, result.success);
 
         Ok(result)
     }
@@ -325,10 +316,7 @@ impl SessionManager {
         let initial_count = sessions.len();
 
         sessions.retain(|_, session| {
-            matches!(
-                session.status,
-                SessionStatus::Running | SessionStatus::Pending
-            )
+            matches!(session.status, SessionStatus::Running | SessionStatus::Pending)
         });
 
         let removed = initial_count - sessions.len();

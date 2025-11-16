@@ -72,10 +72,7 @@ impl ErrorResponse {
 
     /// Create a gateway timeout error
     pub fn timeout() -> Self {
-        Self::new(
-            "Request timed out".to_string(),
-            "GATEWAY_TIMEOUT".to_string(),
-        )
+        Self::new("Request timed out".to_string(), "GATEWAY_TIMEOUT".to_string())
     }
 }
 

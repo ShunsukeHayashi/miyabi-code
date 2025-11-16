@@ -9,12 +9,12 @@
 //! - Video URL retrieval
 
 mod client;
-mod models;
 mod error;
+mod models;
 
 pub use client::SeedanceClient;
+pub use error::{Result, SeedanceError};
 pub use models::*;
-pub use error::{SeedanceError, Result};
 
 #[cfg(test)]
 mod tests {

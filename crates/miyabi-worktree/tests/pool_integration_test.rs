@@ -113,11 +113,7 @@ async fn test_pool_concurrency_limit() {
 
     // Verify concurrency was respected
     let max = max_concurrent.load(Ordering::SeqCst);
-    assert!(
-        max <= 2,
-        "Max concurrent executions {} exceeded limit 2",
-        max
-    );
+    assert!(max <= 2, "Max concurrent executions {} exceeded limit 2", max);
 
     // Verify all tasks completed
     assert_eq!(result.total_tasks, 4);
@@ -255,9 +251,7 @@ async fn test_pool_stats() {
 
     // Execute tasks
     let issue_numbers = vec![40, 41];
-    let _result = pool
-        .execute_simple(issue_numbers, |_path, _issue| async move { Ok(()) })
-        .await;
+    let _result = pool.execute_simple(issue_numbers, |_path, _issue| async move { Ok(()) }).await;
 
     // Get stats after execution
     let stats_after = pool.stats().await;

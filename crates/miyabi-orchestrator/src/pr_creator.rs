@@ -124,10 +124,7 @@ impl PRCreator {
         body.push_str(&format!("- Total sessions: {}\n", result.total_sessions));
         body.push_str(&format!("- Successful: {}\n", result.successful_sessions));
         body.push_str(&format!("- Failed: {}\n", result.failed_sessions));
-        body.push_str(&format!(
-            "- Success rate: {:.1}%\n\n",
-            result.success_rate * 100.0
-        ));
+        body.push_str(&format!("- Success rate: {:.1}%\n\n", result.success_rate * 100.0));
 
         // Modified files section
         if !result.modified_files.is_empty() {
@@ -205,10 +202,7 @@ impl PRCreator {
                 .parse::<u64>()
                 .map_err(|_| SchedulerError::InvalidConfig(format!("Invalid PR URL: {}", url)))
         } else {
-            Err(SchedulerError::InvalidConfig(format!(
-                "Invalid PR URL: {}",
-                url
-            )))
+            Err(SchedulerError::InvalidConfig(format!("Invalid PR URL: {}", url)))
         }
     }
 
@@ -231,11 +225,7 @@ impl PRCreator {
         worktrees: Vec<PathBuf>,
         target_branch: String,
     ) -> Result<()> {
-        info!(
-            "Merging {} worktrees into branch {}",
-            worktrees.len(),
-            target_branch
-        );
+        info!("Merging {} worktrees into branch {}", worktrees.len(), target_branch);
 
         // Create target branch
         self.create_branch(&target_branch).await?;

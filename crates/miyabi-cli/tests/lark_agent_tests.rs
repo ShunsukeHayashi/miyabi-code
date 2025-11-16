@@ -35,10 +35,7 @@ fn test_c1_system_analysis() {
     assert!(output.status.success(), "C1 command should succeed");
 
     // Verify output contains expected sections
-    assert!(
-        stdout.contains("C1: System Analysis"),
-        "Should show C1 title"
-    );
+    assert!(stdout.contains("C1: System Analysis"), "Should show C1 title");
     assert!(
         stdout.contains("システム要件を分析し、Lark Baseの構造に落とし込む"),
         "Should show Japanese description"
@@ -46,28 +43,13 @@ fn test_c1_system_analysis() {
     assert!(stdout.contains("Tasks:"), "Should show Tasks section");
     assert!(stdout.contains("T1: 要件定義"), "Should show T1 task");
     assert!(stdout.contains("T2: データ構造設計"), "Should show T2 task");
-    assert!(
-        stdout.contains("Deliverables:"),
-        "Should show Deliverables section"
-    );
+    assert!(stdout.contains("Deliverables:"), "Should show Deliverables section");
     assert!(stdout.contains("要件定義書"), "Should show deliverable 1");
     assert!(stdout.contains("ER図"), "Should show deliverable 2");
-    assert!(
-        stdout.contains("Checklist:"),
-        "Should show Checklist section"
-    );
-    assert!(
-        stdout.contains("Industry: SaaS"),
-        "Should show industry context"
-    );
-    assert!(
-        stdout.contains("Domain: 営業管理"),
-        "Should show domain context"
-    );
-    assert!(
-        stdout.contains("✅ C1 completed"),
-        "Should show completion message"
-    );
+    assert!(stdout.contains("Checklist:"), "Should show Checklist section");
+    assert!(stdout.contains("Industry: SaaS"), "Should show industry context");
+    assert!(stdout.contains("Domain: 営業管理"), "Should show domain context");
+    assert!(stdout.contains("✅ C1 completed"), "Should show completion message");
 }
 
 /// Test C7 command execution (Dashboard Construction)
@@ -84,30 +66,15 @@ fn test_c7_dashboard_construction() {
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     assert!(output.status.success(), "C7 command should succeed");
-    assert!(
-        stdout.contains("C7: Dashboard Construction"),
-        "Should show C7 title"
-    );
-    assert!(
-        stdout.contains("分析ダッシュボードを構築"),
-        "Should show Japanese description"
-    );
-    assert!(
-        stdout.contains("3-Layer Structure:"),
-        "Should show 3-layer structure"
-    );
+    assert!(stdout.contains("C7: Dashboard Construction"), "Should show C7 title");
+    assert!(stdout.contains("分析ダッシュボードを構築"), "Should show Japanese description");
+    assert!(stdout.contains("3-Layer Structure:"), "Should show 3-layer structure");
     assert!(stdout.contains("KPIカード層"), "Should mention KPI layer");
     assert!(stdout.contains("グラフ層"), "Should mention graph layer");
-    assert!(
-        stdout.contains("詳細テーブル層"),
-        "Should mention table layer"
-    );
+    assert!(stdout.contains("詳細テーブル層"), "Should mention table layer");
     assert!(stdout.contains("T1: KPIカード作成"), "Should show T1 task");
     assert!(stdout.contains("T2: グラフ作成"), "Should show T2 task");
-    assert!(
-        stdout.contains("✅ C7 completed"),
-        "Should show completion message"
-    );
+    assert!(stdout.contains("✅ C7 completed"), "Should show completion message");
 }
 
 /// Test ALL command execution (C1-C10)
@@ -193,10 +160,7 @@ fn test_c2_critical_warning() {
         stdout.contains("Critical: 主キーフィールドは最左端に配置"),
         "Should show critical warning"
     );
-    assert!(
-        stdout.contains("T0: 主キーフィールド設定（最優先）"),
-        "Should show T0 task"
-    );
+    assert!(stdout.contains("T0: 主キーフィールド設定（最優先）"), "Should show T0 task");
 }
 
 /// Test C3 relation setup with critical warning
@@ -236,18 +200,9 @@ fn test_c8_roles() {
     assert!(output.status.success());
     assert!(stdout.contains("C8: Permission Setup"));
     assert!(stdout.contains("Roles:"), "Should show roles section");
-    assert!(
-        stdout.contains("👑 管理者（Admin）: 全権限"),
-        "Should show Admin role"
-    );
-    assert!(
-        stdout.contains("📊 管理職（Manager）"),
-        "Should show Manager role"
-    );
-    assert!(
-        stdout.contains("✍️  編集者（Editor）"),
-        "Should show Editor role"
-    );
+    assert!(stdout.contains("👑 管理者（Admin）: 全権限"), "Should show Admin role");
+    assert!(stdout.contains("📊 管理職（Manager）"), "Should show Manager role");
+    assert!(stdout.contains("✍️  編集者（Editor）"), "Should show Editor role");
 }
 
 /// Test Wiki create command structure

@@ -100,9 +100,7 @@ impl IndexCache {
     ///
     /// ファイルがインデックス済みで、ハッシュが一致する場合は`true`
     pub fn is_indexed(&self, path: &Path, hash: &str) -> bool {
-        self.indexed_files
-            .get(path)
-            .is_some_and(|cached_hash| cached_hash == hash)
+        self.indexed_files.get(path).is_some_and(|cached_hash| cached_hash == hash)
     }
 
     /// ファイルをインデックス済みとしてマーク
@@ -135,10 +133,7 @@ impl IndexCache {
         let cache_dir = dirs::cache_dir()
             .ok_or_else(|| KnowledgeError::Config("Failed to determine cache directory".into()))?;
 
-        let path = cache_dir
-            .join("miyabi")
-            .join("knowledge")
-            .join(format!("{}.json", workspace));
+        let path = cache_dir.join("miyabi").join("knowledge").join(format!("{}.json", workspace));
 
         Ok(path)
     }

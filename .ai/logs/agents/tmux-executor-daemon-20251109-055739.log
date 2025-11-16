@@ -1,0 +1,339 @@
+[2025-11-09 05:57:39] [INFO] Starting tmux-executor in daemon mode...
+[2025-11-09 05:57:39] [INFO]   Queue directory: .miyabi/queue
+[2025-11-09 05:57:39] [INFO]   Default orchestrator pane: %0
+[2025-11-09 05:57:39] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:39] [INFO]   Target pane: %0
+[2025-11-09 05:57:39] [INFO]   Retry count: /
+[2025-11-09 05:57:39] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:39] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:39] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:41] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:41] [INFO]   Target pane: %0
+[2025-11-09 05:57:41] [INFO]   Retry count: /
+[2025-11-09 05:57:41] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:41] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:41] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:42] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:42] [INFO]   Target pane: %0
+[2025-11-09 05:57:42] [INFO]   Retry count: /
+[2025-11-09 05:57:42] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:42] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:42] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:43] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:43] [INFO]   Target pane: %0
+[2025-11-09 05:57:43] [INFO]   Retry count: /
+[2025-11-09 05:57:43] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:43] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:43] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:44] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:44] [INFO]   Target pane: %0
+[2025-11-09 05:57:44] [INFO]   Retry count: /
+[2025-11-09 05:57:44] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:44] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:44] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:45] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:45] [INFO]   Target pane: %0
+[2025-11-09 05:57:45] [INFO]   Retry count: /
+[2025-11-09 05:57:45] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:45] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:45] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:46] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:47] [INFO]   Target pane: %0
+[2025-11-09 05:57:47] [INFO]   Retry count: /
+[2025-11-09 05:57:47] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:47] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:47] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:48] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:48] [INFO]   Target pane: %0
+[2025-11-09 05:57:48] [INFO]   Retry count: /
+[2025-11-09 05:57:48] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:48] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:48] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:49] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:50] [INFO]   Target pane: %0
+[2025-11-09 05:57:50] [INFO]   Retry count: /
+[2025-11-09 05:57:50] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:50] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:50] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:51] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:51] [INFO]   Target pane: %0
+[2025-11-09 05:57:51] [INFO]   Retry count: /
+[2025-11-09 05:57:51] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:51] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:51] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:52] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:52] [INFO]   Target pane: %0
+[2025-11-09 05:57:52] [INFO]   Retry count: /
+[2025-11-09 05:57:52] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:52] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:52] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:53] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:53] [INFO]   Target pane: %0
+[2025-11-09 05:57:53] [INFO]   Retry count: /
+[2025-11-09 05:57:53] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:53] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:53] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:54] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:54] [INFO]   Target pane: %0
+[2025-11-09 05:57:54] [INFO]   Retry count: /
+[2025-11-09 05:57:54] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:54] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:54] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:56] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:56] [INFO]   Target pane: %0
+[2025-11-09 05:57:56] [INFO]   Retry count: /
+[2025-11-09 05:57:56] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:56] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:56] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:57] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:57] [INFO]   Target pane: %0
+[2025-11-09 05:57:57] [INFO]   Retry count: /
+[2025-11-09 05:57:57] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:57] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:57] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:58] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:58] [INFO]   Target pane: %0
+[2025-11-09 05:57:58] [INFO]   Retry count: /
+[2025-11-09 05:57:58] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:58] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:58] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:57:59] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:59] [INFO]   Target pane: %0
+[2025-11-09 05:57:59] [INFO]   Retry count: /
+[2025-11-09 05:57:59] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:57:59] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:57:59] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:01] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:01] [INFO]   Target pane: %0
+[2025-11-09 05:58:01] [INFO]   Retry count: /
+[2025-11-09 05:58:01] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:01] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:01] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:02] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:02] [INFO]   Target pane: %0
+[2025-11-09 05:58:02] [INFO]   Retry count: /
+[2025-11-09 05:58:02] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:02] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:02] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:03] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:03] [INFO]   Target pane: %0
+[2025-11-09 05:58:03] [INFO]   Retry count: /
+[2025-11-09 05:58:03] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:03] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:03] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:04] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:04] [INFO]   Target pane: %0
+[2025-11-09 05:58:04] [INFO]   Retry count: /
+[2025-11-09 05:58:04] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:04] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:04] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:05] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:05] [INFO]   Target pane: %0
+[2025-11-09 05:58:05] [INFO]   Retry count: /
+[2025-11-09 05:58:05] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:05] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:05] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:06] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:06] [INFO]   Target pane: %0
+[2025-11-09 05:58:06] [INFO]   Retry count: /
+[2025-11-09 05:58:06] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:06] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:06] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())
+[2025-11-09 05:58:07] [INFO] Processing task: 
+mv: rename  to .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:07] [INFO]   Target pane: %0
+[2025-11-09 05:58:07] [INFO]   Retry count: /
+[2025-11-09 05:58:07] [ERROR] Target pane does not exist: %0
+[2025-11-09 05:58:07] [ERROR] ✗ Task delivery failed: 
+./.miyabi/executors/tmux-executor.sh: line 241: [: : integer expression expected
+jq: error: Could not open file .miyabi/queue/processing/.json: No such file or directory
+rm: .miyabi/queue/processing/.json: No such file or directory
+[2025-11-09 05:58:07] [ERROR] Task moved to DLQ: .json (reason: Max retries exceeded ())

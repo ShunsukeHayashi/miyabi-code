@@ -112,10 +112,7 @@ impl MetricsCollector {
 
     /// Record a metric
     pub async fn record(&self, metric: Metric) -> Result<()> {
-        debug!(
-            "Recording metric: {} = {:?}",
-            metric.name, metric.value
-        );
+        debug!("Recording metric: {} = {:?}", metric.name, metric.value);
 
         let mut metrics = self.metrics.write().await;
         metrics.push(metric);
@@ -148,13 +145,7 @@ impl MetricsCollector {
 
     /// Get metrics by name
     pub async fn get_by_name(&self, name: &str) -> Vec<Metric> {
-        self.metrics
-            .read()
-            .await
-            .iter()
-            .filter(|m| m.name == name)
-            .cloned()
-            .collect()
+        self.metrics.read().await.iter().filter(|m| m.name == name).cloned().collect()
     }
 
     /// Clear all metrics
@@ -250,10 +241,7 @@ mod tests {
     async fn test_metrics_collector_increment_counter() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("requests".to_string(), 5)
-            .await
-            .unwrap();
+        collector.increment_counter("requests".to_string(), 5).await.unwrap();
         assert_eq!(collector.count().await, 1);
 
         let metrics = collector.get_by_name("requests").await;
@@ -264,10 +252,7 @@ mod tests {
     async fn test_metrics_collector_record_gauge() {
         let collector = MetricsCollector::new();
 
-        collector
-            .record_gauge("cpu_usage".to_string(), 45.0)
-            .await
-            .unwrap();
+        collector.record_gauge("cpu_usage".to_string(), 45.0).await.unwrap();
         assert_eq!(collector.count().await, 1);
     }
 
@@ -275,10 +260,7 @@ mod tests {
     async fn test_metrics_collector_record_timer() {
         let collector = MetricsCollector::new();
 
-        collector
-            .record_timer("latency".to_string(), 123.45)
-            .await
-            .unwrap();
+        collector.record_timer("latency".to_string(), 123.45).await.unwrap();
         assert_eq!(collector.count().await, 1);
     }
 
@@ -286,18 +268,9 @@ mod tests {
     async fn test_metrics_collector_get_by_name() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("requests".to_string(), 1)
-            .await
-            .unwrap();
-        collector
-            .increment_counter("errors".to_string(), 2)
-            .await
-            .unwrap();
-        collector
-            .increment_counter("requests".to_string(), 3)
-            .await
-            .unwrap();
+        collector.increment_counter("requests".to_string(), 1).await.unwrap();
+        collector.increment_counter("errors".to_string(), 2).await.unwrap();
+        collector.increment_counter("requests".to_string(), 3).await.unwrap();
 
         let requests = collector.get_by_name("requests").await;
         assert_eq!(requests.len(), 2);
@@ -307,10 +280,7 @@ mod tests {
     async fn test_metrics_collector_clear() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("test".to_string(), 1)
-            .await
-            .unwrap();
+        collector.increment_counter("test".to_string(), 1).await.unwrap();
         assert_eq!(collector.count().await, 1);
 
         collector.clear().await;
@@ -321,10 +291,7 @@ mod tests {
     async fn test_metrics_collector_export_json() {
         let collector = MetricsCollector::new();
 
-        collector
-            .increment_counter("test".to_string(), 42)
-            .await
-            .unwrap();
+        collector.increment_counter("test".to_string(), 42).await.unwrap();
 
         let json = collector.export_json().await.unwrap();
         println!("JSON output: {}", json);

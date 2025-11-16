@@ -1,7 +1,7 @@
 //! Seedance API Client Implementation
 
 use crate::{error::*, models::*};
-use reqwest::{Client, header};
+use reqwest::{header, Client};
 use std::time::Duration;
 use tracing::{debug, info, warn};
 
@@ -40,10 +40,7 @@ impl SeedanceClient {
             header::HeaderValue::from_str(&format!("Bearer {}", api_key))
                 .map_err(|e| SeedanceError::ApiError(format!("Invalid API key format: {}", e)))?,
         );
-        headers.insert(
-            header::CONTENT_TYPE,
-            header::HeaderValue::from_static("application/json"),
-        );
+        headers.insert(header::CONTENT_TYPE, header::HeaderValue::from_static("application/json"));
 
         let client = Client::builder()
             .default_headers(headers)
@@ -88,12 +85,7 @@ impl SeedanceClient {
         debug!("Creating Seedance task: {:?}", request);
 
         let url = format!("{}/tasks", self.base_url);
-        let response = self
-            .client
-            .post(&url)
-            .json(request)
-            .send()
-            .await?;
+        let response = self.client.post(&url).json(request).send().await?;
 
         if !response.status().is_success() {
             let error_text = response.text().await?;
@@ -163,9 +155,7 @@ impl SeedanceClient {
         loop {
             // Check timeout
             if start_time.elapsed() > self.polling_timeout {
-                return Err(SeedanceError::PollingTimeout(
-                    self.polling_timeout.as_secs(),
-                ));
+                return Err(SeedanceError::PollingTimeout(self.polling_timeout.as_secs()));
             }
 
             // Query task status
@@ -175,14 +165,14 @@ impl SeedanceClient {
                 TaskStatus::Completed => {
                     info!("Task {} completed successfully", task_id);
                     return Ok(response);
-                }
+                },
                 TaskStatus::Failed => {
                     warn!("Task {} failed: {:?}", task_id, response.error);
                     return Err(SeedanceError::InvalidTaskStatus(format!(
                         "Task failed: {}",
                         response.error.unwrap_or_else(|| "Unknown error".to_string())
                     )));
-                }
+                },
                 TaskStatus::Pending | TaskStatus::Processing => {
                     debug!(
                         "Task {} still in progress ({:?}%, elapsed: {:?})",
@@ -191,7 +181,7 @@ impl SeedanceClient {
                         start_time.elapsed()
                     );
                     tokio::time::sleep(self.polling_interval).await;
-                }
+                },
             }
         }
     }

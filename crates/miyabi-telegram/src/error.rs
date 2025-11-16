@@ -1,8 +1,8 @@
 //! Error types for Telegram Bot API
 
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// Telegram Bot API error types
 #[derive(Error, Debug)]

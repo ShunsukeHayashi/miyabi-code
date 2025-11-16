@@ -79,16 +79,12 @@ impl GitHubClient {
 
     /// Get repository information
     pub async fn get_repository(&self) -> Result<octocrab::models::Repository> {
-        self.client
-            .repos(&self.owner, &self.repo)
-            .get()
-            .await
-            .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to get repository {}/{}: {}",
-                    self.owner, self.repo, e
-                ))
-            })
+        self.client.repos(&self.owner, &self.repo).get().await.map_err(|e| {
+            MiyabiError::GitHub(format!(
+                "Failed to get repository {}/{}: {}",
+                self.owner, self.repo, e
+            ))
+        })
     }
 }
 

@@ -34,10 +34,7 @@ impl ConcurrencyController {
 
     /// 実行許可を取得（非同期）
     pub async fn acquire(&self) -> tokio::sync::SemaphorePermit<'_> {
-        self.semaphore
-            .acquire()
-            .await
-            .expect("Semaphore closed unexpectedly")
+        self.semaphore.acquire().await.expect("Semaphore closed unexpectedly")
     }
 
     /// 複数の実行許可を取得（非同期）

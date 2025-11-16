@@ -165,7 +165,7 @@ impl OrchestrationEngine {
                 }
 
                 metrics.complete(true, None);
-            }
+            },
             Err(e) => {
                 error!(
                     task_id = %task.id,
@@ -182,7 +182,7 @@ impl OrchestrationEngine {
                 }
 
                 metrics.complete(false, Some(e));
-            }
+            },
         }
 
         result
@@ -220,7 +220,7 @@ impl OrchestrationEngine {
                         "実行失敗"
                     );
                     last_error = Some(e);
-                }
+                },
             }
         }
 

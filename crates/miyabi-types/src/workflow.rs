@@ -37,11 +37,7 @@ impl DAG {
     pub fn critical_path(&self) -> Vec<String> {
         // Find the level with maximum total duration
         // This is a simplified version - full implementation would calculate actual longest path
-        self.levels
-            .iter()
-            .max_by_key(|level| level.len())
-            .cloned()
-            .unwrap_or_default()
+        self.levels.iter().max_by_key(|level| level.len()).cloned().unwrap_or_default()
     }
 
     /// Validate DAG structure
@@ -785,14 +781,8 @@ mod tests {
             levels: vec![],
         };
 
-        let result = ExecutionPlan::new(
-            "session-1".to_string(),
-            "device-1".to_string(),
-            5,
-            vec![],
-            dag,
-            60,
-        );
+        let result =
+            ExecutionPlan::new("session-1".to_string(), "device-1".to_string(), 5, vec![], dag, 60);
 
         assert!(result.is_ok());
         let plan = result.unwrap();
@@ -838,15 +828,9 @@ mod tests {
             levels: vec![],
         };
 
-        let mut plan = ExecutionPlan::new(
-            "session-1".to_string(),
-            "device-1".to_string(),
-            5,
-            vec![],
-            dag,
-            60,
-        )
-        .unwrap();
+        let mut plan =
+            ExecutionPlan::new("session-1".to_string(), "device-1".to_string(), 5, vec![], dag, 60)
+                .unwrap();
 
         // Valid concurrency change
         assert!(plan.set_concurrency(10).is_ok());
@@ -893,10 +877,7 @@ mod tests {
 
         let result = dag.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("cannot have zero nodes"));
+        assert!(result.unwrap_err().to_string().contains("cannot have zero nodes"));
     }
 
     #[test]
@@ -930,10 +911,7 @@ mod tests {
 
         let result = dag.validate();
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Circular dependency"));
+        assert!(result.unwrap_err().to_string().contains("Circular dependency"));
     }
 
     #[test]

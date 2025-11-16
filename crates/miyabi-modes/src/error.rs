@@ -1,6 +1,6 @@
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ModeError {

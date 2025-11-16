@@ -272,10 +272,18 @@ claude mcp list | grep <service>
 - **Full Index**: `.claude/context/INDEX.md`
 
 ### Operations
-- **tmux Operations**: `.claude/TMUX_OPERATIONS.md`
-- **tmux Orchestra**: `.claude/MIYABI_PARALLEL_ORCHESTRA.md`
+- **tmux Operations**: `.claude/docs/operations/TMUX_OPERATIONS.md`
+- **tmux Orchestra**: `.claude/docs/operations/MIYABI_PARALLEL_ORCHESTRA.md`
 - **MCP Integration**: `.claude/MCP_INTEGRATION_PROTOCOL.md`
 - **Benchmark Protocol**: `.claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md`
+
+### 🆕 External System Integrations
+- **Orchestra 200-Parallel Control**: `.claude/integrations/README.md`
+  - Control 200 parallel Claude Code/Codex instances on MUGEN/MAJIN
+  - Quick Start: `.claude/integrations/QUICKSTART.md`
+  - Control Script: `.claude/integrations/orchestra-200-control.sh`
+  - Deploy 14 Business Agents across 176 instances
+  - Project Location: `/Users/shunsuke/Dev/multi_codex_Mugen_miyabi-orchestra/`
 
 ---
 

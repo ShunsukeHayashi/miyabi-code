@@ -1,0 +1,546 @@
+@startuml Class-Diagram
+' クラス図: Miyabi Framework Core Structure (15+ Crates)
+
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<Core>> LightBlue
+  BackgroundColor<<Agent>> LightGreen
+  BackgroundColor<<LLM>> LightYellow
+  BackgroundColor<<Infrastructure>> LightCoral
+  BackgroundColor<<Integration>> LightCyan
+  BackgroundColor<<Workflow>> LightGoldenRodYellow
+}
+
+title **Miyabi Framework - Class Diagram**\n15+ Rust Crates構造とEntity-Relation Model
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Core Layer (miyabi-core)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-core" <<Core>> {
+  class Config {
+    - project_root: PathBuf
+    - agents: Vec<AgentConfig>
+    - worktree_dir: PathBuf
+    + load() -> Result<Self>
+    + validate() -> Result<()>
+  }
+
+  class Executor {
+    - config: Config
+    - session: Session
+    + new(config: Config) -> Self
+    + execute_task(task: Task) -> Result<Output>
+    + shutdown() -> Result<()>
+  }
+
+  class Session {
+    - id: String
+    - start_time: DateTime<Utc>
+    - agents: Vec<AgentInstance>
+    + new() -> Self
+    + add_agent(agent: AgentInstance)
+    + get_metrics() -> SessionMetrics
+  }
+
+  class TaskMetadata {
+    - task_id: String
+    - agent_id: String
+    - status: TaskStatus
+    - created_at: DateTime<Utc>
+    + new(task_id: String, agent_id: String) -> Self
+    + update_status(status: TaskStatus)
+  }
+
+  enum TaskStatus {
+    Pending
+    Running
+    Success
+    Failed
+  }
+
+  class Logger {
+    - log_dir: PathBuf
+    - level: LogLevel
+    + init() -> Result<()>
+    + log(msg: &str, level: LogLevel)
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Agent Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-agents" <<Agent>> {
+  abstract class AgentTrait {
+    {abstract} + name() -> &str
+    {abstract} + run(context: &Context) -> Result<Output>
+    {abstract} + validate_input(input: &Input) -> Result<()>
+  }
+
+  class CodeGenAgent {
+    - llm_client: LLMClient
+    - context_builder: ContextBuilder
+    + new(config: AgentConfig) -> Self
+    + run(context: &Context) -> Result<Output>
+  }
+
+  class ReviewAgent {
+    - review_rules: Vec<Rule>
+    + new(config: AgentConfig) -> Self
+    + run(context: &Context) -> Result<Output>
+  }
+
+  class DeploymentAgent {
+    - deployment_config: DeploymentConfig
+    + new(config: AgentConfig) -> Self
+    + run(context: &Context) -> Result<Output>
+  }
+
+  class IssueAgent {
+    - label_system: LabelSystem
+    + new(config: AgentConfig) -> Self
+    + infer_labels(issue: &Issue) -> Vec<Label>
+  }
+
+  class PRAgent {
+    - github_client: GitHubClient
+    + new(config: AgentConfig) -> Self
+    + create_pr(branch: &str) -> Result<PullRequest>
+  }
+
+  class RefresherAgent {
+    - schedule: Schedule
+    + new(config: AgentConfig) -> Self
+    + refresh_issues() -> Result<()>
+  }
+
+  class CoordinatorAgent {
+    - dag: DAG
+    - agents: Vec<Box<dyn AgentTrait>>
+    + new(config: AgentConfig) -> Self
+    + orchestrate(tasks: Vec<Task>) -> Result<()>
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Business Agents (14種)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-agent-business" <<Agent>> {
+  class SelfAnalysisAgent {
+    + analyze_career() -> Result<Analysis>
+  }
+
+  class MarketResearchAgent {
+    + research_competitors() -> Result<Report>
+  }
+
+  class PersonaAgent {
+    + create_personas() -> Result<Vec<Persona>>
+  }
+
+  class ProductConceptAgent {
+    + design_concept() -> Result<Concept>
+  }
+
+  class ProductDesignAgent {
+    + design_service() -> Result<ServiceSpec>
+  }
+
+  class ContentCreationAgent {
+    + create_content() -> Result<Content>
+  }
+
+  class FunnelDesignAgent {
+    + design_funnel() -> Result<Funnel>
+  }
+
+  class SNSStrategyAgent {
+    + create_strategy() -> Result<Strategy>
+  }
+
+  class MarketingAgent {
+    + execute_marketing() -> Result<Campaign>
+  }
+
+  class SalesAgent {
+    + execute_sales() -> Result<Pipeline>
+  }
+
+  class CRMAgent {
+    + manage_customers() -> Result<CRMData>
+  }
+
+  class AnalyticsAgent {
+    + analyze_data() -> Result<Insights>
+  }
+
+  class YouTubeAgent {
+    + optimize_channel() -> Result<YouTubeStrategy>
+  }
+
+  class AIEntrepreneurAgent {
+    + create_business_plan() -> Result<BusinessPlan>
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' LLM Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-llm" <<LLM>> {
+  class LLMClient {
+    - provider: LLMProvider
+    - api_key: String
+    + new(provider: LLMProvider) -> Self
+    + request(prompt: &str) -> Result<Response>
+  }
+
+  enum LLMProvider {
+    Anthropic(AnthropicConfig)
+    OpenAI(OpenAIConfig)
+    Google(GoogleConfig)
+  }
+
+  class ContextBuilder {
+    - context_modules: Vec<ContextModule>
+    + build_prompt(task: &Task) -> String
+    + add_module(module: ContextModule)
+  }
+
+  class PromptTemplate {
+    - template: String
+    + render(data: &HashMap<String, String>) -> String
+  }
+}
+
+package "miyabi-llm-anthropic" <<LLM>> {
+  class AnthropicClient {
+    - api_key: String
+    - model: String
+    + request(prompt: &str) -> Result<Response>
+  }
+}
+
+package "miyabi-llm-openai" <<LLM>> {
+  class OpenAIClient {
+    - api_key: String
+    - model: String
+    + request(prompt: &str) -> Result<Response>
+  }
+}
+
+package "miyabi-llm-google" <<LLM>> {
+  class GoogleClient {
+    - api_key: String
+    - model: String
+    + request(prompt: &str) -> Result<Response>
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Infrastructure Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-worktree" <<Infrastructure>> {
+  class WorktreeManager {
+    - root_dir: PathBuf
+    - worktrees: HashMap<String, Worktree>
+    + create(name: &str) -> Result<Worktree>
+    + remove(name: &str) -> Result<()>
+    + list() -> Vec<Worktree>
+  }
+
+  class Worktree {
+    - path: PathBuf
+    - branch: String
+    - status: WorktreeStatus
+    + new(path: PathBuf, branch: String) -> Self
+    + cleanup() -> Result<()>
+  }
+
+  enum WorktreeStatus {
+    Clean
+    Dirty
+    Active
+  }
+}
+
+package "miyabi-github" <<Infrastructure>> {
+  class GitHubClient {
+    - token: String
+    - octocrab: Octocrab
+    + new(token: String) -> Self
+    + create_issue(repo: &str, title: &str) -> Result<Issue>
+    + create_pr(repo: &str, branch: &str) -> Result<PR>
+  }
+
+  class Issue {
+    - number: u64
+    - title: String
+    - body: String
+    - labels: Vec<Label>
+    + add_label(label: Label) -> Result<()>
+  }
+
+  class PullRequest {
+    - number: u64
+    - title: String
+    - body: String
+    - base: String
+    - head: String
+    + merge() -> Result<()>
+  }
+
+  class Label {
+    - name: String
+    - color: String
+    + new(name: String, color: String) -> Self
+  }
+}
+
+package "miyabi-knowledge" <<Infrastructure>> {
+  class KnowledgeBase {
+    - qdrant_client: QdrantClient
+    - embeddings: EmbeddingModel
+    + search(query: &str) -> Result<Vec<Document>>
+    + index(docs: Vec<Document>) -> Result<()>
+  }
+
+  class QdrantClient {
+    - url: String
+    + search_vectors(vector: Vec<f32>) -> Result<Vec<Point>>
+  }
+
+  class EmbeddingModel {
+    + embed(text: &str) -> Vec<f32>
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Integration Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-a2a" <<Integration>> {
+  class A2AServer {
+    - grpc_server: GrpcServer
+    - http_server: HttpServer
+    + start() -> Result<()>
+    + handle_agent_request(req: AgentRequest) -> Result<AgentResponse>
+  }
+
+  class PushNotificationHandler {
+    - lark_webhook: String
+    - discord_webhook: String
+    + send_notification(msg: &str) -> Result<()>
+  }
+}
+
+package "miyabi-telegram" <<Integration>> {
+  class TelegramBot {
+    - token: String
+    + send_message(chat_id: i64, msg: &str) -> Result<()>
+  }
+}
+
+package "miyabi-discord-mcp-server" <<Integration>> {
+  class DiscordClient {
+    - token: String
+    + create_channel(name: &str) -> Result<Channel>
+    + post_message(channel_id: u64, msg: &str) -> Result<()>
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Workflow Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "miyabi-orchestrator" <<Workflow>> {
+  class Orchestrator {
+    - dag: DAG
+    - agents: Vec<Box<dyn AgentTrait>>
+    + execute_workflow(workflow: Workflow) -> Result<()>
+  }
+
+  class DAG {
+    - nodes: Vec<Node>
+    - edges: Vec<Edge>
+    + add_node(node: Node)
+    + add_edge(from: NodeId, to: NodeId)
+    + topological_sort() -> Vec<NodeId>
+  }
+
+  class Workflow {
+    - name: String
+    - steps: Vec<WorkflowStep>
+    + execute() -> Result<()>
+  }
+
+  class WorkflowStep {
+    - agent: String
+    - input: Input
+    + run() -> Result<Output>
+  }
+}
+
+package "miyabi-tmux-orchestrator" <<Workflow>> {
+  class TmuxController {
+    - session_name: String
+    + create_session() -> Result<()>
+    + send_command(pane: &str, cmd: &str) -> Result<()>
+    + list_panes() -> Vec<Pane>
+  }
+
+  class Pane {
+    - id: String
+    - title: String
+    - agent: Option<String>
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Entity-Relation Model (14 Entities, 39 Relations)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Entity-Relation Model" {
+  class Entity1_Issue {
+    - id: u64
+    - title: String
+    - labels: Vec<Label>
+  }
+
+  class Entity2_Agent {
+    - id: String
+    - type: AgentType
+  }
+
+  class Entity3_Task {
+    - id: String
+    - status: TaskStatus
+  }
+
+  class Entity4_Worktree {
+    - path: PathBuf
+    - branch: String
+  }
+
+  class Entity5_PR {
+    - number: u64
+    - status: PRStatus
+  }
+
+  class Entity6_Commit {
+    - sha: String
+    - message: String
+  }
+
+  class Entity7_LLMRequest {
+    - prompt: String
+    - response: String
+  }
+
+  class Entity8_Context {
+    - modules: Vec<String>
+  }
+
+  class Entity9_Label {
+    - name: String
+    - category: String
+  }
+
+  class Entity10_Session {
+    - id: String
+    - start_time: DateTime<Utc>
+  }
+
+  class Entity11_Notification {
+    - message: String
+    - channels: Vec<String>
+  }
+
+  class Entity12_Knowledge {
+    - documents: Vec<Document>
+  }
+
+  class Entity13_Metrics {
+    - cpu: f32
+    - memory: f32
+  }
+
+  class Entity14_Codex {
+    - instance_id: u8
+    - status: CodexStatus
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships (Main)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Config "1" --> "1" Executor : configures
+Executor "1" --> "1" Session : manages
+Session "1" --> "*" TaskMetadata : tracks
+TaskMetadata "*" --> "1" TaskStatus : has
+
+AgentTrait <|-- CodeGenAgent : implements
+AgentTrait <|-- ReviewAgent : implements
+AgentTrait <|-- DeploymentAgent : implements
+AgentTrait <|-- IssueAgent : implements
+AgentTrait <|-- PRAgent : implements
+AgentTrait <|-- RefresherAgent : implements
+AgentTrait <|-- CoordinatorAgent : implements
+
+CoordinatorAgent "1" --> "*" AgentTrait : orchestrates
+
+LLMClient "1" --> "1" LLMProvider : uses
+LLMProvider "1" --> "1" AnthropicClient : delegates
+LLMProvider "1" --> "1" OpenAIClient : delegates
+LLMProvider "1" --> "1" GoogleClient : delegates
+
+CodeGenAgent "1" --> "1" LLMClient : uses
+CodeGenAgent "1" --> "1" ContextBuilder : uses
+
+WorktreeManager "1" --> "*" Worktree : manages
+Worktree "1" --> "1" WorktreeStatus : has
+
+GitHubClient "1" --> "*" Issue : creates
+GitHubClient "1" --> "*" PullRequest : creates
+Issue "1" --> "*" Label : has
+PullRequest "1" --> "*" Label : has
+
+KnowledgeBase "1" --> "1" QdrantClient : uses
+KnowledgeBase "1" --> "1" EmbeddingModel : uses
+
+Orchestrator "1" --> "1" DAG : uses
+Orchestrator "1" --> "*" AgentTrait : executes
+Orchestrator "1" --> "1" Workflow : runs
+Workflow "1" --> "*" WorkflowStep : contains
+
+TmuxController "1" --> "*" Pane : manages
+Pane "1" --> "0..1" AgentTrait : runs
+
+A2AServer "1" --> "1" PushNotificationHandler : uses
+
+' Entity Relations (Partial - 39 total in docs)
+Entity1_Issue "1" --> "*" Entity2_Agent : assigned_to
+Entity2_Agent "1" --> "*" Entity3_Task : executes
+Entity3_Task "1" --> "1" Entity4_Worktree : uses
+Entity3_Task "1" --> "*" Entity7_LLMRequest : generates
+Entity4_Worktree "1" --> "1" Entity5_PR : creates
+Entity5_PR "1" --> "*" Entity6_Commit : contains
+Entity1_Issue "1" --> "*" Entity9_Label : has
+Entity10_Session "1" --> "*" Entity2_Agent : manages
+Entity2_Agent "1" --> "*" Entity11_Notification : sends
+Entity3_Task "1" --> "1" Entity14_Codex : executed_by
+
+note bottom
+  **Miyabi Framework構造**
+  - 15+ Rust Crates
+  - 14 Core Entities, 39 Relations
+  - 21 Agents (7 Coding + 14 Business)
+  - 3 LLM Providers (Anthropic, OpenAI, Google)
+  - Complete autonomous workflow automation
+end note
+
+@enduml

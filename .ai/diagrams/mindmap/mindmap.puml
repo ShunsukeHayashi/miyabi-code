@@ -1,0 +1,205 @@
+@startmindmap Miyabi-MindMap
+' マインドマップ: Miyabi プロジェクトコンセプト全体像
+
+title **Miyabi - Mind Map**\n完全自律型開発フレームワークのコンセプト全体像
+
+* Miyabi\n完全自律型開発フレームワーク
+  * **Core Concept**\n核心コンセプト
+    * GitHub as OS
+      * 57 Label体系
+      * Issue駆動開発
+      * PR自動化
+      * Webhook統合
+    * 完全自律実行
+      * Issue → Code → PR → Merge
+      * 人間介入最小化
+      * 24/7自動運用
+    * 水蜘蛛システム\n(Water Spider)
+      * 動力の伝達
+      * Agent間連携
+      * タスク監視
+      * 状態追跡
+
+  * **Architecture**\nアーキテクチャ
+    * 3層制御システム
+      * Master Orchestrator\n(Local PC)
+      * Sub-Orchestrator\n(MUGEN/MAJIN)
+      * Execution Layer\n(18 Codex)
+    * Entity-Relation Model
+      * 14 Core Entities
+      * 39 Relations
+      * データ整合性
+    * Framework (15+ Crates)
+      * miyabi-core
+      * miyabi-agents
+      * miyabi-llm
+      * miyabi-github
+      * miyabi-worktree
+      * miyabi-knowledge
+      * miyabi-orchestrator
+      * その他8+ crates
+
+  left side
+  * **Execution Environment**\n実行環境
+    * Local PC (MacBook Pro)
+      * Master Control
+      * VS Code統合
+      * SSH Client
+      * Monitor Dashboard
+    * MUGEN EC2
+      * 16 vCPU, 124GB RAM
+      * 12 Codex並列
+      * Heavy Tasks
+      * Business Agents (14)
+    * MAJIN EC2
+      * 8 vCPU, 30GB RAM
+      * 6 Codex並列
+      * Light Tasks
+      * Issue/PR/Review
+    * Phase Roadmap
+      * Phase 1: 18 Codex\n(MUGEN 12 + MAJIN 6)
+      * Phase 2: 100 Codex\n(+3 EC2)
+      * Phase 3: 200 Codex\n(+5 EC2)
+
+  * **Agents (21種)**\nエージェント
+    * Coding Agents (7)
+      * CodeGenAgent
+      * ReviewAgent
+      * DeploymentAgent
+      * IssueAgent
+      * PRAgent
+      * RefresherAgent
+      * CoordinatorAgent
+    * Business Agents (14)
+      * Phase 1-4\n戦略企画
+        * SelfAnalysisAgent
+        * MarketResearchAgent
+        * PersonaAgent
+        * ProductConceptAgent
+      * Phase 5-8\nコンテンツ戦略
+        * ProductDesignAgent
+        * ContentCreationAgent
+        * FunnelDesignAgent
+        * SNSStrategyAgent
+      * Phase 9-12\n営業・成長
+        * MarketingAgent
+        * SalesAgent
+        * CRMAgent
+        * AnalyticsAgent
+      * その他
+        * YouTubeAgent
+        * AIEntrepreneurAgent
+
+  right side
+  * **External Services**\n外部サービス
+    * LLM Providers
+      * OpenAI API\n(GPT-5/o3)
+      * Anthropic API\n(Claude Sonnet 4.5)
+      * Google AI\n(Gemini)
+    * Knowledge Base
+      * Qdrant Vector DB
+      * Context7\n(Library Docs)
+      * Potpie\n(Code Context)
+    * Communication
+      * Lark Webhook
+      * Discord Webhook
+      * Telegram Bot API
+    * Audio
+      * VOICEVOX\n(ゆっくり音声)
+    * CI/CD
+      * GitHub Actions
+      * Self-hosted Runners
+
+  * **Key Features**\n主要機能
+    * tmux Orchestra
+      * マルチペイン管理
+      * Agent並列実行
+      * セッション永続化
+      * リモート制御
+    * Git Worktree
+      * 1 Issue = 1 Worktree
+      * 並列開発分離
+      * 自動クリーンアップ
+      * ブランチ管理
+    * VS Code Integration
+      * Remote-SSH
+      * Settings Sync
+      * Multi-root Workspace
+      * Terminal統合
+    * Monitoring
+      * Real-time Metrics
+      * CPU/Memory使用率
+      * Task進捗追跡
+      * Error Detection
+    * Notification
+      * Multi-channel通知
+      * Issue/PR更新
+      * Deploy完了通知
+      * Audio Guide生成
+
+  * **Workflow**\nワークフロー
+    * Issue作成
+      * Developer作成
+      * Label自動推論
+      * Priority設定
+      * Agent割当
+    * Code生成
+      * Task配信
+      * Codex並列実行
+      * OpenAI API Call
+      * Agent処理
+    * PR作成
+      * Worktree作成
+      * Code commit
+      * PR生成
+      * CI/CD実行
+    * Review & Merge
+      * Code Review
+      * Approve
+      * Merge
+      * Issue Close
+    * Notification
+      * Lark通知
+      * Discord通知
+      * Telegram通知
+      * VOICEVOX音声
+
+  * **Technology Stack**\n技術スタック
+    * Language
+      * Rust (2021 Edition)
+      * Node.js (Codex CLI)
+      * Shell Script
+    * Infrastructure
+      * AWS EC2
+      * Ubuntu 22.04 LTS
+      * tmux
+      * SSH
+    * Development Tools
+      * VS Code
+      * Git / GitHub
+      * Cargo
+      * OpenAI Codex CLI
+    * Monitoring
+      * Shell Scripts
+      * Real-time Dashboard
+      * Log Collection
+
+  * **Benefits**\n利点
+    * Speed\n高速化
+      * 18並列実行
+      * 10-30分でPR完成
+      * 24/7稼働
+    * Quality\n品質向上
+      * 自動Lint/Test
+      * Code Review
+      * CI/CD統合
+    * Scalability\n拡張性
+      * Phase 1 → 2 → 3
+      * 18 → 100 → 200 Codex
+      * 段階的スケール
+    * Automation\n自動化
+      * Issue → Merge全自動
+      * 人間介入最小化
+      * Knowledge Base活用
+
+@endmindmap

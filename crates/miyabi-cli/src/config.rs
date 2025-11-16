@@ -100,10 +100,7 @@ impl ConfigLoader {
         }
 
         // 2. Try gh CLI
-        if let Ok(output) = std::process::Command::new("gh")
-            .args(["auth", "token"])
-            .output()
-        {
+        if let Ok(output) = std::process::Command::new("gh").args(["auth", "token"]).output() {
             if output.status.success() {
                 let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 if !token.is_empty()
@@ -224,10 +221,10 @@ mod tests {
             (Ok(c1), Ok(c2)) => {
                 assert_eq!(c1.github_token, c2.github_token);
                 assert_eq!(c1.device_identifier, c2.device_identifier);
-            }
+            },
             _ => {
                 // If either fails, it's expected in test environment without git/token
-            }
+            },
         }
     }
 

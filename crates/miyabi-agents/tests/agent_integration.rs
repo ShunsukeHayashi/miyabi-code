@@ -91,10 +91,7 @@ async fn test_codegen_workflow() {
     assert!(result.is_ok());
 
     let agent_result = result.unwrap();
-    assert_eq!(
-        agent_result.status,
-        miyabi_types::agent::ResultStatus::Success
-    );
+    assert_eq!(agent_result.status, miyabi_types::agent::ResultStatus::Success);
     assert!(agent_result.metrics.is_some());
 }
 
@@ -129,20 +126,14 @@ async fn test_coordinator_execute() {
         status: None,
         start_time: None,
         end_time: None,
-        metadata: Some(HashMap::from([(
-            "issue_number".to_string(),
-            serde_json::json!(123),
-        )])),
+        metadata: Some(HashMap::from([("issue_number".to_string(), serde_json::json!(123))])),
     };
 
     let result = agent.execute(&task).await;
     assert!(result.is_ok());
 
     let agent_result = result.unwrap();
-    assert_eq!(
-        agent_result.status,
-        miyabi_types::agent::ResultStatus::Success
-    );
+    assert_eq!(agent_result.status, miyabi_types::agent::ResultStatus::Success);
     assert!(agent_result.data.is_some());
     assert!(agent_result.metrics.is_some());
 }

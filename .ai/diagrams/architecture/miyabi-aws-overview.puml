@@ -1,0 +1,128 @@
+@startuml Miyabi AWS Platform - Overview
+!theme aws-orange
+
+title Miyabi AWS Platform - System Overview
+
+skinparam rectangle {
+    BackgroundColor<<layer1>> LightBlue
+    BackgroundColor<<layer2>> LightGreen
+    BackgroundColor<<layer3>> LightYellow
+}
+
+' Users
+actor "Users" as users
+
+' Layer 3: Application
+package "Layer 3: Application (SaaS)" <<layer3>> {
+    rectangle "CloudFront CDN" as cdn
+    rectangle "S3 Static Site\n(React SPA)" as s3_web
+    rectangle "API Gateway\n(REST + WebSocket)" as apigw
+    rectangle "Lambda Functions" as lambda {
+        component "Auth Service" as auth
+        component "Task API" as task_api
+        component "Admin API" as admin_api
+    }
+    database "Cognito\nUser Pool" as cognito
+}
+
+' Layer 2: Platform
+package "Layer 2: Platform (Miyabi Engine)" <<layer2>> {
+    rectangle "EventBridge\nEvent Bus" as eventbridge
+    queue "SQS Task Queue" as sqs
+
+    rectangle "ECS Fargate Cluster" as ecs {
+        component "Orchestrator\nService" as orchestrator
+        component "Agent Worker Pool\n(1-100 tasks)" as workers {
+            component "CodeGenAgent" as codegen
+            component "ReviewAgent" as review
+            component "DeployAgent" as deploy
+            component "AWS Agent\n(θ₁-θ₆)" as aws_agent
+        }
+    }
+
+    database "DynamoDB\n(Metadata)" as dynamo
+    database "RDS Aurora\n(Relations)" as rds
+    storage "EFS\n(Worktrees)" as efs
+
+    rectangle "Knowledge Service" as knowledge {
+        database "Qdrant\nVector DB" as qdrant
+    }
+}
+
+' Layer 1: Infrastructure
+package "Layer 1: Infrastructure (AWS Foundation)" <<layer1>> {
+    cloud "VPC (Multi-AZ)" as vpc {
+        node "Public Subnet" as public
+        node "Private Subnet" as private
+        node "Isolated Subnet" as isolated
+    }
+
+    component "Security" as security {
+        component "WAF" as waf
+        component "GuardDuty" as guardduty
+        component "Secrets Manager" as secrets
+    }
+
+    component "Monitoring" as monitoring {
+        component "CloudWatch" as cloudwatch
+        component "X-Ray" as xray
+    }
+}
+
+' External Systems
+cloud "GitHub" as github
+cloud "VOICEVOX" as voicevox
+cloud "Discord" as discord
+
+' Connections - Layer 3
+users --> cdn
+cdn --> s3_web
+cdn --> apigw
+apigw --> lambda
+lambda --> cognito
+lambda --> eventbridge
+
+' Connections - Layer 2 to 3
+eventbridge --> sqs
+sqs --> orchestrator
+orchestrator --> workers
+workers --> dynamo
+workers --> rds
+workers --> efs
+workers --> knowledge
+
+' Connections - Layer 1 to 2
+ecs ..> vpc
+dynamo ..> private
+rds ..> isolated
+efs ..> private
+
+' Connections - Security & Monitoring
+waf --> cdn
+lambda ..> secrets
+ecs ..> cloudwatch
+ecs ..> xray
+
+' External integrations
+workers --> github : "GitHub API"
+workers --> voicevox : "Voice Alerts"
+workers --> discord : "Notifications"
+
+note right of ecs
+  **Auto-Scaling**
+  - Min: 1 task
+  - Max: 100 tasks
+  - Scale on: CPU, Queue Depth
+end note
+
+note right of aws_agent
+  **6-Phase Cycle**
+  θ₁: Understand (Discovery)
+  θ₂: Generate (Planning)
+  θ₃: Allocate (Optimization)
+  θ₄: Execute (Deployment)
+  θ₅: Integrate (Monitoring)
+  θ₆: Learn (Improvement)
+end note
+
+@enduml

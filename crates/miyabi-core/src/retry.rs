@@ -107,7 +107,7 @@ where
                     tracing::info!("Operation succeeded after {} retries", attempt);
                 }
                 return Ok(result);
-            }
+            },
             Err(error) => {
                 // Check if error is retryable
                 if !is_retryable(&error) {
@@ -127,17 +127,13 @@ where
                     );
                     tokio::time::sleep(delay).await;
                 }
-            }
+            },
         }
     }
 
     // All attempts failed
     let error = last_error.unwrap_or_else(|| MiyabiError::Unknown("No error captured".to_string()));
-    tracing::error!(
-        "All {} retry attempts failed: {}",
-        config.max_attempts + 1,
-        error
-    );
+    tracing::error!("All {} retry attempts failed: {}", config.max_attempts + 1, error);
     Err(error)
 }
 
@@ -164,14 +160,14 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
             msg.to_lowercase().contains("timeout")
                 || msg.to_lowercase().contains("connection")
                 || msg.to_lowercase().contains("temporarily")
-        }
+        },
 
         // GitHub errors - check for rate limiting
         MiyabiError::GitHub(msg) => {
             msg.to_lowercase().contains("rate limit")
                 || msg.to_lowercase().contains("retry")
                 || msg.to_lowercase().contains("temporarily unavailable")
-        }
+        },
 
         // IO errors - some kinds are retryable
         MiyabiError::Io(io_error) => matches!(
@@ -187,7 +183,7 @@ pub fn is_retryable(error: &MiyabiError) -> bool {
         // Git errors - check message for lock conflicts
         MiyabiError::Git(msg) => {
             msg.to_lowercase().contains("lock") || msg.to_lowercase().contains("unable to create")
-        }
+        },
 
         // Never retryable
         MiyabiError::Agent(_) => false,
@@ -345,19 +341,13 @@ mod tests {
 
     #[test]
     fn test_is_retryable_http_timeout() {
-        assert!(is_retryable(&MiyabiError::Http(
-            "Connection timeout".to_string()
-        )));
-        assert!(is_retryable(&MiyabiError::Http(
-            "Temporarily unavailable".to_string()
-        )));
+        assert!(is_retryable(&MiyabiError::Http("Connection timeout".to_string())));
+        assert!(is_retryable(&MiyabiError::Http("Temporarily unavailable".to_string())));
     }
 
     #[test]
     fn test_is_retryable_github_rate_limit() {
-        assert!(is_retryable(&MiyabiError::GitHub(
-            "Rate limit exceeded".to_string()
-        )));
+        assert!(is_retryable(&MiyabiError::GitHub("Rate limit exceeded".to_string())));
         assert!(is_retryable(&MiyabiError::GitHub(
             "API rate limit exceeded, retry after 60s".to_string()
         )));
@@ -393,26 +383,18 @@ mod tests {
 
     #[test]
     fn test_is_retryable_git_lock_conflicts() {
-        assert!(is_retryable(&MiyabiError::Git(
-            "Unable to create lock file".to_string()
-        )));
-        assert!(is_retryable(&MiyabiError::Git(
-            "Lock already exists".to_string()
-        )));
+        assert!(is_retryable(&MiyabiError::Git("Unable to create lock file".to_string())));
+        assert!(is_retryable(&MiyabiError::Git("Lock already exists".to_string())));
     }
 
     #[test]
     fn test_is_not_retryable_validation() {
-        assert!(!is_retryable(&MiyabiError::Validation(
-            "Invalid input".to_string()
-        )));
+        assert!(!is_retryable(&MiyabiError::Validation("Invalid input".to_string())));
     }
 
     #[test]
     fn test_is_not_retryable_config() {
-        assert!(!is_retryable(&MiyabiError::Config(
-            "Missing token".to_string()
-        )));
+        assert!(!is_retryable(&MiyabiError::Config("Missing token".to_string())));
     }
 
     #[test]

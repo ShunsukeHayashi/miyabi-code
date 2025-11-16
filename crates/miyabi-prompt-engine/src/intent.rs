@@ -25,8 +25,7 @@ impl IntentResolver {
     /// * `Ok(VideoConcept)` - 解析成功
     /// * `Err(anyhow::Error)` - 解析失敗（不正なYAML、必須フィールド欠落など）
     pub fn resolve(&self, yaml_input: &str) -> Result<VideoConcept> {
-        serde_yaml::from_str(yaml_input)
-            .context("Failed to parse YAML input into VideoConcept")
+        serde_yaml::from_str(yaml_input).context("Failed to parse YAML input into VideoConcept")
     }
 }
 

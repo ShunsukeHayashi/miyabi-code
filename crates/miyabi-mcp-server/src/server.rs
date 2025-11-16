@@ -292,7 +292,7 @@ impl McpServer {
             TransportMode::Stdio => {
                 tracing::info!("Starting MCP server in stdio mode");
                 self.run_stdio(io).await
-            }
+            },
             TransportMode::Http => {
                 #[cfg(feature = "http")]
                 {
@@ -309,7 +309,7 @@ impl McpServer {
                         "HTTP transport requires 'http' feature to be enabled".to_string(),
                     ))
                 }
-            }
+            },
         }
     }
 

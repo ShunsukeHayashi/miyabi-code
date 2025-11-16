@@ -91,10 +91,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         // 2. Implementation task
@@ -112,10 +109,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         // 3. Testing task
@@ -133,10 +127,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         // 4. Review task
@@ -154,10 +145,7 @@ impl CoordinatorAgent {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "issue_number".to_string(),
-                json!(issue.number),
-            )])),
+            metadata: Some(HashMap::from([("issue_number".to_string(), json!(issue.number))])),
         });
 
         Ok(tasks)
@@ -364,34 +352,19 @@ impl CoordinatorAgent {
         let mut md = String::new();
 
         // Header
-        md.push_str(&format!(
-            "# Plans for Issue #{}\n\n",
-            decomposition.original_issue.number
-        ));
-        md.push_str(&format!(
-            "**Title**: {}\n\n",
-            decomposition.original_issue.title
-        ));
-        md.push_str(&format!(
-            "**URL**: {}\n\n",
-            decomposition.original_issue.url
-        ));
+        md.push_str(&format!("# Plans for Issue #{}\n\n", decomposition.original_issue.number));
+        md.push_str(&format!("**Title**: {}\n\n", decomposition.original_issue.title));
+        md.push_str(&format!("**URL**: {}\n\n", decomposition.original_issue.url));
         md.push_str("---\n\n");
 
         // Summary
         md.push_str("## 📋 Summary\n\n");
-        md.push_str(&format!(
-            "- **Total Tasks**: {}\n",
-            decomposition.tasks.len()
-        ));
+        md.push_str(&format!("- **Total Tasks**: {}\n", decomposition.tasks.len()));
         md.push_str(&format!(
             "- **Estimated Duration**: {} minutes\n",
             decomposition.estimated_total_duration
         ));
-        md.push_str(&format!(
-            "- **Execution Levels**: {}\n",
-            decomposition.dag.levels.len()
-        ));
+        md.push_str(&format!("- **Execution Levels**: {}\n", decomposition.dag.levels.len()));
         md.push_str(&format!(
             "- **Has Cycles**: {}\n",
             if decomposition.has_cycles {
@@ -423,10 +396,7 @@ impl CoordinatorAgent {
             md.push_str(&format!("- **Estimated Duration**: {}\n", duration));
 
             if !task.dependencies.is_empty() {
-                md.push_str(&format!(
-                    "- **Dependencies**: {}\n",
-                    task.dependencies.join(", ")
-                ));
+                md.push_str(&format!("- **Dependencies**: {}\n", task.dependencies.join(", ")));
             }
 
             if !task.description.is_empty() {
@@ -455,11 +425,7 @@ impl CoordinatorAgent {
         md.push_str("```mermaid\ngraph TD\n");
         for task in &decomposition.tasks {
             let task_label = task.title.replace('"', "'");
-            md.push_str(&format!(
-                "    {}[\"{}\"]\n",
-                task.id.replace('-', "_"),
-                task_label
-            ));
+            md.push_str(&format!("    {}[\"{}\"]\n", task.id.replace('-', "_"), task_label));
         }
         for edge in &decomposition.dag.edges {
             md.push_str(&format!(
@@ -594,11 +560,7 @@ impl CoordinatorAgent {
             .save_execution(&execution_state)
             .map_err(|e| MiyabiError::Validation(format!("Failed to save initial state: {}", e)))?;
 
-        tracing::info!(
-            "Starting workflow execution: {} ({})",
-            workflow_id,
-            dag.nodes.len()
-        );
+        tracing::info!("Starting workflow execution: {} ({})", workflow_id, dag.nodes.len());
 
         // Track which steps to skip due to conditional branching
         let mut skipped_steps: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -650,9 +612,7 @@ impl CoordinatorAgent {
                     return Err(MiyabiError::Validation(format!(
                         "Step {} failed: {}",
                         task_id,
-                        step_result
-                            .error
-                            .unwrap_or_else(|| "Unknown error".to_string())
+                        step_result.error.unwrap_or_else(|| "Unknown error".to_string())
                     )));
                 }
 
@@ -663,11 +623,9 @@ impl CoordinatorAgent {
                 );
 
                 // Save step output to state store
-                state_store
-                    .save_step(&workflow_id, task_id, &step_result)
-                    .map_err(|e| {
-                        MiyabiError::Validation(format!("Failed to save step output: {}", e))
-                    })?;
+                state_store.save_step(&workflow_id, task_id, &step_result).map_err(|e| {
+                    MiyabiError::Validation(format!("Failed to save step output: {}", e))
+                })?;
 
                 // Handle conditional branching
                 if let Some(ref metadata) = task.metadata {
@@ -981,10 +939,7 @@ mod tests {
             .iter()
             .find(|(key, _)| key.ends_with("_chosen_branch"))
             .expect("chosen branch metadata");
-        assert_eq!(
-            chosen_branch.1.get("branch_name").and_then(|v| v.as_str()),
-            Some("pass")
-        );
+        assert_eq!(chosen_branch.1.get("branch_name").and_then(|v| v.as_str()), Some("pass"));
     }
 
     #[tokio::test]
@@ -1232,16 +1187,10 @@ mod tests {
         };
 
         let result = agent.build_dag(&[task]);
-        assert!(
-            result.is_err(),
-            "build_dag should reject tasks with non-existent dependencies"
-        );
+        assert!(result.is_err(), "build_dag should reject tasks with non-existent dependencies");
 
         if let Err(e) = result {
-            assert!(
-                matches!(e, MiyabiError::Validation(_)),
-                "Error should be a Validation error"
-            );
+            assert!(matches!(e, MiyabiError::Validation(_)), "Error should be a Validation error");
         }
     }
 
@@ -1368,11 +1317,7 @@ mod tests {
             let mut issue = create_test_issue();
             issue.labels = labels.iter().map(|s| s.to_string()).collect();
             let inferred_type = agent.infer_task_type(&issue);
-            assert_eq!(
-                inferred_type, expected_type,
-                "Failed for labels: {:?}",
-                labels
-            );
+            assert_eq!(inferred_type, expected_type, "Failed for labels: {:?}", labels);
         }
     }
 

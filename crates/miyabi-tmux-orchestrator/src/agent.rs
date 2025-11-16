@@ -22,7 +22,8 @@ impl Default for AgentConfig {
         Self {
             agent_type: "video-generator".to_string(),
             startup_command: "claude".to_string(),
-            working_dir_pattern: "/Users/shunsuke/Dev/miyabi-private/.worktrees/segment-{segment_id}".to_string(),
+            working_dir_pattern:
+                "/Users/shunsuke/Dev/miyabi-private/.worktrees/segment-{segment_id}".to_string(),
             startup_timeout: 30,
             env_vars: std::collections::HashMap::new(),
         }
@@ -40,8 +41,7 @@ impl AgentConfig {
 
     /// Get working directory for a specific segment
     pub fn get_working_dir(&self, segment_id: u32) -> String {
-        self.working_dir_pattern
-            .replace("{segment_id}", &segment_id.to_string())
+        self.working_dir_pattern.replace("{segment_id}", &segment_id.to_string())
     }
 
     /// Build startup command for tmux

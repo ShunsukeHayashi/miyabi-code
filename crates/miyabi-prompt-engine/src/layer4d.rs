@@ -18,24 +18,24 @@ pub struct Layer4D {
 /// 空間レイヤー（3次元）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpatialLayers {
-    pub foreground: Option<String>,  // 前景
-    pub midground: Option<String>,   // 中景
-    pub background: Option<String>,  // 後景
+    pub foreground: Option<String>, // 前景
+    pub midground: Option<String>,  // 中景
+    pub background: Option<String>, // 後景
 }
 
 /// 時間レイヤー（4次元目）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TemporalLayer {
-    Past,      // 過去シーン
-    Present,   // 現在シーン
-    Future,    // 未来シーン
+    Past,    // 過去シーン
+    Present, // 現在シーン
+    Future,  // 未来シーン
 }
 
 /// エフェクトレイヤー
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EffectLayers {
-    pub vfx: Vec<String>,         // VFXエフェクト
-    pub lighting: Vec<String>,    // ライティングエフェクト
+    pub vfx: Vec<String>,             // VFXエフェクト
+    pub lighting: Vec<String>,        // ライティングエフェクト
     pub post_processing: Vec<String>, // ポストプロセス
 }
 

@@ -57,16 +57,13 @@ Generate detailed marketing strategy as JSON with brand strategy, campaign plann
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::MarketingAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::MarketingAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let marketing_strategy: MarketingStrategy =
@@ -272,10 +269,7 @@ impl BaseAgent for MarketingAgent {
             "total_tactics_count": total_tactics
         });
 
-        tracing::info!(
-            "MarketingAgent completed marketing strategy generation: {}",
-            summary
-        );
+        tracing::info!("MarketingAgent completed marketing strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -466,9 +460,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -526,9 +518,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -587,9 +577,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_marketing_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_marketing_strategy(&invalid_strategy).is_err());
     }
 
     #[test]

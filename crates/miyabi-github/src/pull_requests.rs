@@ -15,17 +15,12 @@ impl GitHubClient {
     /// # Arguments
     /// * `number` - Pull request number
     pub async fn get_pull_request(&self, number: u64) -> Result<PRResult> {
-        let pr = self
-            .client
-            .pulls(&self.owner, &self.repo)
-            .get(number)
-            .await
-            .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to get pull request #{} from {}/{}: {}",
-                    number, self.owner, self.repo, e
-                ))
-            })?;
+        let pr = self.client.pulls(&self.owner, &self.repo).get(number).await.map_err(|e| {
+            MiyabiError::GitHub(format!(
+                "Failed to get pull request #{} from {}/{}: {}",
+                number, self.owner, self.repo, e
+            ))
+        })?;
 
         convert_pull_request(pr)
     }
@@ -129,8 +124,7 @@ impl GitHubClient {
 
     /// Close a pull request (without merging)
     pub async fn close_pull_request(&self, number: u64) -> Result<PRResult> {
-        self.update_pull_request(number, None, None, Some(PullState::Closed))
-            .await
+        self.update_pull_request(number, None, None, Some(PullState::Closed)).await
     }
 
     /// Merge a pull request
@@ -188,16 +182,9 @@ fn convert_pull_request(pr: OctoPR) -> Result<PRResult> {
             Some(OctoState::Open) => PRState::Open,
             Some(OctoState::Closed) => PRState::Closed,
             Some(ref s) => {
-                return Err(MiyabiError::GitHub(format!(
-                    "Unknown pull request state: {:?}",
-                    s
-                )))
-            }
-            None => {
-                return Err(MiyabiError::GitHub(
-                    "Pull request state is missing".to_string(),
-                ))
-            }
+                return Err(MiyabiError::GitHub(format!("Unknown pull request state: {:?}", s)))
+            },
+            None => return Err(MiyabiError::GitHub("Pull request state is missing".to_string())),
         }
     };
 

@@ -81,10 +81,7 @@ impl ToolConfig {
 
     /// Get max results from config (for search operations)
     pub fn max_results(&self) -> Option<usize> {
-        self.config
-            .get("max_results")
-            .and_then(|v| v.as_u64())
-            .map(|v| v as usize)
+        self.config.get("max_results").and_then(|v| v.as_u64()).map(|v| v as usize)
     }
 
     /// Get allowed commands from config (for bash)
@@ -92,11 +89,7 @@ impl ToolConfig {
         self.config
             .get("allowed_commands")
             .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
     }
 
     /// Get blacklist patterns from config (for bash)
@@ -104,18 +97,12 @@ impl ToolConfig {
         self.config
             .get("blacklist_patterns")
             .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
     }
 
     /// Get a custom config value
     pub fn get_config<T: serde::de::DeserializeOwned>(&self, key: &str) -> Option<T> {
-        self.config
-            .get(key)
-            .and_then(|v| serde_json::from_value(v.clone()).ok())
+        self.config.get(key).and_then(|v| serde_json::from_value(v.clone()).ok())
     }
 
     /// Validate tool configuration
@@ -124,16 +111,12 @@ impl ToolConfig {
 
         // Validate name is not empty
         if self.name.is_empty() {
-            return Err(ModeError::InvalidDefinition(
-                "Tool name cannot be empty".into(),
-            ));
+            return Err(ModeError::InvalidDefinition("Tool name cannot be empty".into()));
         }
 
         // Validate module is not empty
         if self.module.is_empty() {
-            return Err(ModeError::InvalidDefinition(
-                "Tool module cannot be empty".into(),
-            ));
+            return Err(ModeError::InvalidDefinition("Tool module cannot be empty".into()));
         }
 
         // Validate timeout if present

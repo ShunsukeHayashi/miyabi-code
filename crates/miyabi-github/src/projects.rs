@@ -182,16 +182,9 @@ impl GitHubClient {
             .field
             .ok_or_else(|| MiyabiError::GitHub(format!("Field '{}' not found", field_name)))?;
 
-        let option = field
-            .options
-            .iter()
-            .find(|opt| opt.name == value)
-            .ok_or_else(|| {
-                MiyabiError::GitHub(format!(
-                    "Option '{}' not found in field '{}'",
-                    value, field_name
-                ))
-            })?;
+        let option = field.options.iter().find(|opt| opt.name == value).ok_or_else(|| {
+            MiyabiError::GitHub(format!("Option '{}' not found in field '{}'", value, field_name))
+        })?;
 
         // Update the field value
         let update_mutation = r#"
@@ -329,14 +322,14 @@ impl ProjectItem {
                     "Status" => status = name,
                     "Priority" => priority = Some(name),
                     "Phase" => phase = Some(name),
-                    _ => {}
+                    _ => {},
                 },
                 FieldValue::Number { number, field } => match field.name.as_str() {
                     "Estimated Hours" => estimated_hours = Some(number),
                     "Actual Hours" => actual_hours = Some(number),
                     "Quality Score" => quality_score = Some(number),
                     "Cost (USD)" => cost_usd = Some(number),
-                    _ => {}
+                    _ => {},
                 },
             }
         }

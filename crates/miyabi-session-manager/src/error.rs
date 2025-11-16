@@ -1,9 +1,9 @@
 //! Error types for session manager
 
-use thiserror::Error;
-use uuid::Uuid;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
+use uuid::Uuid;
 
 /// Session manager error types
 #[derive(Error, Debug)]
@@ -100,7 +100,8 @@ mod unified_error_tests {
         let error = SessionError::AlreadyExists(uuid);
         assert_eq!(error.code(), ErrorCode::VALIDATION_ERROR);
 
-        let error = SessionError::SpawnFailed(std::io::Error::new(std::io::ErrorKind::Other, "test"));
+        let error =
+            SessionError::SpawnFailed(std::io::Error::new(std::io::ErrorKind::Other, "test"));
         assert_eq!(error.code(), ErrorCode::PROCESS_ERROR);
 
         let error = SessionError::StorageError("test".to_string());
@@ -141,7 +142,8 @@ mod unified_error_tests {
         let error = SessionError::StorageError("error".to_string());
         assert!(error.context().is_some());
 
-        let error = SessionError::SpawnFailed(std::io::Error::new(std::io::ErrorKind::Other, "test"));
+        let error =
+            SessionError::SpawnFailed(std::io::Error::new(std::io::ErrorKind::Other, "test"));
         assert!(error.context().is_none());
     }
 }

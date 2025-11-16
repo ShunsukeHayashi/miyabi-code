@@ -50,10 +50,8 @@ impl DAGOperations {
             }
 
             // Check if all dependencies are completed
-            let all_deps_completed = node
-                .dependencies
-                .iter()
-                .all(|dep_id| completed.contains(dep_id));
+            let all_deps_completed =
+                node.dependencies.iter().all(|dep_id| completed.contains(dep_id));
 
             if all_deps_completed {
                 ready.push(node.id.clone());
@@ -101,11 +99,7 @@ impl DAGOperations {
     ///
     /// This is already computed in `dag.levels`, so we just return a flattened version
     pub fn topological_sort(&self) -> Vec<TaskId> {
-        self.dag
-            .levels
-            .iter()
-            .flat_map(|level| level.clone())
-            .collect()
+        self.dag.levels.iter().flat_map(|level| level.clone()).collect()
     }
 }
 

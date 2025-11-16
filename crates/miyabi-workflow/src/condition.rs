@@ -39,37 +39,25 @@ impl Condition {
 
             Condition::FieldEquals { field, value } => {
                 Self::get_field(context, field).map(|v| v == value).unwrap_or(false)
-            }
+            },
 
-            Condition::FieldGreaterThan { field, value } => {
-                Self::get_field(context, field)
-                    .and_then(|v| v.as_f64())
-                    .map(|v| v > *value)
-                    .unwrap_or(false)
-            }
+            Condition::FieldGreaterThan { field, value } => Self::get_field(context, field)
+                .and_then(|v| v.as_f64())
+                .map(|v| v > *value)
+                .unwrap_or(false),
 
-            Condition::FieldLessThan { field, value } => {
-                Self::get_field(context, field)
-                    .and_then(|v| v.as_f64())
-                    .map(|v| v < *value)
-                    .unwrap_or(false)
-            }
+            Condition::FieldLessThan { field, value } => Self::get_field(context, field)
+                .and_then(|v| v.as_f64())
+                .map(|v| v < *value)
+                .unwrap_or(false),
 
-            Condition::FieldExists { field } => {
-                Self::get_field(context, field).is_some()
-            }
+            Condition::FieldExists { field } => Self::get_field(context, field).is_some(),
 
-            Condition::And(conditions) => {
-                conditions.iter().all(|c| c.evaluate(context))
-            }
+            Condition::And(conditions) => conditions.iter().all(|c| c.evaluate(context)),
 
-            Condition::Or(conditions) => {
-                conditions.iter().any(|c| c.evaluate(context))
-            }
+            Condition::Or(conditions) => conditions.iter().any(|c| c.evaluate(context)),
 
-            Condition::Not(condition) => {
-                !condition.evaluate(context)
-            }
+            Condition::Not(condition) => !condition.evaluate(context),
         }
     }
 

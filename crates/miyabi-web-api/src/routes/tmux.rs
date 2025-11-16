@@ -85,15 +85,11 @@ pub struct SendCommandResponse {
 }
 
 /// Send a command to a specific TMUX pane
-pub async fn send_command(
-    Query(params): Query<SendCommandQuery>,
-) -> Json<SendCommandResponse> {
+pub async fn send_command(Query(params): Query<SendCommandQuery>) -> Json<SendCommandResponse> {
     // Safety check: whitelist allowed commands
     let allowed_prefixes = vec!["miyabi", "cargo", "git", "ls", "pwd", "cd", "echo"];
 
-    let is_safe = allowed_prefixes
-        .iter()
-        .any(|prefix| params.command.starts_with(prefix));
+    let is_safe = allowed_prefixes.iter().any(|prefix| params.command.starts_with(prefix));
 
     if !is_safe {
         return Json(SendCommandResponse {
@@ -121,7 +117,7 @@ pub async fn send_command(
                 success: false,
                 message: format!("Failed to send command: {}", stderr),
             })
-        }
+        },
         Err(e) => Json(SendCommandResponse {
             success: false,
             message: format!("Failed to execute tmux command: {}", e),
@@ -137,9 +133,7 @@ pub struct KillSessionResponse {
 }
 
 pub async fn kill_session(Path(session_name): Path<String>) -> Json<KillSessionResponse> {
-    let result = Command::new("tmux")
-        .args(&["kill-session", "-t", &session_name])
-        .output();
+    let result = Command::new("tmux").args(&["kill-session", "-t", &session_name]).output();
 
     match result {
         Ok(output) if output.status.success() => Json(KillSessionResponse {
@@ -152,7 +146,7 @@ pub async fn kill_session(Path(session_name): Path<String>) -> Json<KillSessionR
                 success: false,
                 message: format!("Failed to kill session: {}", stderr),
             })
-        }
+        },
         Err(e) => Json(KillSessionResponse {
             success: false,
             message: format!("Failed to execute tmux command: {}", e),
@@ -163,9 +157,8 @@ pub async fn kill_session(Path(session_name): Path<String>) -> Json<KillSessionR
 /// Get all TMUX sessions with detailed information
 fn get_tmux_sessions() -> Vec<TmuxSession> {
     // Get list of sessions
-    let sessions_output = Command::new("tmux")
-        .args(&["list-sessions", "-F", "#{session_name}"])
-        .output();
+    let sessions_output =
+        Command::new("tmux").args(&["list-sessions", "-F", "#{session_name}"]).output();
 
     let sessions_output = match sessions_output {
         Ok(output) if output.status.success() => output,

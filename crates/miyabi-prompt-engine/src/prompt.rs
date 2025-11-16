@@ -89,7 +89,7 @@ impl Default for PromptGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Scene, Layer4D, TransitionType};
+    use crate::{Layer4D, Scene, TransitionType};
 
     #[test]
     fn test_generate_prompt() {

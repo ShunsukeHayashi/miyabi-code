@@ -28,31 +28,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test cases with different complexity levels
     let test_cases = vec![
-        (
-            "Simple: Documentation",
-            "Add documentation comment for this function",
-        ),
+        ("Simple: Documentation", "Add documentation comment for this function"),
         ("Simple: Typo fix", "Fix typo in the README file"),
         (
             "Medium: API implementation",
             "Implement a new REST API endpoint for user authentication",
         ),
-        (
-            "Medium: Bug fix",
-            "Bug fix in the payment integration module",
-        ),
-        (
-            "Medium: Test writing",
-            "Write unit tests for the struct validation logic",
-        ),
+        ("Medium: Bug fix", "Bug fix in the payment integration module"),
+        ("Medium: Test writing", "Write unit tests for the struct validation logic"),
         (
             "Complex: Architecture",
             "Design a new architecture for a distributed system with high scalability",
         ),
-        (
-            "Complex: Refactoring",
-            "Refactor the authentication system to improve security",
-        ),
+        ("Complex: Refactoring", "Refactor the authentication system to improve security"),
         (
             "Complex: Performance",
             "Performance optimization for concurrent request handling",
@@ -76,10 +64,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     response
                 };
                 println!("Response: {}", display_response);
-            }
+            },
             Err(e) => {
                 println!("Error: {}", e);
-            }
+            },
         }
         println!();
     }
@@ -110,10 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
     println!("Cost Analysis:");
     println!("  Actual cost:    ${:.4}", metrics.estimated_cost_usd);
-    println!(
-        "  Pure Claude:    ${:.4}",
-        (metrics.total_tokens() as f64 / 1_000_000.0) * 3.0
-    );
+    println!("  Pure Claude:    ${:.4}", (metrics.total_tokens() as f64 / 1_000_000.0) * 3.0);
     println!(
         "  Savings:        ${:.4} ({:.1}%)",
         metrics.cost_savings_vs_pure_claude(),

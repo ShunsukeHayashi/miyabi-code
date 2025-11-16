@@ -126,10 +126,7 @@ async fn search_handler(
     State(state): State<Arc<ServerState>>,
     Query(params): Query<SearchParams>,
 ) -> std::result::Result<Json<SearchResponse>, ServerError> {
-    info!(
-        "Search request: query='{}', agent={:?}",
-        params.q, params.agent
-    );
+    info!("Search request: query='{}', agent={:?}", params.q, params.agent);
 
     let mut filter = SearchFilter::new();
 

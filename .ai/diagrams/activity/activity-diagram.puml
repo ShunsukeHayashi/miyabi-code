@@ -1,0 +1,286 @@
+@startuml Activity-Diagram
+' アクティビティ図: Miyabi 完全自律型開発ワークフロー
+
+title **Miyabi - Activity Diagram**\n完全自律型開発ワークフロー (Issue → Code → PR → Merge)
+
+|Developer|
+start
+:Create GitHub Issue;
+note right
+  **Issue作成**
+  - Title
+  - Body (詳細説明)
+  - Labels (57体系から選択)
+  - Assignee (optional)
+end note
+
+|GitHub|
+:Receive Issue Event;
+:Trigger Webhook;
+
+|Master Orchestrator\n(Local PC)|
+:Receive Webhook Notification;
+:Verify Webhook Signature;
+
+if (Signature Valid?) then (yes)
+  :Parse Issue Data;
+  note right
+    **Issue解析**
+    - Issue Number
+    - Title, Body
+    - Labels
+    - Priority (p0-p4)
+    - Size (xs-xl)
+  end note
+else (no)
+  :Reject Request;
+  stop
+endif
+
+:Select Appropriate Agent;
+note right
+  **Agent選択ロジック**
+  - feature/* → CodeGenAgent
+  - bug/* → ReviewAgent
+  - refactor/* → CodeGenAgent
+  - docs/* → DocumentationAgent
+  - test/* → TestAgent
+  - business/* → Business Agents (14種)
+end note
+
+|tmux Orchestra|
+:Start tmux Session;
+:Launch Agent Panes;
+partition "Water Spider Monitoring" {
+  :Monitor Agent Status;
+  :Track Task Progress;
+}
+
+|Coordinator Agent|
+:Analyze Task Complexity;
+
+if (Heavy Task?) then (yes)
+  |Codex Control|
+  :Route to MUGEN\n(12 Codex);
+
+  |MUGEN Sub-Orchestrator|
+  :Create tmux: mugen-codex;
+  partition "12並列実行" {
+    fork
+      :Codex-1: Execute Task;
+    fork again
+      :Codex-2: Execute Task;
+    fork again
+      :Codex-3: Execute Task;
+    fork again
+      :Codex-4 to 12: Execute Tasks;
+    end fork
+  }
+else (no - Light Task)
+  |Codex Control|
+  :Route to MAJIN\n(6 Codex);
+
+  |MAJIN Sub-Orchestrator|
+  :Create tmux: majin-codex;
+  partition "6並列実行" {
+    fork
+      :Codex-13: Execute Task;
+    fork again
+      :Codex-14: Execute Task;
+    fork again
+      :Codex-15 to 18: Execute Tasks;
+    end fork
+  }
+endif
+
+|Codex Instances|
+:Read Task File (.md);
+:Send to OpenAI API;
+
+|OpenAI API|
+:GPT-5 / o3 Processing;
+if (Rate Limited?) then (yes)
+  :Wait (Exponential Backoff);
+  :Retry Request;
+else (no)
+  :Generate Response;
+endif
+
+|Agent Layer|
+:Receive Generated Code;
+:Apply Agent Logic;
+
+partition "Agent Execution (21種)" {
+  if (Agent Type?) then (Coding)
+    :CodeGenAgent\nReviewAgent\nDeploymentAgent\netc.;
+  else (Business)
+    :SelfAnalysisAgent\nMarketResearchAgent\nPersonaAgent\netc.;
+  endif
+}
+
+|Framework Layer|
+:Use Miyabi Framework;
+partition "Framework Components" {
+  :miyabi-core;
+  :miyabi-llm;
+  :miyabi-github;
+  :miyabi-worktree;
+  :miyabi-knowledge;
+  :etc. (15+ crates);
+}
+
+|Knowledge Base|
+:Search Relevant Context;
+partition "Knowledge Search" {
+  :Qdrant Vector Search;
+  :Context7 Library Docs;
+  :Potpie Code Context;
+}
+:Retrieve Contextual Info;
+
+|Git Worktree|
+:Create Worktree;
+:Checkout Branch;
+note right
+  **Worktree Strategy**
+  - 1 Issue = 1 Worktree
+  - Branch: issue-{number}
+  - Location: .worktrees/issue-{number}/
+end note
+
+|Agent|
+:Write Code to Worktree;
+:Run Tests (cargo test);
+
+if (Tests Pass?) then (yes)
+  :Run Linter (cargo clippy);
+
+  if (Lint Pass?) then (yes)
+    :Format Code (cargo fmt);
+  else (no)
+    :Fix Lint Errors;
+    :Re-run Linter;
+  endif
+else (no)
+  :Debug & Fix Errors;
+  :Re-run Tests;
+  backward :Run Tests (cargo test);
+endif
+
+:Git Add Files;
+:Git Commit;
+note right
+  **Commit Format**
+  (Conventional Commits)
+
+  feat: Add new feature
+  fix: Fix bug
+  refactor: Refactor code
+  docs: Update docs
+  test: Add tests
+
+  🤖 Generated with Claude Code
+  Co-Authored-By: Claude <noreply@anthropic.com>
+end note
+
+:Git Push to Remote;
+
+|PR Agent|
+:Create Pull Request;
+note right
+  **PR Template**
+  ## Summary
+  - 3 bullet points
+
+  ## Test Plan
+  - Checklist of TODOs
+
+  🤖 Generated with Claude Code
+end note
+
+|GitHub|
+:Open Draft PR;
+:Mark as Ready for Review;
+
+|GitHub Actions|
+:Trigger CI/CD;
+partition "Self-hosted Runners" {
+  fork
+    |MUGEN Runner|
+    :cargo test --all;
+    :cargo clippy --all;
+    :cargo build --release;
+  fork again
+    |MAJIN Runner|
+    :cargo test;
+    :cargo fmt --check;
+  end fork
+}
+
+if (CI/CD Pass?) then (yes)
+  :Report Success to PR;
+else (no)
+  :Report Failure to PR;
+  |Agent|
+  :Fix CI/CD Issues;
+  backward :Git Push to Remote;
+endif
+
+|Communication Services|
+:Send Notifications;
+partition "Multi-channel Notification" {
+  fork
+    :Lark Webhook\nPush Notification;
+  fork again
+    :Discord Webhook\nChannel Message;
+  fork again
+    :Telegram Bot\nDirect Message;
+  end fork
+}
+
+|VOICEVOX|
+:Generate Audio Guide;
+:Convert Git Commits to Speech;
+note right
+  **ゆっくり音声ガイド**
+  - Git commits解析
+  - Text-to-Speech変換
+  - .wav ファイル生成
+end note
+
+|Developer|
+:Review PR;
+
+if (Approve?) then (yes)
+  :Approve PR;
+
+  |GitHub|
+  :Merge PR (Squash);
+  :Close Issue;
+
+  |Worktree Manager|
+  :Cleanup Worktree;
+  :Remove Branch;
+
+  |Communication Services|
+  :Send Completion Notification;
+  note right
+    **完了通知**
+    "Issue #XXX が完了しました！
+    PR #YYY がマージされました。
+    Total time: 10-30 minutes"
+  end note
+
+  |Developer|
+  :Receive Notification;
+  stop
+else (no - Changes Requested)
+  :Request Changes;
+
+  |Agent|
+  :Read Review Comments;
+  :Make Requested Changes;
+  backward :Write Code to Worktree;
+endif
+
+@enduml

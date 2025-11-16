@@ -1,0 +1,221 @@
+@startuml Sequence-Issue-to-Merge
+' シーケンス図: Issue作成からMergeまでの完全フロー
+
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+
+title **Miyabi - Issue → Code → PR → Merge シーケンス図**\n完全自律型開発フロー（19ステップ）
+
+actor "Developer\n(水蜘蛛)" as Dev
+participant "GitHub\nIssue" as GitHub
+participant "Master\nOrchestrator\n(Local)" as Master
+participant "Miyabi\nCLI" as CLI
+participant "tmux\nOrchestra" as tmux
+participant "Codex\nControl" as Codex
+participant "MUGEN\n(12 Codex)" as MUGEN
+participant "MAJIN\n(6 Codex)" as MAJIN
+participant "OpenAI\nAPI" as OpenAI
+participant "Miyabi\nAgents\n(21種)" as Agents
+participant "Framework\n(15+ crates)" as Framework
+participant "Knowledge\nBase" as Knowledge
+participant "GitHub\nPR" as PR
+participant "Lark\nDiscord\nTelegram" as Comms
+participant "VOICEVOX" as Voice
+participant "GitHub\nActions" as Actions
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 1: Issue作成・分析
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dev -> GitHub : **1. Issue作成**\nTitle, Body, Labels (57体系)
+activate GitHub
+GitHub -> GitHub : Label自動推論\n(IssueAgent)
+GitHub --> Dev : Issue #XXX created
+deactivate GitHub
+
+note right of GitHub
+  **57ラベル体系**
+  - feature/*
+  - bug/*
+  - refactor/*
+  - docs/*
+  - test/*
+  - workflow/*
+  - priority/p0-p4
+  - size/xs-xl
+  - status/*
+  - agent/*
+  - org/*
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 2: Webhook → Master Orchestrator
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GitHub -> Master : **2. Webhook通知**\nIssue event (opened)
+activate Master
+Master -> Master : Webhook signature検証
+Master --> GitHub : ACK
+deactivate Master
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 3: Agent選択・割当
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Master -> CLI : **3. Agent選択**\nmiyabi agent run
+activate CLI
+CLI -> GitHub : Issue詳細取得\n(Title, Body, Labels)
+GitHub --> CLI : Issue data
+CLI -> CLI : Agent割当ロジック\n- Label解析\n- 優先度判定\n- Agent選択
+CLI --> Master : Agent決定\n(例: CodeGenAgent)
+deactivate CLI
+
+note right of CLI
+  **Agent選択ロジック**
+  - feature/* → CodeGenAgent
+  - bug/* → ReviewAgent
+  - refactor/* → CodeGenAgent
+  - docs/* → DocumentationAgent
+  - test/* → TestAgent
+  - etc.
+end note
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 4: tmux Orchestration
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Master -> tmux : **4. tmux Orchestration**\nConductor pane指示
+activate tmux
+tmux -> tmux : Agent pane起動\n(カエデ/サクラ/ツバキ等)
+tmux -> tmux : Water Spider監視開始\n(動力の伝達管理)
+tmux --> Master : Orchestration ready
+deactivate tmux
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 5: Codex起動判断
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Master -> Codex : **5. Codex起動判断**\nTask complexity分析
+activate Codex
+Codex -> Codex : Heavy task?\nLight task?
+alt Heavy Task (Business Agent等)
+    Codex -> MUGEN : **6a. MUGEN実行指示**\nSSH接続
+    activate MUGEN
+else Light Task (Issue/PR処理等)
+    Codex -> MAJIN : **6b. MAJIN実行指示**\nSSH接続
+    activate MAJIN
+end
+deactivate Codex
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 6-7: Task配信・Codex並列実行
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Master -> MUGEN : Task配信 (tasks 1-12)\nscp/rsync
+Master -> MAJIN : Task配信 (tasks 13-18)\nscp/rsync
+
+MUGEN -> MUGEN : **7a. sub-orchestrator-mugen.sh**\ntmux: mugen-codex起動\n12 Windows (Codex 1-12)
+MAJIN -> MAJIN : **7b. sub-orchestrator-majin.sh**\ntmux: majin-codex起動\n6 Windows (Codex 13-18)
+
+par 12並列実行 (MUGEN)
+    MUGEN -> OpenAI : **8a. API Request**\n12並列 (Codex 1-12)\nBearer Token認証
+    activate OpenAI
+    OpenAI -> OpenAI : GPT-5/o3実行
+    OpenAI --> MUGEN : **9a. Code生成**\nResponse (JSON)
+    deactivate OpenAI
+else 6並列実行 (MAJIN)
+    MAJIN -> OpenAI : **8b. API Request**\n6並列 (Codex 13-18)\nBearer Token認証
+    activate OpenAI
+    OpenAI -> OpenAI : GPT-5/o3実行
+    OpenAI --> MAJIN : **9b. Code生成**\nResponse (JSON)
+    deactivate OpenAI
+end
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 10: Agent実行
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MUGEN -> Agents : **10a. Agent実行**\nBusiness/Dev Agents
+activate Agents
+MAJIN -> Agents : **10b. Agent実行**\nIssue/PR/Refresher Agents
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 11: Framework利用
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Agents -> Framework : **11. Framework利用**\n15+ Rust crates
+activate Framework
+Framework -> Framework : - miyabi-core\n- miyabi-llm\n- miyabi-github\n- miyabi-worktree\n- etc.
+deactivate Framework
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 12: Knowledge Base検索
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Agents -> Knowledge : **12. Knowledge検索**\n- Qdrant Vector DB\n- Context7\n- Potpie Integration
+activate Knowledge
+Knowledge -> Knowledge : Semantic search\nCode embeddings\nLibrary docs
+Knowledge --> Agents : Contextual info
+deactivate Knowledge
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 13-14: データ操作・PR作成
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Agents -> Agents : **13. データ操作**\nEntity-Relation Model\n(14 Entities, 39 Relations)
+Agents -> PR : **14. PR作成**\n- Git branch作成\n- Commit (Conventional Commits)\n- Push\n- gh pr create
+deactivate Agents
+
+activate PR
+PR -> PR : Draft PR作成\nDescription生成
+PR --> GitHub : PR #YYY created
+deactivate PR
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 15-16: 通知・音声ガイド
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PR -> Comms : **15. 通知送信**\nLark Webhook\nDiscord message\nTelegram bot
+activate Comms
+Comms -> Dev : Push notification\n"PR #YYY created"
+deactivate Comms
+
+PR -> Voice : **16. 音声ガイド生成**\nGit commits → VOICEVOX
+activate Voice
+Voice -> Voice : Text-to-Speech\nゆっくり音声
+Voice --> Dev : Audio guide (.wav)
+deactivate Voice
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Phase 17-18: CI/CD・Merge
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PR -> Actions : **17. CI/CD実行**\nGitHub Actions trigger
+activate Actions
+Actions -> MUGEN : Self-hosted runner\nMUGEN execution
+Actions -> MAJIN : Self-hosted runner\nMAJIN execution
+MUGEN -> MUGEN : cargo test --all\ncargo clippy\ncargo build
+MAJIN -> MAJIN : cargo test\ncargo fmt --check
+MUGEN --> Actions : Test results (✅)
+MAJIN --> Actions : Test results (✅)
+Actions --> PR : CI/CD success
+deactivate Actions
+
+Dev -> PR : Review & Approve
+PR -> GitHub : **18. Merge**\nSquash merge\nIssue #XXX close
+activate GitHub
+GitHub -> GitHub : Issue #XXX → Done
+GitHub --> Dev : **19. 完了通知**\nPush notification
+deactivate GitHub
+
+deactivate MUGEN
+deactivate MAJIN
+
+note over Dev, GitHub
+  **完了！**
+  Issue #XXX → Merged PR #YYY
+  Total time: 10-30 minutes
+  Fully autonomous execution
+end note
+
+@enduml

@@ -53,10 +53,7 @@ fn test_cli_agent_command_format() {
 fn test_cli_parallel_execution_format() {
     // Test command: miyabi parallel --issues 270,271,272 --concurrency 3
     let issues_str = "270,271,272";
-    let issue_numbers: Vec<u64> = issues_str
-        .split(',')
-        .map(|s| s.parse().unwrap())
-        .collect();
+    let issue_numbers: Vec<u64> = issues_str.split(',').map(|s| s.parse().unwrap()).collect();
 
     assert_eq!(issue_numbers.len(), 3);
     assert_eq!(issue_numbers[0], 270);

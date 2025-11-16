@@ -51,8 +51,8 @@ impl LoggerConfig {
 
 /// Initialize the global tracing subscriber
 pub fn init_logger(config: LoggerConfig) -> Result<()> {
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(&config.level));
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&config.level));
 
     if config.json_format {
         tracing_subscriber::registry()

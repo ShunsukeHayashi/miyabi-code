@@ -52,16 +52,13 @@ Generate comprehensive persona analysis as JSON with primary and secondary perso
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::PersonaAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::PersonaAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let persona_analysis: PersonaAnalysis = serde_json::from_str(&response).map_err(|e| {
@@ -205,10 +202,7 @@ impl BaseAgent for PersonaAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "PersonaAgent starting persona analysis generation for task: {}",
-            task.id
-        );
+        tracing::info!("PersonaAgent starting persona analysis generation for task: {}", task.id);
 
         // Generate persona analysis using LLM
         let persona_analysis = self.generate_persona_analysis(task).await?;
@@ -244,10 +238,7 @@ impl BaseAgent for PersonaAgent {
             "total_needs_count": persona_analysis.primary_persona.needs.len() + if let Some(ref secondary) = persona_analysis.secondary_persona { secondary.needs.len() } else { 0 }
         });
 
-        tracing::info!(
-            "PersonaAgent completed persona analysis generation: {}",
-            summary
-        );
+        tracing::info!("PersonaAgent completed persona analysis generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

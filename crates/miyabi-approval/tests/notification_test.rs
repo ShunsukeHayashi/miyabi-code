@@ -196,7 +196,7 @@ mod integration {
             Err(_) => {
                 eprintln!("Skipping Discord webhook test: DISCORD_WEBHOOK_URL not set");
                 return;
-            }
+            },
         };
 
         let notifier = DiscordNotifier::new(webhook_url);
@@ -213,11 +213,7 @@ mod integration {
         };
 
         let result = notifier.send_approval_request(&req).await;
-        assert!(
-            result.is_ok(),
-            "Failed to send Discord notification: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Failed to send Discord notification: {:?}", result.err());
     }
 
     #[tokio::test]
@@ -227,7 +223,7 @@ mod integration {
             Err(_) => {
                 eprintln!("Skipping Slack webhook test: SLACK_WEBHOOK_URL not set");
                 return;
-            }
+            },
         };
 
         let notifier = SlackNotifier::new(webhook_url);
@@ -241,10 +237,6 @@ mod integration {
         };
 
         let result = notifier.send_status_update(&status).await;
-        assert!(
-            result.is_ok(),
-            "Failed to send Slack notification: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Failed to send Slack notification: {:?}", result.err());
     }
 }

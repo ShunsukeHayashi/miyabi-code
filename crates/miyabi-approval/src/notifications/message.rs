@@ -54,7 +54,7 @@ impl WorkflowStatusUpdate {
                 } else {
                     format!("{}s", seconds)
                 }
-            }
+            },
             None => "N/A".to_string(),
         }
     }

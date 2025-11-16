@@ -30,18 +30,17 @@ impl RpcHandler {
         let client = Arc::clone(&self.discord_client);
 
         // discord.guild.get
-        self.io
-            .add_method("discord.guild.get", move |params: Params| {
-                let client = Arc::clone(&client);
-                async move {
-                    let request: GetGuildRequest = params.parse()?;
-                    client
-                        .get_guild(request)
-                        .await
-                        .map(|res| serde_json::to_value(res).unwrap())
-                        .map_err(|_e| Error::internal_error())
-                }
-            });
+        self.io.add_method("discord.guild.get", move |params: Params| {
+            let client = Arc::clone(&client);
+            async move {
+                let request: GetGuildRequest = params.parse()?;
+                client
+                    .get_guild(request)
+                    .await
+                    .map(|res| serde_json::to_value(res).unwrap())
+                    .map_err(|_e| Error::internal_error())
+            }
+        });
 
         // TODO: 他のguildメソッドを追加
     }
@@ -65,26 +64,25 @@ impl RpcHandler {
     fn register_health_method(&mut self) {
         let client = Arc::clone(&self.discord_client);
 
-        self.io
-            .add_method("discord.health", move |_params: Params| {
-                let client = Arc::clone(&client);
-                async move {
-                    let connected = client.health_check().await.unwrap_or(false);
+        self.io.add_method("discord.health", move |_params: Params| {
+            let client = Arc::clone(&client);
+            async move {
+                let connected = client.health_check().await.unwrap_or(false);
 
-                    let response = HealthResponse {
-                        status: if connected {
-                            "healthy".to_string()
-                        } else {
-                            "unhealthy".to_string()
-                        },
-                        discord_api_connected: connected,
-                        rate_limit_remaining: 50, // TODO: 実際のレート制限を取得
-                        version: env!("CARGO_PKG_VERSION").to_string(),
-                    };
+                let response = HealthResponse {
+                    status: if connected {
+                        "healthy".to_string()
+                    } else {
+                        "unhealthy".to_string()
+                    },
+                    discord_api_connected: connected,
+                    rate_limit_remaining: 50, // TODO: 実際のレート制限を取得
+                    version: env!("CARGO_PKG_VERSION").to_string(),
+                };
 
-                    Ok(serde_json::to_value(response).unwrap())
-                }
-            });
+                Ok(serde_json::to_value(response).unwrap())
+            }
+        });
     }
 
     /// IoHandlerを取得

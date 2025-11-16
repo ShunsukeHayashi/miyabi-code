@@ -8,15 +8,15 @@
 //! - Command distribution across panes
 //! - Pane status monitoring
 
-mod session;
 mod agent;
-mod pane;
 mod error;
+mod pane;
+mod session;
 
-pub use session::TmuxSession;
 pub use agent::{Agent, AgentConfig};
+pub use error::{Result, TmuxError};
 pub use pane::{Pane, PaneStatus};
-pub use error::{TmuxError, Result};
+pub use session::TmuxSession;
 
 #[cfg(test)]
 mod tests {

@@ -25,9 +25,7 @@ async fn test_websocket_event_flow() {
     };
 
     // Create application
-    let app = create_app(config)
-        .await
-        .expect("Failed to create application");
+    let app = create_app(config).await.expect("Failed to create application");
 
     // Start server in background
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
@@ -66,10 +64,10 @@ async fn test_websocket_event_flow() {
             #[allow(unused_imports)]
             use futures::SinkExt;
             let _ = ws_stream.close(None).await;
-        }
+        },
         Err(e) => {
             panic!("❌ WebSocket connection failed: {}", e);
-        }
+        },
     }
 }
 
@@ -104,9 +102,7 @@ async fn test_websocket_authentication() {
     };
 
     // Create application
-    let app = create_app(config.clone())
-        .await
-        .expect("Failed to create application");
+    let app = create_app(config.clone()).await.expect("Failed to create application");
 
     // Start server
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
@@ -145,10 +141,10 @@ async fn test_websocket_authentication() {
             #[allow(unused_imports)]
             use futures::SinkExt;
             let _ = ws_stream.close(None).await;
-        }
+        },
         Err(e) => {
             panic!("❌ WebSocket authentication failed: {}", e);
-        }
+        },
     }
 
     // Test with invalid token
@@ -157,10 +153,10 @@ async fn test_websocket_authentication() {
     match tokio_tungstenite::connect_async(&invalid_ws_url).await {
         Ok(_) => {
             panic!("❌ WebSocket should have rejected invalid token");
-        }
+        },
         Err(_) => {
             println!("✅ Invalid token correctly rejected");
-        }
+        },
     }
 }
 

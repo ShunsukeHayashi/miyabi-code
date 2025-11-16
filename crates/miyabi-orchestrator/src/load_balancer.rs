@@ -81,7 +81,7 @@ impl LoadBalancer {
                     std::cmp::Ordering::Equal => {
                         // If equal utilization, prefer machine with higher total capacity
                         a.capacity.cmp(&b.capacity)
-                    }
+                    },
                     other => other,
                 }
             })
@@ -125,11 +125,7 @@ impl LoadBalancer {
     /// Get all available machines (with capacity)
     pub async fn get_available_machines(&self) -> Vec<Machine> {
         let machines = self.machines.read().await;
-        machines
-            .iter()
-            .filter(|m| m.has_capacity())
-            .cloned()
-            .collect()
+        machines.iter().filter(|m| m.has_capacity()).cloned().collect()
     }
 
     /// Get all machines (regardless of capacity)
@@ -146,11 +142,7 @@ impl LoadBalancer {
         let mut machines = self.machines.write().await;
 
         for machine in machines.iter_mut() {
-            let is_connected = self
-                .executor
-                .test_connectivity(machine)
-                .await
-                .unwrap_or(false);
+            let is_connected = self.executor.test_connectivity(machine).await.unwrap_or(false);
 
             if is_connected {
                 if machine.status == MachineStatus::Offline {
@@ -302,10 +294,7 @@ mod tests {
         // Should fail when no capacity
         let result = lb.assign_task().await;
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            SchedulerError::InvalidConfig(_)
-        ));
+        assert!(matches!(result.unwrap_err(), SchedulerError::InvalidConfig(_)));
     }
 
     #[tokio::test]

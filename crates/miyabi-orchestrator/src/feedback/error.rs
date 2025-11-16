@@ -125,9 +125,6 @@ mod tests {
             iteration: 5,
             max_retries: 3,
         };
-        assert_eq!(
-            error.to_string(),
-            "Maximum retries (3) exceeded for iteration 5"
-        );
+        assert_eq!(error.to_string(), "Maximum retries (3) exceeded for iteration 5");
     }
 }

@@ -192,7 +192,7 @@ fn read_timeline_file(path: &str) -> Vec<TimelineEvent> {
         Err(e) => {
             tracing::warn!("Failed to open timeline file {}: {}", path, e);
             return Vec::new();
-        }
+        },
     };
 
     let reader = BufReader::new(file);
@@ -212,12 +212,12 @@ fn read_timeline_file(path: &str) -> Vec<TimelineEvent> {
                             e,
                             line_content
                         );
-                    }
+                    },
                 }
-            }
+            },
             Err(e) => {
                 tracing::warn!("Failed to read line from timeline file: {}", e);
-            }
+            },
         }
     }
 
@@ -238,7 +238,7 @@ fn calculate_summary(events: &[TimelineEvent]) -> TimelineSummary {
                 "RUN" | "RUNNING" => run_count += 1,
                 "IDLE" => idle_count += 1,
                 "DEAD" => dead_count += 1,
-                _ => {}
+                _ => {},
             }
         }
     }
@@ -265,11 +265,7 @@ async fn append_timeline_payload(payload: &TimelinePushRequest) -> Result<PathBu
         let json = serde_json::to_string(payload)
             .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
 
-        let mut file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&path)
-            .await?;
+        let mut file = OpenOptions::new().create(true).append(true).open(&path).await?;
 
         file.write_all(json.as_bytes()).await?;
         file.write_all(b"\n").await?;
@@ -295,14 +291,14 @@ pub async fn post_timeline_event(
         match append_timeline_payload(&payload).await {
             Ok(path) => {
                 stored_path = path.to_str().map(|value| value.to_string());
-            }
+            },
             Err(err) => {
                 tracing::error!("Failed to persist timeline payload: {}", err);
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Failed to persist timeline payload".to_string(),
                 ));
-            }
+            },
         }
     }
 
@@ -384,10 +380,7 @@ mod tests {
     async fn test_post_timeline_event_skip_storage_when_persisted() {
         let temp_path =
             env::temp_dir().join(format!("timeline-test-{}-skip.jsonl", Uuid::new_v4()));
-        env::set_var(
-            "MISSION_CONTROL_TIMELINE_PATH",
-            temp_path.to_str().expect("valid temp path"),
-        );
+        env::set_var("MISSION_CONTROL_TIMELINE_PATH", temp_path.to_str().expect("valid temp path"));
 
         let payload = TimelinePushRequest {
             generated_at: "2025-11-05T12:00:00Z".into(),
@@ -415,9 +408,8 @@ mod tests {
             version: Some("test".into()),
         };
 
-        let Json(response) = post_timeline_event(Json(payload.clone()))
-            .await
-            .expect("timeline ingest");
+        let Json(response) =
+            post_timeline_event(Json(payload.clone())).await.expect("timeline ingest");
         assert_eq!(response.status, "accepted");
         assert!(!response.stored);
         assert!(response.path.is_none());
@@ -430,10 +422,7 @@ mod tests {
     async fn test_post_timeline_event_persists_when_required() {
         let temp_path =
             env::temp_dir().join(format!("timeline-test-{}-store.jsonl", Uuid::new_v4()));
-        env::set_var(
-            "MISSION_CONTROL_TIMELINE_PATH",
-            temp_path.to_str().expect("valid temp path"),
-        );
+        env::set_var("MISSION_CONTROL_TIMELINE_PATH", temp_path.to_str().expect("valid temp path"));
 
         // ensure file removed if existed
         let _ = fs::remove_file(&temp_path);
@@ -482,21 +471,16 @@ mod tests {
             version: None,
         };
 
-        let Json(response) = post_timeline_event(Json(payload.clone()))
-            .await
-            .expect("timeline ingest");
+        let Json(response) =
+            post_timeline_event(Json(payload.clone())).await.expect("timeline ingest");
         assert_eq!(response.status, "accepted");
         assert!(response.stored);
 
         let stored_path = PathBuf::from(response.path.expect("path should be returned"));
 
-        let mut file = tokio::fs::File::open(&stored_path)
-            .await
-            .expect("timeline file");
+        let mut file = tokio::fs::File::open(&stored_path).await.expect("timeline file");
         let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .await
-            .expect("read timeline");
+        file.read_to_string(&mut contents).await.expect("read timeline");
         assert!(contents.contains("miyabi-refactor"));
 
         let _ = fs::remove_file(&stored_path);

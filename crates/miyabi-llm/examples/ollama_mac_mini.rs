@@ -59,11 +59,7 @@ async fn main() -> anyhow::Result<()> {
         let response = provider.generate(&request).await?;
         let duration = start_time.elapsed();
 
-        println!(
-            "⏱️  {} completed in {:.2}s",
-            description,
-            duration.as_secs_f64()
-        );
+        println!("⏱️  {} completed in {:.2}s", description, duration.as_secs_f64());
         println!("📊 Tokens used: {}", response.tokens_used);
         println!(
             "🤖 Response preview: {}",

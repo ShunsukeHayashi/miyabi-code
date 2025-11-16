@@ -181,10 +181,7 @@ Timestamp: {timestamp}
         let context_path = self.work_dir.join("EXECUTION_CONTEXT.md");
 
         fs::write(&context_path, &context_content).map_err(|e| {
-            format!(
-                "Failed to write execution context to {:?}: {}",
-                context_path, e
-            )
+            format!("Failed to write execution context to {:?}: {}", context_path, e)
         })?;
 
         Ok(context_path)

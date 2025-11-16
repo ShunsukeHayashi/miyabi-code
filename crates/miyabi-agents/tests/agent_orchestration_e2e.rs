@@ -74,19 +74,14 @@ async fn test_phase7_issue_to_coordinator_flow() {
         "Implement OAuth2 authentication for users. This is a high priority feature that will affect all users. Depends on #2999.",
     );
 
-    let analysis = issue_agent
-        .analyze_issue(&issue)
-        .expect("Failed to analyze issue");
+    let analysis = issue_agent.analyze_issue(&issue).expect("Failed to analyze issue");
 
     println!("  Issue Number: {}", analysis.issue_number);
     println!("  Issue Type: {:?}", analysis.issue_type);
     println!("  Severity: {:?}", analysis.severity);
     println!("  Impact: {:?}", analysis.impact);
     println!("  Assigned Agent: {:?}", analysis.assigned_agent);
-    println!(
-        "  Estimated Duration: {} minutes",
-        analysis.estimated_duration
-    );
+    println!("  Estimated Duration: {} minutes", analysis.estimated_duration);
     println!("  Dependencies: {:?}", analysis.dependencies);
     println!("  Labels: {:?}", analysis.labels);
 
@@ -97,16 +92,11 @@ async fn test_phase7_issue_to_coordinator_flow() {
     println!("\n📝 Step 2: CoordinatorAgent - Task Decomposition");
     let coordinator = CoordinatorAgent::new(config.clone());
 
-    let decomposition = coordinator
-        .decompose_issue(&issue)
-        .await
-        .expect("Failed to decompose issue");
+    let decomposition =
+        coordinator.decompose_issue(&issue).await.expect("Failed to decompose issue");
 
     println!("  Tasks Created: {}", decomposition.tasks.len());
-    println!(
-        "  Total Duration: {} minutes",
-        decomposition.estimated_total_duration
-    );
+    println!("  Total Duration: {} minutes", decomposition.estimated_total_duration);
     println!("  Has Cycles: {}", decomposition.has_cycles);
 
     for (i, task) in decomposition.tasks.iter().enumerate() {
@@ -191,18 +181,15 @@ async fn test_phase7_codegen_review_flow() {
             println!("  Quality Score: {}", result.quality_report.score);
             println!("  Approved: {}", result.approved);
             println!("  Issues Found: {}", result.quality_report.issues.len());
-            println!(
-                "  Recommendations: {}",
-                result.quality_report.recommendations.len()
-            );
+            println!("  Recommendations: {}", result.quality_report.recommendations.len());
 
             assert!(result.quality_report.score <= 100);
             println!("  ✅ Review completed successfully");
-        }
+        },
         Err(e) => {
             // Review might fail in non-Rust environment, which is acceptable for E2E
             println!("  ⚠️  Review skipped (not in Rust project): {}", e);
-        }
+        },
     }
 
     println!("\n🎉 Phase 7 Test 2 Complete: CodeGen → Review Flow PASSED");
@@ -290,9 +277,7 @@ async fn test_phase7_full_orchestration() {
     // Phase 1: IssueAgent Analysis
     println!("🔍 Phase 1: IssueAgent Analysis");
     let issue_agent = IssueAgent::new(config.clone());
-    let analysis = issue_agent
-        .analyze_issue(&issue)
-        .expect("Failed to analyze issue");
+    let analysis = issue_agent.analyze_issue(&issue).expect("Failed to analyze issue");
 
     println!("  ✅ Type: {:?}", analysis.issue_type);
     println!("  ✅ Severity: {:?}", analysis.severity);
@@ -305,16 +290,10 @@ async fn test_phase7_full_orchestration() {
     // Phase 2: CoordinatorAgent Decomposition
     println!("🎯 Phase 2: CoordinatorAgent Decomposition");
     let coordinator = CoordinatorAgent::new(config.clone());
-    let decomposition = coordinator
-        .decompose_issue(&issue)
-        .await
-        .expect("Failed to decompose");
+    let decomposition = coordinator.decompose_issue(&issue).await.expect("Failed to decompose");
 
     println!("  ✅ Tasks: {}", decomposition.tasks.len());
-    println!(
-        "  ✅ Duration: {} min",
-        decomposition.estimated_total_duration
-    );
+    println!("  ✅ Duration: {} min", decomposition.estimated_total_duration);
     println!("  ✅ Has Cycles: {}", decomposition.has_cycles);
     println!();
 
@@ -323,10 +302,7 @@ async fn test_phase7_full_orchestration() {
     let plans_md = coordinator.generate_plans_md(&decomposition);
     println!("  ✅ Length: {} bytes", plans_md.len());
     println!("  ✅ Contains Summary: {}", plans_md.contains("## Summary"));
-    println!(
-        "  ✅ Contains Tasks: {}",
-        plans_md.contains("## Task Breakdown")
-    );
+    println!("  ✅ Contains Tasks: {}", plans_md.contains("## Task Breakdown"));
     println!("  ✅ Contains Graph: {}", plans_md.contains("```mermaid"));
     println!();
 
@@ -368,14 +344,8 @@ async fn test_phase7_full_orchestration() {
 
     // Summary
     println!("📊 Orchestration Summary:");
-    println!(
-        "  ✅ Issue analyzed: {} labels applied",
-        analysis.labels.len()
-    );
-    println!(
-        "  ✅ Tasks decomposed: {} tasks created",
-        decomposition.tasks.len()
-    );
+    println!("  ✅ Issue analyzed: {} labels applied", analysis.labels.len());
+    println!("  ✅ Tasks decomposed: {} tasks created", decomposition.tasks.len());
     println!("  ✅ Plans generated: {} bytes", plans_md.len());
     println!("  ✅ Agents ready: 5 agents initialized");
     println!();

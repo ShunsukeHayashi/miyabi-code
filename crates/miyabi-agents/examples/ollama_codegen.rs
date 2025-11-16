@@ -140,11 +140,7 @@ async fn main() -> anyhow::Result<()> {
         let result = agent.execute(&task).await?;
         let duration = start_time.elapsed();
 
-        println!(
-            "⏱️  {} task completed in {:.2}s",
-            task_type,
-            duration.as_secs_f64()
-        );
+        println!("⏱️  {} task completed in {:.2}s", task_type, duration.as_secs_f64());
 
         if let Some(ref metrics) = result.metrics {
             println!("📈 {} metrics:", task_type);

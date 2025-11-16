@@ -371,13 +371,13 @@ impl AgentConfig {
                 return Err("Repository name is required when owner is specified. \
                     Hint: Set both repo_owner and repo_name, or omit both"
                     .to_string());
-            }
+            },
             (None, Some(_)) => {
                 return Err("Repository owner is required when name is specified. \
                     Hint: Set both repo_owner and repo_name, or omit both"
                     .to_string());
-            }
-            _ => {}
+            },
+            _ => {},
         }
 
         // Validate log_directory
@@ -396,11 +396,9 @@ impl AgentConfig {
 
         // Validate worktree_base_path if use_worktree is enabled
         if self.use_worktree && self.worktree_base_path.is_none() {
-            return Err(
-                "Worktree base path is required when use_worktree is enabled. \
+            return Err("Worktree base path is required when use_worktree is enabled. \
                 Hint: Set worktree_base_path to '.worktrees' or absolute path"
-                    .to_string(),
-            );
+                .to_string());
         }
 
         // Validate URL formats if provided

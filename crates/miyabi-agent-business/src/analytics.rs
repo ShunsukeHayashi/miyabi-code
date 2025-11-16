@@ -57,16 +57,13 @@ Generate detailed analytics strategy as JSON with KPI framework, dashboard desig
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::AnalyticsAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::AnalyticsAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let analytics_strategy: AnalyticsStrategy =
@@ -269,10 +266,7 @@ impl BaseAgent for AnalyticsAgent {
             "total_models_count": total_models
         });
 
-        tracing::info!(
-            "AnalyticsAgent completed analytics strategy generation: {}",
-            summary
-        );
+        tracing::info!("AnalyticsAgent completed analytics strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -468,9 +462,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_analytics_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_analytics_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -533,9 +525,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_analytics_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_analytics_strategy(&invalid_strategy).is_err());
     }
 
     #[test]
@@ -599,9 +589,7 @@ mod tests {
             },
         };
 
-        assert!(agent
-            .validate_analytics_strategy(&invalid_strategy)
-            .is_err());
+        assert!(agent.validate_analytics_strategy(&invalid_strategy).is_err());
     }
 
     #[test]

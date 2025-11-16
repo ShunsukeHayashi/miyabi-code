@@ -1,0 +1,176 @@
+@startuml AWS Multi-Account Architecture
+!theme aws-orange
+
+title Miyabi AWS Platform - Multi-Account Deployment
+
+skinparam cloud {
+    BackgroundColor<<management>> LightCoral
+    BackgroundColor<<security>> LightSalmon
+    BackgroundColor<<production>> LightGreen
+    BackgroundColor<<staging>> LightYellow
+    BackgroundColor<<development>> LightBlue
+}
+
+package "AWS Organization" {
+    cloud "Management Account\n(Root)" <<management>> {
+        component "AWS Organizations" as org
+        component "CloudTrail\n(Org Trail)" as ct_org
+        component "AWS SSO\n(IAM Identity Center)" as sso
+        component "Billing Dashboard" as billing
+    }
+
+    cloud "Security Account" <<security>> {
+        component "GuardDuty\nMaster" as gd_master
+        component "Security Hub\nAggregator" as sh_agg
+        component "CloudTrail Logs\n(Centralized)" as ct_logs
+        component "AWS Config\nAggregator" as config_agg
+        component "Audit Logs\n(S3)" as audit_s3
+    }
+
+    cloud "Production Account" <<production>> {
+        package "us-east-1" {
+            component "VPC\n10.0.0.0/16" as vpc_prod_us
+            component "ECS Fargate\nCluster" as ecs_prod_us
+            component "DynamoDB\nGlobal Table" as dynamo_prod_us
+            component "RDS Aurora\nGlobal DB" as rds_prod_us
+        }
+
+        package "ap-northeast-1" {
+            component "VPC\n10.1.0.0/16" as vpc_prod_ap
+            component "ECS Fargate\nCluster" as ecs_prod_ap
+            component "DynamoDB\nReplica" as dynamo_prod_ap
+            component "RDS Aurora\nReplica" as rds_prod_ap
+        }
+
+        component "Route 53\nGeolocation Routing" as r53
+        component "CloudFront\nDistribution" as cf_prod
+        component "S3 Website\nBucket" as s3_prod
+    }
+
+    cloud "Staging Account" <<staging>> {
+        package "us-east-1" {
+            component "VPC\n10.10.0.0/16" as vpc_stg
+            component "ECS Fargate\nCluster (1-10 tasks)" as ecs_stg
+            component "DynamoDB" as dynamo_stg
+            component "RDS Aurora\nServerless v2" as rds_stg
+            component "CloudFront\nDistribution" as cf_stg
+        }
+    }
+
+    cloud "Development Account" <<development>> {
+        package "us-east-1" {
+            component "VPC\n10.20.0.0/16" as vpc_dev
+            component "ECS Fargate\nCluster (1-3 tasks)" as ecs_dev
+            component "DynamoDB\nOn-Demand" as dynamo_dev
+            component "LocalStack\n(Testing)" as localstack
+        }
+    }
+}
+
+' External Users
+actor "Global Users" as users
+actor "Admin Users" as admin
+
+' Connections - Management
+org --> gd_master : "GuardDuty\nDelegation"
+org --> sh_agg : "Security Hub\nDelegation"
+org --> config_agg : "Config\nDelegation"
+
+ct_org --> ct_logs : "Send Logs"
+sso --> admin : "SSO Login"
+
+' Connections - Security Monitoring
+gd_master --> ecs_prod_us : "Monitor"
+gd_master --> ecs_prod_ap : "Monitor"
+gd_master --> ecs_stg : "Monitor"
+
+sh_agg --> ecs_prod_us : "Findings"
+sh_agg --> ecs_prod_ap : "Findings"
+
+' Connections - Production Multi-Region
+dynamo_prod_us <--> dynamo_prod_ap : "Global Table\nReplication"
+rds_prod_us --> rds_prod_ap : "Global DB\nReplication"
+
+r53 --> vpc_prod_us : "North America\nTraffic"
+r53 --> vpc_prod_ap : "Asia Pacific\nTraffic"
+
+users --> cf_prod
+cf_prod --> s3_prod : "Static Assets"
+cf_prod --> ecs_prod_us : "API Requests\n(Primary)"
+cf_prod --> ecs_prod_ap : "API Requests\n(Failover)"
+
+' Connections - Staging
+admin --> cf_stg
+cf_stg --> ecs_stg
+
+' Connections - Cross-Account Roles
+ecs_prod_us ..> audit_s3 : "AssumeRole\n(Audit Logs)"
+ecs_stg ..> audit_s3 : "AssumeRole\n(Audit Logs)"
+
+' CI/CD Pipeline
+cloud "GitHub Actions" as github {
+    component "Build & Test" as build
+    component "Docker Build" as docker
+    component "CDK Deploy" as cdk
+}
+
+github --> ecs_dev : "Deploy to Dev"
+github --> ecs_stg : "Deploy to Staging"
+github --> ecs_prod_us : "Deploy to Prod\n(Approval Required)"
+github --> ecs_prod_ap : "Deploy to Prod\n(Approval Required)"
+
+note right of vpc_prod_us
+  **Production US-EAST-1**
+  - Primary region
+  - 100% traffic (normal)
+  - ECS: 10-100 tasks
+  - Multi-AZ deployment
+  - Aurora: Writer instance
+end note
+
+note right of vpc_prod_ap
+  **Production AP-NORTHEAST-1**
+  - Secondary region
+  - 0% traffic (normal)
+  - ECS: 5-50 tasks
+  - Multi-AZ deployment
+  - Aurora: Reader instance
+  - Failover target
+end note
+
+note right of vpc_stg
+  **Staging Environment**
+  - Pre-production testing
+  - Integration tests
+  - Performance testing
+  - Lower resource allocation
+end note
+
+note right of vpc_dev
+  **Development Environment**
+  - Developer sandboxes
+  - LocalStack for testing
+  - Ephemeral resources
+  - Minimal cost
+end note
+
+note bottom of org
+  **Account Structure**
+
+  Management (Root):
+    Account ID: 123456789012
+
+  Security:
+    Account ID: 234567890123
+
+  Production:
+    Account ID: 112530848482
+
+  Staging:
+    Account ID: 456789012345
+
+  Development:
+    Account ID: 567890123456
+end note
+
+@enduml

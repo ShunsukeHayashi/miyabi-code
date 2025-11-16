@@ -8,11 +8,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum TransitionType {
     #[default]
-    FadeIn,      // フェードイン
-    FadeOut,     // フェードアウト
-    Cut,         // カット（瞬間切り替え）
-    Dissolve,    // ディゾルブ（クロスフェード）
-    Wipe,        // ワイプ
+    FadeIn, // フェードイン
+    FadeOut,  // フェードアウト
+    Cut,      // カット（瞬間切り替え）
+    Dissolve, // ディゾルブ（クロスフェード）
+    Wipe,     // ワイプ
 }
 
 impl TransitionType {
@@ -28,7 +28,6 @@ impl TransitionType {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -36,7 +35,10 @@ mod tests {
     #[test]
     fn test_transition_hints() {
         assert_eq!(TransitionType::Cut.to_prompt_hint(), "Hard cut transition (instant change)");
-        assert_eq!(TransitionType::FadeIn.to_prompt_hint(), "Smooth fade-in transition from previous frame");
+        assert_eq!(
+            TransitionType::FadeIn.to_prompt_hint(),
+            "Smooth fade-in transition from previous frame"
+        );
     }
 
     #[test]

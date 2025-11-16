@@ -57,23 +57,23 @@ impl LogCollector {
                     }
                     current_section.clear();
                     current_heading.clear();
-                }
+                },
                 Event::Text(text) => {
                     if current_heading.is_empty() {
                         current_heading = text.to_string();
                     }
                     current_section.push_str(&text);
-                }
+                },
                 Event::Start(Tag::CodeBlock(_)) => {
                     _in_code_block = true;
-                }
+                },
                 Event::End(TagEnd::CodeBlock) => {
                     _in_code_block = false;
-                }
+                },
                 Event::Code(code) | Event::Html(code) => {
                     current_section.push_str(&code);
-                }
-                _ => {}
+                },
+                _ => {},
             }
         }
 
@@ -241,11 +241,7 @@ impl KnowledgeCollector for LogCollector {
         info!("Collecting logs from: {:?}", path);
         let mut all_entries = Vec::new();
 
-        for entry in WalkDir::new(path)
-            .follow_links(true)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in WalkDir::new(path).follow_links(true).into_iter().filter_map(|e| e.ok()) {
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
                 debug!("Processing file: {:?}", path);
@@ -254,14 +250,14 @@ impl KnowledgeCollector for LogCollector {
                     Ok(content) => match self.parse_markdown(&content, path) {
                         Ok(mut entries) => {
                             all_entries.append(&mut entries);
-                        }
+                        },
                         Err(e) => {
                             warn!("Failed to parse markdown from {:?}: {}", path, e);
-                        }
+                        },
                     },
                     Err(e) => {
                         warn!("Failed to read file {:?}: {}", path, e);
-                    }
+                    },
                 }
             }
         }
@@ -279,14 +275,7 @@ impl KnowledgeCollector for LogCollector {
         let all_entries = self.collect(&self.config.collection.log_dir).await?;
         Ok(all_entries
             .into_iter()
-            .filter(|entry| {
-                entry
-                    .metadata
-                    .agent
-                    .as_ref()
-                    .map(|a| a == agent)
-                    .unwrap_or(false)
-            })
+            .filter(|entry| entry.metadata.agent.as_ref().map(|a| a == agent).unwrap_or(false))
             .collect())
     }
 }

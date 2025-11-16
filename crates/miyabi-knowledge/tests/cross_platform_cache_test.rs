@@ -38,10 +38,7 @@ fn test_cache_directory_detection() {
     assert!(cache_dir.is_some(), "Cache directory should be available");
 
     let cache_dir = cache_dir.unwrap();
-    assert!(
-        !cache_dir.as_os_str().is_empty(),
-        "Cache directory should not be empty"
-    );
+    assert!(!cache_dir.as_os_str().is_empty(), "Cache directory should not be empty");
 }
 
 #[test]

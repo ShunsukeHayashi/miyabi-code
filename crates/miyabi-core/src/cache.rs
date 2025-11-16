@@ -221,9 +221,7 @@ mod tests {
         let cache = TTLCache::new(Duration::from_millis(100));
 
         // Insert with custom TTL
-        cache
-            .insert_with_ttl("key1", "value1", Duration::from_millis(200))
-            .await;
+        cache.insert_with_ttl("key1", "value1", Duration::from_millis(200)).await;
         assert_eq!(cache.get(&"key1").await, Some("value1"));
 
         // Wait for default TTL but not custom TTL

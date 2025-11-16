@@ -1,8 +1,8 @@
 //! Error types for Potpie integration
 
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// Result type for Potpie operations
 pub type Result<T> = std::result::Result<T, PotpieError>;

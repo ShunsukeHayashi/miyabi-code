@@ -221,10 +221,7 @@ fn parse_vulnerability(json: &serde_json::Value) -> Option<Vulnerability> {
     let id = advisory.get("id")?.as_str()?.to_string();
     let package = json.get("package")?.as_str()?.to_string();
     let title = advisory.get("title")?.as_str()?.to_string();
-    let description = advisory
-        .get("description")
-        .and_then(|d| d.as_str())
-        .map(String::from);
+    let description = advisory.get("description").and_then(|d| d.as_str()).map(String::from);
 
     let severity_str = advisory
         .get("cvss")
@@ -251,12 +248,7 @@ fn parse_vulnerability(json: &serde_json::Value) -> Option<Vulnerability> {
         .get("versions")
         .and_then(|v| v.get("patched"))
         .and_then(|p| p.as_array())
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| v.as_str())
-                .map(String::from)
-                .collect()
-        })
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(String::from).collect())
         .unwrap_or_default();
 
     Some(Vulnerability {
@@ -296,10 +288,7 @@ fn parse_warning(json: &serde_json::Value) -> Option<Vulnerability> {
 /// - Subtract impact for each vulnerability based on severity
 /// - Minimum score is 0
 fn calculate_security_score(vulnerabilities: &[Vulnerability]) -> u8 {
-    let total_impact: u32 = vulnerabilities
-        .iter()
-        .map(|v| v.severity.score_impact() as u32)
-        .sum();
+    let total_impact: u32 = vulnerabilities.iter().map(|v| v.severity.score_impact() as u32).sum();
 
     100u8.saturating_sub(total_impact as u8)
 }
@@ -323,10 +312,7 @@ mod tests {
             VulnerabilitySeverity::from_audit_severity("critical"),
             VulnerabilitySeverity::Critical
         );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("high"),
-            VulnerabilitySeverity::High
-        );
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("high"), VulnerabilitySeverity::High);
         assert_eq!(
             VulnerabilitySeverity::from_audit_severity("medium"),
             VulnerabilitySeverity::Medium
@@ -335,10 +321,7 @@ mod tests {
             VulnerabilitySeverity::from_audit_severity("moderate"),
             VulnerabilitySeverity::Medium
         );
-        assert_eq!(
-            VulnerabilitySeverity::from_audit_severity("low"),
-            VulnerabilitySeverity::Low
-        );
+        assert_eq!(VulnerabilitySeverity::from_audit_severity("low"), VulnerabilitySeverity::Low);
         assert_eq!(
             VulnerabilitySeverity::from_audit_severity("unknown"),
             VulnerabilitySeverity::None

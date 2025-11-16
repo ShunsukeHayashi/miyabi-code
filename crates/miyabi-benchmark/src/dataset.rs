@@ -99,12 +99,8 @@ impl SWEBenchDataset {
 
     /// Filters instances by repository
     pub fn filter_by_repo(&self, repo: &str) -> Self {
-        let filtered: Vec<SWEBenchInstance> = self
-            .instances
-            .iter()
-            .filter(|inst| inst.repo == repo)
-            .cloned()
-            .collect();
+        let filtered: Vec<SWEBenchInstance> =
+            self.instances.iter().filter(|inst| inst.repo == repo).cloned().collect();
 
         Self {
             instances: filtered,

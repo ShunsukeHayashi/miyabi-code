@@ -1,0 +1,109 @@
+{
+  "name": "Git Ops Validator",
+  "version": "1.0.0",
+  "description": "Validates Git operations against manifest.md rules (Conventional Commits, branch naming, Issue references, safety protocols)",
+  "enabled": true,
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "tool": "Bash",
+      "script": ".claude/hooks/git-ops-validator.sh",
+      "condition": "command.includes('git ')",
+      "description": "Validate git commands before execution"
+    }
+  ],
+  "configuration": {
+    "manifestFile": "manifest.md",
+    "logDirectory": ".ai/logs/",
+    "strictMode": false,
+    "autoFix": false
+  },
+  "validations": [
+    {
+      "name": "Conventional Commits",
+      "pattern": "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\\([a-z]+\\))?:\\s.+",
+      "severity": "error",
+      "message": "Commit message must follow Conventional Commits format"
+    },
+    {
+      "name": "Mandatory Footer",
+      "pattern": "🤖 Generated with \\[Claude Code\\]",
+      "severity": "error",
+      "message": "Commit message must include mandatory footer"
+    },
+    {
+      "name": "Issue Reference",
+      "pattern": "(Closes|Fixes|Addresses|Refs?)\\s+#\\d+",
+      "severity": "warning",
+      "message": "Commit should reference an Issue"
+    },
+    {
+      "name": "Branch Naming",
+      "pattern": "^(feature|fix|docs|refactor|test|chore)/\\d+-[a-z0-9-]+$",
+      "severity": "warning",
+      "message": "Branch name should follow convention: <type>/<issue-number>-<description>"
+    }
+  ],
+  "safetyChecks": [
+    {
+      "name": "No Force Push to Main",
+      "check": "!(command.includes('push') && command.includes('--force') && (branch === 'main' || branch === 'master'))",
+      "severity": "error",
+      "message": "Force push to main/master is forbidden"
+    },
+    {
+      "name": "Prefer --force-with-lease",
+      "check": "!(command.includes('--force') && !command.includes('--force-with-lease'))",
+      "severity": "warning",
+      "message": "Use --force-with-lease instead of --force"
+    },
+    {
+      "name": "No Git Config Modification",
+      "check": "!command.includes('git config')",
+      "severity": "warning",
+      "message": "Git config modification requires approval"
+    },
+    {
+      "name": "No Hard Reset",
+      "check": "!(command.includes('reset') && command.includes('--hard'))",
+      "severity": "warning",
+      "message": "Hard reset is destructive, consider safer alternatives"
+    }
+  ],
+  "exemptions": [
+    {
+      "pattern": "git status",
+      "reason": "Read-only operation"
+    },
+    {
+      "pattern": "git log",
+      "reason": "Read-only operation"
+    },
+    {
+      "pattern": "git diff",
+      "reason": "Read-only operation"
+    },
+    {
+      "pattern": "git show",
+      "reason": "Read-only operation"
+    },
+    {
+      "pattern": "git branch",
+      "reason": "List operation (read-only)"
+    }
+  ],
+  "references": {
+    "manifest": "manifest.md",
+    "documentation": [
+      ".github/AGENTS.md",
+      ".github/WORKFLOW_RULES.md",
+      ".claude/Skills/git-workflow/skill.md"
+    ]
+  },
+  "metadata": {
+    "author": "Miyabi Team",
+    "createdAt": "2025-11-09",
+    "lastUpdated": "2025-11-09",
+    "tags": ["git", "ops", "validation", "conventional-commits", "safety"]
+  }
+}

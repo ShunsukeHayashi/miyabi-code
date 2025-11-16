@@ -78,7 +78,7 @@ impl AutoIndexHook {
                         entry_count, log_file, attempt, config.auto_index.retry_count
                     );
                     return;
-                }
+                },
                 Err(e) => {
                     if attempt < config.auto_index.retry_count {
                         warn!(
@@ -92,7 +92,7 @@ impl AutoIndexHook {
                             config.auto_index.retry_count, e
                         );
                     }
-                }
+                },
             }
         }
     }
@@ -109,17 +109,11 @@ impl AutoIndexHook {
 
         // Check if file is already indexed
         if cache.is_indexed(log_file, &file_hash) {
-            debug!(
-                "Skipping already indexed file: {:?} (hash: {})",
-                log_file, file_hash
-            );
+            debug!("Skipping already indexed file: {:?} (hash: {})", log_file, file_hash);
             return Ok(0);
         }
 
-        info!(
-            "Indexing changed file: {:?} (hash: {})",
-            log_file, file_hash
-        );
+        info!("Indexing changed file: {:?} (hash: {})", log_file, file_hash);
 
         // Initialize collector
         let collector = LogCollector::new((*config).clone())
@@ -158,10 +152,7 @@ impl AutoIndexHook {
             .save()
             .map_err(|e| MiyabiError::Config(format!("Failed to save cache: {}", e)))?;
 
-        info!(
-            "Successfully indexed {} entries from {:?}",
-            stats.success, log_file
-        );
+        info!("Successfully indexed {} entries from {:?}", stats.success, log_file);
 
         Ok(stats.success)
     }

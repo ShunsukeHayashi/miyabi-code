@@ -65,7 +65,7 @@ impl ContextPiece {
                 } else {
                     7
                 }
-            }
+            },
             // RAG matches prioritized by score
             ContextSource::Rag => {
                 if score >= 0.9 {
@@ -79,7 +79,7 @@ impl ContextPiece {
                 } else {
                     5
                 }
-            }
+            },
             // Hybrid (both sources agree) gets highest priority
             ContextSource::Hybrid => 10,
         }
@@ -187,11 +187,8 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         limit: usize,
     ) -> Result<Vec<ContextPiece>> {
         // Get RAG results
-        let rag_results = self
-            .rag_searcher
-            .search(query)
-            .await
-            .map_err(HybridContextError::SearchError)?;
+        let rag_results =
+            self.rag_searcher.search(query).await.map_err(HybridContextError::SearchError)?;
 
         let mut context_pieces = Vec::new();
 
@@ -271,9 +268,7 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         // Sort by priority (descending) and score (descending)
         let mut sorted_pieces: Vec<_> = pieces.iter().collect();
         sorted_pieces.sort_by(|a, b| {
-            b.priority
-                .cmp(&a.priority)
-                .then_with(|| b.score.partial_cmp(&a.score).unwrap())
+            b.priority.cmp(&a.priority).then_with(|| b.score.partial_cmp(&a.score).unwrap())
         });
 
         // Multi-pass pruning algorithm
@@ -374,9 +369,7 @@ impl<S: KnowledgeSearcher> HybridContextSearcher<S> {
         // Check cache
         if let Some(entry) = self.ast_cache.get(path) {
             // Check if cache is still valid
-            let cache_age = now
-                .duration_since(entry.cached_at)
-                .unwrap_or(Duration::from_secs(0));
+            let cache_age = now.duration_since(entry.cached_at).unwrap_or(Duration::from_secs(0));
 
             if cache_age < self.cache_ttl && entry.file_mtime == file_mtime {
                 // Cache hit - return cached context
@@ -725,45 +718,18 @@ mod tests {
     #[test]
     fn test_calculate_priority() {
         // AST with high score
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.9),
-            10
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.85),
-            9
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.75),
-            8
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Ast, 0.65),
-            7
-        );
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.9), 10);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.85), 9);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.75), 8);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Ast, 0.65), 7);
 
         // RAG with varying scores
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.9),
-            9
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.85),
-            8
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.65),
-            6
-        );
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Rag, 0.55),
-            5
-        );
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.9), 9);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.85), 8);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.65), 6);
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Rag, 0.55), 5);
 
         // Hybrid always gets max priority
-        assert_eq!(
-            ContextPiece::calculate_priority(&ContextSource::Hybrid, 0.5),
-            10
-        );
+        assert_eq!(ContextPiece::calculate_priority(&ContextSource::Hybrid, 0.5), 10);
     }
 }

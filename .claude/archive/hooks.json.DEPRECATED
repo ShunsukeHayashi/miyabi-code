@@ -1,0 +1,24 @@
+{
+  "//": "========================================",
+  "//": "DEPRECATED: This file is no longer used",
+  "//": "========================================",
+  "//": "",
+  "//": "Hooks have been migrated to settings.json",
+  "//": "Location: .claude/settings.json -> hooks section",
+  "//": "",
+  "//": "Migration Date: 2025-11-11",
+  "//": "Reason: Consolidation and improved maintainability",
+  "//": "",
+  "//": "DO NOT USE THIS FILE",
+  "//": "========================================",
+
+  "sessionEnd": {
+    "description": "[DEPRECATED] See settings.json -> hooks.SessionEnd",
+    "command": "echo 'DEPRECATED: Use settings.json'"
+  },
+
+  "sessionStart": {
+    "description": "[DEPRECATED] See settings.json -> hooks.SessionStart",
+    "command": "echo 'DEPRECATED: Use settings.json'"
+  }
+}

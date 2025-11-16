@@ -123,10 +123,7 @@ pub struct FileContext {
 impl FileContext {
     /// Get public API symbols only
     pub fn public_symbols(&self) -> Vec<&CodeSymbol> {
-        self.symbols
-            .iter()
-            .filter(|s| s.visibility == Visibility::Public)
-            .collect()
+        self.symbols.iter().filter(|s| s.visibility == Visibility::Public).collect()
     }
 
     /// Get symbols by kind
@@ -163,11 +160,7 @@ impl FileContext {
         let mut lines = vec![format!("Public API - {}", self.path.display())];
 
         for symbol in self.public_symbols() {
-            let doc = symbol
-                .doc_comment
-                .as_ref()
-                .map(|d| format!(" // {}", d))
-                .unwrap_or_default();
+            let doc = symbol.doc_comment.as_ref().map(|d| format!(" // {}", d)).unwrap_or_default();
 
             lines.push(format!(
                 "- {} {:?} at L{}-L{}{}",
@@ -248,28 +241,28 @@ impl FileContextTracker {
                 if let Some(symbol) = self.parse_function(node, source) {
                     symbols.push(symbol);
                 }
-            }
+            },
             "struct_item" => {
                 if let Some(symbol) = self.parse_struct(node, source) {
                     symbols.push(symbol);
                 }
-            }
+            },
             "enum_item" => {
                 if let Some(symbol) = self.parse_enum(node, source) {
                     symbols.push(symbol);
                 }
-            }
+            },
             "trait_item" => {
                 if let Some(symbol) = self.parse_trait(node, source) {
                     symbols.push(symbol);
                 }
-            }
+            },
             "impl_item" => {
                 if let Some(symbol) = self.parse_impl(node, source) {
                     symbols.push(symbol);
                 }
-            }
-            _ => {}
+            },
+            _ => {},
         }
 
         // Recurse into children
@@ -489,9 +482,7 @@ impl MyStruct {
     #[test]
     fn test_parse_rust_source() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         assert_eq!(context.language, "rust");
         assert!(context.total_lines > 0);
@@ -501,9 +492,7 @@ impl MyStruct {
     #[test]
     fn test_extract_symbols() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         // Should find struct, functions, impl
         assert!(context.symbols.iter().any(|s| s.name == "MyStruct"));
@@ -514,9 +503,7 @@ impl MyStruct {
     #[test]
     fn test_public_symbols() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         let public = context.public_symbols();
         assert!(public.iter().any(|s| s.name == "MyStruct"));
@@ -527,23 +514,16 @@ impl MyStruct {
     #[test]
     fn test_extract_imports() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         assert_eq!(context.imports.len(), 2);
-        assert!(context
-            .imports
-            .iter()
-            .any(|i| i.contains("std::collections::HashMap")));
+        assert!(context.imports.iter().any(|i| i.contains("std::collections::HashMap")));
     }
 
     #[test]
     fn test_format_summary() {
         let mut tracker = FileContextTracker::new_rust().unwrap();
-        let context = tracker
-            .parse_source(Path::new("test.rs"), TEST_SOURCE)
-            .unwrap();
+        let context = tracker.parse_source(Path::new("test.rs"), TEST_SOURCE).unwrap();
 
         let summary = context.format_summary();
         assert!(summary.contains("test.rs"));

@@ -197,10 +197,7 @@ mod tests {
             vec!["type:feature".to_string(), "priority:P2-Medium".to_string()],
         );
 
-        assert_eq!(
-            notification.notification_type,
-            NotificationType::Phase1Complete
-        );
+        assert_eq!(notification.notification_type, NotificationType::Phase1Complete);
         assert_eq!(notification.issue_number, 123);
         assert!(notification.title.contains("Phase 1 Complete"));
         assert!(notification.message.contains("4.5"));

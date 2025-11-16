@@ -75,10 +75,7 @@ impl ToolRegistry {
             "run_command" => self.execute_run_command(&call.arguments).await,
             "create_issue" => self.execute_create_issue(&call.arguments).await,
             "create_pr" => self.execute_create_pr(&call.arguments).await,
-            _ => Err(MiyabiError::ToolError(format!(
-                "Unknown tool: {}",
-                call.name
-            ))),
+            _ => Err(MiyabiError::ToolError(format!("Unknown tool: {}", call.name))),
         }
     }
 
@@ -322,23 +319,19 @@ impl ToolRegistry {
             match self.approval_system.request_file_change(&approval)? {
                 ApprovalDecision::Approve => {
                     // Continue with execution
-                }
+                },
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown(
-                        "User rejected file change".to_string(),
-                    ));
-                }
+                    return Err(MiyabiError::Unknown("User rejected file change".to_string()));
+                },
                 ApprovalDecision::Details => {
                     // Show details and prompt again
                     return Err(MiyabiError::Unknown(
                         "Details view not yet implemented".to_string(),
                     ));
-                }
+                },
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown(
-                        "Edit mode not yet implemented".to_string(),
-                    ));
-                }
+                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
+                },
             }
         }
 
@@ -382,10 +375,7 @@ impl ToolRegistry {
             .map_err(|e| MiyabiError::ToolError(format!("Failed to read file {}: {}", path, e)))?;
 
         if !content.contains(old_text) {
-            return Err(MiyabiError::ToolError(format!(
-                "old_text not found in file: {}",
-                path
-            )));
+            return Err(MiyabiError::ToolError(format!("old_text not found in file: {}", path)));
         }
 
         let new_content = content.replace(old_text, new_text);
@@ -398,22 +388,18 @@ impl ToolRegistry {
             match self.approval_system.request_file_change(&approval)? {
                 ApprovalDecision::Approve => {
                     // Continue with execution
-                }
+                },
                 ApprovalDecision::Reject => {
-                    return Err(MiyabiError::Unknown(
-                        "User rejected file change".to_string(),
-                    ));
-                }
+                    return Err(MiyabiError::Unknown("User rejected file change".to_string()));
+                },
                 ApprovalDecision::Details => {
                     return Err(MiyabiError::Unknown(
                         "Details view not yet implemented".to_string(),
                     ));
-                }
+                },
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown(
-                        "Edit mode not yet implemented".to_string(),
-                    ));
-                }
+                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
+                },
             }
         }
 
@@ -475,18 +461,16 @@ impl ToolRegistry {
             .arg(path)
             .output();
 
-        let result = match output {
-            Ok(output) => output,
-            Err(_) => {
-                // Fallback to grep
-                ProcessCommand::new("grep")
-                    .arg("-rn")
-                    .arg(pattern)
-                    .arg(path)
-                    .output()
-                    .map_err(|e| MiyabiError::ToolError(format!("Search command failed: {}", e)))?
-            }
-        };
+        let result =
+            match output {
+                Ok(output) => output,
+                Err(_) => {
+                    // Fallback to grep
+                    ProcessCommand::new("grep").arg("-rn").arg(pattern).arg(path).output().map_err(
+                        |e| MiyabiError::ToolError(format!("Search command failed: {}", e)),
+                    )?
+                },
+            };
 
         let stdout = String::from_utf8_lossy(&result.stdout);
         let matches: Vec<&str> = stdout.lines().take(50).collect(); // Limit to 50 matches
@@ -511,11 +495,7 @@ impl ToolRegistry {
 
         let args_array = args["args"].as_array();
         let args_vec: Vec<String> = args_array
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect())
             .unwrap_or_default();
 
         // Request approval if in Interactive mode
@@ -529,22 +509,20 @@ impl ToolRegistry {
             match self.approval_system.request_command_execution(&approval)? {
                 ApprovalDecision::Approve => {
                     // Continue with execution
-                }
+                },
                 ApprovalDecision::Reject => {
                     return Err(MiyabiError::Unknown(
                         "User rejected command execution".to_string(),
                     ));
-                }
+                },
                 ApprovalDecision::Details => {
                     return Err(MiyabiError::Unknown(
                         "Details view not yet implemented".to_string(),
                     ));
-                }
+                },
                 ApprovalDecision::Edit => {
-                    return Err(MiyabiError::Unknown(
-                        "Edit mode not yet implemented".to_string(),
-                    ));
-                }
+                    return Err(MiyabiError::Unknown("Edit mode not yet implemented".to_string()));
+                },
             }
         }
 
@@ -713,9 +691,6 @@ mod tests {
             .await;
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("directory traversal"));
+        assert!(result.unwrap_err().to_string().contains("directory traversal"));
     }
 }

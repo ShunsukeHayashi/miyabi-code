@@ -68,12 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    post_progress(
-        &client,
-        progress_channel,
-        "\n📺 **フェーズ 2/3**: チャンネル作成中...",
-    )
-    .await?;
+    post_progress(&client, progress_channel, "\n📺 **フェーズ 2/3**: チャンネル作成中...").await?;
 
     // Define channels for each category
     let channel_definitions = vec![
@@ -193,10 +188,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             )
                             .await?;
                         }
-                    }
+                    },
                     Err(e) => {
                         println!("    ⚠️ Failed to create {}: {}", channel_name, e);
-                    }
+                    },
                 }
 
                 // Rate limiting
@@ -210,10 +205,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     post_progress(
         &client,
         progress_channel,
-        &format!(
-            "✅ チャンネル作成完了！ ({}/{}個)",
-            total_created, total_channels
-        ),
+        &format!("✅ チャンネル作成完了！ ({}/{}個)", total_created, total_channels),
     )
     .await?;
 

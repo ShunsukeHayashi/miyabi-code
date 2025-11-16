@@ -48,11 +48,7 @@ async fn test_phase_1_2_message_flow() {
     let result = orchestrator.handle_issue_created(&issue).await;
 
     // Phase 1-2 should complete successfully in dry-run mode
-    assert!(
-        result.is_ok(),
-        "Issue handling should succeed: {:?}",
-        result.err()
-    );
+    assert!(result.is_ok(), "Issue handling should succeed: {:?}", result.err());
 
     // Verify execution result
     let exec_result = result.unwrap();
@@ -79,11 +75,7 @@ async fn test_message_priority_levels() {
         .await
         .expect("Failed to create orchestrator");
 
-    let issue = create_test_issue(
-        1000,
-        "Test Priority Levels",
-        "Verify message priority handling",
-    );
+    let issue = create_test_issue(1000, "Test Priority Levels", "Verify message priority handling");
 
     // Execute workflow
     let result = orchestrator.handle_issue_created(&issue).await;
@@ -191,11 +183,7 @@ async fn test_progress_percentage_tracking() {
         .await
         .expect("Failed to create orchestrator");
 
-    let issue = create_test_issue(
-        3001,
-        "Test Progress Tracking",
-        "Verify progress percentages",
-    );
+    let issue = create_test_issue(3001, "Test Progress Tracking", "Verify progress percentages");
 
     let result = orchestrator.handle_issue_created(&issue).await;
     assert!(result.is_ok(), "Workflow should complete");

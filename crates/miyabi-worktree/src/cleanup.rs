@@ -102,10 +102,7 @@ impl WorktreeCleanupManager {
         // Get all worktrees
         let worktrees = self.state_manager.scan_worktrees()?;
 
-        tracing::info!(
-            "Starting worktree cleanup scan (found {} worktrees)",
-            worktrees.len()
-        );
+        tracing::info!("Starting worktree cleanup scan (found {} worktrees)", worktrees.len());
 
         // Clean up orphaned worktrees
         for worktree in worktrees.iter().filter(|w| {
@@ -137,10 +134,7 @@ impl WorktreeCleanupManager {
         }
 
         // Clean up stuck worktrees
-        for worktree in worktrees
-            .iter()
-            .filter(|w| w.status == WorktreeStatusDetailed::Stuck)
-        {
+        for worktree in worktrees.iter().filter(|w| w.status == WorktreeStatusDetailed::Stuck) {
             match self.cleanup_single(&mut report, worktree, "stuck").await {
                 Ok(_) => report.stuck_cleaned += 1,
                 Err(e) => report.errors.push(format!(
@@ -153,17 +147,13 @@ impl WorktreeCleanupManager {
 
         // Enforce max_worktrees limit
         if let Some(max) = self.policy.max_worktrees {
-            let active_count = worktrees
-                .iter()
-                .filter(|w| w.status == WorktreeStatusDetailed::Active)
-                .count();
+            let active_count =
+                worktrees.iter().filter(|w| w.status == WorktreeStatusDetailed::Active).count();
 
             if active_count + report.total_cleaned() > max {
                 // Clean oldest idle worktrees first
-                let mut idle_worktrees: Vec<_> = worktrees
-                    .iter()
-                    .filter(|w| w.status == WorktreeStatusDetailed::Idle)
-                    .collect();
+                let mut idle_worktrees: Vec<_> =
+                    worktrees.iter().filter(|w| w.status == WorktreeStatusDetailed::Idle).collect();
                 idle_worktrees.sort_by_key(|w| w.last_accessed);
 
                 let to_remove = active_count + report.total_cleaned() - max;
@@ -202,10 +192,10 @@ impl WorktreeCleanupManager {
                             report.total_cleaned()
                         );
                     }
-                }
+                },
                 Err(e) => {
                     tracing::error!("Periodic cleanup failed: {}", e);
-                }
+                },
             }
         }
     }

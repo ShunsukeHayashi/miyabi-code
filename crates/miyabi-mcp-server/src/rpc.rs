@@ -233,10 +233,7 @@ impl RpcContext {
     ) -> Result<AgentExecuteResult> {
         let start = std::time::Instant::now();
 
-        tracing::info!(
-            "Executing Coordinator Agent on Issue #{}",
-            params.issue_number
-        );
+        tracing::info!("Executing Coordinator Agent on Issue #{}", params.issue_number);
 
         // Fetch issue
         let issue = self
@@ -258,18 +255,8 @@ impl RpcContext {
             use_task_tool: false,
             use_worktree: true,
             worktree_base_path: Some(PathBuf::from(".worktrees")),
-            log_directory: self
-                .config
-                .working_dir
-                .join("logs")
-                .to_string_lossy()
-                .to_string(),
-            report_directory: self
-                .config
-                .working_dir
-                .join("reports")
-                .to_string_lossy()
-                .to_string(),
+            log_directory: self.config.working_dir.join("logs").to_string_lossy().to_string(),
+            report_directory: self.config.working_dir.join("reports").to_string_lossy().to_string(),
             tech_lead_github_username: None,
             ciso_github_username: None,
             po_github_username: None,
@@ -283,10 +270,7 @@ impl RpcContext {
         let coordinator = CoordinatorAgent::new(agent_config);
 
         // Execute coordinator agent - decompose issue into tasks
-        let result = coordinator
-            .decompose_issue(&issue)
-            .await
-            .map_err(ServerError::Agent)?;
+        let result = coordinator.decompose_issue(&issue).await.map_err(ServerError::Agent)?;
 
         let execution_time_ms = start.elapsed().as_millis() as u64;
 

@@ -1,8 +1,8 @@
 //! Error types for workflow execution
 
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// Result type for workflow operations
 pub type Result<T> = std::result::Result<T, WorkflowError>;

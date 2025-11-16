@@ -35,7 +35,7 @@ pub mod state;
 
 pub use builder::{ConditionalBranch, Step, StepType, WorkflowBuilder};
 pub use condition::Condition;
-pub use error::{WorkflowError, Result};
+pub use error::{Result, WorkflowError};
 pub use state::{
     ExecutionState, StateStore, StepContext, StepOutput, WorkflowOutput, WorkflowStatus,
 };

@@ -98,10 +98,7 @@ impl AnthropicClient {
 
     /// Extract system message from messages
     fn extract_system_prompt(&self, messages: &[Message]) -> Option<String> {
-        messages
-            .iter()
-            .find(|m| m.role == Role::System)
-            .map(|m| m.content.clone())
+        messages.iter().find(|m| m.role == Role::System).map(|m| m.content.clone())
     }
 
     /// Convert Miyabi ToolDefinition to Anthropic format
@@ -319,16 +316,13 @@ impl LlmClient for AnthropicClient {
                     ));
                 }
                 Ok(ToolCallResponse::ToolCalls(tool_calls))
-            }
+            },
             "end_turn" | "max_tokens" | "stop_sequence" => {
                 // Task completed or reached limit
                 let text = self.extract_text(&anthropic_response)?;
                 Ok(ToolCallResponse::Conclusion { text })
-            }
-            other => Err(LlmError::InvalidResponse(format!(
-                "Unexpected stop_reason: {}",
-                other
-            ))),
+            },
+            other => Err(LlmError::InvalidResponse(format!("Unexpected stop_reason: {}", other))),
         }
     }
 

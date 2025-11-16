@@ -1,0 +1,4 @@
+[2025-11-09T04:32:35+09:00] [INFO] Restart triggered: Test restart trigger (severity=P0, exit_code=1, event_id=test-001)
+[2025-11-09T04:32:35+09:00] [INFO] Restart attempt 1/3
+[2025-11-09T04:32:35+09:00] [INFO] Waiting 1s before restart (exponential backoff)
+[2025-11-09T04:32:36+09:00] [INFO] ✅ Restart triggered (attempt 1/3)

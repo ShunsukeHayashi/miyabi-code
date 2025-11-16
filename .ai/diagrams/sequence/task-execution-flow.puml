@@ -1,0 +1,145 @@
+@startuml Task Execution Flow
+!theme aws-orange
+
+title Miyabi AWS Platform - Task Execution Flow
+
+actor User
+participant "GitHub" as github
+participant "API Gateway" as apigw
+participant "Lambda\nWebhook" as webhook
+participant "EventBridge" as eb
+participant "SQS Queue" as sqs
+participant "Orchestrator" as orchestrator
+participant "Agent Worker" as worker
+participant "AWS Agent\n(θ₁-θ₆)" as aws_agent
+database "DynamoDB" as dynamo
+database "RDS" as rds
+storage "EFS" as efs
+participant "Terraform" as tf
+participant "CloudWatch" as cw
+participant "VOICEVOX" as voice
+participant "Discord" as discord
+
+== Issue Creation ==
+
+User -> github : Create Issue #123\n"Optimize EC2 costs"
+github -> webhook : POST /webhooks/github\nIssue Created Event
+
+== Event Processing ==
+
+webhook -> eb : Publish Event\n"issue.created"
+eb -> sqs : Route to Task Queue\n(High Priority)
+
+webhook -> dynamo : Store Task Metadata\n{issue: 123, status: pending}
+
+== Task Orchestration ==
+
+sqs <- orchestrator : Poll Queue\n(every 10s)
+orchestrator -> dynamo : Get Task Details
+
+orchestrator -> efs : Allocate Worktree\n/mnt/efs/worktrees/issue-123
+
+orchestrator -> sqs : Send Worker Task\n{type: "aws-agent", issue: 123}
+
+== Agent Execution ==
+
+sqs <- worker : Poll Queue
+worker -> dynamo : Update Status\n{status: in_progress}
+
+worker -> efs : cd /mnt/efs/worktrees/issue-123
+
+== Phase θ₁: Understand ==
+
+worker -> aws_agent : execute_phase(θ₁)
+aws_agent -> aws_agent : Discover AWS Resources\n(EC2, S3, RDS, Lambda)
+aws_agent -> aws_agent : Analyze Costs\n(Cost Explorer API)
+aws_agent -> aws_agent : Assess Security\n(Security Hub API)
+
+aws_agent -> dynamo : Store World₀\n{cost: $280, security: 72}
+
+== Phase θ₂: Generate ==
+
+worker -> aws_agent : execute_phase(θ₂)
+aws_agent -> aws_agent : Generate Cost Plan\n(30% savings target)
+aws_agent -> aws_agent : Generate Security Plan\n(Score 90+ target)
+aws_agent -> aws_agent : Generate Terraform\n(Right-sizing EC2)
+
+aws_agent -> efs : Write Plans\n/plans/cost-optimization.md\n/terraform/ec2-rightsizing.tf
+
+== Phase θ₃: Allocate ==
+
+worker -> aws_agent : execute_phase(θ₃)
+aws_agent -> rds : Query Resource Relations
+aws_agent -> aws_agent : Calculate Optimal Sizes
+aws_agent -> dynamo : Store Allocation Plan
+
+== Phase θ₄: Execute ==
+
+worker -> aws_agent : execute_phase(θ₄)
+aws_agent -> tf : terraform plan
+tf -> aws_agent : Show Changes\n(5 EC2 instances to resize)
+
+aws_agent -> tf : terraform apply -auto-approve
+tf -> tf : Deploy Changes\n(5-10 minutes)
+
+tf -> aws_agent : Apply Complete ✓
+
+aws_agent -> dynamo : Update World₁\n{cost: $250, security: 85}
+
+== Phase θ₅: Integrate ==
+
+worker -> aws_agent : execute_phase(θ₅)
+aws_agent -> cw : Create Dashboard\n"Miyabi-Issue-123"
+aws_agent -> cw : Configure Alarms\n(CPU > 80%, Cost > $260)
+
+aws_agent -> voice : Generate Alert\n"Issue 123完了。\nコスト30ドル削減しました"
+
+voice -> discord : Send Notification\n🎉 Task completed!
+
+== Phase θ₆: Learn ==
+
+worker -> aws_agent : execute_phase(θ₆)
+aws_agent -> aws_agent : Analyze Results\n(Cost: $280→$250, -10.7%)
+aws_agent -> aws_agent : Update Strategy\n(EC2 rightsizing effective)
+
+aws_agent -> dynamo : Store Learning Data
+
+== Task Completion ==
+
+worker -> dynamo : Update Status\n{status: completed}
+worker -> github : Create PR\n"feat: Optimize EC2 costs (#123)"
+
+worker -> eb : Publish Event\n"task.completed"
+
+eb -> discord : Notify User
+
+User <- discord : 📬 Task completed!\nPR created: #456
+
+== Continuous Monitoring ==
+
+loop Every 5 minutes
+    cw -> worker : CloudWatch Metrics
+    worker -> dynamo : Update Metrics
+end
+
+note over aws_agent
+  **6-Phase Execution Time**
+  θ₁: 2-3 minutes (Discovery)
+  θ₂: 3-5 minutes (Planning)
+  θ₃: 1-2 minutes (Allocation)
+  θ₄: 5-10 minutes (Deployment)
+  θ₅: 2-3 minutes (Integration)
+  θ₆: 1-2 minutes (Learning)
+
+  **Total: 14-25 minutes**
+end note
+
+note over orchestrator
+  **Orchestration Logic**
+  - Max 100 concurrent workers
+  - Auto-scale on queue depth
+  - Graceful shutdown
+  - Retry on failure (3 times)
+end note
+
+@enduml

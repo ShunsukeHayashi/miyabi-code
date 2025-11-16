@@ -108,7 +108,7 @@ impl ParallelExecutor {
                     Ok(Ok(agent_result)) => {
                         info!("Agent {} completed successfully", task.id);
                         agent_result
-                    }
+                    },
                     Ok(Err(e)) => {
                         warn!("Agent {} failed: {}", task.id, e);
                         AgentResult {
@@ -121,12 +121,9 @@ impl ParallelExecutor {
                             error: Some(e.to_string()),
                             escalation: None,
                         }
-                    }
+                    },
                     Err(_) => {
-                        warn!(
-                            "Agent {} timed out after {} seconds",
-                            task.id, timeout_seconds
-                        );
+                        warn!("Agent {} timed out after {} seconds", task.id, timeout_seconds);
                         AgentResult {
                             status: miyabi_types::agent::ResultStatus::Failed,
                             metrics: None,
@@ -138,7 +135,7 @@ impl ParallelExecutor {
                             error: Some("Timeout".to_string()),
                             escalation: None,
                         }
-                    }
+                    },
                 }
             });
 
@@ -187,10 +184,7 @@ impl ParallelExecutor {
         let start_time = std::time::Instant::now();
         let mut handles: Vec<JoinHandle<AgentResult>> = Vec::new();
 
-        info!(
-            "Starting mixed parallel execution of {} agents",
-            agent_tasks.len()
-        );
+        info!("Starting mixed parallel execution of {} agents", agent_tasks.len());
 
         for (agent, task) in agent_tasks {
             let semaphore = self.semaphore.clone();
@@ -209,7 +203,7 @@ impl ParallelExecutor {
                     Ok(Ok(agent_result)) => {
                         info!("Agent {} completed successfully", task.id);
                         agent_result
-                    }
+                    },
                     Ok(Err(e)) => {
                         warn!("Agent {} failed: {}", task.id, e);
                         AgentResult {
@@ -222,12 +216,9 @@ impl ParallelExecutor {
                             error: Some(e.to_string()),
                             escalation: None,
                         }
-                    }
+                    },
                     Err(_) => {
-                        warn!(
-                            "Agent {} timed out after {} seconds",
-                            task.id, timeout_seconds
-                        );
+                        warn!("Agent {} timed out after {} seconds", task.id, timeout_seconds);
                         AgentResult {
                             status: miyabi_types::agent::ResultStatus::Failed,
                             metrics: None,
@@ -239,7 +230,7 @@ impl ParallelExecutor {
                             error: Some("Timeout".to_string()),
                             escalation: None,
                         }
-                    }
+                    },
                 }
             });
 
@@ -306,10 +297,7 @@ mod tests {
             status: None,
             start_time: None,
             end_time: None,
-            metadata: Some(HashMap::from([(
-                "test".to_string(),
-                serde_json::json!(true),
-            )])),
+            metadata: Some(HashMap::from([("test".to_string(), serde_json::json!(true))])),
         }
     }
 
@@ -355,14 +343,8 @@ mod tests {
         let agent_config = create_test_config();
 
         let agents = vec![
-            (
-                MarketingAgent::new(agent_config.clone()),
-                create_test_task("task1"),
-            ),
-            (
-                MarketingAgent::new(agent_config.clone()),
-                create_test_task("task2"),
-            ),
+            (MarketingAgent::new(agent_config.clone()), create_test_task("task1")),
+            (MarketingAgent::new(agent_config.clone()), create_test_task("task2")),
             (MarketingAgent::new(agent_config), create_test_task("task3")),
         ];
 

@@ -1,0 +1,86 @@
+[
+  {
+    "uri": "file:///Users/shunsuke/Dev/miyabi-private/.ai/orchestra-state.json",
+    "diagnostics": [
+      {
+        "severity": "Warning",
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 100
+          }
+        },
+        "message": "🎭 Orchestra state is stale (>24h). Consider refreshing orchestra assignments.",
+        "source": "miyabi-ai-lint",
+        "code": "AI001"
+      }
+    ]
+  },
+  {
+    "uri": "file:///Users/shunsuke/Dev/miyabi-private/.ai/session-reports/latest.md",
+    "diagnostics": [
+      {
+        "severity": "Information",
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 100
+          }
+        },
+        "message": "📊 No session report found. Run /session-end to generate.",
+        "source": "miyabi-ai-lint",
+        "code": "AI002"
+      }
+    ]
+  },
+  {
+    "uri": "file:///Users/shunsuke/Dev/miyabi-private/.worktrees",
+    "diagnostics": [
+      {
+        "severity": "Warning",
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 100
+          }
+        },
+        "message": "🌳 Orphaned worktrees detected:  docs-architecture github-repo-init pr-767-review readme-crates-31-35 readme-crates-46-48 readme-llm-crates. Run: miyabi cleanup",
+        "source": "miyabi-ai-lint",
+        "code": "AI003"
+      }
+    ]
+  },
+  {
+    "uri": "file:///Users/shunsuke/Dev/miyabi-private/.ai/logs/tmux-executor-2025-11-09.log",
+    "diagnostics": [
+      {
+        "severity": "Information",
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 100
+          }
+        },
+        "message": "📝 Large log file detected (>10MB). Consider archiving.",
+        "source": "miyabi-ai-lint",
+        "code": "AI010"
+      }
+    ]
+  }
+]

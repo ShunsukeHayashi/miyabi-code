@@ -52,16 +52,13 @@ Generate detailed SNS strategy as JSON with platform strategies, community manag
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::SNSStrategyAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::SNSStrategyAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let sns_strategy: SNSStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -218,10 +215,7 @@ impl BaseAgent for SNSStrategyAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "SNSStrategyAgent starting SNS strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("SNSStrategyAgent starting SNS strategy generation for task: {}", task.id);
 
         // Generate SNS strategy using LLM
         let sns_strategy = self.generate_sns_strategy(task).await?;
@@ -260,10 +254,7 @@ impl BaseAgent for SNSStrategyAgent {
             "total_campaigns_count": total_campaigns
         });
 
-        tracing::info!(
-            "SNSStrategyAgent completed SNS strategy generation: {}",
-            summary
-        );
+        tracing::info!("SNSStrategyAgent completed SNS strategy generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

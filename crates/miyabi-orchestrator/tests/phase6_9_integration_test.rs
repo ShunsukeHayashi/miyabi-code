@@ -47,11 +47,8 @@ async fn test_phase6_9_high_quality_auto_merge() -> Result<()> {
     let _orchestrator = HeadlessOrchestrator::new(config);
 
     // Create mock issue with feature label
-    let _issue = create_mock_issue(
-        9001,
-        "feat: Add high quality feature",
-        vec!["feature", "enhancement"],
-    );
+    let _issue =
+        create_mock_issue(9001, "feat: Add high quality feature", vec!["feature", "enhancement"]);
 
     // Initialize state machine
     let _state_machine = StateMachine::new(_issue.number);
@@ -172,10 +169,7 @@ fn test_auto_merge_decision() {
     );
 
     // Scenario 2: High quality + Low review → No auto-merge
-    assert!(
-        !should_auto_merge(85.0, 70.0, 80.0),
-        "Low review score should block auto-merge"
-    );
+    assert!(!should_auto_merge(85.0, 70.0, 80.0), "Low review score should block auto-merge");
 
     // Scenario 3: Low quality + High review → No auto-merge
     assert!(

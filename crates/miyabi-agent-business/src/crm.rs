@@ -57,16 +57,13 @@ Generate detailed CRM strategy as JSON with customer segmentation, journey mappi
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::CRMAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::CRMAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let crm_strategy: CRMStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -222,10 +219,7 @@ impl BaseAgent for CRMAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "CRMAgent starting CRM strategy generation for task: {}",
-            task.id
-        );
+        tracing::info!("CRMAgent starting CRM strategy generation for task: {}", task.id);
 
         // Generate CRM strategy using LLM
         let crm_strategy = self.generate_crm_strategy(task).await?;

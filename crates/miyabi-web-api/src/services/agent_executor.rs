@@ -120,10 +120,7 @@ impl AgentExecutor {
             &db,
             execution_id,
             "INFO",
-            &format!(
-                "Starting agent execution: agent={}, issue={}",
-                agent_type, issue_number
-            ),
+            &format!("Starting agent execution: agent={}, issue={}", agent_type, issue_number),
             None,
         )
         .await?;
@@ -260,10 +257,7 @@ impl AgentExecutor {
 
             Self::log_message(&db, execution_id, "ERROR", &error_message, None).await?;
 
-            warn!(
-                "Agent execution failed: id={}, error={}",
-                execution_id, error_message
-            );
+            warn!("Agent execution failed: id={}, error={}", execution_id, error_message);
         }
 
         Ok(())

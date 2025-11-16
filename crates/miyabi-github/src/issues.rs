@@ -17,17 +17,12 @@ impl GitHubClient {
     /// # Returns
     /// `Issue` struct with all metadata
     pub async fn get_issue(&self, number: u64) -> Result<Issue> {
-        let issue = self
-            .client
-            .issues(&self.owner, &self.repo)
-            .get(number)
-            .await
-            .map_err(|e| {
-                MiyabiError::GitHub(format!(
-                    "Failed to get issue #{} from {}/{}: {}",
-                    number, self.owner, self.repo, e
-                ))
-            })?;
+        let issue = self.client.issues(&self.owner, &self.repo).get(number).await.map_err(|e| {
+            MiyabiError::GitHub(format!(
+                "Failed to get issue #{} from {}/{}: {}",
+                number, self.owner, self.repo, e
+            ))
+        })?;
 
         convert_issue(issue)
     }
@@ -131,7 +126,7 @@ impl GitHubClient {
                     return Err(MiyabiError::GitHub(
                         "Cannot update issue to 'All' state".to_string(),
                     ))
-                }
+                },
                 _ => return Err(MiyabiError::GitHub(format!("Unknown state: {:?}", s))),
             };
             handler = handler.state(issue_state);
@@ -149,14 +144,12 @@ impl GitHubClient {
 
     /// Close an issue
     pub async fn close_issue(&self, number: u64) -> Result<Issue> {
-        self.update_issue(number, None, None, Some(State::Closed))
-            .await
+        self.update_issue(number, None, None, Some(State::Closed)).await
     }
 
     /// Reopen an issue
     pub async fn reopen_issue(&self, number: u64) -> Result<Issue> {
-        self.update_issue(number, None, None, Some(State::Open))
-            .await
+        self.update_issue(number, None, None, Some(State::Open)).await
     }
 
     /// Add labels to an issue
@@ -241,21 +234,12 @@ fn convert_issue(issue: OctoIssue) -> Result<Issue> {
     let state = match issue.state {
         OctoState::Open => IssueStateGithub::Open,
         OctoState::Closed => IssueStateGithub::Closed,
-        _ => {
-            return Err(MiyabiError::GitHub(format!(
-                "Unknown issue state: {:?}",
-                issue.state
-            )))
-        }
+        _ => return Err(MiyabiError::GitHub(format!("Unknown issue state: {:?}", issue.state))),
     };
 
     let assignee = issue.assignee.map(|a| a.login);
 
-    let labels = issue
-        .labels
-        .into_iter()
-        .map(|l| l.name)
-        .collect::<Vec<String>>();
+    let labels = issue.labels.into_iter().map(|l| l.name).collect::<Vec<String>>();
 
     Ok(Issue {
         number: issue.number,

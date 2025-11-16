@@ -1,0 +1,338 @@
+@startuml Component-Diagram
+' コンポーネント図: Miyabi システムコンポーネント関係
+
+!define CORE_COLOR LightBlue
+!define AGENT_COLOR LightGreen
+!define INFRA_COLOR LightCoral
+!define EXTERNAL_COLOR LightYellow
+!define INTEGRATION_COLOR LightCyan
+
+title **Miyabi - Component Diagram**\nシステムコンポーネント関係とデータフロー
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Control Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Control Layer" {
+  [Master Orchestrator\n(Local PC)] as MasterOrch #CORE_COLOR
+  [Sub-Orchestrator\n(MUGEN)] as SubMUGEN #CORE_COLOR
+  [Sub-Orchestrator\n(MAJIN)] as SubMAJIN #CORE_COLOR
+  [tmux Controller] as TmuxCtrl #CORE_COLOR
+  [Monitor Dashboard] as Monitor #CORE_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Execution Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Execution Layer - MUGEN" {
+  [Codex-1] as C1 #AGENT_COLOR
+  [Codex-2] as C2 #AGENT_COLOR
+  [Codex-3] as C3 #AGENT_COLOR
+  [Codex-4 to 12] as C4_12 #AGENT_COLOR
+}
+
+package "Execution Layer - MAJIN" {
+  [Codex-13] as C13 #AGENT_COLOR
+  [Codex-14] as C14 #AGENT_COLOR
+  [Codex-15 to 18] as C15_18 #AGENT_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Agent Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Agent Layer - Coding (7)" {
+  [CodeGenAgent] as CodeGen #AGENT_COLOR
+  [ReviewAgent] as Review #AGENT_COLOR
+  [DeploymentAgent] as Deploy #AGENT_COLOR
+  [IssueAgent] as IssueA #AGENT_COLOR
+  [PRAgent] as PRA #AGENT_COLOR
+  [RefresherAgent] as Refresh #AGENT_COLOR
+  [CoordinatorAgent] as Coord #AGENT_COLOR
+}
+
+package "Agent Layer - Business (14)" {
+  [SelfAnalysisAgent] as SelfA #AGENT_COLOR
+  [MarketResearchAgent] as MarketR #AGENT_COLOR
+  [PersonaAgent] as Persona #AGENT_COLOR
+  [ProductConceptAgent] as ProdConcept #AGENT_COLOR
+  [ProductDesignAgent] as ProdDesign #AGENT_COLOR
+  [ContentCreationAgent] as Content #AGENT_COLOR
+  [FunnelDesignAgent] as Funnel #AGENT_COLOR
+  [SNSStrategyAgent] as SNS #AGENT_COLOR
+  [MarketingAgent] as Marketing #AGENT_COLOR
+  [SalesAgent] as Sales #AGENT_COLOR
+  [CRMAgent] as CRM #AGENT_COLOR
+  [AnalyticsAgent] as Analytics #AGENT_COLOR
+  [YouTubeAgent] as YouTube #AGENT_COLOR
+  [AIEntrepreneurAgent] as AIEntr #AGENT_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Framework Layer (15+ Crates)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Framework Layer" {
+  [miyabi-core] as Core #INFRA_COLOR
+  [miyabi-agents] as Agents #INFRA_COLOR
+  [miyabi-llm] as LLM #INFRA_COLOR
+  [miyabi-github] as GitHub #INFRA_COLOR
+  [miyabi-worktree] as Worktree #INFRA_COLOR
+  [miyabi-knowledge] as Knowledge #INFRA_COLOR
+  [miyabi-orchestrator] as Orchestrator #INFRA_COLOR
+  [miyabi-tmux-orchestrator] as TmuxOrch #INFRA_COLOR
+  [miyabi-a2a] as A2A #INFRA_COLOR
+  [miyabi-cli] as CLI #INFRA_COLOR
+  [miyabi-types] as Types #INFRA_COLOR
+  [miyabi-telegram] as Telegram #INFRA_COLOR
+  [miyabi-discord-mcp-server] as Discord #INFRA_COLOR
+  [miyabi-webhook] as Webhook #INFRA_COLOR
+  [miyabi-web-api] as WebAPI #INFRA_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' External Services
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "External Services" {
+  [GitHub API] as GitHubAPI #EXTERNAL_COLOR
+  [OpenAI API\nGPT-5/o3] as OpenAI #EXTERNAL_COLOR
+  [Anthropic API\nClaude] as Anthropic #EXTERNAL_COLOR
+  [Google API\nGemini] as Google #EXTERNAL_COLOR
+  [Lark Webhook] as Lark #EXTERNAL_COLOR
+  [Discord Webhook] as DiscordWeb #EXTERNAL_COLOR
+  [Telegram Bot API] as TelegramAPI #EXTERNAL_COLOR
+  [VOICEVOX Engine] as VOICEVOX #EXTERNAL_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Knowledge Services
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Knowledge Layer" {
+  [Qdrant Vector DB] as Qdrant #INTEGRATION_COLOR
+  [Context7\nLibrary Docs] as Context7 #INTEGRATION_COLOR
+  [Potpie Integration\nCode Context] as Potpie #INTEGRATION_COLOR
+  [Embeddings Model] as Embeddings #INTEGRATION_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Infrastructure Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package "Infrastructure" {
+  [MUGEN EC2\n16 vCPU, 124GB RAM] as MUGEN #INFRA_COLOR
+  [MAJIN EC2\n8 vCPU, 30GB RAM] as MAJIN #INFRA_COLOR
+  [Local PC\nMacBook Pro] as LocalPC #INFRA_COLOR
+  [GitHub Actions\nCI/CD] as Actions #INFRA_COLOR
+  [Git Worktree\nPool] as GitWorktree #INFRA_COLOR
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Control Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MasterOrch --> SubMUGEN : SSH控制
+MasterOrch --> SubMAJIN : SSH控制
+MasterOrch --> TmuxCtrl : 管理
+MasterOrch --> Monitor : 监控
+TmuxCtrl --> SubMUGEN : tmux sessions
+TmuxCtrl --> SubMAJIN : tmux sessions
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Execution Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SubMUGEN --> C1 : 起動
+SubMUGEN --> C2 : 起動
+SubMUGEN --> C3 : 起動
+SubMUGEN --> C4_12 : 起動
+
+SubMAJIN --> C13 : 起動
+SubMAJIN --> C14 : 起動
+SubMAJIN --> C15_18 : 起動
+
+C1 --> OpenAI : API Request
+C2 --> OpenAI : API Request
+C3 --> OpenAI : API Request
+C4_12 --> OpenAI : API Request
+C13 --> OpenAI : API Request
+C14 --> OpenAI : API Request
+C15_18 --> OpenAI : API Request
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Agent Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Coord --> CodeGen : 調整
+Coord --> Review : 調整
+Coord --> Deploy : 調整
+Coord --> IssueA : 調整
+Coord --> PRA : 調整
+Coord --> Refresh : 調整
+
+Coord --> SelfA : 調整
+Coord --> MarketR : 調整
+Coord --> Persona : 調整
+Coord --> ProdConcept : 調整
+Coord --> ProdDesign : 調整
+Coord --> Content : 調整
+Coord --> Funnel : 調整
+Coord --> SNS : 調整
+Coord --> Marketing : 調整
+Coord --> Sales : 調整
+Coord --> CRM : 調整
+Coord --> Analytics : 調整
+Coord --> YouTube : 調整
+Coord --> AIEntr : 調整
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Framework Layer
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CLI --> Core : 使用
+CLI --> Agents : 使用
+CLI --> Orchestrator : 使用
+
+Agents --> Core : 依存
+Agents --> LLM : 使用
+Agents --> GitHub : 使用
+Agents --> Worktree : 使用
+Agents --> Knowledge : 使用
+
+CodeGen --> LLM : LLM Request
+Review --> LLM : LLM Request
+Deploy --> GitHub : PR Merge
+IssueA --> GitHub : Issue管理
+PRA --> GitHub : PR作成
+Refresh --> GitHub : Issue更新
+
+LLM --> Anthropic : API Call
+LLM --> OpenAI : API Call
+LLM --> Google : API Call
+
+GitHub --> GitHubAPI : REST/GraphQL
+Worktree --> GitWorktree : 管理
+
+Knowledge --> Qdrant : Vector検索
+Knowledge --> Context7 : Library Docs
+Knowledge --> Potpie : Code Context
+Knowledge --> Embeddings : Embed生成
+
+A2A --> Telegram : 通知
+A2A --> Discord : 通知
+A2A --> Lark : 通知
+
+Orchestrator --> TmuxOrch : tmux管理
+TmuxOrch --> TmuxCtrl : Control
+
+Webhook --> GitHubAPI : Webhook受信
+WebAPI --> CLI : HTTP API
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: External Services
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Telegram --> TelegramAPI : API
+Discord --> DiscordWeb : Webhook
+A2A --> Lark : Webhook
+GitHub --> VOICEVOX : Audio生成
+Actions --> MUGEN : Self-hosted runner
+Actions --> MAJIN : Self-hosted runner
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Infrastructure
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LocalPC --> MasterOrch : 実行
+MUGEN --> SubMUGEN : ホスト
+MAJIN --> SubMAJIN : ホスト
+
+GitHubAPI --> Actions : Trigger
+Actions --> GitHubAPI : Status報告
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Notes
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+note right of MasterOrch
+  **Master Orchestrator**
+  - タスク配信
+  - SSH制御 (MUGEN/MAJIN)
+  - 全体監視
+  - VS Code統合
+end note
+
+note right of SubMUGEN
+  **MUGEN Sub-Orchestrator**
+  - 12 Codex管理
+  - Heavy Task実行
+  - tmux: mugen-codex
+  - CPU: 16 vCPU
+  - Memory: 124 GB
+end note
+
+note right of SubMAJIN
+  **MAJIN Sub-Orchestrator**
+  - 6 Codex管理
+  - Light Task実行
+  - tmux: majin-codex
+  - CPU: 8 vCPU
+  - Memory: 30 GB
+end note
+
+note bottom of OpenAI
+  **OpenAI API**
+  - Model: GPT-5/o3
+  - 18並列実行
+  - Rate Limit監視
+  - Bearer Token認証
+end note
+
+note bottom of Qdrant
+  **Knowledge Base**
+  - Vector DB (Qdrant)
+  - Embeddings検索
+  - Context7統合
+  - Potpie統合
+  - Code理解支援
+end note
+
+note bottom of Actions
+  **CI/CD Pipeline**
+  - GitHub Actions
+  - Self-hosted runners (MUGEN/MAJIN)
+  - cargo test --all
+  - cargo clippy
+  - cargo build
+  - 自動Deploy (Firebase)
+end note
+
+note left of GitWorktree
+  **Worktree Pool**
+  - 1 Issue = 1 Worktree
+  - 並列開発分離
+  - 自動クリーンアップ
+  - .worktrees/ 管理
+end note
+
+note as DataFlow
+  **データフロー (典型的)**
+  1. GitHub Issue作成
+  2. Webhook → MasterOrch
+  3. Agent選択 (IssueAgent)
+  4. Task配信 (MUGEN/MAJIN)
+  5. Codex並列実行 (18並列)
+  6. Code生成 (OpenAI API)
+  7. Agent処理 (21種)
+  8. Knowledge検索 (Qdrant)
+  9. Worktree管理
+  10. PR作成 (GitHub)
+  11. 通知 (Lark/Discord/Telegram)
+  12. Audio生成 (VOICEVOX)
+  13. CI/CD実行 (GitHub Actions)
+  14. Merge & Issue Close
+end note
+
+@enduml

@@ -1,6 +1,6 @@
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// Error types for Discord MCP server operations
 #[derive(Error, Debug)]
@@ -162,7 +162,9 @@ mod unified_error_tests {
         let error = DiscordMcpError::NotFound("resource".to_string());
         assert!(error.context().is_some());
 
-        let error = DiscordMcpError::Serialization(serde_json::from_str::<serde_json::Value>("invalid").unwrap_err());
+        let error = DiscordMcpError::Serialization(
+            serde_json::from_str::<serde_json::Value>("invalid").unwrap_err(),
+        );
         assert!(error.context().is_none());
     }
 }

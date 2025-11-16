@@ -1,8 +1,8 @@
 //! Error types for webhook signature verification
 
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// Webhook verification errors
 #[derive(Debug, Error)]

@@ -53,10 +53,7 @@ impl IssueAgent {
         if self.config.verbose {
             info!("   Complexity: {:.1}/10.0", analysis.complexity);
             info!("   Level: {:?}", analysis.complexity_level);
-            info!(
-                "   Estimated duration: {} hours",
-                analysis.estimated_duration_hours
-            );
+            info!("   Estimated duration: {} hours", analysis.estimated_duration_hours);
             info!("   Suggested labels: {:?}", analysis.labels);
             info!("   Reasoning: {}", analysis.reasoning);
         }
@@ -102,10 +99,7 @@ impl IssueAgent {
             .save(&metadata)
             .map_err(|e| MiyabiError::Unknown(format!("Failed to save TaskMetadata: {}", e)))?;
 
-        info!(
-            "📝 Created TaskMetadata for Issue #{}: {}",
-            issue.number, task_id
-        );
+        info!("📝 Created TaskMetadata for Issue #{}: {}", issue.number, task_id);
 
         Ok(metadata)
     }
@@ -130,17 +124,13 @@ impl BaseAgent for IssueAgent {
         // For Phase 1, we'll expect the Issue to be passed via metadata
         // This is a simplified version - in production, you'd fetch from GitHub API
 
-        let issue_data = task
-            .metadata
-            .as_ref()
-            .and_then(|m| m.get("issue"))
-            .ok_or_else(|| {
-                MiyabiError::Agent(AgentError::new(
-                    "No issue data found in task metadata",
-                    AgentType::IssueAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let issue_data = task.metadata.as_ref().and_then(|m| m.get("issue")).ok_or_else(|| {
+            MiyabiError::Agent(AgentError::new(
+                "No issue data found in task metadata",
+                AgentType::IssueAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         let issue: Issue = serde_json::from_value(issue_data.clone()).map_err(|e| {
             warn!("Failed to parse Issue from task metadata: {}", e);

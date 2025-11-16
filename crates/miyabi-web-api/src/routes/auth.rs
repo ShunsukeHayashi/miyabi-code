@@ -145,10 +145,7 @@ pub async fn github_oauth_callback(
     let github_user = client
         .get("https://api.github.com/user")
         .header("User-Agent", "Miyabi-Web-API")
-        .header(
-            "Authorization",
-            format!("Bearer {}", token_response.access_token),
-        )
+        .header("Authorization", format!("Bearer {}", token_response.access_token))
         .send()
         .await
         .map_err(|e| AppError::ExternalApi(format!("Failed to fetch user: {}", e)))?
@@ -170,10 +167,7 @@ pub async fn github_oauth_callback(
         let emails = client
             .get("https://api.github.com/user/emails")
             .header("User-Agent", "Miyabi-Web-API")
-            .header(
-                "Authorization",
-                format!("Bearer {}", token_response.access_token),
-            )
+            .header("Authorization", format!("Bearer {}", token_response.access_token))
             .send()
             .await
             .map_err(|e| AppError::ExternalApi(format!("Failed to fetch emails: {}", e)))?
@@ -209,12 +203,8 @@ pub async fn github_oauth_callback(
     // 5. Redirect to frontend with token
     use urlencoding::encode;
     let redirect_path = query.state.as_deref().unwrap_or("/dashboard");
-    let frontend_redirect = format!(
-        "{}{}?token={}",
-        state.config.frontend_url,
-        redirect_path,
-        encode(&access_token)
-    );
+    let frontend_redirect =
+        format!("{}{}?token={}", state.config.frontend_url, redirect_path, encode(&access_token));
 
     Ok(Redirect::temporary(&frontend_redirect))
 }
@@ -408,9 +398,7 @@ pub async fn mock_login(
 ) -> Result<(StatusCode, Json<MockLoginResponse>)> {
     // SECURITY: Only allow in development/test environments
     if state.config.environment == "production" {
-        return Err(AppError::Authentication(
-            "Mock login is disabled in production".to_string(),
-        ));
+        return Err(AppError::Authentication("Mock login is disabled in production".to_string()));
     }
 
     // Generate a deterministic user ID based on username

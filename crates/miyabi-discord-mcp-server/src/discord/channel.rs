@@ -8,11 +8,7 @@ impl DiscordClient {
         &self,
         request: CreateCategoryRequest,
     ) -> Result<CreateCategoryResponse> {
-        tracing::info!(
-            "Creating category: {} in guild {}",
-            request.name,
-            request.guild_id
-        );
+        tracing::info!("Creating category: {} in guild {}", request.name, request.guild_id);
 
         // TODO: 実装
         // self.http.create_guild_channel(guild_id, &request.name)?
@@ -28,11 +24,7 @@ impl DiscordClient {
         &self,
         request: CreateTextChannelRequest,
     ) -> Result<CreateTextChannelResponse> {
-        tracing::info!(
-            "Creating text channel: {} in guild {}",
-            request.name,
-            request.guild_id
-        );
+        tracing::info!("Creating text channel: {} in guild {}", request.name, request.guild_id);
 
         // TODO: 実装
         todo!("Implement create_text_channel")
@@ -43,11 +35,7 @@ impl DiscordClient {
         &self,
         request: CreateVoiceChannelRequest,
     ) -> Result<CreateVoiceChannelResponse> {
-        tracing::info!(
-            "Creating voice channel: {} in guild {}",
-            request.name,
-            request.guild_id
-        );
+        tracing::info!("Creating voice channel: {} in guild {}", request.name, request.guild_id);
 
         // TODO: 実装
         todo!("Implement create_voice_channel")
@@ -58,11 +46,7 @@ impl DiscordClient {
         &self,
         request: CreateForumChannelRequest,
     ) -> Result<CreateForumChannelResponse> {
-        tracing::info!(
-            "Creating forum channel: {} in guild {}",
-            request.name,
-            request.guild_id
-        );
+        tracing::info!("Creating forum channel: {} in guild {}", request.name, request.guild_id);
 
         // TODO: 実装
         todo!("Implement create_forum_channel")

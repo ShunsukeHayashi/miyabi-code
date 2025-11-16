@@ -72,20 +72,20 @@ impl ApprovalCommand {
                 comment,
             } => {
                 Self::approve(id, approver, comment.clone()).await?;
-            }
+            },
             ApprovalSubcommand::Reject {
                 id,
                 approver,
                 reason,
             } => {
                 Self::reject(id, approver, reason.clone()).await?;
-            }
+            },
             ApprovalSubcommand::List { approver, all } => {
                 Self::list(approver.as_deref(), *all).await?;
-            }
+            },
             ApprovalSubcommand::Show { id } => {
                 Self::show(id).await?;
-            }
+            },
         }
         Ok(())
     }
@@ -220,11 +220,8 @@ impl ApprovalCommand {
             );
 
             if !approval.pending_approvers().is_empty() {
-                let pending: Vec<String> = approval
-                    .pending_approvers()
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect();
+                let pending: Vec<String> =
+                    approval.pending_approvers().iter().map(|s| s.to_string()).collect();
                 println!("  Pending: {}", pending.join(", "));
             }
 
@@ -266,10 +263,7 @@ impl ApprovalCommand {
         println!("Workflow: {}", state.workflow_id);
         println!("Gate: {}", state.gate_id);
         println!("Status: {:?}", state.status);
-        println!(
-            "Created: {}",
-            state.created_at.format("%Y-%m-%d %H:%M:%S UTC")
-        );
+        println!("Created: {}", state.created_at.format("%Y-%m-%d %H:%M:%S UTC"));
 
         if let Some(completed) = state.completed_at {
             println!("Completed: {}", completed.format("%Y-%m-%d %H:%M:%S UTC"));

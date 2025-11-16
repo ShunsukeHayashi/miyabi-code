@@ -207,7 +207,7 @@ impl ReviewAgent {
                         .collect(),
                     passed: audit_result.passed,
                 })
-            }
+            },
             Err(e) => {
                 // If cargo-audit is not installed or other error, log warning and return placeholder
                 tracing::warn!("Security audit failed: {}. Returning default score.", e);
@@ -217,7 +217,7 @@ impl ReviewAgent {
                     vulnerabilities: vec![],
                     passed: true,
                 })
-            }
+            },
         }
     }
 
@@ -305,10 +305,7 @@ impl ReviewAgent {
     /// Perform code review
     pub async fn review_code(&self, task: &Task) -> Result<ReviewResult> {
         // Validate task type
-        if !matches!(
-            task.task_type,
-            TaskType::Feature | TaskType::Bug | TaskType::Refactor
-        ) {
+        if !matches!(task.task_type, TaskType::Feature | TaskType::Bug | TaskType::Refactor) {
             return Err(MiyabiError::Validation(format!(
                 "ReviewAgent cannot handle task type: {:?}",
                 task.task_type
@@ -421,9 +418,7 @@ impl BaseAgent for ReviewAgent {
                     "Quality score {} is below threshold",
                     review_result.quality_report.score
                 ),
-                target: review_result
-                    .escalation_target
-                    .unwrap_or(EscalationTarget::TechLead),
+                target: review_result.escalation_target.unwrap_or(EscalationTarget::TechLead),
                 severity: Severity::High,
                 context,
                 timestamp: end_time,
@@ -495,11 +490,7 @@ fn format_vulnerability(vuln: &Vulnerability) -> String {
         VulnerabilitySeverity::None => "INFO",
     };
 
-    let cve_str = vuln
-        .cve
-        .as_ref()
-        .map(|c| format!(" ({})", c))
-        .unwrap_or_default();
+    let cve_str = vuln.cve.as_ref().map(|c| format!(" ({})", c)).unwrap_or_default();
 
     format!(
         "[{}] {} - {}{} - Package: {}",
@@ -647,10 +638,10 @@ mod tests {
                 assert!(result.metrics.is_some());
                 let metrics = result.metrics.unwrap();
                 assert!(metrics.quality_score.is_some());
-            }
+            },
             Err(e) => {
                 tracing::warn!("Execute test skipped (not in Rust environment): {}", e);
-            }
+            },
         }
     }
 
@@ -672,10 +663,10 @@ mod tests {
                 // Should always return a valid result (even if cargo-audit is not installed)
                 assert!(result.score <= 100);
                 tracing::info!("Security audit score: {}", result.score);
-            }
+            },
             Err(e) => {
                 tracing::warn!("Security audit test failed: {}", e);
-            }
+            },
         }
     }
 

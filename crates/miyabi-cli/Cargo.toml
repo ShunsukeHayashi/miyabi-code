@@ -32,6 +32,8 @@ miyabi-agent-business = { path = "../miyabi-agent-business" }
 miyabi-worktree = { path = "../miyabi-worktree" }
 miyabi-knowledge = { path = "../miyabi-knowledge" }
 miyabi-modes = { path = "../miyabi-modes" }
+miyabi-a2a = { path = "../miyabi-a2a" }
+miyabi-approval = { path = "../miyabi-approval" }
 # miyabi-feedback-loop MERGED into miyabi-orchestrator/feedback
 miyabi-orchestrator = { path = "../miyabi-orchestrator" }
 miyabi-a2a = { path = "../miyabi-a2a" }

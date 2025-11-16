@@ -1,0 +1,341 @@
+@startuml UseCase-Diagram
+' ユースケース図: Miyabi ユーザーインタラクション
+
+left to right direction
+skinparam packageStyle rectangle
+
+title **Miyabi - Use Case Diagram**\nユーザーとシステムのインタラクション
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Actors
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+actor "Developer\n(水蜘蛛)" as Dev
+actor "Product Owner" as PO
+actor "Business Analyst" as BA
+actor "DevOps Engineer" as DevOps
+actor "Reviewer" as Reviewer
+actor "End User" as EndUser
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' System Boundaries
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+rectangle "Miyabi System" {
+
+  ' === Development Workflow ===
+  package "Development Workflow" {
+    usecase "Create Issue" as UC1
+    usecase "Assign Labels" as UC2
+    usecase "Review Code" as UC3
+    usecase "Approve PR" as UC4
+    usecase "Merge PR" as UC5
+    usecase "Deploy to Production" as UC6
+    usecase "Monitor Status" as UC7
+    usecase "View Logs" as UC8
+  }
+
+  ' === Agent Management ===
+  package "Agent Management" {
+    usecase "Start Agent" as UC9
+    usecase "Stop Agent" as UC10
+    usecase "Configure Agent" as UC11
+    usecase "Monitor Agent Health" as UC12
+    usecase "View Agent Metrics" as UC13
+    usecase "Trigger Manual Agent Run" as UC14
+  }
+
+  ' === Codex Orchestration ===
+  package "Codex Orchestration (18並列)" {
+    usecase "Setup Codex Environment" as UC15
+    usecase "Distribute Tasks" as UC16
+    usecase "Monitor Codex Instances" as UC17
+    usecase "Collect Execution Results" as UC18
+    usecase "Handle Codex Failures" as UC19
+  }
+
+  ' === Business Planning ===
+  package "Business Planning (14 Agents)" {
+    usecase "Self Analysis" as UC20
+    usecase "Market Research" as UC21
+    usecase "Create Personas" as UC22
+    usecase "Design Product Concept" as UC23
+    usecase "Plan Marketing Strategy" as UC24
+    usecase "Design Sales Funnel" as UC25
+    usecase "Create Content" as UC26
+    usecase "Analyze Data & KPIs" as UC27
+  }
+
+  ' === Knowledge Management ===
+  package "Knowledge Management" {
+    usecase "Search Knowledge Base" as UC28
+    usecase "Index Codebase" as UC29
+    usecase "Query Context7" as UC30
+    usecase "Retrieve Library Docs" as UC31
+    usecase "Semantic Code Search" as UC32
+  }
+
+  ' === Communication ===
+  package "Communication" {
+    usecase "Receive Lark Notification" as UC33
+    usecase "Receive Discord Message" as UC34
+    usecase "Receive Telegram Message" as UC35
+    usecase "Listen to Audio Guide" as UC36
+  }
+
+  ' === Git Operations ===
+  package "Git Operations" {
+    usecase "Create Worktree" as UC37
+    usecase "Commit Changes" as UC38
+    usecase "Push to Remote" as UC39
+    usecase "Cleanup Worktree" as UC40
+  }
+
+  ' === VS Code Integration ===
+  package "VS Code Integration" {
+    usecase "Connect to MUGEN" as UC41
+    usecase "Connect to MAJIN" as UC42
+    usecase "Sync Settings" as UC43
+    usecase "View Remote Terminal" as UC44
+  }
+
+  ' === Monitoring & Observability ===
+  package "Monitoring & Observability" {
+    usecase "View Dashboard" as UC45
+    usecase "Check Resource Usage" as UC46
+    usecase "Review Error Logs" as UC47
+    usecase "Track Performance Metrics" as UC48
+  }
+}
+
+' === External Systems ===
+actor "GitHub API" as GitHub
+actor "OpenAI API" as OpenAI
+actor "Anthropic API" as Anthropic
+actor "Qdrant DB" as Qdrant
+actor "VOICEVOX" as VOICEVOX
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Development Workflow
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dev --> UC1 : creates
+PO --> UC1 : creates
+Dev --> UC2 : assigns
+UC1 ..> UC2 : <<include>>
+
+Reviewer --> UC3 : reviews
+UC3 ..> UC8 : <<include>>
+
+Reviewer --> UC4 : approves
+Dev --> UC5 : merges
+UC5 ..> UC6 : <<extend>>
+
+DevOps --> UC6 : deploys
+DevOps --> UC7 : monitors
+Dev --> UC7 : monitors
+
+Dev --> UC8 : views
+DevOps --> UC8 : views
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Agent Management
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dev --> UC9 : starts
+DevOps --> UC9 : starts
+Dev --> UC10 : stops
+DevOps --> UC10 : stops
+
+DevOps --> UC11 : configures
+Dev --> UC11 : configures
+
+DevOps --> UC12 : monitors
+UC12 ..> UC13 : <<include>>
+
+Dev --> UC13 : views
+Dev --> UC14 : triggers
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Codex Orchestration
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DevOps --> UC15 : setups
+UC15 ..> UC41 : <<include>>
+UC15 ..> UC42 : <<include>>
+
+UC1 ..> UC16 : <<extend>>
+UC16 ..> UC17 : <<include>>
+
+DevOps --> UC17 : monitors
+Dev --> UC17 : monitors
+
+UC17 ..> UC18 : <<include>>
+UC18 ..> UC19 : <<extend>>
+
+DevOps --> UC19 : handles
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Business Planning
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BA --> UC20 : requests
+BA --> UC21 : requests
+UC21 ..> UC28 : <<include>>
+
+PO --> UC22 : requests
+PO --> UC23 : requests
+UC23 ..> UC22 : <<include>>
+
+PO --> UC24 : requests
+PO --> UC25 : requests
+UC24 ..> UC25 : <<extend>>
+
+BA --> UC26 : requests
+BA --> UC27 : requests
+UC27 ..> UC48 : <<include>>
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Knowledge Management
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dev --> UC28 : searches
+UC28 ..> UC32 : <<include>>
+
+DevOps --> UC29 : indexes
+UC29 ..> Qdrant : uses
+
+Dev --> UC30 : queries
+Dev --> UC31 : retrieves
+Dev --> UC32 : searches
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Communication
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dev --> UC33 : receives
+Dev --> UC34 : receives
+Dev --> UC35 : receives
+Dev --> UC36 : listens
+
+UC36 ..> VOICEVOX : uses
+
+EndUser --> UC33 : receives (team)
+EndUser --> UC34 : receives (community)
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Git Operations
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+UC1 ..> UC37 : <<extend>>
+UC37 ..> UC38 : <<include>>
+UC38 ..> UC39 : <<include>>
+UC5 ..> UC40 : <<extend>>
+
+Dev --> UC37 : creates
+Dev --> UC38 : commits
+Dev --> UC39 : pushes
+Dev --> UC40 : cleanups
+
+UC39 ..> GitHub : uses
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: VS Code Integration
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dev --> UC41 : connects
+Dev --> UC42 : connects
+UC41 ..> UC43 : <<include>>
+UC42 ..> UC43 : <<include>>
+
+Dev --> UC43 : syncs
+Dev --> UC44 : views
+
+UC44 ..> UC17 : <<extend>>
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Relationships: Monitoring & Observability
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DevOps --> UC45 : views
+Dev --> UC45 : views
+UC45 ..> UC46 : <<include>>
+UC45 ..> UC48 : <<include>>
+
+DevOps --> UC46 : checks
+DevOps --> UC47 : reviews
+DevOps --> UC48 : tracks
+
+Dev --> UC47 : reviews
+Dev --> UC48 : tracks
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' External System Interactions
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+UC16 ..> OpenAI : uses
+UC9 ..> Anthropic : uses
+UC28 ..> Qdrant : uses
+
+GitHub --> UC1 : webhook
+UC1 ..> GitHub : creates issue
+UC5 ..> GitHub : merges PR
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Notes
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+note right of Dev
+  **Developer (水蜘蛛)**
+  - Issue作成
+  - Code Review
+  - PR Merge
+  - Monitor Status
+  - VS Code接続
+end note
+
+note right of PO
+  **Product Owner**
+  - Issue作成 (Business)
+  - Persona定義
+  - Product Concept決定
+  - Marketing戦略承認
+end note
+
+note right of BA
+  **Business Analyst**
+  - 市場調査依頼
+  - 自己分析実施
+  - Content作成依頼
+  - KPI分析
+end note
+
+note right of DevOps
+  **DevOps Engineer**
+  - Codex環境構築
+  - Agent監視・管理
+  - Deploy実行
+  - モニタリング
+end note
+
+note right of Reviewer
+  **Reviewer**
+  - Code Review実施
+  - PR承認
+  - Quality Gate判定
+end note
+
+note bottom of "Miyabi System"
+  **Miyabi System Features**
+  - 21 Agents (7 Coding + 14 Business)
+  - 18 Codex並列実行 (MUGEN 12 + MAJIN 6)
+  - 15+ Rust Crates
+  - 57 Label体系
+  - 14 Entities, 39 Relations
+  - Multi-channel Notification (Lark/Discord/Telegram)
+  - Knowledge Base (Qdrant, Context7, Potpie)
+  - Complete CI/CD Automation
+  - VOICEVOX Audio Guide
+end note
+
+@enduml

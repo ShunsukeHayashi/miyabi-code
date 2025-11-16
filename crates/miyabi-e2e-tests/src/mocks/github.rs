@@ -132,18 +132,9 @@ impl MockGitHubBuilder {
             .route("/repos/:owner/:repo/issues", post(create_issue))
             .route("/repos/:owner/:repo/issues/:number", get(get_issue))
             .route("/repos/:owner/:repo/issues/:number", patch(update_issue))
-            .route(
-                "/repos/:owner/:repo/issues/:number/comments",
-                post(create_comment),
-            )
-            .route(
-                "/repos/:owner/:repo/issues/:number/comments",
-                get(list_comments),
-            )
-            .route(
-                "/repos/:owner/:repo/issues/:number/labels",
-                post(add_labels),
-            )
+            .route("/repos/:owner/:repo/issues/:number/comments", post(create_comment))
+            .route("/repos/:owner/:repo/issues/:number/comments", get(list_comments))
+            .route("/repos/:owner/:repo/issues/:number/labels", post(add_labels))
             .route("/repos/:owner/:repo/pulls", post(create_pr))
             .route("/repos/:owner/:repo/pulls/:number", get(get_pr))
             .with_state(state.clone());
@@ -156,9 +147,7 @@ impl MockGitHubBuilder {
 
         // Spawn server in background
         tokio::spawn(async move {
-            axum::serve(listener, app)
-                .await
-                .expect("Failed to serve mock GitHub");
+            axum::serve(listener, app).await.expect("Failed to serve mock GitHub");
         });
 
         Ok(MockGitHub { address, state })
@@ -205,12 +194,7 @@ async fn get_issue(
 ) -> Result<Json<MockIssueResponse>, StatusCode> {
     debug!("GET /issues/{}", number);
     let state = state.read().await;
-    state
-        .issues
-        .get(&number)
-        .cloned()
-        .map(Json)
-        .ok_or(StatusCode::NOT_FOUND)
+    state.issues.get(&number).cloned().map(Json).ok_or(StatusCode::NOT_FOUND)
 }
 
 #[derive(Deserialize)]
@@ -264,11 +248,7 @@ async fn create_comment(
         body: payload.body,
     };
 
-    state
-        .comments
-        .entry(number)
-        .or_default()
-        .push(comment.clone());
+    state.comments.entry(number).or_default().push(comment.clone());
 
     (StatusCode::CREATED, Json(comment))
 }
@@ -342,10 +322,5 @@ async fn get_pr(
 ) -> Result<Json<MockPRResponse>, StatusCode> {
     debug!("GET /pulls/{}", number);
     let state = state.read().await;
-    state
-        .prs
-        .get(&number)
-        .cloned()
-        .map(Json)
-        .ok_or(StatusCode::NOT_FOUND)
+    state.prs.get(&number).cloned().map(Json).ok_or(StatusCode::NOT_FOUND)
 }

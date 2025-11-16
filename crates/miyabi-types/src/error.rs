@@ -295,7 +295,6 @@ pub type Result<T> = std::result::Result<T, MiyabiError>;
 // Implement UnifiedError trait for MiyabiError
 impl UnifiedError for MiyabiError {
     fn code(&self) -> ErrorCode {
-
         match self {
             Self::Agent(_) => ErrorCode::AGENT_ERROR,
             Self::Escalation(_) => ErrorCode::ESCALATION_ERROR,
@@ -333,54 +332,44 @@ impl UnifiedError for MiyabiError {
                 "Tasks have circular dependencies that prevent execution: {}",
                 e.cycle.join(" → ")
             ),
-            Self::Io(e) => format!(
-                "A file operation failed: {}. Please check file paths and permissions.",
-                e
-            ),
-            Self::Json(e) => format!(
-                "Failed to process JSON data: {}. Please check the data format.",
-                e
-            ),
-            Self::Http(msg) => format!(
-                "A network request failed: {}. Please check your internet connection.",
-                msg
-            ),
+            Self::Io(e) => {
+                format!("A file operation failed: {}. Please check file paths and permissions.", e)
+            },
+            Self::Json(e) => {
+                format!("Failed to process JSON data: {}. Please check the data format.", e)
+            },
+            Self::Http(msg) => {
+                format!("A network request failed: {}. Please check your internet connection.", msg)
+            },
             Self::GitHub(msg) => format!(
                 "GitHub API request failed: {}. Please check your token and permissions.",
                 msg
             ),
-            Self::Git(msg) => format!(
-                "Git operation failed: {}. Please check your repository state.",
-                msg
-            ),
-            Self::Auth(msg) => format!(
-                "Authentication failed: {}. Please check your credentials.",
-                msg
-            ),
-            Self::Config(msg) => format!(
-                "Configuration error: {}. Please check your settings.",
-                msg
-            ),
-            Self::Validation(msg) => format!(
-                "Input validation failed: {}. Please check your input.",
-                msg
-            ),
+            Self::Git(msg) => {
+                format!("Git operation failed: {}. Please check your repository state.", msg)
+            },
+            Self::Auth(msg) => {
+                format!("Authentication failed: {}. Please check your credentials.", msg)
+            },
+            Self::Config(msg) => {
+                format!("Configuration error: {}. Please check your settings.", msg)
+            },
+            Self::Validation(msg) => {
+                format!("Input validation failed: {}. Please check your input.", msg)
+            },
             Self::Timeout(ms) => format!(
                 "Operation timed out after {}ms. Please try again or increase the timeout.",
                 ms
             ),
-            Self::ToolError(msg) => format!(
-                "Tool execution failed: {}. Please check the tool configuration.",
-                msg
-            ),
-            Self::PermissionDenied(msg) => format!(
-                "Permission denied: {}. Please check file or API permissions.",
-                msg
-            ),
-            Self::Unknown(msg) => format!(
-                "An unexpected error occurred: {}. Please report this issue.",
-                msg
-            ),
+            Self::ToolError(msg) => {
+                format!("Tool execution failed: {}. Please check the tool configuration.", msg)
+            },
+            Self::PermissionDenied(msg) => {
+                format!("Permission denied: {}. Please check file or API permissions.", msg)
+            },
+            Self::Unknown(msg) => {
+                format!("An unexpected error occurred: {}. Please report this issue.", msg)
+            },
         }
     }
 
@@ -404,22 +393,16 @@ mod tests {
 
     #[test]
     fn test_miyabi_error_agent_variant() {
-        let agent_error = AgentError::new(
-            "Test error",
-            AgentType::CodeGenAgent,
-            Some("task-1".to_string()),
-        );
+        let agent_error =
+            AgentError::new("Test error", AgentType::CodeGenAgent, Some("task-1".to_string()));
         let miyabi_error = MiyabiError::Agent(agent_error);
         assert!(miyabi_error.to_string().contains("Agent error"));
     }
 
     #[test]
     fn test_miyabi_error_from_agent_error() {
-        let agent_error = AgentError::new(
-            "Test error",
-            AgentType::ReviewAgent,
-            Some("task-2".to_string()),
-        );
+        let agent_error =
+            AgentError::new("Test error", AgentType::ReviewAgent, Some("task-2".to_string()));
         let miyabi_error: MiyabiError = agent_error.into();
         assert!(matches!(miyabi_error, MiyabiError::Agent(_)));
     }
@@ -581,11 +564,8 @@ mod tests {
 
     #[test]
     fn test_agent_error_display() {
-        let error = AgentError::new(
-            "Test message",
-            AgentType::IssueAgent,
-            Some("task-789".to_string()),
-        );
+        let error =
+            AgentError::new("Test message", AgentType::IssueAgent, Some("task-789".to_string()));
         let display = error.to_string();
         assert!(display.contains("IssueAgent"));
         assert!(display.contains("Test message"));

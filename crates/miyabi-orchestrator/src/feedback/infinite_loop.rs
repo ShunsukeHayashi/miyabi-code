@@ -94,15 +94,12 @@ impl InfiniteLoopOrchestrator {
 
         // Create goal if it doesn't exist
         if self.goal_manager.get_goal(goal_id).is_err() {
-            self.goal_manager
-                .create_goal(goal_id, format!("Goal {}", goal_id));
+            self.goal_manager.create_goal(goal_id, format!("Goal {}", goal_id));
         }
 
         // Set goal to active
-        self.goal_manager
-            .update_status(goal_id, GoalStatus::Active)?;
-        self.active_loops
-            .insert(goal_id.to_string(), LoopStatus::Running);
+        self.goal_manager.update_status(goal_id, GoalStatus::Active)?;
+        self.active_loops.insert(goal_id.to_string(), LoopStatus::Running);
 
         let start_time = std::time::Instant::now();
         let mut iteration = 0;
@@ -123,9 +120,7 @@ impl InfiniteLoopOrchestrator {
             params.insert("GOAL_DESCRIPTION".to_string(), goal_id.to_string());
             params.insert(
                 "MAX_ITERATIONS".to_string(),
-                self.config
-                    .max_iterations
-                    .map_or("unlimited".to_string(), |m| m.to_string()),
+                self.config.max_iterations.map_or("unlimited".to_string(), |m| m.to_string()),
             );
             crate::hooks::notify_loop_event("loop_start", params);
         }
@@ -137,8 +132,7 @@ impl InfiniteLoopOrchestrator {
             if let Some(max) = self.config.max_iterations {
                 if iteration > max {
                     tracing::info!("Max iterations ({}) reached for goal: {}", max, goal_id);
-                    self.active_loops
-                        .insert(goal_id.to_string(), LoopStatus::MaxIterationsReached);
+                    self.active_loops.insert(goal_id.to_string(), LoopStatus::MaxIterationsReached);
 
                     // Hook: Max iterations reached
                     {
@@ -168,10 +162,8 @@ impl InfiniteLoopOrchestrator {
                         params.insert("ITERATION".to_string(), iteration.to_string());
                         params.insert("SCORE".to_string(), iter_result.score.to_string());
                         params.insert("FEEDBACK".to_string(), iter_result.feedback.clone());
-                        params.insert(
-                            "DURATION_MS".to_string(),
-                            iter_result.duration_ms.to_string(),
-                        );
+                        params
+                            .insert("DURATION_MS".to_string(), iter_result.duration_ms.to_string());
                         crate::hooks::notify_loop_event("iteration_success", params);
                     }
 
@@ -186,10 +178,8 @@ impl InfiniteLoopOrchestrator {
                             iteration,
                             goal_id
                         );
-                        self.goal_manager
-                            .update_status(goal_id, GoalStatus::Completed)?;
-                        self.active_loops
-                            .insert(goal_id.to_string(), LoopStatus::Completed);
+                        self.goal_manager.update_status(goal_id, GoalStatus::Completed)?;
+                        self.active_loops.insert(goal_id.to_string(), LoopStatus::Completed);
 
                         // Hook: Convergence detected
                         {
@@ -207,7 +197,7 @@ impl InfiniteLoopOrchestrator {
 
                         break;
                     }
-                }
+                },
                 Err(e) => {
                     consecutive_failures += 1;
                     tracing::error!(
@@ -233,10 +223,8 @@ impl InfiniteLoopOrchestrator {
 
                     if consecutive_failures >= self.config.max_retries {
                         tracing::error!("Max consecutive failures reached for goal: {}", goal_id);
-                        self.goal_manager
-                            .update_status(goal_id, GoalStatus::Failed)?;
-                        self.active_loops
-                            .insert(goal_id.to_string(), LoopStatus::Failed);
+                        self.goal_manager.update_status(goal_id, GoalStatus::Failed)?;
+                        self.active_loops.insert(goal_id.to_string(), LoopStatus::Failed);
 
                         // Hook: Max retries exceeded
                         {
@@ -253,7 +241,7 @@ impl InfiniteLoopOrchestrator {
 
                         return Err(e);
                     }
-                }
+                },
             }
 
             // Delay before next iteration
@@ -273,10 +261,7 @@ impl InfiniteLoopOrchestrator {
         }
 
         let total_duration_ms = start_time.elapsed().as_millis() as u64;
-        let loop_status = *self
-            .active_loops
-            .get(goal_id)
-            .unwrap_or(&LoopStatus::Completed);
+        let loop_status = *self.active_loops.get(goal_id).unwrap_or(&LoopStatus::Completed);
 
         // Hook: Loop complete
         {
@@ -285,10 +270,7 @@ impl InfiniteLoopOrchestrator {
             params.insert("GOAL_DESCRIPTION".to_string(), goal_id.to_string());
             params.insert("ITERATION".to_string(), iteration.to_string());
             params.insert("LOOP_STATUS".to_string(), format!("{:?}", loop_status));
-            params.insert(
-                "TOTAL_DURATION_MS".to_string(),
-                total_duration_ms.to_string(),
-            );
+            params.insert("TOTAL_DURATION_MS".to_string(), total_duration_ms.to_string());
             if let Some(last_result) = results.last() {
                 params.insert("SCORE".to_string(), last_result.score.to_string());
             }
@@ -327,13 +309,13 @@ impl InfiniteLoopOrchestrator {
                     );
                     tokio::time::sleep(Duration::from_millis(1000)).await;
                     continue;
-                }
+                },
                 Err(_e) => {
                     return Err(LoopError::MaxRetriesExceeded {
                         iteration,
                         max_retries: self.config.max_retries,
                     })
-                }
+                },
             }
         }
     }
@@ -409,10 +391,7 @@ impl InfiniteLoopOrchestrator {
             return 0.0;
         }
 
-        let n = self
-            .config
-            .min_iterations_before_convergence
-            .min(metrics.len());
+        let n = self.config.min_iterations_before_convergence.min(metrics.len());
         let last_n = &metrics[metrics.len() - n..];
 
         let mean = last_n.iter().sum::<f64>() / last_n.len() as f64;
@@ -426,10 +405,8 @@ impl InfiniteLoopOrchestrator {
 
     /// Cancel a running loop
     pub fn cancel_loop(&mut self, goal_id: &str) -> LoopResult<()> {
-        self.goal_manager
-            .update_status(goal_id, GoalStatus::Cancelled)?;
-        self.active_loops
-            .insert(goal_id.to_string(), LoopStatus::Cancelled);
+        self.goal_manager.update_status(goal_id, GoalStatus::Cancelled)?;
+        self.active_loops.insert(goal_id.to_string(), LoopStatus::Cancelled);
         Ok(())
     }
 }

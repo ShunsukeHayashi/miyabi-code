@@ -1,10 +1,10 @@
 //! Error types for miyabi-scheduler
 
+use miyabi_types::error::{ErrorCode, UnifiedError};
+use std::any::Any;
 use std::io;
 use std::path::PathBuf;
 use thiserror::Error;
-use miyabi_types::error::{ErrorCode, UnifiedError};
-use std::any::Any;
 
 /// Result type alias for scheduler operations
 pub type Result<T> = std::result::Result<T, SchedulerError>;

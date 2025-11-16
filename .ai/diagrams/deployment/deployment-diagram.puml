@@ -1,0 +1,385 @@
+@startuml Deployment-Diagram
+' デプロイメント図: Miyabi インフラストラクチャトポロジー
+
+title **Miyabi - Deployment Diagram**\nインフラストラクチャ配置と通信経路 (Phase 1: 18 Codex)
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Local Environment (MacBook Pro)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+node "Local PC (MacBook Pro)" as LocalPC {
+  artifact "VS Code" as VSCode {
+    component "Remote-SSH Extension" as RemoteSSH
+    component "Multi-root Workspace" as MultiRoot
+    component "Settings Sync" as SettingsSync
+  }
+
+  artifact "Master Orchestrator" as MasterOrch {
+    component "master-orchestrator.sh" as MasterScript
+    component "Task Distributor" as TaskDist
+    component "Status Collector" as StatusColl
+  }
+
+  artifact "Monitor Dashboard" as MonitorLocal {
+    component "monitor-18-codex.sh" as MonitorScript
+    component "Real-time Metrics" as RealtimeMetrics
+  }
+
+  artifact "Local Tools" as LocalTools {
+    component "SSH Client" as SSH
+    component "Git" as GitLocal
+    component "tmux" as TmuxLocal
+  }
+
+  database "Local Git Repo" as LocalRepo {
+    folder ".worktrees/" as LocalWorktrees
+    folder "crates/" as LocalCrates
+    folder "scripts/" as LocalScripts
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' MUGEN EC2 Instance (us-east-1)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+node "MUGEN EC2\n(16 vCPU, 124GB RAM)" as MUGEN {
+  artifact "Sub-Orchestrator (MUGEN)" as SubMUGEN {
+    component "sub-orchestrator-mugen.sh" as SubMUGENScript
+    component "Task Queue Manager" as QueueMUGEN
+  }
+
+  artifact "tmux Session: mugen-codex" as TmuxMUGEN {
+    component "Codex-1 Window" as W1
+    component "Codex-2 Window" as W2
+    component "Codex-3 Window" as W3
+    component "Codex-4 to 12 Windows" as W4_12
+    component "Monitor Window" as WMonitor
+  }
+
+  artifact "Codex Instances (12)" as CodexMUGEN {
+    component "Codex CLI 1-12" as CodexCLI_MUGEN
+    component "OpenAI API Client" as OpenAIClient_MUGEN
+  }
+
+  artifact "Heavy Agents (7)" as HeavyAgents {
+    component "CodeGenAgent" as CodeGenM
+    component "DeploymentAgent" as DeployM
+    component "All Business Agents (14)" as BusinessM
+  }
+
+  database "Git Repo (MUGEN)" as RepoMUGEN {
+    folder ".worktrees/" as WorktreesMUGEN
+    folder "crates/" as CratesMUGEN
+    folder "target/" as TargetMUGEN
+  }
+
+  artifact "System Resources" as ResourcesMUGEN {
+    component "CPU: 16 vCPU" as CPUMUGEN
+    component "Memory: 124 GB" as MemMUGEN
+    component "Disk: 1 TB SSD" as DiskMUGEN
+  }
+
+  artifact "Development Tools" as DevToolsMUGEN {
+    component "Rust Toolchain" as RustMUGEN
+    component "Node.js" as NodeMUGEN
+    component "Git" as GitMUGEN
+    component "tmux" as TmuxToolMUGEN
+    component "OpenAI Codex CLI" as CodexToolMUGEN
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' MAJIN EC2 Instance (us-east-1)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+node "MAJIN EC2\n(8 vCPU, 30GB RAM)" as MAJIN {
+  artifact "Sub-Orchestrator (MAJIN)" as SubMAJIN {
+    component "sub-orchestrator-majin.sh" as SubMAJINScript
+    component "Task Queue Manager" as QueueMAJIN
+  }
+
+  artifact "tmux Session: majin-codex" as TmuxMAJIN {
+    component "Codex-13 Window" as W13
+    component "Codex-14 Window" as W14
+    component "Codex-15 to 18 Windows" as W15_18
+    component "Monitor Window" as WMonitorMAJIN
+  }
+
+  artifact "Codex Instances (6)" as CodexMAJIN {
+    component "Codex CLI 13-18" as CodexCLI_MAJIN
+    component "OpenAI API Client" as OpenAIClient_MAJIN
+  }
+
+  artifact "Light Agents (4)" as LightAgents {
+    component "ReviewAgent" as ReviewM
+    component "IssueAgent" as IssueM
+    component "PRAgent" as PRM
+    component "RefresherAgent" as RefreshM
+  }
+
+  database "Git Repo (MAJIN)" as RepoMAJIN {
+    folder ".worktrees/" as WorktreesMAJIN
+    folder "crates/" as CratesMAJIN
+    folder "target/" as TargetMAJIN
+  }
+
+  artifact "System Resources" as ResourcesMAJIN {
+    component "CPU: 8 vCPU" as CPUMAJIN
+    component "Memory: 30 GB" as MemMAJIN
+    component "Disk: 500 GB SSD" as DiskMAJIN
+  }
+
+  artifact "Development Tools" as DevToolsMAJIN {
+    component "Rust Toolchain" as RustMAJIN
+    component "Node.js" as NodeMAJIN
+    component "Git" as GitMAJIN
+    component "tmux" as TmuxToolMAJIN
+    component "OpenAI Codex CLI" as CodexToolMAJIN
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Cloud Services (AWS / External APIs)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cloud "AWS Cloud (us-east-1)" as AWS {
+  node "GitHub Actions\n(Self-hosted Runners)" as Actions {
+    component "Runner on MUGEN" as RunnerMUGEN
+    component "Runner on MAJIN" as RunnerMAJIN
+  }
+
+  database "S3 Bucket" as S3 {
+    folder "logs/" as S3Logs
+    folder "artifacts/" as S3Artifacts
+  }
+}
+
+cloud "External APIs" as ExternalAPIs {
+  node "OpenAI API" as OpenAI {
+    component "GPT-5 / o3" as GPT5
+    component "Rate Limiter" as RateLimit
+  }
+
+  node "Anthropic API" as Anthropic {
+    component "Claude Sonnet 4.5" as ClaudeAPI
+  }
+
+  node "Google AI" as Google {
+    component "Gemini" as GeminiAPI
+  }
+
+  node "GitHub" as GitHub {
+    component "REST API" as GitHubREST
+    component "GraphQL API" as GitHubGraphQL
+    component "Webhook" as GitHubWebhook
+  }
+
+  node "Communication Services" as CommServices {
+    component "Lark Webhook" as LarkAPI
+    component "Discord Webhook" as DiscordAPI
+    component "Telegram Bot API" as TelegramAPI
+  }
+
+  node "VOICEVOX" as VOICEVOX {
+    component "TTS Engine" as TTSEngine
+  }
+}
+
+cloud "Knowledge Services" as KnowledgeCloud {
+  node "Qdrant Cloud" as Qdrant {
+    component "Vector DB" as VectorDB
+    component "Collection: miyabi" as QdrantCollection
+  }
+
+  node "Context7" as Context7 {
+    component "Library Docs API" as Context7API
+  }
+
+  node "Potpie" as Potpie {
+    component "Code Context API" as PotpieAPI
+  }
+}
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Communication Paths
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+' Local PC to Remote Instances
+LocalPC --> MUGEN : SSH (Port 22)\nKey-based Auth
+LocalPC --> MAJIN : SSH (Port 22)\nKey-based Auth
+
+VSCode --> MUGEN : Remote-SSH\nVS Code Server
+VSCode --> MAJIN : Remote-SSH\nVS Code Server
+
+MasterOrch --> SubMUGEN : scp/rsync\nTask Distribution
+MasterOrch --> SubMAJIN : scp/rsync\nTask Distribution
+
+MonitorLocal --> MUGEN : SSH\nMetrics Collection
+MonitorLocal --> MAJIN : SSH\nMetrics Collection
+
+' MUGEN Internal
+SubMUGEN --> TmuxMUGEN : tmux commands
+TmuxMUGEN --> CodexMUGEN : Window Management
+CodexMUGEN --> HeavyAgents : Execute
+HeavyAgents --> RepoMUGEN : File Operations
+CodexMUGEN --> OpenAI : HTTPS API Request\n(18並列)
+
+' MAJIN Internal
+SubMAJIN --> TmuxMAJIN : tmux commands
+TmuxMAJIN --> CodexMAJIN : Window Management
+CodexMAJIN --> LightAgents : Execute
+LightAgents --> RepoMAJIN : File Operations
+CodexMAJIN --> OpenAI : HTTPS API Request\n(18並列)
+
+' External API Connections
+MUGEN --> GitHub : HTTPS API\nIssue/PR管理
+MAJIN --> GitHub : HTTPS API\nIssue/PR管理
+
+MUGEN --> Anthropic : HTTPS API\nClaude Sonnet 4.5
+MAJIN --> Anthropic : HTTPS API\nClaude Sonnet 4.5
+
+MUGEN --> Google : HTTPS API\nGemini
+MAJIN --> Google : HTTPS API\nGemini
+
+MUGEN --> Qdrant : HTTPS API\nVector検索
+MAJIN --> Qdrant : HTTPS API\nVector検索
+
+MUGEN --> Context7 : HTTPS API\nLibrary Docs
+MAJIN --> Context7 : HTTPS API\nLibrary Docs
+
+MUGEN --> Potpie : HTTPS API\nCode Context
+MAJIN --> Potpie : HTTPS API\nCode Context
+
+MUGEN --> CommServices : HTTPS Webhook\n通知送信
+MAJIN --> CommServices : HTTPS Webhook\n通知送信
+
+MUGEN --> VOICEVOX : HTTP API\nTTS生成
+MAJIN --> VOICEVOX : HTTP API\nTTS生成
+
+' GitHub Actions Integration
+GitHub --> Actions : Trigger CI/CD
+Actions --> MUGEN : Self-hosted Runner\ncargo test/build
+Actions --> MAJIN : Self-hosted Runner\ncargo test/build
+Actions --> S3 : Upload Logs/Artifacts
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Network Zones and Security
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+rectangle "Security Group: MUGEN" as SGMUGEN {
+  note right
+    **Inbound Rules:**
+    - Port 22: SSH (LocalPC IP only)
+    - Port 443: HTTPS (All)
+
+    **Outbound Rules:**
+    - All traffic allowed
+  end note
+}
+
+rectangle "Security Group: MAJIN" as SGMAJIN {
+  note right
+    **Inbound Rules:**
+    - Port 22: SSH (LocalPC IP only)
+    - Port 443: HTTPS (All)
+
+    **Outbound Rules:**
+    - All traffic allowed
+  end note
+}
+
+MUGEN -[hidden]-> SGMUGEN
+MAJIN -[hidden]-> SGMAJIN
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Notes
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+note left of LocalPC
+  **Local PC (MacBook Pro)**
+  - OS: macOS
+  - Role: Master Control
+  - Tools: VS Code, SSH, Git
+  - Network: Home/Office Wi-Fi
+end note
+
+note left of MUGEN
+  **MUGEN EC2**
+  - Instance Type: c5.4xlarge
+  - vCPU: 16
+  - Memory: 124 GB RAM
+  - Disk: 1 TB SSD (gp3)
+  - OS: Ubuntu 22.04 LTS
+  - Region: us-east-1a
+  - Cost: ~$500/month (On-Demand)
+  - Workload: Heavy Tasks (Coding, Business)
+end note
+
+note right of MAJIN
+  **MAJIN EC2**
+  - Instance Type: c5.2xlarge
+  - vCPU: 8
+  - Memory: 30 GB RAM
+  - Disk: 500 GB SSD (gp3)
+  - OS: Ubuntu 22.04 LTS
+  - Region: us-east-1b
+  - Cost: ~$250/month (On-Demand)
+  - Workload: Light Tasks (Issue, PR, Review)
+end note
+
+note bottom of OpenAI
+  **OpenAI API**
+  - Model: GPT-5 / o3
+  - Max Parallel: 18 requests
+  - Rate Limit: 10,000 TPM
+  - Pricing: $0.01/1K tokens (input)
+            $0.03/1K tokens (output)
+end note
+
+note bottom of GitHub
+  **GitHub Integration**
+  - Webhook: Issue/PR events
+  - REST API: Issue/PR management
+  - GraphQL API: Advanced queries
+  - Self-hosted Runners: CI/CD on MUGEN/MAJIN
+end note
+
+note bottom of Qdrant
+  **Qdrant Vector DB**
+  - Collection: miyabi
+  - Vectors: 1536 dimensions
+  - Documents: 10,000+
+  - Search Latency: < 50ms
+end note
+
+note as PhaseNote
+  **Phase 1: 18 Codex並列**
+  - MUGEN: 12 Codex (Heavy)
+  - MAJIN: 6 Codex (Light)
+  - Total: 18並列実行
+  - 追加コスト: $0 (既存リソース)
+
+  **Phase 2: 100 Codex並列 (計画)**
+  - 追加EC2: 3台 (各30 Codex)
+  - 追加コスト: $2,203/month
+
+  **Phase 3: 200 Codex並列 (計画)**
+  - 追加EC2: 5台 (各40 Codex)
+  - 追加コスト: $3,672/month
+end note
+
+note as DataFlowNote
+  **典型的なデータフロー**
+  1. Developer → GitHub Issue作成
+  2. GitHub Webhook → Local PC (Master Orch)
+  3. Master Orch → MUGEN/MAJIN (Task配信)
+  4. Sub-Orch → 18 Codex起動 (tmux)
+  5. Codex → OpenAI API (18並列)
+  6. Agents → Code生成・PR作成
+  7. GitHub Actions → CI/CD実行 (MUGEN/MAJIN)
+  8. Notification → Lark/Discord/Telegram
+  9. VOICEVOX → Audio guide生成
+  10. GitHub PR Merge → Issue Close
+end note
+
+@enduml

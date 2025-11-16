@@ -1,7 +1,7 @@
 # Miyabi Context Index
 
-**Last Updated**: 2025-11-03
-**Version**: 3.0.0
+**Last Updated**: 2025-11-12
+**Version**: 3.1.0
 
 ## 📚 Context Module Directory
 
@@ -14,6 +14,8 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 |--------|------|------|----------|-------------|
 | **Miyabi Definition** | `miyabi-definition.md` | ~800 tokens | ⭐⭐⭐⭐⭐ | ✨ **NEW** - miyabi_def統合（14 Entities, 39 Relations, 57 Labels, 5 Workflows） |
 | **Core Rules** | `core-rules.md` | ~400 tokens | ⭐⭐⭐⭐⭐ | MCP First, Benchmark Protocol, Context7 |
+| **Pantheon Society** | `pantheon-society.md` | ~600 tokens | ⭐⭐⭐⭐ | 🌍 **NEW** - 歴史的人物×神話的存在によるAI社会基盤（AWS統合、Council governance） |
+| **AIfactory Integration** | `aifactory-integration.md` | ~600 tokens | ⭐⭐⭐⭐ | 🆕 **NEW** - AIfactory統合（Composite State, 5 Business Agents） |
 | **Agents** | `agents.md` | ~300 tokens | ⭐⭐⭐⭐ | 21 Agents概要（7 Coding + 14 Business） |
 | **Architecture** | `architecture.md` | ~400 tokens | ⭐⭐⭐⭐ | Cargo Workspace, Git Worktree, GitHub OS |
 | **Development** | `development.md` | ~300 tokens | ⭐⭐⭐ | Rust/TypeScript規約、テスト、CI/CD |
@@ -25,7 +27,7 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 | **Protocols** | `protocols.md` | ~300 tokens | ⭐⭐ | タスク管理、報告プロトコル |
 | **External Deps** | `external-deps.md` | ~200 tokens | ⭐⭐ | Context7、MCP Servers |
 
-**Total Estimated Size**: ~3,800 tokens (個別読み込み時)
+**Total Estimated Size**: ~5,000 tokens (個別読み込み時)
 
 **Note**: ✨ `miyabi-definition.md` is the **new primary source** for Entity-Relation Model and Label System. Legacy files remain for backward compatibility.
 
@@ -82,6 +84,36 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 4. ls -lh generated/
 ```
 
+### Pattern 5: 🆕 AIfactory統合タスク
+```
+必要なモジュール:
+- aifactory-integration.md ✨ NEW (統合アーキテクチャ、Business Agents)
+- core-rules.md (MCP確認)
+- agents.md (Agent system)
+- development.md (Rust開発)
+
+具体例:
+- Composite State実装: CompositeServiceState型定義
+- Business Agent実装: CourseGeneratorAgent等5エージェント
+- API Migration: NestJS → Rust + Axum
+- Frontend Integration: React → Miyabi API
+```
+
+### Pattern 6: 🌍 Pantheon Society構築タスク
+```
+必要なモジュール:
+- pantheon-society.md 🌍 NEW (歴史的人物Agent、神話的Guardian、Council)
+- core-rules.md (MCP確認)
+- agents.md (Agent system)
+- architecture.md (AWS統合)
+
+具体例:
+- Historical Agent実装: Bill Gates, Napoleon, Hannibalエージェント
+- Mythological Guardian: Cerberus (セキュリティ)、Michael (倫理)
+- Pantheon Council: ガバナンス、意思決定プロトコル
+- AWS Pantheon Architecture: Multi-account strategy
+```
+
 ## 📖 Related Documentation
 
 **Detailed Docs** (既存ドキュメント):
@@ -90,6 +122,9 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 - Labels: `docs/LABEL_SYSTEM_GUIDE.md`
 - MCP Protocol: `.claude/MCP_INTEGRATION_PROTOCOL.md`
 - Benchmark Checklist: `.claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md`
+
+**Integration Plans** 🆕:
+- **AIfactory Integration**: `docs/planning/AIFACTORY_MIYABI_INTEGRATION_PLAN.md` - 完全統合プラン (6週間, 5 phases)
 
 **tmux Parallel Execution** (Miyabi Orchestra v2.0):
 - **Integration Guide**: `.claude/MIYABI_ORCHESTRA_INTEGRATION.md` ⭐ NEW - 完全統合ガイド (3.0.0)
@@ -108,6 +143,13 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 
 **Agent Specs**: `.claude/agents/specs/coding/*.md` | `.claude/agents/specs/business/*.md`
 **Agent Prompts**: `.claude/agents/prompts/coding/*.md`
+
+**New Business Agents** 🆕 (AIfactory Integration):
+- `CourseGeneratorAgent.md` - AI course generation
+- `DocumentGeneratorAgent.md` - Business document generation
+- `ContentSearchAgent.md` - Semantic search
+- `PaymentProcessorAgent.md` - Payment processing
+- `ApprovalWorkflowAgent.md` - Approval workflows
 
 ## 🔄 Update Policy
 

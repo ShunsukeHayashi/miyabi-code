@@ -155,10 +155,7 @@ impl WebhookSigner {
         let now = Utc::now().timestamp();
         let age = (now - timestamp).abs();
         if age > self.timestamp_tolerance {
-            return Err(WebhookError::TimestampOutOfRange(
-                age,
-                self.timestamp_tolerance,
-            ));
+            return Err(WebhookError::TimestampOutOfRange(age, self.timestamp_tolerance));
         }
 
         // 2. Parse signature format
@@ -227,10 +224,7 @@ mod tests {
         );
 
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            WebhookError::VerificationFailed
-        ));
+        assert!(matches!(result.unwrap_err(), WebhookError::VerificationFailed));
     }
 
     #[test]
@@ -243,10 +237,7 @@ mod tests {
         let result = signer.verify(payload, old_timestamp, &signature);
 
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            WebhookError::TimestampOutOfRange(_, _)
-        ));
+        assert!(matches!(result.unwrap_err(), WebhookError::TimestampOutOfRange(_, _)));
     }
 
     #[test]
@@ -258,10 +249,7 @@ mod tests {
         let result = signer.verify(payload, timestamp, "invalid-format");
 
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            WebhookError::InvalidFormat(_)
-        ));
+        assert!(matches!(result.unwrap_err(), WebhookError::InvalidFormat(_)));
     }
 
     #[test]

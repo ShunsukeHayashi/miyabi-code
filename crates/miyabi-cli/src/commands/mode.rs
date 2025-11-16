@@ -92,7 +92,7 @@ impl ModeCommand {
         match loader.load_all() {
             Ok(modes) => {
                 registry.register_all(modes)?;
-            }
+            },
             Err(e) => {
                 eprintln!("{} {}", "Error loading modes:".red(), e);
                 eprintln!(
@@ -101,7 +101,7 @@ impl ModeCommand {
                         .yellow()
                 );
                 return Ok(());
-            }
+            },
         }
 
         println!("{}\n", "📋 Available Modes:".bold().cyan());
@@ -153,10 +153,7 @@ impl ModeCommand {
         }
 
         println!("\n{} miyabi mode info <slug>", "Use".dimmed());
-        println!(
-            "{} miyabi mode run <slug> --issue <number>\n",
-            "Or".dimmed()
-        );
+        println!("{} miyabi mode run <slug> --issue <number>\n", "Or".dimmed());
 
         Ok(())
     }
@@ -180,10 +177,7 @@ impl ModeCommand {
                 ))
             })?;
 
-        println!(
-            "\n{}\n",
-            format!("{} Mode Information", mode.name).bold().cyan()
-        );
+        println!("\n{}\n", format!("{} Mode Information", mode.name).bold().cyan());
         println!("{} {}", "Slug:".bold(), mode.slug);
         println!("{} {}", "Character:".bold(), mode.character);
         println!("{} {}\n", "Source:".bold(), mode.source);
@@ -222,20 +216,12 @@ impl ModeCommand {
             crate::error::CliError::InvalidInput(format!("Mode '{}' not found", mode_slug))
         })?;
 
-        println!(
-            "{} {} for Issue #{}",
-            "🚀 Running".green().bold(),
-            mode.name,
-            issue
-        );
+        println!("{} {} for Issue #{}", "🚀 Running".green().bold(), mode.name, issue);
         println!("{} {}\n", "Character:".bold(), mode.character.cyan());
 
         // TODO: Integrate with actual agent execution
         println!("{}", "⚠️  Agent execution integration pending".yellow());
-        println!(
-            "{}",
-            "This will be implemented in Phase 1 completion.".dimmed()
-        );
+        println!("{}", "This will be implemented in Phase 1 completion.".dimmed());
 
         Ok(())
     }
@@ -250,12 +236,7 @@ impl ModeCommand {
         let file_path = custom_dir.join(format!("{}.yaml", slug));
 
         if file_path.exists() {
-            eprintln!(
-                "{} Mode '{}' already exists at {:?}",
-                "Error:".red(),
-                slug,
-                file_path
-            );
+            eprintln!("{} Mode '{}' already exists at {:?}", "Error:".red(), slug, file_path);
             return Ok(());
         }
 
@@ -321,7 +302,7 @@ source: "user"
             Err(e) => {
                 eprintln!("{} {}", "Failed to load modes:".red(), e);
                 return Ok(());
-            }
+            },
         };
 
         let mut errors = 0;
@@ -331,17 +312,11 @@ source: "user"
             match ModeValidator::validate(mode) {
                 Ok(_) => {
                     println!("{} {} ({})", "✅".green(), mode.name, mode.slug.dimmed());
-                }
+                },
                 Err(e) => {
-                    println!(
-                        "{} {} ({}): {}",
-                        "❌".red(),
-                        mode.name,
-                        mode.slug.dimmed(),
-                        e
-                    );
+                    println!("{} {} ({}): {}", "❌".red(), mode.name, mode.slug.dimmed(), e);
                     errors += 1;
-                }
+                },
             }
 
             // Additional warnings
@@ -400,12 +375,7 @@ source: "user"
             crate::error::CliError::InvalidInput(format!("Template rendering failed: {}", e))
         })?;
 
-        println!(
-            "\n{}\n",
-            format!("📝 Rendered Mode: {}", rendered_mode.name)
-                .bold()
-                .cyan()
-        );
+        println!("\n{}\n", format!("📝 Rendered Mode: {}", rendered_mode.name).bold().cyan());
 
         if show_role {
             println!("{}\n", "Role Definition:".bold());

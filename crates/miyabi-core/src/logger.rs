@@ -117,43 +117,31 @@ pub fn init_logger_with_config(config: LoggerConfig) {
                 .with_thread_ids(false)
                 .with_line_number(true);
             subscriber.with(fmt_layer).init();
-        }
+        },
         // Console only - Compact format
         (LogFormat::Compact, None) => {
-            let fmt_layer = fmt::layer()
-                .compact()
-                .with_target(false)
-                .with_thread_ids(false);
+            let fmt_layer = fmt::layer().compact().with_target(false).with_thread_ids(false);
             subscriber.with(fmt_layer).init();
-        }
+        },
         // Console only - JSON format
         (LogFormat::Json, None) => {
-            let fmt_layer = fmt::layer()
-                .json()
-                .with_current_span(true)
-                .with_span_list(true);
+            let fmt_layer = fmt::layer().json().with_current_span(true).with_span_list(true);
             subscriber.with(fmt_layer).init();
-        }
+        },
         // Console + File - Pretty format
         (LogFormat::Pretty, Some(dir)) => {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
             let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
-            let console_layer = fmt::layer()
-                .pretty()
-                .with_target(true)
-                .with_line_number(true);
+            let console_layer = fmt::layer().pretty().with_target(true).with_line_number(true);
 
-            let file_layer = fmt::layer()
-                .json()
-                .with_writer(non_blocking)
-                .with_ansi(false);
+            let file_layer = fmt::layer().json().with_writer(non_blocking).with_ansi(false);
 
             subscriber.with(console_layer).with(file_layer).init();
 
             // Store guard globally to keep worker thread alive
             let _ = LOGGER_GUARD.set(guard);
-        }
+        },
         // Console + File - Compact format
         (LogFormat::Compact, Some(dir)) => {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
@@ -161,16 +149,13 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             let console_layer = fmt::layer().compact().with_target(false);
 
-            let file_layer = fmt::layer()
-                .json()
-                .with_writer(non_blocking)
-                .with_ansi(false);
+            let file_layer = fmt::layer().json().with_writer(non_blocking).with_ansi(false);
 
             subscriber.with(console_layer).with(file_layer).init();
 
             // Store guard globally to keep worker thread alive
             let _ = LOGGER_GUARD.set(guard);
-        }
+        },
         // Console + File - JSON format
         (LogFormat::Json, Some(dir)) => {
             let file_appender = RollingFileAppender::new(config.rotation, dir, "miyabi.log");
@@ -178,16 +163,13 @@ pub fn init_logger_with_config(config: LoggerConfig) {
 
             let console_layer = fmt::layer().json().with_current_span(true);
 
-            let file_layer = fmt::layer()
-                .json()
-                .with_writer(non_blocking)
-                .with_ansi(false);
+            let file_layer = fmt::layer().json().with_writer(non_blocking).with_ansi(false);
 
             subscriber.with(console_layer).with(file_layer).init();
 
             // Store guard globally to keep worker thread alive
             let _ = LOGGER_GUARD.set(guard);
-        }
+        },
     }
 }
 

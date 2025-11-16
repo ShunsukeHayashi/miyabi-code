@@ -150,11 +150,11 @@ impl Config {
                             MiyabiError::Config(format!("Configuration validation failed: {}", e))
                         })?;
                         return Ok(config);
-                    }
+                    },
                     Err(e) => {
                         tracing::warn!("Failed to load config from {:?}: {}", path, e);
                         continue;
-                    }
+                    },
                 }
             }
         }
@@ -185,9 +185,7 @@ impl Config {
                 .unwrap_or_else(|_| default_log_directory()),
             report_directory: std::env::var("MIYABI_REPORT_DIRECTORY")
                 .unwrap_or_else(|_| default_report_directory()),
-            worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE_PATH")
-                .ok()
-                .map(PathBuf::from),
+            worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE_PATH").ok().map(PathBuf::from),
             tech_lead_github_username: std::env::var("TECH_LEAD_GITHUB_USERNAME").ok(),
             ciso_github_username: std::env::var("CISO_GITHUB_USERNAME").ok(),
             po_github_username: std::env::var("PO_GITHUB_USERNAME").ok(),
@@ -215,7 +213,7 @@ impl Config {
                     "Unsupported config file extension: {:?}",
                     path
                 )))
-            }
+            },
         };
 
         Ok(config)
@@ -256,7 +254,7 @@ impl Config {
                     "Unsupported config file extension: {:?}",
                     path
                 )))
-            }
+            },
         };
 
         std::fs::write(path, content).map_err(|e| {

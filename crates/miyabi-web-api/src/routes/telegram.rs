@@ -71,7 +71,7 @@ Add performance tests
 ────────────────────────
 
 /help for more information"#
-            }
+            },
             Language::Japanese => {
                 r#"**Miyabi Bot**
 
@@ -88,7 +88,7 @@ Add performance tests
 ────────────────────────
 
 詳細は /help"#
-            }
+            },
         }
     }
 
@@ -115,7 +115,7 @@ Example: "Add login feature"
 
 🔗 GitHub: https://github.com/ShunsukeHayashi/Miyabi
 "#
-            }
+            },
             Language::Japanese => {
                 r#"
 📚 **Miyabi Bot ヘルプ**
@@ -137,7 +137,7 @@ Example: "Add login feature"
 
 🔗 GitHub: https://github.com/ShunsukeHayashi/Miyabi
 "#
-            }
+            },
         }
     }
 
@@ -146,7 +146,7 @@ Example: "Add login feature"
             Language::English => format!("❌ Unknown command: {}\n\n/help for help", command),
             Language::Japanese => {
                 format!("❌ 不明なコマンド: {}\n\n/help でヘルプを表示", command)
-            }
+            },
         }
     }
 
@@ -224,16 +224,9 @@ async fn handle_message(state: AppState, message: Message) -> Result<()> {
     let text = message.text.unwrap_or_default();
 
     // Detect user language
-    let lang = message
-        .from
-        .as_ref()
-        .map(Language::from_user)
-        .unwrap_or(Language::English);
+    let lang = message.from.as_ref().map(Language::from_user).unwrap_or(Language::English);
 
-    info!(
-        "Message from chat_id={} (lang={:?}): {}",
-        chat_id, lang, text
-    );
+    info!("Message from chat_id={} (lang={:?}): {}", chat_id, lang, text);
 
     // Special commands that don't require authorization
     if text == "/getid" {
@@ -257,7 +250,7 @@ To get authorized:
 
 Need help? Contact: @YourAdminUsername
 "#
-            }
+            },
             Language::Japanese => {
                 r#"
 ❌ **未認証アクセス**
@@ -271,7 +264,7 @@ Need help? Contact: @YourAdminUsername
 
 お問い合わせ: @YourAdminUsername
 "#
-            }
+            },
         };
 
         client.send_message(chat_id, unauthorized_text).await?;
@@ -368,15 +361,13 @@ async fn handle_command(
     match command.trim() {
         "/start" => {
             client.send_message(chat_id, Texts::welcome(lang)).await?;
-        }
+        },
         "/help" => {
             client.send_message(chat_id, Texts::help(lang)).await?;
-        }
+        },
         _ => {
-            client
-                .send_message(chat_id, &Texts::unknown_command(lang, command))
-                .await?;
-        }
+            client.send_message(chat_id, &Texts::unknown_command(lang, command)).await?;
+        },
     }
 
     Ok(())
@@ -414,7 +405,7 @@ async fn handle_natural_language_request(
             };
             client.send_message(chat_id, &error_text).await?;
             return Err(e);
-        }
+        },
     };
 
     info!("GPT-4 analysis complete: {:?}", issue_info);
@@ -502,7 +493,7 @@ Starting workflow..."#,
             };
             client.send_message(chat_id, &error_text).await?;
             return Err(e);
-        }
+        },
     };
 
     // Step 4: Send success message (Miyabi Workflow表示)
@@ -685,14 +676,14 @@ async fn handle_callback_query(state: AppState, callback: CallbackQuery) -> Resu
         data if data.starts_with("agent:") => {
             let agent_name = data.strip_prefix("agent:").unwrap();
             handle_agent_selection(state, callback.message, agent_name, lang).await?;
-        }
+        },
         data if data.starts_with("action:") => {
             let action = data.strip_prefix("action:").unwrap();
             handle_action(state, callback.message, action, lang).await?;
-        }
+        },
         _ => {
             warn!("Unknown callback data: {}", callback_data);
-        }
+        },
     }
 
     Ok(())
@@ -709,9 +700,7 @@ async fn handle_agent_selection(
 
     if let Some(msg) = message {
         let chat_id = msg.chat.id;
-        client
-            .send_message(chat_id, &Texts::agent_selected(lang, agent_name))
-            .await?;
+        client.send_message(chat_id, &Texts::agent_selected(lang, agent_name)).await?;
     }
 
     Ok(())
@@ -728,9 +717,7 @@ async fn handle_action(
 
     if let Some(msg) = message {
         let chat_id = msg.chat.id;
-        client
-            .send_message(chat_id, &Texts::action_triggered(lang, action))
-            .await?;
+        client.send_message(chat_id, &Texts::action_triggered(lang, action)).await?;
     }
 
     Ok(())
@@ -854,15 +841,9 @@ async fn create_github_issue(_state: &AppState, info: &IssueAnalysis) -> Result<
 
     // Add labels
     if !info.labels.is_empty() {
-        client
-            .replace_labels(issue.number, &info.labels)
-            .await
-            .map_err(|e| {
-                AppError::ExternalApi(format!(
-                    "Failed to add labels to Issue #{}: {}",
-                    issue.number, e
-                ))
-            })?;
+        client.replace_labels(issue.number, &info.labels).await.map_err(|e| {
+            AppError::ExternalApi(format!("Failed to add labels to Issue #{}: {}", issue.number, e))
+        })?;
 
         info!("Labels added to Issue #{}: {:?}", issue.number, info.labels);
     }

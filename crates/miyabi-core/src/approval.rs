@@ -132,11 +132,7 @@ impl ApprovalSystem {
     /// Print command header
     fn print_command_header(&self, approval: &CommandApproval) {
         println!("\n{}", "─".repeat(60).cyan());
-        println!(
-            "{}: {}",
-            "Execute Command".red().bold(),
-            approval.command.cyan()
-        );
+        println!("{}: {}", "Execute Command".red().bold(), approval.command.cyan());
 
         if !approval.args.is_empty() {
             println!("  Args: {}", approval.args.join(" "));
@@ -154,13 +150,13 @@ impl ApprovalSystem {
         match approval.operation {
             FileOperation::Create => {
                 self.print_new_content(&approval.new_content);
-            }
+            },
             FileOperation::Modify => {
                 self.print_unified_diff(&approval.old_content, &approval.new_content)?;
-            }
+            },
             FileOperation::Delete => {
                 println!("{}", "File will be deleted".red());
-            }
+            },
         }
         Ok(())
     }
@@ -176,10 +172,7 @@ impl ApprovalSystem {
         }
 
         if total > display_lines {
-            println!(
-                "{}",
-                format!("... ({} more lines)", total - display_lines).dimmed()
-            );
+            println!("{}", format!("... ({} more lines)", total - display_lines).dimmed());
         }
     }
 
@@ -237,7 +230,7 @@ impl ApprovalSystem {
             _ => {
                 println!("{}", "Invalid input. Please enter y, n, d, or e.".yellow());
                 self.prompt_decision()
-            }
+            },
         }
     }
 }

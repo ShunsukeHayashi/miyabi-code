@@ -98,11 +98,8 @@ impl WorktreePool {
         };
         let resolved_base = normalize_path(resolved_base);
 
-        let manager = Arc::new(WorktreeManager::new(
-            &repo_path,
-            &resolved_base,
-            config.max_concurrency,
-        )?);
+        let manager =
+            Arc::new(WorktreeManager::new(&repo_path, &resolved_base, config.max_concurrency)?);
 
         Ok(Self {
             manager,
@@ -117,11 +114,8 @@ impl WorktreePool {
         worktree_base: impl AsRef<std::path::Path>,
         config: PoolConfig,
     ) -> Result<Self> {
-        let manager = Arc::new(WorktreeManager::new(
-            repo_path,
-            worktree_base,
-            config.max_concurrency,
-        )?);
+        let manager =
+            Arc::new(WorktreeManager::new(repo_path, worktree_base, config.max_concurrency)?);
 
         Ok(Self {
             manager,
@@ -183,10 +177,7 @@ impl WorktreePool {
                 async move {
                     // Check if we should cancel (fail-fast mode)
                     if *cancel_rx.borrow() {
-                        warn!(
-                            "Task for issue #{} cancelled due to fail-fast",
-                            task.issue_number
-                        );
+                        warn!("Task for issue #{} cancelled due to fail-fast", task.issue_number);
                         return TaskResult {
                             issue_number: task.issue_number,
                             worktree_id: String::new(),
@@ -208,7 +199,7 @@ impl WorktreePool {
                                 tasks.insert(info.id.clone(), task.clone());
                             }
                             info
-                        }
+                        },
                         Err(e) => {
                             error!(
                                 "Failed to create worktree for issue #{}: {}",
@@ -222,7 +213,7 @@ impl WorktreePool {
                                 error: Some(e.to_string()),
                                 output: None,
                             };
-                        }
+                        },
                     };
 
                     // Execute task with timeout
@@ -235,10 +226,7 @@ impl WorktreePool {
                     // Process result
                     let task_result = match execution_result {
                         Ok(Ok(output)) => {
-                            info!(
-                                "Task for issue #{} completed successfully",
-                                task.issue_number
-                            );
+                            info!("Task for issue #{} completed successfully", task.issue_number);
                             // Update worktree status
                             let _ = manager
                                 .update_status(&worktree_info.id, WorktreeStatus::Completed)
@@ -251,7 +239,7 @@ impl WorktreePool {
                                 error: None,
                                 output: Some(output),
                             }
-                        }
+                        },
                         Ok(Err(e)) => {
                             error!("Task for issue #{} failed: {}", task.issue_number, e);
                             let _ = manager
@@ -272,7 +260,7 @@ impl WorktreePool {
                                 error: Some(e.to_string()),
                                 output: None,
                             }
-                        }
+                        },
                         Err(_) => {
                             warn!(
                                 "Task for issue #{} timed out after {} seconds",
@@ -296,7 +284,7 @@ impl WorktreePool {
                                 error: Some(format!("Timeout after {} seconds", timeout_seconds)),
                                 output: None,
                             }
-                        }
+                        },
                     };
 
                     // Remove from active tasks
@@ -315,22 +303,10 @@ impl WorktreePool {
         let total_duration = start_time.elapsed().as_millis() as u64;
 
         // Calculate statistics
-        let success_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Success)
-            .count();
-        let failed_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Failed)
-            .count();
-        let timeout_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Timeout)
-            .count();
-        let cancelled_count = results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Cancelled)
-            .count();
+        let success_count = results.iter().filter(|r| r.status == TaskStatus::Success).count();
+        let failed_count = results.iter().filter(|r| r.status == TaskStatus::Failed).count();
+        let timeout_count = results.iter().filter(|r| r.status == TaskStatus::Timeout).count();
+        let cancelled_count = results.iter().filter(|r| r.status == TaskStatus::Cancelled).count();
 
         info!(
             "Parallel execution completed: {} successful, {} failed, {} timed out, {} cancelled, {}ms total",
@@ -489,20 +465,12 @@ impl PoolExecutionResult {
 
     /// Get minimum task duration in milliseconds
     pub fn min_duration_ms(&self) -> u64 {
-        self.results
-            .iter()
-            .map(|r| r.duration_ms)
-            .min()
-            .unwrap_or(0)
+        self.results.iter().map(|r| r.duration_ms).min().unwrap_or(0)
     }
 
     /// Get maximum task duration in milliseconds
     pub fn max_duration_ms(&self) -> u64 {
-        self.results
-            .iter()
-            .map(|r| r.duration_ms)
-            .max()
-            .unwrap_or(0)
+        self.results.iter().map(|r| r.duration_ms).max().unwrap_or(0)
     }
 
     /// Get throughput (tasks per second)
@@ -526,34 +494,22 @@ impl PoolExecutionResult {
 
     /// Get failed tasks
     pub fn failed_tasks(&self) -> Vec<&TaskResult> {
-        self.results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Failed)
-            .collect()
+        self.results.iter().filter(|r| r.status == TaskStatus::Failed).collect()
     }
 
     /// Get timed out tasks
     pub fn timed_out_tasks(&self) -> Vec<&TaskResult> {
-        self.results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Timeout)
-            .collect()
+        self.results.iter().filter(|r| r.status == TaskStatus::Timeout).collect()
     }
 
     /// Get cancelled tasks
     pub fn cancelled_tasks(&self) -> Vec<&TaskResult> {
-        self.results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Cancelled)
-            .collect()
+        self.results.iter().filter(|r| r.status == TaskStatus::Cancelled).collect()
     }
 
     /// Get successful tasks
     pub fn successful_tasks(&self) -> Vec<&TaskResult> {
-        self.results
-            .iter()
-            .filter(|r| r.status == TaskStatus::Success)
-            .collect()
+        self.results.iter().filter(|r| r.status == TaskStatus::Success).collect()
     }
 }
 

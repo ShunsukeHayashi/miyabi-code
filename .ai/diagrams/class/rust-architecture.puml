@@ -1,0 +1,334 @@
+@startuml Miyabi AWS Agent - Rust Architecture
+!theme plain
+
+title Miyabi AWS Agent - Rust Class Diagram
+
+package "miyabi-types" {
+    class AwsAccount {
+        +id: String
+        +name: String
+        +role: AccountRole
+        +region: String
+        +created_at: DateTime<Utc>
+    }
+
+    enum AccountRole {
+        Management
+        Production
+        Security
+        Development
+    }
+
+    class AwsResource {
+        +id: String
+        +arn: String
+        +resource_type: AwsResourceType
+        +region: String
+        +account_id: String
+        +state: ResourceState
+        +owner_agent: HistoricalAgent
+        +dependencies: Vec<String>
+        +tags: HashMap<String, String>
+        +metadata: serde_json::Value
+        +created_at: DateTime<Utc>
+        +updated_at: DateTime<Utc>
+    }
+
+    enum AwsResourceType {
+        Ec2Instance
+        S3Bucket
+        LambdaFunction
+        RdsInstance
+        DynamoDbTable
+        CloudFormationStack
+        VpcNetwork
+        CloudFrontDistribution
+        ApiGateway
+        LoadBalancer
+        AutoScalingGroup
+    }
+
+    enum ResourceState {
+        Creating
+        Active
+        Updating
+        Deleting
+        Failed
+        Terminated
+    }
+
+    enum HistoricalAgent {
+        BillGates
+        SteveJobs
+        Napoleon
+        Hannibal
+        Drucker
+        Kotler
+        Noguchi
+        --
+        +for_resource_type(rt: &AwsResourceType): Self
+    }
+
+    class AwsTask {
+        +id: Uuid
+        +task_type: AwsTaskType
+        +resource_type: AwsResourceType
+        +account_id: String
+        +region: String
+        +parameters: HashMap<String, Value>
+        +dependencies: Vec<String>
+        +assigned_agent: HistoricalAgent
+        +status: TaskStatus
+        +created_at: DateTime<Utc>
+        +completed_at: Option<DateTime<Utc>>
+    }
+
+    enum AwsTaskType {
+        CreateResource
+        UpdateResource
+        DeleteResource
+        DiscoverResources
+        OptimizeCosts
+        SecurityAudit
+        HealthCheck
+    }
+
+    enum TaskStatus {
+        Pending
+        InProgress
+        Completed
+        Failed
+        Cancelled
+    }
+
+    class ServiceAgent {
+        +name: String
+        +service_type: AwsResourceType
+        +dependencies: Vec<String>
+        +state: ResourceState
+        +autonomy_level: u8
+        +decision_maker: HistoricalAgent
+        +cost_per_day: f64
+        +health_status: HealthStatus
+    }
+
+    enum HealthStatus {
+        Healthy
+        Degraded
+        Unhealthy
+        Unknown
+    }
+}
+
+package "miyabi-aws-agent" {
+    class AwsAgent {
+        +id: u32
+        --
+        +new(): Self
+        +execute_task(task: AwsTask): Result<AwsResource>
+        +assign_historical_agent(rt: &AwsResourceType): HistoricalAgent
+    }
+
+    ' Phase θ₁: Discovery
+    class DiscoveryAgent {
+        +ec2_client: Ec2Client
+        +s3_client: S3Client
+        +rds_client: RdsClient
+        +cost_client: CostExplorerClient
+        +security_client: SecurityHubClient
+        --
+        +discover_all_resources(): Result<Vec<AwsResource>>
+        +discover_ec2_instances(): Result<Vec<AwsResource>>
+        +discover_s3_buckets(): Result<Vec<AwsResource>>
+        +discover_rds_instances(): Result<Vec<AwsResource>>
+        +analyze_costs(): Result<CostReport>
+        +assess_security(): Result<SecurityReport>
+        +generate_world_state(): Result<WorldState>
+    }
+
+    ' Phase θ₂: Planning
+    class PlanningAgent {
+        +terraform_generator: TerraformGenerator
+        +cloudformation_generator: CloudFormationGenerator
+        --
+        +generate_cost_plan(world: &WorldState): Result<CostPlan>
+        +generate_security_plan(world: &WorldState): Result<SecurityPlan>
+        +generate_terraform(): Result<TerraformTemplate>
+        +generate_cloudformation(): Result<CloudFormationTemplate>
+    }
+
+    ' Phase θ₃: Optimization
+    class OptimizationAgent {
+        +right_sizing_engine: RightSizingEngine
+        +storage_optimizer: StorageOptimizer
+        --
+        +right_size_ec2(instances: &[AwsResource]): Result<Vec<Recommendation>>
+        +optimize_storage(buckets: &[AwsResource]): Result<Vec<Recommendation>>
+        +plan_reserved_instances(): Result<Vec<Recommendation>>
+        +configure_auto_scaling(): Result<AutoScalingConfig>
+    }
+
+    ' Phase θ₄: Deployment
+    class DeploymentAgent {
+        +terraform_executor: TerraformExecutor
+        +cloudformation_client: CloudFormationClient
+        --
+        +deploy_terraform(template: &str): Result<DeploymentResult>
+        +deploy_cloudformation(template: &str): Result<StackId>
+        +validate_deployment(): Result<ValidationReport>
+        +rollback(deployment_id: &str): Result<()>
+    }
+
+    ' Phase θ₅: Integration
+    class MonitoringAgent {
+        +cloudwatch_client: CloudWatchClient
+        +xray_client: XRayClient
+        --
+        +setup_cloudwatch_dashboard(): Result<DashboardId>
+        +configure_alarms(): Result<Vec<AlarmId>>
+        +setup_xray_tracing(): Result<()>
+        +integrate_voicevox(): Result<()>
+        +integrate_discord(): Result<()>
+    }
+
+    ' Phase θ₆: Learning
+    class LearningAgent {
+        +analyzer: EffectivenessAnalyzer
+        +anomaly_detector: AnomalyDetector
+        +predictor: ResourcePredictor
+        --
+        +analyze_effectiveness(before: &WorldState, after: &WorldState): Result<Analysis>
+        +detect_anomalies(): Result<Vec<Anomaly>>
+        +predict_future_needs(): Result<Prediction>
+        +update_strategies(): Result<()>
+    }
+
+    ' Python Bridge (Phase 1)
+    class PythonBridge {
+        -python_path: PathBuf
+        --
+        +execute_script<T>(script: &str, args: &[String]): Result<T>
+        +call_discovery_script(): Result<DiscoveryResult>
+        +call_planning_script(): Result<PlanningResult>
+    }
+
+    ' Supporting Classes
+    class TerraformExecutor {
+        +terraform_cli: PathBuf
+        --
+        +plan(template: &str): Result<PlanOutput>
+        +apply(template: &str, auto_approve: bool): Result<ApplyOutput>
+        +destroy(template: &str): Result<DestroyOutput>
+    }
+
+    class WorldState {
+        +resources: Vec<AwsResource>
+        +cost_per_month: f64
+        +security_score: u32
+        +utilization: f64
+        +timestamp: DateTime<Utc>
+        --
+        +from_discovery(discovery: DiscoveryResult): Self
+        +to_json(): Result<String>
+    }
+
+    class CostPlan {
+        +current_cost: f64
+        +target_cost: f64
+        +savings: f64
+        +recommendations: Vec<CostRecommendation>
+        --
+        +to_markdown(): String
+    }
+
+    class SecurityPlan {
+        +current_score: u32
+        +target_score: u32
+        +findings: Vec<SecurityFinding>
+        +recommendations: Vec<SecurityRecommendation>
+        --
+        +to_markdown(): String
+    }
+}
+
+package "miyabi-agent-core" {
+    interface AgentExecutor {
+        +execute(task: Task): Result<Output>
+        +validate_prerequisites(): Result<()>
+        +cleanup(): Result<()>
+    }
+
+    class Observable {
+        +observers: Vec<Box<dyn Observer>>
+        --
+        +attach(observer: Box<dyn Observer>)
+        +notify(event: AgentEvent)
+    }
+
+    interface Observer {
+        +on_event(event: &AgentEvent)
+    }
+}
+
+' Relationships - Types
+AwsAccount --> AccountRole
+AwsResource --> AwsResourceType
+AwsResource --> ResourceState
+AwsResource --> HistoricalAgent
+AwsTask --> AwsTaskType
+AwsTask --> TaskStatus
+AwsTask --> HistoricalAgent
+ServiceAgent --> HistoricalAgent
+ServiceAgent --> HealthStatus
+
+' Relationships - Agent Composition
+AwsAgent *-- DiscoveryAgent : "θ₁"
+AwsAgent *-- PlanningAgent : "θ₂"
+AwsAgent *-- OptimizationAgent : "θ₃"
+AwsAgent *-- DeploymentAgent : "θ₄"
+AwsAgent *-- MonitoringAgent : "θ₅"
+AwsAgent *-- LearningAgent : "θ₆"
+AwsAgent *-- PythonBridge : "Phase 1"
+
+' Relationships - Phase Dependencies
+DiscoveryAgent ..> WorldState : "produces"
+PlanningAgent ..> WorldState : "consumes"
+PlanningAgent ..> CostPlan : "produces"
+PlanningAgent ..> SecurityPlan : "produces"
+OptimizationAgent ..> CostPlan : "consumes"
+DeploymentAgent ..> TerraformExecutor : "uses"
+
+' Relationships - Agent Core
+AwsAgent ..|> AgentExecutor
+AwsAgent --|> Observable
+MonitoringAgent ..> Observer : "implements"
+LearningAgent ..> Observer : "implements"
+
+note top of AwsAgent
+  **Main AWS Agent**
+
+  Coordinates all 6 phases (θ₁-θ₆)
+  and manages the optimization cycle
+
+  World₀ → θ₁-θ₆ → World₁ → ... → World_∞
+end note
+
+note top of PythonBridge
+  **Phase 1 Integration**
+
+  Temporary bridge to execute Python
+  scripts from AWS_Miyabi_Agent
+
+  Will be replaced with pure Rust
+  implementation in Phases 2-5
+end note
+
+note bottom of HistoricalAgent
+  **Service-as-Agent Model**
+
+  Each AWS service is managed by
+  a historical figure with specific
+  personality traits and expertise
+end note
+
+@enduml

@@ -4,7 +4,9 @@
 //! It's the Rust equivalent of `packages/coding-agents/types/index.ts`.
 
 pub mod agent;
+pub mod aws;
 pub mod benchmark;
+pub mod composite_state;
 pub mod error;
 pub mod issue;
 pub mod quality;
@@ -33,4 +35,16 @@ pub use swml::{
     Constraint, FileChange, FileChangeKind, Intent, IntentMetadata, Output, Priority,
     PullRequestInfo, ResultMetadata, SWMLResult as Result, TestResults, World, WorldConstraint,
     WorldContext, WorldState,
+};
+
+// Re-export AWS types
+pub use aws::{
+    AccountRole, AwsAccount, AwsResource, AwsResourceType, AwsTask, AwsTaskType, HealthStatus,
+    HistoricalAgent, ResourceState, ServiceAgent, TaskStatus,
+};
+
+// Re-export Composite State types
+pub use composite_state::{
+    AgentInfo, AgentState, AiJob, Approval, AwsState, BusinessState, CompositeServiceState,
+    GitHubState, Order, Payment, Product, SessionInfo, TaskInfo, UserInfo, UserState,
 };

@@ -69,15 +69,10 @@ impl GoogleClient {
 
     /// Get API endpoint URL
     fn get_endpoint(&self, stream: bool) -> String {
-        let base = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/{}",
-            self.model
-        );
+        let base =
+            format!("https://generativelanguage.googleapis.com/v1beta/models/{}", self.model);
         if stream {
-            format!(
-                "{}:streamGenerateContent?key={}&alt=sse",
-                base, self.api_key
-            )
+            format!("{}:streamGenerateContent?key={}&alt=sse", base, self.api_key)
         } else {
             format!("{}:generateContent?key={}", base, self.api_key)
         }
@@ -189,20 +184,12 @@ impl LlmClient for GoogleClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(LlmError::ApiError(format!(
-                "Gemini API error {}: {}",
-                status, error_text
-            )));
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(LlmError::ApiError(format!("Gemini API error {}: {}", status, error_text)));
         }
 
-        let gemini_response: GeminiResponse = response
-            .json()
-            .await
-            .map_err(|e| LlmError::ParseError(e.to_string()))?;
+        let gemini_response: GeminiResponse =
+            response.json().await.map_err(|e| LlmError::ParseError(e.to_string()))?;
 
         tracing::debug!("Gemini response: {:?}", gemini_response);
 
@@ -238,20 +225,12 @@ impl LlmClient for GoogleClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(LlmError::ApiError(format!(
-                "Gemini API error {}: {}",
-                status, error_text
-            )));
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(LlmError::ApiError(format!("Gemini API error {}: {}", status, error_text)));
         }
 
-        let gemini_response: GeminiResponse = response
-            .json()
-            .await
-            .map_err(|e| LlmError::ParseError(e.to_string()))?;
+        let gemini_response: GeminiResponse =
+            response.json().await.map_err(|e| LlmError::ParseError(e.to_string()))?;
 
         // Check for function calls
         if let Some(tool_calls) = self.parse_tool_calls(&gemini_response) {
@@ -298,14 +277,8 @@ impl LlmStreamingClient for GoogleClient {
 
         if !response.status().is_success() {
             let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(LlmError::ApiError(format!(
-                "Gemini API error {}: {}",
-                status, error_text
-            )));
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(LlmError::ApiError(format!("Gemini API error {}: {}", status, error_text)));
         }
 
         // Create stream from response
@@ -338,7 +311,7 @@ impl LlmStreamingClient for GoogleClient {
                         }
                     }
                     None
-                }
+                },
                 Err(e) => Some(Err(LlmError::NetworkError(e.to_string()))),
             }
         });

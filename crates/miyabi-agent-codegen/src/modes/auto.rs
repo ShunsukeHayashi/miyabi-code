@@ -36,10 +36,7 @@ impl AutoMode {
             .and_then(|v| v.as_u64())
             .unwrap_or(0);
 
-        println!(
-            "\n🤖 Auto Mode: Generating code with LLM provider: {}",
-            self.llm_provider
-        );
+        println!("\n🤖 Auto Mode: Generating code with LLM provider: {}", self.llm_provider);
         println!("📋 Issue: #{}", issue_number);
         println!("⏳ This may take a few minutes...\n");
 

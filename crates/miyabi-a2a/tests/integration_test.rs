@@ -14,12 +14,9 @@ use miyabi_a2a::{
 #[ignore] // Requires GITHUB_TOKEN and creates real Issues
 async fn test_task_lifecycle() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
-    let storage = GitHubTaskStorage::new(
-        token,
-        "customer-cloud".to_string(),
-        "miyabi-private".to_string(),
-    )
-    .expect("Failed to create storage");
+    let storage =
+        GitHubTaskStorage::new(token, "customer-cloud".to_string(), "miyabi-private".to_string())
+            .expect("Failed to create storage");
 
     // Create a test task
     let task = A2ATask {
@@ -62,10 +59,7 @@ async fn test_task_lifecycle() {
         retry_count: None,
     };
 
-    storage
-        .update_task(task_id, update)
-        .await
-        .expect("Failed to update task");
+    storage.update_task(task_id, update).await.expect("Failed to update task");
 
     // Verify update
     let updated = storage
@@ -77,10 +71,7 @@ async fn test_task_lifecycle() {
     assert_eq!(updated.status, TaskStatus::Working);
 
     // Clean up - close the task
-    storage
-        .delete_task(task_id)
-        .await
-        .expect("Failed to delete task");
+    storage.delete_task(task_id).await.expect("Failed to delete task");
 
     println!("Test completed successfully. Task #{} closed.", task_id);
 }
@@ -90,12 +81,9 @@ async fn test_task_lifecycle() {
 #[ignore] // Requires GITHUB_TOKEN
 async fn test_task_filtering() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
-    let storage = GitHubTaskStorage::new(
-        token,
-        "customer-cloud".to_string(),
-        "miyabi-private".to_string(),
-    )
-    .expect("Failed to create storage");
+    let storage =
+        GitHubTaskStorage::new(token, "customer-cloud".to_string(), "miyabi-private".to_string())
+            .expect("Failed to create storage");
 
     // List all submitted tasks
     let filter = TaskFilter {
@@ -103,10 +91,7 @@ async fn test_task_filtering() {
         ..Default::default()
     };
 
-    let tasks = storage
-        .list_tasks(filter)
-        .await
-        .expect("Failed to list tasks");
+    let tasks = storage.list_tasks(filter).await.expect("Failed to list tasks");
 
     println!("Found {} submitted tasks", tasks.len());
 
@@ -120,12 +105,9 @@ async fn test_task_filtering() {
 #[ignore] // Requires GITHUB_TOKEN
 async fn test_nonexistent_task() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
-    let storage = GitHubTaskStorage::new(
-        token,
-        "customer-cloud".to_string(),
-        "miyabi-private".to_string(),
-    )
-    .expect("Failed to create storage");
+    let storage =
+        GitHubTaskStorage::new(token, "customer-cloud".to_string(), "miyabi-private".to_string())
+            .expect("Failed to create storage");
 
     // Try to get a task that doesn't exist (very high number unlikely to exist)
     let result = storage.get_task(999999999).await;
@@ -145,12 +127,9 @@ async fn test_nonexistent_task() {
 #[ignore] // Requires GITHUB_TOKEN and creates real Issues
 async fn test_cursor_pagination() {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
-    let storage = GitHubTaskStorage::new(
-        token,
-        "customer-cloud".to_string(),
-        "miyabi-private".to_string(),
-    )
-    .expect("Failed to create storage");
+    let storage =
+        GitHubTaskStorage::new(token, "customer-cloud".to_string(), "miyabi-private".to_string())
+            .expect("Failed to create storage");
 
     // Create 5 test tasks
     println!("Creating 5 test tasks...");
@@ -192,11 +171,7 @@ async fn test_cursor_pagination() {
         .await
         .expect("Failed to get page 1");
 
-    println!(
-        "Page 1: {} items, has_more: {}",
-        page1.items.len(),
-        page1.has_more
-    );
+    println!("Page 1: {} items, has_more: {}", page1.items.len(), page1.has_more);
     assert!(page1.items.len() <= 2);
 
     // Navigate to page 2 if there are more items
@@ -208,16 +183,9 @@ async fn test_cursor_pagination() {
             ..Default::default()
         };
 
-        let page2 = storage
-            .list_tasks_paginated(filter)
-            .await
-            .expect("Failed to get page 2");
+        let page2 = storage.list_tasks_paginated(filter).await.expect("Failed to get page 2");
 
-        println!(
-            "Page 2: {} items, has_more: {}",
-            page2.items.len(),
-            page2.has_more
-        );
+        println!("Page 2: {} items, has_more: {}", page2.items.len(), page2.has_more);
         assert!(page2.items.len() <= 2);
 
         // Test backward pagination
@@ -229,10 +197,8 @@ async fn test_cursor_pagination() {
                 ..Default::default()
             };
 
-            let page1_again = storage
-                .list_tasks_paginated(filter)
-                .await
-                .expect("Failed to navigate back");
+            let page1_again =
+                storage.list_tasks_paginated(filter).await.expect("Failed to navigate back");
 
             println!("Back to page 1: {} items", page1_again.items.len());
             assert!(page1_again.items.len() <= 2);
@@ -242,10 +208,7 @@ async fn test_cursor_pagination() {
     // Clean up - close all test tasks
     println!("\nCleaning up test tasks...");
     for task_id in task_ids {
-        storage
-            .delete_task(task_id)
-            .await
-            .expect("Failed to delete task");
+        storage.delete_task(task_id).await.expect("Failed to delete task");
         println!("  Closed task #{}", task_id);
     }
 

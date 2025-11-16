@@ -37,14 +37,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     // Discord Bot Token取得
-    let token = args
-        .token
-        .or_else(|| env::var("DISCORD_BOT_TOKEN").ok())
-        .ok_or_else(|| {
-            DiscordMcpError::Internal(
-                "DISCORD_BOT_TOKEN not found in environment or args".to_string(),
-            )
-        })?;
+    let token = args.token.or_else(|| env::var("DISCORD_BOT_TOKEN").ok()).ok_or_else(|| {
+        DiscordMcpError::Internal("DISCORD_BOT_TOKEN not found in environment or args".to_string())
+    })?;
 
     tracing::info!("Starting Miyabi Discord MCP Server...");
     tracing::info!("Mode: {}", args.mode);
@@ -59,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => {
             tracing::error!("✗ Discord API health check error: {}", e);
             return Err(Box::new(e) as Box<dyn std::error::Error>);
-        }
+        },
     }
 
     // JSON-RPC 2.0ハンドラー初期化
@@ -76,19 +71,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     .await?;
 
             tracing::warn!("stdio mode is not yet implemented");
-        }
+        },
         "http" => {
             tracing::info!("Running in HTTP mode on port {}...", args.port);
 
             // TODO: HTTPサーバー実装
             tracing::warn!("HTTP mode is not yet implemented");
-        }
+        },
         _ => {
             tracing::error!("Invalid mode: {}", args.mode);
             return Err(Box::new(DiscordMcpError::InvalidParams(
                 "Invalid mode. Use 'stdio' or 'http'".to_string(),
             )));
-        }
+        },
     }
 
     Ok(())

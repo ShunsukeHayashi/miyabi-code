@@ -39,10 +39,7 @@ pub async fn search_knowledge(query: &str, figure: &str, top_k: usize) -> Result
         .context("Failed to initialize vector store")?;
 
     // Generate query embedding
-    let query_embedding = embedder
-        .embed_text(query)
-        .await
-        .context("Failed to embed query")?;
+    let query_embedding = embedder.embed_text(query).await.context("Failed to embed query")?;
 
     // Create filter for the specific figure
     let mut filter = HashMap::new();
@@ -86,10 +83,8 @@ pub async fn ingest_figure_data(figure_name: &str, vector_store: &VectorStore) -
         vector_store.embedding_dim(),
     );
 
-    let embeddings = embedder
-        .embed_batch(&chunks)
-        .await
-        .context("Failed to generate embeddings")?;
+    let embeddings =
+        embedder.embed_batch(&chunks).await.context("Failed to generate embeddings")?;
 
     // Step 3: Create documents and insert into vector store
     let documents: Vec<Document> = chunks
@@ -111,11 +106,7 @@ pub async fn ingest_figure_data(figure_name: &str, vector_store: &VectorStore) -
         .await
         .context("Failed to insert documents into vector store")?;
 
-    tracing::info!(
-        "Successfully ingested {} documents for {}",
-        doc_count,
-        figure_name
-    );
+    tracing::info!("Successfully ingested {} documents for {}", doc_count, figure_name);
 
     Ok(doc_count)
 }
@@ -138,10 +129,7 @@ mod tests {
         let mut filter = HashMap::new();
         filter.insert("figure".to_string(), "織田信長".to_string());
 
-        let results = vector_store
-            .search(&query_embedding, 5, Some(filter))
-            .await
-            .unwrap();
+        let results = vector_store.search(&query_embedding, 5, Some(filter)).await.unwrap();
 
         assert_eq!(results.len(), 0);
     }
@@ -175,16 +163,14 @@ mod tests {
                 let mut filter = HashMap::new();
                 filter.insert("figure".to_string(), "織田信長".to_string());
 
-                let search_results = vector_store
-                    .search(&query_embedding, 3, Some(filter))
-                    .await
-                    .unwrap();
+                let search_results =
+                    vector_store.search(&query_embedding, 3, Some(filter)).await.unwrap();
 
                 assert!(!search_results.is_empty(), "Should find search results");
-            }
+            },
             Err(e) => {
                 println!("Warning: Integration test failed (network issue?): {}", e);
-            }
+            },
         }
     }
 
@@ -220,10 +206,7 @@ mod tests {
         let mut filter = HashMap::new();
         filter.insert("figure".to_string(), "織田信長".to_string());
 
-        let results = vector_store
-            .search(&query_embedding, 2, Some(filter))
-            .await
-            .unwrap();
+        let results = vector_store.search(&query_embedding, 2, Some(filter)).await.unwrap();
 
         assert!(!results.is_empty(), "Should find results");
         println!("Found {} results", results.len());
@@ -233,9 +216,6 @@ mod tests {
         }
 
         // The first result should contain "本能寺"
-        assert!(
-            results[0].text.contains("本能寺"),
-            "Top result should be most relevant"
-        );
+        assert!(results[0].text.contains("本能寺"), "Top result should be most relevant");
     }
 }

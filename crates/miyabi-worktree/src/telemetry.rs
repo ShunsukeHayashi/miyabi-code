@@ -67,7 +67,7 @@ impl TelemetryCollector {
                     branch = %branch_name,
                     "Worktree作成開始"
                 );
-            }
+            },
             WorktreeEvent::CreateComplete {
                 worktree_id,
                 duration,
@@ -77,7 +77,7 @@ impl TelemetryCollector {
                     duration_ms = duration.as_millis(),
                     "Worktree作成完了"
                 );
-            }
+            },
             WorktreeEvent::ExecuteStart {
                 worktree_id,
                 agent_type,
@@ -87,7 +87,7 @@ impl TelemetryCollector {
                     agent = %agent_type,
                     "Agent実行開始"
                 );
-            }
+            },
             WorktreeEvent::ExecuteComplete {
                 worktree_id,
                 duration,
@@ -106,10 +106,10 @@ impl TelemetryCollector {
                         "Agent実行失敗"
                     );
                 }
-            }
+            },
             WorktreeEvent::CleanupStart { worktree_id } => {
                 debug!(worktree_id = %worktree_id, "クリーンアップ開始");
-            }
+            },
             WorktreeEvent::CleanupComplete {
                 worktree_id,
                 duration,
@@ -119,7 +119,7 @@ impl TelemetryCollector {
                     duration_ms = duration.as_millis(),
                     "クリーンアップ完了"
                 );
-            }
+            },
             WorktreeEvent::Error {
                 worktree_id,
                 error_message,
@@ -129,7 +129,7 @@ impl TelemetryCollector {
                     error = %error_message,
                     "Worktreeエラー"
                 );
-            }
+            },
         }
 
         self.events.push(event);
@@ -157,10 +157,10 @@ impl TelemetryCollector {
                         stats.failed_executions += 1;
                     }
                     stats.total_execution_time += *duration;
-                }
+                },
                 WorktreeEvent::CleanupComplete { .. } => stats.cleanups += 1,
                 WorktreeEvent::Error { .. } => stats.errors += 1,
-                _ => {}
+                _ => {},
             }
         }
 

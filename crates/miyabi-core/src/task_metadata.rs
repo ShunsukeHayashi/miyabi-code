@@ -259,10 +259,7 @@ impl TaskMetadataManager {
     /// Find tasks by status
     pub fn find_by_status(&self, status: TaskStatus) -> Result<Vec<TaskMetadata>> {
         let all_tasks = self.list_all()?;
-        Ok(all_tasks
-            .into_iter()
-            .filter(|task| task.status == status)
-            .collect())
+        Ok(all_tasks.into_iter().filter(|task| task.status == status).collect())
     }
 
     /// Delete task metadata
@@ -281,26 +278,11 @@ impl TaskMetadataManager {
         let tasks = self.list_all()?;
 
         let total = tasks.len();
-        let pending = tasks
-            .iter()
-            .filter(|t| t.status == TaskStatus::Pending)
-            .count();
-        let running = tasks
-            .iter()
-            .filter(|t| t.status == TaskStatus::Running)
-            .count();
-        let success = tasks
-            .iter()
-            .filter(|t| t.status == TaskStatus::Success)
-            .count();
-        let failed = tasks
-            .iter()
-            .filter(|t| t.status == TaskStatus::Failed)
-            .count();
-        let cancelled = tasks
-            .iter()
-            .filter(|t| t.status == TaskStatus::Cancelled)
-            .count();
+        let pending = tasks.iter().filter(|t| t.status == TaskStatus::Pending).count();
+        let running = tasks.iter().filter(|t| t.status == TaskStatus::Running).count();
+        let success = tasks.iter().filter(|t| t.status == TaskStatus::Success).count();
+        let failed = tasks.iter().filter(|t| t.status == TaskStatus::Failed).count();
+        let cancelled = tasks.iter().filter(|t| t.status == TaskStatus::Cancelled).count();
 
         // Calculate average duration for completed tasks
         let completed_tasks: Vec<_> = tasks.iter().filter(|t| t.duration_secs.is_some()).collect();

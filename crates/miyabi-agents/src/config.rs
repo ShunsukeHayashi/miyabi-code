@@ -256,10 +256,7 @@ impl AgentConfigManager {
 
         // Sort by agent type (coding first, then business), then by name
         agents.sort_by(|a, b| {
-            match (
-                a.agent_type.is_coding_agent(),
-                b.agent_type.is_coding_agent(),
-            ) {
+            match (a.agent_type.is_coding_agent(), b.agent_type.is_coding_agent()) {
                 (true, false) => std::cmp::Ordering::Less,
                 (false, true) => std::cmp::Ordering::Greater,
                 _ => a.name.cmp(&b.name),
@@ -292,10 +289,7 @@ impl AgentConfigManager {
         let config_file = self.find_config_file(name)?.unwrap_or_else(|| {
             // Prefer project-local .miyabi/agents/, fallback to user-global
             if let Ok(current_dir) = std::env::current_dir() {
-                current_dir
-                    .join(".miyabi")
-                    .join("agents")
-                    .join(format!("{}.toml", name))
+                current_dir.join(".miyabi").join("agents").join(format!("{}.toml", name))
             } else if let Some(home) = dirs::home_dir() {
                 home.join(".config")
                     .join("miyabi")
@@ -459,9 +453,7 @@ mod tests {
                 skills: HashMap::new(),
                 dependencies: AgentDependencies::default(),
             };
-            manager
-                .save_config(&format!("TestAgent{}", i), &config)
-                .unwrap();
+            manager.save_config(&format!("TestAgent{}", i), &config).unwrap();
         }
 
         let agents = manager.list_agents().unwrap();

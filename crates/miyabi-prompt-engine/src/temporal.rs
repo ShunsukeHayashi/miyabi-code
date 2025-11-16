@@ -2,7 +2,7 @@
 //!
 //! 時間軸分割ロジック: 600秒 → 120セグメント（5秒ずつ）
 
-use crate::{Segment, Scene, VideoConcept, Layer4D, TransitionType};
+use crate::{Layer4D, Scene, Segment, TransitionType, VideoConcept};
 use anyhow::Result;
 
 /// Temporal Segmenter
@@ -78,7 +78,12 @@ impl TemporalSegmenter {
     }
 
     /// Act/Segment indexからシーン取得
-    fn get_scene_for_segment(&self, concept: &VideoConcept, act_id: u8, _segment_index: u32) -> Scene {
+    fn get_scene_for_segment(
+        &self,
+        concept: &VideoConcept,
+        act_id: u8,
+        _segment_index: u32,
+    ) -> Scene {
         // 簡易版：Act内の最初のシーンを返す
         let act = match act_id {
             1 => &concept.plot_summary.act_1,
@@ -113,7 +118,7 @@ impl Default for TemporalSegmenter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{PlotSummary, Act, VisualStyle, Character};
+    use crate::{Act, Character, PlotSummary, VisualStyle};
 
     #[test]
     fn test_segment_count() {

@@ -115,10 +115,7 @@ impl MilestoneUpdater {
             .map_err(|e| SchedulerError::InvalidConfig(e.to_string()))?;
 
         let milestone = self.parse_milestone(&milestone_json)?;
-        debug!(
-            "Milestone fetched: {} ({:.1}% complete)",
-            milestone.title, milestone.progress
-        );
+        debug!("Milestone fetched: {} ({:.1}% complete)", milestone.title, milestone.progress);
 
         Ok(milestone)
     }
@@ -148,7 +145,7 @@ impl MilestoneUpdater {
                     "Invalid milestone state: {}",
                     state_str
                 )))
-            }
+            },
         };
 
         let open_issues = json["open_issues"].as_u64().unwrap_or(0);
@@ -191,15 +188,11 @@ impl MilestoneUpdater {
 
         // Add comment with results
         let comment = self.generate_milestone_comment(result, &milestone);
-        self.add_milestone_comment(milestone_number, &comment)
-            .await?;
+        self.add_milestone_comment(milestone_number, &comment).await?;
 
         // Close milestone if all issues are complete
         if milestone.is_complete() && result.all_succeeded() {
-            info!(
-                "All issues complete, closing milestone #{}",
-                milestone_number
-            );
+            info!("All issues complete, closing milestone #{}", milestone_number);
             self.close_milestone(milestone_number).await?;
         }
 
@@ -225,15 +218,9 @@ impl MilestoneUpdater {
 
         comment.push_str("### Statistics\n\n");
         comment.push_str(&format!("- Total sessions: {}\n", result.total_sessions));
-        comment.push_str(&format!(
-            "- Successful: {} ✅\n",
-            result.successful_sessions
-        ));
+        comment.push_str(&format!("- Successful: {} ✅\n", result.successful_sessions));
         comment.push_str(&format!("- Failed: {} ❌\n", result.failed_sessions));
-        comment.push_str(&format!(
-            "- Success rate: {:.1}%\n\n",
-            result.success_rate * 100.0
-        ));
+        comment.push_str(&format!("- Success rate: {:.1}%\n\n", result.success_rate * 100.0));
 
         if !result.modified_files.is_empty() {
             comment.push_str("### Modified Files\n\n");
@@ -263,10 +250,7 @@ impl MilestoneUpdater {
 
         // Note: GitHub doesn't have milestone comments, so we add a comment to an issue
         // associated with the milestone. For now, we'll log this as a placeholder.
-        info!(
-            "Milestone #{} comment (placeholder): {}",
-            milestone_number, comment
-        );
+        info!("Milestone #{} comment (placeholder): {}", milestone_number, comment);
 
         Ok(())
     }

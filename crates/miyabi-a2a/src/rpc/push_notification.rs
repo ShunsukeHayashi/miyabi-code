@@ -327,7 +327,7 @@ pub async fn send_push_notification(
                         status, error_body
                     )));
                 }
-            }
+            },
             Err(e) => {
                 warn!(
                     attempt = attempt,
@@ -335,11 +335,8 @@ pub async fn send_push_notification(
                     "Push notification request failed"
                 );
 
-                last_error = Some(A2AError::WebhookDeliveryFailed(format!(
-                    "Request error: {}",
-                    e
-                )));
-            }
+                last_error = Some(A2AError::WebhookDeliveryFailed(format!("Request error: {}", e)));
+            },
         }
 
         // Exponential backoff delay before retry (except on last attempt)
@@ -497,7 +494,7 @@ mod tests {
         match result.unwrap_err() {
             A2AError::WebhookDeliveryFailed(msg) => {
                 assert!(msg.contains("HTTP 500"));
-            }
+            },
             _ => panic!("Expected WebhookDeliveryFailed error"),
         }
     }

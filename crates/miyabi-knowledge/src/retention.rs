@@ -193,10 +193,10 @@ impl RetentionManager {
                     match self.qdrant_client.delete_by_id(entry_id).await {
                         Ok(_) => {
                             info!("Deleted entry: {}", entry_id);
-                        }
+                        },
                         Err(e) => {
                             warn!("Failed to delete entry {}: {}", entry_id, e);
-                        }
+                        },
                     }
                 }
                 info!("Cleanup completed: {} entries deleted", stats.deleted);
@@ -220,10 +220,7 @@ impl RetentionManager {
         before_date: DateTime<Utc>,
         dry_run: bool,
     ) -> Result<CleanupStats> {
-        info!(
-            "Starting cleanup before {} (dry_run: {})",
-            before_date, dry_run
-        );
+        info!("Starting cleanup before {} (dry_run: {})", before_date, dry_run);
 
         let start = std::time::Instant::now();
         let mut stats = CleanupStats::default();
@@ -260,10 +257,10 @@ impl RetentionManager {
                 match self.qdrant_client.delete_by_id(entry_id).await {
                     Ok(_) => {
                         info!("Deleted entry: {}", entry_id);
-                    }
+                    },
                     Err(e) => {
                         warn!("Failed to delete entry {}: {}", entry_id, e);
-                    }
+                    },
                 }
             }
         }
@@ -296,10 +293,10 @@ impl RetentionManager {
                             "Automatic cleanup completed: {} deleted, {} retained",
                             stats.deleted, stats.retained
                         );
-                    }
+                    },
                     Err(e) => {
                         warn!("Automatic cleanup failed: {}", e);
-                    }
+                    },
                 }
             }
         })

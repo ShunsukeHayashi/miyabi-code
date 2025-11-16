@@ -58,6 +58,7 @@ pub mod quality_checker;
 pub mod remote;
 pub mod scheduler;
 pub mod session;
+pub mod skills_bridge;
 pub mod ssh;
 pub mod state_machine;
 
@@ -82,5 +83,9 @@ pub use quality_checker::QualityChecker;
 pub use remote::RemoteExecutor;
 pub use scheduler::{Scheduler, SchedulerStats};
 pub use session::{SessionConfig, SessionId, SessionManager, SessionStatus};
+pub use skills_bridge::{
+    ErrorSeverity, OrchestratorEvent, OrchestratorTrigger, SkillExecutor, SkillRequest,
+    SkillResult, SkillsBridge,
+};
 pub use ssh::{Machine, MachineStatus, SshConfig};
 pub use state_machine::{ExecutionState, Phase, StateMachine};

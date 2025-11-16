@@ -17,12 +17,7 @@ async fn test_mission_control_status_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/mission-control")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/mission-control").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -45,12 +40,7 @@ async fn test_mission_control_detailed_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/mission-control/detailed")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/mission-control/detailed").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -73,12 +63,7 @@ async fn test_tmux_sessions_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/tmux/sessions")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/tmux/sessions").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -97,12 +82,7 @@ async fn test_agents_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/agents")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/agents").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -122,12 +102,7 @@ async fn test_preflight_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/preflight")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/preflight").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -147,12 +122,7 @@ async fn test_timeline_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/timeline")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/timeline").body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -172,12 +142,7 @@ async fn test_worktrees_endpoint() {
     let app = create_test_app().await;
 
     let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/worktrees")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/worktrees").body(Body::empty()).unwrap())
         .await
         .unwrap();
 

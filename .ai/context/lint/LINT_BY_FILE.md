@@ -1,0 +1,33 @@
+## /Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs
+
+- [ERROR] Line 14: unknown - at least one of the features "rust_crypto" or "aws_lc_rs" must be enabled
+- [ERROR] Line 324: E0433 - failed to resolve: use of undeclared type `Hs256Verifier`
+- [ERROR] Line 325: E0433 - failed to resolve: use of undeclared type `Hs384Verifier`
+- [ERROR] Line 326: E0433 - failed to resolve: use of undeclared type `Hs512Verifier`
+- [ERROR] Line 327: E0433 - failed to resolve: use of undeclared type `Es256Verifier`
+- [ERROR] Line 328: E0433 - failed to resolve: use of undeclared type `Es384Verifier`
+- [ERROR] Line 329: E0433 - failed to resolve: use of undeclared type `Rsa256Verifier`
+- [ERROR] Line 330: E0433 - failed to resolve: use of undeclared type `Rsa384Verifier`
+- [ERROR] Line 331: E0433 - failed to resolve: use of undeclared type `Rsa512Verifier`
+- [ERROR] Line 332: E0433 - failed to resolve: use of undeclared type `RsaPss256Verifier`
+- [ERROR] Line 333: E0433 - failed to resolve: use of undeclared type `RsaPss384Verifier`
+- [ERROR] Line 334: E0433 - failed to resolve: use of undeclared type `RsaPss512Verifier`
+- [ERROR] Line 335: E0433 - failed to resolve: use of undeclared type `EdDSAVerifier`
+- [ERROR] Line 200: E0433 - failed to resolve: use of undeclared type `Hs256Signer`
+- [ERROR] Line 201: E0433 - failed to resolve: use of undeclared type `Hs384Signer`
+- [ERROR] Line 202: E0433 - failed to resolve: use of undeclared type `Hs512Signer`
+- [ERROR] Line 203: E0433 - failed to resolve: use of undeclared type `Es256Signer`
+- [ERROR] Line 204: E0433 - failed to resolve: use of undeclared type `Es384Signer`
+- [ERROR] Line 205: E0433 - failed to resolve: use of undeclared type `Rsa256Signer`
+- [ERROR] Line 206: E0433 - failed to resolve: use of undeclared type `Rsa384Signer`
+- [ERROR] Line 207: E0433 - failed to resolve: use of undeclared type `Rsa512Signer`
+- [ERROR] Line 208: E0433 - failed to resolve: use of undeclared type `RsaPss256Signer`
+- [ERROR] Line 209: E0433 - failed to resolve: use of undeclared type `RsaPss384Signer`
+- [ERROR] Line 210: E0433 - failed to resolve: use of undeclared type `RsaPss512Signer`
+- [ERROR] Line 211: E0433 - failed to resolve: use of undeclared type `EdDSASigner`
+- [ERROR] Line 574: E0425 - cannot find function `extract_rsa_public_key_components` in this scope
+- [ERROR] Line 582: E0425 - cannot find function `extract_ec_public_key_coordinates` in this scope
+- [ERROR] Line 643: E0425 - cannot find function `compute_digest` in this scope
+- [FAILURE-NOTE] Line 0: unknown - Some errors have detailed explanations: E0425, E0433.
+- [FAILURE-NOTE] Line 0: unknown - For more information about an error, try `rustc --explain E0425`.
+

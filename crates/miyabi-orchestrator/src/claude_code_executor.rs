@@ -186,10 +186,7 @@ impl ClaudeCodeExecutor {
             session_ids.push((world_id, session_id));
         }
 
-        info!(
-            "All {} worlds spawned, waiting for completion...",
-            self.config.num_worlds
-        );
+        info!("All {} worlds spawned, waiting for completion...", self.config.num_worlds);
 
         // Phase 2: Wait for all worlds to complete
         for (world_id, session_id) in &session_ids {
@@ -205,12 +202,12 @@ impl ClaudeCodeExecutor {
                         Err(e) => {
                             warn!("Failed to collect result from World {}: {}", world_id, e);
                             (false, format!("Failed to collect result: {}", e))
-                        }
+                        },
                     }
-                }
+                },
                 Ok(SessionStatus::Failed) => {
                     (false, format!("World {} execution failed", world_id))
-                }
+                },
                 Ok(SessionStatus::TimedOut) => (
                     false,
                     format!(
@@ -221,11 +218,11 @@ impl ClaudeCodeExecutor {
                 Err(e) => {
                     warn!("Error waiting for World {}: {}", world_id, e);
                     (false, format!("Error: {}", e))
-                }
+                },
                 Ok(status) => {
                     warn!("Unexpected status for World {}: {:?}", world_id, status);
                     (false, format!("Unexpected status: {:?}", status))
-                }
+                },
             };
 
             world_results.push(WorldResult {
@@ -327,15 +324,13 @@ mod tests {
 
         let mut executor = ClaudeCodeExecutor::new(config);
 
-        let result = executor
-            .execute_agent_run(999, PathBuf::from("/nonexistent/worktree"))
-            .await;
+        let result = executor.execute_agent_run(999, PathBuf::from("/nonexistent/worktree")).await;
 
         assert!(result.is_err());
         match result {
             Err(SchedulerError::InvalidConfig(msg)) => {
                 assert!(msg.contains("Worktree not found"));
-            }
+            },
             _ => panic!("Expected InvalidConfig error"),
         }
     }

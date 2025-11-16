@@ -29,14 +29,9 @@ pub async fn write_generated_code_to_worktree(
 
     let code_filename = determine_code_filename(task);
     let code_path = worktree_path.join(&code_filename);
-    tokio::fs::write(&code_path, generated_code)
-        .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!(
-                "Failed to write generated code to {:?}: {}",
-                code_path, e
-            ))
-        })?;
+    tokio::fs::write(&code_path, generated_code).await.map_err(|e| {
+        MiyabiError::Unknown(format!("Failed to write generated code to {:?}: {}", code_path, e))
+    })?;
 
     tracing::info!("Generated code written to: {:?}", code_path);
     Ok(())
@@ -75,10 +70,8 @@ pub async fn parse_code_generation_results(worktree_path: &Path) -> Result<CodeG
 pub async fn setup_worktree(config: &AgentConfig, task: &Task) -> Result<()> {
     let task_id = task.id.clone();
     let task_id_for_log = task.id.clone();
-    let worktree_base = config
-        .worktree_base_path
-        .clone()
-        .unwrap_or_else(|| PathBuf::from(".worktrees"));
+    let worktree_base =
+        config.worktree_base_path.clone().unwrap_or_else(|| PathBuf::from(".worktrees"));
 
     let retry_config = RetryConfig::conservative();
 
@@ -142,10 +135,8 @@ pub async fn setup_worktree(config: &AgentConfig, task: &Task) -> Result<()> {
 #[cfg(feature = "git-worktree")]
 #[allow(dead_code)] // Reserved for future Worktree integration
 pub async fn cleanup_worktree(config: &AgentConfig) -> Result<()> {
-    let worktree_base = config
-        .worktree_base_path
-        .clone()
-        .unwrap_or_else(|| PathBuf::from(".worktrees"));
+    let worktree_base =
+        config.worktree_base_path.clone().unwrap_or_else(|| PathBuf::from(".worktrees"));
 
     let retry_config = RetryConfig::aggressive();
 
@@ -242,10 +233,7 @@ mod tests {
             "miyabi-worktree-test-{}-{}-{}",
             suffix,
             std::process::id(),
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("time")
-                .as_nanos()
+            SystemTime::now().duration_since(UNIX_EPOCH).expect("time").as_nanos()
         );
         std::env::temp_dir().join(unique)
     }
@@ -256,9 +244,7 @@ mod tests {
         let task = sample_task();
         let worktree_dir = unique_temp_dir("write");
 
-        tokio::fs::create_dir_all(worktree_dir.join("src"))
-            .await
-            .expect("create dirs");
+        tokio::fs::create_dir_all(worktree_dir.join("src")).await.expect("create dirs");
 
         write_generated_code_to_worktree(
             &worktree_dir,
@@ -273,9 +259,7 @@ mod tests {
         assert!(worktree_dir.join(".agent-context.json").exists());
         assert!(worktree_dir.join("src/feature.rs").exists());
 
-        tokio::fs::remove_dir_all(&worktree_dir)
-            .await
-            .expect("cleanup dirs");
+        tokio::fs::remove_dir_all(&worktree_dir).await.expect("cleanup dirs");
     }
 
     #[tokio::test]
@@ -284,9 +268,7 @@ mod tests {
         let task = sample_task();
         let worktree_dir = unique_temp_dir("context");
 
-        tokio::fs::create_dir_all(&worktree_dir)
-            .await
-            .expect("create dir");
+        tokio::fs::create_dir_all(&worktree_dir).await.expect("create dir");
 
         prepare_claude_context(&worktree_dir, &config, &task)
             .await
@@ -295,21 +277,15 @@ mod tests {
         assert!(worktree_dir.join("EXECUTION_CONTEXT.md").exists());
         assert!(worktree_dir.join(".agent-context.json").exists());
 
-        tokio::fs::remove_dir_all(&worktree_dir)
-            .await
-            .expect("cleanup");
+        tokio::fs::remove_dir_all(&worktree_dir).await.expect("cleanup");
     }
 
     #[tokio::test]
     async fn parse_code_generation_results_returns_placeholder() {
         let worktree_dir = unique_temp_dir("parse");
-        tokio::fs::create_dir_all(&worktree_dir)
-            .await
-            .expect("create dir");
+        tokio::fs::create_dir_all(&worktree_dir).await.expect("create dir");
 
-        let result = parse_code_generation_results(&worktree_dir)
-            .await
-            .expect("parse");
+        let result = parse_code_generation_results(&worktree_dir).await.expect("parse");
 
         assert!(result.files_created.is_empty());
         assert!(result.files_modified.is_empty());
@@ -318,8 +294,6 @@ mod tests {
         assert_eq!(result.tests_added, 0);
         assert!(result.commit_sha.is_none());
 
-        tokio::fs::remove_dir_all(&worktree_dir)
-            .await
-            .expect("cleanup");
+        tokio::fs::remove_dir_all(&worktree_dir).await.expect("cleanup");
     }
 }

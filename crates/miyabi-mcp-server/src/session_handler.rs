@@ -29,11 +29,7 @@ impl SessionHandler {
 
     /// Spawn a new agent session
     pub async fn spawn_session(&self, params: SessionSpawnParams) -> Result<SessionSpawnResult> {
-        tracing::info!(
-            "Spawning session: agent={}, purpose={}",
-            params.agent_name,
-            params.purpose
-        );
+        tracing::info!("Spawning session: agent={}, purpose={}", params.agent_name, params.purpose);
 
         let context = params.context.into();
 
@@ -64,11 +60,7 @@ impl SessionHandler {
         let from_id = Uuid::parse_str(&params.from_session_id)
             .map_err(|_| ServerError::Internal("Invalid session UUID".to_string()))?;
 
-        tracing::info!(
-            "Handing off session {} to agent {}",
-            from_id,
-            params.to_agent
-        );
+        tracing::info!("Handing off session {} to agent {}", from_id, params.to_agent);
 
         let context = params.updated_context.into();
 
@@ -213,11 +205,7 @@ impl SessionHandler {
             status: format!("{:?}", session.status),
             created_at: session.created_at.to_rfc3339(),
             parent_session: session.parent_session.map(|id| id.to_string()),
-            child_sessions: session
-                .child_sessions
-                .iter()
-                .map(|id| id.to_string())
-                .collect(),
+            child_sessions: session.child_sessions.iter().map(|id| id.to_string()).collect(),
             handoff_to: session.handoff_to,
             error_message: session.error_message,
         })
@@ -246,10 +234,7 @@ impl SessionHandler {
         let lineage = self.session_manager.get_session_lineage(session_id);
 
         if lineage.is_empty() {
-            return Err(ServerError::Internal(format!(
-                "Session {} not found",
-                session_id
-            )));
+            return Err(ServerError::Internal(format!("Session {} not found", session_id)));
         }
 
         // First session is root (parent)

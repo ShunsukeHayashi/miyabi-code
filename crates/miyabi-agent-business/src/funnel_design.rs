@@ -58,16 +58,13 @@ Create a detailed funnel design as JSON with AARRR metrics, customer journey sta
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::FunnelDesignAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::FunnelDesignAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let funnel_design: FunnelDesign = serde_json::from_str(&response).map_err(|e| {
@@ -213,10 +210,7 @@ impl BaseAgent for FunnelDesignAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!(
-            "FunnelDesignAgent starting funnel design generation for task: {}",
-            task.id
-        );
+        tracing::info!("FunnelDesignAgent starting funnel design generation for task: {}", task.id);
 
         // Generate funnel design using LLM
         let funnel_design = self.generate_funnel_design(task).await?;
@@ -252,10 +246,7 @@ impl BaseAgent for FunnelDesignAgent {
             "total_channels_count": funnel_design.aarrr_metrics.acquisition.channels.len() + funnel_design.aarrr_metrics.activation.channels.len() + funnel_design.aarrr_metrics.retention.channels.len() + funnel_design.aarrr_metrics.referral.channels.len() + funnel_design.aarrr_metrics.revenue.channels.len()
         });
 
-        tracing::info!(
-            "FunnelDesignAgent completed funnel design generation: {}",
-            summary
-        );
+        tracing::info!("FunnelDesignAgent completed funnel design generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

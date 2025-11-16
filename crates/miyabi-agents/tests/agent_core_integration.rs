@@ -1,9 +1,9 @@
 //! Integration tests for agent-core ↔ agents interaction
 //! Tests the interaction between miyabi-agent-core and miyabi-agents
 
-use miyabi_agent_core::BaseAgent;
 use miyabi_agent_codegen::CodeGenAgent;
 use miyabi_agent_coordinator::CoordinatorAgent;
+use miyabi_agent_core::BaseAgent;
 use miyabi_agent_review::ReviewAgent;
 use miyabi_types::{AgentConfig, AgentType, Issue, Task, TaskType};
 

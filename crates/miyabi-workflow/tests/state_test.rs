@@ -156,10 +156,9 @@ fn test_execution_state_with_results() {
     let mut state = create_test_state("workflow-results", WorkflowStatus::Running);
 
     // Add step results
-    state.step_results.insert(
-        "step-0".to_string(),
-        serde_json::json!({"output": "success"}),
-    );
+    state
+        .step_results
+        .insert("step-0".to_string(), serde_json::json!({"output": "success"}));
 
     store.save_execution(&state).unwrap();
 

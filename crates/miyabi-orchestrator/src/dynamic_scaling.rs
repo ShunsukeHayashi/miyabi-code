@@ -81,9 +81,7 @@ impl DynamicScaler {
         let max_concurrent = hardware.max_concurrent_worktrees(&per_worktree);
 
         // Start with hardware-detected limit, clamped to config range
-        let initial_limit = max_concurrent
-            .max(config.min_concurrent)
-            .min(config.max_concurrent);
+        let initial_limit = max_concurrent.max(config.min_concurrent).min(config.max_concurrent);
 
         info!(
             initial_limit = initial_limit,
@@ -127,10 +125,10 @@ impl DynamicScaler {
             interval.tick().await;
 
             match self.check_and_adjust().await {
-                Ok(_) => {}
+                Ok(_) => {},
                 Err(e) => {
                     warn!(error = %e, "Failed to check and adjust resources");
-                }
+                },
             }
         }
     }
@@ -245,9 +243,7 @@ impl DynamicScaler {
 
     /// Manually sets the concurrent limit (for testing)
     pub async fn set_limit(&self, limit: usize) {
-        let clamped_limit = limit
-            .max(self.config.min_concurrent)
-            .min(self.config.max_concurrent);
+        let clamped_limit = limit.max(self.config.min_concurrent).min(self.config.max_concurrent);
 
         let mut current = self.current_limit.lock().await;
         *current = clamped_limit;
@@ -316,18 +312,9 @@ impl ResourceMonitor {
                 "MEMORY_USAGE".to_string(),
                 format!("{:.0}", stats.memory_usage_ratio * 100.0),
             );
-            params.insert(
-                "CPU_USAGE".to_string(),
-                format!("{:.0}", stats.cpu_usage_ratio * 100.0),
-            );
-            params.insert(
-                "AVAILABLE_MEMORY_GB".to_string(),
-                stats.available_memory_gb.to_string(),
-            );
-            params.insert(
-                "AVAILABLE_WORKTREES".to_string(),
-                stats.available_worktrees.to_string(),
-            );
+            params.insert("CPU_USAGE".to_string(), format!("{:.0}", stats.cpu_usage_ratio * 100.0));
+            params.insert("AVAILABLE_MEMORY_GB".to_string(), stats.available_memory_gb.to_string());
+            params.insert("AVAILABLE_WORKTREES".to_string(), stats.available_worktrees.to_string());
             params.insert(
                 "BOTTLENECK_RESOURCE".to_string(),
                 format!("{:?}", stats.bottleneck_resource),
@@ -338,10 +325,8 @@ impl ResourceMonitor {
             crate::hooks::notify_scaling_event("resource_stats", params);
 
             // Also report bottleneck if detected
-            if matches!(
-                bottleneck,
-                miyabi_core::resource_limits::ResourceType::Memory
-            ) || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Cpu)
+            if matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Memory)
+                || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Cpu)
                 || matches!(bottleneck, miyabi_core::resource_limits::ResourceType::Disk)
             {
                 crate::hooks::notify_scaling_event("bottleneck_detected", params_clone);
@@ -415,14 +400,8 @@ mod tests {
             stats.memory_usage_ratio >= 0.0 && stats.memory_usage_ratio <= 1.0,
             "Memory usage should be between 0 and 1"
         );
-        assert!(
-            stats.cpu_usage_ratio >= 0.0,
-            "CPU usage should be non-negative"
-        );
-        assert!(
-            stats.available_worktrees > 0,
-            "Should have at least 1 available worktree"
-        );
+        assert!(stats.cpu_usage_ratio >= 0.0, "CPU usage should be non-negative");
+        assert!(stats.available_worktrees > 0, "Should have at least 1 available worktree");
     }
 
     #[tokio::test]

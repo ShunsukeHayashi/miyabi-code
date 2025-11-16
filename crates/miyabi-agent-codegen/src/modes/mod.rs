@@ -54,11 +54,9 @@ impl std::str::FromStr for ExecutionMode {
         match s.to_lowercase().as_str() {
             "auto" | "a" => Ok(Self::Auto),
             "manual" | "m" => Ok(Self::Manual),
-            _ => Err(format!(
-                "Invalid execution mode: '{}'. Valid options: auto, manual",
-                s
-            )
-            .into()),
+            _ => {
+                Err(format!("Invalid execution mode: '{}'. Valid options: auto, manual", s).into())
+            },
         }
     }
 }
@@ -81,14 +79,8 @@ mod tests {
 
     #[test]
     fn test_execution_mode_from_str() {
-        assert_eq!(
-            "auto".parse::<ExecutionMode>().unwrap(),
-            ExecutionMode::Auto
-        );
-        assert_eq!(
-            "manual".parse::<ExecutionMode>().unwrap(),
-            ExecutionMode::Manual
-        );
+        assert_eq!("auto".parse::<ExecutionMode>().unwrap(), ExecutionMode::Auto);
+        assert_eq!("manual".parse::<ExecutionMode>().unwrap(), ExecutionMode::Manual);
         assert_eq!("a".parse::<ExecutionMode>().unwrap(), ExecutionMode::Auto);
         assert_eq!("m".parse::<ExecutionMode>().unwrap(), ExecutionMode::Manual);
         assert!("invalid".parse::<ExecutionMode>().is_err());

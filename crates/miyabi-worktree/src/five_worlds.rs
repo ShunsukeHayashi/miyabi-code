@@ -87,11 +87,7 @@ impl FiveWorldsManager {
         issue_number: u64,
         task_name: &str,
     ) -> Result<HashMap<WorldId, WorldWorktreeHandle>, GitError> {
-        info!(
-            issue_number = issue_number,
-            task_name = task_name,
-            "Spawning all 5 worlds"
-        );
+        info!(issue_number = issue_number, task_name = task_name, "Spawning all 5 worlds");
 
         let mut handles = HashMap::new();
 
@@ -105,7 +101,7 @@ impl FiveWorldsManager {
                         "World spawned successfully"
                     );
                     handles.insert(world_id, handle);
-                }
+                },
                 Err(e) => {
                     error!(
                         world_id = ?world_id,
@@ -115,7 +111,7 @@ impl FiveWorldsManager {
                     // Clean up already created worktrees
                     self.cleanup_worlds(&handles).await;
                     return Err(e);
-                }
+                },
             }
         }
 
@@ -180,10 +176,7 @@ impl FiveWorldsManager {
         };
 
         // Register in active worlds
-        self.active_worlds
-            .lock()
-            .await
-            .insert(world_id, handle.clone());
+        self.active_worlds.lock().await.insert(world_id, handle.clone());
 
         Ok(handle)
     }
@@ -216,10 +209,7 @@ impl FiveWorldsManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!(
-                "Failed to create worktree: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Git(format!("Failed to create worktree: {}", stderr)));
         }
 
         Ok(())
@@ -270,10 +260,7 @@ impl FiveWorldsManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!(
-                "Failed to remove worktree: {}",
-                stderr
-            )));
+            return Err(MiyabiError::Git(format!("Failed to remove worktree: {}", stderr)));
         }
 
         Ok(())
@@ -308,7 +295,7 @@ impl FiveWorldsManager {
                 match result {
                     Ok(output) if output.status.success() => {
                         debug!(world_id = ?world_id, path = ?path, "World worktree cleaned up");
-                    }
+                    },
                     Ok(output) => {
                         let stderr = String::from_utf8_lossy(&output.stderr);
                         error!(
@@ -317,7 +304,7 @@ impl FiveWorldsManager {
                             error = %stderr,
                             "Failed to cleanup world worktree"
                         );
-                    }
+                    },
                     Err(e) => {
                         error!(
                             world_id = ?world_id,
@@ -325,7 +312,7 @@ impl FiveWorldsManager {
                             error = %e,
                             "Failed to execute git worktree remove"
                         );
-                    }
+                    },
                 }
             });
         }
@@ -341,10 +328,7 @@ impl FiveWorldsManager {
     pub async fn cleanup_all_worlds_for_issue(&self, issue_number: u64) -> Result<(), GitError> {
         use futures::stream::{FuturesUnordered, StreamExt};
 
-        info!(
-            issue_number = issue_number,
-            "Cleaning up all worlds for issue"
-        );
+        info!(issue_number = issue_number, "Cleaning up all worlds for issue");
 
         let worlds_to_cleanup: Vec<(WorldId, Option<WorldWorktreeHandle>)> = {
             let mut active = self.active_worlds.lock().await;
@@ -378,7 +362,7 @@ impl FiveWorldsManager {
                     match result {
                         Ok(output) if output.status.success() => {
                             debug!(world_id = ?world_id, "World cleaned up");
-                        }
+                        },
                         Ok(output) => {
                             let stderr = String::from_utf8_lossy(&output.stderr);
                             warn!(
@@ -386,14 +370,14 @@ impl FiveWorldsManager {
                                 error = %stderr,
                                 "Failed to cleanup world"
                             );
-                        }
+                        },
                         Err(e) => {
                             warn!(
                                 world_id = ?world_id,
                                 error = %e,
                                 "Failed to execute git worktree remove"
                             );
-                        }
+                        },
                     }
                 });
             }
@@ -478,10 +462,7 @@ impl FiveWorldsManager {
 
         WorldStatistics {
             total_active: active.len(),
-            worlds: active
-                .iter()
-                .map(|(id, handle)| (*id, handle.path.clone()))
-                .collect(),
+            worlds: active.iter().map(|(id, handle)| (*id, handle.path.clone())).collect(),
         }
     }
 }
@@ -519,8 +500,7 @@ mod tests {
             index.write_tree().unwrap()
         };
         let tree = repo.find_tree(tree_id).unwrap();
-        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[])
-            .unwrap();
+        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[]).unwrap();
 
         let manager = FiveWorldsManager::new(
             worktree_dir.path().to_path_buf(),
@@ -585,10 +565,7 @@ mod tests {
     async fn test_world_handle_retrieval() {
         let (manager, _repo_dir, _worktree_dir) = setup_test_manager().await;
 
-        manager
-            .spawn_world(270, "test_task", WorldId::Alpha)
-            .await
-            .unwrap();
+        manager.spawn_world(270, "test_task", WorldId::Alpha).await.unwrap();
 
         // Get specific world handle
         let handle = manager.get_world_handle(WorldId::Alpha).await;

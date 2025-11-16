@@ -1,0 +1,2 @@
+# MCP Server dependencies
+# Add paper-specific dependencies here

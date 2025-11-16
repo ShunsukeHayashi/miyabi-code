@@ -52,18 +52,12 @@ impl QualityBreakdown {
     pub fn validate(&self) -> Result<(), String> {
         // Validate clippy_score
         if self.clippy_score > 100 {
-            return Err(format!(
-                "clippy_score out of range: {}. Must be 0-100",
-                self.clippy_score
-            ));
+            return Err(format!("clippy_score out of range: {}. Must be 0-100", self.clippy_score));
         }
 
         // Validate rustc_score
         if self.rustc_score > 100 {
-            return Err(format!(
-                "rustc_score out of range: {}. Must be 0-100",
-                self.rustc_score
-            ));
+            return Err(format!("rustc_score out of range: {}. Must be 0-100", self.rustc_score));
         }
 
         // Validate security_score
@@ -480,10 +474,7 @@ mod tests {
                 test_coverage_score: 70,
             },
         };
-        assert_eq!(
-            report_needs_improvement.to_label(),
-            "⚠️ quality:needs-improvement"
-        );
+        assert_eq!(report_needs_improvement.to_label(), "⚠️ quality:needs-improvement");
 
         let report_poor = QualityReport {
             score: 50,

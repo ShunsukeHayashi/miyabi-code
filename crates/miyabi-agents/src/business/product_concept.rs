@@ -51,16 +51,13 @@ Create a comprehensive product concept as JSON with value proposition, target cu
         );
 
         // Execute LLM conversation
-        let response = conversation
-            .ask_with_template(&template)
-            .await
-            .map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("LLM execution failed: {}", e),
-                    AgentType::ProductConceptAgent,
-                    Some(task.id.clone()),
-                ))
-            })?;
+        let response = conversation.ask_with_template(&template).await.map_err(|e| {
+            MiyabiError::Agent(AgentError::new(
+                format!("LLM execution failed: {}", e),
+                AgentType::ProductConceptAgent,
+                Some(task.id.clone()),
+            ))
+        })?;
 
         // Parse JSON response
         let product_concept: ProductConcept = serde_json::from_str(&response).map_err(|e| {
@@ -220,10 +217,7 @@ impl BaseAgent for ProductConceptAgent {
             "target_segments_count": if product_concept.target_customers.secondary.is_some() { 2 } else { 1 }
         });
 
-        tracing::info!(
-            "ProductConceptAgent completed product concept generation: {}",
-            summary
-        );
+        tracing::info!("ProductConceptAgent completed product concept generation: {}", summary);
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

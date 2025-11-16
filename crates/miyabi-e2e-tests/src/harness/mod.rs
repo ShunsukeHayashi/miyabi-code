@@ -121,10 +121,7 @@ impl TestHarness {
             }
         }
 
-        info!(
-            "Initialized git repository at {:?}",
-            self.context.root_path()
-        );
+        info!("Initialized git repository at {:?}", self.context.root_path());
         Ok(())
     }
 
@@ -200,11 +197,7 @@ impl TestHarnessBuilder {
 
         // Create mock GitHub server if requested
         let mock_github = if self.use_mock_github {
-            Some(
-                MockGitHub::start()
-                    .await
-                    .expect("Failed to start mock GitHub"),
-            )
+            Some(MockGitHub::start().await.expect("Failed to start mock GitHub"))
         } else {
             None
         };
@@ -219,11 +212,7 @@ impl TestHarnessBuilder {
             use_worktree: true,
             worktree_base_path: Some(temp_dir.path().join(".worktrees")),
             log_directory: temp_dir.path().join("logs").to_string_lossy().to_string(),
-            report_directory: temp_dir
-                .path()
-                .join("reports")
-                .to_string_lossy()
-                .to_string(),
+            report_directory: temp_dir.path().join("reports").to_string_lossy().to_string(),
             tech_lead_github_username: Some("tech-lead".to_string()),
             ciso_github_username: Some("ciso".to_string()),
             po_github_username: Some("product-owner".to_string()),
@@ -271,10 +260,7 @@ mod tests {
     #[tokio::test]
     async fn test_git_repo_initialization() {
         let harness = TestHarness::new().await;
-        harness
-            .init_git_repo()
-            .await
-            .expect("Failed to initialize git repo");
+        harness.init_git_repo().await.expect("Failed to initialize git repo");
         assert!(harness.context().path(".git").exists());
         harness.cleanup().await;
     }
@@ -282,14 +268,8 @@ mod tests {
     #[tokio::test]
     async fn test_initial_commit() {
         let harness = TestHarness::new().await;
-        harness
-            .init_git_repo()
-            .await
-            .expect("Failed to initialize git repo");
-        harness
-            .create_initial_commit()
-            .await
-            .expect("Failed to create initial commit");
+        harness.init_git_repo().await.expect("Failed to initialize git repo");
+        harness.create_initial_commit().await.expect("Failed to create initial commit");
         assert!(harness.context().path("README.md").exists());
         harness.cleanup().await;
     }

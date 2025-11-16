@@ -1,8 +1,8 @@
 //! Error types for MCP server
 
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// Result type for MCP server operations
 pub type Result<T> = std::result::Result<T, ServerError>;
@@ -101,22 +101,19 @@ impl UnifiedError for ServerError {
                 "MCP server configuration error: {}. Please verify your server configuration.",
                 msg
             ),
-            Self::Rpc(msg) => format!(
-                "JSON-RPC protocol error: {}. The request format may be invalid.",
-                msg
-            ),
-            Self::InvalidRequest(msg) => format!(
-                "Invalid request: {}. Please check your request parameters.",
-                msg
-            ),
+            Self::Rpc(msg) => {
+                format!("JSON-RPC protocol error: {}. The request format may be invalid.", msg)
+            },
+            Self::InvalidRequest(msg) => {
+                format!("Invalid request: {}. Please check your request parameters.", msg)
+            },
             Self::MethodNotFound(method) => format!(
                 "MCP method '{}' not found. Please check the method name and server capabilities.",
                 method
             ),
-            Self::Internal(msg) => format!(
-                "Internal MCP server error: {}. Please try again or contact support.",
-                msg
-            ),
+            Self::Internal(msg) => {
+                format!("Internal MCP server error: {}. Please try again or contact support.", msg)
+            },
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

@@ -1,0 +1,272 @@
+[
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 14,
+    "column": 1,
+    "level": "error",
+    "message": "at least one of the features \"rust_crypto\" or \"aws_lc_rs\" must be enabled",
+    "code": "unknown",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 324,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Hs256Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 325,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Hs384Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 326,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Hs512Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 327,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Es256Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 328,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Es384Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 329,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Rsa256Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 330,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Rsa384Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 331,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Rsa512Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 332,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `RsaPss256Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 333,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `RsaPss384Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 334,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `RsaPss512Verifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 335,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `EdDSAVerifier`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 200,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Hs256Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 201,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Hs384Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 202,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Hs512Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 203,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Es256Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 204,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Es384Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 205,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Rsa256Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 206,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Rsa384Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 207,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `Rsa512Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 208,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `RsaPss256Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 209,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `RsaPss384Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 210,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `RsaPss512Signer`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 211,
+    "column": 38,
+    "level": "error",
+    "message": "failed to resolve: use of undeclared type `EdDSASigner`",
+    "code": "E0433",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 574,
+    "column": 34,
+    "level": "error",
+    "message": "cannot find function `extract_rsa_public_key_components` in this scope",
+    "code": "E0425",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 582,
+    "column": 41,
+    "level": "error",
+    "message": "cannot find function `extract_ec_public_key_coordinates` in this scope",
+    "code": "E0425",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 643,
+    "column": 20,
+    "level": "error",
+    "message": "cannot find function `compute_digest` in this scope",
+    "code": "E0425",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 0,
+    "column": 0,
+    "level": "failure-note",
+    "message": "Some errors have detailed explanations: E0425, E0433.",
+    "code": "unknown",
+    "suggestion": null
+  },
+  {
+    "file": "/Users/shunsuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jsonwebtoken-10.2.0/src/lib.rs",
+    "line": 0,
+    "column": 0,
+    "level": "failure-note",
+    "message": "For more information about an error, try `rustc --explain E0425`.",
+    "code": "unknown",
+    "suggestion": null
+  }
+]

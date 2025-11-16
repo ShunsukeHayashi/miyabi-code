@@ -78,16 +78,15 @@ impl GitHubTaskStorage {
             .iter()
             .find_map(|label| {
                 let name = label.name.as_str();
-                name.strip_prefix("a2a:")
-                    .and_then(|task_type| match task_type {
-                        "codegen" => Some(TaskType::CodeGeneration),
-                        "review" => Some(TaskType::CodeReview),
-                        "testing" => Some(TaskType::Testing),
-                        "deployment" => Some(TaskType::Deployment),
-                        "documentation" => Some(TaskType::Documentation),
-                        "analysis" => Some(TaskType::Analysis),
-                        _ => None,
-                    })
+                name.strip_prefix("a2a:").and_then(|task_type| match task_type {
+                    "codegen" => Some(TaskType::CodeGeneration),
+                    "review" => Some(TaskType::CodeReview),
+                    "testing" => Some(TaskType::Testing),
+                    "deployment" => Some(TaskType::Deployment),
+                    "documentation" => Some(TaskType::Documentation),
+                    "analysis" => Some(TaskType::Analysis),
+                    _ => None,
+                })
             })
             .unwrap_or(TaskType::Analysis);
 
@@ -166,20 +165,15 @@ impl TaskStorage for GitHubTaskStorage {
     async fn get_task(&self, id: u64) -> Result<Option<A2ATask>, StorageError> {
         debug!("Fetching task #{} from GitHub", id);
 
-        match self
-            .client
-            .issues(&self.repo_owner, &self.repo_name)
-            .get(id)
-            .await
-        {
+        match self.client.issues(&self.repo_owner, &self.repo_name).get(id).await {
             Ok(issue) => {
                 let task = self.issue_to_task(issue)?;
                 Ok(Some(task))
-            }
+            },
             Err(octocrab::Error::GitHub { source, .. }) if source.message.contains("Not Found") => {
                 debug!("Task #{} not found", id);
                 Ok(None)
-            }
+            },
             Err(e) => Err(StorageError::from(e)),
         }
     }
@@ -211,22 +205,14 @@ impl TaskStorage for GitHubTaskStorage {
             let labels = vec![label.clone()];
             debug!("Applying API-level status filter: {}", label);
 
-            issues
-                .list()
-                .labels(&labels)
-                .per_page(per_page)
-                .send()
-                .await?
+            issues.list().labels(&labels).per_page(per_page).send().await?
         } else {
             issues.list().per_page(per_page).send().await?
         };
 
         // Convert GitHub Issues to A2ATasks
-        let all_tasks: Result<Vec<A2ATask>, StorageError> = page
-            .items
-            .into_iter()
-            .map(|issue| self.issue_to_task(issue))
-            .collect();
+        let all_tasks: Result<Vec<A2ATask>, StorageError> =
+            page.items.into_iter().map(|issue| self.issue_to_task(issue)).collect();
 
         let mut tasks = all_tasks?;
 
@@ -313,22 +299,14 @@ impl TaskStorage for GitHubTaskStorage {
             let labels = vec![label.clone()];
             debug!("Applying API-level status filter: {}", label);
 
-            issues
-                .list()
-                .labels(&labels)
-                .per_page(fetch_count)
-                .send()
-                .await?
+            issues.list().labels(&labels).per_page(fetch_count).send().await?
         } else {
             issues.list().per_page(fetch_count).send().await?
         };
 
         // Convert to tasks
-        let all_tasks: Result<Vec<A2ATask>, StorageError> = page
-            .items
-            .into_iter()
-            .map(|issue| self.issue_to_task(issue))
-            .collect();
+        let all_tasks: Result<Vec<A2ATask>, StorageError> =
+            page.items.into_iter().map(|issue| self.issue_to_task(issue)).collect();
 
         let mut tasks = all_tasks?;
 
@@ -341,7 +319,7 @@ impl TaskStorage for GitHubTaskStorage {
                         t.updated_at > c.last_updated
                             || (t.updated_at == c.last_updated && t.id > c.last_id)
                     });
-                }
+                },
                 super::cursor::Direction::Backward => {
                     // Backward: Keep tasks with (updated_at, id) < cursor
                     tasks.retain(|t| {
@@ -350,7 +328,7 @@ impl TaskStorage for GitHubTaskStorage {
                     });
                     // Reverse order for backward pagination
                     tasks.reverse();
-                }
+                },
             }
         }
 
@@ -368,11 +346,7 @@ impl TaskStorage for GitHubTaskStorage {
         }
 
         // Sort by (updated_at DESC, id DESC) for stable ordering
-        tasks.sort_by(|a, b| {
-            b.updated_at
-                .cmp(&a.updated_at)
-                .then_with(|| b.id.cmp(&a.id))
-        });
+        tasks.sort_by(|a, b| b.updated_at.cmp(&a.updated_at).then_with(|| b.id.cmp(&a.id)));
 
         // Determine has_more and trim to limit
         let has_more = tasks.len() > limit;
@@ -402,12 +376,7 @@ impl TaskStorage for GitHubTaskStorage {
             None
         };
 
-        Ok(PaginatedResult::new(
-            tasks,
-            next_cursor,
-            previous_cursor,
-            has_more,
-        ))
+        Ok(PaginatedResult::new(tasks, next_cursor, previous_cursor, has_more))
     }
 
     /// Update an existing task
@@ -446,11 +415,7 @@ impl TaskStorage for GitHubTaskStorage {
         // Update status or retry_count via labels
         if update.status.is_some() || update.retry_count.is_some() {
             // Fetch current issue to get existing labels
-            let issue = self
-                .client
-                .issues(&self.repo_owner, &self.repo_name)
-                .get(id)
-                .await?;
+            let issue = self.client.issues(&self.repo_owner, &self.repo_name).get(id).await?;
 
             // Filter out old status labels and retry labels
             let mut new_labels: Vec<String> = issue
@@ -503,10 +468,7 @@ impl TaskStorage for GitHubTaskStorage {
     /// # Returns
     /// Ok(()) on success
     async fn delete_task(&self, id: u64) -> Result<(), StorageError> {
-        info!(
-            "Closing task #{} (GitHub Issues don't support deletion)",
-            id
-        );
+        info!("Closing task #{} (GitHub Issues don't support deletion)", id);
 
         // GitHub Issues can't be deleted, only closed
         use octocrab::models::IssueState;

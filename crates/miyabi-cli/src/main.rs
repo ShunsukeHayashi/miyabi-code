@@ -202,19 +202,19 @@ async fn main() -> Result<()> {
         }) => {
             let cmd = InitCommand::with_interactive(name, private, interactive);
             cmd.execute().await
-        }
+        },
         Some(Commands::Install { dry_run }) => {
             let cmd = InstallCommand::new(dry_run);
             cmd.execute().await
-        }
+        },
         Some(Commands::Setup { yes }) => {
             let cmd = SetupCommand::new(yes);
             cmd.execute().await
-        }
+        },
         Some(Commands::Status { watch }) => {
             let cmd = StatusCommand::new(watch);
             cmd.execute().await
-        }
+        },
         Some(Commands::Agent {
             agent_type,
             issue,
@@ -230,14 +230,14 @@ async fn main() -> Result<()> {
 
             let cmd = AgentCommand::new(agent_type, issue, execution_mode);
             cmd.execute().await
-        }
+        },
         Some(Commands::Parallel {
             issues,
             concurrency,
         }) => {
             let cmd = ParallelCommand::new(issues, concurrency);
             cmd.execute().await
-        }
+        },
         Some(Commands::WorkOn { task }) => {
             println!();
             println!("{}", "🚀 Let's work on it!".cyan().bold());
@@ -263,16 +263,16 @@ async fn main() -> Result<()> {
                 );
                 Ok(())
             }
-        }
+        },
         Some(Commands::Knowledge { command }) => command.execute(cli.json).await,
         Some(Commands::Approval { command }) => {
             let approval_cmd = ApprovalCommand { command };
             Ok(approval_cmd.execute().await?)
-        }
+        },
         Some(Commands::Worktree { command }) => {
             let cmd = WorktreeCommand::new(command);
             cmd.execute().await
-        }
+        },
         Some(Commands::Cleanup {
             dry_run,
             force,
@@ -280,7 +280,7 @@ async fn main() -> Result<()> {
         }) => {
             let cmd = CleanupCommand::new(dry_run, force, all);
             cmd.execute().await
-        }
+        },
         Some(Commands::Loop { command }) => command.execute().await,
         Some(Commands::Mode { command }) => command.execute().await,
         Some(Commands::Infinity {
@@ -298,7 +298,7 @@ async fn main() -> Result<()> {
                 resume,
             };
             cmd.execute().await
-        }
+        },
         // Temporarily disabled until Issue #719 is merged
         // Some(Commands::Workflow { file, state_dir }) => {
         //     let cmd = WorkflowCommand::new(file, state_dir);
@@ -311,7 +311,7 @@ async fn main() -> Result<()> {
             println!();
             println!("Use --help to see available commands");
             Ok(())
-        }
+        },
     };
 
     // Handle errors with recovery
@@ -320,15 +320,9 @@ async fn main() -> Result<()> {
 
         // Attempt directory recovery if error is related to working directory
         if is_directory_related_error(e) {
-            eprintln!(
-                "{}",
-                "⚠️  Attempting to recover from directory error...".yellow()
-            );
+            eprintln!("{}", "⚠️  Attempting to recover from directory error...".yellow());
             if recover_from_directory_error() {
-                eprintln!(
-                    "{}",
-                    "✅ Directory recovered. Please retry the command.".green()
-                );
+                eprintln!("{}", "✅ Directory recovered. Please retry the command.".green());
                 std::process::exit(2); // Exit with recoverable error code
             } else {
                 eprintln!(
@@ -357,14 +351,11 @@ fn ensure_valid_working_directory() {
                 );
                 recover_from_directory_error();
             }
-        }
+        },
         Err(e) => {
-            eprintln!(
-                "{}",
-                format!("⚠️  Cannot read current directory: {}", e).yellow()
-            );
+            eprintln!("{}", format!("⚠️  Cannot read current directory: {}", e).yellow());
             recover_from_directory_error();
-        }
+        },
     }
 }
 
@@ -388,10 +379,7 @@ fn recover_from_directory_error() -> bool {
             if let Ok(repo_root) = String::from_utf8(output.stdout) {
                 let repo_root = repo_root.trim();
                 if std::env::set_current_dir(repo_root).is_ok() {
-                    eprintln!(
-                        "{}",
-                        format!("  ✓ Changed directory to: {}", repo_root).green()
-                    );
+                    eprintln!("{}", format!("  ✓ Changed directory to: {}", repo_root).green());
                     return true;
                 }
             }
@@ -401,10 +389,7 @@ fn recover_from_directory_error() -> bool {
     // Fallback: Try to go to home directory (cross-platform)
     if let Some(home) = dirs::home_dir() {
         if std::env::set_current_dir(&home).is_ok() {
-            eprintln!(
-                "{}",
-                format!("  ✓ Changed directory to home: {}", home.display()).green()
-            );
+            eprintln!("{}", format!("  ✓ Changed directory to home: {}", home.display()).green());
             return true;
         }
     }

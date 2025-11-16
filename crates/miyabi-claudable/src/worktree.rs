@@ -47,10 +47,7 @@ pub async fn write_files_to_worktree(
         info!("  ✅ {}", file.path);
     }
 
-    info!(
-        "Successfully wrote {} files ({} lines total)",
-        files_written, total_lines
-    );
+    info!("Successfully wrote {} files ({} lines total)", files_written, total_lines);
 
     Ok(WriteSummary {
         files_written,
@@ -66,11 +63,7 @@ pub async fn write_files_to_worktree(
 pub async fn install_dependencies(worktree_path: &Path) -> Result<()> {
     info!("Installing npm dependencies in worktree...");
 
-    let output = Command::new("npm")
-        .arg("install")
-        .current_dir(worktree_path)
-        .output()
-        .await?;
+    let output = Command::new("npm").arg("install").current_dir(worktree_path).output().await?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -195,9 +188,7 @@ mod tests {
         assert!(!result);
 
         // Create required structure
-        tokio::fs::create_dir_all(worktree_path.join("app"))
-            .await
-            .unwrap();
+        tokio::fs::create_dir_all(worktree_path.join("app")).await.unwrap();
         tokio::fs::write(worktree_path.join("package.json"), "{}".as_bytes())
             .await
             .unwrap();

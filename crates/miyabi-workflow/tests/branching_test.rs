@@ -1,7 +1,7 @@
 //! Integration tests for conditional branching
 
-use miyabi_workflow::{Condition, WorkflowBuilder};
 use miyabi_types::agent::AgentType;
+use miyabi_workflow::{Condition, WorkflowBuilder};
 use serde_json::json;
 
 #[test]
@@ -25,11 +25,8 @@ fn test_simple_branch() {
         .expect("Decision node not found");
 
     // Should have 2 edges from decision node (one to each branch)
-    let edges_from_decision: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == decision_node.id)
-        .collect();
+    let edges_from_decision: Vec<_> =
+        dag.edges.iter().filter(|e| e.from == decision_node.id).collect();
 
     assert_eq!(edges_from_decision.len(), 2);
 
@@ -75,18 +72,10 @@ fn test_branch_on_with_multiple_conditions() {
     assert_eq!(dag.nodes.len(), 5);
 
     // Find route node
-    let route_node = dag
-        .nodes
-        .iter()
-        .find(|n| n.title == "route")
-        .expect("Route node not found");
+    let route_node = dag.nodes.iter().find(|n| n.title == "route").expect("Route node not found");
 
     // Should have 3 edges from route node
-    let edges_from_route: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == route_node.id)
-        .collect();
+    let edges_from_route: Vec<_> = dag.edges.iter().filter(|e| e.from == route_node.id).collect();
 
     assert_eq!(edges_from_route.len(), 3);
 }
@@ -296,18 +285,13 @@ fn test_sequential_then_branch() {
     let init_node = dag.nodes.iter().find(|n| n.title == "init").unwrap();
     let process_node = dag.nodes.iter().find(|n| n.title == "process").unwrap();
 
-    let has_init_to_process = dag.edges.iter().any(|e| {
-        e.from == init_node.id && e.to == process_node.id
-    });
+    let has_init_to_process =
+        dag.edges.iter().any(|e| e.from == init_node.id && e.to == process_node.id);
     assert!(has_init_to_process);
 
     // Verify branch edges from check
     let check_node = dag.nodes.iter().find(|n| n.title == "check").unwrap();
-    let edges_from_check: Vec<_> = dag
-        .edges
-        .iter()
-        .filter(|e| e.from == check_node.id)
-        .collect();
+    let edges_from_check: Vec<_> = dag.edges.iter().filter(|e| e.from == check_node.id).collect();
     assert_eq!(edges_from_check.len(), 2);
 }
 

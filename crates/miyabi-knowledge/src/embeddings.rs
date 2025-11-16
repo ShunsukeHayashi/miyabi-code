@@ -31,10 +31,7 @@ impl OllamaEmbedding {
             .build()
             .map_err(|e| KnowledgeError::Embedding(format!("Failed to create client: {}", e)))?;
 
-        info!(
-            "Initializing Ollama embedding with model: {}",
-            config.embeddings.model
-        );
+        info!("Initializing Ollama embedding with model: {}", config.embeddings.model);
 
         Ok(Self { config, client })
     }
@@ -69,10 +66,7 @@ impl EmbeddingGenerator for OllamaEmbedding {
 
         let status = response.status();
         if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
             return Err(KnowledgeError::Embedding(format!(
                 "Ollama API error ({}): {}",
                 status, error_text
@@ -149,10 +143,7 @@ impl OpenAIEmbedding {
             .build()
             .map_err(|e| KnowledgeError::Embedding(format!("Failed to create client: {}", e)))?;
 
-        info!(
-            "Initializing OpenAI embedding with model: {}",
-            config.embeddings.model
-        );
+        info!("Initializing OpenAI embedding with model: {}", config.embeddings.model);
 
         Ok(Self { config, client })
     }
@@ -176,10 +167,7 @@ impl EmbeddingGenerator for OpenAIEmbedding {
 
         let status = response.status();
         if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
             return Err(KnowledgeError::Embedding(format!(
                 "OpenAI API error ({}): {}",
                 status, error_text
@@ -218,10 +206,7 @@ impl EmbeddingGenerator for OpenAIEmbedding {
 
         let status = response.status();
         if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
             return Err(KnowledgeError::Embedding(format!(
                 "OpenAI API error ({}): {}",
                 status, error_text
@@ -261,10 +246,9 @@ pub fn create_embedding_generator(config: KnowledgeConfig) -> Result<Box<dyn Emb
     match config.embeddings.provider.as_str() {
         "ollama" => Ok(Box::new(OllamaEmbedding::new(config)?)),
         "openai" => Ok(Box::new(OpenAIEmbedding::new(config)?)),
-        provider => Err(KnowledgeError::Config(format!(
-            "Unsupported embedding provider: {}",
-            provider
-        ))),
+        provider => {
+            Err(KnowledgeError::Config(format!("Unsupported embedding provider: {}", provider)))
+        },
     }
 }
 

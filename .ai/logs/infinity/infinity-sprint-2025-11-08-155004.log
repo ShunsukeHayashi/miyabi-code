@@ -1,0 +1,5 @@
+error: unexpected argument 'coordinator' found
+
+Usage: miyabi agent [OPTIONS] <AGENT_TYPE>
+
+For more information, try '--help'.

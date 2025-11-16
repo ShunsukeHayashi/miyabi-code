@@ -149,19 +149,19 @@ impl CostMetrics {
                 self.openai_requests += 1;
                 self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
                     * TaskComplexity::Simple.estimated_cost_per_million_tokens();
-            }
+            },
             TaskComplexity::Medium => {
                 self.google_tokens += tokens;
                 self.google_requests += 1;
                 self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
                     * TaskComplexity::Medium.estimated_cost_per_million_tokens();
-            }
+            },
             TaskComplexity::Complex => {
                 self.claude_tokens += tokens;
                 self.claude_requests += 1;
                 self.estimated_cost_usd += (tokens as f64 / 1_000_000.0)
                     * TaskComplexity::Complex.estimated_cost_per_million_tokens();
-            }
+            },
         }
     }
 
@@ -268,20 +268,13 @@ impl HybridRouter {
 impl LlmClient for HybridRouter {
     async fn chat(&self, messages: Vec<Message>) -> Result<String> {
         let (complexity, client) = self.route_client(&messages).await;
-        tracing::info!(
-            "Routing to {} (complexity: {:?})",
-            complexity.model_name(),
-            complexity
-        );
+        tracing::info!("Routing to {} (complexity: {:?})", complexity.model_name(), complexity);
 
         let response = client.chat(messages).await?;
 
         // Estimate token usage (rough estimate: 1 token ≈ 4 chars)
         let estimated_tokens = (response.len() / 4) as u64;
-        self.metrics
-            .write()
-            .await
-            .record_request(complexity, estimated_tokens);
+        self.metrics.write().await.record_request(complexity, estimated_tokens);
 
         Ok(response)
     }
@@ -309,13 +302,10 @@ impl LlmClient for HybridRouter {
             ToolCallResponse::Conclusion { text } => (text.len() / 4) as u64,
             ToolCallResponse::NeedApproval { action, reason } => {
                 ((action.len() + reason.len()) / 4) as u64
-            }
+            },
         };
 
-        self.metrics
-            .write()
-            .await
-            .record_request(complexity, estimated_tokens);
+        self.metrics.write().await.record_request(complexity, estimated_tokens);
 
         Ok(response)
     }
@@ -339,14 +329,8 @@ mod tests {
             TaskComplexity::from_keywords("Add documentation for this function"),
             TaskComplexity::Simple
         );
-        assert_eq!(
-            TaskComplexity::from_keywords("Fix typo in README"),
-            TaskComplexity::Simple
-        );
-        assert_eq!(
-            TaskComplexity::from_keywords("Update version number"),
-            TaskComplexity::Simple
-        );
+        assert_eq!(TaskComplexity::from_keywords("Fix typo in README"), TaskComplexity::Simple);
+        assert_eq!(TaskComplexity::from_keywords("Update version number"), TaskComplexity::Simple);
     }
 
     #[test]
@@ -392,10 +376,7 @@ mod tests {
     #[test]
     fn test_complexity_default() {
         // Unknown tasks default to medium
-        assert_eq!(
-            TaskComplexity::from_keywords("Some random task"),
-            TaskComplexity::Medium
-        );
+        assert_eq!(TaskComplexity::from_keywords("Some random task"), TaskComplexity::Medium);
     }
 
     #[test]
@@ -476,10 +457,7 @@ mod tests {
     fn test_model_names() {
         assert_eq!(TaskComplexity::Simple.model_name(), "gpt-4o-mini");
         assert_eq!(TaskComplexity::Medium.model_name(), "gemini-1.5-flash");
-        assert_eq!(
-            TaskComplexity::Complex.model_name(),
-            "claude-3-5-sonnet-20241022"
-        );
+        assert_eq!(TaskComplexity::Complex.model_name(), "claude-3-5-sonnet-20241022");
     }
 
     #[test]

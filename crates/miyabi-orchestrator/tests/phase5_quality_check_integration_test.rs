@@ -102,11 +102,7 @@ async fn test_phase5_quality_check_success() {
     let report = checker.run_checks().await.unwrap();
 
     // Clean project should have high scores
-    assert!(
-        report.score >= 80,
-        "Clean project should score >= 80, got {}",
-        report.score
-    );
+    assert!(report.score >= 80, "Clean project should score >= 80, got {}", report.score);
     assert!(report.passed, "Clean project should pass quality checks");
     assert!(
         report.issues.is_empty() || report.issues.iter().all(|i| i.score_impact == 0),
@@ -124,18 +120,9 @@ async fn test_phase5_quality_breakdown_structure() {
     let report = checker.run_checks().await.unwrap();
 
     // Verify breakdown structure
-    assert!(
-        report.breakdown.clippy_score <= 100,
-        "Clippy score should be valid (0-100)"
-    );
-    assert!(
-        report.breakdown.rustc_score <= 100,
-        "Rustc score should be valid (0-100)"
-    );
-    assert!(
-        report.breakdown.security_score <= 100,
-        "Security score should be valid (0-100)"
-    );
+    assert!(report.breakdown.clippy_score <= 100, "Clippy score should be valid (0-100)");
+    assert!(report.breakdown.rustc_score <= 100, "Rustc score should be valid (0-100)");
+    assert!(report.breakdown.security_score <= 100, "Security score should be valid (0-100)");
     assert!(
         report.breakdown.test_coverage_score <= 100,
         "Coverage score should be valid (0-100)"
@@ -155,10 +142,7 @@ async fn test_phase5_auto_fix_formatting_issues() {
 
     // Verify code is now formatted
     let formatted_code = fs::read_to_string(project_path.join("src/main.rs")).unwrap();
-    assert!(
-        formatted_code.contains("fn main()"),
-        "Code should be properly formatted"
-    );
+    assert!(formatted_code.contains("fn main()"), "Code should be properly formatted");
     assert!(
         formatted_code.contains("fn test_basic()"),
         "Test function should be properly formatted"
@@ -224,10 +208,7 @@ async fn test_phase5_score_threshold_validation() {
         marginal_score.score >= 60 && marginal_score.score < 80,
         "Marginal score should be 60-79"
     );
-    assert!(
-        !marginal_score.passed,
-        "Marginal score should not auto-pass"
-    );
+    assert!(!marginal_score.passed, "Marginal score should not auto-pass");
 
     // Score < 60: Fail immediately
     let low_score = QualityReport {
@@ -298,10 +279,7 @@ async fn test_phase5_parallel_check_execution() {
 
     // Parallel execution should be faster than sequential
     // This is more of a smoke test to ensure it completes
-    assert!(
-        duration.as_secs() < 120,
-        "Quality checks should complete within 2 minutes"
-    );
+    assert!(duration.as_secs() < 120, "Quality checks should complete within 2 minutes");
 }
 
 #[tokio::test]

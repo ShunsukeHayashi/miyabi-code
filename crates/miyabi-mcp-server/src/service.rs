@@ -312,10 +312,7 @@ impl ToolRegistryService {
     /// ));
     /// ```
     pub fn add_server(&mut self, server: McpServerConnection) {
-        info!(
-            "Adding MCP server to service: {} ({})",
-            server.name, server.id
-        );
+        info!("Adding MCP server to service: {} ({})", server.name, server.id);
         self.registry.add_server(server);
     }
 
@@ -396,11 +393,7 @@ impl ToolRegistryService {
         let start = Instant::now();
         self.execution_count += 1;
 
-        debug!(
-            tool_name = name,
-            execution_count = self.execution_count,
-            "Executing tool"
-        );
+        debug!(tool_name = name, execution_count = self.execution_count, "Executing tool");
 
         // Check if tool is registered
         if !self.registry.has_tool(name) {
@@ -473,11 +466,7 @@ impl ToolRegistryService {
 
         // TODO: In production, this would make an actual JSON-RPC call
         // For now, simulate execution with a delay
-        debug!(
-            tool_name = name,
-            server_id = tool.server_id,
-            "Executing tool on MCP server"
-        );
+        debug!(tool_name = name, server_id = tool.server_id, "Executing tool on MCP server");
 
         // Simulate network latency
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
@@ -788,15 +777,9 @@ mod tests {
     fn test_list_tools() {
         let mut service = ToolRegistryService::new(ServiceConfig::default());
 
-        service
-            .registry
-            .register_tool(create_test_tool("tool1", "server1"));
-        service
-            .registry
-            .register_tool(create_test_tool("tool2", "server1"));
-        service
-            .registry
-            .register_tool(create_test_tool("tool3", "server2"));
+        service.registry.register_tool(create_test_tool("tool1", "server1"));
+        service.registry.register_tool(create_test_tool("tool2", "server1"));
+        service.registry.register_tool(create_test_tool("tool3", "server2"));
 
         let tools = service.list_tools();
         assert_eq!(tools.len(), 3);
@@ -818,15 +801,13 @@ mod tests {
     async fn test_execute_tool_not_found() {
         let mut service = ToolRegistryService::new(ServiceConfig::default());
 
-        let result = service
-            .execute_tool("nonexistent.tool", serde_json::json!({}))
-            .await;
+        let result = service.execute_tool("nonexistent.tool", serde_json::json!({})).await;
 
         assert!(result.is_err());
         match result.unwrap_err() {
             RegistryError::ToolNotFound(name) => {
                 assert_eq!(name, "nonexistent.tool");
-            }
+            },
             _ => panic!("Expected ToolNotFound error"),
         }
     }
@@ -932,10 +913,7 @@ mod tests {
         let args = serde_json::json!({"param1": "value1"});
 
         // Execute twice with same args (cache hit)
-        service
-            .execute_tool("test.tool", args.clone())
-            .await
-            .unwrap();
+        service.execute_tool("test.tool", args.clone()).await.unwrap();
         service.execute_tool("test.tool", args).await.unwrap();
 
         let stats = service.stats();
@@ -957,9 +935,7 @@ mod tests {
 
         // Manually add to cache
         let cache_key = CacheKey::new("test.tool", &serde_json::json!({"param1": "value1"}));
-        service
-            .cache
-            .put(cache_key, serde_json::json!({"result": "cached"}));
+        service.cache.put(cache_key, serde_json::json!({"result": "cached"}));
 
         assert_eq!(service.cache.len(), 1);
 
@@ -974,12 +950,8 @@ mod tests {
 
         assert_eq!(service.tool_count(), 0);
 
-        service
-            .registry
-            .register_tool(create_test_tool("tool1", "server1"));
-        service
-            .registry
-            .register_tool(create_test_tool("tool2", "server1"));
+        service.registry.register_tool(create_test_tool("tool1", "server1"));
+        service.registry.register_tool(create_test_tool("tool2", "server1"));
 
         assert_eq!(service.tool_count(), 2);
     }
@@ -1009,10 +981,7 @@ mod tests {
         assert_eq!(service.execution_count, 0);
 
         let args = serde_json::json!({"param1": "value1"});
-        service
-            .execute_tool("test.tool", args.clone())
-            .await
-            .unwrap();
+        service.execute_tool("test.tool", args.clone()).await.unwrap();
 
         assert_eq!(service.execution_count, 1);
 
@@ -1039,17 +1008,11 @@ mod tests {
         let args = serde_json::json!({"param1": "value1"});
 
         // First execution - cache miss
-        service
-            .execute_tool("test.tool", args.clone())
-            .await
-            .unwrap();
+        service.execute_tool("test.tool", args.clone()).await.unwrap();
         assert_eq!(service.stats().cache_size, 1);
 
         // Immediate second execution - cache hit
-        service
-            .execute_tool("test.tool", args.clone())
-            .await
-            .unwrap();
+        service.execute_tool("test.tool", args.clone()).await.unwrap();
         assert_eq!(service.stats().cache_hits, 1);
 
         // Wait for TTL to expire

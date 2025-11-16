@@ -267,7 +267,7 @@ impl QualityChecker {
                 } else {
                     50
                 }
-            }
+            },
         }
     }
 
@@ -294,7 +294,7 @@ impl QualityChecker {
                 } else {
                     40
                 }
-            }
+            },
         }
     }
 
@@ -414,10 +414,7 @@ mod tests {
 
     #[test]
     fn test_calculate_test_score() {
-        assert_eq!(
-            QualityChecker::calculate_test_score(&Ok(String::new())),
-            100
-        );
+        assert_eq!(QualityChecker::calculate_test_score(&Ok(String::new())), 100);
         assert_eq!(
             QualityChecker::calculate_test_score(&Err(SchedulerError::CommandFailed {
                 command: "test".to_string(),

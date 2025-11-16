@@ -98,7 +98,7 @@ where
                     debug!("Retry succeeded on attempt {}", attempt + 1);
                 }
                 return Ok(result);
-            }
+            },
             Err(e) => {
                 warn!("Attempt {} failed: {}", attempt + 1, e);
                 last_error = Some(e);
@@ -109,7 +109,7 @@ where
                     debug!("Retrying in {:?}", delay);
                     tokio::time::sleep(delay).await;
                 }
-            }
+            },
         }
     }
 
@@ -162,7 +162,7 @@ fn agent_label_to_key(label: &str) -> String {
                 None => String::new(),
                 Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
             }
-        }
+        },
     }
 }
 
@@ -181,10 +181,7 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch all open issues with agent labels
-    info!(
-        "🔍 Fetching issues from GitHub API (owner: {}, repo: {})",
-        owner, repo
-    );
+    info!("🔍 Fetching issues from GitHub API (owner: {}, repo: {})", owner, repo);
     let issues = client.list_issues(Some(State::Open), vec![]).await?;
     info!("📥 Fetched {} open issues from GitHub", issues.len());
 
@@ -197,17 +194,11 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
     // Count tasks per agent from issues
     let mut agent_issue_count = 0;
     for issue in &issues {
-        let agent_labels: Vec<_> = issue
-            .labels
-            .iter()
-            .filter(|l| l.starts_with("🤖 agent:"))
-            .collect();
+        let agent_labels: Vec<_> =
+            issue.labels.iter().filter(|l| l.starts_with("🤖 agent:")).collect();
         if !agent_labels.is_empty() {
             agent_issue_count += 1;
-            info!(
-                "📋 Issue #{}: {} (labels: {:?})",
-                issue.number, issue.title, issue.labels
-            );
+            info!("📋 Issue #{}: {} (labels: {:?})", issue.number, issue.title, issue.labels);
         }
 
         for label in &issue.labels {
@@ -220,20 +211,13 @@ async fn fetch_real_agents_impl() -> Result<Vec<Agent>> {
                     data.tasks += 1;
 
                     // Determine status from state labels
-                    if issue
-                        .labels
-                        .iter()
-                        .any(|l| l.contains("state:implementing"))
-                    {
+                    if issue.labels.iter().any(|l| l.contains("state:implementing")) {
                         data.status = AgentStatus::Working;
                     } else if issue.labels.iter().any(|l| l.contains("state:analyzing")) {
                         data.status = AgentStatus::Active;
                     }
                 } else {
-                    warn!(
-                        "⚠️ Unknown agent name: {} (mapped to: {})",
-                        agent_name, agent_key
-                    );
+                    warn!("⚠️ Unknown agent name: {} (mapped to: {})", agent_name, agent_key);
                 }
             }
         }
@@ -273,10 +257,7 @@ pub async fn fetch_real_system_status() -> Result<SystemStatus> {
 
     // Update cache on success
     if let Ok(ref status) = result {
-        cache
-            .lock()
-            .unwrap()
-            .set_system_status(status.clone(), CACHE_TTL);
+        cache.lock().unwrap().set_system_status(status.clone(), CACHE_TTL);
     } else {
         warn!("Failed to fetch system status after retries, checking for stale cache");
         // Return stale cache if available
@@ -336,10 +317,7 @@ async fn fetch_real_system_status_impl() -> Result<SystemStatus> {
     let now = chrono::Utc::now();
     let day_ago = now - chrono::Duration::hours(24);
 
-    let recent_closed = closed_issues
-        .iter()
-        .filter(|i| i.updated_at > day_ago)
-        .count();
+    let recent_closed = closed_issues.iter().filter(|i| i.updated_at > day_ago).count();
 
     let task_throughput = (recent_closed as f64 / 24.0) * 100.0; // tasks per 100 hours
 
@@ -599,10 +577,7 @@ async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch recent issues (last 50)
-    info!(
-        "🔍 Fetching issues for timeline events (owner: {}, repo: {})",
-        owner, repo
-    );
+    info!("🔍 Fetching issues for timeline events (owner: {}, repo: {})", owner, repo);
     let issues = client.list_issues(Some(State::All), vec![]).await?;
     info!("📥 Fetched {} issues from GitHub", issues.len());
 
@@ -643,11 +618,7 @@ async fn fetch_real_events_impl() -> Result<Vec<TimelineEvent>> {
         }
 
         // Event 3: Status change (if implementing state)
-        if issue
-            .labels
-            .iter()
-            .any(|l| l.contains("state:implementing"))
-        {
+        if issue.labels.iter().any(|l| l.contains("state:implementing")) {
             events.push(TimelineEvent {
                 id: format!("issue-{}-implementing", issue.number),
                 event_type: "task_status".to_string(),
@@ -800,10 +771,7 @@ async fn fetch_real_workflow_dag_impl() -> Result<DagData> {
     let client = GitHubClient::new(&token, &owner, &repo)?;
 
     // Fetch recent open issues with agent labels
-    info!(
-        "🔍 Fetching issues for workflow DAG (owner: {}, repo: {})",
-        owner, repo
-    );
+    info!("🔍 Fetching issues for workflow DAG (owner: {}, repo: {})", owner, repo);
     let issues = client.list_issues(Some(State::Open), vec![]).await?;
     info!("📥 Fetched {} open issues from GitHub", issues.len());
 

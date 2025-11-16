@@ -1,0 +1,55 @@
+[2025-11-11 08:27:49] ==========================================
+[2025-11-11 08:27:49] AI Lint Checker Started
+[2025-11-11 08:27:49] ==========================================
+[2025-11-11 08:27:49] Starting lint check...
+[2025-11-11 08:27:49] AI001: Stale orchestra state detected
+[2025-11-11 08:27:49] AI002: Missing session report
+[2025-11-11 08:27:49] AI003: Orphaned worktrees:  docs-architecture github-repo-init pr-767-review readme-crates-31-35 readme-crates-46-48 readme-llm-crates
+[2025-11-11 08:28:09] AI010: Large log file: /Users/shunsuke/Dev/miyabi-private/.ai/logs/tmux-executor-2025-11-09.log
+[2025-11-11 08:28:25] Lint check completed
+[2025-11-11 08:28:25] Diagnostics saved to: /Users/shunsuke/Dev/miyabi-private/.ai/cache/lint-diagnostics.json
+[2025-11-11 08:28:25] AI Lint Checker Completed
+[2025-11-11 08:28:37] ==========================================
+[2025-11-11 08:28:37] AI Lint Checker Started
+[2025-11-11 08:28:37] ==========================================
+[2025-11-11 08:28:37] Starting lint check...
+[2025-11-11 08:28:37] AI001: Stale orchestra state detected
+[2025-11-11 08:28:37] AI002: Missing session report
+[2025-11-11 08:28:37] AI003: Orphaned worktrees:  docs-architecture github-repo-init pr-767-review readme-crates-31-35 readme-crates-46-48 readme-llm-crates
+[2025-11-11 08:29:03] AI010: Large log file: /Users/shunsuke/Dev/miyabi-private/.ai/logs/tmux-executor-2025-11-09.log
+[2025-11-11 08:29:21] Lint check completed
+[2025-11-11 08:29:21] Diagnostics saved to: /Users/shunsuke/Dev/miyabi-private/.ai/cache/lint-diagnostics.json
+[2025-11-11 08:29:21] AI Lint Checker Completed
+[2025-11-11 08:29:29] ==========================================
+[2025-11-11 08:29:29] AI Lint Checker Started
+[2025-11-11 08:29:29] ==========================================
+[2025-11-11 08:29:29] Starting lint check...
+[2025-11-11 08:29:29] AI001: Stale orchestra state detected
+[2025-11-11 08:29:29] AI002: Missing session report
+[2025-11-11 08:29:29] AI003: Orphaned worktrees:  docs-architecture github-repo-init pr-767-review readme-crates-31-35 readme-crates-46-48 readme-llm-crates
+[2025-11-11 08:29:46] AI010: Large log file: /Users/shunsuke/Dev/miyabi-private/.ai/logs/tmux-executor-2025-11-09.log
+[2025-11-11 08:30:04] Lint check completed
+[2025-11-11 08:30:04] Diagnostics saved to: /Users/shunsuke/Dev/miyabi-private/.ai/cache/lint-diagnostics.json
+[2025-11-11 08:30:04] AI Lint Checker Completed
+[2025-11-11 08:34:45] ==========================================
+[2025-11-11 08:34:45] AI Lint Checker Started
+[2025-11-11 08:34:45] ==========================================
+[2025-11-11 08:34:45] Starting lint check...
+[2025-11-11 08:34:45] AI001: Stale orchestra state detected
+[2025-11-11 08:34:45] AI002: Missing session report
+[2025-11-11 08:34:46] AI003: Orphaned worktrees:  docs-architecture github-repo-init pr-767-review readme-crates-31-35 readme-crates-46-48 readme-llm-crates
+[2025-11-11 08:35:02] AI010: Large log file: /Users/shunsuke/Dev/miyabi-private/.ai/logs/tmux-executor-2025-11-09.log
+[2025-11-11 08:35:18] Lint check completed
+[2025-11-11 08:35:18] Diagnostics saved to: /Users/shunsuke/Dev/miyabi-private/.ai/cache/lint-diagnostics.json
+[2025-11-11 08:35:18] AI Lint Checker Completed
+[2025-11-11 08:35:20] ==========================================
+[2025-11-11 08:35:20] AI Lint Checker Started
+[2025-11-11 08:35:20] ==========================================
+[2025-11-11 08:35:20] Starting lint check...
+[2025-11-11 08:35:20] AI001: Stale orchestra state detected
+[2025-11-11 08:35:20] AI002: Missing session report
+[2025-11-11 08:35:20] AI003: Orphaned worktrees:  docs-architecture github-repo-init pr-767-review readme-crates-31-35 readme-crates-46-48 readme-llm-crates
+[2025-11-11 08:35:37] AI010: Large log file: /Users/shunsuke/Dev/miyabi-private/.ai/logs/tmux-executor-2025-11-09.log
+[2025-11-11 08:35:53] Lint check completed
+[2025-11-11 08:35:53] Diagnostics saved to: /Users/shunsuke/Dev/miyabi-private/.ai/cache/lint-diagnostics.json
+[2025-11-11 08:35:53] AI Lint Checker Completed

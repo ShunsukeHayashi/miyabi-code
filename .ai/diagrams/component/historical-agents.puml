@@ -1,0 +1,222 @@
+@startuml Historical Agents - Service-as-Agent Model
+!theme plain
+
+title Historical Agents - AWS Service Management
+
+skinparam component {
+    BackgroundColor<<agent>> LightBlue
+    BackgroundColor<<service>> LightGreen
+}
+
+package "Historical Agents (7 Figures)" {
+    component "Bill Gates\nChief Technology Visionary" as bill <<agent>> {
+        note right
+          **Responsibility**
+          Compute Infrastructure
+
+          **Personality**
+          - Strategic Vision: 95
+          - Technical Depth: 90
+          - Pragmatism: 92
+        end note
+    }
+
+    component "Steve Jobs\nChief Design Officer" as steve <<agent>> {
+        note right
+          **Responsibility**
+          User Experience
+
+          **Personality**
+          - Design Excellence: 98
+          - Innovation: 95
+          - Perfectionism: 97
+        end note
+    }
+
+    component "Napoleon Bonaparte\nChief Strategy Officer" as napoleon <<agent>> {
+        note right
+          **Responsibility**
+          Scaling Strategy
+
+          **Personality**
+          - Strategic Thinking: 98
+          - Decisiveness: 96
+          - Bold Execution: 94
+        end note
+    }
+
+    component "Hannibal Barca\nChief Tactical Officer" as hannibal <<agent>> {
+        note right
+          **Responsibility**
+          Edge Computing
+
+          **Personality**
+          - Tactical Genius: 97
+          - Adaptability: 95
+          - Unconventional: 93
+        end note
+    }
+
+    component "Peter Drucker\nChief Management Officer" as drucker <<agent>> {
+        note right
+          **Responsibility**
+          Monitoring & Analytics
+
+          **Personality**
+          - Management Science: 96
+          - Analytical: 94
+          - Systematic: 95
+        end note
+    }
+
+    component "Philip Kotler\nChief Marketing Officer" as kotler <<agent>> {
+        note right
+          **Responsibility**
+          Communication
+
+          **Personality**
+          - Marketing Strategy: 97
+          - Customer Focus: 95
+          - Innovation: 92
+        end note
+    }
+
+    component "Hideyo Noguchi\nChief Research Officer" as noguchi <<agent>> {
+        note right
+          **Responsibility**
+          Data Management
+
+          **Personality**
+          - Research Excellence: 96
+          - Persistence: 98
+          - Dedication: 97
+        end note
+    }
+}
+
+package "AWS Services" {
+    ' Bill Gates - Compute
+    component "EC2\nInstances" as ec2 <<service>>
+    component "Lambda\nFunctions" as lambda <<service>>
+    component "ECS\nFargate" as ecs <<service>>
+
+    ' Steve Jobs - Frontend
+    component "S3\nStatic Hosting" as s3 <<service>>
+    component "CloudFront\nCDN" as cloudfront <<service>>
+
+    ' Napoleon - Scaling
+    component "Auto Scaling\nGroups" as asg <<service>>
+    component "Load Balancer\n(ALB/NLB)" as alb <<service>>
+    component "ECS Service\nAuto Scaling" as ecs_asg <<service>>
+
+    ' Hannibal - Edge
+    component "Lambda@Edge" as lambda_edge <<service>>
+    component "CloudFront\nFunctions" as cf_functions <<service>>
+
+    ' Drucker - Monitoring
+    component "CloudWatch\nLogs & Metrics" as cloudwatch <<service>>
+    component "X-Ray\nTracing" as xray <<service>>
+    component "CloudWatch\nDashboards" as cw_dash <<service>>
+
+    ' Kotler - Communication
+    component "API Gateway" as apigw <<service>>
+    component "SNS\nNotifications" as sns <<service>>
+    component "EventBridge" as eventbridge <<service>>
+
+    ' Noguchi - Data
+    component "RDS\nDatabases" as rds <<service>>
+    component "DynamoDB\nTables" as dynamodb <<service>>
+    component "S3\nData Lake" as s3_data <<service>>
+}
+
+' Bill Gates -> Compute
+bill --> ec2 : "Manage"
+bill --> lambda : "Optimize"
+bill --> ecs : "Orchestrate"
+
+' Steve Jobs -> Frontend
+steve --> s3 : "Host"
+steve --> cloudfront : "Distribute"
+
+' Napoleon -> Scaling
+napoleon --> asg : "Scale"
+napoleon --> alb : "Balance"
+napoleon --> ecs_asg : "Auto-Scale"
+
+' Hannibal -> Edge
+hannibal --> lambda_edge : "Deploy"
+hannibal --> cf_functions : "Execute"
+
+' Drucker -> Monitoring
+drucker --> cloudwatch : "Monitor"
+drucker --> xray : "Trace"
+drucker --> cw_dash : "Visualize"
+
+' Kotler -> Communication
+kotler --> apigw : "Gateway"
+kotler --> sns : "Notify"
+kotler --> eventbridge : "Route"
+
+' Noguchi -> Data
+noguchi --> rds : "Store"
+noguchi --> dynamodb : "Query"
+noguchi --> s3_data : "Archive"
+
+' Service Dependencies
+ec2 ..> alb : "Register"
+lambda ..> apigw : "Trigger"
+ecs ..> alb : "Target"
+cloudfront ..> s3 : "Origin"
+cloudfront ..> lambda_edge : "Execute"
+cloudwatch ..> sns : "Alert"
+
+package "Decision Making" {
+    state "Resource Request" as request
+    state "Agent Assignment" as assign
+    state "Decision" as decision
+    state "Execution" as execution
+
+    [*] --> request
+    request --> assign : "Route by\nResource Type"
+    assign --> decision : "Agent\nDecides"
+    decision --> execution : "Execute\nAction"
+    execution --> [*]
+}
+
+note as N1
+  **Agent Assignment Algorithm**
+
+  function assign_agent(resource_type):
+      match resource_type:
+          case EC2 | Lambda | ECS:
+              return Bill Gates
+          case S3 | CloudFront:
+              return Steve Jobs
+          case AutoScaling | LoadBalancer:
+              return Napoleon
+          case Lambda@Edge | CloudFrontFunctions:
+              return Hannibal
+          case CloudWatch | X-Ray:
+              return Peter Drucker
+          case APIGateway | SNS | EventBridge:
+              return Philip Kotler
+          case RDS | DynamoDB:
+              return Hideyo Noguchi
+end note
+
+note as N2
+  **Example Decision Flow**
+
+  Request: "Create EC2 instance"
+
+  1. Assign to Bill Gates
+  2. Bill decides:
+     - Instance type: t3.medium
+     - AZ: us-east-1a (cost-effective)
+     - Storage: EBS gp3 (performance)
+  3. Execute: aws ec2 run-instances
+  4. Monitor: Register with Drucker's CloudWatch
+  5. Scale: Napoleon's Auto Scaling group
+end note
+
+@enduml

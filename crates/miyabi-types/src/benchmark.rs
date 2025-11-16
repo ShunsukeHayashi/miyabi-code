@@ -58,9 +58,9 @@ where
                 Err(_) => {
                     // If parsing fails, treat as a single-element array
                     Ok(vec![s])
-                }
+                },
             }
-        }
+        },
         _ => Err(D::Error::custom("Expected array or string")),
     }
 }
@@ -168,10 +168,7 @@ impl SWEBenchInstance {
 
     /// Checks if this instance is for a JavaScript/TypeScript repository
     pub fn is_javascript(&self) -> bool {
-        matches!(
-            self.repo_language.as_deref(),
-            Some("javascript") | Some("typescript")
-        )
+        matches!(self.repo_language.as_deref(), Some("javascript") | Some("typescript"))
     }
 
     /// Returns the short repository name (without owner)
@@ -361,11 +358,7 @@ impl BenchmarkSummary {
         // Group by language
         let mut by_language: HashMap<String, LanguageStats> = HashMap::new();
         for (instance, result) in instances.iter().zip(results.iter()) {
-            let lang = instance
-                .repo_language
-                .as_deref()
-                .unwrap_or("unknown")
-                .to_string();
+            let lang = instance.repo_language.as_deref().unwrap_or("unknown").to_string();
             let stats = by_language.entry(lang).or_insert(LanguageStats {
                 total: 0,
                 resolved: 0,

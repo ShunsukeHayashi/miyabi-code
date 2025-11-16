@@ -52,10 +52,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }
@@ -87,10 +84,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }
@@ -133,10 +127,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }
@@ -186,10 +177,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }
@@ -234,10 +222,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }
@@ -282,10 +267,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }
@@ -322,10 +304,7 @@ impl ProgressReporter {
             video: None,
         };
 
-        self.http
-            .create_message(self.progress_channel_id)
-            .embeds(&[embed])
-            .await?;
+        self.http.create_message(self.progress_channel_id).embeds(&[embed]).await?;
 
         Ok(())
     }

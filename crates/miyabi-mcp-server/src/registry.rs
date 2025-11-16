@@ -309,28 +309,18 @@ impl ToolRegistry {
     /// Returns a list of all discovered tool definitions.
     pub async fn discover_tools(&mut self) -> RegistryResult<Vec<ToolDefinition>> {
         let start = std::time::Instant::now();
-        info!(
-            "Starting tool discovery from {} servers",
-            self.mcp_servers.len()
-        );
+        info!("Starting tool discovery from {} servers", self.mcp_servers.len());
 
         let mut discovered_tools = Vec::new();
         let mut servers_healthy = 0;
         let mut servers_failed = 0;
 
         for server in &mut self.mcp_servers {
-            debug!(
-                "Discovering tools from server: {} ({})",
-                server.name, server.id
-            );
+            debug!("Discovering tools from server: {} ({})", server.name, server.id);
 
             match Self::discover_from_server_static(server).await {
                 Ok(tools) => {
-                    info!(
-                        "Discovered {} tools from server: {}",
-                        tools.len(),
-                        server.name
-                    );
+                    info!("Discovered {} tools from server: {}", tools.len(), server.name);
                     server.update_status(ServerStatus::Healthy, None);
                     servers_healthy += 1;
 
@@ -339,15 +329,12 @@ impl ToolRegistry {
                         self.tools.insert(tool.name.clone(), tool.clone());
                         discovered_tools.push(tool);
                     }
-                }
+                },
                 Err(e) => {
-                    warn!(
-                        "Failed to discover tools from server {}: {}",
-                        server.name, e
-                    );
+                    warn!("Failed to discover tools from server {}: {}", server.name, e);
                     server.update_status(ServerStatus::Error, Some(e.to_string()));
                     servers_failed += 1;
-                }
+                },
             }
         }
 
@@ -397,10 +384,7 @@ impl ToolRegistry {
 
         // For now, return empty list
         // Real implementation would parse JSON-RPC response
-        warn!(
-            "Tool discovery not yet fully implemented for server: {}",
-            server.name
-        );
+        warn!("Tool discovery not yet fully implemented for server: {}", server.name);
 
         Ok(Vec::new())
     }

@@ -102,8 +102,9 @@ impl StepContext {
             .get(key)
             .ok_or_else(|| WorkflowError::Other(format!("Metadata key '{}' not found", key)))
             .and_then(|v| {
-                serde_json::from_value(v.clone())
-                    .map_err(|e| WorkflowError::Other(format!("Failed to deserialize metadata: {}", e)))
+                serde_json::from_value(v.clone()).map_err(|e| {
+                    WorkflowError::Other(format!("Failed to deserialize metadata: {}", e))
+                })
             })
     }
 }

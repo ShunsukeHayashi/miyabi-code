@@ -151,10 +151,7 @@ impl PRAgent {
             .and_then(|v| v.as_str())
             .ok_or_else(|| MiyabiError::Validation("Branch name is missing".to_string()))?;
 
-        let base_branch = metadata
-            .get("baseBranch")
-            .and_then(|v| v.as_str())
-            .unwrap_or("main");
+        let base_branch = metadata.get("baseBranch").and_then(|v| v.as_str()).unwrap_or("main");
 
         // Generate PR title and body
         let title = self.generate_pr_title(task);
@@ -179,12 +176,7 @@ impl PRAgent {
         let client = GitHubClient::new(&github_token, repo_owner.clone(), repo_name.clone())?;
 
         // Create draft PR
-        tracing::info!(
-            "Creating draft PR: {} from {} to {}",
-            title,
-            branch,
-            base_branch
-        );
+        tracing::info!("Creating draft PR: {} from {} to {}", title, branch, base_branch);
 
         let pr = client
             .create_pull_request(&title, branch, base_branch, Some(&body), true)
@@ -353,30 +345,12 @@ mod tests {
 
     #[test]
     fn test_conventional_commits_prefix() {
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Feature),
-            "feat"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Bug),
-            "fix"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Refactor),
-            "refactor"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Docs),
-            "docs"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Test),
-            "test"
-        );
-        assert_eq!(
-            PRAgent::get_conventional_commits_prefix(TaskType::Deployment),
-            "ci"
-        );
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Feature), "feat");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Bug), "fix");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Refactor), "refactor");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Docs), "docs");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Test), "test");
+        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Deployment), "ci");
     }
 
     #[test]
@@ -388,15 +362,9 @@ mod tests {
         );
 
         // Keyword detection (returns first keyword found in keywords array)
-        assert_eq!(
-            PRAgent::detect_scope_from_title("Fix API error"),
-            Some("api".to_string())
-        );
+        assert_eq!(PRAgent::detect_scope_from_title("Fix API error"), Some("api".to_string()));
 
-        assert_eq!(
-            PRAgent::detect_scope_from_title("Update DB schema"),
-            Some("db".to_string())
-        );
+        assert_eq!(PRAgent::detect_scope_from_title("Update DB schema"), Some("db".to_string()));
 
         // Multiple keywords - returns first in array order
         assert_eq!(
@@ -486,9 +454,6 @@ mod tests {
 
         let result = agent.execute(&task).await;
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("metadata is required"));
+        assert!(result.unwrap_err().to_string().contains("metadata is required"));
     }
 }

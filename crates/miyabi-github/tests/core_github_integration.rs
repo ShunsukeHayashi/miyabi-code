@@ -95,10 +95,7 @@ fn test_issue_url_construction() {
     let issue_number = 418;
 
     if let (Some(owner), Some(repo)) = (&config.repo_owner, &config.repo_name) {
-        let url = format!(
-            "https://github.com/{}/{}/issues/{}",
-            owner, repo, issue_number
-        );
+        let url = format!("https://github.com/{}/{}/issues/{}", owner, repo, issue_number);
         assert_eq!(url, "https://github.com/test-owner/test-repo/issues/418");
     }
 }
@@ -119,18 +116,12 @@ fn test_issue_label_parsing() {
     ];
 
     // Parse type
-    let type_labels: Vec<_> = labels
-        .iter()
-        .filter(|l| l.starts_with("type:"))
-        .collect();
+    let type_labels: Vec<_> = labels.iter().filter(|l| l.starts_with("type:")).collect();
     assert_eq!(type_labels.len(), 1);
     assert_eq!(*type_labels[0], "type:test");
 
     // Parse priority
-    let priority_labels: Vec<_> = labels
-        .iter()
-        .filter(|l| l.starts_with("priority:"))
-        .collect();
+    let priority_labels: Vec<_> = labels.iter().filter(|l| l.starts_with("priority:")).collect();
     assert_eq!(priority_labels.len(), 1);
     assert_eq!(*priority_labels[0], "priority:P1-High");
 }
@@ -152,10 +143,7 @@ fn test_config_directory_paths() {
 fn test_github_issue_state_mapping() {
     use miyabi_types::issue::IssueStateGithub;
 
-    let states = vec![
-        IssueStateGithub::Open,
-        IssueStateGithub::Closed,
-    ];
+    let states = vec![IssueStateGithub::Open, IssueStateGithub::Closed];
 
     for state in states {
         let state_str = match state {

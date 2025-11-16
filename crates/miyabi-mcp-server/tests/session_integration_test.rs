@@ -9,9 +9,7 @@ use tempfile::TempDir;
 #[tokio::test]
 async fn test_session_spawn() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     let params = SessionSpawnParams {
         agent_name: "coordinator".to_string(),
@@ -34,9 +32,7 @@ async fn test_session_spawn() {
 #[tokio::test]
 async fn test_session_lifecycle() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // 1. Spawn session
     let spawn_params = SessionSpawnParams {
@@ -74,9 +70,7 @@ async fn test_session_lifecycle() {
 #[tokio::test]
 async fn test_session_handoff() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // 1. Spawn initial session
     let spawn_params = SessionSpawnParams {
@@ -126,9 +120,7 @@ async fn test_session_handoff() {
 #[tokio::test]
 async fn test_session_list_and_stats() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // Spawn multiple sessions
     for i in 1..=3 {
@@ -167,9 +159,7 @@ async fn test_session_list_and_stats() {
 #[tokio::test]
 async fn test_session_terminate() {
     let temp_dir = TempDir::new().unwrap();
-    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap())
-        .await
-        .unwrap();
+    let handler = SessionHandler::new(temp_dir.path().to_str().unwrap()).await.unwrap();
 
     // Spawn session
     let spawn_params = SessionSpawnParams {

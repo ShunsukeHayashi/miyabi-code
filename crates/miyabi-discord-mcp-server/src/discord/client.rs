@@ -40,7 +40,7 @@ impl DiscordClient {
             Err(e) => {
                 tracing::error!("Health check failed: {}", e);
                 Ok(false)
-            }
+            },
         }
     }
 }

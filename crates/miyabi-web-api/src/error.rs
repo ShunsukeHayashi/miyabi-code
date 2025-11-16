@@ -5,10 +5,10 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use serde::Serialize;
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
+use serde::Serialize;
 use std::any::Any;
+use thiserror::Error;
 
 /// Application result type
 pub type Result<T> = std::result::Result<T, AppError>;
@@ -82,24 +82,15 @@ impl IntoResponse for AppError {
                 "Authentication failed",
                 Some(msg.clone()),
             ),
-            AppError::Authorization(ref msg) => (
-                StatusCode::FORBIDDEN,
-                "authorization_error",
-                "Access denied",
-                Some(msg.clone()),
-            ),
-            AppError::NotFound(ref msg) => (
-                StatusCode::NOT_FOUND,
-                "not_found",
-                "Resource not found",
-                Some(msg.clone()),
-            ),
-            AppError::Validation(ref msg) => (
-                StatusCode::BAD_REQUEST,
-                "validation_error",
-                "Invalid input",
-                Some(msg.clone()),
-            ),
+            AppError::Authorization(ref msg) => {
+                (StatusCode::FORBIDDEN, "authorization_error", "Access denied", Some(msg.clone()))
+            },
+            AppError::NotFound(ref msg) => {
+                (StatusCode::NOT_FOUND, "not_found", "Resource not found", Some(msg.clone()))
+            },
+            AppError::Validation(ref msg) => {
+                (StatusCode::BAD_REQUEST, "validation_error", "Invalid input", Some(msg.clone()))
+            },
             AppError::Configuration(ref msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "configuration_error",
@@ -175,7 +166,7 @@ impl UnifiedError for AppError {
         match self {
             Self::Database(_) => {
                 "A database error occurred. Please try again later or contact support.".to_string()
-            }
+            },
             Self::Authentication(msg) => format!(
                 "Authentication failed: {}. Please check your credentials and try again.",
                 msg
@@ -188,18 +179,13 @@ impl UnifiedError for AppError {
                 "Resource not found: {}. The requested resource may not exist or has been removed.",
                 msg
             ),
-            Self::Validation(msg) => format!(
-                "Invalid input: {}. Please check your data and try again.",
-                msg
-            ),
-            Self::Configuration(msg) => format!(
-                "Server configuration error: {}. Please contact the administrator.",
-                msg
-            ),
-            Self::Server(msg) => format!(
-                "Server error: {}. Please try again later.",
-                msg
-            ),
+            Self::Validation(msg) => {
+                format!("Invalid input: {}. Please check your data and try again.", msg)
+            },
+            Self::Configuration(msg) => {
+                format!("Server configuration error: {}. Please contact the administrator.", msg)
+            },
+            Self::Server(msg) => format!("Server error: {}. Please try again later.", msg),
             Self::ExternalApi(msg) => format!(
                 "External service error: {}. The external service may be temporarily unavailable.",
                 msg
@@ -208,10 +194,9 @@ impl UnifiedError for AppError {
                 "Telegram API error: {}. Please check your Telegram bot configuration.",
                 msg
             ),
-            Self::Internal(msg) => format!(
-                "An internal error occurred: {}. Please try again or contact support.",
-                msg
-            ),
+            Self::Internal(msg) => {
+                format!("An internal error occurred: {}. Please try again or contact support.", msg)
+            },
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

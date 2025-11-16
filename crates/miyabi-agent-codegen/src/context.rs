@@ -71,10 +71,7 @@ pub async fn build_enhanced_execution_context(
         if potpie.is_available().await {
             tracing::info!("Fetching existing implementations from Potpie");
 
-            match potpie
-                .find_existing_implementations(&task.description)
-                .await
-            {
+            match potpie.find_existing_implementations(&task.description).await {
                 Ok(existing_code) if !existing_code.is_empty() => {
                     // Instructions セクションの直前に挿入
                     let instructions_marker = "## Instructions\n\n";
@@ -88,13 +85,13 @@ pub async fn build_enhanced_execution_context(
                             context.push_str(&existing_code);
                         }
                     }
-                }
+                },
                 Ok(_) => {
                     tracing::debug!("No existing implementations found");
-                }
+                },
                 Err(e) => {
                     tracing::warn!("Failed to fetch existing implementations: {}", e);
-                }
+                },
             }
         } else {
             tracing::debug!("Potpie not available, using base context");
@@ -149,11 +146,9 @@ pub async fn write_context_files(
 ) -> Result<(), MiyabiError> {
     let context_md = build_execution_context(task);
     let context_path = worktree_path.join("EXECUTION_CONTEXT.md");
-    tokio::fs::write(&context_path, context_md)
-        .await
-        .map_err(|e| {
-            MiyabiError::Unknown(format!("Failed to write EXECUTION_CONTEXT.md: {}", e))
-        })?;
+    tokio::fs::write(&context_path, context_md).await.map_err(|e| {
+        MiyabiError::Unknown(format!("Failed to write EXECUTION_CONTEXT.md: {}", e))
+    })?;
 
     let context_json = build_agent_context_json(config, task)?;
     let json_path = worktree_path.join(".agent-context.json");
@@ -266,10 +261,7 @@ mod tests {
         assert_eq!(json["task"]["impact"], "High");
         assert_eq!(json["task"]["dependencies"][0], "task-0");
         assert_eq!(json["task"]["estimatedDuration"], 45);
-        assert_eq!(
-            json["promptPath"],
-            ".claude/agents/prompts/coding/codegen-agent-prompt.md"
-        );
+        assert_eq!(json["promptPath"], ".claude/agents/prompts/coding/codegen-agent-prompt.md");
     }
 
     #[test]
@@ -296,25 +288,16 @@ mod tests {
         let unique = format!(
             "miyabi-context-test-{}-{}",
             std::process::id(),
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("time")
-                .as_nanos()
+            SystemTime::now().duration_since(UNIX_EPOCH).expect("time").as_nanos()
         );
         let temp_dir = std::env::temp_dir().join(unique);
-        tokio::fs::create_dir_all(&temp_dir)
-            .await
-            .expect("create temp dir");
+        tokio::fs::create_dir_all(&temp_dir).await.expect("create temp dir");
 
-        write_context_files(&temp_dir, &config, &task)
-            .await
-            .expect("write files");
+        write_context_files(&temp_dir, &config, &task).await.expect("write files");
 
         assert!(temp_dir.join("EXECUTION_CONTEXT.md").exists());
         assert!(temp_dir.join(".agent-context.json").exists());
 
-        tokio::fs::remove_dir_all(&temp_dir)
-            .await
-            .expect("cleanup temp dir");
+        tokio::fs::remove_dir_all(&temp_dir).await.expect("cleanup temp dir");
     }
 }

@@ -1,8 +1,8 @@
 //! エラー型定義
 
-use thiserror::Error;
 use miyabi_types::error::{ErrorCode, UnifiedError};
 use std::any::Any;
+use thiserror::Error;
 
 /// ナレッジ管理システムのエラー型
 #[derive(Error, Debug)]
@@ -168,7 +168,8 @@ mod unified_error_tests {
         let error = KnowledgeError::Io(std::io::Error::new(std::io::ErrorKind::Other, "test"));
         assert!(error.context().is_none());
 
-        let error = KnowledgeError::Json(serde_json::from_str::<serde_json::Value>("invalid").unwrap_err());
+        let error =
+            KnowledgeError::Json(serde_json::from_str::<serde_json::Value>("invalid").unwrap_err());
         assert!(error.context().is_none());
     }
 }

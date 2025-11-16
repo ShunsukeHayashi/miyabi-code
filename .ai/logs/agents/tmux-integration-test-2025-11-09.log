@@ -1,0 +1,132 @@
+[2025-11-09 05:15:27] [INFO] Starting Tmux Integration Tests...
+[2025-11-09 05:15:27] [INFO] === Test 1: Create Tmux Session ===
+[2025-11-09 05:15:27] [SUCCESS] ✓ Tmux session created: cue-man-test
+[2025-11-09 05:15:27] [INFO] === Test 2: Split Panes ===
+[2025-11-09 05:15:27] [SUCCESS] ✓ Panes split successfully (count: 2)
+[2025-11-09 05:15:27] [INFO] === Test 3: Get Pane IDs ===
+[2025-11-09 05:15:27] [INFO] Pane IDs:
+[2025-11-09 05:15:27] [INFO]   - %348
+[2025-11-09 05:15:27] [INFO]   - %349
+[2025-11-09 05:15:27] [SUCCESS] ✓ Pane IDs retrieved successfully
+[2025-11-09 05:15:27] [INFO] === Test 4: Tmux Send-Keys ===
+[2025-11-09 05:15:27] [INFO] Target pane: %348
+[2025-11-09 05:15:28] [SUCCESS] ✓ Message sent and captured successfully
+[2025-11-09 05:15:28] [INFO] Captured output:
+[2025-11-09 05:15:28] [INFO]   ❯ echo 'Cue Man Test: Build completed ✅
+[2025-11-09 05:15:28] [INFO]   '
+[2025-11-09 05:15:28] [INFO]   Cue Man Test: Build completed ✅
+[2025-11-09 05:15:28] [INFO] === Test 5: Pane Monitor Simulation ===
+[2025-11-09 05:15:30] [SUCCESS] ✓ Completion pattern detected in pane output
+[2025-11-09 05:15:30] [SUCCESS] ✓ Event data generated
+[2025-11-09 05:15:30] [INFO] === Test 6: Multi-Pane Communication ===
+[2025-11-09 05:15:30] [INFO] Pane 1: %348
+[2025-11-09 05:15:30] [INFO] Pane 2: %349
+[2025-11-09 05:15:34] [SUCCESS] ✓ Cross-pane communication successful
+[2025-11-09 05:15:34] [INFO] === Test 7: Continuous Pane Monitoring ===
+[2025-11-09 05:15:39] [ERROR] ✗ Continuous monitoring failed (detected 10/5 events)
+[2025-11-09 05:15:39] [INFO] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-11-09 05:15:39] [INFO] Tmux Integration Test Summary:
+[2025-11-09 05:15:39] [INFO]   Passed: 6
+[2025-11-09 05:15:39] [INFO]   Failed: 1
+[2025-11-09 05:15:39] [INFO]   Total:  7
+[2025-11-09 05:15:39] [ERROR] ❌ Some tmux integration tests FAILED
+[2025-11-09 05:15:39] [INFO] Cleaning up test session...
+[2025-11-09 05:16:04] [INFO] Starting Tmux Integration Tests...
+[2025-11-09 05:16:04] [INFO] === Test 1: Create Tmux Session ===
+[2025-11-09 05:16:04] [SUCCESS] ✓ Tmux session created: cue-man-test
+[2025-11-09 05:16:04] [INFO] === Test 2: Split Panes ===
+[2025-11-09 05:16:04] [SUCCESS] ✓ Panes split successfully (count: 2)
+[2025-11-09 05:16:04] [INFO] === Test 3: Get Pane IDs ===
+[2025-11-09 05:16:04] [INFO] Pane IDs:
+[2025-11-09 05:16:04] [INFO]   - %350
+[2025-11-09 05:16:04] [INFO]   - %351
+[2025-11-09 05:16:04] [SUCCESS] ✓ Pane IDs retrieved successfully
+[2025-11-09 05:16:04] [INFO] === Test 4: Tmux Send-Keys ===
+[2025-11-09 05:16:04] [INFO] Target pane: %350
+[2025-11-09 05:16:05] [SUCCESS] ✓ Message sent and captured successfully
+[2025-11-09 05:16:05] [INFO] Captured output:
+[2025-11-09 05:16:05] [INFO]   0.1.1 via  v23.6.1 via 🦀 v1.89.0 on ☁️
+[2025-11-09 05:16:05] [INFO]   supernovasyun@gmail.com
+[2025-11-09 05:16:05] [INFO]   ❯
+[2025-11-09 05:16:06] [INFO] === Test 5: Pane Monitor Simulation ===
+[2025-11-09 05:16:08] [SUCCESS] ✓ Completion pattern detected in pane output
+[2025-11-09 05:16:08] [SUCCESS] ✓ Event data generated
+[2025-11-09 05:16:08] [INFO] === Test 6: Multi-Pane Communication ===
+[2025-11-09 05:16:08] [INFO] Pane 1: %350
+[2025-11-09 05:16:08] [INFO] Pane 2: %351
+[2025-11-09 05:16:11] [SUCCESS] ✓ Cross-pane communication successful
+[2025-11-09 05:16:11] [INFO] === Test 7: Continuous Pane Monitoring ===
+[2025-11-09 05:16:18] [ERROR] ✗ Continuous monitoring failed (detected 11/5 events)
+[2025-11-09 05:16:18] [INFO] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-11-09 05:16:18] [INFO] Tmux Integration Test Summary:
+[2025-11-09 05:16:18] [INFO]   Passed: 6
+[2025-11-09 05:16:18] [INFO]   Failed: 1
+[2025-11-09 05:16:18] [INFO]   Total:  7
+[2025-11-09 05:16:18] [ERROR] ❌ Some tmux integration tests FAILED
+[2025-11-09 05:16:18] [INFO] Cleaning up test session...
+[2025-11-09 05:17:04] [INFO] Starting Tmux Integration Tests...
+[2025-11-09 05:17:04] [INFO] === Test 1: Create Tmux Session ===
+[2025-11-09 05:17:04] [SUCCESS] ✓ Tmux session created: cue-man-test
+[2025-11-09 05:17:04] [INFO] === Test 2: Split Panes ===
+[2025-11-09 05:17:04] [SUCCESS] ✓ Panes split successfully (count: 2)
+[2025-11-09 05:17:04] [INFO] === Test 3: Get Pane IDs ===
+[2025-11-09 05:17:04] [INFO] Pane IDs:
+[2025-11-09 05:17:04] [INFO]   - %353
+[2025-11-09 05:17:04] [INFO]   - %354
+[2025-11-09 05:17:04] [SUCCESS] ✓ Pane IDs retrieved successfully
+[2025-11-09 05:17:04] [INFO] === Test 4: Tmux Send-Keys ===
+[2025-11-09 05:17:04] [INFO] Target pane: %353
+[2025-11-09 05:17:06] [SUCCESS] ✓ Message sent and captured successfully
+[2025-11-09 05:17:06] [INFO] Captured output:
+[2025-11-09 05:17:06] [INFO]   ❯ echo 'Cue Man Test: Build completed ✅
+[2025-11-09 05:17:06] [INFO]   '
+[2025-11-09 05:17:06] [INFO]   Cue Man Test: Build completed ✅
+[2025-11-09 05:17:06] [INFO] === Test 5: Pane Monitor Simulation ===
+[2025-11-09 05:17:08] [SUCCESS] ✓ Completion pattern detected in pane output
+[2025-11-09 05:17:08] [SUCCESS] ✓ Event data generated
+[2025-11-09 05:17:08] [INFO] === Test 6: Multi-Pane Communication ===
+[2025-11-09 05:17:08] [INFO] Pane 1: %353
+[2025-11-09 05:17:08] [INFO] Pane 2: %354
+[2025-11-09 05:17:11] [SUCCESS] ✓ Cross-pane communication successful
+[2025-11-09 05:17:11] [INFO] === Test 7: Continuous Pane Monitoring ===
+[2025-11-09 05:17:18] [SUCCESS] ✓ Continuous monitoring: detected 5 events + completion
+[2025-11-09 05:17:18] [INFO] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-11-09 05:17:18] [INFO] Tmux Integration Test Summary:
+[2025-11-09 05:17:18] [INFO]   Passed: 7
+[2025-11-09 05:17:18] [INFO]   Failed: 0
+[2025-11-09 05:17:18] [INFO]   Total:  7
+[2025-11-09 05:17:18] [SUCCESS] ✅ All tmux integration tests PASSED
+[2025-11-09 05:17:18] [INFO] Cleaning up test session...
+[2025-11-09 05:31:42] [INFO] Starting Tmux Integration Tests...
+[2025-11-09 05:31:42] [INFO] === Test 1: Create Tmux Session ===
+[2025-11-09 05:31:42] [SUCCESS] ✓ Tmux session created: cue-man-test
+[2025-11-09 05:31:42] [INFO] === Test 2: Split Panes ===
+[2025-11-09 05:31:42] [SUCCESS] ✓ Panes split successfully (count: 2)
+[2025-11-09 05:31:42] [INFO] === Test 3: Get Pane IDs ===
+[2025-11-09 05:31:42] [INFO] Pane IDs:
+[2025-11-09 05:31:42] [INFO]   - %358
+[2025-11-09 05:31:42] [INFO]   - %359
+[2025-11-09 05:31:42] [SUCCESS] ✓ Pane IDs retrieved successfully
+[2025-11-09 05:31:42] [INFO] === Test 4: Tmux Send-Keys ===
+[2025-11-09 05:31:42] [INFO] Target pane: %358
+[2025-11-09 05:31:44] [SUCCESS] ✓ Message sent and captured successfully
+[2025-11-09 05:31:44] [INFO] Captured output:
+[2025-11-09 05:31:44] [INFO]   ❯ echo 'Cue Man Test: Build completed ✅
+[2025-11-09 05:31:44] [INFO]   '
+[2025-11-09 05:31:44] [INFO]   Cue Man Test: Build completed ✅
+[2025-11-09 05:31:44] [INFO] === Test 5: Pane Monitor Simulation ===
+[2025-11-09 05:31:46] [SUCCESS] ✓ Completion pattern detected in pane output
+[2025-11-09 05:31:46] [SUCCESS] ✓ Event data generated
+[2025-11-09 05:31:46] [INFO] === Test 6: Multi-Pane Communication ===
+[2025-11-09 05:31:46] [INFO] Pane 1: %358
+[2025-11-09 05:31:46] [INFO] Pane 2: %359
+[2025-11-09 05:31:49] [SUCCESS] ✓ Cross-pane communication successful
+[2025-11-09 05:31:49] [INFO] === Test 7: Continuous Pane Monitoring ===
+[2025-11-09 05:31:56] [SUCCESS] ✓ Continuous monitoring: detected 5 events + completion
+[2025-11-09 05:31:56] [INFO] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-11-09 05:31:56] [INFO] Tmux Integration Test Summary:
+[2025-11-09 05:31:56] [INFO]   Passed: 7
+[2025-11-09 05:31:56] [INFO]   Failed: 0
+[2025-11-09 05:31:56] [INFO]   Total:  7
+[2025-11-09 05:31:56] [SUCCESS] ✅ All tmux integration tests PASSED
+[2025-11-09 05:31:56] [INFO] Cleaning up test session...

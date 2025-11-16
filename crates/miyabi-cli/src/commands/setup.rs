@@ -86,9 +86,7 @@ impl SetupCommand {
         })?;
 
         if !gh_version.status.success() {
-            return Err(CliError::GitConfig(
-                "gh CLI not working properly".to_string(),
-            ));
+            return Err(CliError::GitConfig("gh CLI not working properly".to_string()));
         }
 
         // Check authentication status
@@ -111,10 +109,8 @@ impl SetupCommand {
                 if should_auth {
                     println!();
                     println!("  Running: gh auth login");
-                    let login_result = Command::new("gh")
-                        .args(["auth", "login"])
-                        .status()
-                        .map_err(|e| {
+                    let login_result =
+                        Command::new("gh").args(["auth", "login"]).status().map_err(|e| {
                             CliError::GitConfig(format!("Failed to run gh auth login: {}", e))
                         })?;
 
