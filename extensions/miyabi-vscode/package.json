@@ -1,0 +1,5 @@
+{
+  "name": "miyabi-vscode",
+  "version": "0.1.0",
+  "main": "./out/extension.js"
+}
