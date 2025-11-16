@@ -1,0 +1,1 @@
+{ "name": "miyabi-desktop", "scripts": { "test": "jest" } }
