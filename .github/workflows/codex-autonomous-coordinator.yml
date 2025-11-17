@@ -24,6 +24,10 @@ on:
     # Run every hour to check for pending issues
     - cron: '0 * * * *'
 
+permissions:
+  issues: write
+  contents: read
+
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
