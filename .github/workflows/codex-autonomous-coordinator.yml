@@ -103,11 +103,6 @@ jobs:
     env:
       ISSUE_NUMBER: ${{ needs.check-trigger.outputs.issue_number }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-
       - name: Setup environment
         run: |
           echo "🚀 MUGEN Coordinator starting Codex execution"
@@ -186,11 +181,6 @@ jobs:
     env:
       ISSUE_NUMBER: ${{ needs.check-trigger.outputs.issue_number }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-
       - name: Setup environment
         run: |
           echo "🚀 MAJIN Coordinator starting Codex execution"
