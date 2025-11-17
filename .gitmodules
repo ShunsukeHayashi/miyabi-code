@@ -13,3 +13,6 @@
 [submodule "mcp-servers/lark-wiki-mcp-agents"]
 	path = mcp-servers/lark-wiki-mcp-agents
 	url = https://github.com/ShunsukeHayashi/lark-wiki-mcp-agents.git
+[submodule "integrations/lark-mcp-enhanced"]
+	path = integrations/lark-mcp-enhanced
+	url = https://github.com/ShunsukeHayashi/lark-openapi-mcp-enhanced.git
