@@ -82,7 +82,7 @@ jobs:
           # Scheduled run - check for pending issues
           if [ "${{ github.event_name }}" = "schedule" ]; then
             # Query for issues with codex-pending label
-            PENDING_ISSUE=$(gh issue list --label "codex-pending" --limit 1 --json number --jq '.[0].number' || echo "")
+            PENDING_ISSUE=$(gh issue list --repo ${{ github.repository }} --label "codex-pending" --limit 1 --json number --jq '.[0].number' || echo "")
             if [ -n "$PENDING_ISSUE" ]; then
               SHOULD_EXECUTE="true"
               ISSUE_NUMBER="$PENDING_ISSUE"
@@ -112,7 +112,7 @@ jobs:
 
       - name: Update Issue - Start
         run: |
-          gh issue comment $ISSUE_NUMBER --body "🤖 **MUGEN Coordinator** started processing this issue.
+          gh issue comment $ISSUE_NUMBER --repo ${{ github.repository }} --body "🤖 **MUGEN Coordinator** started processing this issue.
 
           **Runner**: $(hostname)
           **Started**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
@@ -133,8 +133,8 @@ jobs:
           echo "Executing Codex for issue #${ISSUE_NUMBER}..." | tee -a "$LOG_FILE"
 
           # Get issue details
-          ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --json title --jq '.title')
-          ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --json body --jq '.body')
+          ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --repo ${{ github.repository }} --json title --jq '.title')
+          ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --repo ${{ github.repository }} --json body --jq '.body')
 
           # Run Claude Code in headless mode
           claude --print "Issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}
@@ -164,7 +164,7 @@ jobs:
             STATUS="⚠️ **Completed with errors**"
           fi
 
-          gh issue comment $ISSUE_NUMBER --body "${STATUS}
+          gh issue comment $ISSUE_NUMBER --repo ${{ github.repository }} --body "${STATUS}
 
           **MUGEN Coordinator** finished processing.
           **Completed**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
@@ -190,7 +190,7 @@ jobs:
 
       - name: Update Issue - Start
         run: |
-          gh issue comment $ISSUE_NUMBER --body "🤖 **MAJIN Coordinator (GPU)** started processing this issue.
+          gh issue comment $ISSUE_NUMBER --repo ${{ github.repository }} --body "🤖 **MAJIN Coordinator (GPU)** started processing this issue.
 
           **Runner**: $(hostname)
           **GPU**: $(nvidia-smi --query-gpu=name --format=csv,noheader || echo 'No GPU')
@@ -209,8 +209,8 @@ jobs:
 
           echo "Executing Codex for issue #${ISSUE_NUMBER} on MAJIN..." | tee -a "$LOG_FILE"
 
-          ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --json title --jq '.title')
-          ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --json body --jq '.body')
+          ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --repo ${{ github.repository }} --json title --jq '.title')
+          ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --repo ${{ github.repository }} --json body --jq '.body')
 
           claude --print "Issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}
 
@@ -239,7 +239,7 @@ jobs:
             STATUS="⚠️ **Completed with errors**"
           fi
 
-          gh issue comment $ISSUE_NUMBER --body "${STATUS}
+          gh issue comment $ISSUE_NUMBER --repo ${{ github.repository }} --body "${STATUS}
 
           **MAJIN Coordinator (GPU)** finished processing.
           **Completed**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
