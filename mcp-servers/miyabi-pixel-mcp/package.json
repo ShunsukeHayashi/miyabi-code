@@ -1,0 +1,25 @@
+{
+  "name": "miyabi-pixel-mcp",
+  "version": "1.0.0",
+  "description": "Miyabi MCP Tools optimized for Google Pixel / Android (Termux)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "setup": "npm install --production",
+    "test": "node index.js --test"
+  },
+  "keywords": [
+    "mcp",
+    "pixel",
+    "android",
+    "termux",
+    "miyabi"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}
