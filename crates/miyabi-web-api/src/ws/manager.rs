@@ -24,11 +24,11 @@ impl WebSocketManager {
     /// 新しいマネージャーを作成
     pub async fn new(redis_url: &str) -> Result<Self, ApiError> {
         let client = redis::Client::open(redis_url)
-            .map_err(|e| ApiError::Config(format!("Redis connection error: {}", e)))?;
+            .map_err(|e| ApiError::Configuration(format!("Redis connection error: {}", e)))?;
 
         let redis = ConnectionManager::new(client)
             .await
-            .map_err(|e| ApiError::Config(format!("Redis pool error: {}", e)))?;
+            .map_err(|e| ApiError::Configuration(format!("Redis pool error: {}", e)))?;
 
         Ok(Self {
             channels: Arc::new(DashMap::new()),
@@ -58,13 +58,13 @@ impl WebSocketManager {
     ) -> Result<(), ApiError> {
         // 1. ローカルメモリのクライアントに送信
         let channel = self.get_or_create_channel(execution_id);
-        if let Err(e) = channel.send(message.clone()) {
-            warn!("local_broadcast_error: {} subscribers", e.len());
+        if let Err(_e) = channel.send(message.clone()) {
+            warn!("local_broadcast_error: no subscribers");
         }
 
         // 2. Redis 経由で他のサーバーのクライアントに送信
         let json = message.to_text()
-            .map_err(|e| ApiError::InternalServer(format!("Serialization error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Serialization error: {}", e)))?;
 
         let key = format!("execution:{}:events", execution_id);
         let mut conn = self.redis.clone();
@@ -73,7 +73,7 @@ impl WebSocketManager {
         match redis::cmd("PUBLISH")
             .arg(&key)
             .arg(&json)
-            .query_async::<_, i32>(&mut conn)
+            .query_async::<i32>(&mut conn)
             .await
         {
             Ok(subscribers) => {

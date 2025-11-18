@@ -4,17 +4,24 @@
 //! Integrates with existing websocket module and tmux capture-pane.
 
 use axum::{
-    extract::{Path, Query, State},
+    extract::State,
     routing::{get, post},
     Router,
 };
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::sync::Arc;
-use tracing::{debug, error, info, warn};
+use tracing::{error, info};
 
 use crate::services::log_streamer::LogStreamingManager;
-use crate::websocket::{WebSocketManager, WsEvent};
+use crate::ws::{WebSocketManager, WSMessage, LogLevel};
+
+/// Combined WebSocket state
+#[derive(Clone)]
+pub struct WsState {
+    pub ws_manager: Arc<WebSocketManager>,
+    pub log_manager: Arc<LogStreamingManager>,
+}
 
 /// Query parameters for log streaming
 #[derive(Debug, Deserialize)]
@@ -35,9 +42,9 @@ pub struct StreamingStatusResponse {
 }
 
 pub async fn get_streaming_status(
-    State(log_manager): State<Arc<LogStreamingManager>>,
+    State(state): State<Arc<WsState>>,
 ) -> axum::Json<StreamingStatusResponse> {
-    let active_streams = log_manager.active_count().await;
+    let active_streams = state.log_manager.active_count().await;
 
     axum::Json(StreamingStatusResponse {
         active_streams,
@@ -60,16 +67,17 @@ pub struct StartStreamingResponse {
 }
 
 pub async fn start_log_streaming(
-    State(log_manager): State<Arc<LogStreamingManager>>,
-    State(ws_manager): State<Arc<WebSocketManager>>,
+    State(state): State<Arc<WsState>>,
     axum::Json(req): axum::Json<StartStreamingRequest>,
 ) -> axum::Json<StartStreamingResponse> {
+    let _log_manager = state.log_manager.clone();
+
     // Start streaming logs from tmux pane
     tokio::spawn({
         let execution_id = req.execution_id.clone();
         let agent_name = req.agent_name.clone();
         let pane_id = req.pane_id.clone();
-        let ws_manager = ws_manager.clone();
+        let ws_manager = state.ws_manager.clone();
 
         async move {
             info!(
@@ -95,20 +103,16 @@ pub async fn start_log_streaming(
                                 let level = parse_log_level(line);
 
                                 // Broadcast log via WebSocket
-                                let event = WsEvent::LogEntry {
-                                    id: uuid::Uuid::new_v4().to_string(),
-                                    timestamp: chrono::Utc::now().to_rfc3339(),
-                                    level: level.to_string(),
-                                    agent_type: Some(agent_name.clone()),
+                                let message = WSMessage::AgentLog {
+                                    executionId: execution_id.clone(),
+                                    level,
                                     message: line.clone(),
-                                    context: Some(format!("Execution: {}", execution_id)),
-                                    issue_number: None,
-                                    session_id: execution_id.clone(),
-                                    file: None,
-                                    line: None,
+                                    timestamp: chrono::Utc::now().to_rfc3339(),
                                 };
 
-                                ws_manager.broadcast(event);
+                                if let Err(e) = ws_manager.broadcast_message(&execution_id, &message).await {
+                                    error!("Failed to broadcast log: {}", e);
+                                }
                             }
 
                             last_line_count = lines.len();
@@ -160,16 +164,16 @@ fn capture_pane_logs(pane_id: &str) -> Result<Vec<String>, String> {
 }
 
 /// Parse log level from log content
-fn parse_log_level(log: &str) -> &str {
+fn parse_log_level(log: &str) -> LogLevel {
     let log_upper = log.to_uppercase();
     if log_upper.contains("ERROR") || log_upper.contains("FATAL") {
-        "ERROR"
+        LogLevel::Error
     } else if log_upper.contains("WARN") {
-        "WARN"
+        LogLevel::Warn
     } else if log_upper.contains("DEBUG") {
-        "DEBUG"
+        LogLevel::Debug
     } else {
-        "INFO"
+        LogLevel::Info
     }
 }
 
@@ -181,9 +185,9 @@ pub struct StopStreamingResponse {
 }
 
 pub async fn stop_all_streaming(
-    State(log_manager): State<Arc<LogStreamingManager>>,
+    State(state): State<Arc<WsState>>,
 ) -> axum::Json<StopStreamingResponse> {
-    log_manager.stop_all().await;
+    state.log_manager.stop_all().await;
 
     axum::Json(StopStreamingResponse {
         success: true,
@@ -196,12 +200,16 @@ pub fn routes(
     ws_manager: Arc<WebSocketManager>,
     log_manager: Arc<LogStreamingManager>,
 ) -> Router {
+    let state = Arc::new(WsState {
+        ws_manager,
+        log_manager,
+    });
+
     Router::new()
         .route("/status", get(get_streaming_status))
         .route("/start", post(start_log_streaming))
         .route("/stop", post(stop_all_streaming))
-        .with_state(ws_manager)
-        .with_state(log_manager)
+        .with_state(state)
 }
 
 #[cfg(test)]
@@ -210,10 +218,10 @@ mod tests {
 
     #[test]
     fn test_log_level_parsing() {
-        assert_eq!(parse_log_level("ERROR: Something went wrong"), "ERROR");
-        assert_eq!(parse_log_level("WARN: Be careful"), "WARN");
-        assert_eq!(parse_log_level("DEBUG: Detailed info"), "DEBUG");
-        assert_eq!(parse_log_level("INFO: All good"), "INFO");
-        assert_eq!(parse_log_level("Regular message"), "INFO");
+        assert_eq!(parse_log_level("ERROR: Something went wrong"), LogLevel::Error);
+        assert_eq!(parse_log_level("WARN: Be careful"), LogLevel::Warn);
+        assert_eq!(parse_log_level("DEBUG: Detailed info"), LogLevel::Debug);
+        assert_eq!(parse_log_level("INFO: All good"), LogLevel::Info);
+        assert_eq!(parse_log_level("Regular message"), LogLevel::Info);
     }
 }

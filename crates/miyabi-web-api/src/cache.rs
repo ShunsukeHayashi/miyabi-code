@@ -69,7 +69,7 @@ impl CacheManager {
 
         // 3. Redis にキャッシュ保存
         let serialized = serde_json::to_string(&value)
-            .map_err(|e| ApiError::InternalServer(format!("Serialization error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Serialization error: {}", e)))?;
 
         // キャッシュ保存失敗は無視（データは返す）
         if let Err(e) = conn
@@ -87,7 +87,7 @@ impl CacheManager {
         let mut conn = self.redis.clone();
         conn.del::<_, ()>(key)
             .await
-            .map_err(|e| ApiError::InternalServer(format!("Cache invalidation error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Cache invalidation error: {}", e)))?;
 
         debug!("cache_invalidated: {}", key);
         Ok(())
@@ -100,7 +100,7 @@ impl CacheManager {
             .arg(pattern)
             .query_async(&mut conn)
             .await
-            .map_err(|e| ApiError::InternalServer(format!("Pattern search error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Pattern search error: {}", e)))?;
 
         if keys.is_empty() {
             return Ok(0);
@@ -108,7 +108,7 @@ impl CacheManager {
 
         let deleted: u32 = conn.del(keys)
             .await
-            .map_err(|e| ApiError::InternalServer(format!("Cache deletion error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Cache deletion error: {}", e)))?;
 
         debug!("cache_pattern_invalidated: {} (deleted: {})", pattern, deleted);
         Ok(deleted)
@@ -123,11 +123,11 @@ impl CacheManager {
     ) -> Result<(), ApiError> {
         let mut conn = self.redis.clone();
         let serialized = serde_json::to_string(value)
-            .map_err(|e| ApiError::InternalServer(format!("Serialization error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Serialization error: {}", e)))?;
 
         conn.set_ex::<_, _, ()>(key, serialized, ttl_seconds)
             .await
-            .map_err(|e| ApiError::InternalServer(format!("Cache set error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Cache set error: {}", e)))?;
 
         Ok(())
     }
@@ -140,12 +140,12 @@ impl CacheManager {
         let mut conn = self.redis.clone();
         let cached: Option<String> = conn.get(key)
             .await
-            .map_err(|e| ApiError::InternalServer(format!("Cache get error: {}", e)))?;
+            .map_err(|e| ApiError::Server(format!("Cache get error: {}", e)))?;
 
         match cached {
             Some(json) => {
                 let value = serde_json::from_str(&json)
-                    .map_err(|e| ApiError::InternalServer(format!("Deserialization error: {}", e)))?;
+                    .map_err(|e| ApiError::Server(format!("Deserialization error: {}", e)))?;
                 Ok(Some(value))
             }
             None => Ok(None),

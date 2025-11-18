@@ -58,6 +58,12 @@ utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
 # Environment variables
 dotenvy = "0.15"
 
+# WebSocket and concurrency
+dashmap = "6.0"
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+
 [dev-dependencies]
 tokio-test = "0.4"
 tokio-tungstenite = "0.28"
+wiremock = "0.6"
+assert-json-diff = "2.0"

@@ -13,6 +13,9 @@ use thiserror::Error;
 /// Application result type
 pub type Result<T> = std::result::Result<T, AppError>;
 
+/// API error type alias (for backward compatibility)
+pub type ApiError = AppError;
+
 /// Application error types
 #[derive(Debug, Error)]
 pub enum AppError {

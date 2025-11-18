@@ -95,12 +95,12 @@ impl LogStreamer {
             ])
             .output()
             .map_err(|e| {
-                ApiError::InternalServer(format!("Failed to execute tmux capture-pane: {}", e))
+                ApiError::Server(format!("Failed to execute tmux capture-pane: {}", e))
             })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(ApiError::InternalServer(format!(
+            return Err(ApiError::Server(format!(
                 "tmux capture-pane failed: {}",
                 stderr
             )));
@@ -155,6 +155,8 @@ impl LogStreamer {
             match self.get_new_logs().await {
                 Ok(entries) => {
                     for entry in entries {
+                        let log_preview = entry.log.chars().take(50).collect::<String>();
+
                         let message = WSMessage::AgentLog {
                             executionId: self.execution_id.clone(),
                             level: entry.level,
@@ -163,11 +165,10 @@ impl LogStreamer {
                         };
 
                         // Broadcast log message
-                        if let Err(e) = self.tx.send(message) {
+                        if let Err(_e) = self.tx.send(message) {
                             warn!(
-                                "Failed to broadcast log for {}: {} (no receivers)",
-                                self.agent_name,
-                                e.len()
+                                "Failed to broadcast log for {}: no receivers",
+                                self.agent_name
                             );
                             // No receivers, stop streaming
                             break;
@@ -176,7 +177,7 @@ impl LogStreamer {
                         debug!(
                             "Streamed log from {}: {}",
                             self.agent_name,
-                            entry.log.chars().take(50).collect::<String>()
+                            log_preview
                         );
                     }
                 }

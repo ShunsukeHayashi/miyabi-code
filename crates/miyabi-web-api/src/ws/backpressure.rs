@@ -104,11 +104,11 @@ impl BackpressureManager {
                 // キューが満杯 → オーバーフロー戦略を適用
                 self.handle_overflow(execution_id, message).await
             }
-            Err(mpsc::error::TrySendError::Closed) => {
+            Err(mpsc::error::TrySendError::Closed(_)) => {
                 // チャネルが閉じられた（購読者がいない）
                 warn!("queue_closed: {}", execution_id);
                 self.queues.remove(execution_id);
-                Err(ApiError::InternalServer("Queue is closed".to_string()))
+                Err(ApiError::Server("Queue is closed".to_string()))
             }
         }
     }
@@ -135,9 +135,9 @@ impl BackpressureManager {
 
                     // 新規メッセージを送信
                     tx.try_send(new_message)
-                        .map_err(|_| ApiError::InternalServer("Failed to queue message".to_string()))
+                        .map_err(|_| ApiError::Server("Failed to queue message".to_string()))
                 } else {
-                    Err(ApiError::InternalServer("Queue not found".to_string()))
+                    Err(ApiError::Server("Queue not found".to_string()))
                 }
             }
 
@@ -155,9 +155,9 @@ impl BackpressureManager {
                     self.queues.insert(execution_id.to_string(), tx.clone());
 
                     tx.try_send(new_message)
-                        .map_err(|_| ApiError::InternalServer("Failed to queue message".to_string()))
+                        .map_err(|_| ApiError::Server("Failed to queue message".to_string()))
                 } else {
-                    Err(ApiError::InternalServer("Queue not found".to_string()))
+                    Err(ApiError::Server("Queue not found".to_string()))
                 }
             }
 
@@ -168,7 +168,7 @@ impl BackpressureManager {
                     1,
                     std::sync::atomic::Ordering::Relaxed,
                 );
-                Err(ApiError::InternalServer("Queue is full".to_string()))
+                Err(ApiError::Server("Queue is full".to_string()))
             }
         }
     }
@@ -269,7 +269,7 @@ impl PriorityQueue {
                     messages.push(message);
                     Ok(())
                 } else {
-                    Err(ApiError::InternalServer("Queue full".to_string()))
+                    Err(ApiError::Server("Queue full".to_string()))
                 }
             }
             None => {

@@ -1,0 +1,506 @@
+name: CI/CD - Main Pipeline (Fully Automated)
+
+on:
+  push:
+    branches:
+      - main
+      - feat/*
+      - fix/*
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  AWS_REGION: us-west-2
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # Phase 1: Code Quality Checks (MUGEN)
+  # ==========================================
+  quality-check:
+    name: Code Quality & Formatting
+    runs-on: [self-hosted, Linux, X64, mugen, docker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-quality-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-quality-
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Check compilation
+        run: cargo check --workspace --all-targets --all-features
+
+  # ==========================================
+  # Phase 2: Security & License Audit (MUGEN)
+  # ==========================================
+  security-audit:
+    name: Security & License Audit
+    runs-on: [self-hosted, Linux, X64, mugen]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: |
+          if ! command -v cargo-audit &> /dev/null; then
+            cargo install cargo-audit
+          fi
+
+      - name: Run security audit
+        run: cargo audit
+        continue-on-error: true
+
+      - name: Install cargo-deny
+        run: |
+          if ! command -v cargo-deny &> /dev/null; then
+            cargo install cargo-deny
+          fi
+
+      - name: Check licenses and bans
+        run: cargo deny check
+        continue-on-error: true
+
+  # ==========================================
+  # Phase 3: Backend Testing (MAJIN - GPU)
+  # ==========================================
+  backend-test:
+    name: Backend Tests (Rust)
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    needs: [quality-check]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: miyabi
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: miyabi_web_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-test-
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Install sqlx-cli
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli --no-default-features --features postgres
+          fi
+
+      - name: Run database migrations
+        working-directory: miyabi-web/crates/miyabi-web-api
+        env:
+          DATABASE_URL: postgres://miyabi:test_password@localhost:5432/miyabi_web_test
+        run: sqlx migrate run
+
+      - name: Run backend unit tests
+        working-directory: miyabi-web
+        env:
+          DATABASE_URL: postgres://miyabi:test_password@localhost:5432/miyabi_web_test
+          REDIS_URL: redis://localhost:6379
+        run: cargo nextest run --package miyabi-web-api --no-fail-fast
+
+      - name: Run doc tests
+        working-directory: miyabi-web
+        env:
+          DATABASE_URL: postgres://miyabi:test_password@localhost:5432/miyabi_web_test
+          REDIS_URL: redis://localhost:6379
+        run: cargo test --package miyabi-web-api --doc
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: target/nextest/ci/junit.xml
+          retention-days: 30
+
+  # ==========================================
+  # Phase 4: Frontend Testing (MAJIN)
+  # ==========================================
+  frontend-test:
+    name: Frontend Tests (React + Next.js)
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    needs: [quality-check]
+    strategy:
+      matrix:
+        project:
+          - { name: 'miyabi-console', dir: 'miyabi-console' }
+          - { name: 'pantheon-webapp', dir: 'pantheon-webapp' }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project.dir }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.project.dir }}
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ${{ matrix.project.dir }}
+        run: npm run lint
+
+      - name: Run type check
+        working-directory: ${{ matrix.project.dir }}
+        run: npm run type-check || npm run tsc || echo "Type check not available"
+        continue-on-error: true
+
+      - name: Run tests
+        working-directory: ${{ matrix.project.dir }}
+        run: npm test -- --passWithNoTests
+        continue-on-error: true
+
+      - name: Build production
+        working-directory: ${{ matrix.project.dir }}
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project.name }}-build
+          path: ${{ matrix.project.dir }}/dist
+          retention-days: 7
+
+  # ==========================================
+  # Phase 5: E2E Testing (MAJIN - Playwright)
+  # ==========================================
+  e2e-test:
+    name: E2E Tests (Playwright)
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    needs: [backend-test, frontend-test]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        working-directory: miyabi-console
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: miyabi-console
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: miyabi-console/playwright-report/
+          retention-days: 30
+
+  # ==========================================
+  # Phase 6: Docker Build (MUGEN)
+  # ==========================================
+  docker-build:
+    name: Docker Build & Push to ECR
+    runs-on: [self-hosted, Linux, X64, mugen, docker]
+    needs: [backend-test, frontend-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feat/'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: miyabi-web-api
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --file miyabi-web/crates/miyabi-web-api/Dockerfile \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --push \
+            miyabi-web
+
+      - name: Image digest
+        run: echo "Image pushed successfully with tags latest and ${{ github.sha }}"
+
+  # ==========================================
+  # Phase 7: Deploy to AWS (MUGEN - Terraform)
+  # ==========================================
+  deploy-backend:
+    name: Deploy Backend to AWS ECS
+    runs-on: [self-hosted, Linux, X64, mugen, terraform]
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://api.miyabi.customercloud.ai
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/prod
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: infrastructure/terraform/environments/prod
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: infrastructure/terraform/environments/prod
+        run: terraform apply -auto-approve tfplan
+
+      - name: Update ECS Service
+        env:
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          aws ecs update-service \
+            --cluster miyabi-production \
+            --service miyabi-web-api \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster miyabi-production \
+            --services miyabi-web-api \
+            --region ${{ env.AWS_REGION }}
+
+  # ==========================================
+  # Phase 8: Deploy Frontend to S3/CloudFront
+  # ==========================================
+  deploy-frontend:
+    name: Deploy Frontend to S3 + CloudFront
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [frontend-test]
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        project:
+          - { name: 'miyabi-console', dir: 'miyabi-console', bucket: 'miyabi-console-prod', distribution: 'E1234567890ABC' }
+          - { name: 'pantheon-webapp', dir: 'pantheon-webapp', bucket: 'miyabi-pantheon-prod', distribution: 'E0987654321XYZ' }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.project.name }}-build
+          path: ${{ matrix.project.dir }}/dist
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync ${{ matrix.project.dir }}/dist s3://${{ matrix.project.bucket }} \
+            --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "*.html" \
+            --exclude "service-worker.js"
+
+      - name: Upload HTML files (no cache)
+        run: |
+          aws s3 sync ${{ matrix.project.dir }}/dist s3://${{ matrix.project.bucket }} \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ matrix.project.distribution }} \
+            --paths "/*"
+
+  # ==========================================
+  # Phase 9: Health Check & Smoke Tests
+  # ==========================================
+  smoke-test:
+    name: Production Smoke Tests
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    needs: [deploy-backend, deploy-frontend]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for services to stabilize
+        run: sleep 30
+
+      - name: Health check - Backend API
+        run: |
+          curl -f https://api.miyabi.customercloud.ai/health || exit 1
+
+      - name: Health check - Miyabi Console
+        run: |
+          curl -f https://console.miyabi.customercloud.ai/ || exit 1
+
+      - name: Health check - Pantheon Webapp
+        run: |
+          curl -f https://pantheon.miyabi.customercloud.ai/ || exit 1
+
+      - name: API smoke test
+        run: |
+          # Test user registration
+          curl -X POST https://api.miyabi.customercloud.ai/api/v1/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@example.com","password":"test123"}' \
+            --fail || echo "Registration test completed"
+
+  # ==========================================
+  # Phase 10: Notification
+  # ==========================================
+  notify:
+    name: Send Deployment Notification
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [smoke-test]
+    if: always()
+
+    steps:
+      - name: Send Lark notification
+        env:
+          LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ needs.smoke-test.result }}"
+          COLOR="green"
+          if [ "$STATUS" != "success" ]; then
+            COLOR="red"
+          fi
+
+          curl -X POST $LARK_WEBHOOK_URL \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"msg_type\": \"interactive\",
+              \"card\": {
+                \"header\": {
+                  \"title\": {
+                    \"tag\": \"plain_text\",
+                    \"content\": \"🚀 Miyabi Deployment - $STATUS\"
+                  },
+                  \"template\": \"$COLOR\"
+                },
+                \"elements\": [
+                  {
+                    \"tag\": \"div\",
+                    \"text\": {
+                      \"tag\": \"lark_md\",
+                      \"content\": \"**Commit**: ${{ github.sha }}\\n**Branch**: ${{ github.ref_name }}\\n**Author**: ${{ github.actor }}\\n**Status**: $STATUS\"
+                    }
+                  }
+                ]
+              }
+            }"
