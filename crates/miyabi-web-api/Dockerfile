@@ -1,5 +1,6 @@
-# Miyabi Web API - Production Dockerfile for GCP Cloud Run
+# Miyabi Web API - Production Dockerfile for AWS ECS / GCP Cloud Run
 # Multi-stage build for optimal image size
+# Compatible with: AWS ECR + ECS, GCP Cloud Run
 
 # Stage 1: Builder
 FROM rust:1-slim-bookworm AS builder
@@ -34,6 +35,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libssl3 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -57,9 +59,9 @@ USER miyabi
 # Expose port (Cloud Run uses PORT env var)
 EXPOSE 8080
 
-# Health check (TEMPORARY: Disabled for Telegram-only deployment)
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#     CMD ["/usr/local/bin/miyabi-web-api", "--version"] || exit 1
+# Health check for AWS ECS / Cloud Run
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Set default environment variables
 ENV RUST_LOG=info
