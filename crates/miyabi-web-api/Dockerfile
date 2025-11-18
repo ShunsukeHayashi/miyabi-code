@@ -21,6 +21,9 @@ COPY Cargo.toml Cargo.lock ./
 # Copy all crates (workspace members)
 COPY crates ./crates
 
+# Set SQLX_OFFLINE to skip compile-time verification (no database needed)
+ENV SQLX_OFFLINE=true
+
 # Build dependencies (cached layer)
 RUN cargo build --release --package miyabi-web-api
 
