@@ -1,23 +1,21 @@
 version: 1.0
-runtime: nodejs18
+runtime: nodejs22
 build:
   commands:
     pre-build:
-      - echo "Installing dependencies..."
       - npm install
     build:
-      - echo "Building TypeScript..."
       - npm run build
-    post-build:
-      - echo "Build complete!"
 run:
-  runtime-version: 18
-  command: node dist/index.js
+  runtime-version: 22
+  command: npm start
   network:
     port: 3000
-    env: PORT
+    env: APP_PORT
   env:
     - name: NODE_ENV
-      value: production
-    - name: MIYABI_BEARER_TOKEN
-      value: c5887ae6e657980b8ee2ebd581c31e973ff9a19ea370db23101cd8e48fe64b4d
+      value: "production"
+    - name: PORT
+      value: "3000"
+    - name: BASE_URL
+      value: "https://YOUR_APP_RUNNER_URL.awsapprunner.com"

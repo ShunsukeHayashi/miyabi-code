@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import winston from 'winston';
 import { promptInjectionGuard } from './middleware/prompt-injection-guard.js';
 import { handleMcpAppsRequest } from './mcp-apps-sdk.js';
+import { getMCPRouter } from './mcp-router.js';
 import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -379,8 +380,116 @@ app.post('/oauth/token', async (req: Request, res: Response) => {
 });
 
 // ==========================================
-// MCP Tool Calls Endpoint (Bearer Token required)
+// Unified MCP Server Routes (Bearer Token required)
 // ==========================================
+
+// MCP Router status endpoint
+app.get('/mcp/status', bearerAuth, async (req: Request, res: Response) => {
+  const router = getMCPRouter();
+  const status = router.getStatus();
+  res.json(status);
+});
+
+// MCP Router tools listing endpoint
+app.get('/mcp/tools', bearerAuth, async (req: Request, res: Response) => {
+  try {
+    const router = getMCPRouter();
+    const tools = await router.listAllTools();
+    res.json(tools);
+  } catch (error: any) {
+    logger.error('Failed to list tools', { error: error.message });
+    res.status(500).json({
+      error: 'Failed to list tools',
+      message: error.message
+    });
+  }
+});
+
+// Tmux MCP Server endpoint
+app.post('/mcp/tmux', apiLimiter, bearerAuth, promptInjectionGuard, async (req: Request, res: Response) => {
+  try {
+    const router = getMCPRouter();
+    const { method, params } = req.body;
+
+    if (method === 'tools/list') {
+      const result = await router.getServer('tmux')?.listTools();
+      return res.json(result);
+    } else if (method === 'tools/call') {
+      const { name, arguments: args } = params;
+      const result = await router.callTool('tmux', name, args);
+      return res.json(result);
+    } else {
+      return res.status(400).json({
+        error: 'Unknown method',
+        available: ['tools/list', 'tools/call']
+      });
+    }
+  } catch (error: any) {
+    logger.error('Tmux MCP error', { error: error.message });
+    return res.status(500).json({
+      error: 'Tmux MCP server error',
+      message: error.message
+    });
+  }
+});
+
+// Rules MCP Server endpoint
+app.post('/mcp/rules', apiLimiter, bearerAuth, promptInjectionGuard, async (req: Request, res: Response) => {
+  try {
+    const router = getMCPRouter();
+    const { method, params } = req.body;
+
+    if (method === 'tools/list') {
+      const result = await router.getServer('rules')?.listTools();
+      return res.json(result);
+    } else if (method === 'tools/call') {
+      const { name, arguments: args } = params;
+      const result = await router.callTool('rules', name, args);
+      return res.json(result);
+    } else {
+      return res.status(400).json({
+        error: 'Unknown method',
+        available: ['tools/list', 'tools/call']
+      });
+    }
+  } catch (error: any) {
+    logger.error('Rules MCP error', { error: error.message });
+    return res.status(500).json({
+      error: 'Rules MCP server error',
+      message: error.message
+    });
+  }
+});
+
+// Obsidian MCP Server endpoint
+app.post('/mcp/obsidian', apiLimiter, bearerAuth, promptInjectionGuard, async (req: Request, res: Response) => {
+  try {
+    const router = getMCPRouter();
+    const { method, params } = req.body;
+
+    if (method === 'tools/list') {
+      const result = await router.getServer('obsidian')?.listTools();
+      return res.json(result);
+    } else if (method === 'tools/call') {
+      const { name, arguments: args } = params;
+      const result = await router.callTool('obsidian', name, args);
+      return res.json(result);
+    } else {
+      return res.status(400).json({
+        error: 'Unknown method',
+        available: ['tools/list', 'tools/call']
+      });
+    }
+  } catch (error: any) {
+    logger.error('Obsidian MCP error', { error: error.message });
+    return res.status(500).json({
+      error: 'Obsidian MCP server error',
+      message: error.message
+    });
+  }
+});
+
+// Society MCP Server endpoint (original mcp-apps-sdk)
 app.post('/mcp', apiLimiter, bearerAuth, promptInjectionGuard, async (req: Request, res: Response) => {
   await handleMcpAppsRequest(req, res);
 });
@@ -408,36 +517,85 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // ==========================================
 // Server Startup
 // ==========================================
-app.listen(PORT, () => {
-  logger.info('Server started', {
-    port: PORT,
-    timestamp: new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV || 'development',
-    oauthEnabled: !!(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET)
-  });
+async function startServer() {
+  try {
+    // Initialize MCP Router
+    console.log('🔄 Initializing MCP Router...');
+    const router = getMCPRouter();
+    await router.initialize();
+    console.log('✅ MCP Router initialized successfully');
 
-  console.log(`🚀 Miyabi MCP Server running on port ${PORT}`);
-  console.log(`   Base URL: ${BASE_URL}`);
-  console.log(`   Health: ${BASE_URL}/health`);
-  console.log(`   MCP Endpoint: ${BASE_URL}/mcp`);
-  console.log();
-  console.log('🔐 Security:');
-  console.log(`   Bearer Token: ${!!process.env.MIYABI_BEARER_TOKEN ? '✅ Set' : '⚠️  Not set (dev mode)'}`);
-  console.log(`   Rate Limiting: ✅ Enabled (30 req/min)`);
-  console.log(`   Audit Logging: ✅ Enabled`);
-  console.log(`   CORS: ✅ Restricted`);
-  console.log(`   Prompt Injection Guard: ✅ Active`);
-  console.log();
-  console.log('🔑 OAuth2:');
-  console.log(`   GitHub OAuth: ${GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET ? '✅ Configured' : '⚠️  Not configured'}`);
-  if (GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET) {
-    console.log(`   Authorization URL: ${BASE_URL}/oauth/authorize`);
-    console.log(`   Token URL: ${BASE_URL}/oauth/token`);
-    console.log(`   Callback URL: ${BASE_URL}/oauth/callback`);
-  }
+    // Start Express server
+    app.listen(PORT, () => {
+      logger.info('Server started', {
+        port: PORT,
+        timestamp: new Date().toISOString(),
+        nodeEnv: process.env.NODE_ENV || 'development',
+        oauthEnabled: !!(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET)
+      });
 
-  if (!process.env.MIYABI_BEARER_TOKEN) {
-    console.log();
-    console.log('   ⚠️  Running in development mode (no bearer authentication)');
+      console.log();
+      console.log(`🚀 Miyabi Unified MCP Gateway running on port ${PORT}`);
+      console.log(`   Base URL: ${BASE_URL}`);
+      console.log(`   Health: ${BASE_URL}/health`);
+      console.log();
+      console.log('📡 MCP Endpoints:');
+      console.log(`   Society (Business Agents): ${BASE_URL}/mcp`);
+      console.log(`   Tmux (Session Control):    ${BASE_URL}/mcp/tmux`);
+      console.log(`   Rules (CLAUDE.md):         ${BASE_URL}/mcp/rules`);
+      console.log(`   Obsidian (Knowledge):      ${BASE_URL}/mcp/obsidian`);
+      console.log(`   Status:                    ${BASE_URL}/mcp/status`);
+      console.log(`   Tools List:                ${BASE_URL}/mcp/tools`);
+      console.log();
+      console.log('🔐 Security:');
+      console.log(`   Bearer Token: ${!!process.env.MIYABI_BEARER_TOKEN ? '✅ Set' : '⚠️  Not set (dev mode)'}`);
+      console.log(`   Rate Limiting: ✅ Enabled (30 req/min)`);
+      console.log(`   Audit Logging: ✅ Enabled`);
+      console.log(`   CORS: ✅ Restricted`);
+      console.log(`   Prompt Injection Guard: ✅ Active`);
+      console.log();
+      console.log('🔑 OAuth2:');
+      console.log(`   GitHub OAuth: ${GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET ? '✅ Configured' : '⚠️  Not configured'}`);
+      if (GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET) {
+        console.log(`   Authorization URL: ${BASE_URL}/oauth/authorize`);
+        console.log(`   Token URL: ${BASE_URL}/oauth/token`);
+        console.log(`   Callback URL: ${BASE_URL}/oauth/callback`);
+      }
+
+      if (!process.env.MIYABI_BEARER_TOKEN) {
+        console.log();
+        console.log('   ⚠️  Running in development mode (no bearer authentication)');
+      }
+
+      console.log();
+      console.log('📊 MCP Servers:');
+      const status = router.getStatus();
+      console.log(`   Total: ${status.total} servers`);
+      console.log(`   Ready: ${status.ready}/${status.total}`);
+      Object.entries(status.servers).forEach(([name, info]: [string, any]) => {
+        console.log(`   - ${name}: ${info.ready ? '✅' : '❌'}`);
+      });
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully...');
+      router.shutdown();
+      process.exit(0);
+    });
+
+    process.on('SIGINT', () => {
+      console.log('SIGINT received, shutting down gracefully...');
+      router.shutdown();
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    logger.error('Server startup failed', {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    process.exit(1);
   }
-});
+}
+
+startServer();

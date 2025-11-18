@@ -1,0 +1,106 @@
+openapi: 3.1.0
+info:
+  title: Miyabi MCP Gateway API
+  description: Miyabi Multi-Agent Orchestration Platform API
+  version: 1.0.0
+servers:
+  - url: http://100.112.127.63:3003
+    description: Miyabi SSE Gateway (Tailscale)
+  - url: http://192.168.3.30:3003
+    description: Miyabi SSE Gateway (Local Network)
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Check if the Miyabi gateway is healthy
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /mcp/tmux:
+    post:
+      summary: Execute Tmux Command
+      description: Execute a tmux command via Miyabi
+      operationId: executeTmuxCommand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                  description: Tmux command to execute
+                  example: "tmux list-sessions"
+                session:
+                  type: string
+                  description: Tmux session name
+                  example: "miyabi"
+      responses:
+        '200':
+          description: Command executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                  status:
+                    type: string
+
+  /mcp/rules:
+    post:
+      summary: Execute Miyabi Rules
+      description: Execute Miyabi rules engine commands
+      operationId: executeMiyabiRules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  description: Rule action to execute
+                  example: "validate_agent"
+                parameters:
+                  type: object
+                  description: Action parameters
+      responses:
+        '200':
+          description: Rule executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                  status:
+                    type: string
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
