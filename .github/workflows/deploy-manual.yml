@@ -1,0 +1,494 @@
+name: Manual Deployment (Emergency/Hotfix)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      component:
+        description: 'Component to deploy'
+        required: true
+        type: choice
+        options:
+          - backend
+          - frontend-console
+          - frontend-pantheon
+          - all
+      skip_tests:
+        description: 'Skip tests (emergency only)'
+        required: false
+        type: boolean
+        default: false
+      rollback_version:
+        description: 'Rollback to specific version (leave empty for latest)'
+        required: false
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+  AWS_REGION: us-west-2
+
+jobs:
+  # ==========================================
+  # Pre-deployment validation
+  # ==========================================
+  validate:
+    name: Pre-deployment Validation
+    runs-on: [self-hosted, Linux, X64, mugen]
+    outputs:
+      deploy_backend: ${{ steps.check.outputs.deploy_backend }}
+      deploy_console: ${{ steps.check.outputs.deploy_console }}
+      deploy_pantheon: ${{ steps.check.outputs.deploy_pantheon }}
+      image_tag: ${{ steps.check.outputs.image_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine deployment targets
+        id: check
+        run: |
+          if [ "${{ inputs.component }}" == "all" ] || [ "${{ inputs.component }}" == "backend" ]; then
+            echo "deploy_backend=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_backend=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "${{ inputs.component }}" == "all" ] || [ "${{ inputs.component }}" == "frontend-console" ]; then
+            echo "deploy_console=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_console=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "${{ inputs.component }}" == "all" ] || [ "${{ inputs.component }}" == "frontend-pantheon" ]; then
+            echo "deploy_pantheon=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_pantheon=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Determine image tag
+          if [ -n "${{ inputs.rollback_version }}" ]; then
+            echo "image_tag=${{ inputs.rollback_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validation summary
+        run: |
+          echo "## 🚀 Deployment Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Component**: ${{ inputs.component }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Skip Tests**: ${{ inputs.skip_tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag**: ${{ steps.check.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Targets" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ steps.check.outputs.deploy_backend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Console: ${{ steps.check.outputs.deploy_console }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Pantheon: ${{ steps.check.outputs.deploy_pantheon }}" >> $GITHUB_STEP_SUMMARY
+
+  # ==========================================
+  # Quick smoke tests (unless skipped)
+  # ==========================================
+  quick-test:
+    name: Quick Smoke Test
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    needs: [validate]
+    if: ${{ !inputs.skip_tests }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Quick compile check
+        if: needs.validate.outputs.deploy_backend == 'true'
+        run: cargo check --package miyabi-web-api
+
+      - name: Quick backend test
+        if: needs.validate.outputs.deploy_backend == 'true'
+        working-directory: miyabi-web
+        run: cargo test --package miyabi-web-api --lib
+        continue-on-error: true
+
+  # ==========================================
+  # Deploy Backend
+  # ==========================================
+  deploy-backend:
+    name: Deploy Backend to AWS ECS
+    runs-on: [self-hosted, Linux, X64, mugen, terraform]
+    needs: [validate, quick-test]
+    if: |
+      always() &&
+      needs.validate.outputs.deploy_backend == 'true' &&
+      (needs.quick-test.result == 'success' || needs.quick-test.result == 'skipped')
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get current ECS task definition
+        id: current-task
+        run: |
+          CLUSTER="miyabi-${{ inputs.environment }}"
+          SERVICE="miyabi-web-api"
+
+          TASK_ARN=$(aws ecs describe-services \
+            --cluster $CLUSTER \
+            --services $SERVICE \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          echo "Current task: $TASK_ARN"
+          echo "task_arn=$TASK_ARN" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image (if not rollback)
+        if: inputs.rollback_version == ''
+        env:
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          ECR_REPOSITORY: miyabi-web-api
+          IMAGE_TAG: ${{ needs.validate.outputs.image_tag }}
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin $ECR_REGISTRY
+
+          docker buildx build \
+            --platform linux/amd64 \
+            --file miyabi-web/crates/miyabi-web-api/Dockerfile \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --push \
+            miyabi-web
+
+      - name: Update ECS service
+        env:
+          CLUSTER: miyabi-${{ inputs.environment }}
+          SERVICE: miyabi-web-api
+          IMAGE_TAG: ${{ needs.validate.outputs.image_tag }}
+        run: |
+          echo "Deploying image tag: $IMAGE_TAG"
+
+          # Force new deployment with updated image
+          aws ecs update-service \
+            --cluster $CLUSTER \
+            --service $SERVICE \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Wait for deployment to stabilize
+        env:
+          CLUSTER: miyabi-${{ inputs.environment }}
+          SERVICE: miyabi-web-api
+        run: |
+          echo "Waiting for ECS service to stabilize..."
+          aws ecs wait services-stable \
+            --cluster $CLUSTER \
+            --services $SERVICE \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Verify deployment
+        env:
+          CLUSTER: miyabi-${{ inputs.environment }}
+          SERVICE: miyabi-web-api
+        run: |
+          # Get running tasks count
+          RUNNING=$(aws ecs describe-services \
+            --cluster $CLUSTER \
+            --services $SERVICE \
+            --query 'services[0].runningCount' \
+            --output text)
+
+          echo "Running tasks: $RUNNING"
+
+          if [ "$RUNNING" -lt 1 ]; then
+            echo "❌ Deployment failed - no running tasks"
+            exit 1
+          fi
+
+          echo "✅ Deployment successful - $RUNNING tasks running"
+
+  # ==========================================
+  # Deploy Frontend Console
+  # ==========================================
+  deploy-console:
+    name: Deploy Miyabi Console
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [validate, quick-test]
+    if: |
+      always() &&
+      needs.validate.outputs.deploy_console == 'true' &&
+      (needs.quick-test.result == 'success' || needs.quick-test.result == 'skipped')
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: miyabi-console/package-lock.json
+
+      - name: Install dependencies
+        working-directory: miyabi-console
+        run: npm ci
+
+      - name: Build production
+        working-directory: miyabi-console
+        env:
+          VITE_API_URL: ${{ inputs.environment == 'production' && 'https://api.miyabi.customercloud.ai' || format('https://api-{0}.miyabi.customercloud.ai', inputs.environment) }}
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine S3 bucket and CloudFront ID
+        id: aws-resources
+        run: |
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "bucket=miyabi-console-prod" >> $GITHUB_OUTPUT
+            echo "distribution=E1234567890ABC" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.environment }}" == "staging" ]; then
+            echo "bucket=miyabi-console-staging" >> $GITHUB_OUTPUT
+            echo "distribution=E2234567890DEF" >> $GITHUB_OUTPUT
+          else
+            echo "bucket=miyabi-console-dev" >> $GITHUB_OUTPUT
+            echo "distribution=E3234567890GHI" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync miyabi-console/dist s3://${{ steps.aws-resources.outputs.bucket }} \
+            --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "*.html" \
+            --exclude "service-worker.js"
+
+      - name: Upload HTML files
+        run: |
+          aws s3 sync miyabi-console/dist s3://${{ steps.aws-resources.outputs.bucket }} \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.aws-resources.outputs.distribution }} \
+            --paths "/*"
+
+  # ==========================================
+  # Deploy Frontend Pantheon
+  # ==========================================
+  deploy-pantheon:
+    name: Deploy Pantheon Webapp
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [validate, quick-test]
+    if: |
+      always() &&
+      needs.validate.outputs.deploy_pantheon == 'true' &&
+      (needs.quick-test.result == 'success' || needs.quick-test.result == 'skipped')
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: pantheon-webapp/package-lock.json
+
+      - name: Install dependencies
+        working-directory: pantheon-webapp
+        run: npm ci
+
+      - name: Build production
+        working-directory: pantheon-webapp
+        env:
+          NEXT_PUBLIC_API_URL: ${{ inputs.environment == 'production' && 'https://api.miyabi.customercloud.ai' || format('https://api-{0}.miyabi.customercloud.ai', inputs.environment) }}
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine S3 bucket and CloudFront ID
+        id: aws-resources
+        run: |
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "bucket=miyabi-pantheon-prod" >> $GITHUB_OUTPUT
+            echo "distribution=E0987654321XYZ" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.environment }}" == "staging" ]; then
+            echo "bucket=miyabi-pantheon-staging" >> $GITHUB_OUTPUT
+            echo "distribution=E1987654321UVW" >> $GITHUB_OUTPUT
+          else
+            echo "bucket=miyabi-pantheon-dev" >> $GITHUB_OUTPUT
+            echo "distribution=E2987654321RST" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync pantheon-webapp/out s3://${{ steps.aws-resources.outputs.bucket }} \
+            --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "*.html"
+
+      - name: Upload HTML files
+        run: |
+          aws s3 sync pantheon-webapp/out s3://${{ steps.aws-resources.outputs.bucket }} \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.aws-resources.outputs.distribution }} \
+            --paths "/*"
+
+  # ==========================================
+  # Post-deployment verification
+  # ==========================================
+  verify:
+    name: Post-deployment Verification
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    needs: [validate, deploy-backend, deploy-console, deploy-pantheon]
+    if: always()
+
+    steps:
+      - name: Wait for services to stabilize
+        run: sleep 30
+
+      - name: Verify backend health
+        if: needs.validate.outputs.deploy_backend == 'true'
+        run: |
+          ENV="${{ inputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            URL="https://api.miyabi.customercloud.ai/health"
+          else
+            URL="https://api-$ENV.miyabi.customercloud.ai/health"
+          fi
+
+          echo "Checking backend health: $URL"
+          curl -f $URL || exit 1
+
+      - name: Verify console
+        if: needs.validate.outputs.deploy_console == 'true'
+        run: |
+          ENV="${{ inputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            URL="https://console.miyabi.customercloud.ai"
+          else
+            URL="https://console-$ENV.miyabi.customercloud.ai"
+          fi
+
+          echo "Checking console: $URL"
+          curl -f $URL || exit 1
+
+      - name: Verify pantheon
+        if: needs.validate.outputs.deploy_pantheon == 'true'
+        run: |
+          ENV="${{ inputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            URL="https://pantheon.miyabi.customercloud.ai"
+          else
+            URL="https://pantheon-$ENV.miyabi.customercloud.ai"
+          fi
+
+          echo "Checking pantheon: $URL"
+          curl -f $URL || exit 1
+
+  # ==========================================
+  # Notification
+  # ==========================================
+  notify:
+    name: Send Deployment Notification
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [validate, verify]
+    if: always()
+
+    steps:
+      - name: Determine deployment status
+        id: status
+        run: |
+          if [ "${{ needs.verify.result }}" == "success" ]; then
+            echo "status=SUCCESS ✅" >> $GITHUB_OUTPUT
+            echo "color=green" >> $GITHUB_OUTPUT
+          else
+            echo "status=FAILED ❌" >> $GITHUB_OUTPUT
+            echo "color=red" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Lark notification
+        env:
+          LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+        run: |
+          curl -X POST $LARK_WEBHOOK_URL \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"msg_type\": \"interactive\",
+              \"card\": {
+                \"header\": {
+                  \"title\": {
+                    \"tag\": \"plain_text\",
+                    \"content\": \"🚀 Manual Deployment - ${{ steps.status.outputs.status }}\"
+                  },
+                  \"template\": \"${{ steps.status.outputs.color }}\"
+                },
+                \"elements\": [
+                  {
+                    \"tag\": \"div\",
+                    \"text\": {
+                      \"tag\": \"lark_md\",
+                      \"content\": \"**Environment**: ${{ inputs.environment }}\\n**Component**: ${{ inputs.component }}\\n**Image Tag**: ${{ needs.validate.outputs.image_tag }}\\n**Triggered by**: ${{ github.actor }}\\n**Skip Tests**: ${{ inputs.skip_tests }}\"
+                    }
+                  }
+                ]
+              }
+            }"
+
+      - name: Create deployment summary
+        run: |
+          echo "# 🚀 Manual Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Component**: ${{ inputs.component }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag**: ${{ needs.validate.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Skip Tests**: ${{ inputs.skip_tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

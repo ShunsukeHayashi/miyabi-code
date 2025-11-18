@@ -1,0 +1,362 @@
+name: Auto Rollback on Health Check Failure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+          - dev
+  schedule:
+    # Run every 5 minutes for production monitoring
+    - cron: '*/5 * * * *'
+
+env:
+  AWS_REGION: us-west-2
+  HEALTH_CHECK_RETRIES: 3
+  HEALTH_CHECK_INTERVAL: 30
+
+jobs:
+  # ==========================================
+  # Health Check Monitoring
+  # ==========================================
+  health-check:
+    name: Production Health Check
+    runs-on: [self-hosted, Linux, X64, majin, testing]
+    outputs:
+      backend_healthy: ${{ steps.check-backend.outputs.healthy }}
+      console_healthy: ${{ steps.check-console.outputs.healthy }}
+      pantheon_healthy: ${{ steps.check-pantheon.outputs.healthy }}
+      requires_rollback: ${{ steps.decision.outputs.rollback }}
+
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check backend health
+        id: check-backend
+        continue-on-error: true
+        run: |
+          ENV="${{ steps.env.outputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            URL="https://api.miyabi.customercloud.ai/health"
+          else
+            URL="https://api-$ENV.miyabi.customercloud.ai/health"
+          fi
+
+          echo "Checking backend health: $URL"
+
+          SUCCESS=0
+          for i in $(seq 1 $HEALTH_CHECK_RETRIES); do
+            echo "Attempt $i/$HEALTH_CHECK_RETRIES"
+
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
+            if [ "$RESPONSE" == "200" ]; then
+              echo "✅ Backend healthy (HTTP $RESPONSE)"
+              echo "healthy=true" >> $GITHUB_OUTPUT
+              SUCCESS=1
+              break
+            else
+              echo "❌ Backend unhealthy (HTTP $RESPONSE)"
+              sleep $HEALTH_CHECK_INTERVAL
+            fi
+          done
+
+          if [ $SUCCESS -eq 0 ]; then
+            echo "healthy=false" >> $GITHUB_OUTPUT
+            echo "::error::Backend health check failed after $HEALTH_CHECK_RETRIES attempts"
+          fi
+
+      - name: Check console health
+        id: check-console
+        continue-on-error: true
+        run: |
+          ENV="${{ steps.env.outputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            URL="https://console.miyabi.customercloud.ai"
+          else
+            URL="https://console-$ENV.miyabi.customercloud.ai"
+          fi
+
+          echo "Checking console health: $URL"
+
+          SUCCESS=0
+          for i in $(seq 1 $HEALTH_CHECK_RETRIES); do
+            echo "Attempt $i/$HEALTH_CHECK_RETRIES"
+
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
+            if [ "$RESPONSE" == "200" ]; then
+              echo "✅ Console healthy (HTTP $RESPONSE)"
+              echo "healthy=true" >> $GITHUB_OUTPUT
+              SUCCESS=1
+              break
+            else
+              echo "❌ Console unhealthy (HTTP $RESPONSE)"
+              sleep $HEALTH_CHECK_INTERVAL
+            fi
+          done
+
+          if [ $SUCCESS -eq 0 ]; then
+            echo "healthy=false" >> $GITHUB_OUTPUT
+            echo "::error::Console health check failed after $HEALTH_CHECK_RETRIES attempts"
+          fi
+
+      - name: Check pantheon health
+        id: check-pantheon
+        continue-on-error: true
+        run: |
+          ENV="${{ steps.env.outputs.environment }}"
+          if [ "$ENV" == "production" ]; then
+            URL="https://pantheon.miyabi.customercloud.ai"
+          else
+            URL="https://pantheon-$ENV.miyabi.customercloud.ai"
+          fi
+
+          echo "Checking pantheon health: $URL"
+
+          SUCCESS=0
+          for i in $(seq 1 $HEALTH_CHECK_RETRIES); do
+            echo "Attempt $i/$HEALTH_CHECK_RETRIES"
+
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
+            if [ "$RESPONSE" == "200" ]; then
+              echo "✅ Pantheon healthy (HTTP $RESPONSE)"
+              echo "healthy=true" >> $GITHUB_OUTPUT
+              SUCCESS=1
+              break
+            else
+              echo "❌ Pantheon unhealthy (HTTP $RESPONSE)"
+              sleep $HEALTH_CHECK_INTERVAL
+            fi
+          done
+
+          if [ $SUCCESS -eq 0 ]; then
+            echo "healthy=false" >> $GITHUB_OUTPUT
+            echo "::error::Pantheon health check failed after $HEALTH_CHECK_RETRIES attempts"
+          fi
+
+      - name: Rollback decision
+        id: decision
+        run: |
+          BACKEND="${{ steps.check-backend.outputs.healthy }}"
+          CONSOLE="${{ steps.check-console.outputs.healthy }}"
+          PANTHEON="${{ steps.check-pantheon.outputs.healthy }}"
+
+          echo "## 🏥 Health Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend**: ${BACKEND:-false}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Console**: ${CONSOLE:-false}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pantheon**: ${PANTHEON:-false}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Rollback if backend is unhealthy (critical)
+          if [ "${BACKEND:-false}" != "true" ]; then
+            echo "rollback=true" >> $GITHUB_OUTPUT
+            echo "⚠️ **Rollback Required**: Backend health check failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "rollback=false" >> $GITHUB_OUTPUT
+            echo "✅ **Status**: All systems operational" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ==========================================
+  # Get Previous Stable Version
+  # ==========================================
+  get-stable-version:
+    name: Get Previous Stable Version
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [health-check]
+    if: needs.health-check.outputs.requires_rollback == 'true'
+    outputs:
+      stable_version: ${{ steps.version.outputs.stable_version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Find last stable version
+        id: version
+        run: |
+          # Get the last 10 commits on main branch
+          git log --oneline -10 main | while read sha message; do
+            # Check if this commit has a successful deployment
+            echo "Checking commit: $sha - $message"
+
+            # In production, you would query your deployment tracking system
+            # For now, we'll use the previous commit as the stable version
+            if [ -z "$STABLE" ]; then
+              STABLE=$sha
+              break
+            fi
+          done
+
+          echo "stable_version=${STABLE:-HEAD~1}" >> $GITHUB_OUTPUT
+          echo "Found stable version: ${STABLE:-HEAD~1}"
+
+  # ==========================================
+  # Automated Rollback - Backend
+  # ==========================================
+  rollback-backend:
+    name: Rollback Backend to Stable Version
+    runs-on: [self-hosted, Linux, X64, mugen, terraform]
+    needs: [health-check, get-stable-version]
+    if: |
+      needs.health-check.outputs.requires_rollback == 'true' &&
+      needs.health-check.outputs.backend_healthy != 'true'
+
+    steps:
+      - name: Checkout stable version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.get-stable-version.outputs.stable_version }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get previous task definition
+        id: prev-task
+        run: |
+          CLUSTER="miyabi-production"
+          SERVICE="miyabi-web-api"
+
+          # List task definitions and get the second most recent
+          PREV_TASK=$(aws ecs list-task-definitions \
+            --family-prefix miyabi-web-api \
+            --sort DESC \
+            --max-items 2 \
+            --query 'taskDefinitionArns[1]' \
+            --output text)
+
+          echo "Previous stable task: $PREV_TASK"
+          echo "task_arn=$PREV_TASK" >> $GITHUB_OUTPUT
+
+      - name: Update ECS service to previous version
+        env:
+          CLUSTER: miyabi-production
+          SERVICE: miyabi-web-api
+        run: |
+          aws ecs update-service \
+            --cluster $CLUSTER \
+            --service $SERVICE \
+            --task-definition ${{ steps.prev-task.outputs.task_arn }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Wait for rollback to stabilize
+        env:
+          CLUSTER: miyabi-production
+          SERVICE: miyabi-web-api
+        run: |
+          echo "Waiting for ECS service to stabilize after rollback..."
+          aws ecs wait services-stable \
+            --cluster $CLUSTER \
+            --services $SERVICE \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Verify rollback success
+        run: |
+          sleep 30
+          curl -f https://api.miyabi.customercloud.ai/health || exit 1
+          echo "✅ Rollback successful - backend is healthy"
+
+  # ==========================================
+  # Emergency Notification
+  # ==========================================
+  emergency-notify:
+    name: Send Emergency Notification
+    runs-on: [self-hosted, Linux, X64, mugen]
+    needs: [health-check, rollback-backend]
+    if: always() && needs.health-check.outputs.requires_rollback == 'true'
+
+    steps:
+      - name: Send Lark emergency notification
+        env:
+          LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+          LARK_ESCALATION_EMAIL: ${{ secrets.LARK_ESCALATION_EMAIL }}
+        run: |
+          ROLLBACK_STATUS="${{ needs.rollback-backend.result }}"
+
+          if [ "$ROLLBACK_STATUS" == "success" ]; then
+            TITLE="🚨 Auto Rollback Executed - SUCCESS"
+            COLOR="orange"
+            MESSAGE="Automatic rollback completed successfully. System restored to previous stable version."
+          else
+            TITLE="🔴 CRITICAL: Auto Rollback FAILED"
+            COLOR="red"
+            MESSAGE="CRITICAL: Automatic rollback failed. IMMEDIATE human intervention required. Contact: $LARK_ESCALATION_EMAIL"
+          fi
+
+          curl -X POST $LARK_WEBHOOK_URL \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"msg_type\": \"interactive\",
+              \"card\": {
+                \"header\": {
+                  \"title\": {
+                    \"tag\": \"plain_text\",
+                    \"content\": \"$TITLE\"
+                  },
+                  \"template\": \"$COLOR\"
+                },
+                \"elements\": [
+                  {
+                    \"tag\": \"div\",
+                    \"text\": {
+                      \"tag\": \"lark_md\",
+                      \"content\": \"$MESSAGE\\n\\n**Backend Health**: ${{ needs.health-check.outputs.backend_healthy }}\\n**Console Health**: ${{ needs.health-check.outputs.console_healthy }}\\n**Pantheon Health**: ${{ needs.health-check.outputs.pantheon_healthy }}\\n**Rollback Status**: $ROLLBACK_STATUS\\n**Time**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')\"
+                    }
+                  },
+                  {
+                    \"tag\": \"action\",
+                    \"actions\": [
+                      {
+                        \"tag\": \"button\",
+                        \"text\": {
+                          \"tag\": \"plain_text\",
+                          \"content\": \"View Workflow\"
+                        },
+                        \"type\": \"primary\",
+                        \"url\": \"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }"
+
+      - name: Create incident summary
+        run: |
+          echo "# 🚨 Auto Rollback Incident Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Health Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend**: ${{ needs.health-check.outputs.backend_healthy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Console**: ${{ needs.health-check.outputs.console_healthy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pantheon**: ${{ needs.health-check.outputs.pantheon_healthy }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Rollback Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend Rollback**: ${{ needs.rollback-backend.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review recent deployments" >> $GITHUB_STEP_SUMMARY
+          echo "2. Investigate root cause of health check failure" >> $GITHUB_STEP_SUMMARY
+          echo "3. Fix issues in development environment" >> $GITHUB_STEP_SUMMARY
+          echo "4. Run comprehensive tests before redeployment" >> $GITHUB_STEP_SUMMARY
