@@ -25,8 +25,33 @@ members = [
     # "crates/miyabi-potpie",  # MERGED into miyabi-knowledge/potpie module
     "crates/miyabi-knowledge",
     # "crates/miyabi-business-agents",  # DEPRECATED: Replaced by miyabi-agents/business module
+
+    # === MCP Servers (Legacy - using jsonrpc-core) ===
     "crates/miyabi-mcp-server",
     "crates/miyabi-discord-mcp-server",
+
+    # === MCP Servers (New - using rmcp v0.8.0) ===
+    # Template and migration infrastructure
+    "crates/miyabi-mcp-template",  # Template for new MCP servers
+
+    # Phase 1: Simple servers (Priority 1)
+    # "crates/miyabi-mcp-rules",  # Rules and cloud service integration
+    # "crates/miyabi-mcp-context",  # Context engineering
+
+    # Phase 2: Core Miyabi servers (Priority 2)
+    # "crates/miyabi-mcp-tmux",  # tmux multithread communication (CRITICAL)
+    # "crates/miyabi-mcp-obsidian",  # Obsidian knowledge system
+
+    # Phase 3: Integration servers (Priority 3)
+    # "crates/miyabi-mcp-pixel",  # Pixel device integration
+    # "crates/miyabi-mcp-sse",  # SSE gateway
+
+    # Phase 4: Lark ecosystem (Priority 4)
+    # "crates/miyabi-mcp-lark-enhanced",  # Lark MCP enhanced
+    # "crates/miyabi-mcp-lark-openapi",  # Lark OpenAPI enhanced
+    # "crates/miyabi-mcp-lark-wiki",  # Lark Wiki agents
+
+    # Other crates
     "crates/miyabi-a2a",
     "crates/miyabi-webhook",
     "crates/miyabi-benchmark",

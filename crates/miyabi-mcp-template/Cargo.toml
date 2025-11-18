@@ -1,0 +1,48 @@
+[package]
+name = "miyabi-mcp-template"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "MCP Server Template for Miyabi - Use this as a starting point for new MCP servers"
+keywords = ["mcp", "template", "server", "protocol"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "miyabi-mcp-template"
+path = "src/main.rs"
+
+[dependencies]
+# MCP SDK (Official Rust SDK)
+rmcp = { version = "0.8.0", features = ["server", "macros", "transport-io"] }
+
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# Schema generation
+schemars = "0.8"
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.8"
+
+[features]
+default = ["stdio"]
+stdio = []
+sse = []
+http = []
+all = ["stdio", "sse", "http"]
