@@ -64,7 +64,6 @@ pub use error::{AppError, Result};
 //         routes::auth::github_oauth_callback,
 //         routes::auth::refresh_token,
 //         routes::auth::logout,
-//         routes::auth::mock_login,
 //         routes::repositories::list_repositories,
 //         routes::repositories::get_repository,
 //         routes::repositories::create_repository,
@@ -201,7 +200,6 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // )
     // .route("/auth/refresh", post(routes::auth::refresh_token))
     // .route("/auth/logout", post(routes::auth::logout))
-    // .route("/auth/mock", post(routes::auth::mock_login))
     // // Repository routes
     // .route(
     //     "/repositories",

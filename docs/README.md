@@ -1,8 +1,25 @@
 # Miyabi Documentation Index
 
-**Last Updated**: 2025-11-03
-**Total Documents**: 458 files
-**Version**: 3.0.0
+**Last Updated**: 2025-11-18
+**Total Documents**: 458+ files
+**Version**: 4.0.0
+
+---
+
+## 🎯 Guardian-Operator Command Center ⭐ NEW
+
+**統合コマンドセンター - マルチセッション統合管理**
+
+| Document | Description | Priority |
+|----------|-------------|----------|
+| [command-center/README.md](./command-center/README.md) ⭐ NEW | 統合コマンドセンター概要 | ⭐⭐⭐⭐⭐ |
+| [command-center/INDEX.md](./command-center/INDEX.md) ⭐ NEW | ドキュメントインデックス | ⭐⭐⭐⭐⭐ |
+| [command-center/GUARDIAN_OPERATOR_INTEGRATION.md](./command-center/GUARDIAN_OPERATOR_INTEGRATION.md) ⭐ NEW | 統合プロトコル詳細 | ⭐⭐⭐⭐⭐ |
+| [command-center/PROJECT_CUSTOM_INSTRUCTIONS.md](./command-center/PROJECT_CUSTOM_INSTRUCTIONS.md) ⭐ NEW | Operator動作指針 | ⭐⭐⭐⭐⭐ |
+| [command-center/SESSION_MANAGEMENT_QUICK_REFERENCE.md](./command-center/SESSION_MANAGEMENT_QUICK_REFERENCE.md) ⭐ NEW | コマンドリファレンス | ⭐⭐⭐⭐ |
+| [command-center/SOCAI_SESSION_DEFINITION.md](./command-center/SOCAI_SESSION_DEFINITION.md) ⭐ NEW | SOCAIセッション定義 | ⭐⭐⭐ |
+
+**Guardian（人間）とOperator（Claude）が協力して複数のtmuxセッションを統合管理するシステム**
 
 ---
 
