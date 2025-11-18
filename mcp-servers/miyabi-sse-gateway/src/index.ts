@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import axios from 'axios';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,12 +9,21 @@ import rateLimit from 'express-rate-limit';
 import winston from 'winston';
 import { promptInjectionGuard } from './middleware/prompt-injection-guard.js';
 import { handleMcpAppsRequest } from './mcp-apps-sdk.js';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// OAuth Configuration
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || '';
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// Simple in-memory token storage (use Redis in production)
+const tokenStore = new Map<string, { access_token: string; created_at: number }>();
 
 // ==========================================
 // Audit Logging Setup
@@ -136,6 +146,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(auditMiddleware);
 app.use(promptInjectionGuard);
 
@@ -155,14 +166,216 @@ app.get('/health', (req: Request, res: Response) => {
 // MCP Discovery Endpoint (No auth required)
 // ==========================================
 app.get('/mcp', (req: Request, res: Response) => {
+  const hasOAuthConfig = !!(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET);
+
   res.json({
     name: 'Miyabi Society MCP Server',
     version: '1.0.0',
     description: 'Miyabiエージェント管理・tmux制御・レポート生成システム（日本語対応）',
     protocol: 'mcp',
     capabilities: ['tools'],
-    status: 'ready'
+    status: 'ready',
+    ...(hasOAuthConfig && {
+      authentication: {
+        type: 'oauth2',
+        oauth2: {
+          authorizationUrl: `${BASE_URL}/oauth/authorize`,
+          tokenUrl: `${BASE_URL}/oauth/token`,
+          scopes: []
+        }
+      }
+    })
   });
+});
+
+// ==========================================
+// OAuth2 Endpoints
+// ==========================================
+
+// Step 1: Authorization - Redirect to GitHub
+app.get('/oauth/authorize', (req: Request, res: Response) => {
+  if (!GITHUB_CLIENT_ID) {
+    logger.error('OAuth authorization attempted but GITHUB_CLIENT_ID not configured');
+    return res.status(500).json({ error: 'OAuth not configured' });
+  }
+
+  const state = crypto.randomBytes(16).toString('hex');
+  const redirectUri = `${BASE_URL}/oauth/callback`;
+
+  // Store state for CSRF protection (in production, use Redis)
+  tokenStore.set(state, { access_token: '', created_at: Date.now() });
+
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?` +
+    `client_id=${GITHUB_CLIENT_ID}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `state=${state}&` +
+    `scope=user:email`;
+
+  logger.info('OAuth authorization initiated', { state, redirectUri });
+  res.redirect(githubAuthUrl);
+});
+
+// Step 2: Callback - Exchange code for token
+app.get('/oauth/callback', async (req: Request, res: Response) => {
+  const { code, state } = req.query;
+
+  if (!code || !state) {
+    logger.error('OAuth callback missing code or state', { code: !!code, state: !!state });
+    return res.status(400).json({ error: 'Missing code or state parameter' });
+  }
+
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+    logger.error('OAuth callback attempted but GitHub credentials not configured');
+    return res.status(500).json({ error: 'OAuth not configured' });
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResponse = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: GITHUB_CLIENT_ID,
+        client_secret: GITHUB_CLIENT_SECRET,
+        code: code as string,
+        redirect_uri: `${BASE_URL}/oauth/callback`
+      },
+      {
+        headers: {
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    const { access_token, error } = tokenResponse.data;
+
+    if (error || !access_token) {
+      logger.error('GitHub OAuth token exchange failed', { error });
+      return res.status(500).json({ error: 'Failed to exchange code for token' });
+    }
+
+    // Store the access token
+    tokenStore.set(state as string, {
+      access_token,
+      created_at: Date.now()
+    });
+
+    logger.info('OAuth flow completed successfully', { state });
+
+    // Return success page
+    res.send(`
+      <html>
+        <head>
+          <title>Authentication Successful</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .container {
+              background: white;
+              padding: 40px;
+              border-radius: 10px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+              text-align: center;
+              max-width: 400px;
+            }
+            h1 {
+              color: #667eea;
+              margin: 0 0 20px 0;
+            }
+            p {
+              color: #666;
+              margin: 0;
+            }
+            .check {
+              font-size: 64px;
+              color: #4CAF50;
+              margin-bottom: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="check">✓</div>
+            <h1>Authentication Successful!</h1>
+            <p>You can now close this window and return to ChatGPT.</p>
+          </div>
+        </body>
+      </html>
+    `);
+  } catch (error: any) {
+    logger.error('OAuth callback error', {
+      error: error.message,
+      response: error.response?.data
+    });
+    res.status(500).json({
+      error: 'OAuth authentication failed',
+      details: error.message
+    });
+  }
+});
+
+// Step 3: Token endpoint for ChatGPT Connector
+app.post('/oauth/token', async (req: Request, res: Response) => {
+  const { code, redirect_uri } = req.body;
+
+  if (!code) {
+    logger.error('Token endpoint called without code');
+    return res.status(400).json({ error: 'Missing code parameter' });
+  }
+
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+    logger.error('Token endpoint called but GitHub credentials not configured');
+    return res.status(500).json({ error: 'OAuth not configured' });
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResponse = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: GITHUB_CLIENT_ID,
+        client_secret: GITHUB_CLIENT_SECRET,
+        code: code as string,
+        redirect_uri: redirect_uri || `${BASE_URL}/oauth/callback`
+      },
+      {
+        headers: {
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    const { access_token, error } = tokenResponse.data;
+
+    if (error || !access_token) {
+      logger.error('GitHub token exchange failed in /oauth/token', { error });
+      return res.status(400).json({ error: error || 'Failed to exchange code for token' });
+    }
+
+    logger.info('Token issued successfully via /oauth/token');
+
+    // Return token in OAuth2 format
+    res.json({
+      access_token,
+      token_type: 'bearer',
+      scope: 'user:email'
+    });
+  } catch (error: any) {
+    logger.error('Token endpoint error', {
+      error: error.message,
+      response: error.response?.data
+    });
+    res.status(500).json({
+      error: 'Token exchange failed',
+      details: error.message
+    });
+  }
 });
 
 // ==========================================
@@ -199,12 +412,14 @@ app.listen(PORT, () => {
   logger.info('Server started', {
     port: PORT,
     timestamp: new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV || 'development'
+    nodeEnv: process.env.NODE_ENV || 'development',
+    oauthEnabled: !!(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET)
   });
 
   console.log(`🚀 Miyabi MCP Server running on port ${PORT}`);
-  console.log(`   Health: http://localhost:${PORT}/health`);
-  console.log(`   MCP Endpoint: http://localhost:${PORT}/mcp`);
+  console.log(`   Base URL: ${BASE_URL}`);
+  console.log(`   Health: ${BASE_URL}/health`);
+  console.log(`   MCP Endpoint: ${BASE_URL}/mcp`);
   console.log();
   console.log('🔐 Security:');
   console.log(`   Bearer Token: ${!!process.env.MIYABI_BEARER_TOKEN ? '✅ Set' : '⚠️  Not set (dev mode)'}`);
@@ -212,9 +427,17 @@ app.listen(PORT, () => {
   console.log(`   Audit Logging: ✅ Enabled`);
   console.log(`   CORS: ✅ Restricted`);
   console.log(`   Prompt Injection Guard: ✅ Active`);
+  console.log();
+  console.log('🔑 OAuth2:');
+  console.log(`   GitHub OAuth: ${GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET ? '✅ Configured' : '⚠️  Not configured'}`);
+  if (GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET) {
+    console.log(`   Authorization URL: ${BASE_URL}/oauth/authorize`);
+    console.log(`   Token URL: ${BASE_URL}/oauth/token`);
+    console.log(`   Callback URL: ${BASE_URL}/oauth/callback`);
+  }
 
   if (!process.env.MIYABI_BEARER_TOKEN) {
     console.log();
-    console.log('   ⚠️  Running in development mode (no authentication)');
+    console.log('   ⚠️  Running in development mode (no bearer authentication)');
   }
 });
