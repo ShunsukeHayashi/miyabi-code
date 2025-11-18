@@ -189,7 +189,11 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Telegram Bot Webhook - Does NOT require database
         .route("/telegram/webhook", post(routes::telegram::handle_webhook))
         // WebSocket endpoint for real-time updates
-        .route("/ws", get(routes::websocket::websocket_handler));
+        .route("/ws", get(routes::websocket::websocket_handler))
+        // Infrastructure monitoring routes - Does NOT require database
+        .route("/infrastructure/status", get(routes::infrastructure::status::get_infrastructure_status))
+        .route("/infrastructure/database", get(routes::infrastructure::status::get_database_status))
+        .route("/infrastructure/deployment", get(routes::infrastructure::status::get_deployment_status));
 
     // COMMENTED OUT: These routes require database (will re-enable with Firebase)
     // // Authentication routes

@@ -7,6 +7,7 @@ pub mod codegen;
 pub mod dashboard;
 pub mod deployments;
 pub mod health;
+pub mod infrastructure;
 pub mod issues;
 pub mod logs;
 pub mod logs_stream;

@@ -36,8 +36,6 @@ miyabi-a2a = { path = "../miyabi-a2a" }
 miyabi-approval = { path = "../miyabi-approval" }
 # miyabi-feedback-loop MERGED into miyabi-orchestrator/feedback
 miyabi-orchestrator = { path = "../miyabi-orchestrator" }
-miyabi-a2a = { path = "../miyabi-a2a" }
-miyabi-approval = { path = "../miyabi-approval" }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
