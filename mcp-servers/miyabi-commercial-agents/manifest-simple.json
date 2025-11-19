@@ -1,0 +1,16 @@
+{
+  "name": "miyabi-commercial-agents",
+  "version": "1.0.0",
+  "description": "Miyabi Commercial Business Agents - 6 Premium AI Agents",
+  "author": {
+    "name": "Miyabi Technologies"
+  },
+  "server": {
+    "command": "node",
+    "args": ["${__dirname}/dist/index.js"],
+    "env": {
+      "MIYABI_LICENSE_KEY": "${MIYABI_LICENSE_KEY}",
+      "NODE_ENV": "production"
+    }
+  }
+}

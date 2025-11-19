@@ -1,0 +1,129 @@
+{
+  "mcpb_version": "0.1",
+  "name": "miyabi-commercial-agents",
+  "display_name": "Miyabi Commercial Business Agents",
+  "version": "1.0.0",
+  "description": "All-in-One Commercial Business Agents: SNS Strategy, Content Creation, YouTube Optimization, Marketing Automation, Analytics, and CRM (6 Premium Agents)",
+  "long_description": "Miyabi Commercial Agents provides enterprise-grade business automation through 6 specialized AI agents:\n\n**つぶやくん (SNS Strategy)**: Platform-specific social media strategy generation with growth projections and engagement optimization.\n\n**書くちゃん (Content Creation)**: High-quality content generation with SEO optimization, readability scoring, and multi-format support.\n\n**動画くん (YouTube)**: Complete YouTube channel optimization including content calendar, monetization roadmap, and analytics KPIs.\n\n**広める (Marketing)**: Comprehensive marketing campaign planning with channel mix optimization, ROI projections, and tactical execution plans.\n\n**数える (Analytics)**: Advanced data analytics with predictive insights, PDCA cycle analysis, and actionable recommendations.\n\n**支える (CRM)**: Customer relationship management with segmentation, retention tactics, upsell identification, and churn prediction.\n\nAvailable in three tiers:\n- STARTER: Core features (SNS, Content)\n- PRO: Advanced features (YouTube, Marketing, Analytics)\n- ENTERPRISE: Full suite (including CRM)",
+  "license": "Proprietary",
+  "author": {
+    "name": "Miyabi Technologies",
+    "email": "support@miyabi.tech",
+    "url": "https://miyabi.tech"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/customer-cloud/miyabi-private"
+  },
+  "documentation": "https://docs.miyabi.tech/commercial-agents",
+  "homepage": "https://miyabi.tech/commercial-agents",
+  "server": {
+    "type": "node",
+    "script": "${__dirname}/dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "MIYABI_LICENSE_KEY": "${user_config.license_key}",
+        "NODE_ENV": "production"
+      }
+    }
+  },
+  "user_config": {
+    "license_key": {
+      "type": "string",
+      "title": "License Key",
+      "description": "Your Miyabi Commercial license key (required). Format: MIYABI-COMMERCIAL-{TIER}-{HASH}",
+      "sensitive": true,
+      "required": true,
+      "pattern": "^MIYABI-COMMERCIAL-(STARTER|PRO|ENTERPRISE)-[A-Z0-9]{20}$",
+      "validation_error": "Invalid license key format. Please contact support@miyabi.tech for assistance."
+    }
+  },
+  "tools": [
+    {
+      "name": "tsubuyakun_generate_sns_strategy",
+      "description": "[All Tiers] Generate optimized SNS strategy for any platform",
+      "tier_required": "STARTER"
+    },
+    {
+      "name": "kakuchan_generate_content",
+      "description": "[All Tiers] Generate high-quality content with SEO optimization",
+      "tier_required": "STARTER"
+    },
+    {
+      "name": "dougakun_optimize_youtube",
+      "description": "[PRO+] Optimize YouTube channel strategy",
+      "tier_required": "PRO"
+    },
+    {
+      "name": "hiromeru_create_marketing_plan",
+      "description": "[PRO+] Create comprehensive marketing campaign plan",
+      "tier_required": "PRO"
+    },
+    {
+      "name": "kazoeru_analyze_data",
+      "description": "[PRO+] Advanced data analytics and insights",
+      "tier_required": "PRO"
+    },
+    {
+      "name": "sasaeru_optimize_crm",
+      "description": "[ENTERPRISE] CRM and customer success optimization",
+      "tier_required": "ENTERPRISE"
+    }
+  ],
+  "pricing": {
+    "model": "subscription",
+    "tiers": [
+      {
+        "tier": "STARTER",
+        "price_monthly": 49,
+        "price_annual": 490,
+        "features": ["SNS Strategy Agent", "Content Creation Agent", "Basic Support"]
+      },
+      {
+        "tier": "PRO",
+        "price_monthly": 149,
+        "price_annual": 1490,
+        "features": [
+          "All STARTER features",
+          "YouTube Optimization Agent",
+          "Marketing Automation Agent",
+          "Analytics Agent",
+          "Priority Support"
+        ]
+      },
+      {
+        "tier": "ENTERPRISE",
+        "price_monthly": 499,
+        "price_annual": 4990,
+        "features": [
+          "All PRO features",
+          "CRM Agent",
+          "Custom Algorithms",
+          "API Access",
+          "Dedicated Support",
+          "SLA Guarantee"
+        ]
+      }
+    ]
+  },
+  "requirements": {
+    "node": ">=18.0.0",
+    "claude_desktop": ">=1.0.0"
+  },
+  "tags": [
+    "business",
+    "marketing",
+    "sns",
+    "content-creation",
+    "youtube",
+    "analytics",
+    "crm",
+    "automation",
+    "commercial"
+  ],
+  "copyright": "© 2025 Miyabi Technologies. All rights reserved.",
+  "terms_of_service": "https://miyabi.tech/terms",
+  "privacy_policy": "https://miyabi.tech/privacy"
+}
