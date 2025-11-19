@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-cd ~/miyabi-private && git worktree list
+cd ~/Dev/miyabi-private && git worktree list

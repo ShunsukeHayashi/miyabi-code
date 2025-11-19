@@ -14,7 +14,7 @@
     },
 
     "miyabi": {
-      "command": "/Users/shunsuke/Dev/miyabi-private/target/release/miyabi-mcp-server",
+      "command": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/target/release/miyabi-mcp-server",
       "args": [],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",

@@ -16,7 +16,7 @@
 
 miyabi_def_integration:
   enabled: true
-  base_path: "/Users/shunsuke/Dev/miyabi-private/miyabi_def"
+  base_path: "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def"
 
   references:
     agents: "generated/agents.yaml"
@@ -38,7 +38,7 @@ orchestra:
 
   tmux:
     session_name: "miyabi-orchestra"
-    working_directory: "/Users/shunsuke/Dev/miyabi-private"
+    working_directory: "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
     theme:
       name: "Dark Grayscale"
       description: "Unified dark grayscale palette for all panes"

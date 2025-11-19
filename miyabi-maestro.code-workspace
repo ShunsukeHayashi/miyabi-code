@@ -1,0 +1,36 @@
+{
+  "folders": [
+    {
+      "name": "miyabi-private (Maestro)",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.profiles.linux": {
+      "bash": {
+        "path": "/data/data/com.termux/files/usr/bin/bash"
+      }
+    },
+    "rust-analyzer.server.path": "/data/data/com.termux/files/usr/bin/rust-analyzer",
+    "rust-analyzer.cargo.target": "aarch64-linux-android",
+    "files.watcherExclude": {
+      "**/target/**": true,
+      "**/.git/**": true
+    },
+    "search.exclude": {
+      "**/target": true,
+      "**/node_modules": true
+    },
+    "git.enabled": true,
+    "git.path": "/data/data/com.termux/files/usr/bin/git"
+  },
+  "extensions": {
+    "recommendations": [
+      "rust-lang.rust-analyzer",
+      "tamasfe.even-better-toml",
+      "serayuzgur.crates",
+      "vadimcn.vscode-lldb"
+    ]
+  }
+}

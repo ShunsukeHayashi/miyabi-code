@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 QUERY="$*"
 echo "🔍 Searching history: ${QUERY}"
-cd ~/miyabi-private && git log --all --grep="${QUERY}" --oneline | head -10
+cd ~/Dev/miyabi-private && git log --all --grep="${QUERY}" --oneline | head -10

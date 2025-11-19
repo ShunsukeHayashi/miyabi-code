@@ -1,60 +1,184 @@
 {
+  // ==========================================
+  // 🎯 Miyabi Project Configuration
+  // ==========================================
   "miyabi.serverUrl": "http://localhost:3001",
   "miyabi.autoRefresh": true,
   "miyabi.refreshInterval": 60000,
   "miyabi.enableNotifications": true,
 
-  // フォント設定 - 見やすく最適化
-  "editor.fontFamily": "'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Monaco, 'Courier New', monospace",
-  "editor.fontSize": 14,
+  // ==========================================
+  // 🦀 Rust & Cargo Workspace Settings
+  // ==========================================
+
+  // Rust Analyzer - 30+ crates workspace optimization
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.check.features": "all",
+  "rust-analyzer.checkOnSave.command": "clippy",
+  "rust-analyzer.checkOnSave.allTargets": true,
+  "rust-analyzer.checkOnSave.extraArgs": [
+    "--all-features",
+    "--",
+    "-W", "clippy::all",
+    "-W", "clippy::pedantic",
+    "-W", "clippy::nursery"
+  ],
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.cargo.allTargets": true,
+  "rust-analyzer.rustfmt.extraArgs": ["+nightly"],
+  "rust-analyzer.lens.enable": true,
+  "rust-analyzer.lens.implementations.enable": true,
+  "rust-analyzer.lens.references.adt.enable": true,
+  "rust-analyzer.lens.references.enumVariant.enable": true,
+  "rust-analyzer.lens.references.method.enable": true,
+  "rust-analyzer.lens.references.trait.enable": true,
+  "rust-analyzer.inlayHints.enable": true,
+  "rust-analyzer.inlayHints.chainingHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints.enable": true,
+  "rust-analyzer.inlayHints.typeHints.enable": true,
+  "rust-analyzer.hover.actions.enable": true,
+  "rust-analyzer.hover.actions.implementations.enable": true,
+  "rust-analyzer.hover.actions.references.enable": true,
+  "rust-analyzer.hover.actions.run.enable": true,
+  "rust-analyzer.completion.autoimport.enable": true,
+  "rust-analyzer.completion.autoself.enable": true,
+
+  // ==========================================
+  // 📁 Files & Folders Exclusion
+  // ==========================================
+
+  // File Explorer exclusions
+  "files.exclude": {
+    "**/.git": false,  // Show .git for worktree management
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.worktrees": true,  // Hide worktree directories
+    "**/target": true,      // Hide Rust build artifacts
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.cache": true,
+    "**/*.log": true,
+    "**/.miyabi/cache": true,
+    "**/.miyabi/temp": true,
+    "**/.archive": true     // Hide archived files
+  },
+
+  // Search exclusions (more aggressive)
+  "search.exclude": {
+    "**/.git": false,
+    "**/.worktrees": true,
+    "**/target": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/.cache": true,
+    "**/build": true,
+    "**/*.lock": true,
+    "**/.miyabi/cache": true,
+    "**/.archive": true,
+    "**/docs/diagrams/*.svg": true,  // Exclude generated diagrams
+    "**/Cargo.lock": true
+  },
+
+  // File watcher exclusions (performance optimization)
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.worktrees/**": true,
+    "**/target/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.cache/**": true,
+    "**/.miyabi/cache/**": true
+  },
+
+  // ==========================================
+  // 🎨 Editor Settings - 美しく見やすい最適化
+  // ==========================================
+
+  // フォント設定 - 可読性最適化（見やすさ重視）
+  "editor.fontFamily": "'JetBrains Mono', 'Cascadia Code', 'Monaspace Neon', 'SF Mono', Menlo, monospace",
+  "editor.fontSize": 18,
   "editor.fontLigatures": true,
-  "editor.lineHeight": 22,
-  "editor.letterSpacing": 0.5,
-  "editor.fontWeight": "400",
+  "editor.lineHeight": 32,
+  "editor.letterSpacing": 0.8,
+  "editor.fontWeight": "450",
 
-  // ターミナルフォント
-  "terminal.integrated.fontFamily": "'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Monaco, monospace",
-  "terminal.integrated.fontSize": 13,
-  "terminal.integrated.lineHeight": 1.4,
+  // ターミナルフォント - 可読性最適化（見やすさ重視）
+  "terminal.integrated.fontFamily": "'JetBrains Mono', 'Cascadia Code', 'SF Mono', monospace",
+  "terminal.integrated.fontSize": 17,
+  "terminal.integrated.lineHeight": 1.8,
+  "terminal.integrated.fontWeight": "450",
 
-  // 見やすさ向上
+  // レンダリング最適化
+  "editor.renderWhitespace": "selection",
+  "editor.renderControlCharacters": false,
+  "editor.renderLineHighlight": "all",
+  "editor.renderLineHighlightOnlyWhenFocus": false,
+
+  // カーソル・スクロール
   "editor.cursorBlinking": "smooth",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.smoothScrolling": true,
   "workbench.list.smoothScrolling": true,
+  "terminal.integrated.smoothScrolling": true,
+
+  // 余白・パディング
+  "editor.padding.top": 24,
+  "editor.padding.bottom": 24,
+  "editor.lineNumbers": "on",
+  "editor.lineNumbersMinChars": 5,
+
+  // ミニマップ
+  "editor.minimap.enabled": true,
+  "editor.minimap.renderCharacters": false,
+  "editor.minimap.maxColumn": 120,
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.scale": 2,
+
+  // ブラケット
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.guides.indentation": true,
+  "editor.guides.highlightActiveIndentation": true,
 
   // コメント
   "editor.comments.insertSpace": true,
 
-  // YAML Schema設定
-  "yaml.schemas": {
-    ".claude/schemas/orchestra-config.schema.yaml": [
-      "orchestra-config.yaml",
-      "**/orchestra-config.*.yaml"
-    ]
+  // セマンティックハイライト
+  "editor.semanticHighlighting.enabled": true,
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true
   },
 
-  // Rust Analyzer - Lint統合
-  "rust-analyzer.checkOnSave.command": "clippy",
-  "rust-analyzer.checkOnSave.allTargets": true,
-  "rust-analyzer.checkOnSave.extraArgs": ["--all-features"],
-  "rust-analyzer.check.features": "all",
+  // その他エディタ設定
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.trimAutoWhitespace": true,
+  "editor.rulers": [80, 100, 120],
+  "editor.wordWrap": "off",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
 
-  // ESLint統合
-  "eslint.enable": true,
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
-  "eslint.format.enable": true,
-  "eslint.codeActionsOnSave.mode": "all",
+  // ==========================================
+  // 📝 Language-Specific Formatters
+  // ==========================================
 
-  // Auto Format on Save
   "[rust]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.tabSize": 4,
+    "editor.rulers": [100]
+  },
+  "[toml]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4
   },
   "[typescript]": {
     "editor.formatOnSave": true,
@@ -74,8 +198,145 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "vscode.json-language-features"
   },
+  "[jsonc]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[yaml]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
   "[markdown]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
-  }
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
+    }
+  },
+
+  // ==========================================
+  // 🔧 Git & Version Control
+  // ==========================================
+
+  "git.enabled": true,
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.ignoreLimitWarning": true,
+  "git.detectSubmodules": true,
+  "git.allowForcePush": false,
+  "git.branchPrefix": "",
+  "git.fetchOnPull": true,
+  "git.pruneOnFetch": true,
+  "git.showPushSuccessNotification": true,
+  "git.untrackedChanges": "separate",
+
+  // ==========================================
+  // 🔍 Search & Terminal
+  // ==========================================
+
+  "search.smartCase": true,
+  "search.useIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.followSymlinks": false,
+  "search.quickOpen.includeSymbols": true,
+
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.shell.osx": "/bin/zsh",
+
+  // ==========================================
+  // 📊 YAML & Schema Settings
+  // ==========================================
+
+  "yaml.schemas": {
+    ".claude/schemas/orchestra-config.schema.yaml": [
+      "orchestra-config.yaml",
+      "**/orchestra-config.*.yaml"
+    ]
+  },
+  "yaml.format.enable": true,
+  "yaml.validate": true,
+  "yaml.completion": true,
+  "yaml.hover": true,
+
+  // ==========================================
+  // 🔌 ESLint & Linting
+  // ==========================================
+
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.format.enable": true,
+  "eslint.codeActionsOnSave.mode": "all",
+  "eslint.workingDirectories": [
+    { "mode": "auto" }
+  ],
+
+  // ==========================================
+  // 🎯 Workspace & Performance
+  // ==========================================
+
+  "files.associations": {
+    "*.rs": "rust",
+    "*.toml": "toml",
+    "CLAUDE.md": "markdown",
+    "*.claude.md": "markdown",
+    ".env.*": "properties",
+    "Cargo.lock": "toml",
+    ".cargo/config.toml": "toml"
+  },
+
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+
+  // Performance settings for large workspace
+  "files.maxMemoryForLargeFilesMB": 8192,
+  "typescript.tsserver.maxTsServerMemory": 8192,
+  "extensions.experimental.affinity": {
+    "rust-lang.rust-analyzer": 1
+  },
+
+  // ==========================================
+  // 🪟 Workbench & UI
+  // ==========================================
+
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.iconTheme": "vs-seti",
+  "workbench.tree.indent": 20,
+  "workbench.tree.renderIndentGuides": "always",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "workbench.startupEditor": "none",
+
+  // ==========================================
+  // 🔔 Notifications & Telemetry
+  // ==========================================
+
+  "telemetry.telemetryLevel": "off",
+  "update.showReleaseNotes": false,
+  "extensions.ignoreRecommendations": false,
+
+  // ==========================================
+  // 🐛 Debug Settings
+  // ==========================================
+
+  "debug.console.fontSize": 16,
+  "debug.console.fontFamily": "'JetBrains Mono', 'Cascadia Code', monospace",
+  "debug.internalConsoleOptions": "openOnSessionStart",
+  "debug.openDebug": "openOnDebugBreak",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "debug.toolBarLocation": "docked"
 }
