@@ -1,39 +1,79 @@
 # Miyabi Context Index
 
-**Last Updated**: 2025-11-12
-**Version**: 3.1.0
+**Last Updated**: 2025-11-15
+**Version**: 3.4.0
 
 ## 📚 Context Module Directory
 
-このディレクトリには、Miyabiプロジェクトの11個のContext Moduleが格納されています。
+このディレクトリには、Miyabiプロジェクトの19個のContext Moduleが格納されています。
 Claude Codeは必要に応じて、これらのモジュールを動的にロードします。
 
 ## 🗂️ Category List
 
 | Module | File | Size | Priority | Description |
 |--------|------|------|----------|-------------|
-| **Miyabi Definition** | `miyabi-definition.md` | ~800 tokens | ⭐⭐⭐⭐⭐ | ✨ **NEW** - miyabi_def統合（14 Entities, 39 Relations, 57 Labels, 5 Workflows） |
+| **Miyabi Society** | `miyabi-society.md` | ~1,200 tokens | ⭐⭐⭐⭐⭐ | 🌍 **NEW** - Society Formula統合（Agent定義、15原理、Pantheon階層、6フェーズ変換） |
+| **SWML Framework** | `swml-framework.md` | ~1,000 tokens | ⭐⭐⭐⭐⭐ | 🧬 理論基盤 - Ω Function定義、数学的収束保証、6フェーズ分解 |
+| **Omega Phases** | `omega-phases.md` | ~1,500 tokens | ⭐⭐⭐⭐⭐ | 🔬 実装ガイド - θ₁-θ₆各フェーズの詳細実装指針 |
+| **Miyabi Definition** | `miyabi-definition.md` | ~800 tokens | ⭐⭐⭐⭐⭐ | ✨ miyabi_def統合（14 Entities, 39 Relations, 57 Labels, 5 Workflows） |
 | **Core Rules** | `core-rules.md` | ~400 tokens | ⭐⭐⭐⭐⭐ | MCP First, Benchmark Protocol, Context7 |
-| **Pantheon Society** | `pantheon-society.md` | ~600 tokens | ⭐⭐⭐⭐ | 🌍 **NEW** - 歴史的人物×神話的存在によるAI社会基盤（AWS統合、Council governance） |
-| **AIfactory Integration** | `aifactory-integration.md` | ~600 tokens | ⭐⭐⭐⭐ | 🆕 **NEW** - AIfactory統合（Composite State, 5 Business Agents） |
+| **Pantheon Society** | `pantheon-society.md` | ~600 tokens | ⭐⭐⭐⭐ | 🌍 歴史的人物×神話的存在によるAI社会基盤（AWS統合、Council governance） |
+| **AIfactory Integration** | `aifactory-integration.md` | ~600 tokens | ⭐⭐⭐⭐ | 🆕 AIfactory統合（Composite State, 5 Business Agents） |
 | **Agents** | `agents.md` | ~300 tokens | ⭐⭐⭐⭐ | 21 Agents概要（7 Coding + 14 Business） |
 | **Architecture** | `architecture.md` | ~400 tokens | ⭐⭐⭐⭐ | Cargo Workspace, Git Worktree, GitHub OS |
+| **Infrastructure** | `infrastructure.md` | ~700 tokens | ⭐⭐⭐ | 🔥 MUGEN環境 - EC2開発サーバー接続、スペック、運用 |
 | **Development** | `development.md` | ~300 tokens | ⭐⭐⭐ | Rust/TypeScript規約、テスト、CI/CD |
-| **Entity-Relation** | `entity-relation.md` | ~300 tokens | ⭐⭐ | 🔄 Legacy - Superseded by miyabi-definition.md |
-| **Labels** | `labels.md` | ~200 tokens | ⭐⭐ | 🔄 Legacy - Superseded by miyabi-definition.md |
+| **Lint Integration** | `lint-integration.md` | ~700 tokens | ⭐⭐⭐ | 🔍 Lint警告統合 - AI Agent向けVSCode診断情報 |
+| **Entity-Relation** | `archive/entity-relation.md` | ~300 tokens | 🗄️ | ✅ Archived - Superseded by miyabi-definition.md |
+| **Labels** | `archive/labels.md` | ~200 tokens | 🗄️ | ✅ Archived - Superseded by miyabi-definition.md |
 | **Worktree** | `worktree.md` | ~300 tokens | ⭐⭐⭐ | Worktreeライフサイクル、並列実行 |
 | **Rust** | `rust.md` | ~300 tokens | ⭐⭐⭐ | Rust 2021 Edition開発ガイド |
 | **TypeScript** | `typescript.md` | ~200 tokens | ⭐ | レガシーTypeScript参考 |
 | **Protocols** | `protocols.md` | ~300 tokens | ⭐⭐ | タスク管理、報告プロトコル |
 | **External Deps** | `external-deps.md` | ~200 tokens | ⭐⭐ | Context7、MCP Servers |
 
-**Total Estimated Size**: ~5,000 tokens (個別読み込み時)
+**Total Estimated Size**: ~10,300 tokens (個別読み込み時)
 
-**Note**: ✨ `miyabi-definition.md` is the **new primary source** for Entity-Relation Model and Label System. Legacy files remain for backward compatibility.
+**Note**:
+- 🧬 **SWML**: `swml-framework.md` is the **mathematical foundation** providing formal convergence guarantees
+- 🔬 **Omega**: `omega-phases.md` provides **detailed implementation guide** for θ₁-θ₆ phases
+- 🌍 **Society**: `miyabi-society.md` is the **theoretical framework** connecting all agents and components
+- ✨ **Definition**: `miyabi-definition.md` is the **primary source** for Entity-Relation Model and Label System
+- 🗄️ **Archive**: Legacy files remain in `archive/` for backward compatibility
 
 ## 🎯 Usage Pattern
 
-### Pattern 0: 🆕 Miyabi Definition Lookup（最優先）
+### Pattern 0: 🌍 Miyabi Society Foundation（最優先）
+```
+Agentとしての理解が必要な場合、まず確認すべきモジュール:
+- miyabi-society.md (Agent定義、Society Formula、15原理、Pantheon階層)
+
+具体例:
+- Agent自身の定義を理解: Agent_i = (𝒯, 𝒰, 𝒮, 𝒟, Ω, 𝒫)
+- 15 Leadership Principles参照: P₁-P₁₅の適用方法
+- Pantheon階層での位置確認: Layer 0-4のどこに属するか
+- Society方程式理解: Θ₁-Θ₆の6フェーズ変換
+- Ω function定義: 自分固有の変換関数は何か
+```
+
+### Pattern 0.5: 🧬 SWML/Omega実装タスク
+```
+Ω functionの実装や6フェーズの詳細理解が必要な場合:
+- swml-framework.md (数学的基盤、収束保証、Ω関数定義)
+- omega-phases.md (θ₁-θ₆各フェーズの実装ガイド)
+
+具体例:
+- Ω function数式理解: Ω = θ₆ ∘ θ₅ ∘ θ₄ ∘ θ₃ ∘ θ₂ ∘ θ₁
+- θ₁ Understanding実装: Step-back prompting (26 steps)
+- θ₂ Generation実装: SELF-DISCOVER + Code generation
+- θ₃ Allocation実装: DAG task decomposition
+- θ₄ Execution実装: Parallel worktree execution
+- θ₅ Integration実装: PR creation and merging
+- θ₆ Learning実装: World state update + feedback loop
+- 収束証明理解: W₀ → W₁ → ... → W_∞
+```
+
+### Pattern 1: 🆕 Miyabi Definition Lookup
 ```
 任意のタスクでまず確認すべきモジュール:
 - miyabi-definition.md (Entity, Relation, Label, Workflow定義の完全版)
@@ -45,26 +85,28 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 - Workflow stage確認: miyabi_def/variables/workflows.yaml参照
 ```
 
-### Pattern 1: Agent開発タスク
+### Pattern 2: Agent開発タスク
 ```
 必要なモジュール:
-- miyabi-definition.md ✨ NEW (Agent定義、Entity仕様)
+- miyabi-society.md 🌍 NEW (Agent定義、Society Formula)
+- miyabi-definition.md (Agent仕様、Entity定義)
 - core-rules.md (MCP確認)
 - agents.md (Agent概要)
 - rust.md (Rust規約)
 - development.md (テスト規約)
 ```
 
-### Pattern 2: Issue処理タスク
+### Pattern 3: Issue処理タスク
 ```
 必要なモジュール:
-- miyabi-definition.md ✨ NEW (Label体系、Workflow定義)
+- miyabi-society.md 🌍 NEW (6-Phase Transformation理解)
+- miyabi-definition.md (Label体系、Workflow定義)
 - core-rules.md (MCP確認)
 - worktree.md (並列実行)
 - protocols.md (報告プロトコル)
 ```
 
-### Pattern 3: ベンチマーク実装タスク
+### Pattern 4: ベンチマーク実装タスク
 ```
 必要なモジュール:
 - core-rules.md (Benchmark Protocol)
@@ -72,19 +114,19 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 - development.md (CI/CD)
 ```
 
-### Pattern 4: 🆕 定義ファイル生成タスク
+### Pattern 5: 🆕 定義ファイル生成タスク
 ```
 必要なモジュール:
 - miyabi-definition.md (miyabi_defシステム全体)
 
 実行手順:
-1. cd /Users/shunsuke/Dev/miyabi-private/miyabi_def
+1. cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def
 2. source .venv/bin/activate
 3. python generate.py
 4. ls -lh generated/
 ```
 
-### Pattern 5: 🆕 AIfactory統合タスク
+### Pattern 6: 🆕 AIfactory統合タスク
 ```
 必要なモジュール:
 - aifactory-integration.md ✨ NEW (統合アーキテクチャ、Business Agents)
@@ -99,10 +141,11 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 - Frontend Integration: React → Miyabi API
 ```
 
-### Pattern 6: 🌍 Pantheon Society構築タスク
+### Pattern 7: 🌍 Pantheon Society構築タスク
 ```
 必要なモジュール:
-- pantheon-society.md 🌍 NEW (歴史的人物Agent、神話的Guardian、Council)
+- miyabi-society.md 🌍 NEW (Society Formula、15原理、Pantheon階層)
+- pantheon-society.md (歴史的人物Agent、神話的Guardian、Council)
 - core-rules.md (MCP確認)
 - agents.md (Agent system)
 - architecture.md (AWS統合)

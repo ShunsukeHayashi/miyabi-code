@@ -1,364 +1,362 @@
-# 📚 .claude Directory - Master Index
+# Miyabi Development - Quick Index
 
-**Version**: 2.0.0
-**Date**: 2025-11-11
-**Purpose**: Central navigation hub for all Claude Code resources
+**Version**: 5.0-Pixel
+**Last Updated**: 2025-11-19
+**Environment**: Termux on Pixel 9 Pro XL
 
 ---
 
 ## 🚀 Quick Start
 
-**New to Miyabi?** → [`docs/quickstart/QUICK_START.md`](docs/quickstart/QUICK_START.md)
-**Project Overview** → [`README.md`](README.md)
-**Core Rules** → [`context/core-rules.md`](context/core-rules.md)
-**Workspace Guide** → [`docs/quickstart/WORKSPACE_QUICKSTART.md`](docs/quickstart/WORKSPACE_QUICKSTART.md)
-
----
-
-## 📖 Documentation by Category
-
-### 📌 Core Configuration
-
-| File | Purpose | Priority |
-|------|---------|----------|
-| [`settings.json`](settings.json) | Claude Code メイン設定 | ⭐⭐⭐⭐⭐ |
-| [`mcp.json`](mcp.json) | MCP サーバー設定 | ⭐⭐⭐⭐⭐ |
-| [`hooks.json`](hooks.json) | フック設定 | ⭐⭐⭐⭐ |
-| [`orchestra-config.yaml`](orchestra-config.yaml) | Orchestra 設定 | ⭐⭐⭐ |
-
-### 🎯 Essential Contexts
-
-| Document | Purpose | Priority |
-|----------|---------|----------|
-| [`context/core-rules.md`](context/core-rules.md) | MCP First, Benchmark Protocol, Context7 | ⭐⭐⭐⭐⭐ |
-| [`context/architecture.md`](context/architecture.md) | Cargo Workspace, GitHub OS, Worktree | ⭐⭐⭐⭐ |
-| [`context/agents.md`](context/agents.md) | Agent システム設計 | ⭐⭐⭐⭐ |
-| [`context/worktree.md`](context/worktree.md) | Git worktree 使用法 | ⭐⭐⭐⭐ |
-| [`context/rust.md`](context/rust.md) | Rust 2021 開発ガイド | ⭐⭐⭐⭐ |
-
-**Full Context List**: [`context/INDEX.md`](context/INDEX.md)
-
----
-
-## 🤖 Sub-agents & Skills
-
-### Claude Code Skills (19)
-
-Located in [`Skills/`](Skills/) directory:
-
-| Skill | Purpose | Category |
-|-------|---------|----------|
-| **rust-development** | Build, test, clippy, fmt | Development |
-| **debugging-troubleshooting** | 体系的デバッグ | Development |
-| **git-workflow** | Git操作・PR管理 | Development |
-| **agent-execution** | Agent実行 + Worktree分離 | Orchestration |
-| **documentation-generation** | ドキュメント自動生成 | Development |
-| **dependency-management** | Cargo依存関係管理 | Development |
-| **performance-analysis** | プロファイリング | Development |
-| **security-audit** | セキュリティスキャン | Development |
-| **issue-analysis** | Issue分析・ラベル推論 | Management |
-| **project-setup** | プロジェクト初期化 | Setup |
-| **business-strategy-planning** | ビジネス戦略 | Business |
-| **content-marketing-strategy** | コンテンツ戦略 | Business |
-| **market-research-analysis** | 市場調査 | Business |
-| **sales-crm-management** | CRM管理 | Business |
-| **growth-analytics-dashboard** | 成長分析 | Business |
-| **voicevox** | 音声ナレーション生成 | Integration |
-| **context-eng** | コンテキストエンジニアリング | Advanced |
-| **paper2agent** | 論文ベースAgent生成 | Advanced |
-| **claude-code-x** | Claude Code X統合 | Advanced |
-
-**Details**: [`Skills/README.md`](Skills/README.md)
-
-### Miyabi Agents
-
-Located in [`agents/`](agents/) directory:
-
-| Category | Location | Count |
-|----------|----------|-------|
-| **Business Agents** | [`agents/specs/business/`](agents/specs/business/) | 14 specs |
-| **Lark Integration** | [`agents/specs/lark/`](agents/specs/lark/) | 6 specs |
-| **Paper2Agent** | [`agents/specs/paper2agent/`](agents/specs/paper2agent/) | 1 spec |
-
-**Details**: [`agents/README.md`](agents/README.md)
-
----
-
-## ⚡ Commands & Hooks
-
-### Slash Commands (33)
-
-Located in [`commands/`](commands/) directory:
-
-**Most Used**:
-- `/miyabi-auto` - 自動Issue処理
-- `/tmux-orchestra-start` - Orchestra起動
-- `/codex` - Codex CLI起動
-- `/agent-run` - Agent実行
-- `/create-issue` - Issue作成
-- `/verify` - システム検証
-- `/narrate` - VOICEVOX音声生成
-
-**Full List**: [`commands/INDEX.md`](commands/INDEX.md)
-
-### Hooks (29)
-
-Located in [`hooks/`](hooks/) directory:
-
-**Session Hooks**:
-- `session-keepalive.sh` - セッション維持
-- `session-continue.sh` - セッション継続
-
-**Agent Hooks**:
-- `agent-worktree-pre.sh` - Worktree自動作成
-- `agent-complete.sh` - Agent完了処理
-
-**Code Quality**:
-- `auto-format.sh` - 自動フォーマット
-- `validate-rust.sh` - Rust検証
-- `validate-typescript.sh` - TypeScript検証
-
-**Details**: [`hooks/INDEX.md`](hooks/INDEX.md)
-
----
-
-## 🔧 MCP Servers
-
-Located in [`mcp-servers/`](mcp-servers/) directory:
-
-| Server | Status | Purpose |
-|--------|--------|---------|
-| **filesystem** | ✅ Active | ファイルシステムアクセス |
-| **miyabi** | ✅ Active | Miyabi Rust MCP Server (JSON-RPC 2.0) |
-| **github-enhanced** | ✅ Active | Issue/PR管理 |
-| **project-context** | ✅ Active | プロジェクトコンテキスト |
-| **ide-integration** | ✅ Active | VS Code/Jupyter統合 |
-| **gemini-image-generation** | ✅ Active | 画像生成 |
-| **discord-community** | ✅ Active | Discord管理 |
-| **context-engineering** | ⚠️ Optional | コンテキスト分析 |
-| **miyabi-legacy** | ❌ Disabled | Node.js版（deprecated） |
-
-**Documentation**: [`docs/mcp/`](docs/mcp/)
-
----
-
-## 📚 Documentation Hub
-
-### Quickstart Guides
-
-Located in [`docs/quickstart/`](docs/quickstart/):
-
-- **QUICK_START.md** - 3分で始める
-- **QUICKSTART_OPTIMIZED.md** - 最適化版クイックスタート
-- **WORKSPACE_QUICKSTART.md** - ワークスペース設定
-- **MIYABI_WORKSPACE_GUIDE.md** - ワークスペースガイド
-
-### Operations Guides
-
-Located in [`docs/operations/`](docs/operations/):
-
-**tmux 関連**:
-- **TMUX_OPERATIONS.md** - tmux操作ガイド
-- **TMUX_INTEGRATION_INDEX.md** - tmux統合索引
-- **TMUX_ADVANCED_TECHNIQUES.md** - 高度なテクニック
-- **KAMUI_TMUX_GUIDE.md** - Kamui tmuxガイド
-
-**Orchestra 関連**:
-- **MIYABI_PARALLEL_ORCHESTRA.md** - 並列実行
-- **MIYABI_ORCHESTRA_INTEGRATION.md** - Orchestra統合
-- **CODEX_TMUX_PARALLEL_EXECUTION.md** - Codex並列実行
-
-**Architecture**:
-- **TMUX_A2A_HYBRID_ARCHITECTURE.md** - A2Aアーキテクチャ
-
-### Setup & Integration
-
-Located in [`docs/setup/`](docs/setup/):
-
-- **MUGEN_INTEGRATION_COMPLETE.md** - Mugen統合完了
-- **MUGEN_ENV_COMPLETE.md** - Mugen環境設定
-- **SSH_REMOTE_DEVELOPMENT_GUIDE.md** - SSHリモート開発
-- **SESSION_END_HOOKS_GUIDE.md** - セッション終了フック
-
-### MCP Documentation
-
-Located in [`docs/mcp/`](docs/mcp/):
-
-- **MCP_USAGE_GUIDE_JA.md** - MCP使用法（日本語）
-- **MCP_TEST_SUMMARY.md** - MCPテスト結果
-- **MCP_CONFIG_FIX.md** - MCP設定修正
-- **ALL_TESTS_REPORT.md** - 全テスト結果
-
-### Reference Materials
-
-Located in [`docs/reference/`](docs/reference/):
-
-- **OPTIMIZATION_SUMMARY.md** - 最適化まとめ
-- **CONTEXT_REORGANIZATION_PLAN.md** - コンテキスト再編成計画
-- **Clickfunnels_ref_url.md** - ClickFunnels参考URL
-
----
-
-## 📂 Other Resources
-
-### Guides
-
-Located in [`guides/`](guides/) directory:
-
-- **MCP_INTEGRATION_PROTOCOL.md** - MCP統合プロトコル
-- **BENCHMARK_IMPLEMENTATION.md** - ベンチマーク実装
-- **TROUBLESHOOTING.md** - トラブルシューティング
-- **LABEL_USAGE.md** - ラベル使用法
-- **SWML_CONVERGENCE.md** - SWML収束
-- **TMUX_AI_AGENT_CONTROL.md** - tmux AI Agent制御
-
-### Templates & Prompts
-
-**Templates** ([`templates/`](templates/)):
-- `reporting-protocol.md` - レポート形式
-
-**Prompts** ([`prompts/`](prompts/)):
-- `task-management-protocol.md` - タスク管理プロトコル
-- `worktree-agent-execution.md` - Worktree Agent実行
-
-### Schemas
-
-Located in [`schemas/`](schemas/) directory:
-
-- `orchestra-config.schema.yaml` - Orchestra設定スキーマ
-- `orchestra-config.example.yaml` - Orchestra設定例
-
-### Archive
-
-Located in [`archive/`](archive/) directory:
-
-古い設定ファイル、ドキュメント、移行前のファイルを保管。
-
----
-
-## 🎯 Use Case Navigation
-
-### Starting a New Task
-
-1. Read [`docs/quickstart/QUICK_START.md`](docs/quickstart/QUICK_START.md)
-2. Check [`context/core-rules.md`](context/core-rules.md)
-3. Use appropriate Skill or slash command
-
-### Debugging an Issue
-
-1. Check [`guides/TROUBLESHOOTING.md`](guides/TROUBLESHOOTING.md)
-2. Review [`context/development.md`](context/development.md)
-3. Use `debugging-troubleshooting` Skill
-
-### Running an Agent
-
-1. Review [`agents/README.md`](agents/README.md)
-2. Check agent spec in [`agents/specs/`](agents/specs/)
-3. Use `agent-execution` Skill or `/agent-run`
-
-### tmux Orchestra
-
-1. Read [`docs/operations/MIYABI_PARALLEL_ORCHESTRA.md`](docs/operations/MIYABI_PARALLEL_ORCHESTRA.md)
-2. Start with `/tmux-orchestra-start`
-3. Monitor with `/daily-update`
-
-### MCP Integration
-
-1. Read [`guides/MCP_INTEGRATION_PROTOCOL.md`](guides/MCP_INTEGRATION_PROTOCOL.md)
-2. Check available servers: `claude mcp list`
-3. Add server to [`mcp.json`](mcp.json)
-
----
-
-## 🔍 Priority Guide
-
-### ⭐⭐⭐⭐⭐ Essential (Read First)
-
-- [`README.md`](README.md)
-- [`context/core-rules.md`](context/core-rules.md)
-- [`docs/quickstart/QUICK_START.md`](docs/quickstart/QUICK_START.md)
-- [`settings.json`](settings.json)
-- [`mcp.json`](mcp.json)
-
-### ⭐⭐⭐⭐ High Priority
-
-- [`context/architecture.md`](context/architecture.md)
-- [`context/agents.md`](context/agents.md)
-- [`context/worktree.md`](context/worktree.md)
-- [`context/rust.md`](context/rust.md)
-- [`docs/operations/TMUX_OPERATIONS.md`](docs/operations/TMUX_OPERATIONS.md)
-- [`guides/MCP_INTEGRATION_PROTOCOL.md`](guides/MCP_INTEGRATION_PROTOCOL.md)
-
-### ⭐⭐⭐ Medium Priority
-
-- Other context files in [`context/`](context/)
-- Agent specifications in [`agents/specs/`](agents/specs/)
-- Command documentation in [`commands/`](commands/)
-- Operation guides in [`docs/operations/`](docs/operations/)
-
-### ⭐⭐ Low Priority (As Needed)
-
-- Setup guides in [`docs/setup/`](docs/setup/)
-- Reference materials in [`docs/reference/`](docs/reference/)
-- Archive files in [`archive/`](archive/)
-
----
-
-## 🔄 Recent Updates
-
-### v2.0 (2025-11-11) - Directory Structure Optimization
-
-**Changes**:
-- ✅ Created `docs/` directory with categorized subdirectories
-- ✅ Moved root .md files to appropriate `docs/` subdirectories
-- ✅ Separated MCP documentation from implementation
-- ✅ Removed duplicate config files (archived)
-- ✅ Maintained `Skills/` and `agents/` structure (Claude Code compatible)
-- ✅ Updated `README.md` with new structure
-- ✅ Updated this `INDEX.md`
-
-**Migration Paths**:
-```
-Old: .claude/QUICK_START.md
-New: .claude/docs/quickstart/QUICK_START.md
-
-Old: .claude/TMUX_OPERATIONS.md
-New: .claude/docs/operations/TMUX_OPERATIONS.md
-
-Old: .claude/mcp-servers/MCP_USAGE_GUIDE_JA.md
-New: .claude/docs/mcp/MCP_USAGE_GUIDE_JA.md
+```bash
+# Termux起動時に自動実行される
+# - ~/Dev/miyabi-private へ自動移動
+# - 24個の環境変数ロード
+# - 30+個のエイリアス有効化
+# - 24個のMCPサーバー利用可能
 ```
 
-### See Also
-
-- [`docs/reference/OPTIMIZATION_SUMMARY.md`](docs/reference/OPTIMIZATION_SUMMARY.md)
-- [`docs/reference/CONTEXT_REORGANIZATION_PLAN.md`](docs/reference/CONTEXT_REORGANIZATION_PLAN.md)
-
----
-
-## 📊 Statistics
-
-- **Core Config Files**: 5
-- **Context Modules**: 17
-- **Skills**: 19
-- **Agent Specs**: 21
-- **Slash Commands**: 33
-- **Hooks**: 29
-- **MCP Servers**: 9 (7 active)
-- **Documentation Files**: 50+
+**よく使うコマンド**:
+```bash
+mstatus       # プロジェクトステータス
+mcp-tools     # MCPサーバーリスト
+m             # プロジェクトルートへ
+c             # MUGEN Claude Code接続
+```
 
 ---
 
-## 📞 Support
+## 📂 .claude ディレクトリ構造
 
-**Troubleshooting**: [`guides/TROUBLESHOOTING.md`](guides/TROUBLESHOOTING.md)
-**Health Check**: `./hooks/health-check.sh`
-**MCP Status**: `claude mcp list`
-**GitHub Issues**: https://github.com/ShunsukeHayashi/Miyabi/issues
+### 📋 ドキュメント (Top Level)
+
+| ファイル | 説明 |
+|---------|------|
+| `../CLAUDE.md` | **マスターマニュアル** - Pixel/Termux開発の全て |
+| `INDEX.md` | **このファイル** - クイックリファレンス |
+| `README.md` | .claudeディレクトリの説明 |
+
+### 🤖 Agents
+
+| パス | 説明 |
+|------|------|
+| `agents/AGENT_CHARACTERS.md` | Agentキャラクター定義 (14キャラ) |
+| `agents/specs/` | 各Agent詳細仕様書 |
+| `agents/prompts/` | Agentプロンプトテンプレート |
+| `agents/triggers.json` | Agentトリガー設定 |
+| `agents/agent-name-mapping.json` | Agent名マッピング |
+
+### 📚 Context
+
+| ファイル | 説明 |
+|---------|------|
+| `context/agents.md` | Agent概要・一覧 |
+| `context/architecture.md` | システムアーキテクチャ |
+| `context/development.md` | 開発ガイドライン |
+| `context/protocols.md` | 通信プロトコル |
+| `context/rust.md` | **Rust開発規約** |
+| `context/typescript.md` | **TypeScript開発規約** |
+| `context/labels.md` | GitHubラベル体系 |
+| `context/worktree.md` | Git Worktree運用 |
+| `context/obsidian-integration.md` | **Obsidian連携詳細** |
+| `context/external-deps.md` | 外部依存関係 |
+
+### 🎯 Skills (20+個)
+
+| スキル | 説明 |
+|--------|------|
+| `Skills/agent-execution/` | Agent実行スキル |
+| `Skills/business-strategy-planning/` | ビジネス戦略立案 |
+| `Skills/content-marketing-strategy/` | コンテンツマーケティング |
+| `Skills/debugging-troubleshooting/` | デバッグ・トラブルシュート |
+| `Skills/documentation-generation/` | ドキュメント生成 |
+| `Skills/git-workflow/` | Git ワークフロー |
+| `Skills/issue-analysis/` | Issue分析 |
+| `Skills/market-research-analysis/` | 市場調査分析 |
+| ... | 他12個のスキル |
+
+### 🔧 Configuration
+
+| ファイル | 説明 |
+|---------|------|
+| `mcp.json` | **MCP設定** (要Termux最適化) |
+| `settings.json` | 開発環境設定 |
+| `orchestra-config.yaml` | オーケストラ設定 |
+| `hooks.json` | フック設定 |
+
+### 📁 Other Directories
+
+| ディレクトリ | 説明 |
+|-------------|------|
+| `commands/` | カスタムコマンド |
+| `hooks/` | Git/開発フック |
+| `prompts/` | プロンプトテンプレート |
+| `templates/` | 各種テンプレート |
+| `workflows/` | ワークフロー定義 |
+| `scripts/` | 開発スクリプト |
+| `docs/` | ドキュメント |
+| `projects/` | プロジェクト固有設定 |
+| `systems/` | システム設定 |
+| `tasks/` | タスク定義 |
 
 ---
 
-**Maintained by**: Miyabi Team
-**Last Updated**: 2025-11-11
-**Status**: ✅ Active
-**Version**: 2.0.0
+## 🔌 MCP Servers (24個)
+
+### Gemini 3 (2個)
+- `gemini3-uiux-designer` - UI/UX設計レビュー
+- `gemini3-adaptive-runtime` - 適応的ランタイム
+
+### Lark (3個)
+- `lark-openapi-enhanced` - Lark API統合
+- `lark-wiki-agents` - Lark Wiki
+- `lark-mcp-enhanced` - 拡張Lark
+
+### Miyabi Core (13個)
+- `miyabi-obsidian` - Obsidian操作
+- `miyabi-github` - GitHub操作
+- `miyabi-tmux` - tmux管理
+- `miyabi-file-access` - ファイル操作
+- `miyabi-file-watcher` - ファイル監視
+- `miyabi-git-inspector` - Git検査
+- `miyabi-log-aggregator` - ログ集約
+- `miyabi-network-inspector` - ネットワーク監視
+- `miyabi-process-inspector` - プロセス監視
+- `miyabi-resource-monitor` - リソース監視
+- `miyabi-rules` - ルールエンジン
+- `miyabi-sse-gateway` - SSEゲートウェイ
+- `miyabi-mcp` - メインMCP
+
+### AI Integration (3個)
+- `miyabi-codex` - Codex統合
+- `miyabi-openai-assistant` - OpenAI
+- `miyabi-commercial-agents` - 商用Agent
+
+### Dev Tools (3個)
+- `context-engineering` - コンテキストエンジニアリング
+- `miyabi-claude-code` - Claude Code統合
+- `miyabi-pixel-mcp` - Pixel専用MCP
+
+---
+
+## 🎯 タスク別リファレンス
+
+### Issue管理
+
+**Issue確認**:
+```bash
+# MCP経由
+mcp-github list_issues
+
+# MUGEN経由
+ssh mugen -t "cd miyabi-private && gh issue list"
+```
+
+**Issue作成**:
+```bash
+mcp-github create_issue "タイトル" "本文"
+```
+
+**Issueに取り組む**:
+```bash
+mi 123    # MUGEN接続してIssue #123開始
+```
+
+### コード編集
+
+**軽微な編集 (Pixel)**:
+```bash
+nano <file>
+vim <file>
+```
+
+**大規模編集 (MUGEN)**:
+```bash
+c     # Claude Code起動
+```
+
+**高性能環境 (MAJIN)**:
+```bash
+jcc   # MAJIN CPU + Claude Code
+jgc   # MAJIN GPU + Claude Code
+```
+
+### ビルド & テスト
+
+**全てMUGENで実行**:
+```bash
+mb      # build
+mbt     # test
+mbc     # clippy
+mbr     # build --release
+```
+
+### Git操作
+
+**ステータス確認**:
+```bash
+mgit    # または mgs
+```
+
+**履歴**:
+```bash
+mgl     # log (直近10件)
+```
+
+**差分**:
+```bash
+mgd     # diff
+```
+
+**同期**:
+```bash
+mgp     # pull
+mgpu    # push
+```
+
+### ドキュメント
+
+**Obsidian**:
+```bash
+# MCP経由
+mcp-obsidian create_note "タイトル" "内容"
+mcp-obsidian search "キーワード"
+
+# Vault位置
+~/storage/shared/Obsidian/MiyabiVault/
+```
+
+**音声メモ**:
+```bash
+mvn     # 音声ノート (voice-notes.txt)
+vn      # タイムスタンプ付きボイスノート
+```
+
+### ファイル同期
+
+**MUGENから取得**:
+```bash
+msync   # miyabi-sync-from-mac
+```
+
+**MUGENへ送信**:
+```bash
+mpush   # miyabi-sync-to-mac
+```
+
+---
+
+## 🔍 よくある質問
+
+### Q: どのファイルを読めば良い?
+
+**初めての場合**:
+1. `../CLAUDE.md` - 全体像把握
+2. `context/architecture.md` - アーキテクチャ理解
+3. `context/development.md` - 開発規約確認
+
+**Agent開発する場合**:
+1. `agents/AGENT_CHARACTERS.md` - キャラクター理解
+2. `agents/specs/<agent名>/` - 仕様書確認
+3. `context/agents.md` - Agent概要
+
+**Rust開発する場合**:
+1. `context/rust.md` - Rust規約
+2. `context/development.md` - 一般開発規約
+3. `context/worktree.md` - Worktree運用
+
+**Obsidian連携する場合**:
+1. `context/obsidian-integration.md` - **最重要**
+2. Vault位置確認: `~/storage/shared/Obsidian/MiyabiVault/`
+
+### Q: MCPツールが動かない
+
+**確認項目**:
+```bash
+# Node.js確認
+which node && node --version
+
+# MCP servers確認
+ls -la ~/Dev/miyabi-private/mcp-servers/
+
+# 環境変数確認
+echo $MIYABI_MCP
+
+# Termux再起動
+exit  # 再度開く
+```
+
+### Q: MUGEN/MAJINに接続できない
+
+**確認**:
+```bash
+# SSH設定
+cat ~/.ssh/config | grep -A 5 "mugen\|majin"
+
+# 接続テスト
+ssh mugen echo "OK"
+ssh majin echo "OK"
+
+# 鍵権限
+chmod 600 ~/.ssh/id_ed25519
+```
+
+### Q: Obsidianで見えない
+
+**原因**: パスが間違っている
+
+**正解**:
+```bash
+~/storage/shared/Obsidian/MiyabiVault/
+```
+
+**不正解**:
+```bash
+~/Obsidian/MIYABI/  # ←Git管理用、アプリ非対応
+```
+
+---
+
+## 📊 環境変数 (自動ロード済み)
+
+```bash
+# プロジェクト
+$MIYABI_ROOT          # ~/Dev/miyabi-private
+$MIYABI_MCP           # MCP servers dir
+$MIYABI_SCRIPTS       # scripts dir
+$MIYABI_DOCS          # docs dir
+$MIYABI_CRATES        # crates dir
+
+# Obsidian
+$OBSIDIAN_VAULT       # ~/storage/shared/Obsidian/MiyabiVault
+
+# API Keys
+$GEMINI_API_KEY       # Gemini API
+$GEMINI_MODEL         # gemini-2.0-flash-thinking-exp-01-21
+$LARK_APP_ID          # Lark App ID
+$LARK_APP_SECRET      # Lark Secret
+$XAI_API_KEY          # Grok API
+$GITHUB_TOKEN         # GitHub
+$GITHUB_OWNER         # customer-cloud
+$GITHUB_REPO          # miyabi-private
+$AWS_ACCESS_KEY_ID    # AWS
+$AWS_SECRET_ACCESS_KEY
+$AWS_DEFAULT_REGION   # us-east-2
+$AWS_ACCOUNT_ID       # 112530848482
+```
+
+---
+
+## 🎬 開発体制
+
+| マシン | 役割 | 主な用途 |
+|--------|------|---------|
+| **Pixel (MAESTRO)** | 指揮官 | Issue管理、ドキュメント、音声入力 |
+| **MUGEN (ORCHESTRATOR)** | 開発環境 | コーディング、ビルド、テスト |
+| **MAJIN (COORDINATOR)** | 並列処理 | 高負荷処理、GPU処理、並列実行 |
+
+---
+
+**詳細**: `../CLAUDE.md` を参照
+**更新**: 機能追加時または環境変更時
+**管理**: Claude Code on Pixel

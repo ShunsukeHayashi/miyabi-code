@@ -8,7 +8,7 @@
 
 **miyabi_def** is the **machine-readable source of truth** for the entire Miyabi project. It provides structured, template-based definitions using Jinja2 + YAML format.
 
-**Location**: `/Users/shunsuke/Dev/miyabi-private/miyabi_def/`
+**Location**: `/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/`
 
 ## 📊 Core Components
 
@@ -164,10 +164,10 @@ Where:
 When working with entities:
 ```bash
 # Read entity definitions
-cat /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/entities.yaml
+cat /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/entities.yaml
 
 # Search for specific entity
-grep -A 20 "E3_Agent:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/entities.yaml
+grep -A 20 "E3_Agent:" /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/entities.yaml
 ```
 
 ### Pattern 2: Label Assignment
@@ -175,10 +175,10 @@ grep -A 20 "E3_Agent:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/e
 When assigning labels to Issues:
 ```bash
 # View all label definitions
-cat /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/labels.yaml
+cat /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/labels.yaml
 
 # Search for specific category
-grep -A 10 "STATE:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/labels.yaml
+grep -A 10 "STATE:" /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/labels.yaml
 ```
 
 ### Pattern 3: Workflow Stage Identification
@@ -186,10 +186,10 @@ grep -A 10 "STATE:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/labe
 When determining current workflow stage:
 ```bash
 # View workflow definitions
-cat /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/workflows.yaml
+cat /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/workflows.yaml
 
 # Search for specific workflow
-grep -A 30 "W3_Code_Implementation:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/workflows.yaml
+grep -A 30 "W3_Code_Implementation:" /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/workflows.yaml
 ```
 
 ### Pattern 4: Agent Capability Lookup
@@ -197,10 +197,10 @@ grep -A 30 "W3_Code_Implementation:" /Users/shunsuke/Dev/miyabi-private/miyabi_d
 When selecting appropriate agent for task:
 ```bash
 # View agent definitions
-cat /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/agents.yaml
+cat /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/agents.yaml
 
 # Check agent responsibilities
-grep -A 15 "CoordinatorAgent:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/variables/agents.yaml
+grep -A 15 "CoordinatorAgent:" /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def/variables/agents.yaml
 ```
 
 ## 📊 Generating Outputs
@@ -208,7 +208,7 @@ grep -A 15 "CoordinatorAgent:" /Users/shunsuke/Dev/miyabi-private/miyabi_def/var
 The miyabi_def system uses Jinja2 templates to generate formatted YAML outputs:
 
 ```bash
-cd /Users/shunsuke/Dev/miyabi-private/miyabi_def
+cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_def
 
 # Activate virtual environment
 source .venv/bin/activate
