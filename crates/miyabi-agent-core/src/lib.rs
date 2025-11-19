@@ -5,6 +5,7 @@
 
 pub mod auto_index_hook;
 pub mod base;
+pub mod config;
 pub mod hooks;
 pub mod observable;
 pub mod orchestration;
@@ -14,6 +15,11 @@ pub mod prompt_enhancement;
 
 pub use auto_index_hook::AutoIndexHook;
 pub use base::BaseAgent;
+pub use config::{
+    AllConfig, ConfigLoader, load_config, load_core_config, load_credentials_config,
+    load_agents_config, load_runtime_config, MiyabiConfig, CredentialsConfig,
+    AgentsConfig, RuntimeConfig,
+};
 pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
 pub use observable::{LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
