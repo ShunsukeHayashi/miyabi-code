@@ -1,0 +1,84 @@
+{
+  "task_id": "task-1731753007-status-transition",
+  "version": "1.0.0",
+  "created_at": "2025-11-16T11:10:07.000Z",
+  "updated_at": "2025-11-16T11:10:07.000Z",
+  "from": "orchestrator",
+  "to": "orchestrator",
+  "priority": "P0",
+  "directive": "Implement automatic task status transitions (pending → in_progress → completed)",
+  "description": "Add automatic status management that moves task files between directories as execution progresses. This provides real-time visibility into task lifecycle and enables proper progress tracking.",
+  "execution": {
+    "type": "standard",
+    "estimated_hours": 2,
+    "dependencies": []
+  },
+  "status": "completed",
+  "completed_at": "2025-11-17T00:13:40Z",
+  "assigned_to": "orchestrator",
+  "metadata": {
+    "tags": ["automation", "status-management", "lifecycle", "P0"],
+    "category": "task-management",
+    "impact": "critical"
+  },
+  "requirements": {
+    "implementation": [
+      "Create crates/miyabi-orchestrator/src/task_lifecycle.rs",
+      "Implement transition_to_in_progress() function",
+      "Implement transition_to_completed() function",
+      "Implement transition_to_failed() function",
+      "Add file move operations with atomic write",
+      "Update task JSON with timestamps during transitions"
+    ],
+    "state_transitions": [
+      "pending → in_progress: Move to .claude/tasks/in_progress/",
+      "in_progress → completed: Move to .claude/tasks/completed/",
+      "in_progress → failed: Move to .claude/tasks/failed/",
+      "any → cancelled: Move to .claude/tasks/cancelled/"
+    ],
+    "metadata_updates": [
+      "Update 'status' field in JSON",
+      "Set 'started_at' when → in_progress",
+      "Set 'completed_at' when → completed",
+      "Set 'failed_at' when → failed",
+      "Add 'error' field for failures"
+    ],
+    "monitoring": [
+      "Create monitor_task_progress() function",
+      "Poll task execution status every 10 seconds",
+      "Detect completion/failure automatically",
+      "Trigger appropriate transition"
+    ],
+    "testing": [
+      "Test pending → in_progress transition",
+      "Test in_progress → completed transition",
+      "Test error handling (failed state)",
+      "Verify atomic file moves",
+      "Test concurrent transitions"
+    ]
+  },
+  "acceptance_criteria": [
+    "Task files automatically move between directories on status change",
+    "All transitions update task JSON with correct timestamps",
+    "File moves are atomic (no partial writes)",
+    "Failed tasks move to failed/ directory",
+    "Status changes logged to execution log",
+    "Dashboard reflects real-time status"
+  ],
+  "references": {
+    "files": [
+      "crates/miyabi-orchestrator/src/task_lifecycle.rs",
+      "crates/miyabi-cli/src/commands/task.rs",
+      ".claude/tasks/"
+    ],
+    "state_diagram": [
+      "pending → in_progress → completed",
+      "pending → in_progress → failed",
+      "any_state → cancelled"
+    ],
+    "related_tasks": [
+      "task-1731753007-polling-worker",
+      "task-1731753007-auto-routing"
+    ]
+  }
+}

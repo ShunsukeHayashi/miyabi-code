@@ -1,0 +1,30 @@
+{
+  "task_id": "task-1731753007-auto-routing",
+  "from": "orchestrator",
+  "priority": "P0",
+  "directive": "Implement automatic task routing based on assigned_to field",
+  "created_at": "2025-11-16T11:10:07Z",
+  "updated_at": "2025-11-17T00:52:00Z",
+  "completed_at": "2025-11-17T00:52:00Z",
+  "assigned_to": "orchestrator",
+  "status": "completed",
+  "dependencies": [],
+  "notes": "Implemented as part of Polling Worker (task-1731753007-polling-worker)",
+  "implementation_summary": {
+    "location": "scripts/workers/polling-worker.sh",
+    "function": "execute_task() with case statement for routing",
+    "routes_implemented": [
+      "orchestrator/local → execute_local_task()",
+      "mugen → execute_remote_task() to MUGEN Coordinator (44.250.27.197)",
+      "majin → execute_remote_task() to MAJIN Coordinator (54.92.67.11)",
+      "pixel → execute_remote_task() to Pixel Termux (192.168.3.9:8022)",
+      "* → Default to local execution with warning"
+    ]
+  },
+  "acceptance_criteria_met": [
+    "✅ Tasks automatically routed based on assigned_to field",
+    "✅ Local orchestrator tasks executed locally",
+    "✅ Remote coordinator tasks identified and queued",
+    "✅ Unknown assignments default to local with warning"
+  ]
+}

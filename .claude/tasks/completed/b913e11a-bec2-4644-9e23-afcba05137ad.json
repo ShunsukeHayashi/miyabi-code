@@ -1,0 +1,12 @@
+{
+  "task_id": "b913e11a-bec2-4644-9e23-afcba05137ad",
+  "from": "orchestrator",
+  "priority": "P2",
+  "directive": "Test task: Write a simple hello world script",
+  "created_at": "2025-11-16T14:18:28.739335Z",
+  "updated_at": "2025-11-16T14:18:56.638482Z",
+  "assigned_to": "orchestrator",
+  "status": "completed",
+  "dependencies": [],
+  "notes": null
+}

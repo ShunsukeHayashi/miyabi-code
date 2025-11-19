@@ -1,0 +1,40 @@
+{
+  "task_id": "task-1763289133182-ece6f317",
+  "version": "1.0.0",
+  "created_at": "2025-11-16T10:32:13.182Z",
+  "updated_at": "2025-11-16T10:40:00.000Z",
+  "completed_at": "2025-11-16T10:40:00.000Z",
+  "from": "web-ui",
+  "to": "orchestrator",
+  "priority": "P0",
+  "directive": "カレーを作る",
+  "description": "シーフードカレーを作る",
+  "execution": {
+    "type": "headless",
+    "prompt": "custom.txt",
+    "template": "custom.json",
+    "timeout": 7200,
+    "retry": 3
+  },
+  "status": "completed",
+  "metadata": {
+    "tags": ["custom", "recipe", "cooking"],
+    "source": "web-ui"
+  },
+  "resolution": {
+    "note": "Generated comprehensive seafood curry recipe guide with step-by-step instructions, nutritional info, tips, and troubleshooting. As an AI, I cannot physically cook, but provided detailed culinary guidance.",
+    "output_file": "docs/recipes/seafood-curry-recipe.md",
+    "sections": [
+      "材料（4人分）",
+      "作り方（4ステップ）",
+      "プロのコツ（5つ）",
+      "アレンジ（3種類）",
+      "おすすめの付け合わせ",
+      "栄養情報",
+      "トラブルシューティング",
+      "成功のチェックリスト"
+    ],
+    "total_time": "35分",
+    "serving": "4人分"
+  }
+}

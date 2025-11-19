@@ -1,0 +1,315 @@
+# Miyabi → 200-Parallel Orchestra Integration Configuration
+# Version: 1.0.0
+# Last Updated: 2025-11-11
+
+# ===================================================================
+# Orchestra Connection
+# ===================================================================
+orchestra:
+  root: "/Users/shunsuke/Dev/multi_codex_Mugen_miyabi-orchestra"
+  control_socket: "/tmp/miyabi-orchestra-control.sock"
+  api_endpoint: "http://localhost:8080/orchestra/api"
+
+  ssh:
+    mugen:
+      host: "mugen"
+      user: "ubuntu"
+      key: "~/.ssh/mugen-key.pem"
+    majin:
+      host: "majin"
+      user: "ubuntu"
+      key: "~/.ssh/majin-key.pem"
+
+# ===================================================================
+# Instance Distribution
+# ===================================================================
+distribution:
+  total_instances: 200
+  allocation:
+    mugen: 100
+    majin: 100
+
+  # Reserve instances for specific purposes
+  reserved:
+    - purpose: "High-priority Miyabi agents"
+      instances: 20
+      hosts: ["mugen"]
+
+    - purpose: "Business agent parallel batch"
+      instances: 140  # 14 agents x 10 instances
+      hosts: ["mugen:70", "majin:70"]
+
+    - purpose: "Dynamic task queue"
+      instances: 40
+      hosts: ["mugen:20", "majin:20"]
+
+# ===================================================================
+# Miyabi Agent Mapping
+# ===================================================================
+agent_mapping:
+  # Coding Agents (6) - Already deployed in Miyabi's tmux orchestra
+  coding_agents:
+    - name: "IssueAgent"
+      character: "みつけるん"
+      orchestra_role: "task_generator"
+      priority: "high"
+      instances: 0  # Runs in Miyabi's local tmux, not in 200-parallel
+
+    - name: "CoordinatorAgent"
+      character: "しきるん"
+      orchestra_role: "task_distributor"
+      priority: "high"
+      instances: 0  # Runs locally
+
+    - name: "CodeGenAgent"
+      character: "カエデ"
+      orchestra_role: "code_executor"
+      priority: "high"
+      instances: 10  # Can scale out to orchestra
+
+    - name: "ReviewAgent"
+      character: "サクラ"
+      orchestra_role: "code_reviewer"
+      priority: "high"
+      instances: 10
+
+    - name: "PRAgent"
+      character: "ツバキ"
+      orchestra_role: "pr_creator"
+      priority: "medium"
+      instances: 5
+
+    - name: "DeploymentAgent"
+      character: "ボタン"
+      orchestra_role: "deployer"
+      priority: "medium"
+      instances: 5
+
+  # Business Agents (14) - Scale out to 200-parallel
+  business_agents:
+    strategy:
+      - name: "AIEntrepreneurAgent"
+        character: "あきんどさん"
+        orchestra_role: "business_planner"
+        priority: "high"
+        instances: 1  # Leader - only 1 instance
+        host: "mugen"
+
+      - name: "ProductConceptAgent"
+        character: "けいかくん"
+        orchestra_role: "product_designer"
+        priority: "high"
+        instances: 15
+        distribution: "mugen:8,majin:7"
+
+      - name: "ProductDesignAgent"
+        character: "つくるん2号"
+        orchestra_role: "service_designer"
+        priority: "high"
+        instances: 15
+        distribution: "mugen:8,majin:7"
+
+      - name: "FunnelDesignAgent"
+        character: "みちしるべん"
+        orchestra_role: "funnel_optimizer"
+        priority: "high"
+        instances: 10
+        distribution: "mugen:5,majin:5"
+
+      - name: "PersonaAgent"
+        character: "よみとるん"
+        orchestra_role: "persona_designer"
+        priority: "medium"
+        instances: 10
+        distribution: "mugen:5,majin:5"
+
+      - name: "SelfAnalysisAgent"
+        character: "しらべるん"
+        orchestra_role: "career_analyzer"
+        priority: "medium"
+        instances: 5
+        distribution: "mugen:3,majin:2"
+
+    marketing:
+      - name: "MarketResearchAgent"
+        character: "しらべるん2号"
+        orchestra_role: "market_researcher"
+        priority: "high"
+        instances: 15
+        distribution: "mugen:8,majin:7"
+
+      - name: "MarketingAgent"
+        character: "ひろめるん"
+        orchestra_role: "marketing_strategist"
+        priority: "high"
+        instances: 15
+        distribution: "mugen:8,majin:7"
+
+      - name: "ContentCreationAgent"
+        character: "かくちゃん"
+        orchestra_role: "content_creator"
+        priority: "high"
+        instances: 20  # High demand
+        distribution: "mugen:10,majin:10"
+
+      - name: "SNSStrategyAgent"
+        character: "つぶやくん"
+        orchestra_role: "sns_strategist"
+        priority: "medium"
+        instances: 10
+        distribution: "mugen:5,majin:5"
+
+      - name: "YouTubeAgent"
+        character: "どうがくん"
+        orchestra_role: "youtube_optimizer"
+        priority: "medium"
+        instances: 10
+        distribution: "mugen:5,majin:5"
+
+    sales:
+      - name: "SalesAgent"
+        character: "うるん"
+        orchestra_role: "sales_optimizer"
+        priority: "high"
+        instances: 15
+        distribution: "mugen:8,majin:7"
+
+      - name: "CRMAgent"
+        character: "ささえるん"
+        orchestra_role: "crm_manager"
+        priority: "high"
+        instances: 15
+        distribution: "mugen:8,majin:7"
+
+      - name: "AnalyticsAgent"
+        character: "かぞえるん"
+        orchestra_role: "data_analyst"
+        priority: "high"
+        instances: 20  # High demand for analysis
+        distribution: "mugen:10,majin:10"
+
+# ===================================================================
+# Task Routing Rules
+# ===================================================================
+task_routing:
+  # Route tasks from Miyabi's local tmux to 200-parallel orchestra
+  routes:
+    - source: "IssueAgent"
+      condition: "issue.type == 'business_analysis'"
+      target_agent: "AIEntrepreneurAgent"
+      priority: "high"
+
+    - source: "IssueAgent"
+      condition: "issue.labels contains 'marketing'"
+      target_agent: "MarketingAgent"
+      priority: "high"
+
+    - source: "CoordinatorAgent"
+      condition: "task.type == 'parallel_batch'"
+      action: "distribute_to_orchestra"
+      instances: "auto"  # Auto-scale based on task count
+
+    - source: "CodeGenAgent"
+      condition: "task.complexity == 'high' AND parallel_safe == true"
+      action: "scale_out"
+      instances: 10
+
+    - source: "ReviewAgent"
+      condition: "pr.files_changed > 20"
+      action: "parallel_review"
+      instances: 5
+
+# ===================================================================
+# Rate Limiting & Control
+# ===================================================================
+rate_limiting:
+  api_limits:
+    anthropic:
+      rpm: 5000
+      tpm: 800000
+      provider: "claude-3-5-sonnet"
+
+    openai:
+      rpm: 3000
+      tpm: 500000
+      provider: "gpt-4"
+
+  circuit_breaker:
+    enabled: true
+    threshold: 10  # errors
+    window: 60     # seconds
+    cooldown: 300  # 5 minutes
+
+  adaptive_throttling:
+    enabled: true
+    sensitivity: "medium"
+    auto_scale_down: true
+
+# ===================================================================
+# Monitoring & Logging
+# ===================================================================
+monitoring:
+  dashboard:
+    enabled: true
+    port: 8081
+    refresh_interval: 1  # seconds
+
+  metrics:
+    export_path: "/Users/shunsuke/Dev/miyabi-private/.miyabi/metrics/"
+    export_interval: 300  # 5 minutes
+    format: "prometheus"
+
+  logging:
+    level: "info"
+    path: "/Users/shunsuke/Dev/miyabi-private/.miyabi/logs/"
+    rotation: "daily"
+    retention_days: 30
+
+# ===================================================================
+# Emergency Procedures
+# ===================================================================
+emergency:
+  auto_shutdown:
+    enabled: true
+    triggers:
+      - condition: "api_error_rate > 0.5"
+        action: "pause_all"
+
+      - condition: "cost_per_hour > 100"
+        action: "emergency_stop"
+
+      - condition: "memory_usage > 0.95"
+        action: "scale_down"
+
+  notification:
+    slack:
+      enabled: false
+      webhook: "${SLACK_WEBHOOK_URL}"
+
+    email:
+      enabled: false
+      recipients: ["admin@example.com"]
+
+# ===================================================================
+# Integration Commands
+# ===================================================================
+commands:
+  # Miyabi can invoke these commands via the control bridge
+  available:
+    - "orchestra.start"
+    - "orchestra.stop"
+    - "orchestra.scale"
+    - "orchestra.submit_task"
+    - "orchestra.deploy_agents"
+    - "orchestra.status"
+    - "orchestra.emergency_stop"
+    - "miyabi.agent_execute"
+    - "miyabi.agent_batch"
+    - "miyabi.deploy_business_agents"
+
+  # Quick aliases
+  aliases:
+    deploy_all: "miyabi.deploy_business_agents"
+    emergency: "orchestra.emergency_stop"
+    watch: "orchestra.watch"
+    metrics: "orchestra.export_metrics"

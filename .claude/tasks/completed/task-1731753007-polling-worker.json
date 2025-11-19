@@ -1,0 +1,77 @@
+{
+  "task_id": "task-1731753007-polling-worker",
+  "version": "1.0.0",
+  "created_at": "2025-11-16T11:10:07.000Z",
+  "updated_at": "2025-11-17T00:48:00.000Z",
+  "completed_at": "2025-11-17T00:48:00.000Z",
+  "from": "orchestrator",
+  "to": "orchestrator",
+  "priority": "P0",
+  "directive": "Implement and launch Polling Worker for automatic task detection",
+  "description": "Create a background service that continuously monitors .claude/tasks/pending/ directory and automatically picks up new tasks for execution. This is the foundation of the automation system.",
+  "execution": {
+    "type": "standard",
+    "estimated_hours": 3,
+    "actual_hours": 2.8,
+    "dependencies": []
+  },
+  "status": "completed",
+  "assigned_to": "orchestrator",
+  "metadata": {
+    "tags": ["automation", "polling-worker", "background-service", "P0"],
+    "category": "infrastructure",
+    "impact": "critical"
+  },
+  "implementation_summary": {
+    "files_created": [
+      "scripts/workers/polling-worker.sh (300 lines)",
+      "scripts/workers/install-polling-worker.sh (200 lines)",
+      "config/launchd/com.miyabi.polling-worker.plist"
+    ],
+    "directories_created": [
+      "scripts/workers/",
+      "config/launchd/",
+      "logs/workers/",
+      ".miyabi/"
+    ],
+    "features_implemented": [
+      "5-second polling interval for .claude/tasks/pending/",
+      "Priority-based task sorting (P0 > P1 > P2)",
+      "Automatic task routing based on assigned_to field",
+      "Task status transitions (pending → in_progress)",
+      "Comprehensive logging to logs/workers/polling-worker.log",
+      "State persistence in .miyabi/polling-worker-state.json",
+      "launchd service with KeepAlive for continuous operation",
+      "Graceful shutdown with SIGINT/SIGTERM handlers",
+      "Error handling and retry mechanism"
+    ],
+    "service_details": {
+      "label": "com.miyabi.polling-worker",
+      "plist": "~/Library/LaunchAgents/com.miyabi.polling-worker.plist",
+      "keep_alive": true,
+      "run_at_load": true,
+      "process_type": "Background",
+      "throttle_interval": 10
+    }
+  },
+  "acceptance_criteria_met": [
+    "✅ Polling worker runs continuously as launchd daemon",
+    "✅ New tasks in pending/ detected within 5 seconds",
+    "✅ Tasks sorted by priority before execution",
+    "✅ Worker logs to logs/polling-worker.log",
+    "✅ Service survives system reboot (KeepAlive + RunAtLoad)"
+  ],
+  "test_results": {
+    "manual_test": "PASS - Detected 4 tasks correctly, processed in priority order",
+    "service_test": "PASS - Installed as launchd service, PID 79415",
+    "priority_sorting": "PASS - P0 before P1 before P2",
+    "logging": "PASS - All operations logged correctly",
+    "state_persistence": "PASS - State file updated correctly"
+  },
+  "next_steps": [
+    "Integrate with miyabi CLI for actual task execution",
+    "Implement SSH delegation for remote coordinators (MUGEN, MAJIN, Pixel)",
+    "Add notification to Maestro on task pickup",
+    "Create metrics dashboard for worker performance"
+  ]
+}

@@ -1,0 +1,349 @@
+# Miyabi Agent Deployment Manifest for 200-Parallel Orchestra
+# Version: 1.0.0
+# Last Updated: 2025-11-11
+
+# ===================================================================
+# Agent Deployment Configuration
+# ===================================================================
+deployment:
+  name: "Miyabi Business Agents - 200 Parallel"
+  version: "1.0.0"
+  total_agents: 14
+  total_instances: 176
+  reserved_instances: 24  # For dynamic queue
+
+  strategy:
+    parallel_execution: true
+    auto_scaling: true
+    load_balancing: "round-robin"
+    failure_recovery: "auto-restart"
+
+# ===================================================================
+# Agent Definitions
+# ===================================================================
+agents:
+  # Strategy & Planning (6 agents, 56 instances)
+  - name: "ai-entrepreneur"
+    character: "あきんどさん"
+    type: "business_strategy"
+    role: "leader"
+    instances: 1
+    host: "mugen"
+    priority: "critical"
+    max_parallel: 1  # Leader - no parallel
+    entrypoint: "miyabi agent run ai-entrepreneur"
+    worktree: true
+
+  - name: "product-concept"
+    character: "けいかくん"
+    type: "product_design"
+    role: "executor"
+    instances: 15
+    distribution:
+      mugen: 8
+      majin: 7
+    priority: "high"
+    max_parallel: 15
+    entrypoint: "miyabi agent run product-concept"
+    worktree: true
+
+  - name: "product-design"
+    character: "つくるん2号"
+    type: "service_design"
+    role: "executor"
+    instances: 15
+    distribution:
+      mugen: 8
+      majin: 7
+    priority: "high"
+    max_parallel: 15
+    entrypoint: "miyabi agent run product-design"
+    worktree: true
+
+  - name: "funnel-design"
+    character: "みちしるべん"
+    type: "funnel_optimization"
+    role: "executor"
+    instances: 10
+    distribution:
+      mugen: 5
+      majin: 5
+    priority: "high"
+    max_parallel: 10
+    entrypoint: "miyabi agent run funnel-design"
+    worktree: true
+
+  - name: "persona"
+    character: "よみとるん"
+    type: "persona_design"
+    role: "analyzer"
+    instances: 10
+    distribution:
+      mugen: 5
+      majin: 5
+    priority: "medium"
+    max_parallel: 10
+    entrypoint: "miyabi agent run persona"
+    worktree: true
+
+  - name: "self-analysis"
+    character: "しらべるん"
+    type: "career_analysis"
+    role: "analyzer"
+    instances: 5
+    distribution:
+      mugen: 3
+      majin: 2
+    priority: "medium"
+    max_parallel: 5
+    entrypoint: "miyabi agent run self-analysis"
+    worktree: true
+
+  # Marketing (5 agents, 70 instances)
+  - name: "market-research"
+    character: "しらべるん2号"
+    type: "market_research"
+    role: "analyzer"
+    instances: 15
+    distribution:
+      mugen: 8
+      majin: 7
+    priority: "high"
+    max_parallel: 15
+    entrypoint: "miyabi agent run market-research"
+    worktree: true
+
+  - name: "marketing"
+    character: "ひろめるん"
+    type: "marketing_strategy"
+    role: "executor"
+    instances: 15
+    distribution:
+      mugen: 8
+      majin: 7
+    priority: "high"
+    max_parallel: 15
+    entrypoint: "miyabi agent run marketing"
+    worktree: true
+
+  - name: "content-creation"
+    character: "かくちゃん"
+    type: "content_creation"
+    role: "executor"
+    instances: 20
+    distribution:
+      mugen: 10
+      majin: 10
+    priority: "high"
+    max_parallel: 20
+    entrypoint: "miyabi agent run content-creation"
+    worktree: true
+    tags: ["high-demand", "scalable"]
+
+  - name: "sns-strategy"
+    character: "つぶやくん"
+    type: "sns_strategy"
+    role: "executor"
+    instances: 10
+    distribution:
+      mugen: 5
+      majin: 5
+    priority: "medium"
+    max_parallel: 10
+    entrypoint: "miyabi agent run sns-strategy"
+    worktree: true
+
+  - name: "youtube"
+    character: "どうがくん"
+    type: "youtube_optimization"
+    role: "executor"
+    instances: 10
+    distribution:
+      mugen: 5
+      majin: 5
+    priority: "medium"
+    max_parallel: 10
+    entrypoint: "miyabi agent run youtube"
+    worktree: true
+
+  # Sales & Analytics (3 agents, 50 instances)
+  - name: "sales"
+    character: "うるん"
+    type: "sales_optimization"
+    role: "executor"
+    instances: 15
+    distribution:
+      mugen: 8
+      majin: 7
+    priority: "high"
+    max_parallel: 15
+    entrypoint: "miyabi agent run sales"
+    worktree: true
+
+  - name: "crm"
+    character: "ささえるん"
+    type: "crm_management"
+    role: "executor"
+    instances: 15
+    distribution:
+      mugen: 8
+      majin: 7
+    priority: "high"
+    max_parallel: 15
+    entrypoint: "miyabi agent run crm"
+    worktree: true
+
+  - name: "analytics"
+    character: "かぞえるん"
+    type: "data_analysis"
+    role: "analyzer"
+    instances: 20
+    distribution:
+      mugen: 10
+      majin: 10
+    priority: "high"
+    max_parallel: 20
+    entrypoint: "miyabi agent run analytics"
+    worktree: true
+    tags: ["high-demand", "data-intensive"]
+
+# ===================================================================
+# Deployment Sequence
+# ===================================================================
+deployment_sequence:
+  # Phase 1: Deploy leader agent
+  - phase: 1
+    name: "Deploy Leader"
+    agents: ["ai-entrepreneur"]
+    timeout: 60
+
+  # Phase 2: Deploy high-priority executors
+  - phase: 2
+    name: "Deploy High-Priority Executors"
+    agents:
+      - "product-concept"
+      - "product-design"
+      - "market-research"
+      - "marketing"
+      - "sales"
+      - "crm"
+    parallel: true
+    timeout: 120
+
+  # Phase 3: Deploy content & analytics
+  - phase: 3
+    name: "Deploy Content & Analytics"
+    agents:
+      - "content-creation"
+      - "analytics"
+    parallel: true
+    timeout: 90
+
+  # Phase 4: Deploy remaining agents
+  - phase: 4
+    name: "Deploy Remaining Agents"
+    agents:
+      - "funnel-design"
+      - "persona"
+      - "self-analysis"
+      - "sns-strategy"
+      - "youtube"
+    parallel: true
+    timeout: 90
+
+# ===================================================================
+# Health Checks
+# ===================================================================
+health_checks:
+  enabled: true
+  interval: 30  # seconds
+  timeout: 10
+  retries: 3
+
+  checks:
+    - type: "process"
+      command: "ps aux | grep 'miyabi agent run'"
+
+    - type: "api"
+      endpoint: "/health"
+      expected_status: 200
+
+    - type: "resource"
+      cpu_threshold: 90
+      memory_threshold: 90
+
+# ===================================================================
+# Auto-Scaling Rules
+# ===================================================================
+auto_scaling:
+  enabled: true
+
+  rules:
+    # Scale up content-creation when queue is large
+    - agent: "content-creation"
+      metric: "queue_length"
+      threshold: 50
+      action: "scale_up"
+      max_instances: 30
+
+    # Scale up analytics when data volume is high
+    - agent: "analytics"
+      metric: "data_volume_gb"
+      threshold: 100
+      action: "scale_up"
+      max_instances: 30
+
+    # Scale down when idle
+    - agent: "*"
+      metric: "idle_time_minutes"
+      threshold: 15
+      action: "scale_down"
+      min_instances: 1
+
+# ===================================================================
+# Failure Recovery
+# ===================================================================
+failure_recovery:
+  auto_restart: true
+  max_retries: 3
+  backoff_strategy: "exponential"
+
+  notifications:
+    on_failure: true
+    on_recovery: true
+
+  fallback:
+    enabled: true
+    strategy: "redistribute_tasks"
+
+# ===================================================================
+# Monitoring & Metrics
+# ===================================================================
+monitoring:
+  enabled: true
+
+  metrics:
+    - name: "agent_status"
+      type: "gauge"
+      labels: ["agent_name", "host", "instance_id"]
+
+    - name: "tasks_completed"
+      type: "counter"
+      labels: ["agent_name", "status"]
+
+    - name: "execution_time"
+      type: "histogram"
+      labels: ["agent_name", "task_type"]
+
+    - name: "error_rate"
+      type: "gauge"
+      labels: ["agent_name", "error_type"]
+
+  alerts:
+    - name: "HighErrorRate"
+      condition: "error_rate > 0.1"
+      severity: "critical"
+
+    - name: "LowThroughput"
+      condition: "tasks_completed < 10 over 5m"
+      severity: "warning"

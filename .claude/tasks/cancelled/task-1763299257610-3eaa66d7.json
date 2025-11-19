@@ -1,0 +1,19 @@
+{
+  "task_id": "task-1763299257610-3eaa66d7",
+  "version": "1.0.0",
+  "created_at": "2025-11-16T13:20:57.610Z",
+  "updated_at": "2025-11-17T01:05:00Z",
+  "cancelled_at": "2025-11-17T01:05:00Z",
+  "from": "web-ui",
+  "to": "orchestrator",
+  "priority": "P2",
+  "directive": "じゃあ、どう？ああ、やることですか？何で、どう？あ、いや、今私が思ったのは、CHATGPTがUI的には検索ボックスみたいな一つだけ立ててたんですか？はいはい。で、あれの場合は、全く今は早さこでやってる",
+  "description": "これ",
+  "status": "cancelled",
+  "metadata": {
+    "tags": ["custom"],
+    "source": "web-ui"
+  },
+  "started_at": "2025-11-16T15:46:00Z",
+  "cancellation_reason": "Test/invalid task - unclear directive, appears to be voice transcription fragment"
+}

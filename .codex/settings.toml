@@ -1,0 +1,159 @@
+# Miyabi Orchestra - Codex Configuration
+# Last Updated: 2025-11-13
+# Version: 1.0.0
+
+[project]
+name = "miyabi-private"
+description = "Miyabi Orchestra - 200 Parallel Agents System"
+root_path = "/Users/shunsuke/Dev/miyabi-private"
+
+# ==========================================
+# API Configuration
+# ==========================================
+
+[api.openai]
+enabled = true
+# Key stored in AWS Secrets Manager: miyabi/openai-api-key
+secret_manager = "aws-secrets"
+secret_id = "miyabi/openai-api-key"
+region = "us-east-1"
+models = [
+    "gpt-4",
+    "gpt-4-turbo",
+    "gpt-3.5-turbo",
+    "text-davinci-003"
+]
+
+[api.anthropic]
+enabled = true
+provider = "aws-bedrock"
+region = "us-east-1"
+
+[api.anthropic.bedrock]
+# Current model (Claude 3.5 Sonnet v1)
+model_id = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+model_name = "Claude 3.5 Sonnet"
+
+# Requested model (Pending approval)
+[api.anthropic.bedrock.requested]
+model_id = "anthropic.claude-sonnet-4-5-20250929-v1:0"
+model_name = "Claude 4.5 Sonnet"
+status = "pending_provisioned_throughput"
+requested_date = "2025-11-13"
+
+# ==========================================
+# Orchestra Configuration
+# ==========================================
+
+[orchestra]
+total_agents = 200
+mugen_agents = 100  # Agent-001 ~ Agent-100
+majin_agents = 100  # Agent-101 ~ Agent-200
+
+[orchestra.mugen]
+host = "mugen"
+base_path = "/home/shunsuke/miyabi-orchestra"
+tmux_session = "miyabi-orchestra"
+windows = 100
+
+[orchestra.majin]
+host = "majin"
+base_path = "/home/shunsuke/miyabi-orchestra"
+tmux_session = "miyabi-orchestra"
+windows = 100
+
+[orchestra.local]
+host = "localhost"
+base_path = "/Users/shunsuke/Dev/miyabi-private"
+tmux_session = "miyabi-orchestra"
+windows = 2
+
+# ==========================================
+# Agent Types
+# ==========================================
+
+[agents.coding]
+coordinator = { pane = "%10", model = "bedrock-claude" }
+codegen = { model = "openai-gpt4" }
+review = { model = "bedrock-claude" }
+
+[agents.business]
+strategy = { model = "bedrock-claude" }
+marketing = { model = "bedrock-claude" }
+sales = { model = "openai-gpt4" }
+
+# ==========================================
+# Deployment Configuration
+# ==========================================
+
+[deployment]
+mode = "hybrid"  # local + remote (MUGEN/MAJIN)
+auto_scale = true
+min_agents = 50
+max_agents = 400
+
+[deployment.aws]
+enabled = false  # AWS migration in progress
+target_region = "us-east-1"
+target_service = "ecs-fargate"  # or "eks"
+
+# ==========================================
+# Monitoring & Logging
+# ==========================================
+
+[monitoring]
+enabled = true
+dashboard_port = 3001
+metrics_interval = 60  # seconds
+
+[monitoring.cloudwatch]
+enabled = false  # Enable after AWS migration
+namespace = "Miyabi/Orchestra"
+log_group = "/miyabi/orchestra"
+
+[logging]
+level = "info"
+format = "json"
+output_dir = "/Users/shunsuke/Dev/miyabi-private/logs"
+
+# ==========================================
+# Security
+# ==========================================
+
+[security]
+secrets_backend = "aws-secrets-manager"
+encryption = "enabled"
+audit_logging = true
+
+[security.aws]
+access_key_id = "from_credentials_file"  # ~/.aws/credentials
+secret_access_key = "from_credentials_file"
+region = "us-east-1"
+
+# ==========================================
+# Performance
+# ==========================================
+
+[performance]
+max_concurrent_requests = 50
+request_timeout = 30  # seconds
+retry_attempts = 3
+backoff_multiplier = 2
+
+[performance.rate_limits]
+openai_rpm = 10000  # Requests per minute
+bedrock_rpm = 5000
+
+# ==========================================
+# Development
+# ==========================================
+
+[development]
+hot_reload = true
+debug_mode = false
+test_mode = false
+
+[development.local]
+port = 8000
+host = "localhost"
+workers = 4

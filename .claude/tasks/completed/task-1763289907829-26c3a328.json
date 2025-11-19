@@ -1,0 +1,43 @@
+{
+  "task_id": "task-1763289907829-26c3a328",
+  "version": "1.0.0",
+  "created_at": "2025-11-16T10:45:07.829Z",
+  "updated_at": "2025-11-16T10:49:33.000Z",
+  "completed_at": "2025-11-16T10:49:33.000Z",
+  "from": "web-ui",
+  "to": "orchestrator",
+  "priority": "P0",
+  "directive": "日報を書いて",
+  "description": "11/16の日報",
+  "execution": {
+    "type": "headless",
+    "prompt": "daily-report.txt",
+    "template": "daily-report.json",
+    "timeout": 7200,
+    "retry": 3
+  },
+  "status": "completed",
+  "metadata": {
+    "tags": ["daily-report", "obsidian", "github-synced"],
+    "source": "web-ui"
+  },
+  "resolution": {
+    "output_file": "docs/obsidian-vault/reports/2025-11-16-daily-report.md",
+    "word_count": 3500,
+    "sections": [
+      "Executive Summary",
+      "Technical Work (5 items)",
+      "Files Created/Modified Today",
+      "Key Achievements",
+      "Lessons Learned",
+      "System Status",
+      "Tomorrow's Plan",
+      "Notes and Reflection",
+      "Statistics"
+    ],
+    "git_commit": "99e83e634",
+    "github_push": "successful",
+    "execution_time": "51 seconds",
+    "log_file": "logs/task-execution/2025-11-16-194842-daily-report-execution.log"
+  }
+}

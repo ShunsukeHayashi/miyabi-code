@@ -1,0 +1,22 @@
+{
+  "task_id": "60d3e915-3849-4556-b575-cecf1a0b9c17",
+  "from": "maestro",
+  "priority": "P0",
+  "directive": "Critical: Fix production issue in worktree manager",
+  "created_at": "2025-11-16T02:24:47.784860Z",
+  "updated_at": "2025-11-16T10:39:00.000000Z",
+  "completed_at": "2025-11-16T10:39:00.000000Z",
+  "assigned_to": "orchestrator",
+  "status": "completed",
+  "dependencies": [],
+  "notes": "Fixed symlink path confusion in git worktree list. Removed 6 worktrees using symlink paths and normalized to real paths only. After cleanup: 1 main + 5 world worktrees remain.",
+  "resolution": {
+    "root_cause": "Git worktree list showed both symlink paths (/Users/shunsuke/Dev/miyabi-private/.worktrees/*) and real paths (/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.worktrees/*) due to symlink at /Users/shunsuke/Dev/miyabi-private pointing to 01-miyabi/_core/miyabi-private",
+    "actions_taken": [
+      "Removed 6 worktrees using symlink paths: miyabi-orchestra, phase-2.1-lark-sync, phase-2.2-task-manager, phase-2.3-mcp-integration, pr-773-fix, pr-818",
+      "Executed git worktree prune to clean up metadata",
+      "Verified all remaining worktrees use real paths only"
+    ],
+    "result": "All worktrees normalized to real paths. System stable."
+  }
+}

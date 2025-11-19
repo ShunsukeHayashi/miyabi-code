@@ -1,0 +1,49 @@
+{
+  "task_id": "a506f8cc-c0c0-46cb-9d23-ade2dc843d57",
+  "from": "orchestrator",
+  "priority": "P1",
+  "directive": "Implement Coordinator health monitoring",
+  "created_at": "2025-11-16T02:24:47.810147Z",
+  "updated_at": "2025-11-16T10:43:21.000000Z",
+  "completed_at": "2025-11-16T10:43:21.000000Z",
+  "assigned_to": "orchestrator",
+  "status": "completed",
+  "dependencies": [],
+  "notes": "Coordinator health monitoring was already fully implemented. Verified functionality by testing CLI command.",
+  "resolution": {
+    "implemented_features": [
+      "HealthMonitor service for checking coordinator health",
+      "SSH connectivity checks with latency measurement",
+      "Remote resource collection (CPU, memory, disk, load average)",
+      "Health score calculation (0-100)",
+      "CLI command: miyabi coordinator health",
+      "JSON output option (--json flag)",
+      "Human-readable output with colored bars",
+      "Summary statistics"
+    ],
+    "test_results": {
+      "mugen": {
+        "status": "Healthy",
+        "score": 90,
+        "ssh_connected": true,
+        "ssh_latency_ms": 1587,
+        "cpu_percent": 6.4,
+        "memory_percent": 0.8,
+        "disk_percent": 43.8
+      },
+      "majin": {
+        "status": "Healthy",
+        "score": 90,
+        "ssh_connected": true,
+        "ssh_latency_ms": 687,
+        "cpu_percent": 13.3,
+        "memory_percent": 0.0,
+        "disk_percent": 35.6
+      }
+    },
+    "implementation_files": [
+      "crates/miyabi-orchestrator/src/health_monitor.rs",
+      "crates/miyabi-cli/src/commands/coordinator.rs"
+    ]
+  }
+}
