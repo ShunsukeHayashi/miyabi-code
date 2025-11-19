@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_FILE_ACCESS_BASE_PATH": "/Users/shunsuke/Documents",
+        "MIYABI_FILE_ACCESS_ALLOW_OUTSIDE": "false",
+        "MIYABI_FILE_ACCESS_MAX_SIZE": "10485760"
+      }
+    }
+  }
+}

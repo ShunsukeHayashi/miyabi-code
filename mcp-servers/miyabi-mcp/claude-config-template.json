@@ -1,0 +1,72 @@
+{
+  "mcpServers": {
+    "miyabi-git": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-git-inspector/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_REPO_PATH": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
+      }
+    },
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-tmux-server/dist/index.js"
+      ]
+    },
+    "miyabi-logs": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-log-aggregator/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LOG_DIR": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
+      }
+    },
+    "miyabi-resources": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-resource-monitor/dist/index.js"
+      ]
+    },
+    "miyabi-network": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-network-inspector/dist/index.js"
+      ]
+    },
+    "miyabi-processes": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-process-inspector/dist/index.js"
+      ]
+    },
+    "miyabi-files": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-file-watcher/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_WATCH_DIR": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
+      }
+    },
+    "miyabi-claude": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-claude-code/dist/index.js"
+      ]
+    },
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_github_token_here",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      }
+    }
+  }
+}

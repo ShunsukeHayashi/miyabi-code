@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gemini3-adaptive-runtime": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "your_api_key_here",
+        "GEMINI_MODEL": "gemini-3-pro-preview",
+        "GEMINI_THINKING_LEVEL": "high",
+        "GEMINI_TEMPERATURE": "0.3",
+        "GEMINI_TOP_P": "0.95",
+        "GEMINI_MAX_OUTPUT_TOKENS": "8192"
+      }
+    }
+  }
+}
