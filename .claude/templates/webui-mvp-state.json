@@ -1,0 +1,342 @@
+{
+  "review_target": "Miyabi WebUI MVP",
+  "version": "1.0.0",
+  "created_at": "2025-11-15T19:30:00+09:00",
+  "reviewer": "AmemboAgent",
+
+  "context": {
+    "user_requirements": [
+      "ユーザーはGitHub + WebUI + Pendantだけ見ればOK",
+      "タスク投入 → 処理状況確認 → 結果確認",
+      "すぐ使える（MVP）",
+      "GitHub Remote Onlyのファイル管理システム必要"
+    ],
+    "vision": "黒い画面を見なくて良くなる - タスクを投入すれば全て自動実行"
+  },
+
+  "created_files": [
+    {
+      "path": "web-ui/public/index.html",
+      "size_kb": 8,
+      "description": "メインダッシュボードHTML",
+      "features": [
+        "タスク投入フォーム",
+        "ステータスカード表示",
+        "タスク一覧",
+        "詳細モーダル"
+      ]
+    },
+    {
+      "path": "web-ui/public/css/style.css",
+      "size_kb": 12,
+      "description": "スタイルシート",
+      "features": [
+        "レスポンシブデザイン",
+        "カラーコード表示",
+        "アニメーション",
+        "モーダルスタイル"
+      ]
+    },
+    {
+      "path": "web-ui/public/js/app.js",
+      "size_kb": 10,
+      "description": "フロントエンドロジック",
+      "features": [
+        "タスク投入処理",
+        "自動リフレッシュ (5s)",
+        "フィルタリング",
+        "モーダル制御",
+        "API通信"
+      ]
+    },
+    {
+      "path": "web-ui/api/server.js",
+      "size_kb": 8,
+      "description": "バックエンドAPIサーバー (Express)",
+      "endpoints": [
+        "GET /api/tasks - 全タスク取得",
+        "GET /api/tasks/:id - タスク詳細",
+        "POST /api/tasks - タスク作成",
+        "GET /api/logs/:filename - ログ取得",
+        "GET /api/templates - テンプレート一覧",
+        "GET /api/stats - 統計情報"
+      ]
+    },
+    {
+      "path": "web-ui/package.json",
+      "size_kb": 1,
+      "description": "Node.js依存関係定義",
+      "dependencies": [
+        "express",
+        "cors",
+        "uuid"
+      ]
+    },
+    {
+      "path": "web-ui/README.md",
+      "size_kb": 15,
+      "description": "完全なドキュメント"
+    }
+  ],
+
+  "implemented_features": {
+    "task_submission": {
+      "status": "implemented",
+      "features": [
+        "タスク名入力",
+        "説明入力",
+        "優先度選択 (P0-P3)",
+        "テンプレート選択",
+        "実行タイプ選択"
+      ],
+      "missing": [
+        "バリデーション強化",
+        "入力補完",
+        "タスクプレビュー"
+      ]
+    },
+    "status_visualization": {
+      "status": "implemented",
+      "features": [
+        "4つのステータスカード",
+        "リアルタイムカウント更新",
+        "カラーコード表示"
+      ],
+      "missing": [
+        "グラフ表示",
+        "履歴チャート",
+        "トレンド分析"
+      ]
+    },
+    "task_list": {
+      "status": "implemented",
+      "features": [
+        "一覧表示",
+        "ステータス別フィルタ",
+        "優先度バッジ",
+        "クリックで詳細表示"
+      ],
+      "missing": [
+        "ソート機能",
+        "検索機能",
+        "ページネーション"
+      ]
+    },
+    "task_detail": {
+      "status": "implemented",
+      "features": [
+        "モーダル表示",
+        "メタ情報",
+        "ログビューワー",
+        "GitHub連携表示"
+      ],
+      "missing": [
+        "インラインログストリーミング",
+        "タスク編集",
+        "タスクキャンセル"
+      ]
+    },
+    "auto_refresh": {
+      "status": "implemented",
+      "interval_seconds": 5
+    }
+  },
+
+  "missing_features": {
+    "critical_p0": [
+      {
+        "feature": "File Management System",
+        "description": "ユーザー/テナント別ディレクトリ構造とファイルツリー管理",
+        "requirement": "GitHub Remote Only (ローカルなし)"
+      },
+      {
+        "feature": "Authentication",
+        "description": "ユーザー認証・認可システム"
+      }
+    ],
+    "high_p1": [
+      {
+        "feature": "GitHub API Integration",
+        "description": "リモートファイル操作のためのGitHub API統合"
+      },
+      {
+        "feature": "WebSocket Support",
+        "description": "リアルタイム更新のためのWebSocket"
+      },
+      {
+        "feature": "Task Actions",
+        "description": "タスクのキャンセル、再実行、編集"
+      }
+    ],
+    "medium_p2": [
+      {
+        "feature": "Search & Sort",
+        "description": "タスク検索とソート機能"
+      },
+      {
+        "feature": "Notifications",
+        "description": "ブラウザ通知 (Web Push API)"
+      },
+      {
+        "feature": "Dashboard Analytics",
+        "description": "チャートとグラフによる可視化"
+      }
+    ],
+    "low_p3": [
+      {
+        "feature": "Dark Mode",
+        "description": "ダークモード対応"
+      },
+      {
+        "feature": "Multi-language",
+        "description": "多言語対応 (i18n)"
+      },
+      {
+        "feature": "Export",
+        "description": "タスクデータのエクスポート (CSV/JSON)"
+      }
+    ]
+  },
+
+  "architecture": {
+    "frontend": {
+      "technology": "Vanilla HTML/CSS/JavaScript",
+      "pros": [
+        "依存関係が少ない",
+        "即座に動作",
+        "軽量"
+      ],
+      "cons": [
+        "複雑な状態管理が困難",
+        "スケーラビリティに制限",
+        "型安全性なし"
+      ],
+      "alternatives": [
+        "React + TypeScript",
+        "Vue.js",
+        "Svelte"
+      ]
+    },
+    "backend": {
+      "technology": "Node.js + Express",
+      "pros": [
+        "シンプル",
+        "高速セットアップ",
+        "JavaScript統一"
+      ],
+      "cons": [
+        "型安全性なし",
+        "スケーラビリティに制限"
+      ],
+      "alternatives": [
+        "Rust (Actix-web)",
+        "Go (Gin)",
+        "Python (FastAPI)"
+      ]
+    },
+    "data_storage": {
+      "current": "File-based (.claude/tasks/*.json)",
+      "pros": [
+        "シンプル",
+        "Git管理可能"
+      ],
+      "cons": [
+        "並行アクセスに弱い",
+        "クエリ性能低下",
+        "トランザクションなし"
+      ],
+      "alternatives": [
+        "GitHub API (Remote Only)",
+        "PostgreSQL",
+        "MongoDB",
+        "Redis"
+      ]
+    }
+  },
+
+  "performance": {
+    "load_time": "< 1s (estimated)",
+    "api_response": "< 100ms (local)",
+    "refresh_interval": "5s",
+    "bottlenecks": [
+      "ファイルシステムI/O",
+      "ポーリング方式の非効率性"
+    ]
+  },
+
+  "user_flow": {
+    "task_submission": [
+      "1. フォーム入力",
+      "2. Submit クリック",
+      "3. API POST /api/tasks",
+      "4. JSON生成 → .claude/tasks/pending/",
+      "5. 成功通知",
+      "6. タスク一覧自動更新"
+    ],
+    "task_monitoring": [
+      "1. ダッシュボード表示",
+      "2. 5秒毎に自動リフレッシュ",
+      "3. ステータス変化を視覚的に確認",
+      "4. タスククリックで詳細表示"
+    ],
+    "result_confirmation": [
+      "1. タスク詳細モーダル表示",
+      "2. ログ確認",
+      "3. GitHub Issue/PR リンククリック",
+      "4. 外部で結果確認"
+    ]
+  },
+
+  "integration_points": {
+    "github": {
+      "current": "Issue/PR URLの表示のみ",
+      "needed": [
+        "GitHub API統合",
+        "リモートファイル操作",
+        "Workflow trigger",
+        "Issue/PR自動作成"
+      ]
+    },
+    "lark_pendant": {
+      "current": "未実装",
+      "needed": [
+        "タスク完了通知",
+        "コールアウト通知",
+        "エラーアラート"
+      ]
+    },
+    "orchestrator": {
+      "current": "ファイルベース連携",
+      "needed": [
+        "リアルタイムステータス同期",
+        "双方向通信"
+      ]
+    }
+  },
+
+  "deployment": {
+    "current": "ローカル開発サーバー",
+    "needed": [
+      "本番環境デプロイ",
+      "HTTPS対応",
+      "ドメイン設定",
+      "CDN最適化"
+    ],
+    "options": [
+      "Vercel (推奨 - Next.js移行時)",
+      "Netlify",
+      "AWS S3 + CloudFront",
+      "自前サーバー"
+    ]
+  },
+
+  "testing": {
+    "current": "未実装",
+    "needed": [
+      "Unit tests",
+      "Integration tests",
+      "E2E tests",
+      "Performance tests"
+    ]
+  }
+}

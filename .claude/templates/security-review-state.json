@@ -1,0 +1,162 @@
+{
+  "review_target": "Miyabi WebUI + AWS Infrastructure",
+  "timestamp": "2025-11-15T19:33:00+09:00",
+  "user_request": "セキュリティ部分確認してください。セキカズ、セキカズ、セキカズエージェント",
+  "scope": {
+    "webui": true,
+    "aws_infrastructure": true,
+    "github_integration": true,
+    "authentication": true,
+    "data_protection": true
+  },
+  "current_implementation": {
+    "webui": {
+      "status": "running",
+      "url": "http://localhost:3000",
+      "authentication": "none",
+      "authorization": "none",
+      "cors_policy": "ALL_ORIGINS",
+      "files": {
+        "frontend": "web-ui/public/",
+        "backend": "web-ui/api/server.js"
+      }
+    },
+    "aws_infrastructure": {
+      "status": "ready_to_deploy",
+      "cdk_bootstrap": "completed",
+      "resources": {
+        "cloudfront": {
+          "https": true,
+          "waf": false,
+          "security_headers": false,
+          "oai": true
+        },
+        "s3": {
+          "website_bucket": {
+            "public_access": "blocked",
+            "encryption": "S3_MANAGED",
+            "versioning": false
+          },
+          "task_bucket": {
+            "public_access": "blocked",
+            "encryption": "S3_MANAGED",
+            "versioning": true,
+            "lifecycle": true,
+            "access_logging": false
+          }
+        },
+        "lambda": {
+          "runtime": "nodejs18.x",
+          "vpc": false,
+          "environment_vars": {
+            "TASK_BUCKET": "encrypted",
+            "GITHUB_TOKEN_SECRET": "secrets_manager_reference",
+            "GITHUB_REPO": "plain_text"
+          },
+          "execution_role": {
+            "policies": [
+              "secretsmanager:GetSecretValue",
+              "s3:ReadWrite on task bucket"
+            ],
+            "least_privilege": "partial"
+          }
+        },
+        "api_gateway": {
+          "cors": "ALL_ORIGINS",
+          "authentication": "none",
+          "authorization": "none",
+          "throttling": {
+            "rate_limit": 1000,
+            "burst_limit": 2000
+          },
+          "api_key": false,
+          "waf": false
+        },
+        "secrets_manager": {
+          "github_token": {
+            "encryption": "aws_managed",
+            "rotation": false,
+            "access_policy": "lambda_only"
+          }
+        }
+      },
+      "monitoring": {
+        "cloudwatch_logs": "minimal",
+        "cloudtrail": false,
+        "alarms": false,
+        "security_hub": false
+      }
+    },
+    "github_integration": {
+      "token_type": "personal_access_token",
+      "token_storage": "aws_secrets_manager",
+      "token_scope": "unknown",
+      "token_expiration": "unknown",
+      "api_client": "octokit",
+      "operations": [
+        "getContent",
+        "createOrUpdateFileContents",
+        "list contents"
+      ],
+      "repository": "customer-cloud/miyabi-private",
+      "rate_limiting": "not_implemented"
+    }
+  },
+  "known_security_gaps": {
+    "critical": [
+      "No user authentication system",
+      "No API authorization",
+      "CORS policy allows all origins"
+    ],
+    "high": [
+      "Lambda not in VPC",
+      "No WAF configured",
+      "No CloudFront security headers",
+      "GitHub token rotation not configured",
+      "No centralized logging"
+    ],
+    "medium": [
+      "No rate limiting on task submission",
+      "No input validation framework",
+      "No security monitoring",
+      "S3 access logging disabled"
+    ]
+  },
+  "code_files_to_review": [
+    "web-ui/public/index.html",
+    "web-ui/public/js/app.js",
+    "web-ui/api/server.js",
+    "infrastructure/web-ui-lambda/index.js",
+    "infrastructure/aws-cdk/lib/miyabi-webui-stack.ts"
+  ],
+  "threat_model": {
+    "attack_surfaces": [
+      "Public WebUI (no authentication)",
+      "Public API Gateway endpoints",
+      "GitHub token in Lambda environment",
+      "S3 bucket access via Lambda",
+      "CloudFront distribution"
+    ],
+    "threat_actors": [
+      "Unauthenticated internet users",
+      "Malicious task submissions",
+      "Token theft attempts",
+      "DDoS attacks",
+      "Data exfiltration"
+    ],
+    "assets_to_protect": [
+      "GitHub access token",
+      "Task data in S3",
+      "System configuration",
+      "API availability",
+      "User data (future)"
+    ]
+  },
+  "compliance_requirements": {
+    "owasp_top_10": true,
+    "aws_well_architected": true,
+    "least_privilege_iam": true,
+    "data_encryption": true,
+    "audit_logging": true
+  }
+}

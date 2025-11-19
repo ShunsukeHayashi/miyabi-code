@@ -1,0 +1,36 @@
+{
+  "demo_name": "Miyabi System Report Demo",
+  "version": "1.0.0",
+  "generated_at": "2025-11-15T19:06:50+09:00",
+  "execution_start": "1763201210",
+  "system": {
+    "os_name": "Darwin",
+    "architecture": "arm64",
+    "hostname": "MacBook-Pro-5.local",
+    "uptime": "17:03 8"
+  },
+  "resources": {
+    "cpu": {
+      "cores": 10,
+      "usage_percent": 268
+    },
+    "memory": {
+      "total_gb": "64.00",
+      "used_gb": "54.43",
+      "free_gb": "2.36",
+      "usage_percent": "85.0"
+    },
+    "disk": {
+      "total_gb": "926",
+      "used_gb": "11",
+      "free_gb": "342",
+      "usage_percent": 4
+    }
+  },
+  "miyabi": {
+    "project_path": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private",
+    "git_branch": "feat/realtime-events-notifications",
+    "git_commit": "c819fa9cc fix(context): Update path references in context modules",
+    "worktree_count": 11
+  }
+}

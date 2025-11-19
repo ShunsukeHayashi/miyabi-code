@@ -1,0 +1,92 @@
+{
+  "batch_name": "Orchestrator Initialization Improvements",
+  "created_at": "2025-11-15",
+  "created_by": "Layer 2 - Orchestrator",
+  "description": "初期化プロセスで発見された問題点への改善提案。オペレーション開始を安定化・効率化するための12の改善項目。",
+  "issues": [
+    {
+      "title": "[Orchestrator][P0] 環境変数検証スクリプト追加",
+      "priority": "P0",
+      "labels": ["priority:p0", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 1,
+      "body": "## 🎯 目的\n\n起動時に必須環境変数を検証し、欠落を即座に検出する。\n\n## ❌ 現在の問題\n\n```\nLARK_ESCALATION_EMAIL: NOT_SET\n```\n\n- **影響**: P0/P1エスカレーション時に通知できない（Maestroや人間に連絡不可）\n- **リスク**: 緊急事態対応が不可能\n\n## ✅ 実装内容\n\n```bash\n#!/bin/bash\n# .claude/scripts/check-env.sh\n\nrequired_vars=(\n  \"LARK_ESCALATION_EMAIL\"\n  \"LARK_APP_ID\"\n  \"LARK_APP_SECRET\"\n)\n\nfor var in \"${required_vars[@]}\"; do\n  if [ -z \"${!var}\" ]; then\n    echo \"❌ Missing: $var\"\n    exit 1\n  fi\ndone\necho \"✅ All environment variables set\"\n```\n\n## 📍 実装場所\n\n- ファイル: `.claude/scripts/check-env.sh`\n- 統合: オペレーション開始時に自動実行\n\n## 📊 推定工数\n\n**1時間**"
+    },
+    {
+      "title": "[Orchestrator][P0] SSH接続検証・自動修復スクリプト",
+      "priority": "P0",
+      "labels": ["priority:p0", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 2.5,
+      "body": "## 🎯 目的\n\nCoordinator接続問題を自動検出・修復する。\n\n## ❌ 現在の問題\n\n```\nubuntu@54.92.67.11: Permission denied (publickey)\n```\n\n- **影響**: Layer 3 Coordinator（GPU搭載MAJIN）が使用不可\n- **リスク**: ML/AI処理、重い計算タスクを分散できない\n\n## ✅ 実装内容\n\n```bash\n#!/bin/bash\n# .claude/scripts/verify-coordinators.sh\n\n# 各Coordinatorに接続試行\n# 失敗時にSSH鍵の設定状態を確認\n# 自動修復または明確な手順を提示\n```\n\n**機能**:\n- SSH鍵の存在確認\n- `~/.ssh/config`のエントリ確認\n- 公開鍵が各サーバーに登録されているか確認\n- 失敗時の詳細なエラーメッセージと修復手順\n\n## 📍 実装場所\n\n- ファイル: `.claude/scripts/verify-coordinators.sh`\n\n## 📊 推定工数\n\n**2-3時間**"
+    },
+    {
+      "title": "[Orchestrator][P0] エスカレーション通知テスト機能",
+      "priority": "P0",
+      "labels": ["priority:p0", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 1,
+      "body": "## 🎯 目的\n\nP0発生時の通知が機能するか事前確認する。\n\n## ❌ 現在の問題\n\n- エスカレーション通知が実際に届くか不明\n- 本番で初めて失敗に気づくリスク\n\n## ✅ 実装内容\n\n```bash\n# Test escalation notification\nmiyabi escalate test --priority=P0 --dry-run\n```\n\n**機能**:\n- Lark通知のテスト送信\n- 宛先確認\n- 通知フォーマット検証\n- Dry-runモード（実際には送信しない）\n\n## 📍 実装場所\n\n- コマンド: `miyabi escalate test`\n- 実装: `crates/miyabi-cli/src/commands/escalate.rs`\n\n## 📊 推定工数\n\n**1時間**"
+    },
+    {
+      "title": "[Orchestrator][P1] 統合初期化スクリプト",
+      "priority": "P1",
+      "labels": ["priority:p1", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 3.5,
+      "body": "## 🎯 目的\n\nワンコマンドで全チェック完了する。\n\n## ❌ 現在の問題\n\n- コマンドを1つずつ手動実行が必要\n- 毎回同じチェックを繰り返す\n- スクリプト化されていない\n\n## ✅ 実装内容\n\n```bash\n# miyabi orchestra init\nmiyabi orchestra init [--verbose] [--fix]\n```\n\n**実行内容**:\n1. 環境変数チェック\n2. システムリソースチェック\n3. Coordinator接続確認\n4. Worktree状態確認\n5. タスクキュー確認\n6. GitHub連携確認\n7. レポート生成\n\n**オプション**:\n- `--verbose`: 詳細ログ出力\n- `--fix`: 自動修復を試みる\n- `--report`: JSON/Markdown形式でレポート出力\n\n## 📍 実装場所\n\n- コマンド: `miyabi orchestra init`\n- 実装: `crates/miyabi-cli/src/commands/orchestra.rs`\n\n## 📊 推定工数\n\n**3-4時間**"
+    },
+    {
+      "title": "[Orchestrator][P1] Worktree管理ダッシュボード",
+      "priority": "P1",
+      "labels": ["priority:p1", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 2.5,
+      "body": "## 🎯 目的\n\n全Worktreeの状態を一目で把握する。\n\n## ❌ 現在の問題\n\n- `git worktree list`の出力が見づらい\n- 各worktreeの詳細状態を一括確認する方法がない\n- どのworktreeが「作業中」「完了済み」「停滞中」か不明\n\n## ✅ 実装内容\n\n```bash\n# miyabi worktree status --all\n```\n\n**出力例**:\n```\n📊 Worktree Status (11 active)\n\n🟢 issue-708               [fix/issue-708...]        Clean, Ready\n🟡 issue-787-video        [issue-787...]            5 files changed\n🔴 miyabi-orchestra       [worktree/...]            Conflicts detected\n🟢 phase-2.1-lark-sync    [feat/lark-sync-core]     Clean, Ready\n⚪ pr-773-fix             [worktree/pr-773-fix]     Stale (30 days)\n```\n\n**追加機能**:\n- 最終更新日時\n- 未コミット変更の有無\n- コンフリクト検出\n- 停滞検出（N日間更新なし）\n\n## 📍 実装場所\n\n- コマンド: `miyabi worktree status`\n- 実装: `crates/miyabi-cli/src/commands/worktree.rs`\n\n## 📊 推定工数\n\n**2-3時間**"
+    },
+    {
+      "title": "[Orchestrator][P1] タスクキュー管理システム",
+      "priority": "P1",
+      "labels": ["priority:p1", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 4.5,
+      "body": "## 🎯 目的\n\nMaestroからの指示を永続化する。\n\n## ❌ 現在の問題\n\n```\nNo tasks directory found\n```\n\n- **影響**: Maestroからの指示を永続化する場所がない\n- **問題**: \n  - 口頭指示のみに依存\n  - タスク履歴が残らない\n  - 再起動時にコンテキスト喪失\n\n## ✅ 実装内容\n\n**ディレクトリ構造**:\n```\n.claude/tasks/\n├── pending/       # 未着手タスク\n├── in_progress/   # 実行中タスク\n├── completed/     # 完了タスク\n└── blocked/       # ブロックされたタスク\n```\n\n**タスクフォーマット** (JSON):\n```json\n{\n  \"task_id\": \"uuid\",\n  \"from\": \"maestro\",\n  \"priority\": \"P0|P1|P2\",\n  \"directive\": \"High-level goal\",\n  \"created_at\": \"ISO 8601\",\n  \"assigned_to\": \"orchestrator|mugen|majin\",\n  \"status\": \"pending|in_progress|completed|blocked\",\n  \"dependencies\": [\"task_id_1\", \"task_id_2\"]\n}\n```\n\n## 📍 実装場所\n\n- ディレクトリ: `.claude/tasks/`\n- コマンド: `miyabi task [create|list|update|complete]`\n- 実装: `crates/miyabi-cli/src/commands/task.rs`\n\n## 📊 推定工数\n\n**4-5時間**"
+    },
+    {
+      "title": "[Orchestrator][P2] Coordinator健全性モニタリング",
+      "priority": "P2",
+      "labels": ["priority:p2", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 5.5,
+      "body": "## 🎯 目的\n\nCoordinatorの詳細状態をリアルタイム監視する。\n\n## ❌ 現在の問題\n\n- 接続できたかどうかしかわからない\n- CPU/メモリ/ディスク使用率がわからない\n- 何のタスクを実行中か不明\n\n## ✅ 実装内容\n\n```bash\n# miyabi coordinator status --all\n```\n\n**表示情報**:\n- 接続状態 (Online/Offline)\n- Uptime\n- CPU使用率\n- メモリ使用率\n- ディスク使用率\n- 実行中タスク数\n- 最終応答時刻\n\n**実装方法**:\n- SSH経由で定期的にメトリクス取得\n- tmux status lineに表示\n- 異常時にアラート\n\n## 📍 実装場所\n\n- コマンド: `miyabi coordinator status`\n- 実装: `crates/miyabi-cli/src/commands/coordinator.rs`\n\n## 📊 推定工数\n\n**5-6時間**"
+    },
+    {
+      "title": "[Orchestrator][P2] 自動レポート生成",
+      "priority": "P2",
+      "labels": ["priority:p2", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 3.5,
+      "body": "## 🎯 目的\n\nMaestroへの定期報告を自動化する。\n\n## ❌ 現在の問題\n\n- 手動でレポートを作成する必要がある\n- 報告フォーマットが統一されていない\n- 定期報告の仕組みがない\n\n## ✅ 実装内容\n\n```bash\n# miyabi report generate --type=daily\n```\n\n**レポート内容**:\n- オペレーション時間\n- 完了タスク数\n- Coordinator使用率\n- 発生した問題とその対処\n- 次のアクション\n\n**配信方法**:\n- Lark通知\n- Markdownファイル生成\n- GitHub Issue更新\n\n## 📍 実装場所\n\n- コマンド: `miyabi report generate`\n- 実装: `crates/miyabi-cli/src/commands/report.rs`\n- テンプレート: `.claude/templates/report-*.md`\n\n## 📊 推定工数\n\n**3-4時間**"
+    },
+    {
+      "title": "[Orchestrator][P2] Pixel Termux自動復旧",
+      "priority": "P2",
+      "labels": ["priority:p2", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 7,
+      "body": "## 🎯 目的\n\nモバイルCoordinatorの接続断を自動検出・復旧する。\n\n## ❌ 現在の問題\n\n```\nssh: connect to host 192.168.3.9 port 8022: Connection refused\n```\n\n- **影響**: モバイルCoordinatorが使用不可\n- **原因推定**: \n  - デバイスがオフライン\n  - ネットワークが変わってIPアドレス変更\n  - Termux SSHサーバーが停止\n\n## ✅ 実装内容\n\n**機能**:\n- ネットワーク変更検出（IPアドレススキャン）\n- SSH設定の自動更新\n- Wake-on-LAN的な仕組み（可能なら）\n- Fallback: MUGENへのタスク再割り当て\n\n## 📍 実装場所\n\n- コマンド: `miyabi coordinator recover pixel`\n- 実装: `crates/miyabi-cli/src/commands/coordinator.rs`\n\n## 📊 推定工数\n\n**6-8時間**"
+    },
+    {
+      "title": "[Orchestrator][P2] tmuxレイアウト自動最適化",
+      "priority": "P2",
+      "labels": ["priority:p2", "enhancement", "🎯 focus:orchestration", "📥 state:pending"],
+      "estimated_hours": 2.5,
+      "body": "## 🎯 目的\n\nタスクに応じてtmuxレイアウトを自動調整する。\n\n## ❌ 現在の問題\n\n- 手動でレイアウトを調整する必要がある\n- タスクに最適なレイアウトがわからない\n\n## ✅ 実装内容\n\n```bash\n# miyabi tmux optimize --for=<task_type>\n```\n\n**タスク別レイアウト**:\n- `coding`: エディタ + テスト + ログ\n- `monitoring`: 複数Coordinator状態表示\n- `debugging`: ログ重視の3分割\n- `coordination`: 全Coordinator並列表示\n\n## 📍 実装場所\n\n- コマンド: `miyabi tmux optimize`\n- 実装: `crates/miyabi-cli/src/commands/tmux.rs`\n- 設定: `.claude/tmux-layouts/*.conf`\n\n## 📊 推定工数\n\n**2-3時間**"
+    },
+    {
+      "title": "[Orchestrator][P3] 障害予測システム",
+      "priority": "P3",
+      "labels": ["priority:p3", "enhancement", "🎯 focus:orchestration", "📥 state:pending", "🔮 future"],
+      "estimated_hours": 40,
+      "body": "## 🎯 目的\n\n過去の障害パターンから予測し、プロアクティブに対処する。\n\n## ✅ 実装内容\n\n**機能**:\n- 過去の障害パターン分析\n- リソース使用率の異常検知\n- プロアクティブなエスカレーション\n- 機械学習モデルによる予測（オプション）\n\n**データソース**:\n- システムメトリクス履歴\n- エラーログ\n- タスク完了/失敗率\n\n## 📍 実装場所\n\n- コマンド: `miyabi predict failure`\n- 実装: `crates/miyabi-prediction/`（新規crate）\n\n## 📊 推定工数\n\n**長期プロジェクト（40h+）**\n\n## 🔮 将来の拡張\n\n- AIモデル統合\n- 自動対処アクション\n- 学習の継続的改善"
+    },
+    {
+      "title": "[Orchestrator][P3] 自己修復機能",
+      "priority": "P3",
+      "labels": ["priority:p3", "enhancement", "🎯 focus:orchestration", "📥 state:pending", "🔮 future"],
+      "estimated_hours": 60,
+      "body": "## 🎯 目的\n\nよくある問題を自動修復し、人間の介入を最小化する。\n\n## ✅ 実装内容\n\n**機能**:\n- よくある問題の自動修復\n- Coordinator障害時の自動フェイルオーバー\n- タスク再試行の自動化\n- ロールバック機能\n\n**自動修復対象**:\n- SSH接続エラー → 鍵再設定\n- ディスク容量不足 → クリーンアップ\n- メモリ不足 → プロセス再起動\n- Coordinator障害 → タスク再割り当て\n\n## 📍 実装場所\n\n- コマンド: `miyabi self-heal`\n- 実装: `crates/miyabi-healing/`（新規crate）\n- 設定: `.claude/healing-rules.yaml`\n\n## 📊 推定工数\n\n**長期プロジェクト（60h+）**\n\n## 🔮 将来の拡張\n\n- 学習型修復（成功パターンを学習）\n- 予測と組み合わせた事前対処\n- 複雑な障害の自動診断"
+    }
+  ]
+}
