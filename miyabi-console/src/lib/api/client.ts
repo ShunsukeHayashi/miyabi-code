@@ -11,6 +11,13 @@ const REQUEST_TIMEOUT = 30000; // 30 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second base delay
 
+// Token refresh callback - set by AuthContext
+let tokenRefreshCallback: (() => Promise<boolean>) | null = null;
+
+export function setTokenRefreshCallback(callback: () => Promise<boolean>) {
+  tokenRefreshCallback = callback;
+}
+
 // Types
 export interface SystemMetrics {
   cpu_usage: number;
@@ -201,9 +208,25 @@ class ApiClient {
         const requestKey = `${config.method}-${config.url}`;
         const currentRetry = this.retryCount.get(requestKey) || 0;
 
-        // Handle 401 Unauthorized - redirect to login
-        if (error.response?.status === 401) {
+        // Handle 401 Unauthorized - attempt token refresh first
+        if (error.response?.status === 401 && config && !config.headers?.['X-Retry-After-Refresh']) {
+          // Try to refresh the token
+          if (tokenRefreshCallback) {
+            const refreshSuccess = await tokenRefreshCallback();
+            if (refreshSuccess) {
+              // Retry the original request with new token
+              const newToken = localStorage.getItem('access_token');
+              if (newToken && config.headers) {
+                config.headers.Authorization = `Bearer ${newToken}`;
+                config.headers['X-Retry-After-Refresh'] = 'true';
+              }
+              return this.client.request(config);
+            }
+          }
+
+          // Refresh failed - clear token and redirect
           localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           window.location.href = '/login';
           return Promise.reject(error);
         }
