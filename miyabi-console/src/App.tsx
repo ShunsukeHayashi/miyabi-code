@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import DatabasePage from './pages/DatabasePage'
 import DeploymentPipelinePage from './pages/DeploymentPipelinePage'
 import InfrastructurePage from './pages/InfrastructurePage'
+import WorkflowsPage from './pages/WorkflowsPage'
 
 import ProtectedRoute from './components/ProtectedRoute'
 import SessionTimeoutWarning from './components/SessionTimeoutWarning'
@@ -34,6 +35,13 @@ function App() {
 
         {/* Agents - all roles */}
         <Route path="/agents" element={<AgentsPage />} />
+
+        {/* Workflows - admin and developer */}
+        <Route path="/workflows" element={
+          <ProtectedRoute requiredRole={['admin', 'developer']}>
+            <WorkflowsPage />
+          </ProtectedRoute>
+        } />
 
         {/* Deployment - admin only */}
         <Route path="/deployment" element={

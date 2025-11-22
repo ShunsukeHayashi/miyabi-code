@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  GitBranch,
   LayoutDashboard,
   LogOut,
   Rocket,
@@ -33,6 +34,7 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Agents', path: '/agents', icon: Users },
+    { name: 'Workflows', path: '/workflows', icon: GitBranch },
     { name: 'Deployment', path: '/deployment', icon: Rocket },
     { name: 'Infrastructure', path: '/infrastructure', icon: Server },
     { name: 'Database', path: '/database', icon: Database },
