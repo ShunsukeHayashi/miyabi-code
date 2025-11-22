@@ -1,5 +1,6 @@
 import { Avatar, Button, Tooltip } from '@heroui/react';
 import {
+  Building2,
   ChevronLeft,
   ChevronRight,
   Database,
@@ -35,6 +36,7 @@ export default function Sidebar() {
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Agents', path: '/agents', icon: Users },
     { name: 'Workflows', path: '/workflows', icon: GitBranch },
+    { name: 'Organizations', path: '/organizations', icon: Building2 },
     { name: 'Deployment', path: '/deployment', icon: Rocket },
     { name: 'Infrastructure', path: '/infrastructure', icon: Server },
     { name: 'Database', path: '/database', icon: Database },

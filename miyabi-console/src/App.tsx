@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import DatabasePage from './pages/DatabasePage'
 import DeploymentPipelinePage from './pages/DeploymentPipelinePage'
 import InfrastructurePage from './pages/InfrastructurePage'
+import OrganizationsPage from './pages/OrganizationsPage'
 import WorkflowsPage from './pages/WorkflowsPage'
 
 import ProtectedRoute from './components/ProtectedRoute'
@@ -40,6 +41,13 @@ function App() {
         <Route path="/workflows" element={
           <ProtectedRoute requiredRole={['admin', 'developer']}>
             <WorkflowsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Organizations - admin and developer */}
+        <Route path="/organizations" element={
+          <ProtectedRoute requiredRole={['admin', 'developer']}>
+            <OrganizationsPage />
           </ProtectedRoute>
         } />
 
