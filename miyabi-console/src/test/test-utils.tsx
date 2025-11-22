@@ -2,6 +2,7 @@ import { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '../contexts/AuthContext'
+import { WebSocketProvider } from '../contexts/WebSocketContext'
 
 // Custom render function that includes providers
 function customRender(
@@ -12,7 +13,9 @@ function customRender(
     return (
       <BrowserRouter>
         <AuthProvider>
-          {children}
+          <WebSocketProvider>
+            {children}
+          </WebSocketProvider>
         </AuthProvider>
       </BrowserRouter>
     )
