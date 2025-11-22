@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import DatabasePage from './pages/DatabasePage'
 import DeploymentPipelinePage from './pages/DeploymentPipelinePage'
 import InfrastructurePage from './pages/InfrastructurePage'
+import NotificationsPage from './pages/NotificationsPage'
 import OrganizationsPage from './pages/OrganizationsPage'
 import WorkflowsPage from './pages/WorkflowsPage'
 
@@ -71,6 +72,9 @@ function App() {
             <DatabasePage />
           </ProtectedRoute>
         } />
+
+        {/* Notifications - all roles */}
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
       </Routes>
     </>

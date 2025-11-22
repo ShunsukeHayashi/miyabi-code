@@ -1,5 +1,6 @@
 import { Avatar, Button, Tooltip } from '@heroui/react';
 import {
+  Bell,
   Building2,
   ChevronLeft,
   ChevronRight,
@@ -40,6 +41,7 @@ export default function Sidebar() {
     { name: 'Deployment', path: '/deployment', icon: Rocket },
     { name: 'Infrastructure', path: '/infrastructure', icon: Server },
     { name: 'Database', path: '/database', icon: Database },
+    { name: 'Notifications', path: '/notifications', icon: Bell },
   ];
 
   return (
