@@ -1,0 +1,221 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v0.1.0)'
+        required: true
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: miyabi-x86_64-apple-darwin
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: miyabi-aarch64-apple-darwin
+
+          # Linux
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: miyabi-x86_64-unknown-linux-gnu
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: miyabi-aarch64-unknown-linux-gnu
+            cross: true
+
+          # Windows
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            name: miyabi-x86_64-pc-windows-msvc
+            ext: .exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools
+        if: matrix.cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "release-${{ matrix.target }}"
+          shared-key: "release"
+          cache-on-failure: true
+
+      - name: Build binary
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cargo install cross --git https://github.com/cross-rs/cross
+            cross build --release --target ${{ matrix.target }} --package miyabi-cli
+          else
+            cargo build --release --target ${{ matrix.target }} --package miyabi-cli
+          fi
+        shell: bash
+
+      - name: Package binary
+        run: |
+          cd target/${{ matrix.target }}/release
+
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a ../../../${{ matrix.name }}.zip miyabi${{ matrix.ext }}
+          else
+            tar czvf ../../../${{ matrix.name }}.tar.gz miyabi${{ matrix.ext }}
+          fi
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: |
+            ${{ matrix.name }}.tar.gz
+            ${{ matrix.name }}.zip
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec sh -c '
+            for f; do
+              sha256sum "$f" | sed "s|./||" >> ../checksums.txt
+            done
+          ' _ {} +
+          cd ..
+          cat checksums.txt
+
+      - name: Get tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Miyabi ${{ steps.tag.outputs.tag }}
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+            checksums.txt
+          body: |
+            ## Installation
+
+            ### Quick Install (Recommended)
+
+            ```bash
+            # Using cargo-binstall (fastest)
+            cargo binstall miyabi
+
+            # Or download binary directly
+            curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/download/${{ steps.tag.outputs.tag }}/miyabi-$(uname -m)-$(uname -s | tr '[:upper:]' '[:lower:]').tar.gz | tar xz
+            sudo mv miyabi /usr/local/bin/
+            ```
+
+            ### Build from Source
+
+            ```bash
+            cargo install miyabi-cli --git https://github.com/ShunsukeHayashi/Miyabi --tag ${{ steps.tag.outputs.tag }}
+            ```
+
+            ## Checksums
+
+            See `checksums.txt` for SHA256 checksums of all binaries.
+
+  publish-crates:
+    name: Publish to crates.io
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-') }}  # Skip for pre-releases
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Publish crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          # Publish in dependency order
+          # Base crates first
+          for crate in \
+            miyabi-types \
+            miyabi-core \
+            miyabi-llm-core \
+            miyabi-llm-anthropic \
+            miyabi-llm-openai \
+            miyabi-llm-google \
+            miyabi-llm \
+            miyabi-github \
+            miyabi-worktree \
+            miyabi-agent-core \
+            miyabi-knowledge \
+            miyabi-modes \
+            miyabi-a2a \
+            miyabi-orchestrator \
+            miyabi-agent-coordinator \
+            miyabi-agent-codegen \
+            miyabi-agent-review \
+            miyabi-agent-workflow \
+            miyabi-agent-business \
+            miyabi-agents \
+            miyabi-cli
+          do
+            echo "Publishing $crate..."
+            cargo publish -p $crate --allow-dirty || echo "Failed to publish $crate (may already exist)"
+            sleep 30  # Wait for crates.io to index
+          done
