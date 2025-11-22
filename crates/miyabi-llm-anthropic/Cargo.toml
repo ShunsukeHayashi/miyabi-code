@@ -21,7 +21,7 @@ tokio = { workspace = true }
 reqwest = { version = "0.12", features = ["json", "stream"] }
 futures = "0.3"
 async-stream = "0.3"
-bytes = "1.0"
+bytes = "1.11"
 chrono = { workspace = true }
 
 [dev-dependencies]
