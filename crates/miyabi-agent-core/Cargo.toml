@@ -10,9 +10,10 @@ keywords = ["agents", "ai", "async", "automation"]
 categories = ["development-tools"]
 
 [dependencies]
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-knowledge = { path = "../miyabi-knowledge" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-knowledge = { path = "../miyabi-knowledge", version = "0.1.2" }
+miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
@@ -21,6 +22,9 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
+toml = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
+regex = "1.10"
 
 [dev-dependencies]
 tokio-test = "0.4"

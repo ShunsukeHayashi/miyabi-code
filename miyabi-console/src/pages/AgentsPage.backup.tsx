@@ -1,9 +1,8 @@
 import AgentDetailModal from '@/components/agents/AgentDetailModal'
 import LayerSection from '@/components/agents/LayerSection'
-import { apiClient, handleApiError } from '@/lib/api/client'
+import { apiClient } from '@/lib/api/client'
 import type { Agent, AgentsPageState } from '@/types/agent'
 import { Button, Card, CardBody, Spinner } from '@heroui/react'
-import { AlertCircle, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const LAYER_NAMES: Record<number, string> = {
@@ -23,7 +22,7 @@ export default function AgentsPage() {
   })
 
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+
   // Fetch agents on mount
   useEffect(() => {
     fetchAgents()
@@ -40,13 +39,10 @@ export default function AgentsPage() {
 
   const fetchAgents = async () => {
     try {
-      setError(null)
       const agents = await apiClient.getAgents()
       setState((prev) => ({ ...prev, agents, isLoading: false }))
-    } catch (err) {
-      const apiError = handleApiError(err)
-      setError(apiError.message)
-      console.error('Failed to fetch agents:', apiError)
+    } catch (error) {
+      console.error('Failed to fetch agents:', error)
       setState((prev) => ({ ...prev, isLoading: false }))
     }
   }
@@ -83,65 +79,55 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Agents Management</h1>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="flat"
-            onClick={fetchAgents}
-            startContent={<RefreshCw className={`w-4 h-4 ${state.isLoading ? 'animate-spin' : ''}`} />}
-          >
-            Refresh
-          </Button>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-3xl md:text-5xl font-light tracking-tight text-gray-900 leading-tight">
+            Agents
+          </h1>
+          <p className="text-base text-gray-600 font-light mt-2">
+            {state.agents.length} agents across {sortedLayers.length} layers
+          </p>
         </div>
+        <Button
+          size="sm"
+          variant="flat"
+          onClick={fetchAgents}
+          className="w-full sm:w-auto"
+        >
+          🔄 Refresh
+        </Button>
       </div>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700 text-sm flex-1">{error}</p>
-          <Button
-            size="sm"
-            variant="flat"
-            onClick={() => setError(null)}
-          >
-            Dismiss
-          </Button>
-        </div>
-      )}
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Total Agents</p>
-            <p className="text-2xl font-bold">{state.agents.length}</p>
+      {/* Stats Overview - Mobile Responsive Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardBody className="p-3 sm:p-4">
+            <p className="text-xs text-gray-500">Total</p>
+            <p className="text-xl sm:text-2xl font-light text-gray-900">{state.agents.length}</p>
           </CardBody>
         </Card>
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Active</p>
-            <p className="text-2xl font-bold text-success">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardBody className="p-3 sm:p-4">
+            <p className="text-xs text-gray-500">Active</p>
+            <p className="text-xl sm:text-2xl font-light text-blue-600">
               {state.agents.filter((a) => a.status === 'active').length}
             </p>
           </CardBody>
         </Card>
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Idle</p>
-            <p className="text-2xl font-bold text-warning">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardBody className="p-3 sm:p-4">
+            <p className="text-xs text-gray-500">Idle</p>
+            <p className="text-xl sm:text-2xl font-light text-gray-900">
               {state.agents.filter((a) => a.status === 'idle').length}
             </p>
           </CardBody>
         </Card>
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Error/Offline</p>
-            <p className="text-2xl font-bold text-danger">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardBody className="p-3 sm:p-4">
+            <p className="text-xs text-gray-500">Error</p>
+            <p className="text-xl sm:text-2xl font-light text-gray-900">
               {state.agents.filter((a) => a.status === 'error' || a.status === 'offline').length}
             </p>
           </CardBody>
@@ -149,7 +135,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Agents by Layer */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {sortedLayers.map((layer) => (
           <LayerSection
             key={layer}
@@ -161,9 +147,9 @@ export default function AgentsPage() {
         ))}
 
         {state.agents.length === 0 && (
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardBody>
-              <p className="text-center text-gray-500 py-12">
+              <p className="text-center text-gray-500 py-8 sm:py-12 text-sm sm:text-base">
                 No agents found. Please check your API connection.
               </p>
             </CardBody>

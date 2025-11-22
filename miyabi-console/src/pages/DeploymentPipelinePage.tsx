@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
-import { Card, CardBody, Progress, Chip, Button } from '@heroui/react'
-import type { PipelineState } from '@/types/deployment'
-import { mockDeploymentTasks, mockTerraformExecution } from '@/lib/mockDeploymentData'
-import { mockInfrastructureTopology } from '@/lib/mockInfrastructureData'
+import DeploymentLog from '@/components/deployment/DeploymentLog'
 import DeploymentStageCard from '@/components/deployment/DeploymentStageCard'
 import TerraformProgress from '@/components/deployment/TerraformProgress'
-import DeploymentLog from '@/components/deployment/DeploymentLog'
-import InfrastructureDiagram from '@/components/infrastructure/InfrastructureDiagram'
 import ArchitectureOverview from '@/components/infrastructure/ArchitectureOverview'
+import InfrastructureDiagram from '@/components/infrastructure/InfrastructureDiagram'
+import { apiClient, DeploymentInfo, handleApiError } from '@/lib/api/client'
+import { mockDeploymentTasks, mockTerraformExecution } from '@/lib/mockDeploymentData'
+import type { InfrastructureTopology } from '@/types/infrastructure'
+import type { PipelineState } from '@/types/deployment'
+import { Button, Card, CardBody, Chip, Progress, Spinner } from '@heroui/react'
+import { AlertCircle, Rocket } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DeploymentPipelinePage() {
   const [state, setState] = useState<PipelineState>({
@@ -16,6 +18,62 @@ export default function DeploymentPipelinePage() {
     terraformExecution: mockTerraformExecution,
     isExecuting: true,
   })
+  const [deployments, setDeployments] = useState<DeploymentInfo[]>([])
+  const [topology, setTopology] = useState<InfrastructureTopology | null>(null)
+  const [topologyLoading, setTopologyLoading] = useState(true)
+  const [deploying, setDeploying] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch deployments from API
+  useEffect(() => {
+    const fetchDeployments = async () => {
+      try {
+        setError(null)
+        const data = await apiClient.getDeployments()
+        setDeployments(data)
+      } catch (err) {
+        const apiError = handleApiError(err)
+        setError(apiError.message)
+        console.error('Failed to fetch deployments:', apiError)
+      }
+    }
+
+    fetchDeployments()
+    const interval = setInterval(fetchDeployments, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Fetch infrastructure topology from API
+  useEffect(() => {
+    const fetchTopology = async () => {
+      try {
+        setTopologyLoading(true)
+        const data = await apiClient.getInfrastructureTopology()
+        setTopology(data)
+      } catch (err) {
+        const apiError = handleApiError(err)
+        console.error('Failed to fetch topology:', apiError)
+      } finally {
+        setTopologyLoading(false)
+      }
+    }
+
+    fetchTopology()
+  }, [])
+
+  const handleTriggerDeploy = async (environment: string) => {
+    setDeploying(true)
+    try {
+      await apiClient.triggerDeployment(environment)
+      const data = await apiClient.getDeployments()
+      setDeployments(data)
+    } catch (err) {
+      const apiError = handleApiError(err)
+      setError(`Failed to trigger deployment: ${apiError.message}`)
+    } finally {
+      setDeploying(false)
+    }
+  }
 
   // Simulate real-time updates
   useEffect(() => {
@@ -59,15 +117,66 @@ export default function DeploymentPipelinePage() {
           <Button
             size="sm"
             variant="flat"
+            color="primary"
+            onClick={() => handleTriggerDeploy('staging')}
+            isLoading={deploying}
+            startContent={!deploying && <Rocket className="w-4 h-4" />}
+          >
+            Deploy Staging
+          </Button>
+          <Button
+            size="sm"
+            variant="flat"
             color={state.isExecuting ? 'danger' : 'success'}
           >
             {state.isExecuting ? 'Pause' : 'Resume'}
           </Button>
-          <Button size="sm" variant="flat">
-            View Logs
-          </Button>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <p className="text-red-700 text-sm flex-1">{error}</p>
+          <Button size="sm" variant="flat" onClick={() => setError(null)}>
+            Dismiss
+          </Button>
+        </div>
+      )}
+
+      {/* Recent Deployments */}
+      {deployments.length > 0 && (
+        <Card>
+          <CardBody>
+            <h3 className="text-lg font-semibold mb-3">Recent Deployments</h3>
+            <div className="space-y-2">
+              {deployments.map((deploy) => (
+                <div key={deploy.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div className="flex items-center gap-3">
+                    <Chip
+                      size="sm"
+                      color={
+                        deploy.status === 'success' ? 'success' :
+                          deploy.status === 'running' ? 'primary' :
+                            deploy.status === 'failed' ? 'danger' : 'default'
+                      }
+                      variant="flat"
+                    >
+                      {deploy.status}
+                    </Chip>
+                    <span className="font-medium">{deploy.name}</span>
+                    <span className="text-sm text-gray-500">{deploy.environment}</span>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(deploy.created_at).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Overall Progress */}
       <Card>
@@ -135,7 +244,17 @@ export default function DeploymentPipelinePage() {
             Interactive Diagram
           </Chip>
         </div>
-        <InfrastructureDiagram topology={mockInfrastructureTopology} />
+        {topologyLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner size="lg" />
+          </div>
+        ) : topology ? (
+          <InfrastructureDiagram topology={topology} />
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            Failed to load infrastructure topology
+          </div>
+        )}
       </div>
 
       {/* Deployment Timeline */}

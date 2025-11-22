@@ -19,23 +19,23 @@ name = "miyabi"
 path = "src/main.rs"
 
 [dependencies]
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-github = { path = "../miyabi-github" }
-miyabi-agents = { path = "../miyabi-agents" }
-miyabi-agent-core = { path = "../miyabi-agent-core" }
-miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator" }
-miyabi-agent-codegen = { path = "../miyabi-agent-codegen" }
-miyabi-agent-review = { path = "../miyabi-agent-review" }
-miyabi-agent-workflow = { path = "../miyabi-agent-workflow" }
-miyabi-agent-business = { path = "../miyabi-agent-business" }
-miyabi-worktree = { path = "../miyabi-worktree" }
-miyabi-knowledge = { path = "../miyabi-knowledge" }
-miyabi-modes = { path = "../miyabi-modes" }
-miyabi-a2a = { path = "../miyabi-a2a" }
-miyabi-approval = { path = "../miyabi-approval" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
+miyabi-agents = { path = "../miyabi-agents", version = "0.1.2" }
+miyabi-agent-core = { path = "../miyabi-agent-core", version = "0.1.2" }
+miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator", version = "0.1.2" }
+miyabi-agent-codegen = { path = "../miyabi-agent-codegen", version = "0.1.2" }
+miyabi-agent-review = { path = "../miyabi-agent-review", version = "0.1.2" }
+miyabi-agent-workflow = { path = "../miyabi-agent-workflow", version = "0.1.2" }
+miyabi-agent-business = { path = "../miyabi-agent-business", version = "0.1.2" }
+miyabi-worktree = { path = "../miyabi-worktree", version = "0.1.2" }
+miyabi-knowledge = { path = "../miyabi-knowledge", version = "0.1.2" }
+miyabi-modes = { path = "../miyabi-modes", version = "0.1.2" }
+miyabi-a2a = { path = "../miyabi-a2a", version = "0.1.2" }
+miyabi-approval = { path = "../miyabi-approval", version = "0.1.2" }
 # miyabi-feedback-loop MERGED into miyabi-orchestrator/feedback
-miyabi-orchestrator = { path = "../miyabi-orchestrator" }
+miyabi-orchestrator = { path = "../miyabi-orchestrator", version = "0.1.2" }
 
 tokio = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
@@ -53,6 +53,7 @@ dirs = "6.0"
 shellexpand = "3.1"
 open = "5.0"  # For opening browser
 comfy-table = "7.1"  # For pretty table output
+rustls = { version = "0.23", features = ["ring"] }  # TLS crypto provider
 
 [features]
 default = ["server"]

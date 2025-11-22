@@ -1,10 +1,45 @@
-import { useState } from 'react'
-import { Card, CardBody, CardHeader, Chip, Tabs, Tab, Divider } from '@heroui/react'
-import { miyabiDatabaseSchema } from '@/lib/mockDatabaseData'
 import DatabaseERD from '@/components/database/DatabaseERD'
+import { apiClient, DatabaseSchema, handleApiError } from '@/lib/api/client'
+import { miyabiDatabaseSchema } from '@/lib/mockDatabaseData'
+import { Card, CardBody, CardHeader, Chip, Divider, Tab, Tabs } from '@heroui/react'
+import { AlertCircle, CheckCircle, Database, Loader2, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DatabasePage() {
   const [selectedTab, setSelectedTab] = useState<string>('erd')
+  const [dbStatus, setDbStatus] = useState<{
+    status: string
+    connections: number
+    latency_ms: number
+  } | null>(null)
+  const [dbSchema, setDbSchema] = useState<DatabaseSchema | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch database status and schema
+  useEffect(() => {
+    const fetchDatabaseInfo = async () => {
+      try {
+        setError(null)
+        const [status, schema] = await Promise.all([
+          apiClient.getDatabaseStatus(),
+          apiClient.getDatabaseSchema(),
+        ])
+        setDbStatus(status)
+        setDbSchema(schema)
+      } catch (err) {
+        const apiError = handleApiError(err)
+        setError(apiError.message)
+        console.error('Failed to fetch database info:', apiError)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDatabaseInfo()
+    const interval = setInterval(fetchDatabaseInfo, 10000) // Refresh every 10s
+    return () => clearInterval(interval)
+  }, [])
 
   const totalRecords = miyabiDatabaseSchema.entities.reduce(
     (sum, e) => sum + (e.recordCount || 0),
@@ -35,11 +70,77 @@ export default function DatabasePage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">🗄️ Database Schema & ERD</h1>
+        <h1 className="text-3xl font-bold">Database Schema & ERD</h1>
         <p className="text-gray-500 mt-1">
           Miyabi Entity-Relation Model - 12 Entities, 27 Relationships
         </p>
       </div>
+
+      {/* Database Connection Status */}
+      <Card className="bg-gradient-to-r from-green-50 to-blue-50">
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-lg shadow-sm">
+                <Database className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Database Connection</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                      <span className="text-sm text-gray-500">Checking connection...</span>
+                    </>
+                  ) : error ? (
+                    <>
+                      <XCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-sm text-red-600">{error}</span>
+                    </>
+                  ) : dbStatus?.status === 'healthy' ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-sm text-green-600">Connected</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4 text-yellow-500" />
+                      <span className="text-sm text-yellow-600">{dbStatus?.status || 'Unknown'}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {dbStatus && !error && (
+              <div className="flex gap-6">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900">{dbStatus.connections}</p>
+                  <p className="text-xs text-gray-500">Active Connections</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900">{dbStatus.latency_ms}ms</p>
+                  <p className="text-xs text-gray-500">Latency</p>
+                </div>
+                {dbSchema && (
+                  <>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-gray-900">{dbSchema.tables.length}</p>
+                      <p className="text-xs text-gray-500">Tables</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-gray-900">
+                        {(dbSchema.size_bytes / 1024 / 1024).toFixed(1)}MB
+                      </p>
+                      <p className="text-xs text-gray-500">Size</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Statistics Dashboard */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

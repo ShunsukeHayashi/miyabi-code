@@ -1,30 +1,85 @@
-import { useState } from 'react'
-import { Card, CardBody, Chip, Tabs, Tab } from '@heroui/react'
-import { mockInfrastructureTopology } from '@/lib/mockInfrastructureData'
+import { useState, useEffect } from 'react'
+import { Card, CardBody, Chip, Tabs, Tab, Spinner } from '@heroui/react'
+import { apiClient, handleApiError } from '@/lib/api/client'
 import InfrastructureTopologyView from '@/components/infrastructure/InfrastructureTopologyView'
 import InfrastructureDiagram from '@/components/infrastructure/InfrastructureDiagram'
 import ArchitectureOverview from '@/components/infrastructure/ArchitectureOverview'
-import type { ResourceState } from '@/types/infrastructure'
+import type { ResourceState, InfrastructureTopology, InfrastructureResource } from '@/types/infrastructure'
 
 export default function InfrastructurePage() {
   const [selectedTab, setSelectedTab] = useState<string>('diagram')
+  const [topology, setTopology] = useState<InfrastructureTopology | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchTopology = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await apiClient.getInfrastructureTopology()
+        setTopology(data)
+      } catch (err) {
+        const apiError = handleApiError(err)
+        setError(apiError.message)
+        console.error('Failed to fetch infrastructure topology:', apiError)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTopology()
+  }, [])
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" label="Loading infrastructure data..." />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !topology) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Infrastructure</h1>
+          <p className="text-gray-500 mt-1">AWS Infrastructure Overview - Development Environment</p>
+        </div>
+        <Card className="bg-danger-50">
+          <CardBody>
+            <p className="text-danger font-semibold">Failed to load infrastructure data</p>
+            <p className="text-sm text-default-600 mt-1">{error || 'Unknown error occurred'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-3 text-sm text-primary hover:underline"
+            >
+              Retry
+            </button>
+          </CardBody>
+        </Card>
+      </div>
+    )
+  }
 
   // Calculate statistics
   const allResources = [
-    mockInfrastructureTopology.vpc,
-    ...mockInfrastructureTopology.publicSubnets,
-    ...mockInfrastructureTopology.privateSubnets,
-    mockInfrastructureTopology.internetGateway,
-    ...mockInfrastructureTopology.natGateways,
-    ...mockInfrastructureTopology.securityGroups,
-    mockInfrastructureTopology.ecsCluster,
-    ...mockInfrastructureTopology.ecsServices,
-    mockInfrastructureTopology.alb,
-    ...mockInfrastructureTopology.targetGroups,
-    ...mockInfrastructureTopology.databases,
-    ...mockInfrastructureTopology.caches,
-    ...mockInfrastructureTopology.iamRoles,
-  ].filter((r): r is import('@/types/infrastructure').InfrastructureResource => r !== undefined && r !== null)
+    topology.vpc,
+    ...topology.publicSubnets,
+    ...topology.privateSubnets,
+    topology.internetGateway,
+    ...topology.natGateways,
+    ...topology.securityGroups,
+    topology.ecsCluster,
+    ...topology.ecsServices,
+    topology.alb,
+    ...topology.targetGroups,
+    ...topology.databases,
+    ...topology.caches,
+    ...topology.iamRoles,
+  ].filter((r): r is InfrastructureResource => r !== undefined && r !== null)
 
   const resourcesByState = allResources.reduce((acc, resource) => {
     if (resource) {
@@ -89,13 +144,13 @@ export default function InfrastructurePage() {
       >
         <Tab key="diagram" title="🎨 Interactive Diagram">
           <div className="mt-4">
-            <InfrastructureDiagram topology={mockInfrastructureTopology} />
+            <InfrastructureDiagram topology={topology} />
           </div>
         </Tab>
 
         <Tab key="topology" title="📊 Topology View">
           <div className="mt-4">
-            <InfrastructureTopologyView topology={mockInfrastructureTopology} />
+            <InfrastructureTopologyView topology={topology} />
           </div>
         </Tab>
 
@@ -141,9 +196,9 @@ export default function InfrastructurePage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-3">VPC Configuration</h3>
                   <div className="p-4 bg-primary-50 rounded-lg">
-                    <p className="font-semibold">{mockInfrastructureTopology.vpc.name}</p>
+                    <p className="font-semibold">{topology.vpc.name}</p>
                     <p className="text-sm text-default-600 mt-1">
-                      CIDR: {mockInfrastructureTopology.vpc.cidr}
+                      CIDR: {topology.vpc.cidr}
                     </p>
                     <p className="text-sm text-default-600">
                       Region: us-west-2
@@ -157,7 +212,7 @@ export default function InfrastructurePage() {
                     <div>
                       <p className="text-sm font-medium text-default-600 mb-2">Public Subnets</p>
                       <div className="space-y-2">
-                        {mockInfrastructureTopology.publicSubnets.map((subnet) => (
+                        {topology.publicSubnets.map((subnet) => (
                           <div key={subnet.id} className="p-3 bg-blue-50 rounded-lg">
                             <p className="font-semibold text-sm">{subnet.name}</p>
                             <p className="text-xs text-default-600">{subnet.cidr}</p>
@@ -170,7 +225,7 @@ export default function InfrastructurePage() {
                     <div>
                       <p className="text-sm font-medium text-default-600 mb-2">Private Subnets</p>
                       <div className="space-y-2">
-                        {mockInfrastructureTopology.privateSubnets.map((subnet) => (
+                        {topology.privateSubnets.map((subnet) => (
                           <div key={subnet.id} className="p-3 bg-purple-50 rounded-lg">
                             <p className="font-semibold text-sm">{subnet.name}</p>
                             <p className="text-xs text-default-600">{subnet.cidr}</p>
@@ -185,18 +240,18 @@ export default function InfrastructurePage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Gateways</h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    {mockInfrastructureTopology.internetGateway && (
+                    {topology.internetGateway && (
                       <div className="p-4 bg-green-50 rounded-lg">
                         <p className="font-semibold">Internet Gateway</p>
                         <p className="text-sm text-default-600 mt-1">
-                          {mockInfrastructureTopology.internetGateway.name}
+                          {topology.internetGateway.name}
                         </p>
                         <Chip size="sm" color="success" variant="flat" className="mt-2">
-                          {mockInfrastructureTopology.internetGateway.state}
+                          {topology.internetGateway.state}
                         </Chip>
                       </div>
                     )}
-                    {mockInfrastructureTopology.natGateways.map((nat) => (
+                    {topology.natGateways.map((nat) => (
                       <div key={nat.id} className="p-4 bg-orange-50 rounded-lg">
                         <p className="font-semibold">NAT Gateway</p>
                         <p className="text-sm text-default-600 mt-1">{nat.name}</p>
@@ -218,7 +273,7 @@ export default function InfrastructurePage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Security Groups</h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {mockInfrastructureTopology.securityGroups.map((sg) => (
+                  {topology.securityGroups.map((sg) => (
                     <div key={sg.id} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -256,7 +311,7 @@ export default function InfrastructurePage() {
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-3">IAM Roles</h3>
                   <div className="space-y-2">
-                    {mockInfrastructureTopology.iamRoles.map((role) => (
+                    {topology.iamRoles.map((role) => (
                       <div key={role.id} className="p-3 bg-default-50 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
