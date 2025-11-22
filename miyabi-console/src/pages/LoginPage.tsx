@@ -22,7 +22,7 @@ import { motion } from 'framer-motion';
  * Score: 98/100 (Insanely Great - Mobile Optimized)
  */
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, error, loading } = useAuth();
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
@@ -137,10 +137,19 @@ const LoginPage = () => {
               </div>
             </div>
 
+            {/* Error Display */}
+            {error && (
+              <div className="p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                <p className="text-sm text-red-600 text-center">{error}</p>
+              </div>
+            )}
+
             {/* CTA Button - Responsive Size */}
             <Button
               onClick={login}
               size="lg"
+              isLoading={loading}
+              isDisabled={loading}
               className="w-full bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all duration-200 h-12 sm:h-14 text-base sm:text-lg"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">

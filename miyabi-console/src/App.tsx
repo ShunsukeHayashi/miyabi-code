@@ -7,14 +7,22 @@ import DeploymentPipelinePage from './pages/DeploymentPipelinePage'
 import InfrastructurePage from './pages/InfrastructurePage'
 
 import ProtectedRoute from './components/ProtectedRoute'
+import SessionTimeoutWarning from './components/SessionTimeoutWarning'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import LoginPage from './pages/LoginPage'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/auth/callback" element={<AuthCallbackPage />} />
+    <>
+      {/* Session timeout warning modal - monitors inactivity */}
+      <SessionTimeoutWarning
+        sessionTimeout={30 * 60 * 1000}  // 30 minutes
+        warningTime={5 * 60 * 1000}      // 5 minutes before timeout
+      />
+
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       <Route path="/" element={
         <ProtectedRoute>
@@ -48,7 +56,8 @@ function App() {
           </ProtectedRoute>
         } />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }
 
