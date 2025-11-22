@@ -14,7 +14,7 @@ categories.workspace = true
 [dependencies]
 # AWS SDK
 aws-config = "1.5"
-aws-sdk-ec2 = "1.50"
+aws-sdk-ec2 = "1.190"
 aws-sdk-s3 = "1.52"
 aws-sdk-lambda = "1.105"
 aws-sdk-rds = "1.49"
