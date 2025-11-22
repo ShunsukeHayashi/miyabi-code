@@ -34,7 +34,7 @@ reqwest.workspace = true
 serde_yaml = "0.9"
 
 # Qdrant client
-qdrant-client = "1.7"
+qdrant-client = "1.16"
 
 # Web framework (for API)
 axum = { version = "0.7", features = ["macros"] }
