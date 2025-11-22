@@ -21,11 +21,32 @@ function App() {
           <Layout />
         </ProtectedRoute>
       }>
+        {/* Dashboard - all roles */}
         <Route index element={<DashboardPage />} />
+
+        {/* Agents - all roles */}
         <Route path="/agents" element={<AgentsPage />} />
-        <Route path="/deployment" element={<DeploymentPipelinePage />} />
-        <Route path="/infrastructure" element={<InfrastructurePage />} />
-        <Route path="/database" element={<DatabasePage />} />
+
+        {/* Deployment - admin only */}
+        <Route path="/deployment" element={
+          <ProtectedRoute requiredRole="admin">
+            <DeploymentPipelinePage />
+          </ProtectedRoute>
+        } />
+
+        {/* Infrastructure - admin and developer */}
+        <Route path="/infrastructure" element={
+          <ProtectedRoute requiredRole={['admin', 'developer']}>
+            <InfrastructurePage />
+          </ProtectedRoute>
+        } />
+
+        {/* Database - admin and developer */}
+        <Route path="/database" element={
+          <ProtectedRoute requiredRole={['admin', 'developer']}>
+            <DatabasePage />
+          </ProtectedRoute>
+        } />
       </Route>
     </Routes>
   )

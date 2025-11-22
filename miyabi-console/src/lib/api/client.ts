@@ -168,8 +168,8 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        // Add auth token if available
-        const token = localStorage.getItem('auth_token');
+        // Add auth token if available (use access_token from AuthContext)
+        const token = localStorage.getItem('access_token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -200,6 +200,13 @@ class ApiClient {
 
         const requestKey = `${config.method}-${config.url}`;
         const currentRetry = this.retryCount.get(requestKey) || 0;
+
+        // Handle 401 Unauthorized - redirect to login
+        if (error.response?.status === 401) {
+          localStorage.removeItem('access_token');
+          window.location.href = '/login';
+          return Promise.reject(error);
+        }
 
         // Retry on network errors or 5xx errors
         const shouldRetry =
