@@ -3091,6 +3091,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "jsonwebtoken"
+version = "10.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c76e1c7d7df3e34443b3621b459b066a7b79644f059fc8b2db7070c825fd417e"
+dependencies = [
+ "base64 0.22.1",
+ "getrandom 0.2.16",
+ "js-sys",
+ "pem",
+ "serde",
+ "serde_json",
+ "signature 2.2.0",
+ "simple_asn1",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3365,7 +3381,7 @@ dependencies = [
  "futures 0.3.31",
  "hex",
  "hmac",
- "jsonwebtoken",
+ "jsonwebtoken 10.2.0",
  "miyabi-github",
  "miyabi-types",
  "octocrab",
@@ -4257,7 +4273,7 @@ dependencies = [
  "dashmap",
  "dotenvy",
  "futures 0.3.31",
- "jsonwebtoken",
+ "jsonwebtoken 10.2.0",
  "miyabi-approval",
  "miyabi-github",
  "miyabi-llm",
@@ -4607,7 +4623,7 @@ dependencies = [
  "hyper-rustls 0.27.7",
  "hyper-timeout",
  "hyper-util",
- "jsonwebtoken",
+ "jsonwebtoken 9.3.1",
  "once_cell",
  "percent-encoding",
  "pin-project",
