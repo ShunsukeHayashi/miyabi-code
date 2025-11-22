@@ -105,6 +105,46 @@ npm run preview
 npm run lint
 ```
 
+## Production Deployment
+
+### Live URLs
+
+| Environment | URL |
+|-------------|-----|
+| API | `http://miyabi-alb-dev-42521683.us-west-2.elb.amazonaws.com` |
+| WebSocket | `ws://miyabi-alb-dev-42521683.us-west-2.elb.amazonaws.com/ws` |
+| Frontend | S3 bucket `miyabi-web-dev-211234825975` |
+
+### AWS Infrastructure
+
+- **Region**: us-west-2 (Oregon)
+- **ECS Cluster**: `miyabi-cluster-dev`
+- **ECS Service**: `miyabi-service-dev` (2 tasks)
+- **ALB**: `miyabi-alb-dev`
+- **Redis**: `miyabi-cache-dev`
+
+### Deployment Commands
+
+```bash
+# Build frontend
+npm run build
+
+# Deploy to S3
+aws s3 sync dist/ s3://miyabi-web-dev-211234825975 --delete
+
+# Restart backend service
+aws ecs update-service \
+  --cluster miyabi-cluster-dev \
+  --service miyabi-service-dev \
+  --force-new-deployment
+```
+
+### Documentation
+
+- [Infrastructure Runbook](docs/INFRASTRUCTURE_RUNBOOK.md) - AWS resources & operations
+- [API Documentation](docs/API_DOCUMENTATION.md) - All endpoints & WebSocket events
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues & solutions
+
 ## Environment Variables
 
 Create a `.env` file in the root directory:
@@ -113,6 +153,14 @@ Create a `.env` file in the root directory:
 VITE_API_URL=http://localhost:8080/api/v1
 VITE_APP_NAME=Miyabi Console
 VITE_APP_VERSION=0.1.0
+```
+
+For production (`.env.production`):
+
+```env
+VITE_API_BASE_URL=http://miyabi-alb-dev-42521683.us-west-2.elb.amazonaws.com
+VITE_WS_URL=ws://miyabi-alb-dev-42521683.us-west-2.elb.amazonaws.com/ws
+VITE_AUTH_URL=http://miyabi-alb-dev-42521683.us-west-2.elb.amazonaws.com
 ```
 
 ## API Integration
@@ -171,25 +219,95 @@ To switch to real API in development, modify `src/lib/api/client.ts`:
 const USE_MOCK_DATA = false; // Change to false
 ```
 
+## Testing
+
+### Unit & Integration Tests (Vitest)
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run in watch mode
+npm run test:watch
+```
+
+**Current Status**: 104 tests passing
+
+### E2E Tests (Playwright)
+
+```bash
+# Install Playwright browsers
+npx playwright install
+
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+```
+
+**Test Coverage**:
+- Authentication flows
+- Real-time WebSocket updates
+- Dashboard analytics
+- Agent management
+- Database operations
+- Deployment pipelines
+
+**Browser Support**:
+- Chrome (Desktop)
+- Firefox (Desktop)
+- Safari (Desktop)
+- Chrome (Mobile - Pixel 5)
+- Safari (Mobile - iPhone 12)
+
 ## Implementation Status
 
-✅ **Completed (Issue #1009)**:
+✅ **Milestone 1 Completed**:
+
+**Phase 1 - Foundation (Issues #1009, #1010, #1011, #1012, #1013)**:
 - [x] Project setup with Vite + React + TypeScript
 - [x] HeroUI + Tailwind configuration
 - [x] Basic routing structure
-- [x] AgentsPage with layer-based organization
-- [x] AgentCard, LayerSection, AgentDetailModal components
+- [x] All page components (Dashboard, Agents, Database, Deployment, Infrastructure)
 - [x] API client with mock data support
-- [x] Real-time status polling (5s interval)
-- [x] Performance metrics visualization
-- [x] Agent controls (Start/Stop)
-- [x] Log viewer
+- [x] GitHub OAuth authentication
+- [x] WebSocket real-time updates
 - [x] Responsive design
 - [x] Loading states and error handling
 
+**Phase 2 - API Integration (Issues #1014, #1015, #1016, #1017, #1018, #1019, #1020, #1021, #1022, #1023)**:
+- [x] Agents API integration
+- [x] Database API integration
+- [x] Deployment API integration
+- [x] Infrastructure API integration
+- [x] Activity API integration
+- [x] Auth flow with GitHub OAuth
+- [x] WebSocket context with auto-reconnection
+
+**Phase 3 - Testing (Issues #1027, #1028, #1046, #1047)**:
+- [x] Unit tests (104 tests)
+- [x] Integration tests
+- [x] E2E tests with Playwright
+- [x] Cross-browser testing
+- [x] Mobile testing
+
+**Phase 4 - Deployment (Issues #1024, #1025)**:
+- [x] AWS infrastructure (ECS, ALB, S3, Redis)
+- [x] Frontend deployed to S3
+- [x] Backend deployed to ECS
+- [x] Production environment variables
+- [x] Documentation (API, Runbook, Troubleshooting)
+
 ## Future Enhancements
 
-- [ ] WebSocket support for real-time updates
+- [ ] SSL/TLS with ACM certificates
+- [ ] CloudFront CDN distribution
+- [ ] Custom domain setup
+- [ ] CI/CD pipeline with GitHub Actions
 - [ ] Advanced filtering and sorting
 - [ ] Agent search functionality
 - [ ] Bulk operations
