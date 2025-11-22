@@ -5,12 +5,13 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Message priority levels
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub enum Priority {
     /// Low priority - background tasks
     Low = 0,
 
     /// Normal priority - standard messages
+    #[default]
     Normal = 1,
 
     /// High priority - important updates
@@ -18,12 +19,6 @@ pub enum Priority {
 
     /// Urgent priority - critical messages (e.g., error notifications)
     Urgent = 3,
-}
-
-impl Default for Priority {
-    fn default() -> Self {
-        Self::Normal
-    }
 }
 
 /// Message type classification
