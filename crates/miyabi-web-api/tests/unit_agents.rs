@@ -4,11 +4,59 @@
 //! Target: 80% coverage of routes/agents.rs
 
 mod helpers;
-mod fixtures;
 
-use axum::http::StatusCode;
-use helpers::make_request;
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+    Router,
+};
+use miyabi_web_api::routes::agents::{self, AgentMetadata, AgentType, AgentsListResponse};
 use serde_json::Value;
+use tower::ServiceExt;
+
+/// Create test router with agent routes
+fn create_agent_router() -> Router {
+    agents::routes()
+}
+
+/// Helper to make GET requests
+async fn get_request(router: Router, uri: &str) -> (StatusCode, String) {
+    let request = Request::builder()
+        .uri(uri)
+        .method("GET")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = router.oneshot(request).await.unwrap();
+    let status = response.status();
+
+    let body_bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body_string = String::from_utf8(body_bytes.to_vec()).unwrap();
+
+    (status, body_string)
+}
+
+/// Helper to make POST requests
+async fn post_request(router: Router, uri: &str, body: &str) -> (StatusCode, String) {
+    let request = Request::builder()
+        .uri(uri)
+        .method("POST")
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap();
+
+    let response = router.oneshot(request).await.unwrap();
+    let status = response.status();
+
+    let body_bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body_string = String::from_utf8(body_bytes.to_vec()).unwrap();
+
+    (status, body_string)
+}
 
 // ========================================
 // Module 1: Agent List and Query Tests (6 tests)
@@ -16,56 +64,87 @@ use serde_json::Value;
 
 #[tokio::test]
 async fn test_list_all_agents() {
-    // Test: GET /agents
-    // Verify: Returns all 21 agents (7 Coding + 14 Business)
-    // Verify: Response structure correct
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
 
-    // Note: This test would require creating router with agent routes
-    // For now, we verify the expected behavior
+    assert_eq!(status, StatusCode::OK);
 
-    // Expected response structure:
-    // {
-    //   "agents": [
-    //     {
-    //       "name": "CoordinatorAgent",
-    //       "type": "Coding",
-    //       "status": "idle",
-    //       "capabilities": ["task_planning", ...],
-    //       "current_task": null,
-    //       "tmux_pane": null
-    //     },
-    //     ...
-    //   ]
-    // }
+    let response: AgentsListResponse = serde_json::from_str(&body)
+        .expect("Should parse as AgentsListResponse");
+
+    // Verify total count (7 Coding + 14 Business = 21)
+    assert_eq!(response.agents.len(), 21, "Expected 21 agents");
 }
 
 #[tokio::test]
 async fn test_list_agents_response_structure() {
-    // Verify response JSON schema matches AgentsListResponse
-    // Verify all required fields present
-    // Verify field types correct
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).expect("Should be valid JSON");
+
+    // Verify root structure
+    assert!(json.get("agents").is_some(), "Response should have 'agents' field");
+    assert!(json["agents"].is_array(), "agents should be an array");
+
+    // Verify first agent structure
+    let first_agent = &json["agents"][0];
+    assert!(first_agent.get("name").is_some(), "Agent should have 'name'");
+    assert!(first_agent.get("type").is_some(), "Agent should have 'type'");
+    assert!(first_agent.get("status").is_some(), "Agent should have 'status'");
+    assert!(first_agent.get("capabilities").is_some(), "Agent should have 'capabilities'");
 }
 
 #[tokio::test]
 async fn test_agent_count_by_type() {
-    // Verify: 7 Coding agents
-    // Verify: 14 Business agents
-    // Verify: Total 21 agents
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+
+    let coding_count = response.agents.iter()
+        .filter(|a| a.agent_type == AgentType::Coding)
+        .count();
+    let business_count = response.agents.iter()
+        .filter(|a| a.agent_type == AgentType::Business)
+        .count();
+
+    assert_eq!(coding_count, 7, "Expected 7 Coding agents");
+    assert_eq!(business_count, 14, "Expected 14 Business agents");
 }
 
 #[tokio::test]
 async fn test_agent_metadata_completeness() {
-    // Verify: Each agent has name
-    // Verify: Each agent has type (Coding or Business)
-    // Verify: Each agent has status
-    // Verify: Each agent has capabilities array
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+
+    for agent in &response.agents {
+        assert!(!agent.name.is_empty(), "Agent name should not be empty");
+        assert!(!agent.status.is_empty(), "Agent status should not be empty");
+        assert!(!agent.capabilities.is_empty(), "Agent should have at least one capability");
+    }
 }
 
 #[tokio::test]
 async fn test_filter_agents_by_type_coding() {
-    // Test: Filter agents by type = "Coding"
-    // Verify: Only coding agents returned
-    // Verify: Correct agent names
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+
+    let coding_agents: Vec<&AgentMetadata> = response.agents.iter()
+        .filter(|a| a.agent_type == AgentType::Coding)
+        .collect();
 
     let expected_coding_agents = vec![
         "CoordinatorAgent",
@@ -77,13 +156,29 @@ async fn test_filter_agents_by_type_coding() {
         "RefresherAgent",
     ];
 
-    assert_eq!(expected_coding_agents.len(), 7);
+    assert_eq!(coding_agents.len(), expected_coding_agents.len());
+
+    for expected_name in &expected_coding_agents {
+        assert!(
+            coding_agents.iter().any(|a| a.name == *expected_name),
+            "Missing coding agent: {}",
+            expected_name
+        );
+    }
 }
 
 #[tokio::test]
 async fn test_filter_agents_by_type_business() {
-    // Test: Filter agents by type = "Business"
-    // Verify: Only business agents returned
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+
+    let business_agents: Vec<&AgentMetadata> = response.agents.iter()
+        .filter(|a| a.agent_type == AgentType::Business)
+        .collect();
 
     let expected_business_agents = vec![
         "AIEntrepreneurAgent",
@@ -99,10 +194,18 @@ async fn test_filter_agents_by_type_business() {
         "SalesAgent",
         "CRMAgent",
         "AnalyticsAgent",
-        // Note: Should be 14 total
+        "YouTubeAgent",
     ];
 
-    assert!(expected_business_agents.len() >= 13);
+    assert_eq!(business_agents.len(), expected_business_agents.len());
+
+    for expected_name in &expected_business_agents {
+        assert!(
+            business_agents.iter().any(|a| a.name == *expected_name),
+            "Missing business agent: {}",
+            expected_name
+        );
+    }
 }
 
 // ========================================
@@ -111,36 +214,44 @@ async fn test_filter_agents_by_type_business() {
 
 #[tokio::test]
 async fn test_get_agent_status_success() {
-    // Test: GET /agents/{agent_name}
-    // Verify: Returns agent metadata
-    // Verify: Agent name matches
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/CoordinatorAgent").await;
 
-    let agent_name = "CoordinatorAgent";
-    // Expected: Some(AgentMetadata)
+    assert_eq!(status, StatusCode::OK);
+
+    let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+    assert!(agent.is_some(), "CoordinatorAgent should exist");
+
+    let agent = agent.unwrap();
+    assert_eq!(agent.name, "CoordinatorAgent");
+    assert_eq!(agent.agent_type, AgentType::Coding);
 }
 
 #[tokio::test]
 async fn test_get_agent_status_not_found() {
-    // Test: GET /agents/NonExistentAgent
-    // Verify: Returns None (404 or null)
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/NonExistentAgent").await;
 
-    let agent_name = "NonExistentAgent";
-    // Expected: None
+    assert_eq!(status, StatusCode::OK);
+
+    let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+    assert!(agent.is_none(), "NonExistentAgent should return None");
 }
 
 #[tokio::test]
 async fn test_get_agent_status_case_sensitive() {
-    // Test: Agent name lookup is case-sensitive
-    // Verify: "coordinatoragent" != "CoordinatorAgent"
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/coordinatoragent").await;
 
-    let lowercase_name = "coordinatoragent";
-    // Expected: None (case mismatch)
+    assert_eq!(status, StatusCode::OK);
+
+    let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+    assert!(agent.is_none(), "Lowercase name should not match");
 }
 
 #[tokio::test]
 async fn test_get_all_agent_statuses() {
-    // Test: Query status for each of 21 agents
-    // Verify: All return valid metadata
+    let router = create_agent_router();
 
     let all_agents = vec![
         "CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "IssueAgent",
@@ -149,9 +260,17 @@ async fn test_get_all_agent_statuses() {
         "PersonaAgent", "ProductConceptAgent", "ProductDesignAgent",
         "ContentCreationAgent", "FunnelDesignAgent", "SNSStrategyAgent",
         "MarketingAgent", "SalesAgent", "CRMAgent", "AnalyticsAgent",
+        "YouTubeAgent",
     ];
 
-    assert!(all_agents.len() >= 20);
+    for agent_name in &all_agents {
+        let (status, body) = get_request(router.clone(), &format!("/{}", agent_name)).await;
+        assert_eq!(status, StatusCode::OK, "Failed to get status for {}", agent_name);
+
+        let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+        assert!(agent.is_some(), "Agent {} should exist", agent_name);
+        assert_eq!(agent.unwrap().name, *agent_name);
+    }
 }
 
 // ========================================
@@ -160,35 +279,79 @@ async fn test_get_all_agent_statuses() {
 
 #[tokio::test]
 async fn test_execute_agent_with_issue() {
-    // Test: POST /agents/{agent_type}/execute
-    // Body: { "issue_number": 123 }
-    // Verify: Returns success response
-    // Verify: Message contains agent type
+    let router = create_agent_router();
+    let (status, body) = post_request(
+        router,
+        "/CoordinatorAgent/execute",
+        r#"{"issue_number": 123}"#
+    ).await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).unwrap();
+    assert!(json.get("success").is_some());
+    assert!(json.get("message").is_some());
 }
 
 #[tokio::test]
 async fn test_execute_agent_with_task_id() {
-    // Test: POST /agents/{agent_type}/execute
-    // Body: { "task_id": "task-123" }
-    // Verify: Returns success response
+    let router = create_agent_router();
+    let (status, body) = post_request(
+        router,
+        "/CodeGenAgent/execute",
+        r#"{"task_id": "task-123"}"#
+    ).await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).unwrap();
+    assert!(json.get("success").is_some());
 }
 
 #[tokio::test]
 async fn test_execute_agent_empty_payload() {
-    // Test: POST with empty JSON {}
-    // Verify: Accepts empty payload (both fields optional)
+    let router = create_agent_router();
+    let (status, body) = post_request(
+        router,
+        "/ReviewAgent/execute",
+        r#"{}"#
+    ).await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).unwrap();
+    assert!(json.get("success").is_some());
 }
 
 #[tokio::test]
 async fn test_execute_coordinator_agent() {
-    // Test: Execute CoordinatorAgent specifically
-    // Verify: Coordinator execution accepted
+    let router = create_agent_router();
+    let (status, body) = post_request(
+        router,
+        "/CoordinatorAgent/execute",
+        r#"{"issue_number": 999}"#
+    ).await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).unwrap();
+    let message = json.get("message").and_then(|m| m.as_str()).unwrap_or("");
+    assert!(message.contains("CoordinatorAgent"), "Message should mention agent name");
 }
 
 #[tokio::test]
 async fn test_execute_business_agent() {
-    // Test: Execute Business agent (e.g., MarketingAgent)
-    // Verify: Business agent execution accepted
+    let router = create_agent_router();
+    let (status, body) = post_request(
+        router,
+        "/MarketingAgent/execute",
+        r#"{"task_id": "marketing-task-1"}"#
+    ).await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).unwrap();
+    assert!(json.get("success").is_some());
 }
 
 // ========================================
@@ -197,11 +360,13 @@ async fn test_execute_business_agent() {
 
 #[tokio::test]
 async fn test_coordinator_capabilities() {
-    // Verify CoordinatorAgent has:
-    // - task_planning
-    // - dag_scheduling
-    // - parallel_execution
-    // - worktree_management
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/CoordinatorAgent").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+    let agent = agent.expect("CoordinatorAgent should exist");
 
     let expected_capabilities = vec![
         "task_planning",
@@ -210,15 +375,26 @@ async fn test_coordinator_capabilities() {
         "worktree_management",
     ];
 
-    assert_eq!(expected_capabilities.len(), 4);
+    assert_eq!(agent.capabilities.len(), expected_capabilities.len());
+
+    for cap in &expected_capabilities {
+        assert!(
+            agent.capabilities.iter().any(|c| c == cap),
+            "Missing capability: {}",
+            cap
+        );
+    }
 }
 
 #[tokio::test]
 async fn test_codegen_capabilities() {
-    // Verify CodeGenAgent has:
-    // - code_generation
-    // - implementation
-    // - testing
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/CodeGenAgent").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+    let agent = agent.expect("CodeGenAgent should exist");
 
     let expected_capabilities = vec![
         "code_generation",
@@ -226,13 +402,25 @@ async fn test_codegen_capabilities() {
         "testing",
     ];
 
-    assert_eq!(expected_capabilities.len(), 3);
+    assert_eq!(agent.capabilities.len(), expected_capabilities.len());
 }
 
 #[tokio::test]
 async fn test_all_agents_have_capabilities() {
-    // Verify: Every agent has at least 1 capability
-    // Verify: Capabilities array is not empty
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+
+    for agent in &response.agents {
+        assert!(
+            !agent.capabilities.is_empty(),
+            "Agent {} has no capabilities",
+            agent.name
+        );
+    }
 }
 
 // ========================================
@@ -241,19 +429,47 @@ async fn test_all_agents_have_capabilities() {
 
 #[tokio::test]
 async fn test_agent_type_enum_serialization() {
-    use serde_json;
+    // Test AgentType serialization
+    let coding = AgentType::Coding;
+    let business = AgentType::Business;
 
-    // Test AgentType::Coding serializes to "Coding" (PascalCase)
-    // Test AgentType::Business serializes to "Business" (PascalCase)
+    let coding_json = serde_json::to_string(&coding).unwrap();
+    let business_json = serde_json::to_string(&business).unwrap();
 
-    // This verifies #[serde(rename_all = "PascalCase")] works correctly
+    assert_eq!(coding_json, "\"Coding\"", "Coding should serialize to PascalCase");
+    assert_eq!(business_json, "\"Business\"", "Business should serialize to PascalCase");
 }
 
 #[tokio::test]
 async fn test_agent_type_consistency() {
-    // Verify: All Coding agents have type = Coding
-    // Verify: All Business agents have type = Business
-    // Verify: No agents with inconsistent type/name mapping
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+
+    // Verify coding agent names end with "Agent" and are in coding list
+    let coding_names = vec![
+        "CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "IssueAgent",
+        "PRAgent", "DeploymentAgent", "RefresherAgent",
+    ];
+
+    for agent in &response.agents {
+        if coding_names.contains(&agent.name.as_str()) {
+            assert_eq!(
+                agent.agent_type, AgentType::Coding,
+                "{} should be Coding type",
+                agent.name
+            );
+        } else {
+            assert_eq!(
+                agent.agent_type, AgentType::Business,
+                "{} should be Business type",
+                agent.name
+            );
+        }
+    }
 }
 
 // ========================================
@@ -262,39 +478,65 @@ async fn test_agent_type_consistency() {
 
 #[tokio::test]
 async fn test_agent_workflow_end_to_end() {
-    // Test complete workflow:
-    // 1. List all agents
-    // 2. Get specific agent status
-    // 3. Execute agent
-    // 4. Verify execution response
+    let router = create_agent_router();
 
-    // Step 1: List agents
-    // Step 2: Pick CoordinatorAgent
-    // Step 3: Execute with issue #123
-    // Step 4: Verify success=true
+    // Step 1: List all agents
+    let (status, body) = get_request(router.clone(), "/").await;
+    assert_eq!(status, StatusCode::OK);
+
+    let response: AgentsListResponse = serde_json::from_str(&body).unwrap();
+    assert!(!response.agents.is_empty());
+
+    // Step 2: Get specific agent status
+    let (status, body) = get_request(router.clone(), "/CoordinatorAgent").await;
+    assert_eq!(status, StatusCode::OK);
+
+    let agent: Option<AgentMetadata> = serde_json::from_str(&body).unwrap();
+    assert!(agent.is_some());
+
+    // Step 3: Execute agent
+    let (status, body) = post_request(
+        router,
+        "/CoordinatorAgent/execute",
+        r#"{"issue_number": 123}"#
+    ).await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Step 4: Verify execution response
+    let json: Value = serde_json::from_str(&body).unwrap();
+    assert!(json.get("success").is_some());
 }
 
 #[tokio::test]
 async fn test_agent_response_json_schema() {
-    // Verify response matches JSON schema:
-    // {
-    //   "type": "object",
-    //   "properties": {
-    //     "agents": {
-    //       "type": "array",
-    //       "items": {
-    //         "type": "object",
-    //         "required": ["name", "type", "status", "capabilities"],
-    //         "properties": {
-    //           "name": {"type": "string"},
-    //           "type": {"enum": ["Coding", "Business"]},
-    //           "status": {"type": "string"},
-    //           "capabilities": {"type": "array"},
-    //           "current_task": {"type": ["string", "null"]},
-    //           "tmux_pane": {"type": ["string", "null"]}
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    let router = create_agent_router();
+    let (status, body) = get_request(router, "/").await;
+
+    assert_eq!(status, StatusCode::OK);
+
+    let json: Value = serde_json::from_str(&body).expect("Response should be valid JSON");
+
+    // Validate schema
+    let agents = json["agents"].as_array().expect("agents should be array");
+
+    for agent in agents {
+        // Required fields
+        assert!(agent.get("name").is_some(), "Missing 'name'");
+        assert!(agent.get("type").is_some(), "Missing 'type'");
+        assert!(agent.get("status").is_some(), "Missing 'status'");
+        assert!(agent.get("capabilities").is_some(), "Missing 'capabilities'");
+
+        // Type validation
+        assert!(agent["name"].is_string(), "name should be string");
+        assert!(agent["status"].is_string(), "status should be string");
+        assert!(agent["capabilities"].is_array(), "capabilities should be array");
+
+        // Enum validation
+        let agent_type = agent["type"].as_str().unwrap();
+        assert!(
+            agent_type == "Coding" || agent_type == "Business",
+            "type should be Coding or Business, got: {}",
+            agent_type
+        );
+    }
 }

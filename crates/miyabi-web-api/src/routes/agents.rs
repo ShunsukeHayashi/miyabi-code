@@ -6,7 +6,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 /// Agent type classification
-#[derive(Serialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub enum AgentType {
     Coding,
@@ -14,7 +14,7 @@ pub enum AgentType {
 }
 
 /// Enhanced agent metadata
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AgentMetadata {
     pub name: String,
     #[serde(rename = "type")]
@@ -26,7 +26,7 @@ pub struct AgentMetadata {
     pub tmux_pane: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct AgentsListResponse {
     pub agents: Vec<AgentMetadata>,
 }
