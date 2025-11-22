@@ -1,10 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Card, CardBody, Chip, Tabs, Tab, Spinner } from '@heroui/react'
 import { apiClient, handleApiError } from '@/lib/api/client'
 import InfrastructureTopologyView from '@/components/infrastructure/InfrastructureTopologyView'
-import InfrastructureDiagram from '@/components/infrastructure/InfrastructureDiagram'
 import ArchitectureOverview from '@/components/infrastructure/ArchitectureOverview'
 import type { ResourceState, InfrastructureTopology, InfrastructureResource } from '@/types/infrastructure'
+
+// Lazy load heavy ReactFlow component
+const InfrastructureDiagram = lazy(() => import('@/components/infrastructure/InfrastructureDiagram'))
+
+// Loading fallback for diagram
+function DiagramLoader() {
+  return (
+    <div className="flex items-center justify-center h-[600px] bg-default-50 rounded-lg">
+      <Spinner size="lg" label="Loading diagram..." />
+    </div>
+  )
+}
 
 export default function InfrastructurePage() {
   const [selectedTab, setSelectedTab] = useState<string>('diagram')
@@ -144,7 +155,9 @@ export default function InfrastructurePage() {
       >
         <Tab key="diagram" title="🎨 Interactive Diagram">
           <div className="mt-4">
-            <InfrastructureDiagram topology={topology} />
+            <Suspense fallback={<DiagramLoader />}>
+              <InfrastructureDiagram topology={topology} />
+            </Suspense>
           </div>
         </Tab>
 

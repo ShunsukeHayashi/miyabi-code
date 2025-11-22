@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardBody, Divider } from '@heroui/react'
 import type { Agent } from '@/types/agent'
 import AgentCard from './AgentCard'
+import { memo, useCallback } from 'react'
 
 interface LayerSectionProps {
   layer: number
@@ -9,12 +10,18 @@ interface LayerSectionProps {
   onAgentSelect: (agent: Agent) => void
 }
 
-export default function LayerSection({
+const LayerSection = memo(function LayerSection({
   layer,
   layerName,
   agents,
   onAgentSelect,
 }: LayerSectionProps) {
+  // Memoize the click handler factory
+  const handleAgentClick = useCallback(
+    (agent: Agent) => () => onAgentSelect(agent),
+    [onAgentSelect]
+  )
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-0">
@@ -35,11 +42,13 @@ export default function LayerSection({
             <AgentCard
               key={agent.id}
               agent={agent}
-              onClick={() => onAgentSelect(agent)}
+              onClick={handleAgentClick(agent)}
             />
           ))}
         </div>
       </CardBody>
     </Card>
   )
-}
+})
+
+export default LayerSection

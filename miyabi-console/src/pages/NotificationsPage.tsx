@@ -3,8 +3,6 @@ import {
   Button,
   Card,
   CardBody,
-  Checkbox,
-  CheckboxGroup,
   Chip,
   Divider,
   Dropdown,
@@ -32,7 +30,6 @@ import {
   CheckCircle2,
   Clock,
   Filter,
-  GitPullRequest,
   Mail,
   MailOpen,
   MessageSquare,
@@ -549,8 +546,7 @@ export default function NotificationsPage() {
                             variant="flat"
                             color="primary"
                             className="text-xs"
-                            onPress={(e) => {
-                              e.stopPropagation()
+                            onPress={() => {
                               // Navigate to action URL
                             }}
                           >
@@ -566,7 +562,7 @@ export default function NotificationsPage() {
                           isIconOnly
                           size="sm"
                           variant="light"
-                          onPress={(e) => e.stopPropagation()}
+                          onPress={() => {}}
                         >
                           <MoreVertical size={14} />
                         </Button>

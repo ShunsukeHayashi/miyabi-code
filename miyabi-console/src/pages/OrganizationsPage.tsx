@@ -1,6 +1,5 @@
 import {
   Avatar,
-  AvatarGroup,
   Badge,
   Button,
   Card,
@@ -514,7 +513,7 @@ export default function OrganizationsPage() {
                         >
                           Settings
                         </DropdownItem>
-                        {selectedOrganization.role !== 'owner' && (
+                        {selectedOrganization.role !== 'owner' ? (
                           <DropdownItem
                             key="leave"
                             startContent={<LogOut size={16} />}
@@ -524,8 +523,7 @@ export default function OrganizationsPage() {
                           >
                             Leave Organization
                           </DropdownItem>
-                        )}
-                        {selectedOrganization.role === 'owner' && (
+                        ) : (
                           <DropdownItem
                             key="delete"
                             startContent={<Trash2 size={16} />}

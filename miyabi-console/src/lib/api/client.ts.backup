@@ -1,0 +1,119 @@
+import axios, { AxiosInstance } from 'axios';
+import type { Agent, AgentConfig, AgentMetrics } from '@/types/agent';
+import { mockAgents } from '../mockData';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api/v1';
+const USE_MOCK_DATA = false; // Always use real API data
+
+class ApiClient {
+  private client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  // Agent endpoints
+  async getAgents(): Promise<Agent[]> {
+    if (USE_MOCK_DATA) {
+      // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return mockAgents;
+    }
+    const response = await this.client.get<Agent[]>('/agents');
+    return response.data;
+  }
+
+  async getAgent(id: string): Promise<Agent> {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const agent = mockAgents.find((a) => a.id === id);
+      if (!agent) throw new Error('Agent not found');
+      return agent;
+    }
+    const response = await this.client.get<Agent>(`/agents/${id}`);
+    return response.data;
+  }
+
+  async configureAgent(id: string, config: Partial<AgentConfig>): Promise<Agent> {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const agent = mockAgents.find((a) => a.id === id);
+      if (!agent) throw new Error('Agent not found');
+      return { ...agent, config: { ...agent.config, ...config } };
+    }
+    const response = await this.client.post<Agent>(`/agents/${id}/configure`, config);
+    return response.data;
+  }
+
+  async startAgent(id: string): Promise<void> {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log(`Mock: Starting agent ${id}`);
+      return;
+    }
+    await this.client.post(`/agents/${id}/start`);
+  }
+
+  async stopAgent(id: string): Promise<void> {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log(`Mock: Stopping agent ${id}`);
+      return;
+    }
+    await this.client.post(`/agents/${id}/stop`);
+  }
+
+  async getAgentMetrics(id: string): Promise<AgentMetrics> {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const agent = mockAgents.find((a) => a.id === id);
+      if (!agent) throw new Error('Agent not found');
+      return agent.metrics;
+    }
+    const response = await this.client.get<AgentMetrics>(`/agents/${id}/metrics`);
+    return response.data;
+  }
+
+  async getAgentLogs(id: string, limit = 100): Promise<string[]> {
+    if (USE_MOCK_DATA) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const mockLogs = [
+        `[${new Date().toISOString()}] Agent ${id} initialized`,
+        `[${new Date().toISOString()}] Starting task processing`,
+        `[${new Date().toISOString()}] Task #1234 completed successfully`,
+        `[${new Date().toISOString()}] Task #1235 in progress`,
+        `[${new Date().toISOString()}] Memory usage: 45.2%`,
+        `[${new Date().toISOString()}] CPU usage: 32.1%`,
+        `[${new Date().toISOString()}] Health check passed`,
+      ];
+      return mockLogs.slice(0, limit);
+    }
+    const response = await this.client.get<string[]>(`/agents/${id}/logs`, {
+      params: { limit },
+    });
+    return response.data;
+  }
+
+  // Infrastructure endpoints
+  async getInfrastructureStatus(): Promise<any> {
+    const response = await this.client.get('/infrastructure/status');
+    return response.data;
+  }
+
+  async getDatabaseStatus(): Promise<any> {
+    const response = await this.client.get('/infrastructure/database');
+    return response.data;
+  }
+
+  async getDeploymentStatus(): Promise<any> {
+    const response = await this.client.get('/infrastructure/deployment');
+    return response.data;
+  }
+}
+
+export const apiClient = new ApiClient();
