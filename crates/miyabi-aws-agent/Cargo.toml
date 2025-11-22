@@ -19,7 +19,7 @@ aws-sdk-s3 = "1.52"
 aws-sdk-lambda = "1.105"
 aws-sdk-rds = "1.49"
 aws-sdk-dynamodb = "1.46"
-aws-sdk-cloudformation = "1.47"
+aws-sdk-cloudformation = "1.101"
 aws-sdk-sts = "1.44"
 
 # Async runtime
