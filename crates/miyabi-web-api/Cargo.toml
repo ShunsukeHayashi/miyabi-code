@@ -13,11 +13,11 @@ categories.workspace = true
 
 [dependencies]
 # Internal crates
-miyabi-types = { path = "../miyabi-types" }
-miyabi-github = { path = "../miyabi-github" }
-miyabi-telegram = { path = "../miyabi-telegram" }
-miyabi-llm = { path = "../miyabi-llm" }
-miyabi-approval = { path = "../miyabi-approval" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
+miyabi-telegram = { path = "../miyabi-telegram", version = "0.1.2" }
+miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
+miyabi-approval = { path = "../miyabi-approval", version = "0.1.2" }
 
 # Web framework
 axum = { version = "0.7", features = ["ws"] }
@@ -67,3 +67,4 @@ tokio-test = "0.4"
 tokio-tungstenite = "0.28"
 wiremock = "0.6"
 assert-json-diff = "2.0"
+http-body-util = "0.1"

@@ -110,4 +110,17 @@ mod tests {
         let result = extract_bearer_token(header);
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_jwt_token_validation_expired() {
+        // Create a token that is already expired and ensure validation fails
+        // Use -120 seconds to exceed JWT library's default 60-second leeway for clock skew
+        let manager = JwtManager::new("expired-secret", -120);
+        let token = manager
+            .create_token("123e4567-e89b-12d3-a456-426614174000", 42)
+            .unwrap();
+
+        let result = manager.validate_token(&token);
+        assert!(result.is_err(), "Expired tokens should not validate");
+    }
 }
