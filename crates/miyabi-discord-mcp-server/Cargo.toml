@@ -55,7 +55,7 @@ sha2 = "0.10"
 hex = "0.4"
 
 # GitHub API
-octocrab = "0.47"
+octocrab = "0.48"
 
 [dev-dependencies]
 tokio-test = "0.4"

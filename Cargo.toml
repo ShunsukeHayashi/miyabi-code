@@ -29,6 +29,8 @@ members = [
     # === MCP Servers (Legacy - using jsonrpc-core) ===
     "crates/miyabi-mcp-server",
     "crates/miyabi-discord-mcp-server",
+    "crates/miyabi-a2a-gateway",
+    "crates/miyabi-session-manager",
 
     # === MCP Servers (New - using rmcp v0.8.0) ===
     # Template and migration infrastructure
@@ -104,7 +106,7 @@ dialoguer = "0.12"
 colored = "3.0"
 
 # GitHub API
-octocrab = "0.47"
+octocrab = "0.48"
 reqwest = { version = "0.12", features = ["json", "stream"] }
 
 # Git operations
