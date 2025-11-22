@@ -1,5 +1,6 @@
-import { Card, CardBody, CardFooter, Chip, Button } from '@heroui/react'
+import { Chip } from '@heroui/react'
 import type { Agent, AgentStatus } from '@/types/agent'
+import { memo } from 'react'
 
 interface AgentCardProps {
   agent: Agent
@@ -27,56 +28,51 @@ function formatUptime(seconds: number): string {
   return `${hours}h ${minutes}m`
 }
 
-export default function AgentCard({ agent, onClick }: AgentCardProps) {
+const AgentCard = memo(function AgentCard({ agent, onClick }: AgentCardProps) {
   const statusConfig = STATUS_CONFIG[agent.status]
 
   return (
-    <Card
-      isPressable
-      onPress={onClick}
-      className="hover:shadow-lg transition-shadow"
+    <button
+      onClick={onClick}
+      className="group w-full text-left bg-white rounded-2xl border border-black/5 p-6 transition-all duration-200 ease-in-out hover:border-black/10 hover:shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
     >
-      <CardBody className="space-y-3">
+      <div className="space-y-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{statusConfig.icon}</span>
-            <h3 className="font-semibold text-lg">{agent.name}</h3>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{statusConfig.icon}</span>
+            <h3 className="font-medium text-lg text-[#1D1D1F]">{agent.name}</h3>
           </div>
           <Chip color={statusConfig.color} variant="flat" size="sm">
             {statusConfig.label}
           </Chip>
         </div>
 
-        <div className="space-y-1 text-sm">
+        {/* Stats */}
+        <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Uptime:</span>
-            <span className="font-medium">{formatUptime(agent.uptime)}</span>
+            <span className="text-[#86868B] font-light">Uptime:</span>
+            <span className="font-normal text-[#1D1D1F]">{formatUptime(agent.uptime)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Active Tasks:</span>
-            <span className="font-medium text-primary">{agent.tasks.active}</span>
+            <span className="text-[#86868B] font-light">Active Tasks:</span>
+            <span className="font-normal text-[#0066CC]">{agent.tasks.active}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Completed:</span>
-            <span className="font-medium text-success">{agent.tasks.completed}</span>
+            <span className="text-[#86868B] font-light">Completed:</span>
+            <span className="font-normal text-green-600">{agent.tasks.completed}</span>
           </div>
         </div>
-      </CardBody>
 
-      <CardFooter className="border-t border-divider">
-        <Button
-          size="sm"
-          variant="light"
-          color="primary"
-          fullWidth
-          onClick={(e) => {
-            e.stopPropagation()
-            onClick()
-          }}
-        >
-          View Details
-        </Button>
-      </CardFooter>
-    </Card>
+        {/* Footer */}
+        <div className="pt-4 border-t border-black/5">
+          <span className="text-sm text-[#0066CC] font-medium group-hover:underline">
+            View Details →
+          </span>
+        </div>
+      </div>
+    </button>
   )
-}
+})
+
+export default AgentCard

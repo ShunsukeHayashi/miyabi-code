@@ -46,18 +46,18 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out glass-panel border-r border-white/10 flex flex-col
+      className={`fixed left-0 top-0 h-screen z-50 transition-all duration-200 ease-in-out bg-white/70 backdrop-blur-[20px] border-r border-black/5 flex flex-col
         ${isCollapsed ? 'w-20' : 'w-64'}
       `}
     >
       {/* Logo Area */}
-      <div className="h-16 flex items-center justify-center border-b border-white/5 relative">
+      <div className="h-16 flex items-center justify-center border-b border-black/5 relative">
         <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : 'px-6 w-full'}`}>
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <span className="text-white font-bold text-lg">M</span>
+          <div className="w-8 h-8 rounded-lg bg-[#0066CC] flex items-center justify-center">
+            <span className="text-white font-semibold text-lg">M</span>
           </div>
           {!isCollapsed && (
-            <span className="font-bold text-lg tracking-wide text-white">
+            <span className="font-semibold text-lg tracking-wide text-[#1D1D1F]">
               MIYABI
             </span>
           )}
@@ -65,7 +65,7 @@ export default function Sidebar() {
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#0f0f16] border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-black/10 rounded-full flex items-center justify-center text-gray-400 hover:text-[#1D1D1F] transition-colors duration-200"
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -88,18 +88,18 @@ export default function Sidebar() {
                 <div className={`
                   flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group
                   ${isActive
-                    ? 'bg-gradient-to-r from-cyan-500/10 to-purple-500/10 text-cyan-400 border border-cyan-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#0066CC]/10 text-[#0066CC] font-semibold'
+                    : 'text-[#86868B] hover:text-[#1D1D1F] hover:bg-black/5'
                   }
                   ${isCollapsed ? 'justify-center' : ''}
                 `}>
-                  <Icon size={20} className={isActive ? 'text-cyan-400' : 'group-hover:text-white'} />
+                  <Icon size={20} className={isActive ? 'text-[#0066CC]' : 'group-hover:text-[#1D1D1F]'} />
                   {!isCollapsed && (
                     <span className="font-medium">{item.name}</span>
                   )}
 
                   {isActive && !isCollapsed && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.8)]" />
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#0066CC]" />
                   )}
                 </div>
               </Link>
@@ -109,7 +109,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Connection Status */}
-      <div className="px-3 py-2 border-t border-white/5">
+      <div className="px-3 py-2 border-t border-black/5">
         {(() => {
           const config = connectionConfig[connectionState];
           const ConnectionIcon = config.icon;
@@ -122,7 +122,7 @@ export default function Sidebar() {
                 onClick={connectionState === 'disconnected' || connectionState === 'offline' ? reconnect : undefined}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-lg w-full transition-all duration-200
-                  ${connectionState === 'disconnected' || connectionState === 'offline' ? 'hover:bg-white/5 cursor-pointer' : 'cursor-default'}
+                  ${connectionState === 'disconnected' || connectionState === 'offline' ? 'hover:bg-black/5 cursor-pointer' : 'cursor-default'}
                   ${isCollapsed ? 'justify-center' : ''}
                 `}
               >
@@ -142,20 +142,20 @@ export default function Sidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-black/5">
         <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center flex-col' : ''}`}>
           <Avatar
             src={user?.avatar_url}
             name={user?.username?.charAt(0) || 'U'}
             size="sm"
             isBordered
-            color="secondary"
+            color="primary"
           />
 
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.username || 'Guest'}</p>
-              <p className="text-xs text-gray-500 truncate">Guardian</p>
+              <p className="text-sm font-medium text-[#1D1D1F] truncate">{user?.username || 'Guest'}</p>
+              <p className="text-xs text-[#86868B] truncate">Guardian</p>
             </div>
           )}
 

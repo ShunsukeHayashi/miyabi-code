@@ -1,10 +1,12 @@
-import AgentDetailModal from '@/components/agents/AgentDetailModal'
 import LayerSection from '@/components/agents/LayerSection'
 import { apiClient, handleApiError } from '@/lib/api/client'
 import type { Agent, AgentsPageState } from '@/types/agent'
-import { Button, Card, CardBody, Spinner } from '@heroui/react'
+import { Button, Spinner } from '@heroui/react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+
+// Lazy load modal component
+const AgentDetailModal = lazy(() => import('@/components/agents/AgentDetailModal'))
 
 const LAYER_NAMES: Record<number, string> = {
   0: 'Layer 0: Human (Guardian)',
@@ -83,11 +85,21 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Agents Management</h1>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-[1600px] mx-auto px-5 py-12 space-y-12">
+        {/* Header - Ive Style */}
+        <div className="text-center py-16 border-b border-gray-100">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extralight tracking-tighter text-gray-900 leading-none mb-4">
+            Agents
+          </h1>
+          <div className="h-px w-16 bg-gray-300 mx-auto mb-8"></div>
+          <p className="text-lg md:text-xl text-gray-500 font-light max-w-2xl mx-auto">
+            Manage and monitor your autonomous agents
+          </p>
+        </div>
+
+        {/* Refresh Button */}
+        <div className="flex justify-end">
           <Button
             size="sm"
             variant="flat"
@@ -97,88 +109,95 @@ export default function AgentsPage() {
             Refresh
           </Button>
         </div>
-      </div>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700 text-sm flex-1">{error}</p>
-          <Button
-            size="sm"
-            variant="flat"
-            onClick={() => setError(null)}
-          >
-            Dismiss
-          </Button>
-        </div>
-      )}
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <p className="text-red-700 text-sm flex-1">{error}</p>
+              <Button
+                size="sm"
+                variant="flat"
+                onClick={() => setError(null)}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Total Agents</p>
-            <p className="text-2xl font-bold">{state.agents.length}</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Active</p>
-            <p className="text-2xl font-bold text-success">
+        {/* Stats Overview - Ive Style */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+              Total Agents
+            </p>
+            <p className="text-5xl md:text-6xl font-extralight text-gray-900 leading-none">
+              {state.agents.length}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+              Active
+            </p>
+            <p className="text-5xl md:text-6xl font-extralight text-green-600 leading-none">
               {state.agents.filter((a) => a.status === 'active').length}
             </p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Idle</p>
-            <p className="text-2xl font-bold text-warning">
+          </div>
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+              Idle
+            </p>
+            <p className="text-5xl md:text-6xl font-extralight text-yellow-600 leading-none">
               {state.agents.filter((a) => a.status === 'idle').length}
             </p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-sm text-gray-500">Error/Offline</p>
-            <p className="text-2xl font-bold text-danger">
+          </div>
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+              Error/Offline
+            </p>
+            <p className="text-5xl md:text-6xl font-extralight text-red-600 leading-none">
               {state.agents.filter((a) => a.status === 'error' || a.status === 'offline').length}
             </p>
-          </CardBody>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Agents by Layer */}
-      <div className="space-y-6">
-        {sortedLayers.map((layer) => (
-          <LayerSection
-            key={layer}
-            layer={layer}
-            layerName={LAYER_NAMES[layer] || `Layer ${layer}`}
-            agents={agentsByLayer[layer]}
-            onAgentSelect={handleAgentSelect}
-          />
-        ))}
+        {/* Section Divider */}
+        <div className="h-px bg-gray-200"></div>
 
-        {state.agents.length === 0 && (
-          <Card>
-            <CardBody>
-              <p className="text-center text-gray-500 py-12">
+        {/* Agents by Layer */}
+        <div className="space-y-12">
+          {sortedLayers.map((layer) => (
+            <LayerSection
+              key={layer}
+              layer={layer}
+              layerName={LAYER_NAMES[layer] || `Layer ${layer}`}
+              agents={agentsByLayer[layer]}
+              onAgentSelect={handleAgentSelect}
+            />
+          ))}
+
+          {state.agents.length === 0 && (
+            <div className="text-center py-24">
+              <p className="text-gray-500 text-lg font-light">
                 No agents found. Please check your API connection.
               </p>
-            </CardBody>
-          </Card>
+            </div>
+          )}
+        </div>
+
+        {/* Agent Detail Modal - Lazy loaded */}
+        {state.selectedAgent && (
+          <Suspense fallback={null}>
+            <AgentDetailModal
+              agent={state.selectedAgent}
+              isOpen={isModalOpen}
+              onClose={handleModalClose}
+            />
+          </Suspense>
         )}
       </div>
-
-      {/* Agent Detail Modal */}
-      {state.selectedAgent && (
-        <AgentDetailModal
-          agent={state.selectedAgent}
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-        />
-      )}
     </div>
   )
 }
