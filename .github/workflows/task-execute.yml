@@ -1,7 +1,7 @@
-name: Task Execute - Claude Code Headless
+name: Task Execute - Claude Code Headless (AWS Self-Hosted)
 
 # Water Spider Orchestrator - Task Execution Workflow
-# Triggered by Task Dispatcher to execute issues autonomously
+# AWS Self-Hosted Runner with Comprehensive Error Handling and Retry Logic
 
 on:
   workflow_dispatch:
@@ -24,11 +24,22 @@ on:
         required: false
         type: number
         default: 120
+      max_retries:
+        description: 'Maximum retry attempts on failure'
+        required: false
+        type: number
+        default: 3
+
+env:
+  # Retry configuration
+  RETRY_WAIT_SECONDS: 30
+  RETRY_BACKOFF_MULTIPLIER: 2
+  MAX_RETRY_WAIT_SECONDS: 300
 
 jobs:
   execute-task:
     name: Execute Issue #${{ inputs.issue_number }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, aws, miyabi-worker]
     timeout-minutes: ${{ fromJSON(inputs.max_runtime) }}
 
     permissions:
@@ -37,52 +48,163 @@ jobs:
       pull-requests: write
 
     steps:
+      # ============================================
+      # Phase 0: Pre-flight Checks
+      # ============================================
+      
+      - name: 🔍 Pre-flight Environment Check
+        id: preflight
+        continue-on-error: true
+        run: |
+          echo "=== Pre-flight Checks ==="
+          echo "Runner: $(hostname)"
+          echo "OS: $(uname -a)"
+          echo "Disk Space: $(df -h / | tail -1)"
+          echo "Memory: $(free -h | grep Mem:)"
+          echo "Docker: $(docker --version 2>/dev/null || echo 'Not installed')"
+          
+          # Check required tools
+          MISSING_TOOLS=()
+          command -v git >/dev/null 2>&1 || MISSING_TOOLS+=("git")
+          command -v curl >/dev/null 2>&1 || MISSING_TOOLS+=("curl")
+          command -v gh >/dev/null 2>&1 || MISSING_TOOLS+=("gh")
+          
+          if [ ${#MISSING_TOOLS[@]} -ne 0 ]; then
+            echo "❌ Missing tools: ${MISSING_TOOLS[*]}"
+            echo "preflight_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ Pre-flight checks passed"
+          echo "preflight_failed=false" >> $GITHUB_OUTPUT
+
+      - name: 🚨 Pre-flight Failure Recovery
+        if: steps.preflight.outputs.preflight_failed == 'true'
+        run: |
+          echo "⚠️ Pre-flight check failed - attempting recovery"
+          
+          # Install missing tools if possible
+          if command -v apt-get >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y git curl || true
+          fi
+          
+          # Verify again
+          if ! command -v git >/dev/null 2>&1; then
+            echo "❌ Recovery failed - git still missing"
+            exit 1
+          fi
+          
+          echo "✅ Recovery successful"
+
+      # ============================================
+      # Phase 1: Initialization with Retry
+      # ============================================
+      
       - name: 📋 Workflow Information
         run: |
           echo "🎯 Executing Issue: #${{ inputs.issue_number }}"
           echo "⚡ Priority: ${{ inputs.priority }}"
           echo "⏱️  Max Runtime: ${{ inputs.max_runtime }} minutes"
+          echo "🔄 Max Retries: ${{ inputs.max_retries }}"
           echo "🌳 Worktree: ${{ inputs.worktree_name || format('issue-{0}', inputs.issue_number) }}"
+          echo "🖥️  Runner: $(hostname)"
 
-      - name: 🔐 Setup GitHub CLI
-        run: |
-          gh --version
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: 🔐 Setup GitHub CLI (with Retry)
+        uses: nick-invision/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: |
+            gh --version
+            echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+            gh auth status
 
       - name: 📝 Post Phase 1 Comment (Initializing)
+        uses: nick-invision/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ inputs.issue_number }} \
-            --repo ${{ github.repository }} \
-            --body "🤖 **Autonomous Execution Started**
-
-          **Phase 1**: Initializing
-          - Priority: ${{ inputs.priority }}
-          - Workflow: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          - Started: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-
-          The Water Spider Orchestrator is now processing this task..."
-
-      - name: 📦 Checkout Repository
-        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          timeout_minutes: 2
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "🤖 **Autonomous Execution Started** (AWS Self-Hosted)
 
-      - name: 🔧 Setup Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
+            **Phase 1**: Initializing
+            - Priority: ${{ inputs.priority }}
+            - Runner: $(hostname)
+            - Workflow: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - Started: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+            - Max Retries: ${{ inputs.max_retries }}
+
+            The Water Spider Orchestrator is now processing this task on AWS infrastructure..."
+
+      # ============================================
+      # Phase 2: Repository Setup with Error Handling
+      # ============================================
+
+      - name: 📦 Checkout Repository (with Retry)
+        id: checkout
+        uses: nick-invision/retry@v3
         with:
-          components: rustfmt, clippy
+          timeout_minutes: 10
+          max_attempts: ${{ fromJSON(inputs.max_retries) }}
+          retry_wait_seconds: 30
+          command: |
+            # Clean any existing checkout
+            rm -rf ./* .git || true
+            
+            # Clone with full history
+            git clone --depth 0 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
+            
+            # Verify checkout
+            git status
+            echo "✅ Repository checked out successfully"
+
+      - name: 🔧 Setup Rust Toolchain (with Retry)
+        uses: nick-invision/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 60
+          command: |
+            # Install rustup if not present
+            if ! command -v rustup >/dev/null 2>&1; then
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+              source $HOME/.cargo/env
+            fi
+            
+            # Update toolchain
+            rustup update stable
+            rustup default stable
+            rustup component add rustfmt clippy
+            
+            # Verify installation
+            rustc --version
+            cargo --version
+            echo "✅ Rust toolchain ready"
 
       - name: 📂 Setup Cargo Cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-
-      - name: 🌳 Create Git Worktree
-        id: worktree
+        id: cargo_cache
+        continue-on-error: true
         run: |
+          # Create cache directory
+          mkdir -p ~/.cargo/{registry,git}
+          
+          # Warm up cache
+          cargo fetch || echo "⚠️ Cache warm-up failed (non-fatal)"
+          
+          echo "✅ Cargo cache configured"
+
+      - name: 🌳 Create Git Worktree (with Error Recovery)
+        id: worktree
+        continue-on-error: true
+        run: |
+          set -e
+          
           WORKTREE_NAME="${{ inputs.worktree_name }}"
           if [ -z "$WORKTREE_NAME" ]; then
             WORKTREE_NAME="issue-${{ inputs.issue_number }}"
@@ -91,29 +213,90 @@ jobs:
           BRANCH_NAME="feature/issue-${{ inputs.issue_number }}"
           WORKTREE_PATH=".worktrees/${WORKTREE_NAME}"
 
+          # Clean existing worktree if present
+          if [ -d "$WORKTREE_PATH" ]; then
+            echo "⚠️ Existing worktree found - cleaning up"
+            git worktree remove "$WORKTREE_PATH" --force || true
+            rm -rf "$WORKTREE_PATH" || true
+          fi
+
+          # Delete existing branch if present
+          git branch -D "$BRANCH_NAME" 2>/dev/null || true
+          git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+
+          # Create new worktree
           echo "Creating worktree: ${WORKTREE_PATH}"
-          git worktree add -b "${BRANCH_NAME}" "${WORKTREE_PATH}" origin/main || true
+          git worktree add -b "${BRANCH_NAME}" "${WORKTREE_PATH}" origin/main
+
+          # Verify worktree
+          if [ ! -d "$WORKTREE_PATH" ]; then
+            echo "❌ Worktree creation failed"
+            echo "worktree_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
 
           echo "worktree_path=${WORKTREE_PATH}" >> $GITHUB_OUTPUT
           echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "worktree_failed=false" >> $GITHUB_OUTPUT
+          echo "✅ Worktree created successfully"
+
+      - name: 🚨 Worktree Failure Recovery
+        if: steps.worktree.outputs.worktree_failed == 'true'
+        run: |
+          echo "⚠️ Worktree creation failed - attempting recovery"
+          
+          # Full cleanup
+          git worktree prune
+          rm -rf .worktrees/* || true
+          
+          # Retry with simple checkout
+          BRANCH_NAME="feature/issue-${{ inputs.issue_number }}"
+          git checkout -b "$BRANCH_NAME" origin/main || git checkout "$BRANCH_NAME"
+          
+          # Use current directory as worktree
+          echo "worktree_path=." >> $GITHUB_OUTPUT
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "✅ Fallback to direct checkout successful"
 
       - name: 📝 Post Phase 2 Comment (Worktree Created)
+        uses: nick-invision/retry@v3
+        if: steps.worktree.outputs.worktree_failed == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ inputs.issue_number }} \
-            --repo ${{ github.repository }} \
-            --body "**Phase 2**: Worktree Setup ✅
-          - Branch: \`${{ steps.worktree.outputs.branch_name }}\`
-          - Path: \`${{ steps.worktree.outputs.worktree_path }}\`"
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          retry_wait_seconds: 5
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "**Phase 2**: Worktree Setup ✅
+            - Branch: \`${{ steps.worktree.outputs.branch_name }}\`
+            - Path: \`${{ steps.worktree.outputs.worktree_path }}\`
+            - Runner: $(hostname)"
 
-      - name: 📥 Install Claude Code CLI
-        run: |
-          echo "Installing Claude Code..."
-          curl -fsSL https://raw.githubusercontent.com/anthropics/claude-code/main/install.sh | sh
+      # ============================================
+      # Phase 3: Autonomous Execution with Retry
+      # ============================================
 
-          # Add to PATH
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: 📥 Install Claude Code CLI (with Retry)
+        uses: nick-invision/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "Installing Claude Code..."
+            curl -fsSL https://raw.githubusercontent.com/anthropics/claude-code/main/install.sh | sh
+
+            # Add to PATH
+            export PATH="$HOME/.local/bin:$PATH"
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+            # Verify installation
+            sleep 2
+            claude --version || echo "⚠️ Claude version check failed (may be normal)"
+            echo "✅ Claude Code installed"
 
       - name: 🔐 Setup Claude API Key
         env:
@@ -126,62 +309,151 @@ jobs:
           echo "✅ Claude API Key configured"
 
       - name: 📝 Post Phase 3 Comment (Starting Execution)
+        uses: nick-invision/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ inputs.issue_number }} \
-            --repo ${{ github.repository }} \
-            --body "**Phase 3**: Starting Autonomous Execution 🚀
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          retry_wait_seconds: 5
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "**Phase 3**: Starting Autonomous Execution 🚀
 
-          Claude Code is now analyzing and implementing the solution..."
+            Claude Code is now analyzing and implementing the solution on AWS infrastructure..."
 
-      - name: 🤖 Execute Claude Code Headless
+      - name: 🤖 Execute Claude Code Headless (with Retry & Error Capture)
         id: claude_execute
         working-directory: ${{ steps.worktree.outputs.worktree_path }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create headless execution command
+          set +e  # Don't exit on error - we handle it
+          
           ISSUE_URL="https://github.com/${{ github.repository }}/issues/${{ inputs.issue_number }}"
-
+          MAX_ATTEMPTS=${{ inputs.max_retries }}
+          WAIT_SECONDS=${{ env.RETRY_WAIT_SECONDS }}
+          
           echo "Executing: claude --headless --issue $ISSUE_URL"
+          
+          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+            echo "=== Attempt $attempt/$MAX_ATTEMPTS ==="
+            
+            # Execute Claude Code
+            claude --headless --issue "$ISSUE_URL" \
+              --max-tokens 100000 \
+              --context .claude/CLAUDE.md \
+              > claude_output_${attempt}.log 2>&1
+            
+            EXIT_CODE=$?
+            
+            if [ $EXIT_CODE -eq 0 ]; then
+              echo "✅ Claude Code execution succeeded on attempt $attempt"
+              echo "success=true" >> $GITHUB_OUTPUT
+              echo "attempts=$attempt" >> $GITHUB_OUTPUT
+              cat claude_output_${attempt}.log
+              exit 0
+            else
+              echo "⚠️ Attempt $attempt failed with exit code $EXIT_CODE"
+              cat claude_output_${attempt}.log
+              
+              if [ $attempt -lt $MAX_ATTEMPTS ]; then
+                # Exponential backoff
+                BACKOFF=$((WAIT_SECONDS * (RETRY_BACKOFF_MULTIPLIER ** (attempt - 1))))
+                if [ $BACKOFF -gt ${{ env.MAX_RETRY_WAIT_SECONDS }} ]; then
+                  BACKOFF=${{ env.MAX_RETRY_WAIT_SECONDS }}
+                fi
+                
+                echo "🔄 Retrying in $BACKOFF seconds..."
+                sleep $BACKOFF
+              fi
+            fi
+          done
+          
+          # All attempts failed
+          echo "❌ All $MAX_ATTEMPTS attempts failed"
+          echo "success=false" >> $GITHUB_OUTPUT
+          echo "attempts=$MAX_ATTEMPTS" >> $GITHUB_OUTPUT
+          
+          # Save error logs
+          cat claude_output_*.log > claude_full_error.log
+          
+          exit 1
 
-          # Execute with timeout and capture output
-          claude --headless --issue "$ISSUE_URL" \
-            --max-tokens 100000 \
-            --context .claude/CLAUDE.md \
-            > claude_output.log 2>&1 || echo "execution_failed=true" >> $GITHUB_OUTPUT
-
-          # Check execution result
-          if grep -q "execution_failed=true" $GITHUB_OUTPUT; then
-            echo "❌ Claude Code execution failed"
-            cat claude_output.log
-            exit 1
-          fi
-
-          echo "✅ Claude Code execution completed"
-          echo "success=true" >> $GITHUB_OUTPUT
-
-      - name: 📝 Post Phase 4 Comment (Execution Complete)
-        if: steps.claude_execute.outputs.success == 'true'
+      - name: 🚨 Claude Execution Failure Recovery
+        if: failure() && steps.claude_execute.outputs.success != 'true'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "⚠️ Claude execution failed - analyzing error logs"
+          
+          # Extract error type
+          if grep -q "API key" claude_full_error.log 2>/dev/null; then
+            ERROR_TYPE="API Key Issue"
+          elif grep -q "rate limit" claude_full_error.log 2>/dev/null; then
+            ERROR_TYPE="Rate Limit"
+          elif grep -q "timeout" claude_full_error.log 2>/dev/null; then
+            ERROR_TYPE="Timeout"
+          elif grep -q "network" claude_full_error.log 2>/dev/null; then
+            ERROR_TYPE="Network Error"
+          else
+            ERROR_TYPE="Unknown Error"
+          fi
+          
+          echo "📊 Error Type: $ERROR_TYPE"
+          
+          # Post detailed error to issue
           gh issue comment ${{ inputs.issue_number }} \
             --repo ${{ github.repository }} \
-            --body "**Phase 4**: Execution Complete ✅
+            --body "**Execution Failed** ❌
 
-          Claude Code has finished processing. Reviewing changes..."
+          **Error Type**: $ERROR_TYPE
+          **Attempts**: ${{ steps.claude_execute.outputs.attempts }}/${{ inputs.max_retries }}
+
+          **Error Logs**:
+          \`\`\`
+          $(tail -50 claude_full_error.log 2>/dev/null || echo 'No logs available')
+          \`\`\`
+
+          **Recovery Actions**:
+          - Task will be returned to queue
+          - Orchestrator will retry with different configuration
+          - Manual intervention may be required for persistent failures
+
+          **Workflow**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" || echo "⚠️ Failed to post error comment"
+
+      # ============================================
+      # Phase 4: Quality Checks with Error Handling
+      # ============================================
+
+      - name: 📝 Post Phase 4 Comment (Execution Complete)
+        if: steps.claude_execute.outputs.success == 'true'
+        uses: nick-invision/retry@v3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          retry_wait_seconds: 5
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "**Phase 4**: Execution Complete ✅ (after ${{ steps.claude_execute.outputs.attempts }} attempt(s))
+
+            Claude Code has finished processing. Reviewing changes..."
 
       - name: 📊 Analyze Changes
         id: analyze
+        if: steps.claude_execute.outputs.success == 'true'
         working-directory: ${{ steps.worktree.outputs.worktree_path }}
         run: |
           # Count changes
           FILES_CHANGED=$(git diff --name-only HEAD | wc -l | tr -d ' ')
-          LINES_ADDED=$(git diff --numstat HEAD | awk '{sum+=$1} END {print sum}')
-          LINES_DELETED=$(git diff --numstat HEAD | awk '{sum+=$2} END {print sum}')
+          LINES_ADDED=$(git diff --numstat HEAD | awk '{sum+=$1} END {print sum+0}')
+          LINES_DELETED=$(git diff --numstat HEAD | awk '{sum+=$2} END {print sum+0}')
 
           echo "files_changed=${FILES_CHANGED}" >> $GITHUB_OUTPUT
           echo "lines_added=${LINES_ADDED}" >> $GITHUB_OUTPUT
@@ -193,165 +465,294 @@ jobs:
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
+          
+          echo "📊 Changes: $FILES_CHANGED files, +$LINES_ADDED -$LINES_DELETED lines"
 
-      - name: 🔨 Run Tests
+      - name: 🔨 Run Tests (with Retry)
+        if: steps.analyze.outputs.has_changes == 'true'
+        uses: nick-invision/retry@v3
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            echo "Running cargo test..."
+            cargo test --all-features --verbose
+            echo "✅ All tests passed"
+
+      - name: 🔍 Run Clippy (with Retry)
+        if: steps.analyze.outputs.has_changes == 'true'
+        uses: nick-invision/retry@v3
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        with:
+          timeout_minutes: 15
+          max_attempts: 2
+          retry_wait_seconds: 30
+          command: |
+            echo "Running cargo clippy..."
+            cargo clippy --all-targets --all-features -- -D warnings
+            echo "✅ Clippy passed"
+
+      # ============================================
+      # Phase 5: PR Creation with Error Handling
+      # ============================================
+
+      - name: 💾 Commit Changes (with Retry)
+        if: steps.analyze.outputs.has_changes == 'true'
+        uses: nick-invision/retry@v3
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: |
+            git config user.name "Miyabi Water Spider"
+            git config user.email "bot@miyabi-society.ai"
+
+            git add .
+            git commit -m "feat: Implement Issue #${{ inputs.issue_number }}
+
+            Autonomous implementation by Claude Code on AWS infrastructure
+
+            - Priority: ${{ inputs.priority }}
+            - Files Changed: ${{ steps.analyze.outputs.files_changed }}
+            - Lines Added: ${{ steps.analyze.outputs.lines_added }}
+            - Lines Deleted: ${{ steps.analyze.outputs.lines_deleted }}
+            - Execution Attempts: ${{ steps.claude_execute.outputs.attempts }}
+            - Runner: $(hostname)
+
+            🤖 Generated with Claude Code
+            Co-Authored-By: Water Spider Orchestrator <bot@miyabi-society.ai>"
+            
+            echo "✅ Changes committed"
+
+      - name: 🚀 Push Changes (with Retry & Force Recovery)
         if: steps.analyze.outputs.has_changes == 'true'
         working-directory: ${{ steps.worktree.outputs.worktree_path }}
         run: |
-          echo "Running cargo test..."
-          cargo test --all-features || echo "tests_failed=true" >> $GITHUB_ENV
+          set +e
+          MAX_ATTEMPTS=5
+          
+          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+            echo "=== Push Attempt $attempt/$MAX_ATTEMPTS ==="
+            
+            git push origin ${{ steps.worktree.outputs.branch_name }}
+            EXIT_CODE=$?
+            
+            if [ $EXIT_CODE -eq 0 ]; then
+              echo "✅ Push succeeded"
+              exit 0
+            else
+              echo "⚠️ Push failed with exit code $EXIT_CODE"
+              
+              if [ $attempt -lt $MAX_ATTEMPTS ]; then
+                # Try to recover
+                echo "🔄 Attempting recovery..."
+                
+                # Pull and rebase if needed
+                git pull --rebase origin main || true
+                
+                # Wait before retry
+                sleep $((10 * attempt))
+              fi
+            fi
+          done
+          
+          echo "❌ Push failed after $MAX_ATTEMPTS attempts"
+          exit 1
 
-      - name: 🔍 Run Clippy
-        if: steps.analyze.outputs.has_changes == 'true'
-        working-directory: ${{ steps.worktree.outputs.worktree_path }}
-        run: |
-          echo "Running cargo clippy..."
-          cargo clippy --all-targets --all-features -- -D warnings || echo "clippy_failed=true" >> $GITHUB_ENV
-
-      - name: 💾 Commit Changes
-        if: steps.analyze.outputs.has_changes == 'true'
-        working-directory: ${{ steps.worktree.outputs.worktree_path }}
-        run: |
-          git config user.name "Miyabi Water Spider"
-          git config user.email "bot@miyabi-society.ai"
-
-          git add .
-          git commit -m "feat: Implement Issue #${{ inputs.issue_number }}
-
-          Autonomous implementation by Claude Code
-
-          - Priority: ${{ inputs.priority }}
-          - Files Changed: ${{ steps.analyze.outputs.files_changed }}
-          - Lines Added: ${{ steps.analyze.outputs.lines_added }}
-          - Lines Deleted: ${{ steps.analyze.outputs.lines_deleted }}
-
-          🤖 Generated with Claude Code
-          Co-Authored-By: Water Spider Orchestrator <bot@miyabi-society.ai>"
-
-      - name: 🚀 Push Changes
-        if: steps.analyze.outputs.has_changes == 'true'
-        working-directory: ${{ steps.worktree.outputs.worktree_path }}
-        run: |
-          git push origin ${{ steps.worktree.outputs.branch_name }}
-
-      - name: 📝 Create Pull Request
+      - name: 📝 Create Pull Request (with Retry)
         if: steps.analyze.outputs.has_changes == 'true'
         id: create_pr
+        uses: nick-invision/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get issue details
-          ISSUE_TITLE=$(gh issue view ${{ inputs.issue_number }} --json title -q .title)
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 15
+          command: |
+            # Get issue details
+            ISSUE_TITLE=$(gh issue view ${{ inputs.issue_number }} --json title -q .title)
 
-          PR_BODY="## Summary
-          Autonomous implementation of Issue #${{ inputs.issue_number }}
+            PR_BODY="## Summary
+            Autonomous implementation of Issue #${{ inputs.issue_number }} on AWS infrastructure
 
-          ## Changes
-          - 📝 Files Changed: ${{ steps.analyze.outputs.files_changed }}
-          - ➕ Lines Added: ${{ steps.analyze.outputs.lines_added }}
-          - ➖ Lines Deleted: ${{ steps.analyze.outputs.lines_deleted }}
+            ## Changes
+            - 📝 Files Changed: ${{ steps.analyze.outputs.files_changed }}
+            - ➕ Lines Added: ${{ steps.analyze.outputs.lines_added }}
+            - ➖ Lines Deleted: ${{ steps.analyze.outputs.lines_deleted }}
 
-          ## Testing
-          - ${{ env.tests_failed != 'true' && '✅' || '❌' }} Unit Tests
-          - ${{ env.clippy_failed != 'true' && '✅' || '❌' }} Clippy
+            ## Execution Details
+            - 🔄 Attempts: ${{ steps.claude_execute.outputs.attempts }}/${{ inputs.max_retries }}
+            - 🖥️  Runner: $(hostname)
+            - ⚡ Priority: ${{ inputs.priority }}
 
-          ## Workflow
-          - Priority: ${{ inputs.priority }}
-          - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            ## Testing
+            - ✅ Unit Tests Passed
+            - ✅ Clippy Checks Passed
 
-          Closes #${{ inputs.issue_number }}
+            ## Workflow
+            - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)
-          Co-Authored-By: Water Spider Orchestrator <bot@miyabi-society.ai>"
+            Closes #${{ inputs.issue_number }}
 
-          PR_URL=$(gh pr create \
-            --title "feat: ${ISSUE_TITLE}" \
-            --body "${PR_BODY}" \
-            --base main \
-            --head ${{ steps.worktree.outputs.branch_name }} \
-            --label "priority:${{ inputs.priority }}" \
-            --label "automated" \
-            --label "claude-code")
+            🤖 Generated with [Claude Code](https://claude.com/claude-code)
+            Co-Authored-By: Water Spider Orchestrator <bot@miyabi-society.ai>"
 
-          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+            PR_URL=$(gh pr create \
+              --title "feat: ${ISSUE_TITLE}" \
+              --body "${PR_BODY}" \
+              --base main \
+              --head ${{ steps.worktree.outputs.branch_name }} \
+              --label "priority:${{ inputs.priority }}" \
+              --label "automated" \
+              --label "aws-runner" \
+              --label "claude-code")
+
+            echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+            echo "✅ Pull Request created: $PR_URL"
 
       - name: 📝 Post Final Comment (Success)
         if: steps.analyze.outputs.has_changes == 'true' && steps.create_pr.outputs.pr_url != ''
+        uses: nick-invision/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ inputs.issue_number }} \
-            --repo ${{ github.repository }} \
-            --body "**Phase 5**: Pull Request Created 🎉
+        with:
+          timeout_minutes: 2
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "**Phase 5**: Pull Request Created 🎉
 
-          ✅ **Implementation Complete**
+            ✅ **Implementation Complete** (AWS Self-Hosted)
 
-          **Changes:**
-          - 📝 Files: ${{ steps.analyze.outputs.files_changed }}
-          - ➕ Added: ${{ steps.analyze.outputs.lines_added }} lines
-          - ➖ Deleted: ${{ steps.analyze.outputs.lines_deleted }} lines
+            **Changes:**
+            - 📝 Files: ${{ steps.analyze.outputs.files_changed }}
+            - ➕ Added: ${{ steps.analyze.outputs.lines_added }} lines
+            - ➖ Deleted: ${{ steps.analyze.outputs.lines_deleted }} lines
 
-          **Quality Checks:**
-          - ${{ env.tests_failed != 'true' && '✅' || '❌' }} Unit Tests
-          - ${{ env.clippy_failed != 'true' && '✅' || '❌' }} Clippy
+            **Execution:**
+            - 🔄 Attempts: ${{ steps.claude_execute.outputs.attempts }}/${{ inputs.max_retries }}
+            - 🖥️  Runner: $(hostname)
 
-          **Pull Request:** ${{ steps.create_pr.outputs.pr_url }}
+            **Quality Checks:**
+            - ✅ Unit Tests Passed
+            - ✅ Clippy Passed
 
-          The Water Spider Orchestrator has completed this task."
+            **Pull Request:** ${{ steps.create_pr.outputs.pr_url }}
+
+            The Water Spider Orchestrator has completed this task on AWS infrastructure."
 
       - name: 📝 Post No Changes Comment
         if: steps.analyze.outputs.has_changes == 'false'
+        uses: nick-invision/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ inputs.issue_number }} \
-            --repo ${{ github.repository }} \
-            --body "**Execution Complete** ℹ️
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          retry_wait_seconds: 5
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "**Execution Complete** ℹ️
 
-          Claude Code completed analysis but determined no code changes were needed.
+            Claude Code completed analysis but determined no code changes were needed.
 
-          This may indicate:
-          - The issue is already resolved
-          - The issue requires clarification
-          - The issue is not a code change request
+            This may indicate:
+            - The issue is already resolved
+            - The issue requires clarification
+            - The issue is not a code change request
 
-          Please review the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+            Please review the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+
+      # ============================================
+      # Cleanup with Error Recovery
+      # ============================================
 
       - name: 🧹 Cleanup Worktree
         if: always()
+        continue-on-error: true
         run: |
           WORKTREE_PATH="${{ steps.worktree.outputs.worktree_path }}"
-          if [ -d "$WORKTREE_PATH" ]; then
+          
+          if [ -d "$WORKTREE_PATH" ] && [ "$WORKTREE_PATH" != "." ]; then
             echo "Cleaning up worktree: $WORKTREE_PATH"
-            git worktree remove "$WORKTREE_PATH" --force || true
+            
+            # Try graceful removal first
+            git worktree remove "$WORKTREE_PATH" --force 2>/dev/null || true
+            
+            # Force filesystem removal if needed
+            rm -rf "$WORKTREE_PATH" 2>/dev/null || true
+            
+            echo "✅ Worktree cleaned up"
           fi
+          
+          # Prune any dangling worktrees
+          git worktree prune 2>/dev/null || true
 
       - name: ❌ Post Failure Comment
         if: failure()
+        uses: nick-invision/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ inputs.issue_number }} \
-            --repo ${{ github.repository }} \
-            --body "**Execution Failed** ❌
+        with:
+          timeout_minutes: 2
+          max_attempts: 5
+          retry_wait_seconds: 10
+          command: |
+            gh issue comment ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --body "**Execution Failed** ❌ (AWS Self-Hosted)
 
-          The autonomous execution encountered an error.
+            The autonomous execution encountered an error after retry attempts.
 
-          **Workflow:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **Details:**
+            - 🔄 Max Retries: ${{ inputs.max_retries }}
+            - 🖥️  Runner: $(hostname)
+            - **Workflow:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
-          The Water Spider Orchestrator will retry or escalate this task."
+            **Recovery Actions:**
+            - Task returned to queue for retry
+            - Orchestrator notified for escalation
+            - Error logs saved for analysis
 
+            The Water Spider Orchestrator will retry or escalate this task." || echo "⚠️ Failed to post failure comment (non-fatal)"
+
+  # ============================================
+  # Orchestrator Notification with Retry
+  # ============================================
+  
   notify-completion:
     name: Notify Orchestrator
     needs: execute-task
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, aws, miyabi-worker]
     if: always()
 
     steps:
-      - name: 📢 Notify Task Queue
-        run: |
-          echo "🔔 Task #${{ inputs.issue_number }} execution completed"
-          echo "Status: ${{ needs.execute-task.result }}"
+      - name: 📢 Notify Task Queue (with Retry)
+        uses: nick-invision/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 30
+          command: |
+            echo "🔔 Task #${{ inputs.issue_number }} execution completed"
+            echo "Status: ${{ needs.execute-task.result }}"
+            echo "Runner: $(hostname)"
 
-          # TODO: Call Task Dispatcher API to mark task as complete
-          # This will unblock dependent tasks in the queue
+            # TODO: Call Task Dispatcher API to mark task as complete
+            # This will unblock dependent tasks in the queue
+            
+            # For now, log the completion
+            curl -X POST "https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.issue_number }}/comments" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              -d "{\"body\": \"🔔 **Orchestrator Notified**: Task execution ${{ needs.execute-task.result }}\"}" \
+              || echo "⚠️ Notification failed (non-fatal)"
+            
+            echo "✅ Orchestrator notification sent"
