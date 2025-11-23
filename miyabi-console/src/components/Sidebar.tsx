@@ -5,11 +5,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  FolderGit2,
   GitBranch,
   LayoutDashboard,
   LogOut,
   Rocket,
   Server,
+  Terminal,
   Users,
   Wifi,
   WifiOff
@@ -41,6 +43,8 @@ export default function Sidebar() {
     { name: 'Deployment', path: '/deployment', icon: Rocket },
     { name: 'Infrastructure', path: '/infrastructure', icon: Server },
     { name: 'Database', path: '/database', icon: Database },
+    { name: 'Logs', path: '/logs', icon: Terminal },
+    { name: 'Worktrees', path: '/worktrees', icon: FolderGit2 },
     { name: 'Notifications', path: '/notifications', icon: Bell },
   ];
 
