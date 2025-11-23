@@ -85,7 +85,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section - Massive Title with Generous Whitespace */}
       <section className="py-24 md:py-48 px-5 text-center border-b border-gray-100">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           {/* Massive Ultra-Light Title (Ive's signature) */}
           <h1 className="text-7xl md:text-8xl lg:text-[120px] font-extralight tracking-tighter text-gray-900 leading-none mb-6">
             Dashboard
@@ -126,7 +126,7 @@ export default function DashboardPage() {
 
       {/* Stats Section - Generous Spacing */}
       <section className="py-24 md:py-32 px-5">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           {/* Stats Grid - Minimal Design */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
             {/* Stat Card 1 */}
@@ -180,7 +180,7 @@ export default function DashboardPage() {
 
       {/* System Resources Section */}
       <section className="py-24 md:py-32 px-5">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           {/* Section Title */}
           <h2 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900 mb-16 text-center">
             System Resources
@@ -248,7 +248,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions Section */}
       <section className="py-24 md:py-48 px-5">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           {/* Section Title */}
           <h2 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900 mb-16 text-center">
             Quick Actions

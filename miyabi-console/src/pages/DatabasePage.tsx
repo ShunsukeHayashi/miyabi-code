@@ -1,9 +1,20 @@
-import DatabaseERD from '@/components/database/DatabaseERD'
 import { apiClient, DatabaseSchema, handleApiError } from '@/lib/api/client'
 import { miyabiDatabaseSchema } from '@/lib/mockDatabaseData'
-import { Card, CardBody, CardHeader, Chip, Divider, Tab, Tabs } from '@heroui/react'
+import { Card, CardBody, CardHeader, Chip, Divider, Spinner, Tab, Tabs } from '@heroui/react'
 import { AlertCircle, CheckCircle, Database, Loader2, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+
+// Lazy load heavy ReactFlow component
+const DatabaseERD = lazy(() => import('@/components/database/DatabaseERD'))
+
+// Loading fallback for ERD diagram
+function ERDLoader() {
+  return (
+    <div className="flex items-center justify-center h-[600px] bg-default-50 rounded-lg">
+      <Spinner size="lg" label="Loading ERD diagram..." />
+    </div>
+  )
+}
 
 export default function DatabasePage() {
   const [selectedTab, setSelectedTab] = useState<string>('erd')
@@ -382,7 +393,9 @@ export default function DatabasePage() {
               </CardBody>
             </Card>
 
-            <DatabaseERD schema={miyabiDatabaseSchema} />
+            <Suspense fallback={<ERDLoader />}>
+              <DatabaseERD schema={miyabiDatabaseSchema} />
+            </Suspense>
           </div>
         </Tab>
 

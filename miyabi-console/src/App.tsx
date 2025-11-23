@@ -1,15 +1,32 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
-import AgentsPage from './pages/AgentsPage'
-import DashboardPage from './pages/DashboardPage'
-import DatabasePage from './pages/DatabasePage'
-import DeploymentPipelinePage from './pages/DeploymentPipelinePage'
-import InfrastructurePage from './pages/InfrastructurePage'
 
 import ProtectedRoute from './components/ProtectedRoute'
 import SessionTimeoutWarning from './components/SessionTimeoutWarning'
-import AuthCallbackPage from './pages/AuthCallbackPage'
-import LoginPage from './pages/LoginPage'
+
+// Lazy load pages for code splitting
+const AgentsPage = lazy(() => import('./pages/AgentsPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const DatabasePage = lazy(() => import('./pages/DatabasePage'))
+const DeploymentPipelinePage = lazy(() => import('./pages/DeploymentPipelinePage'))
+const InfrastructurePage = lazy(() => import('./pages/InfrastructurePage'))
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'))
+const OrganizationsPage = lazy(() => import('./pages/OrganizationsPage'))
+const WorkflowsPage = lazy(() => import('./pages/WorkflowsPage'))
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const LogsPage = lazy(() => import('./pages/LogsPage'))
+const WorktreeManagerPage = lazy(() => import('./pages/WorktreeManagerPage'))
+
+// Loading fallback component
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500" />
+    </div>
+  )
+}
 
 function App() {
   return (
@@ -20,43 +37,76 @@ function App() {
         warningTime={5 * 60 * 1000}      // 5 minutes before timeout
       />
 
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Layout />
-        </ProtectedRoute>
-      }>
-        {/* Dashboard - all roles */}
-        <Route index element={<DashboardPage />} />
-
-        {/* Agents - all roles */}
-        <Route path="/agents" element={<AgentsPage />} />
-
-        {/* Deployment - admin only */}
-        <Route path="/deployment" element={
-          <ProtectedRoute requiredRole="admin">
-            <DeploymentPipelinePage />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Layout />
           </ProtectedRoute>
-        } />
+        }>
+          {/* Dashboard - all roles */}
+          <Route index element={<DashboardPage />} />
 
-        {/* Infrastructure - admin and developer */}
-        <Route path="/infrastructure" element={
-          <ProtectedRoute requiredRole={['admin', 'developer']}>
-            <InfrastructurePage />
-          </ProtectedRoute>
-        } />
+          {/* Agents - all roles */}
+          <Route path="/agents" element={<AgentsPage />} />
 
-        {/* Database - admin and developer */}
-        <Route path="/database" element={
-          <ProtectedRoute requiredRole={['admin', 'developer']}>
-            <DatabasePage />
-          </ProtectedRoute>
-        } />
-      </Route>
-      </Routes>
+          {/* Workflows - admin and developer */}
+          <Route path="/workflows" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <WorkflowsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Organizations - admin and developer */}
+          <Route path="/organizations" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <OrganizationsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Deployment - admin only */}
+          <Route path="/deployment" element={
+            <ProtectedRoute requiredRole="admin">
+              <DeploymentPipelinePage />
+            </ProtectedRoute>
+          } />
+
+          {/* Infrastructure - admin and developer */}
+          <Route path="/infrastructure" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <InfrastructurePage />
+            </ProtectedRoute>
+          } />
+
+          {/* Database - admin and developer */}
+          <Route path="/database" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <DatabasePage />
+            </ProtectedRoute>
+          } />
+
+          {/* Notifications - all roles */}
+          <Route path="/notifications" element={<NotificationsPage />} />
+
+          {/* Logs - admin and developer */}
+          <Route path="/logs" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <LogsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Worktree Manager - admin and developer */}
+          <Route path="/worktrees" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <WorktreeManagerPage />
+            </ProtectedRoute>
+          } />
+        </Route>
+        </Routes>
+      </Suspense>
     </>
   )
 }

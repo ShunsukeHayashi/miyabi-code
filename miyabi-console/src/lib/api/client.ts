@@ -1,6 +1,8 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 import type { Agent, AgentConfig, AgentMetrics } from '@/types/agent';
 import type { InfrastructureTopology } from '@/types/infrastructure';
+import type { Log, LogFilter, LogsListResponse } from '@/types/logs';
+import type { Worktree, WorktreesListResponse, CreateWorktreeRequest } from '@/types/worktree';
 import { mockAgents } from '../mockData';
 import { mockInfrastructureTopology } from '../mockInfrastructureData';
 
@@ -647,6 +649,157 @@ class ApiClient {
       params: { limit },
     });
     return response.data;
+  }
+
+  // Logs API
+  async getLogs(filter?: LogFilter): Promise<LogsListResponse> {
+    if (USE_MOCK_DATA) {
+      await sleep(300);
+      const mockLogs: Log[] = [
+        {
+          id: '1',
+          timestamp: new Date(Date.now() - 60000).toISOString(),
+          level: 'INFO',
+          agent_type: 'CoordinatorAgent',
+          message: 'Agent initialization completed successfully',
+          session_id: 'sess-001',
+          context: 'startup',
+        },
+        {
+          id: '2',
+          timestamp: new Date(Date.now() - 120000).toISOString(),
+          level: 'DEBUG',
+          agent_type: 'CodeGenAgent',
+          message: 'Processing Issue #673 - analyzing requirements',
+          session_id: 'sess-002',
+          issue_number: 673,
+        },
+        {
+          id: '3',
+          timestamp: new Date(Date.now() - 180000).toISOString(),
+          level: 'WARN',
+          agent_type: 'ReviewAgent',
+          message: 'Rate limit approaching for GitHub API',
+          session_id: 'sess-003',
+        },
+        {
+          id: '4',
+          timestamp: new Date(Date.now() - 240000).toISOString(),
+          level: 'ERROR',
+          agent_type: 'DeploymentAgent',
+          message: 'Deployment failed: Connection timeout to production server',
+          session_id: 'sess-004',
+          file: 'deployment.rs',
+          line: 234,
+        },
+        {
+          id: '5',
+          timestamp: new Date(Date.now() - 300000).toISOString(),
+          level: 'INFO',
+          agent_type: 'PRAgent',
+          message: 'Pull request #156 created successfully',
+          session_id: 'sess-005',
+          issue_number: 156,
+        },
+      ];
+
+      // Apply filters
+      let filteredLogs = mockLogs;
+      if (filter?.level) {
+        filteredLogs = filteredLogs.filter(log => log.level === filter.level);
+      }
+      if (filter?.agent_type) {
+        filteredLogs = filteredLogs.filter(log => log.agent_type === filter.agent_type);
+      }
+      if (filter?.search) {
+        const searchLower = filter.search.toLowerCase();
+        filteredLogs = filteredLogs.filter(log =>
+          log.message.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return { logs: filteredLogs, total: filteredLogs.length };
+    }
+    const response = await this.client.get<LogsListResponse>('/logs', {
+      params: filter,
+    });
+    return response.data;
+  }
+
+  // Worktrees API
+  async getWorktrees(): Promise<WorktreesListResponse> {
+    if (USE_MOCK_DATA) {
+      await sleep(300);
+      const mockWorktrees: Worktree[] = [
+        {
+          id: 'wt-001',
+          path: '/worktrees/feature-auth',
+          branch: 'feature/authentication',
+          status: 'Active',
+          issue_number: 123,
+          agent_type: 'CodeGenAgent',
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          updated_at: new Date(Date.now() - 1800000).toISOString(),
+        },
+        {
+          id: 'wt-002',
+          path: '/worktrees/fix-api',
+          branch: 'fix/api-timeout',
+          status: 'Idle',
+          issue_number: 456,
+          agent_type: 'ReviewAgent',
+          created_at: new Date(Date.now() - 7200000).toISOString(),
+          updated_at: new Date(Date.now() - 3600000).toISOString(),
+        },
+        {
+          id: 'wt-003',
+          path: '/worktrees/refactor-core',
+          branch: 'refactor/core-module',
+          status: 'Completed',
+          issue_number: 789,
+          agent_type: 'PRAgent',
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          updated_at: new Date(Date.now() - 43200000).toISOString(),
+        },
+        {
+          id: 'wt-004',
+          path: '/worktrees/deploy-prod',
+          branch: 'deploy/production-v2',
+          status: 'Error',
+          agent_type: 'DeploymentAgent',
+          created_at: new Date(Date.now() - 14400000).toISOString(),
+          updated_at: new Date(Date.now() - 7200000).toISOString(),
+        },
+      ];
+      return { worktrees: mockWorktrees, total: mockWorktrees.length };
+    }
+    const response = await this.client.get<WorktreesListResponse>('/worktrees');
+    return response.data;
+  }
+
+  async createWorktree(request: CreateWorktreeRequest): Promise<Worktree> {
+    if (USE_MOCK_DATA) {
+      await sleep(500);
+      return {
+        id: `wt-${Date.now()}`,
+        path: `/worktrees/${request.branch.replace('/', '-')}`,
+        branch: request.branch,
+        status: 'Active',
+        issue_number: request.issue_number,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+    }
+    const response = await this.client.post<Worktree>('/worktrees', request);
+    return response.data;
+  }
+
+  async deleteWorktree(id: string): Promise<void> {
+    if (USE_MOCK_DATA) {
+      await sleep(300);
+      return;
+    }
+    await this.client.delete(`/worktrees/${id}`);
   }
 
   // Health check

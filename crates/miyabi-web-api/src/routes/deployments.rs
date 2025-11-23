@@ -24,7 +24,7 @@ pub struct DeploymentsListResponse {
     pub total: usize,
 }
 
-async fn list_deployments() -> Json<DeploymentsListResponse> {
+pub async fn list_deployments() -> Json<DeploymentsListResponse> {
     // Mock data - In production, this comes from DeploymentAgent
     let deployments = vec![
         Deployment {
