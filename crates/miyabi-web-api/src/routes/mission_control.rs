@@ -101,18 +101,29 @@ pub async fn get_mission_control_status(
     let preflight_data = preflight::preflight_checks().await.0;
     let worktrees_data = worktrees::list_worktrees().await.0;
 
+    // Coding agent names (7 agents)
+    let coding_agent_names = [
+        "CoordinatorAgent",
+        "CodeGenAgent",
+        "ReviewAgent",
+        "IssueAgent",
+        "PRAgent",
+        "DeploymentAgent",
+        "RefresherAgent",
+    ];
+
     // Calculate agents summary
     let agents_summary = AgentsSummary {
         total_agents: agents_data.agents.len(),
         coding_agents: agents_data
             .agents
             .iter()
-            .filter(|a| matches!(a.agent_type, agents::AgentType::Coding))
+            .filter(|a| coding_agent_names.contains(&a.name.as_str()))
             .count(),
         business_agents: agents_data
             .agents
             .iter()
-            .filter(|a| matches!(a.agent_type, agents::AgentType::Business))
+            .filter(|a| !coding_agent_names.contains(&a.name.as_str()))
             .count(),
         idle_agents: agents_data.agents.iter().filter(|a| a.status == "idle").count(),
         running_agents: agents_data.agents.iter().filter(|a| a.status == "running").count(),

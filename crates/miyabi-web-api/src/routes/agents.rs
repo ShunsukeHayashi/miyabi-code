@@ -13,7 +13,47 @@ pub enum AgentType {
     Business,
 }
 
-/// Enhanced agent metadata
+/// Agent metrics
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentMetrics {
+    pub cpu_usage: f64,
+    pub memory_usage: f64,
+    pub task_completion_rate: f64,
+    pub average_task_duration: f64,
+}
+
+/// Agent config
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentConfig {
+    pub max_concurrent_tasks: u32,
+    pub timeout_seconds: u32,
+    pub retry_attempts: u32,
+    pub enable_logging: bool,
+}
+
+/// Agent tasks
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AgentTasks {
+    pub active: u32,
+    pub completed: u32,
+}
+
+/// Agent data matching frontend expectations
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Agent {
+    pub id: String,
+    pub name: String,
+    pub layer: u32,
+    pub status: String,
+    pub uptime: u64,
+    pub tasks: AgentTasks,
+    pub metrics: AgentMetrics,
+    pub config: AgentConfig,
+}
+
+/// Enhanced agent metadata (internal use)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AgentMetadata {
     pub name: String,
@@ -28,288 +68,269 @@ pub struct AgentMetadata {
 
 #[derive(Serialize, Deserialize)]
 pub struct AgentsListResponse {
-    pub agents: Vec<AgentMetadata>,
+    pub agents: Vec<Agent>,
 }
 
 /// List all available agents with metadata
 pub async fn list_agents() -> Json<AgentsListResponse> {
-    let agents = get_agent_metadata();
+    let agents = get_agents();
     Json(AgentsListResponse { agents })
 }
 
-/// Get comprehensive agent metadata
+/// Helper to create default metrics
+fn default_metrics() -> AgentMetrics {
+    AgentMetrics {
+        cpu_usage: 0.0,
+        memory_usage: 0.0,
+        task_completion_rate: 100.0,
+        average_task_duration: 0.0,
+    }
+}
+
+/// Helper to create default config
+fn default_config() -> AgentConfig {
+    AgentConfig {
+        max_concurrent_tasks: 5,
+        timeout_seconds: 300,
+        retry_attempts: 3,
+        enable_logging: true,
+    }
+}
+
+/// Helper to create default tasks
+fn default_tasks() -> AgentTasks {
+    AgentTasks {
+        active: 0,
+        completed: 0,
+    }
+}
+
+/// Get all agents with full data matching frontend expectations
 ///
-/// This function returns metadata for all 21 Miyabi agents (7 Coding + 14 Business)
-/// Data is currently hardcoded based on agent specifications in .claude/agents/specs/
-///
-/// Future enhancements:
-/// - Load from agent spec files dynamically
-/// - Integrate with runtime state tracking
-/// - Add tmux pane mapping via collector
-fn get_agent_metadata() -> Vec<AgentMetadata> {
+/// Layer mapping:
+/// - Layer 3: Coordinators (CoordinatorAgent)
+/// - Layer 4: Workers (all other Coding agents + Business agents)
+fn get_agents() -> Vec<Agent> {
     vec![
         // Coding Agents (7)
-        AgentMetadata {
+        Agent {
+            id: "coordinator-agent".to_string(),
             name: "CoordinatorAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 3, // Coordinator layer
             status: "idle".to_string(),
-            capabilities: vec![
-                "task_planning".to_string(),
-                "dag_scheduling".to_string(),
-                "parallel_execution".to_string(),
-                "worktree_management".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "codegen-agent".to_string(),
             name: "CodeGenAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 4, // Worker layer
             status: "idle".to_string(),
-            capabilities: vec![
-                "code_generation".to_string(),
-                "implementation".to_string(),
-                "testing".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "review-agent".to_string(),
             name: "ReviewAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "code_review".to_string(),
-                "quality_check".to_string(),
-                "security_audit".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "issue-agent".to_string(),
             name: "IssueAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "issue_creation".to_string(),
-                "label_inference".to_string(),
-                "task_breakdown".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "pr-agent".to_string(),
             name: "PRAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "pull_request_creation".to_string(),
-                "description_generation".to_string(),
-                "auto_merge".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "deployment-agent".to_string(),
             name: "DeploymentAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "deployment".to_string(),
-                "ci_cd".to_string(),
-                "rollback".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "refresher-agent".to_string(),
             name: "RefresherAgent".to_string(),
-            agent_type: AgentType::Coding,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "dependency_updates".to_string(),
-                "security_patches".to_string(),
-                "version_management".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
         // Business Agents (14)
-        AgentMetadata {
+        Agent {
+            id: "ai-entrepreneur-agent".to_string(),
             name: "AIEntrepreneurAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "business_planning".to_string(),
-                "strategy_formulation".to_string(),
-                "market_analysis".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "product-concept-agent".to_string(),
             name: "ProductConceptAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "product_ideation".to_string(),
-                "concept_development".to_string(),
-                "value_proposition".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "product-design-agent".to_string(),
             name: "ProductDesignAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "product_design".to_string(),
-                "ux_design".to_string(),
-                "prototype_creation".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "funnel-design-agent".to_string(),
             name: "FunnelDesignAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "funnel_design".to_string(),
-                "conversion_optimization".to_string(),
-                "customer_journey".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "persona-agent".to_string(),
             name: "PersonaAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "persona_creation".to_string(),
-                "customer_profiling".to_string(),
-                "segmentation".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "self-analysis-agent".to_string(),
             name: "SelfAnalysisAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "swot_analysis".to_string(),
-                "capability_assessment".to_string(),
-                "gap_analysis".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "market-research-agent".to_string(),
             name: "MarketResearchAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "market_research".to_string(),
-                "competitor_analysis".to_string(),
-                "trend_analysis".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "marketing-agent".to_string(),
             name: "MarketingAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "marketing_strategy".to_string(),
-                "campaign_planning".to_string(),
-                "channel_optimization".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "content-creation-agent".to_string(),
             name: "ContentCreationAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "content_creation".to_string(),
-                "blog_writing".to_string(),
-                "copywriting".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "sns-strategy-agent".to_string(),
             name: "SNSStrategyAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "social_media_strategy".to_string(),
-                "content_calendar".to_string(),
-                "engagement_optimization".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "youtube-agent".to_string(),
             name: "YouTubeAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "youtube_strategy".to_string(),
-                "video_planning".to_string(),
-                "channel_optimization".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "sales-agent".to_string(),
             name: "SalesAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "sales_strategy".to_string(),
-                "lead_generation".to_string(),
-                "conversion_optimization".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "crm-agent".to_string(),
             name: "CRMAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "customer_management".to_string(),
-                "relationship_building".to_string(),
-                "retention_strategy".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
-        AgentMetadata {
+        Agent {
+            id: "analytics-agent".to_string(),
             name: "AnalyticsAgent".to_string(),
-            agent_type: AgentType::Business,
+            layer: 4,
             status: "idle".to_string(),
-            capabilities: vec![
-                "data_analysis".to_string(),
-                "kpi_tracking".to_string(),
-                "reporting".to_string(),
-            ],
-            current_task: None,
-            tmux_pane: None,
+            uptime: 0,
+            tasks: default_tasks(),
+            metrics: default_metrics(),
+            config: default_config(),
         },
     ]
 }
 
 /// Get status for a specific agent by name
-async fn get_agent_status(Path(agent_name): Path<String>) -> Json<Option<AgentMetadata>> {
-    let agents = get_agent_metadata();
-    let agent = agents.into_iter().find(|a| a.name == agent_name);
+async fn get_agent_status(Path(agent_name): Path<String>) -> Json<Option<Agent>> {
+    let agents = get_agents();
+    let agent = agents.into_iter().find(|a| a.name == agent_name || a.id == agent_name);
     Json(agent)
 }
 
