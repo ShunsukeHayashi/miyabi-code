@@ -1,0 +1,357 @@
+name: Task Execute - Claude Code Headless
+
+# Water Spider Orchestrator - Task Execution Workflow
+# Triggered by Task Dispatcher to execute issues autonomously
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'GitHub Issue number to execute'
+        required: true
+        type: string
+      priority:
+        description: 'Task priority (P0-P3)'
+        required: false
+        type: string
+        default: 'P2-Medium'
+      worktree_name:
+        description: 'Git worktree name (auto-generated if empty)'
+        required: false
+        type: string
+      max_runtime:
+        description: 'Maximum runtime in minutes'
+        required: false
+        type: number
+        default: 120
+
+jobs:
+  execute-task:
+    name: Execute Issue #${{ inputs.issue_number }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(inputs.max_runtime) }}
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: 📋 Workflow Information
+        run: |
+          echo "🎯 Executing Issue: #${{ inputs.issue_number }}"
+          echo "⚡ Priority: ${{ inputs.priority }}"
+          echo "⏱️  Max Runtime: ${{ inputs.max_runtime }} minutes"
+          echo "🌳 Worktree: ${{ inputs.worktree_name || format('issue-{0}', inputs.issue_number) }}"
+
+      - name: 🔐 Setup GitHub CLI
+        run: |
+          gh --version
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: 📝 Post Phase 1 Comment (Initializing)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "🤖 **Autonomous Execution Started**
+
+          **Phase 1**: Initializing
+          - Priority: ${{ inputs.priority }}
+          - Workflow: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - Started: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+          The Water Spider Orchestrator is now processing this task..."
+
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: 📂 Setup Cargo Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - name: 🌳 Create Git Worktree
+        id: worktree
+        run: |
+          WORKTREE_NAME="${{ inputs.worktree_name }}"
+          if [ -z "$WORKTREE_NAME" ]; then
+            WORKTREE_NAME="issue-${{ inputs.issue_number }}"
+          fi
+
+          BRANCH_NAME="feature/issue-${{ inputs.issue_number }}"
+          WORKTREE_PATH=".worktrees/${WORKTREE_NAME}"
+
+          echo "Creating worktree: ${WORKTREE_PATH}"
+          git worktree add -b "${BRANCH_NAME}" "${WORKTREE_PATH}" origin/main || true
+
+          echo "worktree_path=${WORKTREE_PATH}" >> $GITHUB_OUTPUT
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+
+      - name: 📝 Post Phase 2 Comment (Worktree Created)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "**Phase 2**: Worktree Setup ✅
+          - Branch: \`${{ steps.worktree.outputs.branch_name }}\`
+          - Path: \`${{ steps.worktree.outputs.worktree_path }}\`"
+
+      - name: 📥 Install Claude Code CLI
+        run: |
+          echo "Installing Claude Code..."
+          curl -fsSL https://raw.githubusercontent.com/anthropics/claude-code/main/install.sh | sh
+
+          # Add to PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 🔐 Setup Claude API Key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "❌ ANTHROPIC_API_KEY not set"
+            exit 1
+          fi
+          echo "✅ Claude API Key configured"
+
+      - name: 📝 Post Phase 3 Comment (Starting Execution)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "**Phase 3**: Starting Autonomous Execution 🚀
+
+          Claude Code is now analyzing and implementing the solution..."
+
+      - name: 🤖 Execute Claude Code Headless
+        id: claude_execute
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create headless execution command
+          ISSUE_URL="https://github.com/${{ github.repository }}/issues/${{ inputs.issue_number }}"
+
+          echo "Executing: claude --headless --issue $ISSUE_URL"
+
+          # Execute with timeout and capture output
+          claude --headless --issue "$ISSUE_URL" \
+            --max-tokens 100000 \
+            --context .claude/CLAUDE.md \
+            > claude_output.log 2>&1 || echo "execution_failed=true" >> $GITHUB_OUTPUT
+
+          # Check execution result
+          if grep -q "execution_failed=true" $GITHUB_OUTPUT; then
+            echo "❌ Claude Code execution failed"
+            cat claude_output.log
+            exit 1
+          fi
+
+          echo "✅ Claude Code execution completed"
+          echo "success=true" >> $GITHUB_OUTPUT
+
+      - name: 📝 Post Phase 4 Comment (Execution Complete)
+        if: steps.claude_execute.outputs.success == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "**Phase 4**: Execution Complete ✅
+
+          Claude Code has finished processing. Reviewing changes..."
+
+      - name: 📊 Analyze Changes
+        id: analyze
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          # Count changes
+          FILES_CHANGED=$(git diff --name-only HEAD | wc -l | tr -d ' ')
+          LINES_ADDED=$(git diff --numstat HEAD | awk '{sum+=$1} END {print sum}')
+          LINES_DELETED=$(git diff --numstat HEAD | awk '{sum+=$2} END {print sum}')
+
+          echo "files_changed=${FILES_CHANGED}" >> $GITHUB_OUTPUT
+          echo "lines_added=${LINES_ADDED}" >> $GITHUB_OUTPUT
+          echo "lines_deleted=${LINES_DELETED}" >> $GITHUB_OUTPUT
+
+          # Check if there are changes
+          if [ "$FILES_CHANGED" -eq 0 ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔨 Run Tests
+        if: steps.analyze.outputs.has_changes == 'true'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          echo "Running cargo test..."
+          cargo test --all-features || echo "tests_failed=true" >> $GITHUB_ENV
+
+      - name: 🔍 Run Clippy
+        if: steps.analyze.outputs.has_changes == 'true'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          echo "Running cargo clippy..."
+          cargo clippy --all-targets --all-features -- -D warnings || echo "clippy_failed=true" >> $GITHUB_ENV
+
+      - name: 💾 Commit Changes
+        if: steps.analyze.outputs.has_changes == 'true'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          git config user.name "Miyabi Water Spider"
+          git config user.email "bot@miyabi-society.ai"
+
+          git add .
+          git commit -m "feat: Implement Issue #${{ inputs.issue_number }}
+
+          Autonomous implementation by Claude Code
+
+          - Priority: ${{ inputs.priority }}
+          - Files Changed: ${{ steps.analyze.outputs.files_changed }}
+          - Lines Added: ${{ steps.analyze.outputs.lines_added }}
+          - Lines Deleted: ${{ steps.analyze.outputs.lines_deleted }}
+
+          🤖 Generated with Claude Code
+          Co-Authored-By: Water Spider Orchestrator <bot@miyabi-society.ai>"
+
+      - name: 🚀 Push Changes
+        if: steps.analyze.outputs.has_changes == 'true'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          git push origin ${{ steps.worktree.outputs.branch_name }}
+
+      - name: 📝 Create Pull Request
+        if: steps.analyze.outputs.has_changes == 'true'
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get issue details
+          ISSUE_TITLE=$(gh issue view ${{ inputs.issue_number }} --json title -q .title)
+
+          PR_BODY="## Summary
+          Autonomous implementation of Issue #${{ inputs.issue_number }}
+
+          ## Changes
+          - 📝 Files Changed: ${{ steps.analyze.outputs.files_changed }}
+          - ➕ Lines Added: ${{ steps.analyze.outputs.lines_added }}
+          - ➖ Lines Deleted: ${{ steps.analyze.outputs.lines_deleted }}
+
+          ## Testing
+          - ${{ env.tests_failed != 'true' && '✅' || '❌' }} Unit Tests
+          - ${{ env.clippy_failed != 'true' && '✅' || '❌' }} Clippy
+
+          ## Workflow
+          - Priority: ${{ inputs.priority }}
+          - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          Closes #${{ inputs.issue_number }}
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+          Co-Authored-By: Water Spider Orchestrator <bot@miyabi-society.ai>"
+
+          PR_URL=$(gh pr create \
+            --title "feat: ${ISSUE_TITLE}" \
+            --body "${PR_BODY}" \
+            --base main \
+            --head ${{ steps.worktree.outputs.branch_name }} \
+            --label "priority:${{ inputs.priority }}" \
+            --label "automated" \
+            --label "claude-code")
+
+          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+
+      - name: 📝 Post Final Comment (Success)
+        if: steps.analyze.outputs.has_changes == 'true' && steps.create_pr.outputs.pr_url != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "**Phase 5**: Pull Request Created 🎉
+
+          ✅ **Implementation Complete**
+
+          **Changes:**
+          - 📝 Files: ${{ steps.analyze.outputs.files_changed }}
+          - ➕ Added: ${{ steps.analyze.outputs.lines_added }} lines
+          - ➖ Deleted: ${{ steps.analyze.outputs.lines_deleted }} lines
+
+          **Quality Checks:**
+          - ${{ env.tests_failed != 'true' && '✅' || '❌' }} Unit Tests
+          - ${{ env.clippy_failed != 'true' && '✅' || '❌' }} Clippy
+
+          **Pull Request:** ${{ steps.create_pr.outputs.pr_url }}
+
+          The Water Spider Orchestrator has completed this task."
+
+      - name: 📝 Post No Changes Comment
+        if: steps.analyze.outputs.has_changes == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "**Execution Complete** ℹ️
+
+          Claude Code completed analysis but determined no code changes were needed.
+
+          This may indicate:
+          - The issue is already resolved
+          - The issue requires clarification
+          - The issue is not a code change request
+
+          Please review the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+
+      - name: 🧹 Cleanup Worktree
+        if: always()
+        run: |
+          WORKTREE_PATH="${{ steps.worktree.outputs.worktree_path }}"
+          if [ -d "$WORKTREE_PATH" ]; then
+            echo "Cleaning up worktree: $WORKTREE_PATH"
+            git worktree remove "$WORKTREE_PATH" --force || true
+          fi
+
+      - name: ❌ Post Failure Comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "**Execution Failed** ❌
+
+          The autonomous execution encountered an error.
+
+          **Workflow:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          The Water Spider Orchestrator will retry or escalate this task."
+
+  notify-completion:
+    name: Notify Orchestrator
+    needs: execute-task
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: 📢 Notify Task Queue
+        run: |
+          echo "🔔 Task #${{ inputs.issue_number }} execution completed"
+          echo "Status: ${{ needs.execute-task.result }}"
+
+          # TODO: Call Task Dispatcher API to mark task as complete
+          # This will unblock dependent tasks in the queue

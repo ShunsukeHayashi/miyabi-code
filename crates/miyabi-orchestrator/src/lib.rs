@@ -90,5 +90,7 @@ pub use skills_bridge::{
 pub use ssh::{Machine, MachineStatus, SshConfig};
 pub use state_machine::{ExecutionState, Phase, StateMachine};
 pub use task_queue::{QueuedTask, TaskQueue, TaskQueueConfig, TaskQueueStats, TaskState};
+pub use task_dispatcher::{DispatchResult, DispatcherConfig, DispatcherStats, TaskDispatcher};
 pub mod priority;
+pub mod task_dispatcher;
 pub mod task_queue;
