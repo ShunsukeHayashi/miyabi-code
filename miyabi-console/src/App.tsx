@@ -16,6 +16,8 @@ const OrganizationsPage = lazy(() => import('./pages/OrganizationsPage'))
 const WorkflowsPage = lazy(() => import('./pages/WorkflowsPage'))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
+const LogsPage = lazy(() => import('./pages/LogsPage'))
+const WorktreeManagerPage = lazy(() => import('./pages/WorktreeManagerPage'))
 
 // Loading fallback component
 function PageLoader() {
@@ -88,6 +90,20 @@ function App() {
 
           {/* Notifications - all roles */}
           <Route path="/notifications" element={<NotificationsPage />} />
+
+          {/* Logs - admin and developer */}
+          <Route path="/logs" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <LogsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Worktree Manager - admin and developer */}
+          <Route path="/worktrees" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <WorktreeManagerPage />
+            </ProtectedRoute>
+          } />
         </Route>
         </Routes>
       </Suspense>
