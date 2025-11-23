@@ -8,7 +8,7 @@ import { mockInfrastructureTopology } from '../mockInfrastructureData';
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
-const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.DEV;
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'true';
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second base delay
@@ -281,8 +281,8 @@ class ApiClient {
       await sleep(500);
       return mockAgents;
     }
-    const response = await this.client.get<Agent[]>('/agents');
-    return response.data;
+    const response = await this.client.get<{ agents: Agent[] }>('/agents');
+    return response.data.agents;
   }
 
   async getAgent(id: string): Promise<Agent> {
