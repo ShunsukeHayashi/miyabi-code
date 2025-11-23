@@ -1,0 +1,15 @@
+{
+  "total_open_tasks": 57,
+  "total_estimated_hours": 601.5,
+  "estimated_weeks": 16,
+  "epics": {
+    "total": 12,
+    "with_children": 4
+  },
+  "by_priority": {
+    "p0": 2,
+    "p1": 19,
+    "p2": 11,
+    "p3": 3
+  }
+}

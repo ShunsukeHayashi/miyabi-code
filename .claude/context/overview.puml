@@ -1,0 +1,256 @@
+@startuml Miyabi Context Modules - Complete Overview
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+skinparam shadowing false
+skinparam roundCorner 10
+
+title Miyabi Context Modules v3.0.0 - Complete System Overview
+
+' Priority Legend
+legend top right
+  **Priority Legend**:
+  ⭐⭐⭐⭐⭐ P0 - Critical (Always loaded)
+  ⭐⭐⭐⭐ P1 - High (Load when using)
+  ⭐⭐⭐ P2 - Medium (Load as needed)
+  ⭐⭐ P3 - Low (Reference only)
+  ⭐ P4 - Legacy (Backward compatibility)
+
+  **Status**:
+  ✨ NEW - Latest additions
+  🔄 Legacy - Superseded by miyabi-definition.md
+endlegend
+
+' Core Context Modules
+package "Core Context Modules (P0-P1)" {
+  component "miyabi-definition.md\n⭐⭐⭐⭐⭐ ✨ NEW\n~800 tokens" as miyabi_def #FFE5E5
+  note right of miyabi_def
+    **Primary Source**:
+    - 14 Entities, 39 Relations
+    - 57 Labels (11 categories)
+    - 5 Workflows
+    - miyabi_def/ integration
+  end note
+
+  component "core-rules.md\n⭐⭐⭐⭐⭐\n~400 tokens" as core_rules #FFE5E5
+  note right of core_rules
+    **Operating Rules**:
+    - MCP First Approach
+    - Benchmark Protocol
+    - Context7 Usage
+  end note
+
+  component "agents.md\n⭐⭐⭐⭐\n~300 tokens" as agents #E5F5FF
+  note right of agents
+    **Agent System**:
+    - 6 Coding Agents (tmux)
+    - 14 Business Agents (Rust)
+    - BaseAgent trait
+  end note
+
+  component "architecture.md\n⭐⭐⭐⭐\n~400 tokens" as architecture #E5F5FF
+  note right of architecture
+    **System Design**:
+    - Cargo Workspace
+    - Git Worktree
+    - GitHub as OS
+    - Rust 2021 Edition
+  end note
+}
+
+' Development Context Modules
+package "Development Context Modules (P2-P3)" {
+  component "development.md\n⭐⭐⭐\n~300 tokens" as development #E5FFE5
+  note right of development
+    **Dev Guidelines**:
+    - Rust/TypeScript conventions
+    - Testing standards
+    - CI/CD workflow
+  end note
+
+  component "rust.md\n⭐⭐⭐\n~300 tokens" as rust #E5FFE5
+  note right of rust
+    **Rust Guide**:
+    - Rust 2021 Edition
+    - Best practices
+    - Async/await patterns
+  end note
+
+  component "worktree.md\n⭐⭐⭐\n~300 tokens" as worktree #E5FFE5
+  note right of worktree
+    **Worktree Protocol**:
+    - Parallel execution
+    - Lifecycle management
+    - Agent isolation
+  end note
+
+  component "protocols.md\n⭐⭐\n~300 tokens" as protocols #F5FFE5
+  note right of protocols
+    **Task Management**:
+    - Todo lifecycle
+    - Reporting protocol
+    - Status management
+  end note
+
+  component "external-deps.md\n⭐⭐\n~200 tokens" as external #F5FFE5
+  note right of external
+    **External Services**:
+    - Context7 usage
+    - MCP Servers
+    - Integration guides
+  end note
+}
+
+' Legacy Context Modules
+package "Legacy Context Modules (P3-P4) 🔄" {
+  component "entity-relation.md\n⭐⭐ 🔄\n~300 tokens" as entity #F0F0F0
+  note right of entity
+    **Legacy**
+    Superseded by
+    miyabi-definition.md
+    (12 Entities, 27 Relations)
+  end note
+
+  component "labels.md\n⭐⭐ 🔄\n~200 tokens" as labels #F0F0F0
+  note right of labels
+    **Legacy**
+    Superseded by
+    miyabi-definition.md
+    (53 Labels)
+  end note
+
+  component "typescript.md\n⭐\n~200 tokens" as typescript #F0F0F0
+  note right of typescript
+    **Legacy Reference**
+    Node.js codebase
+    (Before Rust migration)
+  end note
+}
+
+' Special Modules
+package "Special Purpose Modules" {
+  component "omega-phases.md\n⭐⭐⭐\n~700 tokens" as omega #FFE5F5
+  note right of omega
+    **Business Agents**:
+    - 12 Phases
+    - Strategy to Analytics
+    - Comprehensive workflow
+  end note
+
+  component "swml-framework.md\n⭐⭐⭐\n~500 tokens" as swml #FFE5F5
+  note right of swml
+    **SWML Framework**:
+    - Semantic Workflow ML
+    - Agent coordination
+    - Workflow optimization
+  end note
+}
+
+' Module Relationships
+miyabi_def --> agents : Agent Definitions
+miyabi_def --> entity : Supersedes (Entities)
+miyabi_def --> labels : Supersedes (Labels)
+miyabi_def --> architecture : System Architecture
+
+core_rules --> development : Development Rules
+core_rules --> external : External Service Rules
+
+agents --> worktree : Parallel Execution
+agents --> architecture : Agent Implementation
+
+architecture --> rust : Implementation Language
+architecture --> worktree : Worktree Architecture
+
+development --> rust : Rust Development
+development --> typescript : Legacy Reference
+development --> protocols : Task Management
+
+protocols --> agents : Agent Communication
+
+omega --> agents : Business Agent Specs
+swml --> agents : Workflow Framework
+
+' Usage Patterns
+package "Context Loading Patterns" {
+  usecase "Pattern 0: Miyabi Definition Lookup\n(最優先)" as pattern0 #FFE5E5
+  usecase "Pattern 1: Agent Development" as pattern1 #E5F5FF
+  usecase "Pattern 2: Issue Processing" as pattern2 #E5FFE5
+  usecase "Pattern 3: Benchmark Implementation" as pattern3 #F5FFE5
+  usecase "Pattern 4: Definition File Generation" as pattern4 #FFE5F5
+
+  pattern0 --> miyabi_def : Load First
+  pattern1 --> miyabi_def : Step 1
+  pattern1 --> core_rules : Step 2
+  pattern1 --> agents : Step 3
+  pattern1 --> rust : Step 4
+  pattern1 --> development : Step 5
+
+  pattern2 --> miyabi_def : Step 1
+  pattern2 --> core_rules : Step 2
+  pattern2 --> worktree : Step 3
+  pattern2 --> protocols : Step 4
+
+  pattern3 --> core_rules : Step 1
+  pattern3 --> external : Step 2
+  pattern3 --> development : Step 3
+
+  pattern4 --> miyabi_def : Complete System
+}
+
+' Token Budget
+note as budget
+  **Total Token Budget** (~3,800 tokens):
+  - P0 Modules: ~1,200 tokens (miyabi-definition, core-rules)
+  - P1 Modules: ~1,000 tokens (agents, architecture)
+  - P2 Modules: ~1,100 tokens (dev, rust, worktree, protocols, external)
+  - P3-P4 Modules: ~500 tokens (legacy + special purpose)
+
+  **Loading Strategy**:
+  1. Always load P0 modules
+  2. Load P1 when executing agents
+  3. Load P2 as needed for specific tasks
+  4. Load P3-P4 for backward compatibility only
+end note
+
+' Related Documentation
+note as docs
+  **Related Documentation**:
+
+  **Detailed Docs**:
+  - Entity-Relation: docs/ENTITY_RELATION_MODEL.md
+  - Templates: docs/TEMPLATE_MASTER_INDEX.md
+  - Labels: docs/LABEL_SYSTEM_GUIDE.md
+  - MCP Protocol: .claude/MCP_INTEGRATION_PROTOCOL.md
+  - Benchmark: .claude/BENCHMARK_IMPLEMENTATION_CHECKLIST.md
+
+  **tmux Orchestra v2.0**:
+  - Integration: .claude/MIYABI_ORCHESTRA_INTEGRATION.md
+  - Config: .claude/orchestra-config.yaml
+  - Philosophy: .claude/MIYABI_PARALLEL_ORCHESTRA.md
+  - Quick Start: docs/QUICK_START_3STEPS.md
+  - Operations: .claude/TMUX_OPERATIONS.md
+
+  **Agent Specs**:
+  - Coding: .claude/agents/specs/coding/*.md
+  - Business: .claude/agents/specs/business/*.md
+  - Prompts: .claude/agents/prompts/coding/*.md
+end note
+
+note bottom
+  **Miyabi Context System v3.0.0**
+  Last Updated: 2025-11-03
+  Total Modules: 15 (12 active + 3 legacy)
+  Index: .claude/context/INDEX.md
+
+  **Quick Commands**:
+  ls -lh .claude/context/           # List all modules
+  cat .claude/context/core-rules.md # View specific module
+  wc -w .claude/context/*.md        # Token count estimation
+
+  **Update Policy**:
+  - New features: Update relevant modules
+  - Architecture changes: Update architecture.md + miyabi-definition.md
+  - Best practices: Update development.md + rust.md
+end note
+
+@enduml

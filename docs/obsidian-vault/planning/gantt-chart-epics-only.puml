@@ -1,0 +1,31 @@
+@startgantt
+title Miyabi Project - EPIC Overview
+scale 1
+printscale weekly
+
+[#1018 🚀 (EPIC) M1 Infrastructure Blitz - Production Deployment] as [E1018] lasts 5 days
+[E1018] is colored in red
+[#977 🎯 (MASTER) Miyabi Reconstruction - Team Coordination & Cont] as [E977] lasts 1 days
+[E977] is colored in orange
+[#976 Phase 1.5: JWT Authentication Implementation] as [E976] lasts 2 days
+[E976] is colored in orange
+[#975 Phase 1.4: RBAC Implementation] as [E975] lasts 2 days
+[E975] is colored in orange
+[#974 Phase 1.3: Organization/Team Schema Implementation] as [E974] lasts 3 days
+[E974] is colored in orange
+[#973 Phase 1.2: Base Schema Migration] as [E973] lasts 2 days
+[E973] is colored in orange
+[#972 Phase 1.1: PostgreSQL Connection Enablement] as [E972] lasts 2 days
+[E972] is colored in orange
+[#971 🎯 (P0) Miyabi Reconstruction - Master Dependency Graph & Ph] as [E971] lasts 3 days
+[E971] is colored in orange
+[#968 (P0) Kazuaki Agent - コスト閾値の明確化] as [E968] lasts 1 days
+[E968] is colored in orange
+[#967 (P0) Kazuaki Agent - Rust-Pythonブリッジの詳細化] as [E967] lasts 1 days
+[E967] is colored in orange
+[#966 (P0) Kazuaki Agent - IAM権限要件の文書化] as [E966] lasts 1 days
+[E966] is colored in orange
+[#965 (P0) Kazuaki Agent - キャラクター性格の拡充] as [E965] lasts 1 days
+[E965] is colored in orange
+
+@endgantt

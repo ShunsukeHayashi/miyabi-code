@@ -61,6 +61,7 @@ export default function DeploymentStageCard({ task, isActive }: DeploymentStageC
             color={statusConfig.color}
             size="md"
             className="max-w-full"
+            aria-label={`${task.title} progress`}
           />
         </div>
 

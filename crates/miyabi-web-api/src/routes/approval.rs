@@ -159,7 +159,7 @@ pub async fn approve_workflow(
         .ok_or(StatusCode::NOT_FOUND)?;
 
     // Recreate gate
-    let gate = ApprovalGate::new(&approval_state.gate_id)
+    let gate = ApprovalGate::builder(&approval_state.gate_id)
         .required_approvers(approval_state.required_approvers.clone())
         .timeout_seconds(approval_state.timeout_seconds)
         .build()
@@ -191,7 +191,7 @@ pub async fn reject_workflow(
         .ok_or(StatusCode::NOT_FOUND)?;
 
     // Recreate gate
-    let gate = ApprovalGate::new(&approval_state.gate_id)
+    let gate = ApprovalGate::builder(&approval_state.gate_id)
         .required_approvers(approval_state.required_approvers.clone())
         .timeout_seconds(approval_state.timeout_seconds)
         .build()

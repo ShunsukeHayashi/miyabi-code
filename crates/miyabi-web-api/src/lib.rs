@@ -139,19 +139,34 @@ pub struct AppState {
 /// - Database connection fails
 /// - Configuration is invalid
 pub async fn create_app(config: AppConfig) -> Result<Router> {
-    // TEMPORARY: Skip database for Telegram-only deployment
-    // TODO: Implement proper Firebase/Firestore integration from scratch
-    tracing::warn!("Starting in Telegram-only mode without database");
-    tracing::info!("Telegram Bot routes: /health and /api/v1/telegram/webhook");
+    // Phase 1.1: PostgreSQL Connection Enablement
+    // Configure connection pool for Lambda + RDS with proper tuning
+    tracing::info!("Initializing PostgreSQL connection pool");
+    tracing::info!("Database URL: {}", config.database_url.split('@').last().unwrap_or("unknown"));
 
-    // Create an unconfigured pool that won't be used
-    // The Telegram route doesn't require database access
-    // This maintains type compatibility until we implement Firebase from scratch
+    // Connection pool configuration optimized for Lambda + RDS
+    // - max_connections: 100 to handle concurrent requests
+    // - min_connections: 10 to maintain warm connections
+    // - acquire_timeout: 30s for production workloads
+    // - idle_timeout: 10min to clean up unused connections
+    // - max_lifetime: 30min to prevent stale connections
     let db = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(1)
-        .acquire_timeout(std::time::Duration::from_millis(100))
-        .connect_lazy(&config.database_url)
+        .max_connections(100)
+        .min_connections(10)
+        .acquire_timeout(std::time::Duration::from_secs(30))
+        .idle_timeout(Some(std::time::Duration::from_secs(600)))
+        .max_lifetime(Some(std::time::Duration::from_secs(1800)))
+        .connect(&config.database_url)
+        .await
         .map_err(AppError::Database)?;
+
+    // Verify database connection with a simple query
+    sqlx::query("SELECT 1")
+        .fetch_one(&db)
+        .await
+        .map_err(AppError::Database)?;
+
+    tracing::info!("PostgreSQL connection established successfully");
 
     // Create WebSocket manager
     let ws_manager = Arc::new(websocket::WebSocketManager::new());
@@ -222,48 +237,26 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // CodeGen routes - Does NOT require database (in-memory + stub data)
         .nest("/codegen", routes::codegen::routes().with_state(()))
         // MCP routes - Does NOT require database (hardcoded tools + shell commands)
-        .nest("/mcp", routes::mcp::routes());
-
-    // COMMENTED OUT: These routes require database (will re-enable with Firebase)
-    // // Authentication routes
-    // .route("/auth/github", get(routes::auth::github_oauth_initiate))
-    // .route(
-    //     "/auth/github/callback",
-    //     get(routes::auth::github_oauth_callback),
-    // )
-    // .route("/auth/refresh", post(routes::auth::refresh_token))
-    // .route("/auth/logout", post(routes::auth::logout))
-    // // Repository routes
-    // .route(
-    //     "/repositories",
-    //     get(routes::repositories::list_repositories),
-    // )
-    // .route(
-    //     "/repositories/:id",
-    //     get(routes::repositories::get_repository),
-    // )
-    // .route(
-    //     "/repositories",
-    //     post(routes::repositories::create_repository),
-    // )
-    // // Agent execution routes
-    // .route("/agents", get(routes::agents::list_agents))
-    // .route("/agents/execute", post(routes::agents::execute_agent))
-    // // Workflow routes
-    // .route("/workflows", post(routes::workflows::create_workflow))
-    // .route("/workflows", get(routes::workflows::list_workflows))
-    // .route("/workflows/:id", get(routes::workflows::get_workflow))
-    // // Dashboard routes
-    // .route(
-    //     "/dashboard/summary",
-    //     get(routes::dashboard::get_dashboard_summary),
-    // )
-    // .route(
-    //     "/dashboard/recent",
-    //     get(routes::dashboard::get_recent_executions),
-    // )
-    // // WebSocket endpoint
-    // .route("/ws", get(routes::websocket::websocket_handler));
+        .nest("/mcp", routes::mcp::routes())
+        // Authentication routes - Phase 2.4: Re-enabled with database
+        .route("/auth/github", get(routes::auth::github_oauth_initiate))
+        .route("/auth/github/callback", get(routes::auth::github_oauth_callback))
+        .route("/auth/refresh", post(routes::auth::refresh_token))
+        .route("/auth/logout", post(routes::auth::logout))
+        .route("/auth/mock", post(routes::auth::mock_login))
+        // Repository routes - Phase 2.4: Re-enabled with database
+        .route("/repositories", get(routes::repositories::list_repositories))
+        .route("/repositories/:id", get(routes::repositories::get_repository))
+        .route("/repositories", post(routes::repositories::create_repository))
+        // Agent execution routes - Phase 2.4: Re-enabled with database
+        .route("/agents/execute", post(routes::agents::execute_agent))
+        // Workflow routes - Phase 2.4: Re-enabled with database
+        .route("/workflows", post(routes::workflows::create_workflow))
+        .route("/workflows", get(routes::workflows::list_workflows))
+        .route("/workflows/:id", get(routes::workflows::get_workflow))
+        // Dashboard routes - Phase 2.4: Re-enabled with database
+        .route("/dashboard/summary", get(routes::dashboard::get_dashboard_summary))
+        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions));
 
     // Build main router
     let app = Router::new()

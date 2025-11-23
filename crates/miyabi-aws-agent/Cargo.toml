@@ -43,8 +43,8 @@ tracing = "0.1"
 uuid = { version = "1.11", features = ["v4", "serde"] }
 
 # Miyabi crates
-miyabi-types = { path = "../miyabi-types" }
-miyabi-agent-core = { path = "../miyabi-agent-core" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-agent-core = { path = "../miyabi-agent-core", version = "0.1.2" }
 
 [dev-dependencies]
 tokio-test = "0.4"

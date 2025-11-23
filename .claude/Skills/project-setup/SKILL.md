@@ -1,689 +1,206 @@
 ---
 name: Project Setup and Miyabi Integration
-description: Initialize new projects with Miyabi framework including Cargo workspace setup, GitHub integration, label system, and Agent configuration. Use when creating new projects or integrating Miyabi into existing projects.
+description: Complete project initialization including Cargo workspace setup, GitHub integration, and Miyabi framework integration. Use when creating new projects or integrating Miyabi.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
-# Project Setup and Miyabi Integration
+# 🚀 Project Setup and Miyabi Integration
 
-Complete project initialization workflow for new Rust projects with full Miyabi framework integration.
+**Version**: 2.0.0
+**Last Updated**: 2025-11-22
+**Priority**: ⭐⭐⭐ (P2 Level)
+**Purpose**: プロジェクト初期化、Cargo Workspace設定、Miyabi統合
 
-## When to Use
+---
 
-- User requests "create a new project"
-- User asks to "integrate Miyabi into this project"
-- User wants to "set up a new Rust workspace"
-- Starting a new microservice or library
-- Migrating existing project to Miyabi
+## 📋 概要
 
-## Setup Modes
+新規プロジェクト作成からMiyabiフレームワーク統合まで、
+完全なプロジェクトセットアップを提供します。
 
-### Mode 1: New Project from Scratch
+---
 
-Complete new project creation with Miyabi integration.
+## 🎯 P0: 呼び出しトリガー
 
-### Mode 2: Add Miyabi to Existing Project
+| トリガー | 例 |
+|---------|-----|
+| 新規プロジェクト | "create a new project" |
+| Miyabi統合 | "integrate Miyabi into this project" |
+| Rust Workspace | "set up a new Rust workspace" |
+| マイクロサービス | "starting new microservices" |
 
-Integrate Miyabi framework into an existing Rust/TypeScript project.
+---
 
-### Mode 3: Create Microservice in Existing Workspace
+## 🔧 P1: セットアップモード
 
-Add new crate to existing Miyabi workspace.
+### 3つのモード
 
-## Workflow: New Project from Scratch
+| モード | 用途 | 所要時間 |
+|--------|------|---------|
+| **New Project** | ゼロから新規 | 10-15分 |
+| **Add Miyabi** | 既存に追加 | 5-10分 |
+| **Microservice** | 新規crate追加 | 3-5分 |
 
-### Step 1: Create Project Structure
+---
 
-```bash
-# Option A: Using cargo
-cargo new my-project --name my_project
+## 🚀 P2: セットアップパターン
 
-# Option B: Using miyabi CLI (if available)
-miyabi init my-project
-
-cd my-project
-```
-
-**Directory structure created**:
-```
-my-project/
-├── Cargo.toml
-├── src/
-│   └── main.rs  (or lib.rs)
-├── README.md
-└── .gitignore
-```
-
-### Step 2: Convert to Cargo Workspace
+### Pattern 1: 新規プロジェクト
 
 ```bash
-# Backup original Cargo.toml
-mv Cargo.toml Cargo.toml.single
+# Step 1: ディレクトリ作成
+mkdir my-project && cd my-project
 
-# Create workspace Cargo.toml
-cat > Cargo.toml <<'EOF'
+# Step 2: Cargo Workspace初期化
+cat > Cargo.toml << 'EOF'
 [workspace]
-members = [
-    "crates/my-project-core",
-    "crates/my-project-cli",
-]
+members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/your-username/my-project"
-homepage = "https://github.com/your-username/my-project"
-documentation = "https://docs.rs/my-project"
+authors = ["Your Name <email@example.com>"]
+license = "MIT"
 
 [workspace.dependencies]
-# Async runtime
-tokio = { version = "1.35", features = ["full"] }
-async-trait = "0.1"
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-# Error handling
-thiserror = "1.0"
-anyhow = "1.0"
-
-# Logging
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+anyhow = "1"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-# CLI
-clap = { version = "4.4", features = ["derive", "env"] }
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-strip = true
 EOF
-```
 
-### Step 3: Create Workspace Crates
+# Step 3: 基本crate作成
+mkdir -p crates/my-core
+cargo init crates/my-core --lib
 
-```bash
-# Create crates directory
-mkdir -p crates
-
-# Create core library
-cargo new --lib crates/my-project-core
-
-# Create CLI binary
-cargo new crates/my-project-cli
-
-# Move original src to core (if exists)
-if [ -d src ]; then
-  mv src/* crates/my-project-core/src/
-  rmdir src
-fi
-```
-
-### Step 4: Set Up Git Repository
-
-```bash
-# Initialize git
+# Step 4: Git初期化
 git init
-
-# Create .gitignore
-cat > .gitignore <<'EOF'
-# Rust
-/target/
-**/*.rs.bk
-*.pdb
-Cargo.lock  # Remove this line for binaries
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Miyabi
-.worktrees/
-.agent-context.json
-EXECUTION_CONTEXT.md
-
-# Environment
-.env
-.env.local
-*.key
-*.pem
-credentials.json
-
-# Logs
-*.log
-.ai/logs/
-
-# OS
-Thumbs.db
-EOF
-
-# Initial commit
-git add .
-git commit -m "chore: initial project setup
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
-### Step 5: Integrate Miyabi Framework
-
-#### 5.1: Add Miyabi Dependencies
+### Pattern 2: Miyabi統合
 
 ```bash
-# Add to workspace Cargo.toml [workspace.dependencies]
-cat >> Cargo.toml <<'EOF'
+# Step 1: .claudeディレクトリ作成
+mkdir -p .claude/{agents,context,commands,Skills}
 
-# Miyabi framework (if published to crates.io)
-miyabi-types = "0.1"
-miyabi-core = "0.1"
-miyabi-agents = "0.1"
-miyabi-github = "0.1"
-miyabi-worktree = "0.1"
+# Step 2: CLAUDE.md作成
+cat > CLAUDE.md << 'EOF'
+# Project Name
 
-# Or use path dependencies (local development)
-# miyabi-types = { path = "../miyabi/crates/miyabi-types" }
+## MCP First Approach
+...
+EOF
+
+# Step 3: GitHub統合
+# - Labels設定
+# - Workflow追加
+# - Issue templates
+
+# Step 4: 環境変数設定
+cat > .env.example << 'EOF'
+GITHUB_TOKEN=
+ANTHROPIC_API_KEY=
 EOF
 ```
 
-#### 5.2: Create Miyabi Configuration
+### Pattern 3: 新規Microservice
 
 ```bash
-# Create .miyabi.yml
-cat > .miyabi.yml <<'EOF'
-project_name: my-project
-repository:
-  owner: your-username
-  name: my-project
-  branch: main
+# Step 1: crate作成
+cargo init crates/my-service --lib
 
-github:
-  # Use environment variable: GITHUB_TOKEN
-  # token: ghp_xxx  # Don't commit tokens!
+# Step 2: Cargo.toml設定
+cat > crates/my-service/Cargo.toml << 'EOF'
+[package]
+name = "my-service"
+version.workspace = true
+edition.workspace = true
 
-agents:
-  enabled:
-    - CoordinatorAgent
-    - CodeGenAgent
-    - ReviewAgent
-    - IssueAgent
-    - PRAgent
-    - DeploymentAgent
-
-  config:
-    coordinator:
-      max_parallel_tasks: 3
-      max_complexity: large
-
-    codegen:
-      model: claude-sonnet-4
-      temperature: 0.7
-
-    review:
-      min_quality_score: 80
-      required_checks:
-        - clippy
-        - format
-        - tests
-
-    deployment:
-      auto_rollback: true
-      health_check_timeout: 30
-
-device_identifier: ${DEVICE_IDENTIFIER:-default}
-
-logging:
-  level: info
-  output: .ai/logs/
-EOF
-```
-
-#### 5.3: Create Claude Code Directory
-
-```bash
-# Create .claude directory structure
-mkdir -p .claude/{commands,agents/{specs,prompts},Skills}
-
-# Create README
-cat > .claude/README.md <<'EOF'
-# Claude Code Configuration
-
-This directory contains Claude Code configuration for the project.
-
-## Structure
-
-- `commands/` - Custom slash commands
-- `agents/` - Agent specifications and prompts
-- `Skills/` - Claude Code Skills
-
-## Usage
-
-See [Miyabi Documentation](https://github.com/your-username/miyabi) for details.
-EOF
-```
-
-### Step 6: Set Up GitHub Integration
-
-#### 6.1: Create Labels Configuration
-
-```bash
-# Copy from Miyabi template
-curl -o .github/labels.yml https://raw.githubusercontent.com/ShunsukeHayashi/Miyabi/main/.github/labels.yml
-
-# Or create custom labels.yml
-mkdir -p .github
-cat > .github/labels.yml <<'EOF'
-# STATE Labels (8)
-- name: "📥 state:pending"
-  color: "E4E4E4"
-  description: "Issue created, awaiting triage"
-
-- name: "🔍 state:analyzing"
-  color: "0E8A16"
-  description: "CoordinatorAgent analyzing dependencies"
-
-- name: "🏗️ state:implementing"
-  color: "1D76DB"
-  description: "Specialist Agent implementing"
-
-- name: "👀 state:reviewing"
-  color: "FBCA04"
-  description: "ReviewAgent checking quality"
-
-- name: "✅ state:done"
-  color: "2EA44F"
-  description: "Completed, PR merged"
-
-- name: "🔴 state:blocked"
-  color: "D73A4A"
-  description: "Blocked, Guardian intervention needed"
-
-- name: "🛑 state:failed"
-  color: "B60205"
-  description: "Failed, error occurred"
-
-- name: "⏸️ state:paused"
-  color: "D4C5F9"
-  description: "Paused, awaiting dependencies or approval"
-
-# Add remaining 49 labels...
-# See: https://github.com/ShunsukeHayashi/Miyabi/.github/labels.yml
-EOF
-```
-
-#### 6.2: Create GitHub Actions Workflows
-
-```bash
-mkdir -p .github/workflows
-
-# CI Workflow
-cat > .github/workflows/ci.yml <<'EOF'
-name: CI
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Cache Cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Check format
-        run: cargo fmt --all -- --check
-
-      - name: Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Test
-        run: cargo test --all-features --workspace
-
-      - name: Build
-        run: cargo build --release --workspace
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
 EOF
 
-# Label Sync Workflow
-cat > .github/workflows/label-sync.yml <<'EOF'
-name: Label Sync
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/labels.yml'
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: micnncim/action-label-syncer@v1
-        with:
-          manifest: .github/labels.yml
-          token: ${{ secrets.GITHUB_TOKEN }}
-EOF
+# Step 3: 基本構造
+mkdir -p crates/my-service/src
 ```
 
-### Step 7: Create Issue Templates
+---
 
-```bash
-mkdir -p .github/ISSUE_TEMPLATE
+## ⚡ P3: ディレクトリ構造
 
-# Feature template
-cat > .github/ISSUE_TEMPLATE/feature.yml <<'EOF'
-name: Feature Request
-description: Propose a new feature
-title: "[Feature]: "
-labels: ["✨ type:feature", "📥 state:pending"]
-body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for suggesting a feature! Please provide details below.
+### 推奨構造
 
-  - type: textarea
-    id: description
-    attributes:
-      label: Description
-      description: Describe the feature you'd like to see
-      placeholder: What should this feature do?
-    validations:
-      required: true
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      options:
-        - 🔥 P0-Critical
-        - ⚠️ P1-High
-        - 📊 P2-Medium
-        - 📝 P3-Low
-    validations:
-      required: true
-EOF
-
-# Bug template
-cat > .github/ISSUE_TEMPLATE/bug.yml <<'EOF'
-name: Bug Report
-description: Report a bug
-title: "[Bug]: "
-labels: ["🐛 type:bug", "📥 state:pending"]
-body:
-  - type: textarea
-    id: description
-    attributes:
-      label: Bug Description
-      description: What went wrong?
-    validations:
-      required: true
-
-  - type: textarea
-    id: reproduction
-    attributes:
-      label: Steps to Reproduce
-      placeholder: |
-        1. Run command X
-        2. Observe error Y
-    validations:
-      required: true
-
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected Behavior
-      description: What should have happened?
-    validations:
-      required: true
-EOF
+```
+my-project/
+├── Cargo.toml           # Workspace root
+├── CLAUDE.md            # AI指示書
+├── README.md            # プロジェクト説明
+├── .env.example         # 環境変数例
+├── .gitignore
+├── crates/
+│   ├── my-core/         # コアライブラリ
+│   ├── my-cli/          # CLIバイナリ
+│   └── my-api/          # APIサーバー
+├── .claude/
+│   ├── agents/          # Agent定義
+│   ├── context/         # コンテキスト
+│   ├── commands/        # カスタムコマンド
+│   └── Skills/          # スキル定義
+├── .github/
+│   ├── workflows/       # CI/CD
+│   ├── ISSUE_TEMPLATE/  # Issueテンプレート
+│   └── labels.yml       # ラベル定義
+└── docs/
+    └── README.md        # ドキュメント
 ```
 
-### Step 8: Create README and Documentation
+---
 
-```bash
-cat > README.md <<'EOF'
-# My Project
+## 📊 チェックリスト
 
-Brief description of your project.
+### 新規プロジェクト
 
-## Features
+- [ ] Cargo.toml (workspace)
+- [ ] 基本crate作成
+- [ ] Git初期化
+- [ ] .gitignore
+- [ ] README.md
+- [ ] CLAUDE.md
 
-- Feature 1
-- Feature 2
-- Feature 3
+### Miyabi統合
 
-## Installation
+- [ ] .claudeディレクトリ
+- [ ] Agent定義
+- [ ] コンテキスト
+- [ ] カスタムコマンド
+- [ ] GitHub Labels
+- [ ] CI/CD Workflow
 
-\```bash
-cargo install my-project-cli
-\```
+### 環境設定
 
-## Usage
+- [ ] .env.example
+- [ ] 環境変数ドキュメント
+- [ ] 開発環境手順
 
-\```bash
-my-project-cli --help
-\```
+---
 
-## Development
+## ✅ 成功基準
 
-### Prerequisites
+| チェック項目 | 基準 |
+|-------------|------|
+| `cargo build` | 成功 |
+| `cargo test` | 成功 |
+| Git | 初期コミット完了 |
+| ドキュメント | README存在 |
 
-- Rust 1.75+
-- Git
+---
 
-### Build
+## 🔗 関連Skills
 
-\```bash
-cargo build
-\```
-
-### Test
-
-\```bash
-cargo test
-\```
-
-### Miyabi Integration
-
-This project uses [Miyabi](https://github.com/ShunsukeHayashi/Miyabi) for autonomous development.
-
-See [CLAUDE.md](CLAUDE.md) for Claude Code configuration.
-
-## License
-
-MIT OR Apache-2.0
-EOF
-
-# Create CLAUDE.md
-cat > CLAUDE.md <<'EOF'
-# Claude Code Project Configuration
-
-This file is automatically referenced by Claude Code.
-
-## Project Overview
-
-[Describe your project]
-
-## Architecture
-
-[Describe architecture]
-
-## Common Commands
-
-\```bash
-# Build
-cargo build
-
-# Test
-cargo test
-
-# Run
-cargo run
-\```
-
-## Miyabi Integration
-
-This project uses Miyabi framework for autonomous development.
-
-See [.miyabi.yml](.miyabi.yml) for configuration.
-EOF
-```
-
-### Step 9: Push to GitHub
-
-```bash
-# Create repository on GitHub (using gh CLI)
-gh repo create my-project --public --source=. --remote=origin --push
-
-# Or manually:
-# 1. Create repo on github.com
-# 2. Add remote
-git remote add origin https://github.com/your-username/my-project.git
-git branch -M main
-git push -u origin main
-```
-
-### Step 10: Sync Labels
-
-```bash
-# Install label-syncer (if not installed)
-gh extension install github/gh-label-sync
-
-# Sync labels from .github/labels.yml
-gh label sync --labels .github/labels.yml
-```
-
-## Workflow: Add Miyabi to Existing Project
-
-### Step 1: Verify Project Structure
-
-```bash
-# Check if Cargo workspace
-if [ -f Cargo.toml ]; then
-  echo "Cargo.toml found"
-  grep -q "\[workspace\]" Cargo.toml && echo "Already a workspace" || echo "Single crate"
-fi
-
-# Check git
-git status || echo "Not a git repository"
-```
-
-### Step 2: Add Miyabi Configuration
-
-```bash
-# Copy .miyabi.yml from template
-curl -o .miyabi.yml https://raw.githubusercontent.com/ShunsukeHayashi/Miyabi/main/.miyabi.yml
-
-# Edit for your project
-# Update: project_name, repository owner/name
-```
-
-### Step 3: Add Claude Code Directory
-
-```bash
-# Copy .claude directory structure
-mkdir -p .claude
-curl -o .claude/README.md https://raw.githubusercontent.com/ShunsukeHayashi/Miyabi/main/.claude/README.md
-```
-
-### Step 4: Add Miyabi Dependencies
-
-```bash
-# Add to Cargo.toml [dependencies] or [workspace.dependencies]
-cargo add miyabi-types miyabi-core miyabi-agents
-```
-
-### Step 5: Add GitHub Workflows
-
-```bash
-# Copy workflows
-mkdir -p .github/workflows
-curl -o .github/workflows/ci.yml https://raw.githubusercontent.com/ShunsukeHayashi/Miyabi/main/.github/workflows/ci.yml
-```
-
-### Step 6: Commit Changes
-
-```bash
-git add .
-git commit -m "chore: integrate Miyabi framework
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-git push
-```
-
-## Configuration Checklist
-
-After setup, verify:
-
-- [ ] `Cargo.toml` is valid (`cargo check`)
-- [ ] `.miyabi.yml` exists with correct repository info
-- [ ] `.claude/` directory structure exists
-- [ ] GitHub labels synced
-- [ ] CI workflow passes
-- [ ] Environment variable `GITHUB_TOKEN` is set
-- [ ] README.md is updated
-- [ ] CLAUDE.md is created
-
-## Environment Variables
-
-Set these environment variables:
-
-```bash
-# GitHub API token (required)
-export GITHUB_TOKEN=ghp_your_token_here
-
-# Anthropic API key (for Agents)
-export ANTHROPIC_API_KEY=sk-ant-your_key_here
-
-# Device identifier (optional)
-export DEVICE_IDENTIFIER=$(hostname)
-```
-
-Add to shell profile (`~/.bashrc`, `~/.zshrc`):
-
-```bash
-echo 'export GITHUB_TOKEN=ghp_xxx' >> ~/.bashrc
-echo 'export ANTHROPIC_API_KEY=sk-ant-xxx' >> ~/.bashrc
-```
-
-## Related Files
-
-- **Miyabi Template**: https://github.com/ShunsukeHayashi/Miyabi
-- **Label System**: `docs/LABEL_SYSTEM_GUIDE.md`
-- **Agent Specs**: `.claude/agents/specs/`
-- **Cargo Book**: https://doc.rust-lang.org/cargo/
-
-## Related Skills
-
-- **Rust Development**: For building after setup
-- **Git Workflow**: For committing setup changes
-- **Agent Execution**: For testing Miyabi integration
+- **Rust Development**: ビルド確認
+- **Git Workflow**: 初期コミット
+- **Documentation**: README作成

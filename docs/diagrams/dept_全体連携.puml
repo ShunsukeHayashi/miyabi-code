@@ -1,0 +1,63 @@
+@startuml dept_全体連携
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+title 建設会社 部署間連携図
+
+' 部署定義
+rectangle "経営層" as exec #LightGray {
+  actor "社長" as ceo
+  actor "専務" as vp
+}
+
+rectangle "営業部" as sales #LightBlue {
+  usecase "案件獲得" as uc_sales1
+  usecase "見積作成" as uc_sales2
+  usecase "契約締結" as uc_sales3
+  usecase "顧客管理" as uc_sales4
+}
+
+rectangle "工務部" as const #LightGreen {
+  usecase "施工計画" as uc_const1
+  usecase "現場管理" as uc_const2
+  usecase "品質管理" as uc_const3
+  usecase "安全管理" as uc_const4
+}
+
+rectangle "購買部" as proc #LightYellow {
+  usecase "業者選定" as uc_proc1
+  usecase "発注管理" as uc_proc2
+  usecase "納品検収" as uc_proc3
+  usecase "在庫管理" as uc_proc4
+}
+
+rectangle "経理部" as acct #LightPink {
+  usecase "請求・入金" as uc_acct1
+  usecase "支払管理" as uc_acct2
+  usecase "原価管理" as uc_acct3
+  usecase "決算" as uc_acct4
+}
+
+rectangle "総務部" as admin #LightCyan {
+  usecase "労務管理" as uc_admin1
+  usecase "給与計算" as uc_admin2
+  usecase "許可・届出" as uc_admin3
+  usecase "安全衛生" as uc_admin4
+}
+
+' 連携関係
+uc_sales3 --> uc_const1 : 工事引継ぎ
+uc_const1 --> uc_proc2 : 資材発注依頼
+uc_const2 --> uc_proc3 : 納品確認
+uc_proc3 --> uc_acct2 : 支払依頼
+
+uc_sales3 --> uc_acct1 : 請求依頼
+uc_const2 --> uc_acct3 : 原価報告
+
+uc_admin1 --> uc_const4 : 資格者配置
+uc_const4 --> uc_admin4 : 安全記録
+
+uc_acct4 --> exec : 経営報告
+uc_sales4 --> exec : 受注報告
+uc_const2 --> exec : 進捗報告
+
+@enduml

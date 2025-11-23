@@ -13,8 +13,8 @@ categories.workspace = true
 
 [dependencies]
 # Core dependencies
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
 
 # Async runtime
 tokio = { version = "1.42", features = ["full"] }

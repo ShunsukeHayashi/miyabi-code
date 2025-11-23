@@ -1,8 +1,10 @@
 # Miyabi Documentation Index
 
-**Last Updated**: 2025-11-18
-**Total Documents**: 458+ files
-**Version**: 4.0.0
+**Last Updated**: 2025-11-20
+**Total Documents**: 約450本（主要ドキュメントは本ファイルから辿れます）
+**Version**: 4.0.1
+
+> ℹ️ リポジトリ再編成（2025-11〜2026-02）を進行中です。最新の構成・移行計画は `docs/architecture/RESTRUCTURING_PLAN.md` を参照してください。
 
 ---
 

@@ -5,7 +5,9 @@
 pub mod database;
 pub mod mock_github;
 
-pub use database::{setup_test_database, cleanup_test_database, TestDatabase};
+pub use database::{setup_test_database, cleanup_test_database};
+#[allow(unused_imports)]
+pub use database::TestDatabase;
 pub use mock_github::*;
 
 use axum::{

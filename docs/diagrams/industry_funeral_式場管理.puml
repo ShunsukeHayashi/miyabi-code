@@ -1,0 +1,194 @@
+@startuml industry_funeral_venue
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 葬儀業 式場管理部 業務フロー
+
+|#F0FFE6|式場管理責任者|
+start
+:葬儀スケジュールの確認;
+note right
+  ・葬儀プラン
+  ・予定人数
+  ・葬儀日時
+  ・特別対応
+end note
+
+:適切な式場を選定;
+fork
+  :本館1号室\n(50名程度);
+fork again
+  :本館2号室\n(30名程度);
+fork again
+  :別館\n(10名程度);
+fork again
+  :提携寺院境内\n(大規模);
+end fork
+
+:式場の空き状況を確認;
+if (希望式場が利用可能?) then (yes)
+  :予約を確定;
+else (利用不可)
+  :代替案を検討;
+  :遺族様に確認;
+endif
+
+|#E6FFD9|セッティング担当|
+:祭壇のデザインを確認;
+fork
+  :祭壇サイズの決定;
+fork again
+  :供花の色合い選択;
+fork again
+  :照明の配置;
+fork again
+  :故人写真の展示方法;
+end fork
+
+:会場のレイアウトを決定;
+fork
+  :位牌・遺影の配置;
+fork again
+  :会場全体のレイアウト図作成;
+fork again
+  :参列者の座席配置;
+fork again
+  :通路・出入口の確認;
+fork again
+  :车いす対応スペース確保;
+end fork
+
+|#F0FFE6|設営チーム|
+:セッティング前日の準備;
+:祭壇台・装具の搬入;
+note right
+  ・祭壇フレーム
+  ・飾り棚
+  ・電飾
+  ・ろうそく立て
+end note
+
+:供花の準備;
+fork
+  :白いお花の配置;
+fork again
+  :黄色のお花の配置;
+fork again
+  :バルーン装飾;
+end fork
+
+:照明・音声設備の設置;
+fork
+  :スポットライト設置;
+fork again
+  :マイク・スピーカー設置;
+fork again
+  :BGM再生システム確認;
+fork again
+  :録画カメラ設置;
+end fork
+
+|#E6FFD9|衛生管理|
+:式場の清掃;
+fork
+  :床の清掃;
+fork again
+  :壁・天井の確認;
+fork again
+  :トイレ・洗面所の清掃;
+fork again
+  :空調・換気の確認;
+end fork
+
+:温度・湿度の管理;
+note right
+  ・夏季: 18-22℃推奨
+  ・冬季: 15-18℃推奨
+  ・湿度: 40-60%
+  ・納棺式場は特に厳格
+end note
+
+:花粉・香りの管理;
+:不快害虫対策;
+
+|#F0FFE6|当日朝確認|
+:葬儀開始2時間前にセッティング完了;
+:全ての設備が正常に機能するか確認;
+fork
+  :照明の動作確認;
+fork again
+  :音声システムのテスト;
+fork again
+  :空調温度調整;
+fork again
+  :トイレの充分性確認;
+end fork
+
+:案内表示・看板の配置;
+:来客スリッパ等の準備;
+:駐車場ガイドスタッフの配置;
+
+while (葬儀進行中) is (進行中)
+  |#E6FFD9|式場スタッフ|
+  :会場内の清潔保持;
+  note right
+    ・花びら・ゴミの片付け
+    ・トイレ紙の交換
+    ・手水の補給
+  end note
+
+  :温度調整;
+  :機器の稼働状況監視;
+
+  if (機器トラブル?) then (発生)
+    :速やかに修正;
+    :葬儀進行に支障なく対応;
+  else (正常)
+    :監視継続;
+  endif
+endwhile (終了)
+
+|#F0FFE6|撤去・清掃|
+:葬儀終了後のご挨拶;
+:遺族様の退出確認;
+
+|#E6FFD9|撤去チーム|
+:祭壇の撤去;
+fork
+  :飾り棚の片付け;
+fork again
+  :電飾の撤去;
+fork again
+  :供花の処理;
+fork again
+  :故人写真の撤去;
+end fork
+
+:照明・音声設備の撤去;
+:会場全体の清掃;
+fork
+  :床のワックス掛け;
+fork again
+  :椅子・テーブルの配置戻し;
+fork again
+  :トイレ・洗面所の清掃;
+fork again
+  :空調リセット;
+end fork
+
+|#F0FFE6|最終チェック|
+:式場の原状回復を確認;
+:紛失物がないか確認;
+if (異常?) then (発見)
+  :報告書を作成;
+  :対応を検討;
+else (OK)
+  :完了;
+endif
+
+:設営費用の精算;
+:次の葬儀のスケジュール確認;
+
+stop
+
+@enduml

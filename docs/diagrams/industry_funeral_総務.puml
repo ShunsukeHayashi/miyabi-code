@@ -1,0 +1,287 @@
+@startuml industry_funeral_general
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 葬儀業 総務部 業務フロー
+
+|#F0E6FF|総務責任者|
+start
+:葬儀スケジュールを確認;
+note right
+  ・葬儀日程
+  ・来客見込み数
+  ・特別な対応内容
+end note
+
+:必要なスタッフ数を計算;
+fork
+  :相談受付スタッフ;
+fork again
+  :葬儀ディレクター;
+fork again
+  :式場スタッフ;
+fork again
+  :搬送乗務員;
+fork again
+  :アフターケア担当;
+end fork
+
+:スタッフシフトを作成;
+:スタッフに業務指示;
+
+|#E6D9FF|人事管理|
+while (常時) is (管理中)
+  :スタッフの勤務状況を管理;
+  note right
+    ・タイムカード確認
+    ・勤務時間管理
+    ・残業時間管理
+  end note
+
+  :給与計算データを集計;
+  :給与を経理部に送付;
+endwhile
+
+|#F0E6FF|採用・育成|
+:新入社員の採用;
+fork
+  :募集広告作成;
+fork again
+  :面接実施;
+fork again
+  :研修計画作成;
+fork again
+  :配置先決定;
+end fork
+
+:新入社員研修の実施;
+fork
+  :会社方針・理念の説明;
+fork again
+  :葬儀業の基礎知識;
+fork again
+  :遺族対応の心構え;
+fork again
+  :実務研修（OJT）;
+end fork
+
+:定期的なスタッフ研修;
+fork
+  :接客マナー研修;
+fork again
+  :グリーフケア研修;
+fork again
+  :危機管理研修;
+fork again
+  :コンプライアンス研修;
+end fork
+
+:スタッフの評価;
+note right
+  ・年2回の人事評価
+  ・昇進・昇給の判定
+  ・研修ニーズの把握
+end note
+
+|#E6D9FF|健康管理|
+:スタッフの健康診断を実施;
+:メンタルヘルスチェック;
+note right
+  ・故人と向き合う仕事
+  ・心理的負担が大きい
+  ・相談体制の整備
+end note
+
+:疲労回復プログラム;
+fork
+  :休暇取得の奨励;
+fork again
+  :カウンセリング制度;
+fork again
+  :ストレス管理講座;
+end fork
+
+|#F0E6FF|施設・設備管理|
+:葬儀場の日常保守;
+fork
+  :定期清掃;
+fork again
+  :設備点検;
+fork again
+  :空調保守;
+fork again
+  :照明・音響機器の点検;
+end fork
+
+:修繕・修理対応;
+note right
+  ・故障報告の受け付け
+  ・修繕業者への手配
+  ・修繕費用の管理
+end note
+
+:セッティング機材の管理;
+fork
+  :祭壇パーツの在庫管理;
+fork again
+  :装飾品の整理;
+fork again
+  :音響・照明機器の点検;
+fork again
+  :消耗品の発注;
+end fork
+
+:搬送車両の管理;
+fork
+  :定期メンテナンス手配;
+fork again
+  :車検・登録管理;
+fork again
+  :保険管理;
+fork again
+  :燃料管理;
+end fork
+
+|#E6D9FF|物品管理|
+:来客用スリッパ・備品；
+:トイレ用品の発注;
+:清掃用品の在庫管理;
+:オフィス用品の管理;
+
+:物品の消耗状況確認;
+:必要に応じて発注；
+
+|#F0E6FF|安全・衛生管理|
+:職場の安全対策;
+fork
+  :階段・通路の安全確認;
+fork again
+  :消火器の点検;
+fork again
+  :非常灯の確認;
+fork again
+  :防災訓練の実施;
+end fork
+
+:感染症対策;
+fork
+  :アルコール消毒液の配置;
+fork again
+  :衛生用品の備蓄；
+fork again
+  :消毒・清掃基準の遵守；
+end fork
+
+:スタッフの安全教育;
+note right
+  ・搬送時の安全
+  ・設営機材の扱い
+  ・重い物の持ち方
+end note
+
+|#E6D9FF|法令遵守|
+:労働法の遵守確認;
+fork
+  :労働時間管理;
+fork again
+  :休日取得確認;
+fork again
+  :給与計算の正確性;
+end fork
+
+:業界規制への対応;
+fork
+  :葬儀業許可の維持;
+fork again
+  :個人情報保護対応;
+fork again
+  :食品衛生基準遵守;
+end fork
+
+:コンプライアンス体制構築;
+note right
+  ・ハラスメント相談窓口
+  ・内部通報制度
+  ・倫理規程の周知
+end note
+
+|#F0E6FF|文書・記録管理|
+:各種文書の作成・整理;
+fork
+  :スタッフ契約書;
+fork again
+  :就業規則;
+fork again
+  :給与規定;
+fork again
+  :福利厚生規定;
+end fork
+
+:記録の保管;
+note right
+  ・勤務表
+  ・給与台帳
+  ・健康診断記録
+  ・評価記録
+end note
+
+:機密情報の管理;
+:資料の廃棄；
+
+|#E6D9FF|労使関係|
+:スタッフからの相談受け付け;
+note right
+  ・給与について
+  ・配置転換について
+  ・人間関係について
+  ・休暇について
+end note
+
+:問題解決・相談対応;
+:透明性のある対応;
+
+|#F0E6FF|福利厚生|
+:健康保険・厚生年金の管理;
+:労災保険の加入・更新;
+:雇用保険の管理;
+
+:その他福利厚生;
+fork
+  :休暇制度の運用;
+fork again
+  :社員旅行・親睦会;
+fork again
+  :表彰制度;
+fork again
+  :退職金制度;
+end fork
+
+|#E6D9FF|経営管理|
+:経営方針の周知;
+:スタッフ会議の開催;
+note right
+  ・月1回の定期会議
+  ・四半期ごとの方針説明
+  ・年度末の総括
+end note
+
+:スタッフからの提案受け付け;
+:業務改善への反映；
+
+:組織の活性化;
+fork
+  :コミュニケーション促進;
+fork again
+  :チームビルディング；
+fork again
+  :目標管理制度；
+end fork
+
+|#F0E6FF|記録・報告|
+:人事異動の記録;
+:給与・人事関連の保管;
+:経営層への報告;
+
+stop
+
+@enduml

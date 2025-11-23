@@ -1,0 +1,31 @@
+{
+  "name": "@miyabi/file-access-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for local file system access - Read, write, list, and manage files",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "miyabi-file-access": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "file-access",
+    "filesystem",
+    "miyabi"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.3"
+  }
+}

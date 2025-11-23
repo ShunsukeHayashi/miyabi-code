@@ -4,23 +4,37 @@ description: Automated Git workflow including staging, committing with Conventio
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
-# Git Workflow with Conventional Commits
+# 📝 Git Workflow with Conventional Commits
 
-Complete Git workflow automation following Conventional Commits specification and Miyabi's PR guidelines.
+**Version**: 2.0.0
+**Last Updated**: 2025-11-22
+**Priority**: ⭐⭐⭐⭐⭐ (P0 Level)
+**Purpose**: Conventional Commits準拠のGitワークフロー自動化
 
-## When to Use
+---
 
-- User requests "commit these changes"
-- User asks to "create a PR"
-- User wants to "merge this branch"
-- After completing feature implementation
-- When following up on code review feedback
+## 📋 概要
 
-## Conventional Commits Format
+Conventional Commits仕様とMiyabiのPRガイドラインに従った
+完全なGitワークフロー自動化を提供します。
 
-Miyabi uses the [Conventional Commits](https://www.conventionalcommits.org/) specification for all commits and PRs.
+---
 
-### Commit Message Structure
+## 🎯 P0: 呼び出しトリガー
+
+| トリガー | 例 |
+|---------|-----|
+| コミット | "commit these changes" |
+| PR作成 | "create a PR" |
+| マージ | "merge this branch" |
+| 機能完了後 | "after completing feature" |
+| レビュー対応後 | "after review feedback" |
+
+---
+
+## 🔧 P1: Conventional Commits形式
+
+### コミットメッセージ構造
 
 ```
 <type>(<scope>): <subject>
@@ -30,127 +44,56 @@ Miyabi uses the [Conventional Commits](https://www.conventionalcommits.org/) spe
 <footer>
 ```
 
-### Types
+### Type一覧（優先順位順）
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat(auth): add OAuth2 login support` |
-| `fix` | Bug fix | `fix(api): resolve null pointer in user endpoint` |
-| `docs` | Documentation only | `docs(readme): update installation instructions` |
-| `style` | Code style/formatting | `style(lint): fix clippy warnings` |
-| `refactor` | Code refactoring | `refactor(parser): simplify token matching logic` |
-| `perf` | Performance improvement | `perf(db): add index to users table` |
-| `test` | Test addition/modification | `test(unit): add tests for auth service` |
-| `chore` | Build/tooling changes | `chore(deps): update tokio to 1.35` |
-| `ci` | CI/CD changes | `ci(workflow): add clippy check to CI` |
-| `build` | Build system changes | `build(cargo): update Cargo.lock` |
-| `revert` | Revert previous commit | `revert: revert feat(auth): OAuth2 support` |
+| Type | 用途 | 頻度 | 例 |
+|------|------|------|-----|
+| `feat` | 新機能 | 高 | `feat(auth): add OAuth2 login` |
+| `fix` | バグ修正 | 高 | `fix(api): resolve null pointer` |
+| `docs` | ドキュメント | 中 | `docs(readme): update install guide` |
+| `refactor` | リファクタリング | 中 | `refactor(parser): simplify logic` |
+| `test` | テスト | 中 | `test(unit): add auth tests` |
+| `chore` | メンテナンス | 低 | `chore(deps): update tokio` |
+| `style` | フォーマット | 低 | `style(lint): fix clippy warnings` |
+| `perf` | パフォーマンス | 低 | `perf(db): add index` |
+| `ci` | CI/CD | 低 | `ci(workflow): add clippy check` |
+| `build` | ビルド | 低 | `build(cargo): update Cargo.lock` |
+| `revert` | リバート | 稀 | `revert: feat(auth)` |
 
-### Scope (Optional)
+### Scope一覧
 
-Scope indicates the area of change:
-- `auth` - Authentication/authorization
-- `api` - API endpoints
-- `db` - Database
-- `ui` - User interface
-- `cli` - Command-line interface
-- `agent` - Agent system
-- `worktree` - Worktree management
-- `deps` - Dependencies
+| Scope | 対象 |
+|-------|------|
+| `auth` | 認証・認可 |
+| `api` | APIエンドポイント |
+| `db` | データベース |
+| `ui` | ユーザーインターフェース |
+| `cli` | コマンドライン |
+| `agent` | Agentシステム |
+| `worktree` | Worktree管理 |
+| `deps` | 依存関係 |
 
-### Subject
+---
 
-- Use imperative mood ("add" not "added" or "adds")
-- Don't capitalize first letter
-- No period at the end
-- Maximum 50 characters
+## 🚀 P2: ワークフロー別パターン
 
-### Body (Optional)
-
-- Explain **why** the change was made (not **what** changed)
-- Wrap at 72 characters
-- Separate from subject with blank line
-
-### Footer (Optional)
-
-- `BREAKING CHANGE:` - Breaking changes
-- `Closes #123` - Close related Issues
-- `Co-Authored-By:` - Multiple authors
-
-### Miyabi-Specific Footer
-
-All commits include:
-
-```
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-## Workflow Steps
-
-### Step 1: Check Git Status
+### Pattern 1: 標準コミット
 
 ```bash
-# Check current status
-git status
+# Step 1: 状態確認
+git status && git diff --name-status
 
-# Check which files have changes
-git diff --name-status
-```
+# Step 2: ステージング
+git add <files>
 
-**Analysis**:
-- Identify modified files
-- Categorize changes by type (feat/fix/docs/etc.)
-- Determine appropriate scope
-
-### Step 2: Review Changes
-
-```bash
-# View detailed changes
-git diff
-
-# View staged changes
-git diff --staged
-```
-
-**Guidelines**:
-- Don't commit files with secrets (`.env`, `credentials.json`)
-- Verify changes match intended modifications
-- Check for unintended changes (formatting, imports)
-
-### Step 3: Stage Changes
-
-```bash
-# Stage specific files
-git add path/to/file1 path/to/file2
-
-# Stage all changes (use with caution)
-git add .
-
-# Stage only tracked files
-git add -u
-```
-
-**Best Practices**:
-- Stage related changes together
-- Separate unrelated changes into different commits
-- Don't stage generated files (unless necessary)
-
-### Step 4: Create Commit Message
-
-**Format**: Based on changes analysis
-
-**Example 1: New Feature**
-```bash
+# Step 3: コミット（HEREDOC必須）
 git commit -m "$(cat <<'EOF'
-feat(agent): add CodeGenAgent with Rust support
+feat(agent): add CodeGenAgent implementation
 
 Implement CodeGenAgent for AI-driven code generation:
 - Add BaseAgent trait implementation
-- Support for Rust, TypeScript, and Python
+- Support for Rust, TypeScript, Python
 - Automatic test generation
-- Integration with Claude Sonnet 4
 
 Closes #270
 
@@ -159,353 +102,196 @@ Closes #270
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
+
+# Step 4: プッシュ
+git push -u origin feature/270-codegen-agent
 ```
 
-**Example 2: Bug Fix**
-```bash
-git commit -m "$(cat <<'EOF'
-fix(worktree): resolve merge conflict in parallel execution
-
-Fixed race condition when multiple worktrees merge simultaneously.
-Added Semaphore-based concurrency control with WorktreePool.
-
-Closes #271
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-```
-
-**Example 3: Documentation**
-```bash
-git commit -m "$(cat <<'EOF'
-docs(skills): add 4 new Claude Code Skills
-
-Add comprehensive Skills for:
-- Rust Development Workflow
-- Agent Execution with Worktree
-- Issue Analysis with Label Inference
-- Entity-Relation Based Documentation
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-```
-
-### Step 5: Push Changes
+### Pattern 2: PR作成
 
 ```bash
-# Push to current branch
-git push
-
-# Push and set upstream (first push)
-git push -u origin feature/issue-270-codegen-agent
-
-# Force push (use with extreme caution)
-git push --force-with-lease
-```
-
-**Important**:
-- Never force push to `main` or `master`
-- Use `--force-with-lease` instead of `--force`
-- Ensure you're on the correct branch
-
-### Step 6: Create Pull Request
-
-**Using GitHub CLI (`gh`)**:
-
-```bash
-gh pr create --title "feat(agent): Issue #270 - Add CodeGenAgent" --body "$(cat <<'EOF'
+# GitHub CLI使用
+gh pr create \
+  --title "feat(agent): Issue #270 - Add CodeGenAgent" \
+  --body "$(cat <<'EOF'
 ## Summary
-
-Implements CodeGenAgent for AI-driven code generation with Rust support.
+Implements CodeGenAgent for AI-driven code generation.
 
 ## Changes
-
 - ✅ Add `crates/miyabi-agents/src/codegen.rs`
 - ✅ Implement BaseAgent trait
 - ✅ Add unit tests (85% coverage)
-- ✅ Add integration tests
-- ✅ Update documentation
 
 ## Test Plan
-
-- [x] Unit tests pass (`cargo test`)
-- [x] Integration tests pass
-- [x] Clippy warnings resolved (`cargo clippy`)
-- [x] Format check passed (`cargo fmt --check`)
-- [x] Documentation builds (`cargo doc`)
+- [x] Unit tests pass
+- [x] Clippy warnings resolved
+- [x] Format check passed
 
 ## Related Issues
-
 Closes #270
 
 ## Quality Report
-
 - **Score**: 85/100 ✅
 - **Coverage**: 85%
-- **Clippy Warnings**: 0
-- **Security Issues**: 0
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
-)" --draft
+)" \
+  --draft
 ```
 
-**PR Title Format**:
-```
-<type>(<scope>): Issue #<number> - <brief description>
-```
+### Pattern 3: マージ戦略
 
-**PR Body Sections**:
-1. **Summary** - High-level overview
-2. **Changes** - Bullet list of changes
-3. **Test Plan** - Checklist of testing done
-4. **Related Issues** - Links to Issues (use `Closes #123`)
-5. **Quality Report** - ReviewAgent results (if available)
+| 戦略 | コマンド | 用途 |
+|------|---------|------|
+| Squash（推奨） | `gh pr merge --squash --delete-branch` | 大半のPR |
+| Merge | `gh pr merge --merge --delete-branch` | 大規模機能 |
+| Rebase | `gh pr merge --rebase --delete-branch` | 単一コミットPR |
 
-### Step 7: Handle Pre-commit Hooks
+---
 
-If pre-commit hooks modify files:
+## ⚡ P3: ブランチ命名規則
 
-```bash
-# Check what changed
-git status
+### 形式
 
-# Review hook changes
-git diff
-
-# If changes look good, amend commit
-git add .
-git commit --amend --no-edit
-
-# Push amended commit
-git push --force-with-lease
-```
-
-**Important**:
-- Only amend your own commits (check authorship)
-- Don't amend commits that are already pushed and reviewed
-- Use `--no-edit` to keep the same commit message
-
-## Branch Naming Convention
-
-### Format
 ```
 <type>/<issue-number>-<brief-description>
 ```
 
-### Examples
-- `feature/270-codegen-agent`
-- `fix/271-worktree-race-condition`
-- `docs/272-update-skills`
-- `refactor/273-cleanup-types`
+### 例
 
-### Types
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation changes
-- `refactor/` - Code refactoring
-- `test/` - Test additions
-- `chore/` - Maintenance tasks
+| Type | 例 |
+|------|-----|
+| feature | `feature/270-codegen-agent` |
+| fix | `fix/271-worktree-race-condition` |
+| docs | `docs/272-update-skills` |
+| refactor | `refactor/273-cleanup-types` |
+| test | `test/274-add-integration-tests` |
+| chore | `chore/275-update-deps` |
 
-## Merge Strategies
+---
 
-### 1. Squash and Merge (Recommended)
+## 📊 Worktree固有ワークフロー
 
-**When to use**: Most PRs with multiple commits
+### Worktree作成からマージまで
 
 ```bash
-gh pr merge --squash --delete-branch
-```
-
-**Benefits**:
-- Clean main branch history
-- Single commit per feature
-- Easier to revert if needed
-
-### 2. Merge Commit
-
-**When to use**: Large features with logical commit grouping
-
-```bash
-gh pr merge --merge --delete-branch
-```
-
-**Benefits**:
-- Preserves commit history
-- Shows progression of feature development
-
-### 3. Rebase and Merge
-
-**When to use**: Single-commit PRs
-
-```bash
-gh pr merge --rebase --delete-branch
-```
-
-**Benefits**:
-- Linear history
-- No merge commits
-
-## Worktree-Specific Git Workflow
-
-When working in Worktrees (parallel execution):
-
-### 1. Create Worktree with Branch
-
-```bash
+# Step 1: Worktree作成
 git worktree add .worktrees/issue-270 -b feature/270-codegen-agent
-```
 
-### 2. Work in Worktree
-
-```bash
+# Step 2: Worktree内で作業
 cd .worktrees/issue-270
-
-# Make changes
-# ...
-
-# Commit changes
+# ... 変更 ...
 git add .
-git commit -m "feat(agent): add CodeGenAgent implementation"
-```
+git commit -m "feat(agent): add CodeGenAgent"
 
-### 3. Push Worktree Branch
-
-```bash
-# Push from within worktree
+# Step 3: プッシュ
 git push -u origin feature/270-codegen-agent
-```
 
-### 4. Merge Back to Main
+# Step 4: PR作成
+gh pr create --title "feat(agent): Issue #270" --draft
 
-**Option A: Create PR (Recommended)**
-```bash
-gh pr create --title "feat(agent): Issue #270 - Add CodeGenAgent" --draft
-```
-
-**Option B: Direct Merge (Use with caution)**
-```bash
-# Switch to main branch
-cd ../../  # Back to main repo
-git checkout main
-
-# Merge worktree branch
-git merge feature/270-codegen-agent
-
-# Push to remote
-git push
-```
-
-### 5. Cleanup Worktree
-
-```bash
-# Remove worktree
+# Step 5: クリーンアップ（マージ後）
+cd ../..
 git worktree remove .worktrees/issue-270
-
-# Delete remote branch (if merged)
 git push origin --delete feature/270-codegen-agent
-
-# Delete local branch
 git branch -d feature/270-codegen-agent
 ```
 
-## Common Issues and Solutions
+---
 
-### Issue: Merge Conflicts
+## 🛡️ エラーハンドリング
+
+### Pre-commit Hook対応
 
 ```bash
-# Check conflict status
+# Hook変更確認
 git status
 
-# View conflicts
+# Hook変更をamend
+git add .
+git commit --amend --no-edit
+git push --force-with-lease
+```
+
+### マージコンフリクト
+
+```bash
+# コンフリクト確認
+git status
 git diff
 
-# Resolve conflicts in editor
-# Then mark as resolved:
+# 解決後
 git add <resolved-files>
-
-# Continue merge/rebase
 git merge --continue
-# or
+# または
 git rebase --continue
 ```
 
-### Issue: Accidentally Committed to Wrong Branch
+### 誤ったブランチへのコミット
 
 ```bash
-# Undo last commit (keep changes)
+# 最後のコミット取り消し（変更は保持）
 git reset --soft HEAD~1
 
-# Switch to correct branch
+# 正しいブランチへ移動
 git checkout correct-branch
 
-# Re-commit
+# 再コミット
 git add .
 git commit -m "Your message"
 ```
 
-### Issue: Need to Change Last Commit Message
+### シークレットの誤コミット
 
 ```bash
-# Amend commit message
-git commit --amend
-
-# Update editor with new message, then:
-git push --force-with-lease
-```
-
-### Issue: Committed Secrets
-
-```bash
-# Remove file from last commit
+# ファイルをコミットから削除
 git rm --cached path/to/secret-file
 git commit --amend --no-edit
-
-# Force push (if already pushed)
 git push --force-with-lease
 
-# For older commits, use git-filter-repo or contact Guardian
+# 古いコミットの場合: git-filter-repo使用
 ```
 
-## Pre-commit Checklist
+---
 
-Before committing, verify:
+## ✅ チェックリスト
 
-- [ ] All tests pass (`cargo test`)
-- [ ] No clippy warnings (`cargo clippy`)
-- [ ] Code is formatted (`cargo fmt`)
-- [ ] No secrets committed
-- [ ] Commit message follows Conventional Commits
-- [ ] Changes match Issue requirements
-- [ ] Documentation updated (if needed)
+### コミット前
 
-## PR Review Checklist
+- [ ] テスト合格 (`cargo test`)
+- [ ] Clippy警告なし (`cargo clippy`)
+- [ ] フォーマット済み (`cargo fmt`)
+- [ ] シークレットなし
+- [ ] Conventional Commits準拠
+- [ ] 変更がIssue要件に一致
+- [ ] ドキュメント更新（必要時）
 
-Before requesting review:
+### PR作成前
 
-- [ ] PR title follows convention
-- [ ] PR description is complete
-- [ ] All CI checks pass
-- [ ] No merge conflicts
-- [ ] Reviewers assigned
-- [ ] Labels applied (type, priority)
-- [ ] Linked to Issue (Closes #XXX)
+- [ ] タイトルが規約に準拠
+- [ ] 説明が完全
+- [ ] CI合格
+- [ ] コンフリクトなし
+- [ ] レビュアー割り当て
+- [ ] ラベル付与
+- [ ] Issue紐付け (`Closes #XXX`)
 
-## Related Files
+---
 
-- **Git Configuration**: `.gitignore`, `.gitattributes`
-- **PR Agent Spec**: `.claude/agents/specs/coding/pr-agent.md`
-- **Worktree Protocol**: `docs/WORKTREE_PROTOCOL.md`
-- **Label System**: `docs/LABEL_SYSTEM_GUIDE.md`
+## 🔗 関連ドキュメント
 
-## Related Skills
+| ドキュメント | 用途 |
+|-------------|------|
+| `agents/specs/coding/pr-agent.md` | PRAgent仕様 |
+| `docs/WORKTREE_PROTOCOL.md` | Worktreeプロトコル |
+| `docs/LABEL_SYSTEM_GUIDE.md` | ラベルシステム |
+| `.gitignore` | 除外ファイル |
 
-- **Agent Execution**: For creating branches via Worktrees
-- **Rust Development**: For pre-commit testing
-- **Issue Analysis**: For determining commit type/scope
+---
+
+## 📝 関連Skills
+
+- **Agent Execution**: Worktree経由のブランチ作成
+- **Rust Development**: コミット前テスト
+- **Issue Analysis**: コミットtype/scope決定

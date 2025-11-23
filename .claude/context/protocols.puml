@@ -1,0 +1,116 @@
+@startuml Miyabi Protocols - Task Management & Reporting
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+skinparam shadowing false
+skinparam roundCorner 10
+
+title Miyabi Protocols - Task Management & Reporting Protocol v2.0.1
+
+state "Task Management Protocol" as TaskMgmt {
+  ' Task Management Flow
+  state "Task Classification" as classify {
+    [*] --> CheckComplexity
+    CheckComplexity --> UseTodo : 3+ steps\n複雑なタスク\nユーザーが複数タスクを提供
+    CheckComplexity --> SkipTodo : 単純な1ステップ\n純粋な質問・情報提供
+  }
+
+  state "Todo Lifecycle" as lifecycle {
+    pending --> in_progress : Start Task
+    in_progress --> completed : Success
+    in_progress --> in_progress : Error (Keep Status)
+
+    note right of in_progress
+      **Rule**: 同時に1つのみ in_progress
+      完了したら**即座に** completed に変更
+    end note
+  }
+
+  state "Todo Structure" as structure {
+    state "Todo Object" as todo {
+      content : "【Category】Task - Details"
+      status : "pending | in_progress | completed"
+      activeForm : "【実施中 - Category】Progress"
+    }
+
+    note right of todo
+      Example:
+      content: "【Phase 1】型安全性向上 - Interface作成"
+      status: "in_progress"
+      activeForm: "【実装中 - Phase 1】Interface実装中"
+    end note
+  }
+
+  state "Prohibited Actions ❌" as prohibited {
+    state "バッチ更新禁止" as batch
+    state "テスト失敗時のcompleted禁止" as testfail
+    state "部分実装でのcompleted禁止" as partial
+    state "複数in_progress禁止" as multiple
+  }
+}
+
+' Reporting Protocol
+state "Reporting Protocol" as ReportProto {
+  state "Report Structure" as report {
+    state "Header" as header {
+      header : 報告者: Claude Code
+      header : 報告日時: YYYY-MM-DD
+      header : セッション: [セッション名]
+    }
+
+    state "Completed Tasks" as completed_tasks {
+      completed_tasks : ✅ 完了した作業
+      completed_tasks : 担当: Claude Code
+    }
+
+    state "Change Statistics" as stats {
+      stats : 📊 変更統計
+      stats : コミットID, 変更ファイル数
+      stats : 追加行数, 削除行数
+    }
+
+    state "Verification Results" as verification {
+      verification : 🎯 動作確認結果
+      verification : 確認者: Claude Code
+    }
+
+    state "Next Steps" as nextsteps {
+      nextsteps : 🚀 次のステップ（提案）
+      nextsteps : 提案者: Claude Code
+    }
+
+    header --> completed_tasks
+    completed_tasks --> stats
+    stats --> verification
+    verification --> nextsteps
+    nextsteps --> [*] : 報告終了\nClaude Code
+  }
+
+  state "Report Triggers" as triggers {
+    triggers : セッション終了時
+    triggers : 重要なマイルストーン達成時
+    triggers : Issue処理完了時
+    triggers : Agent実行結果報告
+    triggers : エラー・問題発生時
+  }
+}
+
+' Relationships
+classify --> lifecycle : Create Todo
+lifecycle --> structure : Store
+structure --> report : Report on Completion
+triggers --> report : Trigger Report
+
+note bottom
+  **Key Principles**:
+  1. 報告者の明記 - すべての報告で「Claude Code」として名乗る
+  2. 担当者の明記 - 各作業項目に「担当: Claude Code」を記載
+  3. 確認者の明記 - 動作確認結果に「確認者: Claude Code」を記載
+  4. 提案者の明記 - 次のステップ提案に「提案者: Claude Code」を記載
+
+  **References**:
+  - Task Management Protocol: .claude/prompts/task-management-protocol.md
+  - Reporting Protocol: .claude/templates/reporting-protocol.md
+end note
+
+@enduml

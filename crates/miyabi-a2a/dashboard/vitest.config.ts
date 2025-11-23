@@ -13,6 +13,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: [
+        'src/components/agent-*.tsx',
+        'src/components/control-panel.tsx',
+        'src/components/notification-history.tsx',
+        'src/components/theme-toggle.tsx',
+        'src/api/**/*.ts',
+        'src/contexts/**/*.tsx',
+        'src/lib/**/*.ts',
+      ],
       exclude: [
         'node_modules/',
         'src/test-setup.ts',

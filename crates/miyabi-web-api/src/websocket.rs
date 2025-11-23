@@ -172,7 +172,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
 fn get_agent_status_from_tmux() -> Vec<(String, String)> {
     // Try to get panes from miyabi-orchestra session
     let output = Command::new("tmux")
-        .args(&[
+        .args([
             "list-panes",
             "-t",
             "miyabi-orchestra",
@@ -198,7 +198,7 @@ fn get_agent_status_from_tmux() -> Vec<(String, String)> {
     let mut agents = Vec::new();
 
     // Known agent pane mapping (based on miyabi-orchestra setup)
-    let agent_names = vec![
+    let agent_names = [
         "Coordinator",
         "CodeGen",
         "Review",

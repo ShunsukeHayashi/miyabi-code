@@ -285,6 +285,68 @@ levels:
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.task_coordination_and_parallel_execution_agent.decompose_issue
+a2a.task_coordination_and_parallel_execution_agent.generate_execution_plan
+a2a.task_coordination_and_parallel_execution_agent.orchestrate_agents
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.task_coordination_and_parallel_execution_agent.decompose_issue",
+    "input": {
+      "issue_number": 270,
+      "max_concurrency": 3,
+      "use_worktree": true
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// タスク分解実行
+let result = bridge.execute_tool(
+    "a2a.task_coordination_and_parallel_execution_agent.decompose_issue",
+    json!({
+        "issue_number": 270,
+        "max_concurrency": 3,
+        "use_worktree": true
+    })
+).await?;
+
+if result.success {
+    println!("Execution plan: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "CoordinatorAgent"` を指定:
+```
+prompt: "Issue #270を分解して並行実行計画を立ててください"
+subagent_type: "CoordinatorAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CodeGenAgent**: コード生成実行Agent

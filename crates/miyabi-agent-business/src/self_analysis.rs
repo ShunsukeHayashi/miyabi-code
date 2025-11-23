@@ -5,11 +5,19 @@
 //! 創業者の背景に基づいた最適な事業戦略と実行計画を提案します。
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::env;
 
 /// SelfAnalysisAgent - 自己分析・事業戦略立案Agent
@@ -225,6 +233,117 @@ impl BaseAgent for SelfAnalysisAgent {
             metrics: Some(metrics),
             escalation: None,
         })
+    }
+}
+
+#[async_trait]
+impl A2AEnabled for SelfAnalysisAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new(
+            "SelfAnalysisAgent",
+            "Self-analysis and business strategy planning agent with SWOT analysis",
+        )
+        .version("0.1.1")
+        .capability(AgentCapability {
+            id: "analyze_self".to_string(),
+            name: "Analyze Self".to_string(),
+            description: "Conduct comprehensive self-analysis including SWOT, skills assessment, career alignment, and strategic recommendations".to_string(),
+            input_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "string",
+                        "description": "Entrepreneur profile or background"
+                    },
+                    "business_goals": {
+                        "type": "string",
+                        "description": "Business goals and objectives"
+                    }
+                },
+                "required": ["profile"]
+            })),
+            output_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "swot_analysis": {
+                        "type": "object",
+                        "properties": {
+                            "strengths": { "type": "array", "items": { "type": "string" } },
+                            "weaknesses": { "type": "array", "items": { "type": "string" } },
+                            "opportunities": { "type": "array", "items": { "type": "string" } },
+                            "threats": { "type": "array", "items": { "type": "string" } }
+                        }
+                    },
+                    "skills_assessment": { "type": "object" },
+                    "strategic_recommendations": { "type": "array" }
+                }
+            })),
+        })
+        .build()
+    }
+
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "analyze_self" => {
+                let profile = task
+                    .input
+                    .get("profile")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing profile".to_string())
+                    })?;
+
+                let business_goals = task
+                    .input
+                    .get("business_goals")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Create a successful startup");
+
+                // Create task for internal execution
+                let internal_task = Task {
+                    id: task.id.clone(),
+                    title: profile.to_string(),
+                    description: business_goals.to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::SelfAnalysisAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(180),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
+
+                // Execute self-analysis
+                match self.execute(&internal_task).await {
+                    Ok(result) => Ok(A2ATaskResult::Success {
+                        output: result.data.unwrap_or(json!({"status": "completed"})),
+                        artifacts: vec![],
+                        execution_time_ms: start.elapsed().as_millis() as u64,
+                    }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                        "Self-analysis failed: {}",
+                        e
+                    ))),
+                }
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::ReadOnly // Only needs LLM API access, no file modifications
     }
 }
 

@@ -15,7 +15,7 @@ global:
     organization: "ShunsukeHayashi"
     private_owner: "customer-cloud"
     private_repo: "miyabi-private"
-    local_path: "/Users/shunsuke/Dev/miyabi-private"
+    local_path: "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 
   metadata:
     generated_at: "2025-10-31T19:54:00+09:00"

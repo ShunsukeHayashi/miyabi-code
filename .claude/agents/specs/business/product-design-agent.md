@@ -550,6 +550,70 @@ docs/product/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.product_design_and_service_specification_agent.design_service
+a2a.product_design_and_service_specification_agent.define_tech_stack
+a2a.product_design_and_service_specification_agent.create_mvp_definition
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.product_design_and_service_specification_agent.design_service",
+    "input": {
+      "product_concept": "docs/product/product-concept.md",
+      "customer_journey_map": "docs/persona/customer-journey-map.md",
+      "revenue_model": "docs/product/revenue-model.md",
+      "duration_months": 6
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.product_design_and_service_specification_agent.design_service",
+    json!({
+        "product_concept": "docs/product/product-concept.md",
+        "customer_journey_map": "docs/persona/customer-journey-map.md",
+        "revenue_model": "docs/product/revenue-model.md",
+        "duration_months": 6
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "ProductDesignAgent"` を指定:
+```
+prompt: "6ヶ月分のサービス詳細を設計し、技術スタック選定、MVP定義、プロトタイプ設計を行ってください"
+subagent_type: "ProductDesignAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **ProductConceptAgent**: 前フェーズ（Phase 4）

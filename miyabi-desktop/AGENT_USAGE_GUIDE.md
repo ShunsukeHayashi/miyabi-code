@@ -14,7 +14,7 @@ Miyabi Desktopは、Tmuxセッションで複数のAIエージェントを並列
 ### Step 1: アプリ起動
 
 ```bash
-cd /Users/shunsuke/Dev/miyabi-private/miyabi-desktop
+cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi-desktop
 npm run tauri dev
 ```
 
@@ -35,7 +35,7 @@ npm run tauri dev
 =========================================
 🚀 InfinityMode 起動中...
 📅 開始時刻: 2025-11-02 00:15:30
-📂 作業ディレクトリ: /Users/shunsuke/Dev/miyabi-private
+📂 作業ディレクトリ: /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private
 📝 ログ保存先: .ai/logs/2025-11-02.md
 ⚙️  並列度: 3 | スプリントサイズ: 5
 =========================================
@@ -66,8 +66,8 @@ npm run tauri dev
 
 ```bash
 # Tmux セッションで実行されるコマンド
-cd /Users/shunsuke/Dev/miyabi-private/miyabi-desktop
-claude --dangerously-skip-permissions "cd /Users/shunsuke/Dev/miyabi-private && RUST_LOG=info cargo run --release --bin miyabi -- infinity --concurrency 3 --sprint-size 5"
+cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi-desktop
+claude --dangerously-skip-permissions "cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private && RUST_LOG=info cargo run --release --bin miyabi -- infinity --concurrency 3 --sprint-size 5"
 ```
 
 **パラメータ説明**:
@@ -229,7 +229,7 @@ npm install -g @anthropic-ai/claude-code
 **解決方法**:
 1. `.env` ファイルを作成
    ```bash
-   cd /Users/shunsuke/Dev/miyabi-private
+   cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private
    echo "GITHUB_TOKEN=ghp_your_token_here" > .env
    ```
 
@@ -238,7 +238,7 @@ npm install -g @anthropic-ai/claude-code
 **解決方法**:
 1. `.miyabi/agents.yaml` が存在することを確認
    ```bash
-   ls -la /Users/shunsuke/Dev/miyabi-private/miyabi-desktop/.miyabi/agents.yaml
+   ls -la /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi-desktop/.miyabi/agents.yaml
    ```
 2. Tmux Managerで **"Refresh"** ボタンをクリック
 
@@ -258,7 +258,7 @@ npm install -g @anthropic-ai/claude-code
 `RUST_LOG=info` が設定されているか確認
 ```bash
 # .miyabi/agents.yaml を確認
-grep "RUST_LOG" /Users/shunsuke/Dev/miyabi-private/miyabi-desktop/.miyabi/agents.yaml
+grep "RUST_LOG" /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi-desktop/.miyabi/agents.yaml
 ```
 
 ---
@@ -269,7 +269,7 @@ grep "RUST_LOG" /Users/shunsuke/Dev/miyabi-private/miyabi-desktop/.miyabi/agents
 
 ```bash
 # 最新ログを表示
-cat /Users/shunsuke/Dev/miyabi-private/.ai/logs/$(date +%Y-%m-%d).md
+cat /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.ai/logs/$(date +%Y-%m-%d).md
 ```
 
 ### Tmuxセッション出力
@@ -318,7 +318,7 @@ Tmux Manager の各エージェント行にある **"View Output"** ボタンを
 ```yaml
 # .miyabi/agents.yaml を編集
 command: |
-  cd /Users/shunsuke/Dev/miyabi-private
+  cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private
   cargo run --release --bin miyabi -- infinity --concurrency 5  # 5並列に変更
 ```
 
@@ -326,7 +326,7 @@ command: |
 
 ```yaml
 command: |
-  cd /Users/shunsuke/Dev/miyabi-private
+  cd /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private
   cargo run --release --bin miyabi -- infinity --sprint-size 10  # 10 Issues/sprint
 ```
 

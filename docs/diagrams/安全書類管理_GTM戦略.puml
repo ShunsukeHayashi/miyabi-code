@@ -1,0 +1,87 @@
+@startuml Go-to-Market戦略図
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundCorner 10
+
+title 安全書類管理システム Go-to-Market戦略
+
+rectangle "Phase 1: 市場参入（1-6ヶ月）" as P1 {
+    card "ターゲット: 中小建設会社" as P1T
+
+    package "施策" as P1A {
+        card "建設業協会との連携" as P1A1
+        card "無料トライアル提供" as P1A2
+        card "導入事例作成" as P1A3
+    }
+
+    package "チャネル" as P1C {
+        card "直販営業（5名）" as P1C1
+        card "Webマーケティング" as P1C2
+        card "展示会出展" as P1C3
+    }
+
+    card "目標: 100社導入" as P1G
+}
+
+rectangle "Phase 2: 成長加速（7-18ヶ月）" as P2 {
+    card "ターゲット拡大: 専門工事業者" as P2T
+
+    package "施策" as P2A {
+        card "パートナー制度開始" as P2A1
+        card "業界特化セミナー" as P2A2
+        card "コンテンツマーケティング強化" as P2A3
+    }
+
+    package "チャネル" as P2C {
+        card "直販営業（15名）" as P2C1
+        card "代理店パートナー（30社）" as P2C2
+        card "オンライン広告" as P2C3
+    }
+
+    card "目標: 1,000社導入" as P2G
+}
+
+rectangle "Phase 3: スケール（19-36ヶ月）" as P3 {
+    card "ターゲット: 中堅・大手" as P3T
+
+    package "施策" as P3A {
+        card "エンタープライズ向け機能" as P3A1
+        card "API連携拡充" as P3A2
+        card "M&A/提携検討" as P3A3
+    }
+
+    package "チャネル" as P3C {
+        card "直販営業（30名）" as P3C1
+        card "代理店パートナー（100社）" as P3C2
+        card "戦略的パートナーシップ" as P3C3
+    }
+
+    card "目標: 5,000社導入" as P3G
+}
+
+P1 -right-> P2
+P2 -right-> P3
+
+note bottom of P1
+  **KPI**
+  - CAC: 50,000円
+  - LTV: 1,150,000円
+  - 解約率: 2%以下
+end note
+
+note bottom of P2
+  **KPI**
+  - CAC: 40,000円
+  - LTV: 1,300,000円
+  - 解約率: 1.5%以下
+end note
+
+note bottom of P3
+  **KPI**
+  - CAC: 35,000円
+  - LTV: 1,500,000円
+  - 解約率: 1%以下
+end note
+
+@enduml

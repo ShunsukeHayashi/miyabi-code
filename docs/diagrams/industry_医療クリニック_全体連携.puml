@@ -1,0 +1,73 @@
+@startuml industry_医療クリニック_全体連携
+!theme cerulean-outline
+
+title 医療・クリニック業界 部署間連携図
+
+' 部署の定義
+rectangle "受付" as reception {
+  :患者対応:
+  :予約管理:
+  :保険確認:
+}
+
+rectangle "診療" as medical {
+  :診察:
+  :診断:
+  :処方:
+}
+
+rectangle "看護" as nursing {
+  :バイタル測定:
+  :処置補助:
+  :患者ケア:
+}
+
+rectangle "薬剤" as pharmacy {
+  :調剤:
+  :服薬指導:
+  :薬剤管理:
+}
+
+rectangle "医事" as medicalaffairs {
+  :レセプト作成:
+  :診療報酬請求:
+  :保険請求:
+}
+
+rectangle "経理" as accounting {
+  :会計処理:
+  :入金管理:
+  :支払管理:
+}
+
+rectangle "総務" as general {
+  :人事労務:
+  :設備管理:
+  :法令遵守:
+}
+
+' 連携の定義
+reception --> medical : 診察依頼
+reception --> nursing : 検査依頼
+reception --> medicalaffairs : 患者情報
+
+medical --> nursing : 処置指示
+medical --> pharmacy : 処方箋
+medical --> medicalaffairs : 診療記録
+
+nursing --> medical : バイタル報告
+nursing --> pharmacy : 投薬確認
+
+pharmacy --> nursing : 薬剤情報
+pharmacy --> reception : 処方完了通知
+
+medicalaffairs --> accounting : 請求データ
+medicalaffairs --> reception : 会計情報
+
+accounting --> general : 財務報告
+accounting --> medicalaffairs : 入金確認
+
+general --> reception : 勤務シフト
+general --> accounting : 経費精算
+
+@enduml

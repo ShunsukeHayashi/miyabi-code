@@ -1,0 +1,168 @@
+{
+  "generated": "2025-11-19T02:59:57.312Z",
+  "total_files": 21,
+  "existing_files": 21,
+  "total_size_mb": 1.3,
+  "all_valid": true,
+  "by_phase": {
+    "Phase 1": [
+      {
+        "file": "issues-raw-20251119.json",
+        "desc": "Raw GitHub Issues export",
+        "exists": true,
+        "size": 792332,
+        "sizeKB": 773.8
+      },
+      {
+        "file": "tasks-structured.json",
+        "desc": "Parsed task metadata",
+        "exists": true,
+        "size": 349798,
+        "sizeKB": 341.6
+      },
+      {
+        "file": "master-task-db.json",
+        "desc": "Master task database",
+        "exists": true,
+        "size": 68487,
+        "sizeKB": 66.9
+      },
+      {
+        "file": "master-task-db.csv",
+        "desc": "CSV export",
+        "exists": true,
+        "size": 21316,
+        "sizeKB": 20.8
+      }
+    ],
+    "Phase 2": [
+      {
+        "file": "task-hierarchy.json",
+        "desc": "EPIC hierarchy",
+        "exists": true,
+        "size": 2062,
+        "sizeKB": 2
+      },
+      {
+        "file": "dependency-graph.json",
+        "desc": "Dependency graph",
+        "exists": true,
+        "size": 25157,
+        "sizeKB": 24.6
+      },
+      {
+        "file": "execution-order.json",
+        "desc": "Topological sort",
+        "exists": true,
+        "size": 22045,
+        "sizeKB": 21.5
+      },
+      {
+        "file": "dependency-graph.mermaid",
+        "desc": "Mermaid diagram (full)",
+        "exists": true,
+        "size": 7926,
+        "sizeKB": 7.7
+      },
+      {
+        "file": "dependency-graph-epics-only.mermaid",
+        "desc": "Mermaid diagram (EPICs)",
+        "exists": true,
+        "size": 1028,
+        "sizeKB": 1
+      },
+      {
+        "file": "graph-validation-report.json",
+        "desc": "Graph validation",
+        "exists": true,
+        "size": 661,
+        "sizeKB": 0.6
+      }
+    ],
+    "Phase 3-5": [
+      {
+        "file": "gantt-chart.puml",
+        "desc": "PlantUML Gantt (full)",
+        "exists": true,
+        "size": 5031,
+        "sizeKB": 4.9
+      },
+      {
+        "file": "gantt-chart-epics-only.puml",
+        "desc": "PlantUML Gantt (EPICs)",
+        "exists": true,
+        "size": 1383,
+        "sizeKB": 1.4
+      },
+      {
+        "file": "gantt-summary.json",
+        "desc": "Gantt statistics",
+        "exists": true,
+        "size": 222,
+        "sizeKB": 0.2
+      }
+    ],
+    "Phase 6": [
+      {
+        "file": "sprint-plan.json",
+        "desc": "Sprint allocation data",
+        "exists": true,
+        "size": 12067,
+        "sizeKB": 11.8
+      },
+      {
+        "file": "sprint-plan.md",
+        "desc": "Sprint board markdown",
+        "exists": true,
+        "size": 6888,
+        "sizeKB": 6.7
+      },
+      {
+        "file": "sprint-summary.json",
+        "desc": "Sprint statistics",
+        "exists": true,
+        "size": 161,
+        "sizeKB": 0.2
+      }
+    ],
+    "Phase 4": [
+      {
+        "file": "critical-path.json",
+        "desc": "Critical path data",
+        "exists": true,
+        "size": 6020,
+        "sizeKB": 5.9
+      },
+      {
+        "file": "tasks-with-timing.json",
+        "desc": "Task timing analysis",
+        "exists": true,
+        "size": 18706,
+        "sizeKB": 18.3
+      },
+      {
+        "file": "slack-distribution.json",
+        "desc": "Slack distribution",
+        "exists": true,
+        "size": 106,
+        "sizeKB": 0.1
+      },
+      {
+        "file": "critical-path-report.md",
+        "desc": "CPM report",
+        "exists": true,
+        "size": 4414,
+        "sizeKB": 4.3
+      }
+    ],
+    "Phase 7": [
+      {
+        "file": "MASTER_PROJECT_PLAN_2025-11-19.md",
+        "desc": "Master project plan",
+        "exists": true,
+        "size": 14083,
+        "sizeKB": 13.8
+      }
+    ]
+  }
+}

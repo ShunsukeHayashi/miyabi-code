@@ -1,0 +1,19 @@
+{
+  "name": "@miyabi/tmux-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Miyabi tmux multithread communication aggregation",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.3"
+  }
+}

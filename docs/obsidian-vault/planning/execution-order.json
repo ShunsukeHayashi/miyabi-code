@@ -1,0 +1,902 @@
+[
+  {
+    "order": 1,
+    "id": 882,
+    "title": "🐛 Fix build script syntax error in scripts/build-line-bot.sh:25",
+    "priority": "no-priority",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 2,
+    "id": 883,
+    "title": "feat(orchestra): Phase 3 - 200-Agent Live Experiment & Production Readiness",
+    "priority": "no-priority",
+    "estimated_hours": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 3,
+    "id": 884,
+    "title": "Implement /issue-create slash command - Issue作成コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 4,
+    "id": 885,
+    "title": "Implement /task-decompose slash command - タスク分解コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 5,
+    "id": 886,
+    "title": "Implement /worktree-create slash command - Worktree作成コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 6,
+    "id": 887,
+    "title": "Implement /codegen-execute slash command - コード生成実行コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 7,
+    "id": 888,
+    "title": "Implement /review-execute slash command - 品質チェック実行コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 8,
+    "id": 889,
+    "title": "Implement /pr-create slash command - PR作成コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 9,
+    "id": 890,
+    "title": "Implement /deploy-execute slash command - デプロイ実行コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 10,
+    "id": 891,
+    "title": "Implement /dashboard slash command - ダッシュボード表示コマンド",
+    "priority": "priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 11,
+    "id": 892,
+    "title": "Implement /worktree-list slash command - Worktree一覧コマンド",
+    "priority": "priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 12,
+    "id": 893,
+    "title": "Implement /pr-list slash command - PR一覧コマンド",
+    "priority": "priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 13,
+    "id": 894,
+    "title": "Implement /quality-score slash command - 品質スコア表示コマンド",
+    "priority": "priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 14,
+    "id": 895,
+    "title": "Implement /deploy-status slash command - デプロイ状況確認コマンド",
+    "priority": "priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 15,
+    "id": 896,
+    "title": "Implement /logs slash command - ログ表示コマンド",
+    "priority": "priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 16,
+    "id": 897,
+    "title": "Implement /health-check slash command - ヘルスチェックコマンド",
+    "priority": "priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 17,
+    "id": 898,
+    "title": "Implement /issue-analyze slash command - Issue分析コマンド",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 18,
+    "id": 899,
+    "title": "Implement /dag-visualize slash command - DAG可視化コマンド",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 19,
+    "id": 900,
+    "title": "Implement /parallel-execute slash command - 並列実行コマンド",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 20,
+    "id": 901,
+    "title": "Implement /pr-auto-merge slash command - PR自動マージコマンド",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 21,
+    "id": 902,
+    "title": "Implement /deploy-rollback slash command - ロールバックコマンド",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 22,
+    "id": 903,
+    "title": "Implement /knowledge-search slash command - ナレッジ検索コマンド",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 23,
+    "id": 904,
+    "title": "Implement /issue-batch slash command - Issue一括作成コマンド",
+    "priority": "priority:P3-Low",
+    "estimated_hours": 2,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 24,
+    "id": 905,
+    "title": "Implement /worktree-cleanup slash command - Worktree削除コマンド",
+    "priority": "priority:P3-Low",
+    "estimated_hours": 2,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 25,
+    "id": 906,
+    "title": "Implement /history-search slash command - 履歴検索コマンド",
+    "priority": "priority:P3-Low",
+    "estimated_hours": 2,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 26,
+    "id": 907,
+    "title": "Implement /db-backup slash command - データベースバックアップコマンド",
+    "priority": "priority:P3-Low",
+    "estimated_hours": 2,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 27,
+    "id": 908,
+    "title": "Test Issue for #884 - Automated Test",
+    "priority": "priority:P3-Low",
+    "estimated_hours": 2,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 28,
+    "id": 909,
+    "title": "Test Issue #884 - IssueAgent Integration Test",
+    "priority": "priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 29,
+    "id": 964,
+    "title": "[Agent][P1] Kazuaki AWS Architect Agent - 仕様改善マスターIssue",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 25,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 30,
+    "id": 965,
+    "title": "[P0] Kazuaki Agent - キャラクター性格の拡充",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 31,
+    "id": 966,
+    "title": "[P0] Kazuaki Agent - IAM権限要件の文書化",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 32,
+    "id": 968,
+    "title": "[P0] Kazuaki Agent - コスト閾値の明確化",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 33,
+    "id": 969,
+    "title": "🔍 プロジェクト構造の根本的な問題調査と改善提案",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 34,
+    "id": 970,
+    "title": "🏗️ [P0-CRITICAL] Miyabi Society 完全再構築 - Ultra-Detailed Implementation Plan",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 180,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 35,
+    "id": 971,
+    "title": "🎯 [P0] Miyabi Reconstruction - Master Dependency Graph & Phase Structure",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 20,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 36,
+    "id": 972,
+    "title": "Phase 1.1: PostgreSQL Connection Enablement",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 10,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 37,
+    "id": 973,
+    "title": "Phase 1.2: Base Schema Migration",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 14,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 38,
+    "id": 974,
+    "title": "Phase 1.3: Organization/Team Schema Implementation",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 20,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 39,
+    "id": 975,
+    "title": "Phase 1.4: RBAC Implementation",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 14,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 40,
+    "id": 976,
+    "title": "Phase 1.5: JWT Authentication Implementation",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 10,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 41,
+    "id": 996,
+    "title": "📚 Phase 2.1: Consolidate Overlapping Directories (11% reduction)",
+    "priority": "no-priority",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 42,
+    "id": 997,
+    "title": "📊 Phase 2.2: Create Cross-Reference Matrix",
+    "priority": "no-priority",
+    "estimated_hours": 3.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 43,
+    "id": 998,
+    "title": "🗄️ Phase 2.3: Archive Inactive Content (First Pass)",
+    "priority": "no-priority",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 44,
+    "id": 999,
+    "title": "🔄 Phase 3.1: Implement Index Validation Workflow",
+    "priority": "no-priority",
+    "estimated_hours": 4.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 45,
+    "id": 1000,
+    "title": "🤖 Phase 3.2: Automated Index Update Scripts",
+    "priority": "no-priority",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 46,
+    "id": 1001,
+    "title": "🗄️ Phase 3.3: Complete Archive Cleanup (Final Pass)",
+    "priority": "no-priority",
+    "estimated_hours": 9,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 47,
+    "id": 1002,
+    "title": "📊 Phase 3.4: Navigation Analytics & Hot Topics",
+    "priority": "no-priority",
+    "estimated_hours": 5.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 48,
+    "id": 1003,
+    "title": "📚 [EPIC] Documentation Optimization v1.1 - Improve Navigation & Reduce Complexity",
+    "priority": "no-priority",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 49,
+    "id": 1004,
+    "title": "🐛 [P0] Lambda Function HTTP Response Issue - Fix lambda_http and Axum integration",
+    "priority": "no-priority",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 50,
+    "id": 1005,
+    "title": "🆕 [P1] Phase 3: Connect Dashboard to Production API",
+    "priority": "no-priority",
+    "estimated_hours": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 51,
+    "id": 1006,
+    "title": "🎨 [P2] Create Miyabi Console - Full Accessible UI/UX for Agent Orchestration",
+    "priority": "no-priority",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 52,
+    "id": 1009,
+    "title": "[Miyabi Console] Implement Agents Page - Agent Management & Configuration",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 53,
+    "id": 1010,
+    "title": "[Miyabi Console] Implement Workflows Page - Visual Workflow Automation Builder",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 10,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 54,
+    "id": 1011,
+    "title": "[Miyabi Console] Implement Organizations Page - Multi-Tenant Management",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 55,
+    "id": 1012,
+    "title": "[Miyabi Console] Implement Notifications Page - Centralized Notification Center",
+    "priority": "📝 priority:P3-Low",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 56,
+    "id": 1013,
+    "title": "[Pantheon Webapp] Implement About Page - Project Vision & Miyabi Integration",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 3.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 57,
+    "id": 1014,
+    "title": "[Pantheon Webapp] Implement Enhanced Advisors Page - Searchable Directory",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 6,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 58,
+    "id": 1015,
+    "title": "[Pantheon Webapp] Implement Ask the Pantheon - Interactive AI Consultation (Premium)",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 14,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 59,
+    "id": 1016,
+    "title": "[Pantheon Webapp] Implement Divisions Page - Deep Dive into 5 Divisions",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 60,
+    "id": 1017,
+    "title": "[Pantheon Webapp] Implement Miyabi Integration Dashboard - Real-time Agent Activity",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 61,
+    "id": 1018,
+    "title": "🚀 [EPIC] M1 Infrastructure Blitz - Production Deployment",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 62,
+    "id": 1030,
+    "title": "🧪 Test: Codex Autonomous Coordinator - System Verification",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 63,
+    "id": 1042,
+    "title": "docs: Obsidian Documentation System - 最終動作確認とバリデーション",
+    "priority": "no-priority",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 64,
+    "id": 1043,
+    "title": "refactor: PlantUML構文エラー修正とPNG再生成",
+    "priority": "no-priority",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 65,
+    "id": 1044,
+    "title": "docs: Obsidian Documentation メンテナンスガイド作成",
+    "priority": "no-priority",
+    "estimated_hours": 4,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 66,
+    "id": 1045,
+    "title": "🔌 [Miyabi Console] Rust Backend API Integration",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 67,
+    "id": 1046,
+    "title": "🔄 [Miyabi Console] WebSocket Real-time Updates",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 68,
+    "id": 1047,
+    "title": "🧪 [Miyabi Console] Comprehensive Testing Suite",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 69,
+    "id": 1048,
+    "title": "🚀 [Miyabi Console] Performance Optimization",
+    "priority": "📝 priority:P3-Low",
+    "estimated_hours": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 70,
+    "id": 1049,
+    "title": "🔐 [Miyabi Console] Authentication & Authorization",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 71,
+    "id": 1050,
+    "title": "✨ [Miyabi Console] New Feature Pages",
+    "priority": "📝 priority:P3-Low",
+    "estimated_hours": 3.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 72,
+    "id": 967,
+    "title": "[P0] Kazuaki Agent - Rust-Pythonブリッジの詳細化",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 73,
+    "id": 977,
+    "title": "🎯 [MASTER] Miyabi Reconstruction - Team Coordination & Context Preservation",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 74,
+    "id": 1023,
+    "title": "🚀 Day 5: ECS Service Deployment & Validation",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 2,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 75,
+    "id": 1022,
+    "title": "☁️ Day 4: Deploy ECS Cluster, ALB & Redis",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 76,
+    "id": 1021,
+    "title": "🌐 Day 3: Deploy VPC, Security Groups & IAM Roles",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 77,
+    "id": 1020,
+    "title": "🐳 Day 2: Docker Image Build & Push to ECR",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 40,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 78,
+    "id": 1019,
+    "title": "📦 Day 1: ECR Repository & Dockerfile Setup",
+    "priority": "🔥 priority:P0-Critical",
+    "estimated_hours": 8080,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 79,
+    "id": 1029,
+    "title": "⚙️ CI/CD Pipeline: GitHub Actions Setup",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 80,
+    "id": 1028,
+    "title": "🎭 E2E Testing: Critical User Flows (Playwright)",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 81,
+    "id": 1027,
+    "title": "🎨 Frontend Testing: Component Tests (70% Coverage)",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 82,
+    "id": 1026,
+    "title": "🧪 Backend Testing: Unit Tests (85% Coverage)",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 10,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 83,
+    "id": 1024,
+    "title": "🔗 Day 6: Frontend Connection & E2E Integration Testing",
+    "priority": "⚠️ priority:P1-High",
+    "estimated_hours": 8,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 84,
+    "id": 1025,
+    "title": "🔒 Day 7: SSL Setup, Documentation & Final Validation",
+    "priority": "📊 priority:P2-Medium",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 85,
+    "id": 993,
+    "title": "Phase 4.6: Production Launch (2-3h)",
+    "priority": "no-priority",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 86,
+    "id": 992,
+    "title": "Phase 4.5: Documentation & Runbooks (2-3h)",
+    "priority": "no-priority",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 87,
+    "id": 991,
+    "title": "Phase 4.4: Disaster Recovery & Rollback (2-3h)",
+    "priority": "no-priority",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 88,
+    "id": 990,
+    "title": "Phase 4.3: Monitoring & Alerting Setup (2-3h)",
+    "priority": "no-priority",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 89,
+    "id": 989,
+    "title": "Phase 4.2: Security Audit & Penetration Testing (6-8h)",
+    "priority": "no-priority",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 90,
+    "id": 988,
+    "title": "Phase 4.1: Load Testing & Performance Validation (12-16h)",
+    "priority": "no-priority",
+    "estimated_hours": 14,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 91,
+    "id": 987,
+    "title": "Phase 2.5: AWS Lambda Deployment & CloudWatch Monitoring",
+    "priority": "no-priority",
+    "estimated_hours": 9,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 92,
+    "id": 986,
+    "title": "Phase 2.4: Uncomment & Test Existing APIs",
+    "priority": "no-priority",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 93,
+    "id": 985,
+    "title": "Phase 2.3: Worker & Coordinator Status APIs",
+    "priority": "no-priority",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 94,
+    "id": 984,
+    "title": "Phase 2.2: Task Management API Implementation",
+    "priority": "no-priority",
+    "estimated_hours": 9,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 95,
+    "id": 983,
+    "title": "Phase 2.1: Service Layer Refactoring",
+    "priority": "no-priority",
+    "estimated_hours": 11,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 96,
+    "id": 982,
+    "title": "Phase 3.5: CloudFront Redeployment & E2E Testing",
+    "priority": "no-priority",
+    "estimated_hours": 6,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 97,
+    "id": 981,
+    "title": "Phase 3.4: Authentication Flow Implementation",
+    "priority": "no-priority",
+    "estimated_hours": 2.5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 98,
+    "id": 980,
+    "title": "Phase 3.3: Real-Time WebSocket Integration",
+    "priority": "no-priority",
+    "estimated_hours": 5,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 99,
+    "id": 979,
+    "title": "Phase 3.2: Dashboard UI Modernization",
+    "priority": "no-priority",
+    "estimated_hours": 9,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "order": 100,
+    "id": 978,
+    "title": "Phase 3.1: API Client Implementation",
+    "priority": "no-priority",
+    "estimated_hours": 7,
+    "depends_on": [],
+    "blocks": []
+  }
+]

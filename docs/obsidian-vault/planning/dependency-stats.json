@@ -1,0 +1,88 @@
+{
+  "total_tasks": 100,
+  "tasks_with_dependencies": 0,
+  "tasks_blocking_others": 0,
+  "total_dependency_links": 0,
+  "most_dependencies": [
+    {
+      "id": 882,
+      "title": "🐛 Fix build script syntax error in scripts/build-line-bot.sh:25",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 883,
+      "title": "feat(orchestra): Phase 3 - 200-Agent Live Experiment & Production Readiness",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 884,
+      "title": "Implement /issue-create slash command - Issue作成コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 885,
+      "title": "Implement /task-decompose slash command - タスク分解コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 886,
+      "title": "Implement /worktree-create slash command - Worktree作成コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 887,
+      "title": "Implement /codegen-execute slash command - コード生成実行コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 888,
+      "title": "Implement /review-execute slash command - 品質チェック実行コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 889,
+      "title": "Implement /pr-create slash command - PR作成コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 890,
+      "title": "Implement /deploy-execute slash command - デプロイ実行コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    },
+    {
+      "id": 891,
+      "title": "Implement /dashboard slash command - ダッシュボード表示コマンド",
+      "dependency_count": 0,
+      "depends_on": [],
+      "blocked_by": [],
+      "prerequisites": []
+    }
+  ]
+}

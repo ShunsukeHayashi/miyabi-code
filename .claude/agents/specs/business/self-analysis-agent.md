@@ -295,6 +295,68 @@ docs/analysis/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self
+a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.generate_swot
+a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.extract_skills
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self",
+    "input": {
+      "career_history": "10 years software engineering",
+      "skills": ["Rust", "TypeScript", "AI/ML"],
+      "goals": "Build AI-powered development tools"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// 自己分析実行
+let result = bridge.execute_tool(
+    "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self",
+    json!({
+        "career_history": "10 years software engineering",
+        "skills": ["Rust", "TypeScript", "AI/ML"],
+        "goals": "Build AI-powered development tools"
+    })
+).await?;
+
+if result.success {
+    println!("Analysis: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "SelfAnalysisAgent"` を指定:
+```
+prompt: "キャリア・スキル・実績を分析してSWOT分析を生成してください"
+subagent_type: "SelfAnalysisAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **MarketResearchAgent**: 次フェーズ（Phase 2）

@@ -1,0 +1,148 @@
+{
+  "total_iterations": 10,
+  "final_success": false,
+  "iterations": [
+    {
+      "iteration": 1,
+      "total_tests": 12,
+      "passed": 7,
+      "failed": 5,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.81"
+    },
+    {
+      "iteration": 2,
+      "total_tests": 24,
+      "passed": 14,
+      "failed": 10,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.54"
+    },
+    {
+      "iteration": 3,
+      "total_tests": 36,
+      "passed": 21,
+      "failed": 15,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.60"
+    },
+    {
+      "iteration": 4,
+      "total_tests": 48,
+      "passed": 28,
+      "failed": 20,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.51"
+    },
+    {
+      "iteration": 5,
+      "total_tests": 60,
+      "passed": 35,
+      "failed": 25,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.49"
+    },
+    {
+      "iteration": 6,
+      "total_tests": 72,
+      "passed": 42,
+      "failed": 30,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.49"
+    },
+    {
+      "iteration": 7,
+      "total_tests": 84,
+      "passed": 49,
+      "failed": 35,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.64"
+    },
+    {
+      "iteration": 8,
+      "total_tests": 96,
+      "passed": 56,
+      "failed": 40,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.48"
+    },
+    {
+      "iteration": 9,
+      "total_tests": 108,
+      "passed": 63,
+      "failed": 45,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.58"
+    },
+    {
+      "iteration": 10,
+      "total_tests": 120,
+      "passed": 70,
+      "failed": 50,
+      "success_rate": "58.33%",
+      "meets_criteria": false,
+      "duration_seconds": "0.76"
+    }
+  ],
+  "improvement_trend": [
+    {
+      "iteration": 1,
+      "passed": 7,
+      "failed": 5
+    },
+    {
+      "iteration": 2,
+      "passed": 14,
+      "failed": 10
+    },
+    {
+      "iteration": 3,
+      "passed": 21,
+      "failed": 15
+    },
+    {
+      "iteration": 4,
+      "passed": 28,
+      "failed": 20
+    },
+    {
+      "iteration": 5,
+      "passed": 35,
+      "failed": 25
+    },
+    {
+      "iteration": 6,
+      "passed": 42,
+      "failed": 30
+    },
+    {
+      "iteration": 7,
+      "passed": 49,
+      "failed": 35
+    },
+    {
+      "iteration": 8,
+      "passed": 56,
+      "failed": 40
+    },
+    {
+      "iteration": 9,
+      "passed": 63,
+      "failed": 45
+    },
+    {
+      "iteration": 10,
+      "passed": 70,
+      "failed": 50
+    }
+  ]
+}

@@ -1,0 +1,1160 @@
+{
+  "test_run_id": "run-1763608089530",
+  "timestamp": "2025-11-20T03:08:09.530Z",
+  "iteration": 0,
+  "total_tests": 96,
+  "passed": 56,
+  "failed": 40,
+  "skipped": 0,
+  "duration_seconds": "0.48",
+  "failures": [
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 375
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 252
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 1
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 100
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 217
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 233
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 206
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 1
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 116
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 221
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 1
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 104
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 200
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 107
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 215
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 159
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 312
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 1
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "error": "runFullAutomation is not a function",
+      "duration": 0
+    },
+    {
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_ID",
+      "duration": 107
+    },
+    {
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "error": "Should have rejected invalid APP_SECRET",
+      "duration": 202
+    },
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js",
+      "duration": 0
+    }
+  ],
+  "test_details": [
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 3,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 375,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 252,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 2,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 1,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 4,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 169,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 1,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 100,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 217,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 3,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 8,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 211,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 233,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 206,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 4,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 1,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 5,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 146,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 116,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 221,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 2,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 1,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 4,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 170,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 104,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 200,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 8,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 173,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 107,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 215,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 2,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 4,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 162,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 159,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 312,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 2,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 1,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 6,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 161,
+      "message": "Handled slow network"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected long input with error"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "runFullAutomation is not a function"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 107,
+      "message": "Should have rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration": 202,
+      "message": "Should have rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 2,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "ERROR",
+      "duration": 0,
+      "message": "Cannot find module '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/sub-agents/code-gen-agent.js' imported from /Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/edge-test-runner.js"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 6,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 165,
+      "message": "Handled slow network"
+    }
+  ],
+  "success_rate": "58.33%",
+  "meets_criteria": false
+}

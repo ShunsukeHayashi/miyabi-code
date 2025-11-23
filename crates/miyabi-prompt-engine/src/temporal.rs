@@ -118,7 +118,7 @@ impl Default for TemporalSegmenter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Act, Character, PlotSummary, VisualStyle};
+    use crate::{Act, PlotSummary, VisualStyle};
 
     #[test]
     fn test_segment_count() {

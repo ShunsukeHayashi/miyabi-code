@@ -1,0 +1,149 @@
+version: '3.8'
+
+# Miyabi Data Warehouse - Docker Compose
+# Version: 1.0.0
+# Services: Airflow, PostgreSQL (Airflow metadata), PostgreSQL (Data Warehouse)
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.7.3-python3.11
+  environment:
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres-airflow:5432/airflow
+    - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
+    - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
+    - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    - AIRFLOW__WEBSERVER__SECRET_KEY=miyabi_secret_key_change_in_production
+    - AIRFLOW__CORE__DEFAULT_TIMEZONE=Asia/Tokyo
+    - AIRFLOW__CORE__PARALLELISM=16
+    - AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG=8
+    - AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG=3
+    # Connection IDs (configure these via Airflow UI or CLI)
+    - AIRFLOW_CONN_MIYABI_SOURCE_DB=postgresql://postgres:postgres@host.docker.internal:5432/miyabi
+    - AIRFLOW_CONN_MIYABI_DW=postgresql://postgres:postgres@postgres-dw:5432/miyabi_dw
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./airflow/logs:/opt/airflow/logs
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    postgres-airflow:
+      condition: service_healthy
+    postgres-dw:
+      condition: service_healthy
+
+services:
+  # ============================================================================
+  # PostgreSQL for Airflow Metadata
+  # ============================================================================
+  postgres-airflow:
+    image: postgres:15
+    container_name: miyabi-airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-airflow-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # ============================================================================
+  # PostgreSQL for Data Warehouse
+  # ============================================================================
+  postgres-dw:
+    image: postgres:15
+    container_name: miyabi-dw-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: miyabi_dw
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-dw-data:/var/lib/postgresql/data
+      - ./sql/ddl:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "work_mem=16MB"
+
+  # ============================================================================
+  # Airflow Webserver
+  # ============================================================================
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: miyabi-airflow-webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ============================================================================
+  # Airflow Scheduler
+  # ============================================================================
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: miyabi-airflow-scheduler
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ============================================================================
+  # Airflow Init (run once to initialize database)
+  # ============================================================================
+  airflow-init:
+    <<: *airflow-common
+    container_name: miyabi-airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/plugins
+        chown -R "${AIRFLOW_UID:-50000}:0" /opt/airflow/{logs,dags,plugins}
+        exec /entrypoint airflow version
+    environment:
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+
+volumes:
+  postgres-airflow-data:
+    name: miyabi-airflow-postgres-data
+  postgres-dw-data:
+    name: miyabi-dw-postgres-data
+
+networks:
+  default:
+    name: miyabi-dw-network

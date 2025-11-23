@@ -1,0 +1,187 @@
+@startuml dept_fishery_sales
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 販売部 業務フロー
+
+|#LightYellow|販売部長|
+start
+:本日の営業方針;
+note right
+  ・在庫確認
+  ・受注状況
+  ・市場情報
+  ・営業活動計画
+end note
+
+:営業スタッフ配置;
+fork
+  :ルート営業;
+fork again
+  :電話営業;
+fork again
+  :オンライン営業;
+fork again
+  :受発注事務;
+end fork
+
+|#LightGreen|ルート営業|
+:訪問先の確認;
+note right
+  ・スーパー
+  ・飲食店
+  ・卸業者
+  ・学校給食
+end note
+
+:営業先へ訪問;
+fork
+  :商品説明;
+  note right
+    ・鮮度
+    ・品質
+    ・栄養価
+    ・用途提案
+  end note
+fork again
+  :サンプル提供;
+  note right: 新商品紹介
+fork again
+  :価格交渉;
+fork again
+  :在庫確認;
+end fork
+
+while (訪問継続?) is (yes)
+  if (新規受注?) then (yes)
+    :受注票作成;
+    :納期確認;
+    :配送地確認;
+    :受発注事務へ引き渡し;
+  else (再注文)
+    :既存データ参照;
+    :追加注文;
+  endif
+endwhile (終了)
+
+|#LightCyan|電話営業|
+:既存顧客に電話;
+:新規見込客に営業電話;
+note right
+  ・冬場の食材営業
+  ・季節商品提案
+  ・特価情報提供
+end note
+
+:受注内容聴取;
+:納期・配送先確認;
+:特別要望記録;
+fork
+  :配送指定日時;
+fork again
+  :加工形態指定;
+fork again
+  :梱包方法指定;
+end fork
+
+:受発注事務へ報告;
+
+|#LightPink|オンライン営業|
+:EC販売サイト確認;
+note right
+  ・自社サイト
+  ・楽天・Amazon
+  ・LINEショップ
+  ・SNS販売
+end note
+
+:オンライン注文処理;
+:在庫連携;
+:配送手配;
+
+:顧客対応;
+fork
+  :質問回答;
+fork again
+  :返品対応;
+fork again
+  :クレーム対応;
+fork again
+  :評価レスポンス;
+end fork
+
+|#LightBlue|受発注事務|
+while (受注処理?) is (yes)
+  :受注情報整理;
+  note right
+    ・顧客名
+    ・商品名
+    ・数量
+    ・金額
+    ・納期
+  end note
+
+  :在庫確認;
+  if (在庫あり?) then (yes)
+    :加工部へ製造指示;
+    note right: 計画的製造の場合
+  else (在庫なし)
+    if (生産可能?) then (yes)
+      :急速製造指示;
+    else (不可)
+      :顧客へ納期相談;
+    endif
+  endif
+
+  :配送部へ配送指示;
+  note right
+    ・納期
+    ・配送先
+    ・特別指示
+  end note
+
+  :請求書作成;
+  :経理部へ送付;
+endwhile (終了)
+
+|#LightYellow|販売部長|
+:市場情報分析;
+fork
+  :相場価格調査;
+fork again
+  :競合他社分析;
+fork again
+  :消費者トレンド;
+fork again
+  :季節要因分析;
+end fork
+
+:販売戦略立案;
+note right
+  ・新商品開発企画
+  ・販売促進企画
+  ・価格戦略
+  ・顧客満足度向上
+end note
+
+:営業成績分析;
+note right
+  ・売上目標比較
+  ・営業効率分析
+  ・顧客別分析
+  ・商品別分析
+end note
+
+:営業会議開催;
+note right
+  ・週1回開催
+  ・成功事例共有
+  ・課題解決
+  ・翌週計画
+end note
+
+:営業レポート作成;
+
+stop
+
+@enduml

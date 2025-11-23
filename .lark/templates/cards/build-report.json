@@ -1,0 +1,106 @@
+{
+  "type": "template",
+  "description": "CI/CDビルドレポートカード",
+  "version": "1.0.0",
+  "fallback_message": {
+    "msg_type": "text",
+    "content": {
+      "text": "${build.status_icon} ビルド ${build.status}\n\n🔧 ワークフロー: ${build.workflow_name}\n🌿 ブランチ: ${build.branch}\n📊 結果: ${build.conclusion}\n⏱️ 所要時間: ${build.duration}\n🔗 ${build.html_url}"
+    }
+  },
+  "interactive_card_template": {
+    "config": {
+      "wide_screen_mode": true
+    },
+    "header": {
+      "template": "${build.header_color}",
+      "title": {
+        "content": "${build.status_icon} ビルド ${build.status}: ${build.workflow_name}",
+        "tag": "plain_text"
+      }
+    },
+    "elements": [
+      {
+        "tag": "div",
+        "fields": [
+          {
+            "is_short": true,
+            "text": {
+              "content": "**ブランチ:**\n${build.branch}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**結果:**\n${build.conclusion}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**所要時間:**\n${build.duration}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**コミット:**\n${build.commit_sha_short}",
+              "tag": "lark_md"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "div",
+        "text": {
+          "content": "${build.commit_message}",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "hr"
+      },
+      {
+        "tag": "div",
+        "text": {
+          "content": "**テスト結果:** ${build.test_summary}",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "action",
+        "actions": [
+          {
+            "tag": "button",
+            "text": {
+              "content": "ログを表示",
+              "tag": "plain_text"
+            },
+            "url": "${build.html_url}",
+            "type": "primary"
+          }
+        ]
+      }
+    ]
+  },
+  "status_mapping": {
+    "success": {
+      "icon": "✅",
+      "header_color": "green",
+      "conclusion": "成功"
+    },
+    "failure": {
+      "icon": "❌",
+      "header_color": "red",
+      "conclusion": "失敗"
+    },
+    "cancelled": {
+      "icon": "⚪",
+      "header_color": "grey",
+      "conclusion": "キャンセル"
+    }
+  }
+}

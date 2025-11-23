@@ -160,7 +160,7 @@ mod unified_error_tests {
     fn test_user_messages() {
         let error = WorkflowError::StepFailed {
             step_id: "validate_input".to_string(),
-            source: Box::new(std::io::Error::new(std::io::ErrorKind::Other, "test")),
+            source: Box::new(std::io::Error::other("test")),
         };
         let msg = error.user_message();
         assert!(msg.contains("validate_input"));
@@ -175,7 +175,7 @@ mod unified_error_tests {
     fn test_context_extraction() {
         let error = WorkflowError::StepFailed {
             step_id: "process_data".to_string(),
-            source: Box::new(std::io::Error::new(std::io::ErrorKind::Other, "test")),
+            source: Box::new(std::io::Error::other("test")),
         };
         assert!(error.context().is_some());
 

@@ -16,8 +16,8 @@ grpc = ["dep:tonic", "dep:prost", "dep:tonic-prost"]
 http = ["dep:axum", "dep:tower-http"]
 
 [dependencies]
-miyabi-types = { path = "../miyabi-types" }
-miyabi-github = { path = "../miyabi-github" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
 octocrab = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

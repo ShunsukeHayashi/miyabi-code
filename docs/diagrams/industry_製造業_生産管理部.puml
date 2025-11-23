@@ -1,0 +1,88 @@
+@startuml dept_manufacturing_production
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 生産管理部 業務フロー
+
+|#LightGreen|生産計画担当|
+start
+:受注情報受領;
+note right: 営業部からの生産依頼
+
+:生産能力確認;
+fork
+  :設備稼働状況確認;
+fork again
+  :人員配置確認;
+fork again
+  :在庫状況確認;
+end fork
+
+:生産計画立案;
+note right
+  ・MRP展開
+  ・負荷調整
+  ・納期設定
+end note
+
+if (資材不足?) then (yes)
+  :購買部へ発注依頼;
+  :入荷予定確認;
+else (no)
+endif
+
+:生産指示書作成;
+
+|#LightCyan|製造担当|
+:生産指示書受領;
+:作業準備;
+fork
+  :設備セットアップ;
+fork again
+  :資材搬入;
+fork again
+  :治工具準備;
+end fork
+
+:製造開始;
+
+while (生産完了?) is (継続)
+  :工程作業実施;
+  :工程内検査;
+  if (品質OK?) then (yes)
+    :次工程へ;
+  else (no)
+    :不良処理;
+    :原因分析;
+  endif
+endwhile (完了)
+
+:完成品検査依頼;
+
+|#LightYellow|品質管理連携|
+:最終検査実施;
+
+if (検査合格?) then (yes)
+  :合格ラベル貼付;
+  :完成品倉庫へ移動;
+else (no)
+  :不適合品処理;
+  :手直し/廃棄判定;
+endif
+
+|#LightGreen|生産計画担当|
+:生産実績登録;
+note right
+  ・数量
+  ・工数
+  ・歩留まり
+end note
+
+:原価計算データ作成;
+:経理部へ報告;
+
+:物流部へ出荷準備依頼;
+
+stop
+
+@enduml

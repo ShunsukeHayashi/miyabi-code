@@ -133,6 +133,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
                 onClick={() =>
                   onFiltersChange({ ...filters, searchQuery: "" })
                 }
+                aria-label="Clear search"
                 className="text-foreground-400 hover:text-foreground-600"
               >
                 <Icon icon="lucide:x" className="h-4 w-4" />
@@ -147,6 +148,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
           placeholder="ステータス"
           selectionMode="multiple"
           selectedKeys={new Set(filters.statusFilter)}
+          aria-label="ステータスフィルター"
           onSelectionChange={(keys) =>
             onFiltersChange({
               ...filters,
@@ -156,7 +158,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
           startContent={<Icon icon="lucide:filter" className="h-4 w-4" />}
         >
           {statusOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} textValue={option.label}>
               {option.label}
             </SelectItem>
           ))}
@@ -168,6 +170,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
           placeholder="タイプ"
           selectionMode="multiple"
           selectedKeys={new Set(filters.typeFilter)}
+          aria-label="タイプフィルター"
           onSelectionChange={(keys) =>
             onFiltersChange({
               ...filters,
@@ -177,7 +180,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
           startContent={<Icon icon="lucide:layers" className="h-4 w-4" />}
         >
           {typeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} textValue={option.label}>
               {option.emoji} {option.label}
             </SelectItem>
           ))}
@@ -188,6 +191,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
           className="w-full md:w-48"
           placeholder="並び替え"
           selectedKeys={new Set([filters.sortBy])}
+          aria-label="並び替え"
           onSelectionChange={(keys) => {
             const sortBy = Array.from(keys)[0] as "name" | "status" | "tasks";
             onFiltersChange({ ...filters, sortBy });
@@ -195,7 +199,7 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
           startContent={<Icon icon="lucide:arrow-up-down" className="h-4 w-4" />}
         >
           {sortOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} textValue={option.label}>
               {option.label}
             </SelectItem>
           ))}
@@ -212,6 +216,8 @@ export const AgentFilters: React.FC<AgentFiltersProps> = ({
               sortOrder: filters.sortOrder === "asc" ? "desc" : "asc",
             })
           }
+          aria-label="Toggle sort order"
+          data-testid="sort-order-toggle"
         >
           <Icon
             icon={

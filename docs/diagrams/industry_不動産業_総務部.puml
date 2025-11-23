@@ -1,0 +1,140 @@
+@startuml dept_realestate_general
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 総務部 業務フロー
+
+|#Lavender|人事担当|
+start
+:人員計画確認;
+note right
+  ・各部門要望
+  ・業容拡大計画
+  ・退職補充
+end note
+
+:採用活動;
+fork
+  :宅建士採用;
+fork again
+  :営業職採用;
+fork again
+  :事務職採用;
+end fork
+
+:面接調整;
+:採用決定;
+:入社手続き;
+
+:人員配置管理;
+:人事評価対応;
+:給与計算連携;
+
+|#LightCyan|労務管理担当|
+:勤怠管理;
+:残業管理;
+
+:社会保険手続き;
+:労働法令対応;
+
+|#LightYellow|宅建業法対応担当|
+:宅地建物取引士管理;
+note right
+  ・資格者名簿管理
+  ・登録更新
+  ・法定研修
+end note
+
+:業者免許管理;
+fork
+  :免許更新手続き;
+fork again
+  :変更届出;
+fork again
+  :業者名簿管理;
+end fork
+
+:営業保証金/保証協会管理;
+
+:帳簿・書類管理;
+note right
+  ・取引台帳
+  ・媒介契約書
+  ・重要事項説明書
+  ・37条書面
+end note
+
+:法令研修実施;
+:各部門への法令周知;
+
+|#LightPink|契約・法務担当|
+:重要事項説明書確認;
+note right: 各部門からの依頼
+
+:契約書審査;
+fork
+  :売買契約書;
+fork again
+  :賃貸借契約書;
+fork again
+  :媒介契約書;
+fork again
+  :管理委託契約書;
+end fork
+
+:法務相談対応;
+:顧問弁護士連携;
+
+if (訴訟/紛争?) then (yes)
+  :法的対応;
+  :弁護士手配;
+else (no)
+endif
+
+|#LightGreen|登記・許認可担当|
+:登記手続き支援;
+note right: 売買部からの依頼
+
+:司法書士連携;
+fork
+  :所有権移転登記;
+fork again
+  :抵当権設定;
+fork again
+  :抵当権抹消;
+end fork
+
+:各種許認可管理;
+note right
+  ・建設業許可
+  ・宅建業免許
+  ・マンション管理業登録
+end note
+
+|#Lavender|庶務担当|
+:文書管理;
+:備品管理;
+:福利厚生運営;
+
+:保険管理;
+fork
+  :賠償責任保険;
+fork again
+  :火災保険;
+fork again
+  :労災保険;
+end fork
+
+:施設管理;
+:経理部へ固定資産報告;
+
+:個人情報保護;
+note right
+  顧客情報
+  取引情報
+  従業員情報
+end note
+
+stop
+
+@enduml

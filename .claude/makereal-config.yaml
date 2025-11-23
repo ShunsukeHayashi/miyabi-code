@@ -1,0 +1,113 @@
+# Make Real AI Configuration
+# tldraw drawings → functional code conversion
+
+makereal:
+  # Vision API Configuration
+  vision_api: claude  # claude | openai
+  model: claude-sonnet-4-5-20250929
+
+  # Default Output Settings
+  default_output:
+    format: react           # html | react | svelte | rust-yew
+    css: tailwind           # tailwind | css-modules | styled-components
+    typescript: true
+    component_library: null # null | shadcn | mui | chakra
+
+  # System Prompt
+  system_prompt: |
+    あなたはUIデザイナー兼フロントエンド開発者です。
+    与えられた手描きUIスケッチを、機能的なReactコンポーネントに変換してください。
+
+    ガイドライン:
+    - Tailwind CSSを使用してスタイリング
+    - TypeScriptで型安全なコードを生成
+    - アクセシビリティ (WCAG 2.1 AA) を考慮
+    - Miyabiデザインシステムに準拠
+    - レスポンシブデザイン対応
+    - 適切なセマンティックHTML
+
+    出力形式:
+    - 各コンポーネントは単一ファイル
+    - Propsの型定義を含める
+    - 必要に応じてカスタムフックを作成
+    - コメントは日本語で記述
+
+  # Cost Management
+  cost_limit:
+    per_request_usd: 0.05    # Single generation cost limit
+    daily_max_usd: 5.00      # Daily total limit
+    monthly_max_usd: 50.00   # Monthly budget
+    warn_threshold: 0.8      # Alert at 80% of limit
+
+  # Preview Deployment
+  preview:
+    enabled: true
+    auto_deploy: true
+    environment: vercel      # vercel | cloudflare | miyabi-preview
+    domain: preview.miyabi.dev
+    ttl_hours: 24            # Auto-delete after 24 hours
+
+  # Integration
+  integration:
+    # Create GitHub Issue from design
+    github:
+      enabled: true
+      auto_create_issue: false
+      default_labels:
+        - "type/feature"
+        - "phase/design"
+        - "area/frontend"
+
+    # Connect to CodeGenAgent
+    codegen_agent:
+      enabled: true
+      auto_trigger: false
+      quality_check: true
+
+    # Obsidian linking
+    obsidian:
+      save_generated_code: true
+      output_directory: "drawings/generated"
+      link_to_source: true
+
+  # Output Templates
+  templates:
+    react:
+      file_extension: ".tsx"
+      imports: |
+        import React from 'react';
+      wrapper: |
+        export const {{ComponentName}}: React.FC<{{ComponentName}}Props> = (props) => {
+          return (
+            {{content}}
+          );
+        };
+
+    html:
+      file_extension: ".html"
+      wrapper: |
+        <!DOCTYPE html>
+        <html lang="ja">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <script src="https://cdn.tailwindcss.com"></script>
+          <title>{{title}}</title>
+        </head>
+        <body>
+          {{content}}
+        </body>
+        </html>
+
+  # Retry Configuration
+  retry:
+    max_attempts: 3
+    backoff_ms: 1000
+    timeout_ms: 30000
+
+  # Logging
+  logging:
+    level: info             # debug | info | warn | error
+    save_prompts: true
+    save_responses: true
+    log_directory: ".ai/logs/makereal"

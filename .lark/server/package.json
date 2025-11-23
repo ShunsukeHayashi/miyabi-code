@@ -1,0 +1,17 @@
+{
+  "name": "miyabi-lark-event-server",
+  "version": "1.0.0",
+  "description": "Miyabi Lark Event Subscription Server",
+  "main": "event-server.js",
+  "scripts": {
+    "start": "node event-server.js",
+    "dev": "nodemon event-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

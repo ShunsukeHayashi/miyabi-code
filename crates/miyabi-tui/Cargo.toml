@@ -34,12 +34,16 @@ pulldown-cmark = "0.13"
 tree-sitter-highlight = "0.25.10"
 tree-sitter-bash = "0.25"
 
+# Text Wrapping (Codex pattern)
+textwrap = "0.16"
+unicode-width = "0.2"
+
 # LLM Integration (Phase 1 - Option 1)
-miyabi-llm = { path = "../miyabi-llm" }
+miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 
 # Miyabi Core & Worktree
-miyabi-core = { path = "../miyabi-core" }
-miyabi-worktree = { path = "../miyabi-worktree" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-worktree = { path = "../miyabi-worktree", version = "0.1.2" }
 chrono = { workspace = true }
 
 # Async Runtime
@@ -61,6 +65,9 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 # Configuration & Directories
 dirs = "6.0"
 uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# System Monitoring
+sysinfo = "0.37"
 
 [dev-dependencies]
 tempfile = { workspace = true }

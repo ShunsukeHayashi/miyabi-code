@@ -1,0 +1,123 @@
+@startuml dept_retail_sales
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 販売部 業務フロー
+
+|#LightGreen|販売企画担当|
+start
+:販売計画策定;
+note right
+  ・年間販売計画
+  ・月次計画
+  ・週次計画
+end note
+
+:市場分析;
+fork
+  :顧客動向分析;
+fork again
+  :競合動向分析;
+fork again
+  :季節需要予測;
+end fork
+
+:販促キャンペーン企画;
+if (大型キャンペーン?) then (yes)
+  :経理部へ予算申請;
+  :承認待ち;
+else (no)
+endif
+
+:販促企画立案;
+fork
+  :セール企画;
+fork again
+  :ポイント企画;
+fork again
+  :イベント企画;
+fork again
+  :コラボ企画;
+end fork
+
+|#LightCyan|販促実行担当|
+:販促ツール作成;
+fork
+  :チラシ制作;
+fork again
+  :POP制作;
+fork again
+  :デジタル広告;
+fork again
+  :SNS投稿;
+end fork
+
+:店舗への販促指示;
+:仕入部へ発注依頼;
+
+:販促実施;
+:効果測定;
+note right
+  ・売上増減
+  ・来店客数
+  ・客単価変化
+  ・広告費対効果
+end note
+
+|#LightYellow|顧客管理担当|
+:顧客データ分析;
+fork
+  :購買履歴分析;
+fork again
+  :顧客セグメント;
+fork again
+  :RFM分析;
+end fork
+
+:会員プログラム運営;
+:ポイントプログラム管理;
+
+:CRM施策実行;
+if (ターゲット施策?) then (yes)
+  :DM/メール配信;
+  :クーポン発行;
+else (no)
+  :一斉施策;
+endif
+
+:顧客満足度調査;
+
+|#LightPink|EC担当|
+:ECサイト運営;
+
+:商品ページ管理;
+:在庫連携確認;
+
+:オンライン販促;
+fork
+  :メルマガ配信;
+fork again
+  :リスティング広告;
+fork again
+  :SNS広告;
+end fork
+
+:受注管理;
+:在庫管理部へ出荷依頼;
+
+|#LightGreen|販売企画担当|
+:販売実績集計;
+:KPI分析;
+note right
+  ・売上目標達成率
+  ・粗利率
+  ・客数/客単価
+  ・在庫回転率
+end note
+
+:経理部へ報告;
+:次期計画へ反映;
+
+stop
+
+@enduml

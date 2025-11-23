@@ -1,0 +1,110 @@
+{
+  "965": {
+    "title": "[P0] Kazuaki Agent - キャラクター性格の拡充",
+    "children": [],
+    "type": "epic"
+  },
+  "966": {
+    "title": "[P0] Kazuaki Agent - IAM権限要件の文書化",
+    "children": [
+      967
+    ],
+    "type": "epic"
+  },
+  "967": {
+    "title": "[P0] Kazuaki Agent - Rust-Pythonブリッジの詳細化",
+    "children": [],
+    "type": "epic"
+  },
+  "968": {
+    "title": "[P0] Kazuaki Agent - コスト閾値の明確化",
+    "children": [],
+    "type": "epic"
+  },
+  "971": {
+    "title": "🎯 [P0] Miyabi Reconstruction - Master Dependency Graph & Phase Structure",
+    "children": [
+      977
+    ],
+    "type": "epic"
+  },
+  "972": {
+    "title": "Phase 1.1: PostgreSQL Connection Enablement",
+    "children": [
+      977
+    ],
+    "type": "epic"
+  },
+  "973": {
+    "title": "Phase 1.2: Base Schema Migration",
+    "children": [
+      977
+    ],
+    "type": "epic"
+  },
+  "974": {
+    "title": "Phase 1.3: Organization/Team Schema Implementation",
+    "children": [
+      977
+    ],
+    "type": "epic"
+  },
+  "975": {
+    "title": "Phase 1.4: RBAC Implementation",
+    "children": [
+      977
+    ],
+    "type": "epic"
+  },
+  "976": {
+    "title": "Phase 1.5: JWT Authentication Implementation",
+    "children": [
+      977
+    ],
+    "type": "epic"
+  },
+  "977": {
+    "title": "🎯 [MASTER] Miyabi Reconstruction - Team Coordination & Context Preservation",
+    "children": [
+      993,
+      992,
+      991,
+      990,
+      989,
+      988,
+      987,
+      986,
+      985,
+      984,
+      983,
+      982,
+      981,
+      980,
+      979,
+      978
+    ],
+    "type": "epic"
+  },
+  "1003": {
+    "title": "📚 [EPIC] Documentation Optimization v1.1 - Improve Navigation & Reduce Complexity",
+    "children": [],
+    "type": "epic"
+  },
+  "1018": {
+    "title": "🚀 [EPIC] M1 Infrastructure Blitz - Production Deployment",
+    "children": [
+      1023,
+      1022,
+      1021,
+      1020,
+      1019,
+      1029,
+      1028,
+      1027,
+      1026,
+      1024,
+      1025
+    ],
+    "type": "epic"
+  }
+}

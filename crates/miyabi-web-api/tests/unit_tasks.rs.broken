@@ -1,0 +1,794 @@
+//! Task Service Unit Tests
+//!
+//! Comprehensive tests for task management with DAG dependencies.
+//! Target: 85% coverage of services/task_service.rs
+//!
+//! Test Categories:
+//! - CRUD Operations (8 tests)
+//! - DAG Dependencies (7 tests)
+//! - Query & Filtering (5 tests)
+//! - Execution State Management (5 tests)
+//! - Advanced Scenarios (5 tests)
+
+mod helpers;
+mod fixtures;
+
+use fixtures::tasks::{RepositoryFixture, TaskFixture};
+use fixtures::users::UserFixture;
+use helpers::{cleanup_test_database, setup_test_database};
+use miyabi_web_api::models::{CreateTaskRequest, TaskQueryFilters, UpdateTaskRequest};
+use miyabi_web_api::services::TaskService;
+use uuid::Uuid;
+
+// ========================================
+// Module 1: CRUD Operations (8 tests)
+// ========================================
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_create_task_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    // Create user and repository
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    // Create task
+    let request = CreateTaskRequest {
+        repository_id: repo.id,
+        name: "Test Task".to_string(),
+        description: Some("Test description".to_string()),
+        priority: Some("P1".to_string()),
+        agent_type: Some("CodeGen".to_string()),
+        issue_number: Some(123),
+        metadata: None,
+    };
+
+    let task = service.create_task(user.id, request).await.unwrap();
+
+    assert_eq!(task.name, "Test Task");
+    assert_eq!(task.status, "pending");
+    assert_eq!(task.priority, Some("P1".to_string()));
+    assert_eq!(task.user_id, user.id);
+    assert_eq!(task.repository_id, repo.id);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_create_task_validation_empty_name() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    // Empty name should fail
+    let request = CreateTaskRequest {
+        repository_id: repo.id,
+        name: "   ".to_string(),
+        description: None,
+        priority: None,
+        agent_type: None,
+        issue_number: None,
+        metadata: None,
+    };
+
+    let result = service.create_task(user.id, request).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("empty"));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_create_task_validation_invalid_priority() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    // Invalid priority should fail
+    let request = CreateTaskRequest {
+        repository_id: repo.id,
+        name: "Test Task".to_string(),
+        description: None,
+        priority: Some("P99".to_string()),
+        agent_type: None,
+        issue_number: None,
+        metadata: None,
+    };
+
+    let result = service.create_task(user.id, request).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("priority"));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_get_task_by_id_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    let retrieved = service.get_task(task.id, user.id).await.unwrap();
+
+    assert_eq!(retrieved.id, task.id);
+    assert_eq!(retrieved.name, task.name);
+    assert_eq!(retrieved.status, "pending");
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_get_task_by_id_not_found() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let fake_id = Uuid::new_v4();
+
+    let result = service.get_task(fake_id, user.id).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("not found"));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_update_task_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    let update = UpdateTaskRequest {
+        name: Some("Updated Task".to_string()),
+        description: Some("New description".to_string()),
+        status: None,
+        priority: Some("P0".to_string()),
+        metadata: None,
+    };
+
+    let updated = service.update_task(task.id, user.id, update).await.unwrap();
+
+    assert_eq!(updated.name, "Updated Task");
+    assert_eq!(updated.description, Some("New description".to_string()));
+    assert_eq!(updated.priority, Some("P0".to_string()));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_update_task_status_transition() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // Valid transition: pending -> running
+    let update = UpdateTaskRequest {
+        name: None,
+        description: None,
+        status: Some("running".to_string()),
+        priority: None,
+        metadata: None,
+    };
+
+    let updated = service.update_task(task.id, user.id, update).await.unwrap();
+    assert_eq!(updated.status, "running");
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_delete_task_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    service.delete_task(task.id, user.id).await.unwrap();
+
+    // Task should no longer exist
+    let result = service.get_task(task.id, user.id).await;
+    assert!(result.is_err());
+
+    cleanup_test_database(&db).await;
+}
+
+// ========================================
+// Module 2: DAG Dependencies (7 tests)
+// ========================================
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_add_dependency_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // task2 depends on task1
+    let dep = service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+
+    assert_eq!(dep.task_id, task2.id);
+    assert_eq!(dep.depends_on_task_id, task1.id);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_add_dependency_circular_detection() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // task2 depends on task1
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+
+    // task1 depends on task2 would create a cycle
+    let result = service.add_dependency(task1.id, task2.id, user.id).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("ircular"));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_add_dependency_self_reference() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // Task cannot depend on itself
+    let result = service.add_dependency(task.id, task.id, user.id).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("itself"));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_remove_dependency() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // Add dependency
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+
+    // Remove dependency
+    service.remove_dependency(task2.id, task1.id, user.id).await.unwrap();
+
+    // Verify removed
+    let deps = service.get_dependencies(task2.id, user.id).await.unwrap();
+    assert_eq!(deps.len(), 0);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_get_dependencies_upstream() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task3 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // task3 depends on task1 and task2
+    service.add_dependency(task3.id, task1.id, user.id).await.unwrap();
+    service.add_dependency(task3.id, task2.id, user.id).await.unwrap();
+
+    let deps = service.get_dependencies(task3.id, user.id).await.unwrap();
+    assert_eq!(deps.len(), 2);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_get_dependents_downstream() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task3 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // task2 and task3 depend on task1
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+    service.add_dependency(task3.id, task1.id, user.id).await.unwrap();
+
+    let dependents = service.get_dependents(task1.id, user.id).await.unwrap();
+    assert_eq!(dependents.len(), 2);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_topological_sort_execution_order() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    // Create DAG: task1 -> task2 -> task3
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task3 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+    service.add_dependency(task3.id, task2.id, user.id).await.unwrap();
+
+    let sorted = service.get_execution_order(user.id, repo.id).await.unwrap();
+    assert_eq!(sorted.len(), 3);
+
+    // task1 should come before task2, task2 before task3
+    let positions: std::collections::HashMap<_, _> = sorted.iter().enumerate().map(|(i, t)| (t.id, i)).collect();
+    assert!(positions[&task1.id] < positions[&task2.id]);
+    assert!(positions[&task2.id] < positions[&task3.id]);
+
+    cleanup_test_database(&db).await;
+}
+
+// ========================================
+// Module 3: Query & Filtering (5 tests)
+// ========================================
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_list_tasks_by_status() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    TaskFixture::running(db.pool(), user.id, repo.id).await;
+    TaskFixture::completed(db.pool(), user.id, repo.id).await;
+
+    let filters = TaskQueryFilters {
+        status: Some("pending".to_string()),
+        repository_id: None,
+        agent_type: None,
+        priority: None,
+        page: 1,
+        limit: 20,
+    };
+
+    let (tasks, total) = service.list_tasks(user.id, filters).await.unwrap();
+    assert_eq!(tasks.len(), 2);
+    assert_eq!(total, 2);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_list_tasks_by_repository() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo1 = RepositoryFixture::create(db.pool(), user.id, "owner", "repo1").await;
+    let repo2 = RepositoryFixture::create(db.pool(), user.id, "owner", "repo2").await;
+
+    TaskFixture::pending(db.pool(), user.id, repo1.id).await;
+    TaskFixture::pending(db.pool(), user.id, repo1.id).await;
+    TaskFixture::pending(db.pool(), user.id, repo2.id).await;
+
+    let filters = TaskQueryFilters {
+        status: None,
+        repository_id: Some(repo1.id),
+        agent_type: None,
+        priority: None,
+        page: 1,
+        limit: 20,
+    };
+
+    let (tasks, total) = service.list_tasks(user.id, filters).await.unwrap();
+    assert_eq!(tasks.len(), 2);
+    assert_eq!(total, 2);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_list_tasks_by_priority() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    TaskFixture::with_priority(db.pool(), user.id, repo.id, "P0").await;
+    TaskFixture::with_priority(db.pool(), user.id, repo.id, "P0").await;
+    TaskFixture::with_priority(db.pool(), user.id, repo.id, "P1").await;
+    TaskFixture::with_priority(db.pool(), user.id, repo.id, "P2").await;
+
+    let filters = TaskQueryFilters {
+        status: None,
+        repository_id: None,
+        agent_type: None,
+        priority: Some("P0".to_string()),
+        page: 1,
+        limit: 20,
+    };
+
+    let (tasks, total) = service.list_tasks(user.id, filters).await.unwrap();
+    assert_eq!(tasks.len(), 2);
+    assert_eq!(total, 2);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_list_tasks_pagination() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    // Create 5 tasks
+    for _ in 0..5 {
+        TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    }
+
+    let filters = TaskQueryFilters {
+        status: None,
+        repository_id: None,
+        agent_type: None,
+        priority: None,
+        page: 1,
+        limit: 2,
+    };
+
+    let (tasks, total) = service.list_tasks(user.id, filters).await.unwrap();
+    assert_eq!(tasks.len(), 2);
+    assert_eq!(total, 5);
+
+    // Page 2
+    let filters2 = TaskQueryFilters {
+        status: None,
+        repository_id: None,
+        agent_type: None,
+        priority: None,
+        page: 2,
+        limit: 2,
+    };
+
+    let (tasks2, total2) = service.list_tasks(user.id, filters2).await.unwrap();
+    assert_eq!(tasks2.len(), 2);
+    assert_eq!(total2, 5);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_list_tasks_combined_filters() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    TaskFixture::with_priority(db.pool(), user.id, repo.id, "P0").await;
+    TaskFixture::with_priority(db.pool(), user.id, repo.id, "P1").await;
+
+    let filters = TaskQueryFilters {
+        status: Some("pending".to_string()),
+        repository_id: Some(repo.id),
+        agent_type: None,
+        priority: Some("P0".to_string()),
+        page: 1,
+        limit: 20,
+    };
+
+    let (tasks, total) = service.list_tasks(user.id, filters).await.unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(total, 1);
+
+    cleanup_test_database(&db).await;
+}
+
+// ========================================
+// Module 4: Execution State Management (5 tests)
+// ========================================
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_start_task_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    let started = service.start_task(task.id, user.id).await.unwrap();
+
+    assert_eq!(started.status, "running");
+    assert!(started.started_at.is_some());
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_start_task_blocked_by_dependencies() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // task2 depends on task1 (which is not completed)
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+
+    // Starting task2 should fail
+    let result = service.start_task(task2.id, user.id).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("not completed"));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_complete_task_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::running(db.pool(), user.id, repo.id).await;
+
+    let result_data = serde_json::json!({"success": true, "output": "done"});
+    let completed = service.complete_task(task.id, user.id, Some(result_data.clone())).await.unwrap();
+
+    assert_eq!(completed.status, "completed");
+    assert!(completed.completed_at.is_some());
+    assert_eq!(completed.result, Some(result_data));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_fail_task_with_retry() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::running(db.pool(), user.id, repo.id).await;
+
+    // First failure should retry (reset to pending)
+    let failed = service.fail_task(task.id, user.id, "Test error".to_string()).await.unwrap();
+
+    assert_eq!(failed.status, "pending");
+    assert_eq!(failed.retry_count, 1);
+    assert_eq!(failed.error_message, Some("Test error".to_string()));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_cancel_task_success() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::running(db.pool(), user.id, repo.id).await;
+
+    let cancelled = service.cancel_task(task.id, user.id).await.unwrap();
+
+    assert_eq!(cancelled.status, "cancelled");
+    assert!(cancelled.cancelled_at.is_some());
+
+    cleanup_test_database(&db).await;
+}
+
+// ========================================
+// Module 5: Advanced Scenarios (5 tests)
+// ========================================
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_cascade_delete_dependencies() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+
+    // Delete task1
+    service.delete_task(task1.id, user.id).await.unwrap();
+
+    // task2 should have no dependencies now
+    let deps = service.get_dependencies(task2.id, user.id).await.unwrap();
+    assert_eq!(deps.len(), 0);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_complex_dag_parallel_execution() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    // Create diamond DAG: task1 -> (task2, task3) -> task4
+    let task1 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task2 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task3 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+    let task4 = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    service.add_dependency(task2.id, task1.id, user.id).await.unwrap();
+    service.add_dependency(task3.id, task1.id, user.id).await.unwrap();
+    service.add_dependency(task4.id, task2.id, user.id).await.unwrap();
+    service.add_dependency(task4.id, task3.id, user.id).await.unwrap();
+
+    let sorted = service.get_execution_order(user.id, repo.id).await.unwrap();
+    assert_eq!(sorted.len(), 4);
+
+    // task1 must be first, task4 must be last
+    assert_eq!(sorted[0].id, task1.id);
+    assert_eq!(sorted[3].id, task4.id);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_task_timeout_handling() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let request = CreateTaskRequest {
+        repository_id: repo.id,
+        name: "Timeout Task".to_string(),
+        description: None,
+        priority: None,
+        agent_type: None,
+        issue_number: None,
+        metadata: None,
+    };
+
+    let task = service.create_task(user.id, request).await.unwrap();
+
+    // Default timeout should be 3600 seconds
+    assert_eq!(task.timeout_seconds, 3600);
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_metadata_preservation() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+
+    let metadata = serde_json::json!({
+        "custom_field": "value",
+        "tags": ["tag1", "tag2"],
+        "config": {"key": "value"}
+    });
+
+    let request = CreateTaskRequest {
+        repository_id: repo.id,
+        name: "Metadata Task".to_string(),
+        description: None,
+        priority: None,
+        agent_type: None,
+        issue_number: None,
+        metadata: Some(metadata.clone()),
+    };
+
+    let task = service.create_task(user.id, request).await.unwrap();
+
+    assert_eq!(task.metadata, Some(metadata));
+
+    cleanup_test_database(&db).await;
+}
+
+#[tokio::test]
+#[ignore] // Requires database
+async fn test_invalid_status_transition() {
+    let db = setup_test_database().await;
+    let service = TaskService::new(db.pool().clone());
+
+    let user = UserFixture::create(db.pool(), "testuser", "test@example.com").await;
+    let repo = RepositoryFixture::create(db.pool(), user.id, "testowner", "testrepo").await;
+    let task = TaskFixture::pending(db.pool(), user.id, repo.id).await;
+
+    // Invalid transition: pending -> completed (must go through running)
+    let update = UpdateTaskRequest {
+        name: None,
+        description: None,
+        status: Some("completed".to_string()),
+        priority: None,
+        metadata: None,
+    };
+
+    let result = service.update_task(task.id, user.id, update).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("transition"));
+
+    cleanup_test_database(&db).await;
+}

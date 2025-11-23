@@ -1,0 +1,110 @@
+@startuml industry_automotive_経理
+!theme cerulean-outline
+
+title 自動車販売・整備会社 - 経理部門 業務フロー
+
+|各部門|
+|経理担当|
+|経理マネージャー|
+|外部|
+
+|各部門|
+start
+:売上報告;
+note right
+・新車販売
+・中古車販売
+・整備売上
+・車検売上
+・保険手数料
+end note
+
+|経理担当|
+fork
+  :売上管理;
+  note right
+  ・日次売上集計
+  ・車両台帳管理
+  ・粗利計算
+  end note
+fork again
+  :仕入管理;
+  note right
+  ・新車仕入
+  ・中古車仕入
+  ・部品仕入
+  end note
+fork again
+  :経費管理;
+  note right
+  ・広告宣伝費
+  ・人件費
+  ・地代家賃
+  ・水道光熱費
+  end note
+end fork
+
+:請求書発行;
+note right
+・整備請求
+・車検請求
+・車両販売請求
+end note
+
+:入金管理;
+
+if (入金遅延?) then (はい)
+  :督促連絡;
+endif
+
+:入金消込;
+
+:支払処理;
+note right
+・メーカー支払
+・オークション支払
+・部品商支払
+・外注費
+end note
+
+|経理マネージャー|
+:資金繰り管理;
+note right
+・キャッシュフロー予測
+・在庫資金管理
+・運転資金確保
+end note
+
+|経理担当|
+:給与計算;
+:社会保険手続き;
+
+:月次決算;
+note right
+・売上計上
+・原価計上
+・在庫棚卸
+・減価償却
+end note
+
+|経理マネージャー|
+:月次業績報告;
+note right
+・車種別販売実績
+・粗利分析
+・部門別収支
+・前年比較
+end note
+
+|外部|
+:税理士報告;
+:四半期決算;
+:年次決算・申告;
+
+|経理担当|
+:法定調書作成;
+:消費税申告;
+
+stop
+
+@enduml

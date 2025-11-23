@@ -4,13 +4,21 @@
 //! Generates quality reports with scores and recommendations.
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
 use miyabi_core::security::{run_cargo_audit, Vulnerability, VulnerabilitySeverity};
+use miyabi_core::ExecutionMode;
 use miyabi_types::agent::{AgentMetrics, EscalationInfo, EscalationTarget, ResultStatus, Severity};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::quality::*;
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
+use serde_json::json;
 use std::path::Path;
 
 pub struct ReviewAgent {
@@ -499,7 +507,7 @@ fn format_vulnerability(vuln: &Vulnerability) -> String {
 }
 
 /// Security audit result
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 #[allow(dead_code)] // Fields reserved for future use
 struct SecurityResult {
     score: u8,
@@ -514,6 +522,155 @@ struct CoverageResult {
     score: u8,
     coverage_percent: f64,
     passed: bool,
+}
+
+/// A2A Protocol Implementation for ReviewAgent
+///
+/// This enables ReviewAgent to:
+/// - Perform code reviews via A2A requests
+/// - Use native Rust tools for static analysis
+/// - Return quality reports to other agents
+#[async_trait]
+impl A2AEnabled for ReviewAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("review-agent", "Code Review Agent")
+            .description("Code quality review, static analysis, and security auditing")
+            .version("0.1.0")
+            .capability(AgentCapability {
+                id: "review_code".to_string(),
+                name: "Code Review".to_string(),
+                description: "Perform comprehensive code quality review".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "task_id": { "type": "string" },
+                        "title": { "type": "string" },
+                        "description": { "type": "string" },
+                        "task_type": { "type": "string", "enum": ["Feature", "Bug", "Refactor"] },
+                        "review_path": { "type": "string" }
+                    },
+                    "required": ["task_id", "title"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "quality_report": { "type": "object" },
+                        "approved": { "type": "boolean" },
+                        "escalation_required": { "type": "boolean" },
+                        "comments": { "type": "array" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "security_audit".to_string(),
+                name: "Security Audit".to_string(),
+                description: "Run security audit using cargo-audit".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "path": { "type": "string" }
+                    },
+                    "required": ["path"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "score": { "type": "integer" },
+                        "vulnerabilities": { "type": "array" },
+                        "passed": { "type": "boolean" }
+                    }
+                })),
+            })
+            .input_mode("json")
+            .output_mode("json")
+            .metadata("agent_type", json!("ReviewAgent"))
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "review_code" => {
+                let task_id = task.input["task_id"]
+                    .as_str()
+                    .unwrap_or("a2a-review")
+                    .to_string();
+                let title = task.input["title"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?
+                    .to_string();
+                let description = task.input["description"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string();
+                let task_type_str = task.input["task_type"]
+                    .as_str()
+                    .unwrap_or("Feature");
+
+                let task_type = match task_type_str {
+                    "Bug" => TaskType::Bug,
+                    "Refactor" => TaskType::Refactor,
+                    _ => TaskType::Feature,
+                };
+
+                let miyabi_task = Task {
+                    id: task_id,
+                    title,
+                    description,
+                    task_type,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::ReviewAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(15),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
+
+                let result = self
+                    .review_code(&miyabi_task)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(result)
+                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "security_audit" => {
+                let path = task.input["path"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing path".to_string()))?;
+
+                let result = self
+                    .run_security_audit(Path::new(path))
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(result)
+                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        // ReviewAgent needs command execution for running clippy, rustc, cargo-audit
+        ExecutionMode::FullAccess
+    }
 }
 
 #[cfg(test)]

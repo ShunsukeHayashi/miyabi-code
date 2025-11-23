@@ -1,0 +1,146 @@
+@startuml dept_restaurant_hygiene
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 衛生管理部 業務フロー
+
+|#LightYellow|衛生管理責任者|
+start
+:衛生管理計画策定;
+note right
+  ・HACCP対応
+  ・年間点検計画
+  ・教育訓練計画
+end note
+
+:衛生基準設定;
+fork
+  :食材管理基準;
+fork again
+  :調理温度基準;
+fork again
+  :保管温度基準;
+fork again
+  :清掃基準;
+end fork
+
+|#LightCyan|日常衛生点検担当|
+:日次衛生点検;
+
+while (営業日?) is (継続)
+  :始業時点検;
+  fork
+    :従業員健康チェック;
+  fork again
+    :手洗い確認;
+  fork again
+    :身だしなみ確認;
+  end fork
+
+  :温度記録確認;
+  note right
+    ・冷蔵庫温度
+    ・冷凍庫温度
+    ・調理温度
+    ・保温温度
+  end note
+
+  if (温度異常?) then (yes)
+    :緊急対応;
+    :機器修理手配;
+    :食材廃棄判断;
+  else (no)
+  endif
+
+  :調理場巡回;
+  if (衛生違反?) then (yes)
+    :是正指示;
+    :是正確認;
+  else (no)
+  endif
+endwhile (終了)
+
+:終業時点検;
+:点検記録作成;
+
+|#LightPink|食材品質管理担当|
+:入荷食材検査;
+fork
+  :鮮度確認;
+fork again
+  :温度確認;
+fork again
+  :包装状態確認;
+fork again
+  :賞味期限確認;
+end fork
+
+if (品質基準クリア?) then (yes)
+  :受入記録作成;
+else (no)
+  :返品処理;
+  :仕入部へ報告;
+endif
+
+:在庫管理;
+:先入れ先出し確認;
+:期限管理;
+
+if (期限切れリスク?) then (yes)
+  :調理部へ優先使用依頼;
+  :廃棄判断;
+endif
+
+|#LightGreen|監査・教育担当|
+:定期衛生監査;
+fork
+  :厨房監査;
+fork again
+  :ホール監査;
+fork again
+  :倉庫監査;
+fork again
+  :従業員監査;
+end fork
+
+:監査報告書作成;
+:改善計画策定;
+:店舗運営部へ報告;
+
+:衛生教育実施;
+note right
+  ・新人教育
+  ・定期講習
+  ・食中毒予防
+  ・アレルギー対応
+end note
+
+:仕入先監査;
+:仕入部へ評価報告;
+
+|#LightYellow|衛生管理責任者|
+:保健所対応;
+if (立入検査?) then (yes)
+  :検査対応;
+  :指摘事項対応;
+  :改善報告;
+else (no)
+endif
+
+:細菌検査実施;
+:検査結果分析;
+
+if (食中毒発生?) then (yes)
+  :緊急対応;
+  :原因究明;
+  :保健所報告;
+  :再発防止策;
+else (no)
+endif
+
+:衛生マニュアル更新;
+:総務部へ許認可対応;
+
+stop
+
+@enduml

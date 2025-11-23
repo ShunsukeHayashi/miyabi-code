@@ -193,6 +193,7 @@ export default function DeploymentPipelinePage() {
             size="lg"
             showValueLabel
             className="max-w-full"
+            aria-label="Deployment progress"
           />
           <div className="grid grid-cols-4 gap-4 mt-4">
             <div>

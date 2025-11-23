@@ -122,7 +122,7 @@ describe('LogsPage', () => {
 
   describe('Search', () => {
     it('should filter logs by search query', async () => {
-      const { getByPlaceholderText, getByText, queryByText } = render(<LogsPage />)
+      const { getByPlaceholderText, getByText } = render(<LogsPage />)
 
       await waitFor(() => {
         expect(getByText('Agent initialization completed successfully')).toBeInTheDocument()

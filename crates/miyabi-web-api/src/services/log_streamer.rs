@@ -86,7 +86,7 @@ impl LogStreamer {
     fn capture_pane_logs(&self) -> Result<Vec<String>, ApiError> {
         // Use tmux capture-pane to get pane content
         let output = Command::new("tmux")
-            .args(&[
+            .args([
                 "capture-pane",
                 "-p",           // Print to stdout
                 "-t",           // Target pane

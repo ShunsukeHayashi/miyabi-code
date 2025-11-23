@@ -3,7 +3,14 @@
 //! Conventional Commits準拠のPRタイトル生成、説明文生成、Label付与、レビュワー割り当てを実行
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_github::GitHubClient;
 use miyabi_types::{
     agent::{AgentConfig, AgentResult, AgentType, ResultStatus},
@@ -11,6 +18,7 @@ use miyabi_types::{
     task::{Task, TaskType},
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::HashMap;
 
 /// PRAgent - Pull Request自動作成Agent
@@ -285,6 +293,110 @@ pub struct PRCreationResult {
     pub branch: String,
     pub base_branch: String,
     pub labels: Vec<String>,
+}
+
+#[async_trait]
+impl A2AEnabled for PRAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("PRAgent", "Pull Request creation and management agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "create_pr".to_string(),
+                name: "Create Pull Request".to_string(),
+                description: "Create a draft PR with Conventional Commits title, labels, and description".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "branch": { "type": "string", "description": "Source branch name" },
+                        "base_branch": { "type": "string", "description": "Target branch (default: main)" },
+                        "title": { "type": "string", "description": "PR title" },
+                        "description": { "type": "string", "description": "PR description" },
+                        "task_type": { "type": "string", "description": "Task type for label inference" }
+                    },
+                    "required": ["branch", "title"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "pr_number": { "type": "integer" },
+                        "pr_url": { "type": "string" },
+                        "title": { "type": "string" },
+                        "labels": { "type": "array", "items": { "type": "string" } }
+                    }
+                })),
+            })
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "create_pr" => {
+                let branch = task.input.get("branch")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing branch".to_string()))?;
+
+                let title = task.input.get("title")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?;
+
+                let base_branch = task.input.get("base_branch")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("main");
+
+                let description = task.input.get("description")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+
+                // Build task for internal execution
+                let mut metadata = HashMap::new();
+                metadata.insert("branch".to_string(), json!(branch));
+                metadata.insert("baseBranch".to_string(), json!(base_branch));
+
+                let internal_task = Task {
+                    id: task.id.clone(),
+                    title: title.to_string(),
+                    description: description.to_string(),
+                    task_type: TaskType::Feature,
+                    priority: 2,
+                    severity: None,
+                    impact: None,
+                    dependencies: vec![],
+                    metadata: Some(metadata),
+                    assigned_agent: None,
+                    estimated_duration: None,
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                };
+
+                let result = self.create_pr(&internal_task).await.map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("PR creation failed: {}", e))
+                })?;
+
+                Ok(A2ATaskResult::Success {
+                    output: json!({
+                        "pr_number": result.pr_number,
+                        "pr_url": result.pr_url,
+                        "title": result.title,
+                        "branch": result.branch,
+                        "base_branch": result.base_branch,
+                        "labels": result.labels
+                    }),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(
+                format!("Unknown capability: {}", task.capability)
+            ))
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::FullAccess // Needs GitHub API access
+    }
 }
 
 #[cfg(test)]

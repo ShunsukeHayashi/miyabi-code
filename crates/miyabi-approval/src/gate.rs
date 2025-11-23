@@ -24,8 +24,13 @@ pub struct ApprovalGate {
 }
 
 impl ApprovalGate {
+    /// Create a new approval gate with default settings
+    pub fn new(gate_id: impl Into<String>) -> Result<Self> {
+        Self::builder(gate_id).build()
+    }
+
     /// Create a new approval gate builder
-    pub fn new(gate_id: impl Into<String>) -> ApprovalGateBuilder {
+    pub fn builder(gate_id: impl Into<String>) -> ApprovalGateBuilder {
         ApprovalGateBuilder {
             gate_id: gate_id.into(),
             required_approvers: Vec::new(),

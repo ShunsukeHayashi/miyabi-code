@@ -263,7 +263,7 @@ async fn append_timeline_payload(payload: &TimelinePushRequest) -> Result<PathBu
         }
 
         let json = serde_json::to_string(payload)
-            .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
+            .map_err(std::io::Error::other)?;
 
         let mut file = OpenOptions::new().create(true).append(true).open(&path).await?;
 

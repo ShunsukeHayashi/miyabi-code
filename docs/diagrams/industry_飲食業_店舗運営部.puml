@@ -1,0 +1,101 @@
+@startuml dept_restaurant_store
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 店舗運営部 業務フロー
+
+|#LightBlue|店長|
+start
+:開店準備;
+fork
+  :店内清掃確認;
+fork again
+  :食材在庫確認;
+fork again
+  :スタッフ朝礼;
+fork again
+  :予約状況確認;
+end fork
+
+:当日の営業計画確認;
+note right
+  ・予約数
+  ・仕込み量
+  ・特別対応
+end note
+
+:シフト最終確認;
+
+|#LightCyan|フロア管理|
+:フロア準備;
+fork
+  :テーブルセッティング;
+fork again
+  :照明/空調調整;
+fork again
+  :BGM設定;
+fork again
+  :メニュー/POP確認;
+end fork
+
+:予約席確保;
+
+|#LightGreen|キッチン管理|
+:調理部と仕込み確認;
+:本日のおすすめ確認;
+:品切れ予定確認;
+
+|#LightBlue|店長|
+while (営業時間?) is (継続)
+  :店舗状況監視;
+
+  if (混雑状況?) then (混雑)
+    :テーブル回転管理;
+    :応援要請検討;
+  else (通常)
+    :通常オペレーション;
+  endif
+
+  if (クレーム発生?) then (yes)
+    :クレーム対応;
+    :状況報告書作成;
+  else (no)
+  endif
+endwhile (閉店)
+
+:閉店作業管理;
+fork
+  :レジ締め;
+fork again
+  :売上集計;
+fork again
+  :翌日準備確認;
+end fork
+
+:日報作成;
+note right
+  ・売上実績
+  ・客数/客単価
+  ・原価率
+  ・特記事項
+end note
+
+:経理部へ売上報告;
+
+:発注業務;
+if (在庫不足?) then (yes)
+  :仕入部へ発注依頼;
+else (no)
+endif
+
+:翌日シフト確認;
+
+if (緊急事態?) then (yes)
+  :本部へ報告;
+  :対応策実施;
+else (no)
+endif
+
+stop
+
+@enduml

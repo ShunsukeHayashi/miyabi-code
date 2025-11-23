@@ -1,0 +1,162 @@
+@startuml industry_funeral_reception
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 葬儀業 相談受付部 業務フロー
+
+|#FFE6E6|受付担当|
+start
+:電話/来社対応;
+note right
+  ・遺族の問い合わせ受付
+  ・故人情報確認
+  ・搬送手配の可否判断
+end note
+
+:基本情報入力;
+fork
+  :故人氏名・年齢;
+fork again
+  :亡くなった場所;
+fork again
+  :死亡診断書の有無;
+fork again
+  :搬送希望先;
+end fork
+
+|#FFD9D9|初期対応担当|
+if (搬送手配が必要?) then (yes)
+  :搬送部に急送;
+  note right: 搬送手配
+else (no)
+  :受け取り予定日時を確認;
+endif
+
+|#FFE6E6|受付担当|
+:遺族を応接室へご案内;
+
+:プラン説明開始;
+fork
+  :一般葬プラン\n(30-50名程度);
+fork again
+  :家族葬プラン\n(10-20名程度);
+fork again
+  :一日葬プラン\n(通夜なし);
+fork again
+  :火葬式プラン\n(最小限);
+end fork
+
+|#FFD9D9|プラン提案担当|
+while (プラン選択?) is (検討中)
+  :プランの詳細説明;
+  note right
+    ・セレモニーの内容
+    ・式場選択肢
+    ・金額内訳
+    ・サービス内容
+  end note
+
+  if (ご質問?) then (あり)
+    :詳細説明;
+  else (確認OK)
+    :プラン決定;
+  endif
+endwhile (決定)
+
+|#FFE6E6|契約担当|
+:見積書作成;
+fork
+  :基本プラン費用;
+fork again
+  :祭壇・装飾費;
+fork again
+  :食事代;
+fork again
+  :送迎費;
+fork again
+  :諸手数料;
+end fork
+
+:契約内容確認;
+note right
+  ・プラン内容確認
+  ・金額確認
+  ・支払方法説明
+  ・キャンセル規定
+end note
+
+if (契約に同意?) then (yes)
+  :契約書署名;
+  :印鑑証明等書類確認;
+else (変更希望)
+  :プラン再検討;
+  note right: ステップバックして再検討
+endif
+
+|#FFD9D9|葬儀準備担当|
+:葬儀日程・時間確定;
+fork
+  :搬送時間;
+fork again
+  :通夜日時;
+fork again
+  :葬儀・告別式日時;
+fork again
+  :火葬場手配;
+end fork
+
+:葬儀ディレクターに進捗報告;
+:式場の仮予約;
+:来客見込み数の把握;
+
+|#FFE6E6|受付担当|
+:遺族様へ次のステップを説明;
+note right
+  ・葬儀ディレクターからの連絡予定日
+  ・準備物の説明
+  ・キャンセル時の連絡先
+  ・緊急連絡先確認
+end note
+
+:遺族様に搬送車同乗をご提案;
+if (同乗希望?) then (yes)
+  :搬送部に同乗情報を送付;
+else (no)
+  :別途移動手段を説明;
+endif
+
+|#FFD9D9|事務処理担当|
+:契約書・見積書の整理;
+:経理部に契約情報を送付;
+note right
+  ・契約金額
+  ・希望プラン
+  ・支払期限
+  ・追加料金の可能性
+end note
+
+:総務部に人員配置要請;
+note right
+  ・葬儀日程
+  ・来客見込み数
+  ・必要スタッフ数
+end note
+
+:葬儀ディレクターへ詳細情報を送付;
+:すべての関連部門へシステム入力;
+
+|#FFE6E6|受付担当|
+:当日の遺族連絡先を確認;
+:天候・交通情報を把握;
+:最終確認電話;
+note right
+  ・時間の再確認
+  ・変更事項の確認
+  ・特別な希望の再確認
+end note
+
+:搬送車到着予定時刻を遺族に通知;
+
+stop
+
+@enduml

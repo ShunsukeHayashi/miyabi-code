@@ -3,6 +3,7 @@
 //! This crate provides the foundational `BaseAgent` trait that all agents implement,
 //! along with common utilities for agent orchestration and lifecycle management.
 
+pub mod a2a_integration;
 pub mod auto_index_hook;
 pub mod base;
 pub mod config;
@@ -13,6 +14,13 @@ pub mod prompt_enhancement;
 // TODO: Re-enable after miyabi_core::rules is implemented
 // pub mod rules_context;
 
+pub use a2a_integration::{
+    A2AAgentCard, A2AArtifact, A2AEnabled, A2AGatewayClient, A2AIntegrationError, A2ATask,
+    A2ATaskResult, AgentCapability, AgentCardBuilder, NativeTool, NativeToolResult,
+};
+// Re-export core tool types for convenience
+pub use miyabi_core::tools::{ToolRegistry, ToolResult as CoreToolResult};
+pub use miyabi_core::ExecutionMode;
 pub use auto_index_hook::AutoIndexHook;
 pub use base::BaseAgent;
 pub use config::{

@@ -1,11 +1,15 @@
 [package]
 name = "miyabi-pty-manager"
-version = "0.1.0"
-edition = "2021"
-authors = ["Miyabi Team"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
 description = "PTY (Pseudo-Terminal) management for Miyabi autonomous agents"
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/ShunsukeHayashi/Miyabi"
+keywords = ["pty", "terminal", "automation", "miyabi"]
+categories = ["development-tools", "asynchronous"]
+readme = "README.md"
 
 [dependencies]
 # Core PTY functionality

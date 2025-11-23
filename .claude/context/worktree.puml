@@ -1,0 +1,222 @@
+@startuml Miyabi Worktree Protocol - Parallel Execution Architecture
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+skinparam shadowing false
+skinparam roundCorner 10
+
+title Miyabi Worktree Protocol v2.0.1 - Git Worktree Parallel Execution
+
+' Worktree Lifecycle
+state "Worktree Lifecycle Protocol" as lifecycle {
+  [*] --> Phase1_Creation
+
+  state "Phase 1: Worktree Creation" as Phase1_Creation {
+    Phase1_Creation : CoordinatorAgent executes
+    Phase1_Creation : git worktree add
+    Phase1_Creation : Create isolated directory
+  }
+
+  note right of Phase1_Creation
+    **Command**:
+    git worktree add .worktrees/issue-270
+      -b worktree/issue-270
+  end note
+
+  Phase1_Creation --> Phase2_Assignment
+
+  state "Phase 2: Agent Assignment" as Phase2_Assignment {
+    Phase2_Assignment : Task type analysis
+    Phase2_Assignment : Auto Agent assignment
+    Phase2_Assignment : Generate context files
+  }
+
+  note right of Phase2_Assignment
+    **Generated Files**:
+    - .agent-context.json
+    - EXECUTION_CONTEXT.md
+  end note
+
+  Phase2_Assignment --> Phase3_Execution
+
+  state "Phase 3: Execution" as Phase3_Execution {
+    Phase3_Execution : cd to worktree
+    Phase3_Execution : Load Agent context
+    Phase3_Execution : Execute task
+    Phase3_Execution : Commit changes
+  }
+
+  note right of Phase3_Execution
+    **Agent Prompt**:
+    .claude/agents/prompts/coding/
+    {agent-name}-prompt.md
+
+    **Commit Convention**:
+    Conventional Commits
+  end note
+
+  Phase3_Execution --> Phase4_Cleanup
+
+  state "Phase 4: Cleanup" as Phase4_Cleanup {
+    Phase4_Cleanup : Merge to main
+    Phase4_Cleanup : Remove worktree
+    Phase4_Cleanup : Update statistics
+  }
+
+  note right of Phase4_Cleanup
+    **Commands**:
+    git merge worktree/issue-270
+    git worktree remove .worktrees/issue-270
+  end note
+
+  Phase4_Cleanup --> [*]
+}
+
+' Worktree Directory Structure
+state "Worktree Directory Structure" as DirStructure {
+  state ".worktrees/" as worktrees
+  state "issue-270/" as wt270
+  state "issue-271/" as wt271
+  state "issue-272/" as wt272
+
+  worktrees --> wt270
+  worktrees --> wt271
+  worktrees --> wt272
+
+  note right of wt270
+    **Each worktree contains:**
+
+    **.agent-context.json**
+    {
+      "agentType": "CodeGenAgent",
+      "agentStatus": "executing",
+      "task": { /* Task詳細 */ },
+      "issue": { /* Issue詳細 */ },
+      "config": { /* Agent設定 */ },
+      "promptPath": ".claude/agents/prompts/...",
+      "worktreeInfo": { /* Worktree情報 */ }
+    }
+
+    **EXECUTION_CONTEXT.md**
+    - Issue情報（タイトル、URL、ラベル）
+    - Task情報（依存関係、推定時間）
+    - Agent情報（種別、ステータス）
+    - Worktree情報（パス、ブランチ）
+  end note
+}
+
+' Parallel Execution Architecture
+state "Parallel Execution" as ParallelExec {
+  state "CoordinatorAgent (Main)" as coordinator
+  state "Worktree #1 (Issue #270)" as wt1
+  state "Worktree #2 (Issue #271)" as wt2
+  state "Worktree #3 (Issue #272)" as wt3
+  state "Main Branch (Merge)" as main
+
+  coordinator --> wt1 : Create & Assign
+  coordinator --> wt2 : Create & Assign
+  coordinator --> wt3 : Create & Assign
+
+  wt1 --> main : Merge Back
+  wt2 --> main : Merge Back
+  wt3 --> main : Merge Back
+
+  note right of coordinator
+    **Concurrency Control**:
+    miyabi agent run coordinator \\
+      --issues 270,271,272 \\
+      --concurrency 3
+  end note
+}
+
+' Agent State Management
+state "Agent State Management" as state_mgmt {
+  [*] --> idle
+  idle --> executing : Start
+  executing --> completed : Success
+  executing --> failed : Error
+  completed --> [*]
+  failed --> [*]
+
+  note right of executing
+    **Statistics**:
+    - Active worktrees
+    - Idle worktrees
+    - Completed worktrees
+    - Failed worktrees
+
+    **By Agent**:
+    - CodeGenAgent: N
+    - ReviewAgent: N
+    - DeploymentAgent: N
+  end note
+}
+
+' CLI & API Usage
+note as ExecutionMethods
+  **Execution Methods**
+
+  **CLI Execution**:
+  miyabi agent run coordinator --issue 270
+  miyabi agent run coordinator --issues 270,271,272 --concurrency 3
+
+  **Rust API**:
+  let manager = WorktreeManager::new(config);
+  let worktree = manager.create_worktree(issue_number).await?;
+  manager.merge_worktree(worktree).await?;
+  manager.remove_worktree(worktree).await?;
+end note
+
+' Troubleshooting
+note as Troubleshooting
+  **Troubleshooting**
+
+  **Check Worktrees**:
+  git worktree list
+
+  **Remove Stale Worktrees**:
+  git worktree remove .worktrees/issue-270
+  git worktree prune
+
+  **Concurrency Tuning**:
+  Low-spec: --concurrency 1
+  High-spec: --concurrency 5
+
+  **Performance Guidelines**:
+  - Low-spec machine: concurrency=1
+  - Medium-spec: concurrency=2-3
+  - High-spec: concurrency=5+
+end note
+
+' Benefits
+note as benefits
+  **🎯 Worktree Benefits**:
+
+  1. **並列実行の真の実現**
+     各IssueがWorktreeで独立
+
+  2. **コンフリクトの最小化**
+     独立したディレクトリで作業
+
+  3. **簡単なロールバック**
+     Worktree単位で破棄可能
+
+  4. **デバッグが容易**
+     各Worktreeで独立したログ
+
+  5. **スケーラビリティ**
+     Worktree数に制限なし
+end note
+
+note bottom
+  **Implementation Details**:
+  - Rust Implementation: crates/miyabi-worktree/src/lib.rs
+  - Worktree Protocol: docs/WORKTREE_PROTOCOL.md
+  - WorktreeManager API: Rust API for lifecycle management
+
+  **Related Modules**:
+  - Agents: .claude/context/agents.md
+  - Architecture: .claude/context/architecture.md
+end note
+
+@enduml

@@ -72,7 +72,7 @@ export function FullAutomationPanel() {
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<AutomationConfig>({
     session_name: 'miyabi-auto-dev',
-    repo_root: '/Users/shunsuke/Dev/miyabi-private',
+    repo_root: '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private',
     task_file: '',
     enable_claude_code: true,
     enable_codex: true,
@@ -687,7 +687,7 @@ export function FullAutomationPanel() {
               <input
                 type="text"
                 className="w-full px-3 py-2 border rounded-md"
-                placeholder="/Users/shunsuke/Dev/miyabi-private"
+                placeholder="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
                 value={config.repo_root}
                 onChange={(e) => setConfig({ ...config, repo_root: e.target.value })}
               />

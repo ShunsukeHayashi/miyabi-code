@@ -1,0 +1,433 @@
+{
+  "user_request": "カレンダーBotを作って 📅",
+  "project_spec": {
+    "user_request": "カレンダーBotを作って 📅",
+    "intent_analysis": {
+      "original_request": "カレンダーBotを作って 📅",
+      "intent_type": "bot_creation",
+      "intent_confidence": 0.8,
+      "functional_requirements": [],
+      "non_functional_requirements": {
+        "real_time": false,
+        "scheduled": false,
+        "security": false,
+        "multi_user": false,
+        "mobile_support": false
+      },
+      "entities": {
+        "mentioned_apps": [
+          "calendar"
+        ],
+        "time_expressions": [],
+        "data_types": []
+      },
+      "analyzed_at": "2025-11-20T03:10:37.862Z"
+    },
+    "api_selection": {
+      "intent_type": "bot_creation",
+      "total_apis_selected": 3,
+      "selected_apis": [
+        "im.v1.message.receive_v1",
+        "im.v1.message.create",
+        "im.v1.chat.get"
+      ],
+      "api_specifications": {
+        "im.v1.message.receive_v1": {
+          "name": "im.v1.message.receive_v1",
+          "description": "API for im.v1.message.receive_v1",
+          "documentation_url": "https://open.larksuite.com/document/server-docs/im/v1/message/receive_v1",
+          "required_permissions": [
+            "im:message:readonly"
+          ],
+          "http_method": "POST"
+        },
+        "im.v1.message.create": {
+          "name": "im.v1.message.create",
+          "description": "API for im.v1.message.create",
+          "documentation_url": "https://open.larksuite.com/document/server-docs/im/v1/message/create",
+          "required_permissions": [
+            "im:message:write"
+          ],
+          "http_method": "POST"
+        },
+        "im.v1.chat.get": {
+          "name": "im.v1.chat.get",
+          "description": "API for im.v1.chat.get",
+          "documentation_url": "https://open.larksuite.com/document/server-docs/im/v1/chat/get",
+          "required_permissions": [
+            "im:message:readonly"
+          ],
+          "http_method": "GET"
+        }
+      },
+      "crawled_docs_used": [
+        "api_explorer",
+        "client_docs_intro",
+        "server_docs",
+        "client_docs_h5",
+        "mcp_integration"
+      ],
+      "selected_at": "2025-11-20T03:10:37.862Z"
+    },
+    "task_graph": {
+      "project_name": "lark-bot-2025-11-20",
+      "intent_type": "bot_creation",
+      "total_tasks": 17,
+      "total_phases": 5,
+      "phases": [
+        {
+          "id": "P1",
+          "name": "Setup & Configuration",
+          "description": "Project initialization and environment setup",
+          "order": 1
+        },
+        {
+          "id": "P2",
+          "name": "Core Implementation",
+          "description": "Implement main business logic and API integrations",
+          "order": 2
+        },
+        {
+          "id": "P3",
+          "name": "UI & Interaction",
+          "description": "Build user interface and interactive components",
+          "order": 3
+        },
+        {
+          "id": "P4",
+          "name": "Testing & Validation",
+          "description": "Test all functionalities and validate integration",
+          "order": 4
+        },
+        {
+          "id": "P5",
+          "name": "Deployment",
+          "description": "Deploy to production environment",
+          "order": 5
+        }
+      ],
+      "tasks": [
+        {
+          "id": "T1",
+          "phase": "P1",
+          "name": "Initialize Project Structure",
+          "description": "Create directory structure and package.json",
+          "type": "setup",
+          "agent": "CodeGenAgent",
+          "estimated_hours": 0.5
+        },
+        {
+          "id": "T2",
+          "phase": "P1",
+          "name": "Setup Environment Variables",
+          "description": "Create .env file with Lark credentials",
+          "type": "config",
+          "agent": "CodeGenAgent",
+          "estimated_hours": 0.25
+        },
+        {
+          "id": "T3",
+          "phase": "P1",
+          "name": "Install Dependencies",
+          "description": "npm install required packages",
+          "type": "setup",
+          "agent": "DeploymentAgent",
+          "estimated_hours": 0.25
+        },
+        {
+          "id": "T4",
+          "phase": "P2",
+          "name": "Implement im.v1.message.receive_v1",
+          "description": "Generate wrapper for im.v1.message.receive_v1",
+          "type": "code_gen",
+          "agent": "CodeGenAgent",
+          "api_name": "im.v1.message.receive_v1",
+          "estimated_hours": 1
+        },
+        {
+          "id": "T5",
+          "phase": "P2",
+          "name": "Implement im.v1.message.create",
+          "description": "Generate wrapper for im.v1.message.create",
+          "type": "code_gen",
+          "agent": "CodeGenAgent",
+          "api_name": "im.v1.message.create",
+          "estimated_hours": 1
+        },
+        {
+          "id": "T6",
+          "phase": "P2",
+          "name": "Implement im.v1.chat.get",
+          "description": "Generate wrapper for im.v1.chat.get",
+          "type": "code_gen",
+          "agent": "CodeGenAgent",
+          "api_name": "im.v1.chat.get",
+          "estimated_hours": 1
+        },
+        {
+          "id": "T7",
+          "phase": "P2",
+          "name": "Create Event Subscription Handler",
+          "description": "Handle incoming events from Lark",
+          "type": "code_gen",
+          "agent": "CodeGenAgent",
+          "estimated_hours": 2
+        },
+        {
+          "id": "T8",
+          "phase": "P3",
+          "name": "Design Interactive Cards",
+          "description": "Create card JSON definitions for UI",
+          "type": "design",
+          "agent": "DesignAgent",
+          "estimated_hours": 1.5
+        },
+        {
+          "id": "T9",
+          "phase": "P3",
+          "name": "Implement Message Handlers",
+          "description": "Handle user interactions from cards",
+          "type": "code_gen",
+          "agent": "CodeGenAgent",
+          "estimated_hours": 1.5
+        },
+        {
+          "id": "T10",
+          "phase": "P4",
+          "name": "Generate Unit Tests",
+          "description": "Auto-generate test suites",
+          "type": "testing",
+          "agent": "TestingAgent",
+          "estimated_hours": 1
+        },
+        {
+          "id": "T11",
+          "phase": "P4",
+          "name": "Run Integration Tests",
+          "description": "Test API integrations",
+          "type": "testing",
+          "agent": "TestingAgent",
+          "estimated_hours": 1
+        },
+        {
+          "id": "T12",
+          "phase": "P4",
+          "name": "Event Simulation Testing",
+          "description": "Simulate Lark events and validate responses",
+          "type": "testing",
+          "agent": "TestingAgent",
+          "estimated_hours": 0.5
+        },
+        {
+          "id": "T13",
+          "phase": "P5",
+          "name": "Setup Lark Application",
+          "description": "Configure app in Lark Open Platform",
+          "type": "deployment",
+          "agent": "DeploymentAgent",
+          "estimated_hours": 0.5
+        },
+        {
+          "id": "T14",
+          "phase": "P5",
+          "name": "Start Tunnel Service",
+          "description": "Launch ngrok tunnel",
+          "type": "deployment",
+          "agent": "DeploymentAgent",
+          "estimated_hours": 0.25
+        },
+        {
+          "id": "T15",
+          "phase": "P5",
+          "name": "Register Event Subscription",
+          "description": "Configure webhook URL in Lark",
+          "type": "deployment",
+          "agent": "DeploymentAgent",
+          "estimated_hours": 0.5
+        },
+        {
+          "id": "T16",
+          "phase": "P5",
+          "name": "Configure Permissions",
+          "description": "Set required permissions for APIs",
+          "type": "deployment",
+          "agent": "DeploymentAgent",
+          "estimated_hours": 0.5
+        },
+        {
+          "id": "T17",
+          "phase": "P5",
+          "name": "Health Check & Validation",
+          "description": "Verify all systems operational",
+          "type": "deployment",
+          "agent": "DeploymentAgent",
+          "estimated_hours": 0.25
+        }
+      ],
+      "dependencies": {
+        "T1": [],
+        "T2": [],
+        "T3": [],
+        "T4": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "T5": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "T6": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "T7": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "T8": [
+          "T4",
+          "T5",
+          "T6",
+          "T7"
+        ],
+        "T9": [
+          "T4",
+          "T5",
+          "T6",
+          "T7",
+          "T8"
+        ],
+        "T10": [
+          "T8",
+          "T9"
+        ],
+        "T11": [
+          "T8",
+          "T9"
+        ],
+        "T12": [
+          "T8",
+          "T9"
+        ],
+        "T13": [
+          "T10",
+          "T11",
+          "T12"
+        ],
+        "T14": [
+          "T10",
+          "T11",
+          "T12"
+        ],
+        "T15": [
+          "T10",
+          "T11",
+          "T12",
+          "T14"
+        ],
+        "T16": [
+          "T10",
+          "T11",
+          "T12"
+        ],
+        "T17": [
+          "T10",
+          "T11",
+          "T12"
+        ]
+      },
+      "execution_order": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7",
+        "T8",
+        "T9",
+        "T10",
+        "T11",
+        "T12",
+        "T13",
+        "T14",
+        "T15",
+        "T16",
+        "T17"
+      ],
+      "critical_path": {
+        "path": [
+          "T15"
+        ],
+        "duration": 7.25
+      },
+      "estimated_duration": 13.5,
+      "generated_at": "2025-11-20T03:10:37.863Z"
+    },
+    "coordinated_at": "2025-11-20T03:10:37.863Z",
+    "ready_for_code_gen": true
+  },
+  "generated_app": {
+    "project_name": "lark-bot-2025-11-20",
+    "output_directory": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/output/generated-apps/lark-bot-2025-11-20",
+    "generated_files": [
+      "index.js",
+      "package.json",
+      ".env.example",
+      "README.md"
+    ],
+    "api_count": 3,
+    "task_count": 17,
+    "generated_at": "2025-11-20T03:10:37.865Z"
+  },
+  "deployment": {
+    "app_name": "lark-bot-2025-11-20",
+    "app_directory": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-lark-dev-docs-mcp/output/generated-apps/lark-bot-2025-11-20",
+    "steps": [
+      {
+        "name": "install_dependencies",
+        "status": "success"
+      },
+      {
+        "name": "configure_environment",
+        "status": "success"
+      },
+      {
+        "name": "start_tunnel",
+        "status": "success",
+        "url": "https://b5ba86694d3e.ngrok-free.app"
+      },
+      {
+        "name": "start_application",
+        "status": "success",
+        "pid": 31260
+      },
+      {
+        "name": "lark_configuration",
+        "status": "manual_required"
+      },
+      {
+        "name": "health_check",
+        "status": "healthy",
+        "timestamp": 1763608241788
+      }
+    ],
+    "deployed_at": "2025-11-20T03:10:37.865Z",
+    "tunnel_url": "https://b5ba86694d3e.ngrok-free.app",
+    "app_pid": 31260,
+    "lark_config_instructions": "\n📋 Lark Open Platform Configuration Required:\n\n1. Go to: https://open.larksuite.com/app\n2. Select your app (App ID: YOUR_APP_ID)\n3. Configure Event Subscription:\n   - Event Request URL: https://b5ba86694d3e.ngrok-free.app/webhook/events\n   - Events to subscribe:\n     * im.message.receive_v1 (接收消息)\n\n4. Configure Permissions:\n   - im:message (消息管理)\n   - im:message:send_as_bot (以应用身份发消息)\n   - [Add other permissions as needed]\n\n5. Enable and Publish:\n   - Click \"Enable\" for Event Subscription\n   - Click \"Version Management\" → \"Publish\"\n\n6. Add Bot to Group:\n   - Create a group in Lark\n   - Add bot to the group\n   - Test with @mention\n\n---\n\n✅ Once configured, your bot will be live at: https://b5ba86694d3e.ngrok-free.app\n",
+    "health_status": {
+      "status": "healthy",
+      "timestamp": 1763608241788
+    },
+    "status": "success",
+    "webhook_url": "https://b5ba86694d3e.ngrok-free.app/webhook/events",
+    "health_url": "http://localhost:3000/health"
+  },
+  "duration_seconds": "3.93",
+  "completed_at": "2025-11-20T03:10:41.790Z"
+}

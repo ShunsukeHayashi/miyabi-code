@@ -4,7 +4,7 @@ use clap::Parser;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 use miyabi_mcp_server::config::ServerArgs;
-use miyabi_mcp_server::{McpServer, ServerConfig};
+use miyabi_mcp_server::{initialize_all_agents, McpServer, ServerConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,8 +25,22 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Repository: {}/{}", config.repo_owner, config.repo_name);
     tracing::info!("Working Directory: {}", config.working_dir.display());
 
-    // Create and run server with SessionManager enabled
-    let server = McpServer::with_session_manager(config).await?;
+    // Create server with all features (SessionManager + A2A Bridge)
+    let server = McpServer::with_all_features(config).await?;
+
+    // Initialize all A2A-enabled agents
+    if let Some(bridge) = server.a2a_bridge() {
+        match initialize_all_agents(&bridge).await {
+            Ok(count) => {
+                tracing::info!("Registered {} A2A agents for Rust tool invocation", count);
+            }
+            Err(e) => {
+                tracing::warn!("Failed to initialize some A2A agents: {}", e);
+            }
+        }
+    }
+
+    // Run the server
     server.run().await?;
 
     Ok(())

@@ -1,0 +1,150 @@
+@startuml Miyabi Agent System - 20 Agents Architecture
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+skinparam shadowing false
+skinparam roundCorner 10
+
+title Miyabi Agent System v3.0.0 - 6 Coding Agents + 14 Business Agents
+
+' Legend
+legend top right
+  **Status Legend**:
+  ✅ Deployed (tmux Orchestra v2.0)
+  📋 Planned (Spec only)
+
+  **Workflow Coverage**:
+  W1: Issue Triage
+  W2: Task Decomposition
+  W3: Code Implementation
+  W4: Code Review
+  W5: Deployment
+endlegend
+
+package "Miyabi Orchestra v2.0 - Coding Agents" {
+  ' W1 - Issue Triage
+  component "IssueAgent\n(みつけるん)\nPane %10\n✅ W1" as IssueAgent #FFE5E5
+
+  ' W2 - Task Decomposition
+  component "CoordinatorAgent\n(しきるん)\nPane %11\n✅ W2" as CoordinatorAgent #E5F5FF
+
+  ' W3 - Code Implementation
+  component "CodeGenAgent\n(カエデ)\nPane %2\n✅ W3" as CodeGenAgent #FFE5F5
+
+  ' W4 - Code Review
+  component "ReviewAgent\n(サクラ)\nPane %5\n✅ W4" as ReviewAgent #F5FFE5
+
+  ' W3 - Pull Request
+  component "PRAgent\n(ツバキ)\nPane %3\n✅ W3" as PRAgent #E5E5FF
+
+  ' W5 - Deployment
+  component "DeploymentAgent\n(ボタン)\nPane %4\n✅ W5" as DeploymentAgent #FFE5E5
+
+  ' Workflow Chain
+  IssueAgent -down-> CoordinatorAgent : W1→W2\nLabel Assignment
+  CoordinatorAgent -down-> CodeGenAgent : W2→W3\nTask Decomposition
+  CodeGenAgent -down-> ReviewAgent : W3→W4\nGenerated Code
+  ReviewAgent -right-> PRAgent : W4→W3\nQuality Report
+  PRAgent -down-> DeploymentAgent : W3→W5\nPull Request
+
+  note right of IssueAgent
+    **Water Spider v2.0**
+    自動メッセージ中継
+    タスク割り当て実行
+    100% W1-W5カバレッジ達成
+  end note
+}
+
+package "Business Agents - Strategy & Planning (6 Agents)" {
+  ' Leader (Red - Cannot run in parallel)
+  component "AIEntrepreneurAgent\n(あきんどさん)\n🔴 Leader\n📋 Planned" as AIEnt #FFE5E5
+
+  ' Executors (Green - Can run in parallel)
+  component "ProductConceptAgent\n(けいかくん)\n🟢 Executor\n✅ Deployed" as ProdConcept #E5FFE5
+  component "ProductDesignAgent\n(つくるん2号)\n🟢 Executor\n✅ Deployed" as ProdDesign #E5FFE5
+  component "FunnelDesignAgent\n(みちしるべん)\n🟢 Executor\n✅ Deployed" as FunnelDesign #E5FFE5
+  component "PersonaAgent\n(よみとるん)\n🟢 Executor\n✅ Deployed" as PersonaAgent #E5FFE5
+
+  ' Analyzer (Blue - Can run in parallel)
+  component "SelfAnalysisAgent\n(しらべるん)\n🔵 Analyzer\n✅ Deployed" as SelfAnalysis #E5F5FF
+}
+
+package "Business Agents - Marketing (5 Agents)" {
+  ' Analyzer
+  component "MarketResearchAgent\n(しらべるん2号)\n🔵 Analyzer\n✅ Deployed" as MarketResearch #E5F5FF
+
+  ' Executors
+  component "MarketingAgent\n(ひろめるん)\n🟢 Executor\n✅ Deployed" as Marketing #E5FFE5
+  component "ContentCreationAgent\n(かくちゃん)\n🟢 Executor\n✅ Deployed" as ContentCreation #E5FFE5
+  component "SNSStrategyAgent\n(つぶやくん)\n🟢 Executor\n✅ Deployed" as SNSStrategy #E5FFE5
+  component "YouTubeAgent\n(どうがくん)\n🟢 Executor\n✅ Deployed" as YouTube #E5FFE5
+}
+
+package "Business Agents - Sales & CRM (3 Agents)" {
+  component "SalesAgent\n(うるん)\n🟢 Executor\n✅ Deployed" as Sales #E5FFE5
+  component "CRMAgent\n(ささえるん)\n🟢 Executor\n✅ Deployed" as CRM #E5FFE5
+
+  ' Analyzer
+  component "AnalyticsAgent\n(かぞえるん)\n🔵 Analyzer\n✅ Deployed" as Analytics #E5F5FF
+}
+
+' Business Agent Relationships
+AIEnt --> ProdConcept : Strategy
+ProdConcept --> ProdDesign : Concept
+ProdDesign --> FunnelDesign : Design
+PersonaAgent --> MarketResearch : Persona Data
+MarketResearch --> Marketing : Market Data
+Marketing --> ContentCreation : Marketing Plan
+ContentCreation --> SNSStrategy : Content Plan
+SNSStrategy --> YouTube : SNS Strategy
+FunnelDesign --> Sales : Funnel Design
+Sales --> CRM : Sales Data
+CRM --> Analytics : Customer Data
+Analytics --> AIEnt : Analytics Report (PDCA)
+
+' Cross-Agent Communication
+package "Agent Communication Protocol" {
+  component "BaseAgent Trait" as BaseAgent
+  note right of BaseAgent
+    execute(task: Task) : Result<AgentResult>
+  end note
+
+  component "Worktree Manager" as WorktreeManager
+  note right of WorktreeManager
+    create_worktree(issue_number)
+    merge_worktree(worktree)
+    remove_worktree(worktree)
+  end note
+
+  BaseAgent --> WorktreeManager : Parallel Execution
+}
+
+IssueAgent .up.|> BaseAgent
+CoordinatorAgent .up.|> BaseAgent
+CodeGenAgent .up.|> BaseAgent
+ReviewAgent .up.|> BaseAgent
+PRAgent .up.|> BaseAgent
+DeploymentAgent .up.|> BaseAgent
+
+AIEnt .up.|> BaseAgent
+ProdConcept .up.|> BaseAgent
+MarketResearch .up.|> BaseAgent
+
+note bottom
+  **Agent Execution**:
+  CLI: miyabi agent run <agent-name> --issue <number>
+  Rust API: agent.execute(&task).await?
+  MCP Server: {"method": "agents/<agent-type>/execute"}
+
+  **Parallel Execution Rules**:
+  🔴 Leader: Cannot run in parallel (あきんどさん)
+  🟢 Executor: Can run in parallel (10 agents)
+  🔵 Analyzer: Can run in parallel (3 agents)
+
+  **References**:
+  - Agent Specs: .claude/agents/specs/{coding,business}/*.md
+  - Agent Prompts: .claude/agents/prompts/coding/*.md
+  - tmux Control: .claude/agents/tmux_agents_control.md
+end note
+
+@enduml

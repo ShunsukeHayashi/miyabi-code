@@ -7,7 +7,7 @@ use tempfile::TempDir;
 async fn test_create_approval() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string(), "bob".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -27,7 +27,7 @@ async fn test_create_approval() {
 async fn test_single_approver() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -48,7 +48,7 @@ async fn test_single_approver() {
 async fn test_multiple_approvers() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string(), "bob".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -73,7 +73,7 @@ async fn test_multiple_approvers() {
 async fn test_rejection() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string(), "bob".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -97,7 +97,7 @@ async fn test_rejection() {
 async fn test_unauthorized_approver() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -116,7 +116,7 @@ async fn test_unauthorized_approver() {
 async fn test_already_responded() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string(), "bob".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -138,7 +138,7 @@ async fn test_already_responded() {
 async fn test_list_pending() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -157,7 +157,7 @@ async fn test_list_pending() {
 async fn test_list_pending_for_approver() {
     let temp_dir = TempDir::new().unwrap();
 
-    let gate = ApprovalGate::new("test-gate")
+    let gate = ApprovalGate::builder("test-gate")
         .required_approvers(vec!["alice".to_string(), "bob".to_string()])
         .timeout_seconds(3600)
         .store_path(temp_dir.path().to_str().unwrap())
@@ -185,7 +185,7 @@ async fn test_approval_persistence() {
 
     // Create approval in first gate instance
     {
-        let gate = ApprovalGate::new("test-gate")
+        let gate = ApprovalGate::builder("test-gate")
             .required_approvers(vec!["alice".to_string()])
             .timeout_seconds(3600)
             .store_path(store_path)
@@ -197,7 +197,7 @@ async fn test_approval_persistence() {
 
     // Load from store with second gate instance
     {
-        let gate = ApprovalGate::new("test-gate")
+        let gate = ApprovalGate::builder("test-gate")
             .required_approvers(vec!["alice".to_string()])
             .timeout_seconds(3600)
             .store_path(store_path)

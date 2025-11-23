@@ -2,11 +2,19 @@
 
 use crate::analysis::IssueAnalysis;
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
 use miyabi_core::task_metadata::{TaskMetadata, TaskMetadataManager};
+use miyabi_core::ExecutionMode;
 use miyabi_types::agent::ResultStatus;
 use miyabi_types::error::{AgentError, Result};
 use miyabi_types::{AgentResult, AgentType, Issue, MiyabiError, Task};
+use serde_json::json;
 use std::path::PathBuf;
 use tracing::{info, warn};
 
@@ -154,6 +162,125 @@ impl BaseAgent for IssueAgent {
         };
 
         Ok(result)
+    }
+}
+
+#[async_trait]
+impl A2AEnabled for IssueAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("IssueAgent", "Issue analysis and task metadata creation agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "analyze_issue".to_string(),
+                name: "Analyze Issue".to_string(),
+                description: "Analyze GitHub Issue for complexity, labels, and implementation guidance".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "issue": {
+                            "type": "object",
+                            "description": "GitHub Issue object to analyze"
+                        }
+                    },
+                    "required": ["issue"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "issue_number": { "type": "integer" },
+                        "complexity": { "type": "number" },
+                        "complexity_level": { "type": "string" },
+                        "estimated_duration_hours": { "type": "integer" },
+                        "labels": { "type": "array", "items": { "type": "string" } },
+                        "reasoning": { "type": "string" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "create_task_metadata".to_string(),
+                name: "Create Task Metadata".to_string(),
+                description: "Create TaskMetadata for Issue assignment to worktree".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "task_id": { "type": "string" },
+                        "issue": { "type": "object" },
+                        "worktree_path": { "type": "string" },
+                        "branch_name": { "type": "string" }
+                    },
+                    "required": ["task_id", "issue"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "task_id": { "type": "string" },
+                        "issue_number": { "type": "integer" },
+                        "worktree_path": { "type": "string" },
+                        "branch_name": { "type": "string" }
+                    }
+                })),
+            })
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "analyze_issue" => {
+                let issue: Issue = serde_json::from_value(
+                    task.input.get("issue").cloned().unwrap_or_default()
+                ).map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid issue: {}", e)))?;
+
+                let analysis = self.analyze_issue(&issue).await.map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Analysis failed: {}", e))
+                })?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(&analysis).unwrap_or_default(),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "create_task_metadata" => {
+                let task_id_str = task.input.get("task_id")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing task_id".to_string()))?;
+
+                let issue: Issue = serde_json::from_value(
+                    task.input.get("issue").cloned().unwrap_or_default()
+                ).map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid issue: {}", e)))?;
+
+                let worktree_path = task.input.get("worktree_path")
+                    .and_then(|v| v.as_str())
+                    .map(PathBuf::from);
+
+                let branch_name = task.input.get("branch_name")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+
+                let metadata = self.create_task_metadata(task_id_str, &issue, worktree_path, branch_name)
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Metadata creation failed: {}", e)))?;
+
+                Ok(A2ATaskResult::Success {
+                    output: json!({
+                        "task_id": metadata.id,
+                        "issue_number": metadata.issue_number,
+                        "worktree_path": metadata.worktree_path,
+                        "branch_name": metadata.branch_name
+                    }),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(
+                format!("Unknown capability: {}", task.capability)
+            ))
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::FileEdits // Needs file access for TaskMetadata persistence
     }
 }
 

@@ -1,0 +1,85 @@
+@startuml industry_ITソフトウェア_全体連携
+!theme cerulean-outline
+
+title IT・ソフトウェア業界 部署間連携図
+
+' 部署の定義
+rectangle "営業" as sales {
+  :顧客開拓:
+  :提案:
+  :契約:
+}
+
+rectangle "PM (プロジェクト管理)" as pm {
+  :プロジェクト計画:
+  :進捗管理:
+  :リソース管理:
+}
+
+rectangle "開発" as dev {
+  :設計:
+  :実装:
+  :コードレビュー:
+}
+
+rectangle "テスト (QA)" as qa {
+  :テスト設計:
+  :テスト実行:
+  :品質保証:
+}
+
+rectangle "インフラ" as infra {
+  :環境構築:
+  :運用監視:
+  :セキュリティ:
+}
+
+rectangle "サポート" as support {
+  :問い合わせ対応:
+  :障害対応:
+  :FAQ管理:
+}
+
+rectangle "経理" as accounting {
+  :請求処理:
+  :原価管理:
+  :予算管理:
+}
+
+rectangle "総務" as general {
+  :人事労務:
+  :採用:
+  :法務:
+}
+
+' 連携の定義
+sales --> pm : 受注・要件
+sales --> accounting : 契約情報
+
+pm --> dev : 開発指示
+pm --> qa : テスト計画
+pm --> infra : 環境要件
+pm --> accounting : 工数実績
+
+dev --> qa : 成果物
+dev --> infra : デプロイ依頼
+dev --> pm : 進捗報告
+
+qa --> dev : 不具合報告
+qa --> pm : 品質報告
+
+infra --> dev : 環境情報
+infra --> support : 監視アラート
+infra --> pm : インフラ状況
+
+support --> dev : 機能改善要望
+support --> infra : インフラ問題
+support --> sales : 顧客フィードバック
+
+accounting --> pm : 予算情報
+accounting --> general : 経費精算
+
+general --> pm : リソース情報
+general --> accounting : 勤怠データ
+
+@enduml

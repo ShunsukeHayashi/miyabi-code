@@ -4,7 +4,14 @@
 //! and automatically updating state labels to match reality.
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_github::GitHubClient;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
@@ -13,6 +20,7 @@ use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, Issue, Task};
 use octocrab::params::State;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::HashMap;
 use std::path::Path;
 use std::process::Stdio;
@@ -379,6 +387,105 @@ impl RefresherAgent {
             _to_state
         );
         Ok(())
+    }
+}
+
+#[async_trait]
+impl A2AEnabled for RefresherAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("RefresherAgent", "Issue status monitoring and auto-update agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "refresh_issues".to_string(),
+                name: "Refresh Issue States".to_string(),
+                description: "Fetch all issues and update state labels based on implementation status".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "phases": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Phases to check (e.g., ['Phase 3', 'Phase 4'])"
+                        }
+                    }
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "summary": { "type": "object" },
+                        "updates": { "type": "array" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "check_status".to_string(),
+                name: "Check Implementation Status".to_string(),
+                description: "Check build and test status for a specific phase".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "phase": { "type": "string", "description": "Phase to check (e.g., 'Phase 3')" }
+                    },
+                    "required": ["phase"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "phase": { "type": "string" },
+                        "build_success": { "type": "boolean" },
+                        "tests_passing": { "type": "boolean" },
+                        "tests_passed": { "type": "integer" },
+                        "tests_failed": { "type": "integer" }
+                    }
+                })),
+            })
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "check_status" => {
+                let phase = task.input.get("phase")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing phase".to_string()))?;
+
+                let status = self.check_implementation_status(phase).await.map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Status check failed: {}", e))
+                })?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(&status).unwrap_or_default(),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "refresh_issues" => {
+                // Full refresh would use execute() which handles all phases
+                let issues = self.fetch_all_issues().await.map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Fetch issues failed: {}", e))
+                })?;
+
+                let summary = self.generate_summary(&issues);
+
+                Ok(A2ATaskResult::Success {
+                    output: json!({
+                        "summary": summary,
+                        "total_fetched": issues.len()
+                    }),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(
+                format!("Unknown capability: {}", task.capability)
+            ))
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::FullAccess // Needs GitHub API and command execution
     }
 }
 

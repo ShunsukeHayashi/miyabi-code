@@ -138,7 +138,7 @@ pub async fn start_log_streaming(
 /// Capture logs from tmux pane
 fn capture_pane_logs(pane_id: &str) -> Result<Vec<String>, String> {
     let output = Command::new("tmux")
-        .args(&[
+        .args([
             "capture-pane",
             "-p",      // Print to stdout
             "-t",      // Target pane

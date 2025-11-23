@@ -10,12 +10,12 @@ keywords = ["agents", "ai", "integrations", "discord", "potpie"]
 categories = ["development-tools", "web-programming"]
 
 [dependencies]
-miyabi-agent-core = { path = "../miyabi-agent-core" }
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-github = { path = "../miyabi-github" }
+miyabi-agent-core = { path = "../miyabi-agent-core", version = "0.1.2" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
 # miyabi-potpie MERGED into miyabi-knowledge/potpie - use miyabi-knowledge instead
-miyabi-knowledge = { path = "../miyabi-knowledge" }
+miyabi-knowledge = { path = "../miyabi-knowledge", version = "0.1.2" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

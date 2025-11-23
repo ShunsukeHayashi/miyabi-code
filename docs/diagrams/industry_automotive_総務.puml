@@ -1,0 +1,102 @@
+@startuml industry_automotive_総務
+!theme cerulean-outline
+
+title 自動車販売・整備会社 - 総務部門 業務フロー
+
+|各部門|
+|総務担当|
+|陸運局|
+|警察署|
+
+|各部門|
+start
+:登録依頼;
+
+|総務担当|
+fork
+  :新規登録;
+  note right
+  ・新車登録
+  ・中古車新規
+  end note
+
+  :必要書類収集;
+  note right
+  ・印鑑証明
+  ・委任状
+  ・車庫証明
+  end note
+
+  |警察署|
+  :車庫証明申請;
+  :車庫証明取得;
+
+  |陸運局|
+  :新規登録申請;
+  :車検証取得;
+  :ナンバー取得;
+fork again
+  :名義変更;
+  note right
+  ・中古車販売
+  ・下取り車
+  end note
+
+  |陸運局|
+  :移転登録申請;
+  :車検証更新;
+fork again
+  :抹消登録;
+  note right
+  ・廃車処理
+  ・輸出抹消
+  end note
+
+  |陸運局|
+  :抹消登録申請;
+  :抹消証明書取得;
+end fork
+
+|総務担当|
+:顧客管理;
+note right
+・顧客データ管理
+・DM発送管理
+・来店履歴管理
+・車両履歴管理
+end note
+
+:採用・労務管理;
+note right
+・求人募集
+・採用面接
+・入退社手続き
+・勤怠管理
+end note
+
+:設備管理;
+note right
+・工場設備
+・リフト点検
+・機器メンテナンス
+・安全管理
+end note
+
+:届出・許可管理;
+note right
+・古物商許可更新
+・自動車分解整備事業
+・指定工場更新
+end note
+
+:事務所運営;
+note right
+・来客対応
+・電話対応
+・備品管理
+・清掃管理
+end note
+
+stop
+
+@enduml

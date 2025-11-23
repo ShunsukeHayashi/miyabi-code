@@ -1,0 +1,118 @@
+@startuml dept_retail_inventory
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 在庫管理部 業務フロー
+
+|#LightYellow|入荷管理担当|
+start
+:入荷予定確認;
+note right: 仕入部からの情報
+
+:入荷準備;
+:荷受け;
+:入荷検品;
+
+if (検品OK?) then (yes)
+  :入荷処理;
+  :在庫計上;
+else (no)
+  :仕入部へ報告;
+  :返品処理;
+endif
+
+:ロケーション登録;
+:商品仕分け;
+
+|#LightCyan|倉庫管理担当|
+:在庫管理;
+
+while (営業日?) is (継続)
+  :在庫状況監視;
+
+  if (発注点割れ?) then (yes)
+    :自動発注提案;
+    :仕入部へ連絡;
+  else (no)
+  endif
+
+  if (過剰在庫?) then (yes)
+    :販売部へ販促提案;
+    :店舗間移動検討;
+  else (no)
+  endif
+endwhile (終了)
+
+:在庫分析;
+note right
+  ・ABC分析
+  ・在庫回転率
+  ・死筋商品特定
+end note
+
+|#LightGreen|店舗配送担当|
+:店舗補充依頼受領;
+note right: 店舗運営部からの依頼
+
+:ピッキング;
+:出荷検品;
+:配送準備;
+
+if (自社配送?) then (yes)
+  :配送ルート計画;
+  :トラック積込;
+  :店舗配送;
+else (no)
+  :配送業者手配;
+endif
+
+:配送完了確認;
+:在庫引落処理;
+
+|#LightPink|EC出荷担当|
+:EC受注確認;
+note right: 販売部からの出荷依頼
+
+:ピッキング;
+:梱包;
+:送り状発行;
+
+:出荷;
+if (出荷方法?) then (宅配)
+  :宅配業者引渡;
+else (店舗受取)
+  :店舗へ配送;
+endif
+
+:出荷完了処理;
+:配送追跡情報更新;
+
+|#LightYellow|棚卸担当|
+:棚卸計画;
+fork
+  :実地棚卸;
+fork again
+  :システム在庫照合;
+end fork
+
+if (在庫差異?) then (yes)
+  :差異調査;
+  :原因分析;
+  note right
+    ・盗難
+    ・入力ミス
+    ・検品漏れ
+  end note
+  :在庫調整処理;
+  :経理部へ報告;
+else (no)
+endif
+
+:棚卸結果報告;
+
+:廃棄ロス管理;
+:経理部へ在庫金額報告;
+
+stop
+
+@enduml

@@ -519,6 +519,68 @@ docs/content/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.content_creation_and_production_agent.create_content
+a2a.content_creation_and_production_agent.plan_production
+a2a.content_creation_and_production_agent.manage_quality
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.content_creation_and_production_agent.create_content",
+    "input": {
+      "product_detail": "docs/product/product-detail.md",
+      "persona_sheet": "docs/persona/persona-sheet.md",
+      "content_types": ["video", "pdf", "worksheet"]
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.content_creation_and_production_agent.create_content",
+    json!({
+        "product_detail": "docs/product/product-detail.md",
+        "persona_sheet": "docs/persona/persona-sheet.md",
+        "content_types": ["video", "pdf", "worksheet"]
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "ContentCreationAgent"` を指定:
+```
+prompt: "コンテンツ制作計画を立案し、外注先選定、品質管理プロセスを設計してください"
+subagent_type: "ContentCreationAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **ProductDesignAgent**: 前フェーズ（Phase 5）

@@ -7,14 +7,22 @@ pub use crate::documentation::DocumentationGenerationResult;
 use crate::{documentation, frontend, prompt, worktree};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
 use miyabi_claudable::ClaudableClient;
 use miyabi_core::task_metadata::TaskMetadataManager;
+use miyabi_core::ExecutionMode;
 use miyabi_llm::{GPTOSSProvider, LLMProvider, LLMRequest, ReasoningEffort};
 use miyabi_types::agent::{AgentMetrics, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::task::TaskType;
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
+use serde_json::json;
 // use miyabi_worktree::{WorktreeInfo, WorktreeManager}; // Temporarily disabled due to Send issues
 use std::path::Path;
 
@@ -388,6 +396,169 @@ impl BaseAgent for CodeGenAgent {
             metrics: Some(metrics),
             escalation: None,
         })
+    }
+}
+
+/// A2A Protocol Implementation for CodeGenAgent
+///
+/// This enables CodeGenAgent to:
+/// - Generate code via A2A requests from other agents
+/// - Use native Rust tools for file operations
+/// - Participate in agent orchestration
+#[async_trait]
+impl A2AEnabled for CodeGenAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("codegen-agent", "Code Generation Agent")
+            .description("AI-driven code generation for features, bug fixes, and refactoring")
+            .version("0.1.0")
+            .capability(AgentCapability {
+                id: "generate_code".to_string(),
+                name: "Code Generation".to_string(),
+                description: "Generate code based on task requirements".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "task_id": { "type": "string" },
+                        "title": { "type": "string" },
+                        "description": { "type": "string" },
+                        "task_type": { "type": "string", "enum": ["Feature", "Bug", "Refactor"] },
+                        "worktree_path": { "type": "string" }
+                    },
+                    "required": ["task_id", "title", "description"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "files_created": { "type": "array", "items": { "type": "string" } },
+                        "files_modified": { "type": "array", "items": { "type": "string" } },
+                        "lines_added": { "type": "integer" },
+                        "lines_removed": { "type": "integer" },
+                        "tests_added": { "type": "integer" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "generate_documentation".to_string(),
+                name: "Documentation Generation".to_string(),
+                description: "Generate documentation for generated code".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "project_path": { "type": "string" },
+                        "code_result": { "type": "object" }
+                    },
+                    "required": ["project_path", "code_result"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "readme_generated": { "type": "boolean" },
+                        "api_docs_generated": { "type": "boolean" }
+                    }
+                })),
+            })
+            .input_mode("json")
+            .output_mode("json")
+            .metadata("agent_type", json!("CodeGenAgent"))
+            .metadata("supports_llm", json!(self.llm_provider.is_some()))
+            .metadata("supports_claudable", json!(self.claudable_client.is_some()))
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "generate_code" => {
+                // Build Task from input
+                let task_id = task.input["task_id"]
+                    .as_str()
+                    .unwrap_or("a2a-task")
+                    .to_string();
+                let title = task.input["title"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?
+                    .to_string();
+                let description = task.input["description"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string();
+                let task_type_str = task.input["task_type"]
+                    .as_str()
+                    .unwrap_or("Feature");
+
+                let task_type = match task_type_str {
+                    "Bug" => TaskType::Bug,
+                    "Refactor" => TaskType::Refactor,
+                    _ => TaskType::Feature,
+                };
+
+                let miyabi_task = Task {
+                    id: task_id,
+                    title,
+                    description,
+                    task_type,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::CodeGenAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(30),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
+
+                // Get worktree path if provided
+                let worktree_path = task.input["worktree_path"]
+                    .as_str()
+                    .map(|s| std::path::PathBuf::from(s));
+
+                // Generate code
+                let result = self
+                    .generate_code(&miyabi_task, worktree_path.as_deref())
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(result)
+                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "generate_documentation" => {
+                let project_path = task.input["project_path"]
+                    .as_str()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing project_path".to_string()))?;
+                let code_result: CodeGenerationResult = serde_json::from_value(
+                    task.input["code_result"].clone()
+                )
+                .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid code_result: {}", e)))?;
+
+                let doc_result = self
+                    .generate_documentation(Path::new(project_path), &code_result)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(doc_result)
+                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        // CodeGenAgent needs full file access for creating and modifying code
+        ExecutionMode::FileEdits
     }
 }
 

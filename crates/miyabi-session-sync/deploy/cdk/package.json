@@ -1,0 +1,28 @@
+{
+  "name": "miyabi-session-sync-cdk",
+  "version": "0.1.0",
+  "bin": {
+    "app": "bin/app.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "deploy:dev": "DEPLOY_ENV=dev cdk deploy --require-approval never",
+    "deploy:staging": "DEPLOY_ENV=staging cdk deploy --require-approval broadening",
+    "deploy:prod": "DEPLOY_ENV=prod cdk deploy --require-approval broadening",
+    "diff": "cdk diff",
+    "synth": "cdk synth"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "aws-cdk": "^2.150.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.4.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.150.0",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
+  }
+}

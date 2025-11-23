@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "generated_at": "2025-11-23",
+    "total_issues": 44,
+    "sprints": 5,
+    "estimated_hours": {
+      "min": 187,
+      "max": 262
+    },
+    "actual_hours_with_parallel": {
+      "min": 142,
+      "max": 197
+    }
+  },
+  "priority_breakdown": {
+    "P0_critical": 1,
+    "P1_high": 12,
+    "P2_medium": 10,
+    "P3_low": 1,
+    "phase_implementation": 17,
+    "documentation": 3,
+    "crates_io": 3
+  },
+  "sprints": [
+    {
+      "sprint": 1,
+      "name": "Foundation & Critical Items",
+      "days": "1-7",
+      "hours": {"min": 27, "max": 40},
+      "parallel_hours": {"min": 16, "max": 23},
+      "tracks": 3,
+      "issues": [972, 973, 974, 975, 976, 1042, 1043, 1044, 1080, 1083, 1084]
+    },
+    {
+      "sprint": 2,
+      "name": "Backend API Development",
+      "days": "8-14",
+      "hours": {"min": 32, "max": 42},
+      "parallel_hours": {"min": 32, "max": 42},
+      "tracks": 1,
+      "issues": [983, 984, 985, 986, 987]
+    },
+    {
+      "sprint": 3,
+      "name": "Frontend Development",
+      "days": "15-21",
+      "hours": {"min": 42, "max": 56},
+      "parallel_hours": {"min": 42, "max": 56},
+      "tracks": 1,
+      "issues": [978, 979, 980, 981, 982, 1005]
+    },
+    {
+      "sprint": 4,
+      "name": "Production & Advanced Features",
+      "days": "22-28",
+      "hours": {"min": 54, "max": 78},
+      "parallel_hours": {"min": 28, "max": 42},
+      "tracks": 2,
+      "issues": [988, 989, 990, 991, 992, 993, 1006, 1030]
+    },
+    {
+      "sprint": 5,
+      "name": "Pantheon Webapp & Polish",
+      "days": "29-35",
+      "hours": {"min": 32, "max": 46},
+      "parallel_hours": {"min": 24, "max": 34},
+      "tracks": 2,
+      "issues": [965, 966, 967, 968, 1013, 1014, 1016, 1017]
+    }
+  ],
+  "dependencies": {
+    "critical_path": [
+      {"phase": "Phase 1", "issues": [972, 973, 974, 975, 976], "hours": {"min": 16, "max": 23}},
+      {"phase": "Phase 2", "issues": [983, 984, 985, 986, 987], "hours": {"min": 32, "max": 42}},
+      {"phase": "Phase 3", "issues": [978, 979, 980, 981, 982, 1005], "hours": {"min": 42, "max": 56}},
+      {"phase": "Phase 4", "issues": [988, 989, 990, 991, 992, 993], "hours": {"min": 26, "max": 36}}
+    ],
+    "parallel_tracks": {
+      "documentation": [1043, 1044, 1042],
+      "crates_io": [1083, 1080, 1084],
+      "kazuaki_agent": [965, 966, 967, 968],
+      "pantheon": [1013, 1014, 1016, 1017]
+    }
+  },
+  "resource_allocation": {
+    "Pixel": {"role": "MAESTRO", "tasks": ["Documentation", "Light fixes"], "hours": {"min": 17, "max": 26}},
+    "MUGEN": {"role": "ORCHESTRATOR", "tasks": ["Main development", "Frontend", "Console"], "hours": {"min": 138, "max": 191}},
+    "MAJIN": {"role": "COORDINATOR", "tasks": ["Testing", "Codex", "Parallel tasks"], "hours": {"min": 42, "max": 58}}
+  }
+}

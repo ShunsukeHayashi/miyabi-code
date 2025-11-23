@@ -4,97 +4,216 @@ description: Execute comprehensive Rust development workflow including cargo bui
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
-# Rust Development Workflow
+# 🦀 Rust Development Workflow
 
-Complete Rust development workflow for the Miyabi project, ensuring code quality, type safety, and comprehensive testing.
+**Version**: 2.0.0
+**Last Updated**: 2025-11-22
+**Priority**: ⭐⭐⭐⭐⭐ (P0 Level)
+**Purpose**: Rustビルド・テスト・品質チェックの最適化実行
 
-## When to Use
+---
 
-- User requests "build the project", "run tests", "check code quality"
-- Before committing Rust code changes
-- After implementing new features in Rust crates
-- When troubleshooting compilation or test failures
+## 📋 概要
 
-## Workflow Steps
+Miyabiプロジェクトにおける完全なRust開発ワークフロー。
+コード品質、型安全性、包括的テストを保証します。
 
-### 1. Clean Build
-```bash
-cargo clean
-cargo build --workspace
+---
+
+## 🎯 P0: 呼び出しトリガー
+
+| トリガー | 例 |
+|---------|-----|
+| ビルド | "build the project", "compile" |
+| テスト | "run tests", "test this" |
+| 品質チェック | "check code quality", "lint" |
+| コミット前 | "before committing" |
+| 新機能実装後 | "after implementing" |
+
+---
+
+## 🔧 P1: コマンド別最適化
+
+### コマンド優先順位
+
+| コマンド | 用途 | 平均時間 | 頻度 |
+|---------|------|---------|------|
+| `cargo check` | 型チェック（高速） | 10-30s | 高 |
+| `cargo build` | デバッグビルド | 30-120s | 高 |
+| `cargo build --release` | リリースビルド | 60-300s | 低 |
+| `cargo test` | テスト実行 | 60-180s | 高 |
+| `cargo clippy` | リントチェック | 30-60s | 中 |
+| `cargo fmt` | フォーマット | 5-10s | 高 |
+| `cargo doc` | ドキュメント生成 | 30-60s | 低 |
+
+### 最適パターン
+
+```
+✅ GOOD: シーケンシャル実行（依存関係あり）
+cargo build && cargo test && cargo clippy -- -D warnings && cargo fmt -- --check
+
+❌ BAD: 個別実行（オーバーヘッド大）
+cargo build → 結果確認 → cargo test → 結果確認 → ...
 ```
 
-### 2. Run All Tests
+---
+
+## 🚀 P2: ワークフロー別パターン
+
+### Pattern 1: クイックチェック（開発中）
+
 ```bash
-cargo test --workspace --all-features
+# 最小限のチェック（2-3分）
+cargo check && cargo test -- --test-threads=1
 ```
 
-### 3. Lint with Clippy
-```bash
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-```
+**用途**: コード変更の即時検証
 
-### 4. Format Check
+### Pattern 2: 標準ビルドサイクル（コミット前）
+
 ```bash
+# フルチェック（5-10分）
+cargo build --workspace && \
+cargo test --workspace --all-features && \
+cargo clippy --workspace --all-targets --all-features -- -D warnings && \
 cargo fmt --all -- --check
 ```
 
-If format check fails, apply formatting:
+**用途**: コミット前の品質保証
+
+### Pattern 3: クリーンビルド（問題発生時）
+
 ```bash
-cargo fmt --all
+# クリーンビルド（10-15分）
+cargo clean && \
+cargo build --workspace && \
+cargo test --workspace --all-features
 ```
 
-### 5. Release Build (optional)
+**用途**: キャッシュ問題の解消
+
+### Pattern 4: リリースビルド（デプロイ前）
+
 ```bash
-cargo build --release --workspace
+# リリース準備（15-20分）
+cargo build --release --workspace && \
+cargo test --release --workspace && \
+cargo bench --no-run
 ```
 
-### 6. Check Documentation
+**用途**: 本番デプロイ前の最終確認
+
+### Pattern 5: ドキュメント生成
+
 ```bash
+# ドキュメント（3-5分）
 cargo doc --workspace --no-deps --all-features
 ```
 
-## Project-Specific Considerations
+**用途**: API ドキュメント更新
 
-### Workspace Structure
-The Miyabi project uses Cargo workspace with these crates:
-- `miyabi-types`: Core type definitions
-- `miyabi-core`: Common utilities
-- `miyabi-cli`: CLI binary
-- `miyabi-agents`: Agent implementations
-- `miyabi-github`: GitHub API integration
-- `miyabi-worktree`: Git Worktree management
-- `miyabi-llm`: LLM provider abstraction
+---
 
-### Dependencies to Check
-- `tokio`: Async runtime (ensure features match)
-- `async-trait`: Trait async methods
-- `serde`: Serialization (ensure derive feature)
-- `octocrab`: GitHub API
-- `tracing`: Logging
+## ⚡ P3: パフォーマンス最適化
 
-### Common Issues
+### 並列ビルド設定
 
-**Issue**: Compilation fails with trait errors
-**Solution**: Check `async-trait` usage and ensure all async traits are properly annotated
+```bash
+# CPUコア数に応じた並列度
+cargo build -j 8
+cargo test -- --test-threads=8
+```
 
-**Issue**: Test failures in parallel execution
-**Solution**: Use `cargo test -- --test-threads=1` for sequential tests
+### インクリメンタルビルド活用
 
-**Issue**: Clippy warnings about unused dependencies
-**Solution**: Review `Cargo.toml` dependencies and remove unused ones
+```
+# キャッシュ有効（高速）
+target/debug/deps/
+target/release/deps/
 
-## Success Criteria
+# キャッシュ無効化が必要な場合
+CARGO_INCREMENTAL=0 cargo build
+```
 
-All checks must pass:
-- ✅ `cargo build` succeeds with 0 errors
-- ✅ `cargo test` passes 100% of tests
-- ✅ `cargo clippy` reports 0 warnings
-- ✅ `cargo fmt --check` reports no formatting issues
-- ✅ `cargo doc` generates documentation without warnings
+### ビルド時間比較
 
-## Output Format
+| 条件 | フルビルド | インクリメンタル |
+|------|-----------|----------------|
+| Debug | 2-3分 | 10-30秒 |
+| Release | 5-10分 | 30-60秒 |
+| Clean | 5-10分 | N/A |
 
-Report results in this format:
+---
+
+## 📊 プロジェクト固有設定
+
+### Cargo Workspace構造
+
+```
+miyabi-private/
+├── Cargo.toml (workspace root)
+├── crates/
+│   ├── miyabi-types/      # コア型定義
+│   ├── miyabi-core/       # 共通ユーティリティ
+│   ├── miyabi-cli/        # CLIバイナリ
+│   ├── miyabi-agents/     # Agent実装
+│   ├── miyabi-github/     # GitHub API統合
+│   ├── miyabi-worktree/   # Git Worktree管理
+│   └── miyabi-llm/        # LLMプロバイダー抽象化
+└── target/
+```
+
+### 依存関係チェック
+
+```bash
+# 主要依存関係
+tokio         # 非同期ランタイム
+async-trait   # Trait非同期メソッド
+serde         # シリアライゼーション
+octocrab      # GitHub API
+tracing       # ログ
+```
+
+---
+
+## 🛡️ エラーハンドリング
+
+### 共通エラーパターン
+
+| エラー | 原因 | 対処 |
+|--------|------|------|
+| `error[E0277]` | Trait未実装 | `async-trait`使用確認 |
+| `error[E0412]` | 型未定義 | `use`文追加 |
+| `error[E0433]` | モジュール未解決 | パス確認 |
+| Clippy警告 | コード品質 | 警告に従い修正 |
+| fmt差分 | フォーマット | `cargo fmt`実行 |
+
+### テスト失敗時
+
+```bash
+# 並列実行問題の場合
+cargo test -- --test-threads=1
+
+# 特定テストのデバッグ
+cargo test test_name -- --nocapture
+
+# 詳細出力
+RUST_BACKTRACE=1 cargo test
+```
+
+---
+
+## ✅ 成功基準
+
+| チェック項目 | 基準 |
+|-------------|------|
+| `cargo build` | 0 errors |
+| `cargo test` | 100% pass |
+| `cargo clippy` | 0 warnings |
+| `cargo fmt --check` | 0 diff |
+| `cargo doc` | 0 warnings |
+
+### 出力フォーマット
 
 ```
 🦀 Rust Development Workflow Results
@@ -108,7 +227,20 @@ Report results in this format:
 Ready to commit ✓
 ```
 
-## Related Skills
+---
 
-- **Agent Execution**: For running Agents after code changes
-- **Issue Analysis**: For analyzing build/test failures as Issues
+## 🔗 関連ドキュメント
+
+| ドキュメント | 用途 |
+|-------------|------|
+| `context/rust.md` | Rust開発ガイドライン |
+| `context/rust-tool-use-rules.md` | MCP Tool最適化 |
+| `agents/RUST_COMMANDS_OPTIMIZATION.md` | Agent向け最適化 |
+
+---
+
+## 📝 関連Skills
+
+- **Agent Execution**: Agent実行前のビルド確認
+- **Git Workflow**: コミット前の品質チェック
+- **Security Audit**: セキュリティ監査との統合

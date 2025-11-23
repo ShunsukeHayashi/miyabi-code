@@ -1,0 +1,141 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e9]: M
+        - generic [ref=e10]: MIYABI
+      - button [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - navigation [ref=e14]:
+      - link "Dashboard" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - generic [ref=e22]: Dashboard
+      - link "Agents" [ref=e24] [cursor=pointer]:
+        - /url: /agents
+        - generic [ref=e25]:
+          - img [ref=e26]
+          - generic [ref=e31]: Agents
+      - link "Issues" [ref=e32] [cursor=pointer]:
+        - /url: /issues
+        - generic [ref=e33]:
+          - img [ref=e34]
+          - generic [ref=e37]: Issues
+      - link "Tasks" [ref=e38] [cursor=pointer]:
+        - /url: /tasks
+        - generic [ref=e39]:
+          - img [ref=e40]
+          - generic [ref=e43]: Tasks
+      - link "Analytics" [ref=e44] [cursor=pointer]:
+        - /url: /analytics
+        - generic [ref=e45]:
+          - img [ref=e46]
+          - generic [ref=e48]: Analytics
+      - link "Workflows" [ref=e49] [cursor=pointer]:
+        - /url: /workflows
+        - generic [ref=e50]:
+          - img [ref=e51]
+          - generic [ref=e55]: Workflows
+      - link "Organizations" [ref=e56] [cursor=pointer]:
+        - /url: /organizations
+        - generic [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e62]: Organizations
+      - link "Deployment" [ref=e63] [cursor=pointer]:
+        - /url: /deployment
+        - generic [ref=e64]:
+          - img [ref=e65]
+          - generic [ref=e70]: Deployment
+      - link "Infrastructure" [ref=e71] [cursor=pointer]:
+        - /url: /infrastructure
+        - generic [ref=e72]:
+          - img [ref=e73]
+          - generic [ref=e76]: Infrastructure
+      - link "Database" [ref=e77] [cursor=pointer]:
+        - /url: /database
+        - generic [ref=e78]:
+          - img [ref=e79]
+          - generic [ref=e83]: Database
+      - link "Logs" [ref=e84] [cursor=pointer]:
+        - /url: /logs
+        - generic [ref=e85]:
+          - img [ref=e86]
+          - generic [ref=e89]: Logs
+      - link "Worktrees" [ref=e90] [cursor=pointer]:
+        - /url: /worktrees
+        - generic [ref=e91]:
+          - img [ref=e92]
+          - generic [ref=e97]: Worktrees
+      - link "Notifications" [ref=e98] [cursor=pointer]:
+        - /url: /notifications
+        - generic [ref=e99]:
+          - img [ref=e100]
+          - generic [ref=e103]: Notifications
+    - button "Disconnected" [ref=e105] [cursor=pointer]:
+      - img [ref=e107]
+      - generic [ref=e115]: Disconnected
+    - generic [ref=e117]:
+      - img "U" [ref=e119]
+      - generic [ref=e120]:
+        - paragraph [ref=e121]: Guest
+        - paragraph [ref=e122]: Guardian
+      - button [ref=e123] [cursor=pointer]:
+        - img [ref=e124]
+  - main [ref=e127]:
+    - generic [ref=e128]:
+      - generic [ref=e130]:
+        - heading "Dashboard" [level=1] [ref=e131]
+        - paragraph [ref=e133]: Miyabi System Overview
+        - generic [ref=e134]:
+          - img [ref=e135]
+          - generic [ref=e137]: Connecting...
+      - generic [ref=e140]:
+        - generic [ref=e141]:
+          - paragraph [ref=e142]: Active Agents
+          - paragraph [ref=e143]: "0"
+          - paragraph [ref=e144]: of 14
+        - generic [ref=e145]:
+          - paragraph [ref=e146]: Running Tasks
+          - paragraph [ref=e147]: "0"
+        - generic [ref=e148]:
+          - paragraph [ref=e149]: Completed Today
+          - paragraph [ref=e150]: "0"
+        - generic [ref=e151]:
+          - paragraph [ref=e152]: Success Rate
+          - paragraph [ref=e153]: 100.0%
+      - generic [ref=e156]:
+        - heading "System Resources" [level=2] [ref=e157]
+        - generic [ref=e158]:
+          - generic [ref=e160]:
+            - generic [ref=e161]: CPU Usage
+            - generic [ref=e162]: 0.0%
+          - generic [ref=e165]:
+            - generic [ref=e166]: Memory Usage
+            - generic [ref=e167]: 0.0%
+          - generic [ref=e170]:
+            - generic [ref=e171]: Disk Usage
+            - generic [ref=e172]: 0.0%
+      - generic [ref=e176]:
+        - heading "Quick Actions" [level=2] [ref=e177]
+        - generic [ref=e178]:
+          - link "Agents" [ref=e179] [cursor=pointer]:
+            - /url: /agents
+            - img [ref=e180]
+            - paragraph [ref=e183]: Agents
+          - link "Deploy" [ref=e184] [cursor=pointer]:
+            - /url: /deployment
+            - img [ref=e185]
+            - paragraph [ref=e187]: Deploy
+          - link "Infrastructure" [ref=e188] [cursor=pointer]:
+            - /url: /infrastructure
+            - img [ref=e189]
+            - paragraph [ref=e192]: Infrastructure
+          - link "Database" [ref=e193] [cursor=pointer]:
+            - /url: /database
+            - img [ref=e194]
+            - paragraph [ref=e198]: Database
+```

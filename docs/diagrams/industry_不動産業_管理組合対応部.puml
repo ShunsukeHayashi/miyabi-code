@@ -1,0 +1,140 @@
+@startuml dept_realestate_association
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 管理組合対応部 業務フロー
+
+|#LightYellow|フロントマネージャー|
+start
+:管理組合対応;
+note right
+  ・定期連絡
+  ・問合せ対応
+  ・課題ヒアリング
+end note
+
+:理事会運営支援;
+fork
+  :議題整理;
+fork again
+  :資料作成;
+fork again
+  :日程調整;
+end fork
+
+:理事会開催;
+:議事録作成;
+
+|#LightCyan|総会運営担当|
+:総会準備;
+
+:招集通知作成;
+:議案書作成;
+note right
+  ・事業報告
+  ・収支報告
+  ・事業計画
+  ・予算案
+  ・役員選任
+end note
+
+:総会開催;
+:議事進行支援;
+:議決結果集計;
+:議事録作成;
+
+:決議事項実行;
+
+|#LightGreen|会計担当|
+:管理費等収納;
+
+while (会計年度中?) is (継続)
+  :入金確認;
+
+  if (滞納?) then (yes)
+    :督促状発送;
+    if (長期滞納?) then (yes)
+      :法的措置検討;
+      :理事会へ報告;
+    else (no)
+      :個別相談;
+    endif
+  else (no)
+  endif
+endwhile (終了)
+
+:月次収支報告;
+:経理部と連携;
+
+:年次決算;
+fork
+  :収支決算書;
+fork again
+  :貸借対照表;
+fork again
+  :監査対応;
+end fork
+
+:予算編成;
+
+|#LightPink|修繕管理担当|
+:長期修繕計画策定;
+note right
+  ・建物診断
+  ・修繕項目洗出し
+  ・費用算出
+  ・資金計画
+end note
+
+:修繕積立金管理;
+if (積立金不足?) then (yes)
+  :値上げ提案;
+  :一時金徴収提案;
+else (no)
+endif
+
+:大規模修繕工事;
+fork
+  :業者選定;
+fork again
+  :工事監理;
+fork again
+  :完了検査;
+end fork
+
+:日常修繕対応;
+:賃貸管理部と連携;
+
+|#LightYellow|フロントマネージャー|
+:建物点検;
+fork
+  :法定点検;
+fork again
+  :日常巡回;
+fork again
+  :設備点検;
+end fork
+
+:清掃管理;
+:警備管理;
+
+:入居者対応;
+note right
+  ・騒音問題
+  ・ペット問題
+  ・駐車場問題
+  ・共用部使用
+end note
+
+if (トラブル?) then (yes)
+  :当事者調整;
+  :理事会報告;
+else (no)
+endif
+
+:管理規約改正支援;
+:総務部へ法務相談;
+
+stop
+
+@enduml

@@ -15,7 +15,7 @@ world:
 
   space:
     physical:
-      location: "/Users/shunsuke/Dev/miyabi-private"
+      location: "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
       device: "MacBook Pro M1"
     digital:
       repositories:

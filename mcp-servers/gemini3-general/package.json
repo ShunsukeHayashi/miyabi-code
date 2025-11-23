@@ -1,0 +1,38 @@
+{
+  "name": "@miyabi/gemini3-general-mcp",
+  "version": "1.0.0",
+  "description": "General-purpose MCP server powered by Gemini 3 Pro Preview - Code generation, analysis, and AI assistance",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "gemini3-general-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "gemini",
+    "gemini-3",
+    "ai",
+    "code-generation",
+    "analysis"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@google/generative-ai": "^0.21.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

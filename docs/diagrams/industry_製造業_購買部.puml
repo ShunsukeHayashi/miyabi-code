@@ -1,0 +1,108 @@
+@startuml dept_manufacturing_procurement
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 購買部 業務フロー
+
+|#LightPink|購買担当|
+start
+:購買依頼受領;
+note right
+  生産管理部からの
+  資材発注依頼
+end note
+
+:在庫確認;
+if (在庫あり?) then (yes)
+  :在庫引当;
+  :生産管理部へ通知;
+  stop
+else (no)
+  :発注検討開始;
+endif
+
+:仕入先選定;
+fork
+  :既存仕入先確認;
+fork again
+  :新規仕入先調査;
+end fork
+
+if (相見積必要?) then (yes)
+  :複数社へ見積依頼;
+  :見積比較表作成;
+  :最適仕入先決定;
+else (no)
+  :単独発注判断;
+endif
+
+:発注書作成;
+note right
+  ・品目/数量
+  ・単価
+  ・納期
+  ・納入場所
+end note
+
+if (金額基準超過?) then (yes)
+  :上長承認申請;
+  :承認待ち;
+else (no)
+endif
+
+:発注書送付;
+:仕入先からの受注確認;
+
+|#LightCyan|納期管理担当|
+:納期フォロー開始;
+
+while (納入完了?) is (未完了)
+  :進捗確認;
+  if (納期遅延リスク?) then (yes)
+    :仕入先へ催促;
+    :生産管理部へ報告;
+    :代替対応検討;
+  else (no)
+  endif
+endwhile (完了)
+
+:入荷予定登録;
+:物流部へ受入依頼;
+
+|#LightYellow|受入処理担当|
+:納品書確認;
+:数量検収;
+:品質管理部へ検査依頼;
+
+if (検査合格?) then (yes)
+  :検収完了処理;
+  :在庫計上;
+else (no)
+  :不良品返品処理;
+  :仕入先へクレーム;
+endif
+
+|#LightPink|購買担当|
+:仕入実績登録;
+:経理部へ支払依頼;
+
+:仕入先評価;
+note right
+  ・品質評価
+  ・納期遵守率
+  ・価格競争力
+  ・対応力
+end note
+
+:購買データ分析;
+fork
+  :コスト削減検討;
+fork again
+  :リードタイム短縮;
+fork again
+  :仕入先集約/分散;
+end fork
+
+stop
+
+@enduml

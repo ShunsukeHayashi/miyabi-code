@@ -88,6 +88,11 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
     const nodes: Node[] = []
     let yPos = 0
 
+    // Guard against missing topology data
+    if (!topology || !topology.vpc) {
+      return nodes
+    }
+
     // VPC (top center)
     nodes.push({
       id: topology.vpc.id,
@@ -99,7 +104,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
         icon: getNodeIcon('vpc'),
         state: topology.vpc.state,
         cidr: topology.vpc.cidr,
-        borderColor: stateColors[topology.vpc.state],
+        borderColor: stateColors[topology.vpc.state] || '#9ca3af',
       },
     })
 
@@ -121,10 +126,10 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       })
     }
 
-    yPos += 150
+    yPos += 150;
 
     // Public Subnets (horizontal layout)
-    topology.publicSubnets.forEach((subnet, index) => {
+    (topology.publicSubnets || []).forEach((subnet, index) => {
       nodes.push({
         id: subnet.id,
         type: 'custom',
@@ -136,15 +141,15 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           state: subnet.state,
           cidr: subnet.cidr,
           az: subnet.availabilityZone,
-          borderColor: stateColors[subnet.state],
+          borderColor: stateColors[subnet.state] || '#9ca3af',
         },
       })
     })
 
-    yPos += 150
+    yPos += 150;
 
     // NAT Gateways
-    topology.natGateways.forEach((nat, index) => {
+    (topology.natGateways || []).forEach((nat, index) => {
       nodes.push({
         id: nat.id,
         type: 'custom',
@@ -154,15 +159,15 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'NAT Gateway',
           icon: getNodeIcon('nat_gateway'),
           state: nat.state,
-          borderColor: stateColors[nat.state],
+          borderColor: stateColors[nat.state] || '#9ca3af',
         },
       })
     })
 
-    yPos += 150
+    yPos += 150;
 
     // Private Subnets
-    topology.privateSubnets.forEach((subnet, index) => {
+    (topology.privateSubnets || []).forEach((subnet, index) => {
       nodes.push({
         id: subnet.id,
         type: 'custom',
@@ -174,15 +179,15 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           state: subnet.state,
           cidr: subnet.cidr,
           az: subnet.availabilityZone,
-          borderColor: stateColors[subnet.state],
+          borderColor: stateColors[subnet.state] || '#9ca3af',
         },
       })
     })
 
-    yPos += 150
+    yPos += 150;
 
     // Security Groups (compact layout)
-    topology.securityGroups.forEach((sg, index) => {
+    (topology.securityGroups || []).forEach((sg, index) => {
       nodes.push({
         id: sg.id,
         type: 'custom',
@@ -192,7 +197,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'Security Group',
           icon: getNodeIcon('security_group'),
           state: sg.state,
-          borderColor: stateColors[sg.state],
+          borderColor: stateColors[sg.state] || '#9ca3af',
         },
       })
     })
@@ -217,7 +222,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       xPos += 300
     }
 
-    topology.targetGroups.forEach((tg) => {
+    (topology.targetGroups || []).forEach((tg) => {
       nodes.push({
         id: tg.id,
         type: 'custom',
@@ -227,7 +232,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'Target Group',
           icon: getNodeIcon('target_group'),
           state: tg.state,
-          borderColor: stateColors[tg.state],
+          borderColor: stateColors[tg.state] || '#9ca3af',
         },
       })
       xPos += 280
@@ -249,7 +254,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       xPos += 280
     }
 
-    topology.ecsServices.forEach((service) => {
+    (topology.ecsServices || []).forEach((service) => {
       nodes.push({
         id: service.id,
         type: 'custom',
@@ -259,7 +264,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'ECS Service',
           icon: getNodeIcon('ecs_service'),
           state: service.state,
-          borderColor: stateColors[service.state],
+          borderColor: stateColors[service.state] || '#9ca3af',
         },
       })
       xPos += 280
@@ -269,7 +274,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
 
     // Data Layer
     xPos = 300
-    topology.databases.forEach((db) => {
+    ;(topology.databases || []).forEach((db) => {
       nodes.push({
         id: db.id,
         type: 'custom',
@@ -279,13 +284,13 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'RDS PostgreSQL',
           icon: getNodeIcon('rds'),
           state: db.state,
-          borderColor: stateColors[db.state],
+          borderColor: stateColors[db.state] || '#9ca3af',
         },
       })
       xPos += 350
-    })
+    });
 
-    topology.caches.forEach((cache) => {
+    (topology.caches || []).forEach((cache) => {
       nodes.push({
         id: cache.id,
         type: 'custom',
@@ -295,7 +300,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'Redis Cache',
           icon: getNodeIcon('redis'),
           state: cache.state,
-          borderColor: stateColors[cache.state],
+          borderColor: stateColors[cache.state] || '#9ca3af',
         },
       })
       xPos += 350
@@ -305,7 +310,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
 
     // IAM Roles
     xPos = 400
-    topology.iamRoles.forEach((role) => {
+    ;(topology.iamRoles || []).forEach((role) => {
       nodes.push({
         id: role.id,
         type: 'custom',
@@ -315,7 +320,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
           type: 'IAM Role',
           icon: getNodeIcon('iam_role'),
           state: role.state,
-          borderColor: stateColors[role.state],
+          borderColor: stateColors[role.state] || '#9ca3af',
         },
       })
       xPos += 320
@@ -327,6 +332,11 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
   const createEdges = (): Edge[] => {
     const edges: Edge[] = []
 
+    // Guard against missing topology data
+    if (!topology || !topology.vpc) {
+      return edges
+    }
+
     // VPC to Internet Gateway
     if (topology.internetGateway) {
       edges.push({
@@ -335,57 +345,58 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
         target: topology.internetGateway.id,
         type: 'smoothstep',
         animated: topology.internetGateway.state === 'available',
-        style: { stroke: stateColors[topology.internetGateway.state], strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[topology.internetGateway.state] },
+        style: { stroke: stateColors[topology.internetGateway.state] || '#9ca3af', strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[topology.internetGateway.state] || '#9ca3af' },
       })
 
       // Internet Gateway to Public Subnets
       const igw = topology.internetGateway
-      topology.publicSubnets.forEach((subnet) => {
+      ;(topology.publicSubnets || []).forEach((subnet) => {
         edges.push({
           id: `${igw.id}-${subnet.id}`,
           source: igw.id,
           target: subnet.id,
           type: 'smoothstep',
           animated: subnet.state === 'available',
-          style: { stroke: stateColors[subnet.state], strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[subnet.state] },
+          style: { stroke: stateColors[subnet.state] || '#9ca3af', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[subnet.state] || '#9ca3af' },
         })
       })
     }
 
     // Public Subnets to NAT Gateways
-    topology.natGateways.forEach((nat, index) => {
-      if (topology.publicSubnets[index]) {
+    const publicSubnets = topology.publicSubnets || []
+    ;(topology.natGateways || []).forEach((nat, index) => {
+      if (publicSubnets[index]) {
         edges.push({
-          id: `${topology.publicSubnets[index].id}-${nat.id}`,
-          source: topology.publicSubnets[index].id,
+          id: `${publicSubnets[index].id}-${nat.id}`,
+          source: publicSubnets[index].id,
           target: nat.id,
           type: 'smoothstep',
           animated: nat.state === 'creating',
-          style: { stroke: stateColors[nat.state], strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[nat.state] },
+          style: { stroke: stateColors[nat.state] || '#9ca3af', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[nat.state] || '#9ca3af' },
         })
       }
     })
 
     // NAT Gateways to Private Subnets
-    topology.natGateways.forEach((nat) => {
-      topology.privateSubnets.forEach((subnet) => {
+    ;(topology.natGateways || []).forEach((nat) => {
+      ;(topology.privateSubnets || []).forEach((subnet) => {
         edges.push({
           id: `${nat.id}-${subnet.id}`,
           source: nat.id,
           target: subnet.id,
           type: 'smoothstep',
           animated: nat.state === 'creating',
-          style: { stroke: stateColors[subnet.state], strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[subnet.state] },
+          style: { stroke: stateColors[subnet.state] || '#9ca3af', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: stateColors[subnet.state] || '#9ca3af' },
         })
       })
     })
 
     // Security Group connections
-    topology.securityGroups.forEach((sg) => {
+    ;(topology.securityGroups || []).forEach((sg) => {
       if (sg.connections) {
         sg.connections.forEach((connId) => {
           edges.push({

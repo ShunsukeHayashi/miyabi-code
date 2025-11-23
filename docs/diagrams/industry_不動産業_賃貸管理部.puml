@@ -1,0 +1,119 @@
+@startuml dept_realestate_rental
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 賃貸管理部 業務フロー
+
+|#LightGreen|入居管理担当|
+start
+:新規入居者情報受領;
+note right: 仲介営業部からの引継
+
+:入居準備;
+fork
+  :鍵手配;
+fork again
+  :ライフライン開通確認;
+fork again
+  :入居前点検;
+end fork
+
+:入居立会い;
+:現況確認書作成;
+
+:入居者データ登録;
+
+|#LightCyan|賃料管理担当|
+:賃料請求;
+
+while (契約期間中?) is (継続)
+  :入金確認;
+
+  if (滞納?) then (yes)
+    :督促連絡;
+    if (長期滞納?) then (yes)
+      :保証会社へ代位弁済請求;
+      :法的措置検討;
+    else (no)
+      :支払計画相談;
+    endif
+  else (no)
+  endif
+
+  :オーナーへ賃料送金;
+  :管理料差引;
+endwhile (終了)
+
+:経理部へ収入報告;
+
+|#LightYellow|物件管理担当|
+:建物巡回点検;
+
+if (修繕必要?) then (yes)
+  :修繕見積取得;
+  :オーナー承認取得;
+  :修繕業者手配;
+  :修繕完了確認;
+else (no)
+endif
+
+:入居者からの問合せ対応;
+note right
+  ・設備故障
+  ・騒音問題
+  ・駐車場
+  ・その他相談
+end note
+
+if (緊急対応?) then (yes)
+  :緊急業者手配;
+  :応急処置;
+else (no)
+  :通常対応;
+endif
+
+:清掃管理;
+:植栽管理;
+
+|#LightPink|契約更新担当|
+:更新時期管理;
+
+:更新案内送付;
+if (更新希望?) then (yes)
+  :更新条件交渉;
+  if (賃料改定?) then (yes)
+    :オーナー・入居者調整;
+  else (no)
+  endif
+  :更新契約締結;
+  :更新料請求;
+else (no)
+  :解約受付;
+endif
+
+|#LightGreen|退去管理担当|
+:解約通知受領;
+
+:退去立会い調整;
+:退去立会い実施;
+:原状回復確認;
+
+if (修繕必要?) then (yes)
+  :修繕費用算出;
+  :敷金精算;
+else (no)
+  :敷金全額返還;
+endif
+
+:鍵回収;
+:入居者データ抹消;
+
+:空室情報登録;
+:仲介営業部へ募集依頼;
+
+:原状回復工事;
+:クリーニング;
+
+stop
+
+@enduml

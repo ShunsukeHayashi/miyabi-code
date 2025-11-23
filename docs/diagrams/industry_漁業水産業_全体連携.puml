@@ -1,0 +1,62 @@
+@startuml industry_fishery_overview
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 部署間連携図
+
+rectangle "漁労部" as fishing #LightBlue
+rectangle "加工部" as processing #LightGreen
+rectangle "品質管理部" as quality #LightCyan
+rectangle "販売部" as sales #LightYellow
+rectangle "物流部" as logistics #LightPink
+rectangle "経理部" as accounting #LightGray
+rectangle "総務部" as general #Lavender
+
+' 漁労部からの連携
+fishing --> processing : 水揚げ報告\n鮮度管理データ
+fishing --> quality : 漁獲物情報\n保存状態
+fishing --> logistics : 運搬指示\n冷凍・冷蔵要件
+fishing --> sales : 水揚げ量\n魚種情報
+fishing --> accounting : 燃料使用\n労務費報告
+
+' 加工部からの連携
+processing --> quality : 加工食材\n検査依頼
+processing --> logistics : 製品引き渡し\n梱包仕様
+processing --> accounting : 加工費用\n副産物売上
+processing --> general : 労務報告\n衛生教育
+
+' 品質管理部からの連携
+quality --> processing : 品質検査結果\n改善指示
+quality --> sales : 適合証明書\n品質証明
+quality --> logistics : 保存条件\n温度管理基準
+quality --> general : 法令対応\n許認可管理
+
+' 販売部からの連携
+sales --> processing : 受注情報\n要望仕様
+sales --> logistics : 納品手配\n配送先情報
+sales --> accounting : 売上報告\n請求管理
+
+' 物流部からの連携
+logistics --> accounting : 配送費\n運送実績
+logistics --> general : 運転手管理\n安全教育
+
+' 経理部からの連携
+accounting --> general : 給与計算\n固定資産管理
+
+' 総務部からの連携
+general --> fishing : 人員配置\n船舶管理
+general --> processing : 工場管理\n災害予防
+
+note right of fishing
+  資源管理と
+  効率的な漁獲が重要
+  季節・天候に左右される
+end note
+
+note bottom of quality
+  衛生管理と品質保証
+  市場信用の要
+  各種認証対応必須
+end note
+
+@enduml

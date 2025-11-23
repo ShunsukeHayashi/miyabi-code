@@ -165,7 +165,7 @@ mod unified_error_tests {
         let error = KnowledgeError::NotFound("entry".to_string());
         assert!(error.context().is_some());
 
-        let error = KnowledgeError::Io(std::io::Error::new(std::io::ErrorKind::Other, "test"));
+        let error = KnowledgeError::Io(std::io::Error::other("test"));
         assert!(error.context().is_none());
 
         let error =

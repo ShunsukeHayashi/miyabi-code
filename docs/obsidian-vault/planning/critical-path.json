@@ -1,0 +1,225 @@
+{
+  "project_duration_hours": 180,
+  "project_duration_weeks": 5,
+  "critical_task_count": 24,
+  "total_task_count": 57,
+  "critical_percentage": 42,
+  "critical_tasks": [
+    {
+      "id": 970,
+      "title": "🏗️ [P0-CRITICAL] Miyabi Society 完全再構築 - Ultra-Detailed Implementation Plan",
+      "priority": "🔥 priority:P0-Critical",
+      "estimated_hours": 180,
+      "earliest_start": 0,
+      "earliest_finish": 180,
+      "is_epic": false
+    },
+    {
+      "id": 1028,
+      "title": "🎭 E2E Testing: Critical User Flows (Playwright)",
+      "priority": "⚠️ priority:P1-High",
+      "estimated_hours": 7,
+      "earliest_start": 0,
+      "earliest_finish": 7,
+      "is_epic": false
+    },
+    {
+      "id": 1027,
+      "title": "🎨 Frontend Testing: Component Tests (70% Coverage)",
+      "priority": "⚠️ priority:P1-High",
+      "estimated_hours": 7,
+      "earliest_start": 0,
+      "earliest_finish": 7,
+      "is_epic": false
+    },
+    {
+      "id": 1026,
+      "title": "🧪 Backend Testing: Unit Tests (85% Coverage)",
+      "priority": "⚠️ priority:P1-High",
+      "estimated_hours": 10,
+      "earliest_start": 0,
+      "earliest_finish": 10,
+      "is_epic": false
+    },
+    {
+      "id": 1024,
+      "title": "🔗 Day 6: Frontend Connection & E2E Integration Testing",
+      "priority": "⚠️ priority:P1-High",
+      "estimated_hours": 8,
+      "earliest_start": 0,
+      "earliest_finish": 8,
+      "is_epic": false
+    },
+    {
+      "id": 977,
+      "title": "🎯 [MASTER] Miyabi Reconstruction - Team Coordination & Context Preservation",
+      "priority": "⚠️ priority:P1-High",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": true
+    },
+    {
+      "id": 967,
+      "title": "[P0] Kazuaki Agent - Rust-Pythonブリッジの詳細化",
+      "priority": "⚠️ priority:P1-High",
+      "estimated_hours": 8,
+      "earliest_start": 0,
+      "earliest_finish": 8,
+      "is_epic": true
+    },
+    {
+      "id": 1025,
+      "title": "🔒 Day 7: SSL Setup, Documentation & Final Validation",
+      "priority": "📊 priority:P2-Medium",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": false
+    },
+    {
+      "id": 993,
+      "title": "Phase 4.6: Production Launch (2-3h)",
+      "priority": "no-priority",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": false
+    },
+    {
+      "id": 992,
+      "title": "Phase 4.5: Documentation & Runbooks (2-3h)",
+      "priority": "no-priority",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": false
+    },
+    {
+      "id": 991,
+      "title": "Phase 4.4: Disaster Recovery & Rollback (2-3h)",
+      "priority": "no-priority",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": false
+    },
+    {
+      "id": 990,
+      "title": "Phase 4.3: Monitoring & Alerting Setup (2-3h)",
+      "priority": "no-priority",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": false
+    },
+    {
+      "id": 989,
+      "title": "Phase 4.2: Security Audit & Penetration Testing (6-8h)",
+      "priority": "no-priority",
+      "estimated_hours": 7,
+      "earliest_start": 0,
+      "earliest_finish": 7,
+      "is_epic": false
+    },
+    {
+      "id": 988,
+      "title": "Phase 4.1: Load Testing & Performance Validation (12-16h)",
+      "priority": "no-priority",
+      "estimated_hours": 14,
+      "earliest_start": 0,
+      "earliest_finish": 14,
+      "is_epic": false
+    },
+    {
+      "id": 987,
+      "title": "Phase 2.5: AWS Lambda Deployment & CloudWatch Monitoring",
+      "priority": "no-priority",
+      "estimated_hours": 9,
+      "earliest_start": 0,
+      "earliest_finish": 9,
+      "is_epic": false
+    },
+    {
+      "id": 986,
+      "title": "Phase 2.4: Uncomment & Test Existing APIs",
+      "priority": "no-priority",
+      "estimated_hours": 5,
+      "earliest_start": 0,
+      "earliest_finish": 5,
+      "is_epic": false
+    },
+    {
+      "id": 985,
+      "title": "Phase 2.3: Worker & Coordinator Status APIs",
+      "priority": "no-priority",
+      "estimated_hours": 5,
+      "earliest_start": 0,
+      "earliest_finish": 5,
+      "is_epic": false
+    },
+    {
+      "id": 984,
+      "title": "Phase 2.2: Task Management API Implementation",
+      "priority": "no-priority",
+      "estimated_hours": 9,
+      "earliest_start": 0,
+      "earliest_finish": 9,
+      "is_epic": false
+    },
+    {
+      "id": 983,
+      "title": "Phase 2.1: Service Layer Refactoring",
+      "priority": "no-priority",
+      "estimated_hours": 11,
+      "earliest_start": 0,
+      "earliest_finish": 11,
+      "is_epic": false
+    },
+    {
+      "id": 982,
+      "title": "Phase 3.5: CloudFront Redeployment & E2E Testing",
+      "priority": "no-priority",
+      "estimated_hours": 6,
+      "earliest_start": 0,
+      "earliest_finish": 6,
+      "is_epic": false
+    },
+    {
+      "id": 981,
+      "title": "Phase 3.4: Authentication Flow Implementation",
+      "priority": "no-priority",
+      "estimated_hours": 2.5,
+      "earliest_start": 0,
+      "earliest_finish": 2.5,
+      "is_epic": false
+    },
+    {
+      "id": 980,
+      "title": "Phase 3.3: Real-Time WebSocket Integration",
+      "priority": "no-priority",
+      "estimated_hours": 5,
+      "earliest_start": 0,
+      "earliest_finish": 5,
+      "is_epic": false
+    },
+    {
+      "id": 979,
+      "title": "Phase 3.2: Dashboard UI Modernization",
+      "priority": "no-priority",
+      "estimated_hours": 9,
+      "earliest_start": 0,
+      "earliest_finish": 9,
+      "is_epic": false
+    },
+    {
+      "id": 978,
+      "title": "Phase 3.1: API Client Implementation",
+      "priority": "no-priority",
+      "estimated_hours": 7,
+      "earliest_start": 0,
+      "earliest_finish": 7,
+      "is_epic": false
+    }
+  ]
+}

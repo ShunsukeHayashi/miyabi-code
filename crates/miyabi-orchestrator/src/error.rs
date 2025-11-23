@@ -46,6 +46,10 @@ pub enum SchedulerError {
     /// Command execution failed
     #[error("Command '{command}' failed: {stderr}")]
     CommandFailed { command: String, stderr: String },
+
+    /// Invalid priority value
+    #[error("Invalid priority value: {0} (must be 0-100)")]
+    InvalidPriority(u8),
 }
 
 // ============================================================================
@@ -67,6 +71,7 @@ impl UnifiedError for SchedulerError {
             Self::InvalidConfig(_) => ErrorCode::INVALID_CONFIG,
             Self::ProcessFailed { .. } => ErrorCode::PROCESS_ERROR,
             Self::CommandFailed { .. } => ErrorCode::COMMAND_ERROR,
+            Self::InvalidPriority(_) => ErrorCode::INVALID_INPUT,
         }
     }
 

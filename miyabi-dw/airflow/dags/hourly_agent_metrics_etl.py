@@ -1,0 +1,269 @@
+"""
+Miyabi Data Warehouse - Hourly Agent Metrics ETL
+Version: 1.0.0
+
+This DAG extracts agent execution metrics from the source database,
+enriches them with LLM cost calculations, and loads them into the data warehouse.
+
+Schedule: Hourly
+"""
+
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Default arguments
+default_args = {
+    'owner': 'miyabi-dw',
+    'depends_on_past': False,
+    'start_date': datetime(2025, 1, 1),
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'retries': 3,
+    'retry_delay': timedelta(minutes=2),
+}
+
+# DAG definition
+dag = DAG(
+    'hourly_agent_metrics_etl',
+    default_args=default_args,
+    description='Extract, transform, and load agent execution metrics',
+    schedule_interval='0 * * * *',  # Every hour at minute 0
+    catchup=False,
+    max_active_runs=1,
+    tags=['miyabi', 'etl', 'hourly', 'agent-metrics'],
+)
+
+# ============================================================================
+# EXTRACT
+# ============================================================================
+
+extract_sql = """
+-- Extract agent execution logs for the past hour
+SELECT
+    ae.id AS execution_id,
+    ae.agent_id,
+    ae.issue_id,
+    ae.started_at,
+    ae.completed_at,
+    ae.execution_duration_ms,
+    ae.memory_usage_mb,
+    ae.cpu_usage_percent,
+    ae.llm_tokens_input,
+    ae.llm_tokens_output,
+    ae.llm_cost_usd,
+    ae.success,
+    ae.error_message
+
+FROM agent_execution_logs ae
+
+WHERE
+    ae.started_at >= NOW() - INTERVAL '1 hour'
+    AND ae.started_at < NOW()
+    AND ae.completed_at IS NOT NULL
+
+ORDER BY ae.started_at DESC;
+"""
+
+extract_task = PostgresOperator(
+    task_id='extract_agent_metrics',
+    postgres_conn_id='miyabi_source_db',
+    sql=extract_sql,
+    dag=dag,
+)
+
+# ============================================================================
+# TRANSFORM
+# ============================================================================
+
+def transform_agent_execution_facts(**context):
+    """
+    Transform extracted agent execution data into fact table format
+    """
+    ti = context['task_instance']
+    execution_date = context['execution_date']
+
+    logger.info(f"Transforming agent execution facts for {execution_date}")
+
+    # Get extract results from source
+    source_hook = PostgresHook(postgres_conn_id='miyabi_source_db')
+    df = source_hook.get_pandas_df(extract_sql)
+
+    if df.empty:
+        logger.warning("No agent execution data extracted for transformation")
+        return 0
+
+    logger.info(f"Extracted {len(df)} agent execution records for transformation")
+
+    # DW connection
+    dw_hook = PostgresHook(postgres_conn_id='miyabi_dw')
+    dw_engine = dw_hook.get_sqlalchemy_engine()
+
+    # Helper function to lookup dimension keys
+    def lookup_dimension_key(table, id_column, id_value, current_only=False):
+        if pd.isna(id_value) or id_value is None:
+            return None
+
+        query = f"SELECT {table.replace('dim_', '')}_key FROM {table} WHERE {id_column} = %s"
+        if current_only:
+            query += " AND is_current = TRUE"
+        query += " LIMIT 1"
+
+        result = dw_hook.get_first(query, parameters=(id_value,))
+        return result[0] if result else None
+
+    # Lookup dimension keys
+    logger.info("Looking up dimension keys...")
+
+    df['agent_key'] = df.apply(
+        lambda row: lookup_dimension_key('dim_agent', 'agent_id', row['agent_id']),
+        axis=1
+    )
+    df['time_key'] = pd.to_datetime(df['started_at']).dt.strftime('%Y%m%d').astype('Int64')
+    df['issue_key'] = df.apply(
+        lambda row: lookup_dimension_key('dim_issue', 'issue_id', row['issue_id'], current_only=True),
+        axis=1
+    )
+
+
+    # Fill default values
+    df['execution_duration_ms'] = df['execution_duration_ms'].fillna(0).astype(int)
+    df['memory_usage_mb'] = df['memory_usage_mb'].fillna(0).astype(int)
+    df['cpu_usage_percent'] = df['cpu_usage_percent'].fillna(0)
+
+
+    df['llm_tokens_input'] = df['llm_tokens_input'].fillna(0).astype(int)
+    df['llm_tokens_output'] = df['llm_tokens_output'].fillna(0).astype(int)
+    df['llm_cost_usd'] = df['llm_cost_usd'].fillna(0)
+
+
+    df['success'] = df['success'].fillna(False)
+
+    # Select fact table columns
+    fact_columns = {
+        'agent_key': 'agent_key',
+        'time_key': 'time_key',
+        'issue_key': 'issue_key',
+        'execution_duration_ms': 'execution_duration_ms',
+        'memory_usage_mb': 'memory_usage_mb',
+        'cpu_usage_percent': 'cpu_usage_percent',
+        'llm_tokens_input': 'llm_tokens_input',
+        'llm_tokens_output': 'llm_tokens_output',
+        'llm_cost_usd': 'llm_cost_usd',
+        'success': 'success',
+        'error_message': 'error_message',
+        'started_at': 'started_at',
+        'completed_at': 'completed_at',
+    }
+
+    result_df = df[list(fact_columns.keys())].rename(columns=fact_columns)
+
+    # Filter out records with missing required keys
+    required_keys = ['agent_key', 'time_key']
+    before_count = len(result_df)
+    result_df = result_df.dropna(subset=required_keys)
+    after_count = len(result_df)
+
+    if before_count > after_count:
+        logger.warning(f"Dropped {before_count - after_count} records due to missing dimension keys")
+
+    # Save to staging table
+    logger.info(f"Loading {len(result_df)} records to staging table...")
+    result_df.to_sql(
+        'agent_execution_facts',
+        dw_engine,
+        schema='staging',
+        if_exists='replace',
+        index=False,
+        method='multi',
+        chunksize=500
+    )
+
+    logger.info(f"Successfully transformed and staged {len(result_df)} records")
+    return len(result_df)
+
+transform_task = PythonOperator(
+    task_id='transform_agent_execution_facts',
+    python_callable=transform_agent_execution_facts,
+    provide_context=True,
+    dag=dag,
+)
+
+# ============================================================================
+# LOAD
+# ============================================================================
+
+load_sql = """
+-- Load from staging to fact table with upsert
+INSERT INTO fact_agent_execution (
+    agent_key,
+    time_key,
+    issue_key,
+    execution_duration_ms,
+    memory_usage_mb,
+    cpu_usage_percent,
+    llm_tokens_input,
+    llm_tokens_output,
+    llm_cost_usd,
+    success,
+    error_message,
+    started_at,
+    completed_at
+)
+SELECT
+    agent_key,
+    time_key,
+    issue_key,
+    execution_duration_ms,
+    memory_usage_mb,
+    cpu_usage_percent,
+    llm_tokens_input,
+    llm_tokens_output,
+    llm_cost_usd,
+    success,
+    error_message,
+    started_at,
+    completed_at
+FROM staging.agent_execution_facts
+ON CONFLICT DO NOTHING;
+"""
+
+load_task = PostgresOperator(
+    task_id='load_fact_agent_execution',
+    postgres_conn_id='miyabi_dw',
+    sql=load_sql,
+    dag=dag,
+)
+
+# ============================================================================
+# DATA QUALITY CHECKS
+# ============================================================================
+
+check_data_freshness_sql = """
+-- Check that we have recent data
+SELECT
+    CASE
+        WHEN MAX(completed_at) >= NOW() - INTERVAL '2 hours' THEN 1
+        ELSE 0
+    END AS freshness_ok
+FROM fact_agent_execution;
+"""
+
+check_freshness_task = PostgresOperator(
+    task_id='check_data_freshness',
+    postgres_conn_id='miyabi_dw',
+    sql=check_data_freshness_sql,
+    dag=dag,
+)
+
+# ============================================================================
+# TASK DEPENDENCIES
+# ============================================================================
+
+extract_task >> transform_task >> load_task >> check_freshness_task

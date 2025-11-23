@@ -81,8 +81,17 @@ impl SlackNotifier {
 
     /// Send Slack blocks
     pub async fn send_blocks(&self, blocks: Vec<SlackBlock>) -> Result<()> {
+        self.send_blocks_with_text(blocks, None).await
+    }
+
+    /// Send Slack blocks with optional plain text content
+    pub async fn send_blocks_with_text(
+        &self,
+        blocks: Vec<SlackBlock>,
+        text: Option<String>,
+    ) -> Result<()> {
         let payload = SlackPayload {
-            text: None,
+            text,
             blocks: Some(blocks),
         };
 
@@ -307,12 +316,14 @@ impl SlackNotifier {
 impl Notifier for SlackNotifier {
     async fn send_approval_request(&self, req: &ApprovalRequest) -> Result<()> {
         let blocks = self.build_approval_blocks(req);
-        self.send_blocks(blocks).await
+        let text = self.formatter.format_approval_request(req);
+        self.send_blocks_with_text(blocks, Some(text)).await
     }
 
     async fn send_status_update(&self, status: &WorkflowStatusUpdate) -> Result<()> {
         let blocks = self.build_status_blocks(status);
-        self.send_blocks(blocks).await
+        let text = self.formatter.format_status_update(status);
+        self.send_blocks_with_text(blocks, Some(text)).await
     }
 
     async fn send_error(&self, error: &str) -> Result<()> {
@@ -339,6 +350,7 @@ impl Notifier for SlackNotifier {
             },
         ];
 
-        self.send_blocks(blocks).await
+        let text = self.formatter.format_error(error);
+        self.send_blocks_with_text(blocks, Some(text)).await
     }
 }

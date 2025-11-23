@@ -1,0 +1,55 @@
+{
+  "description": "Miyabi Lark統合 - MCPサーバー設定",
+  "version": "1.0.0",
+  "servers": {
+    "lark-mcp-enhanced": {
+      "name": "Lark MCP Enhanced (Miyabi専用)",
+      "path": "../../mcp-servers/lark-mcp-enhanced",
+      "enabled": true,
+      "mode": "stdio",
+      "presets": {
+        "default": {
+          "description": "基本的なIM・カレンダー・タスク機能",
+          "tools": "preset.default,auto.permission.manager"
+        },
+        "collab": {
+          "description": "コラボレーション特化（IM・カレンダー・タスク）",
+          "tools": "preset.im.default,preset.calendar.default,preset.task.default,auto.permission.manager"
+        },
+        "docs": {
+          "description": "ドキュメント管理特化",
+          "tools": "preset.doc.default,auto.permission.manager"
+        },
+        "base": {
+          "description": "Lark Base（データベース）特化",
+          "tools": "preset.base.default,auto.permission.manager"
+        },
+        "genesis": {
+          "description": "Genesis AI - Lark Baseアプリ自動生成",
+          "tools": "preset.genesis.default,auto.permission.manager"
+        }
+      },
+      "current_preset": "default"
+    },
+    "lark-openapi-mcp-enhanced": {
+      "name": "Lark OpenAPI MCP (フル機能版)",
+      "path": "../../mcp-servers/lark-openapi-mcp-enhanced",
+      "enabled": false,
+      "mode": "stdio",
+      "note": "全OpenAPI機能 + Genesis AIシステム搭載"
+    },
+    "lark-wiki-mcp-agents": {
+      "name": "Lark Wiki MCP Agents",
+      "path": "../../mcp-servers/lark-wiki-mcp-agents",
+      "enabled": false,
+      "mode": "stdio",
+      "note": "Wiki特化型マルチエージェントシステム"
+    }
+  },
+  "active_server": "lark-mcp-enhanced",
+  "startup_commands": {
+    "lark-mcp-enhanced-default": "cd mcp-servers/lark-mcp-enhanced && npm start",
+    "lark-mcp-enhanced-collab": "cd mcp-servers/lark-mcp-enhanced && npm run start:collab",
+    "lark-mcp-enhanced-genesis": "cd mcp-servers/lark-mcp-enhanced && npm run start:genesis"
+  }
+}

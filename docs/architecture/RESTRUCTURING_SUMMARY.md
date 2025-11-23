@@ -1,6 +1,7 @@
 # Miyabi Restructuring Summary - Visual Overview
 
 **Date**: 2025-11-01
+**Status**: In Progress (Restructuring window: Nov 2025–Feb 2026)
 **Related**: [RESTRUCTURING_PLAN.md](RESTRUCTURING_PLAN.md)
 
 ---
@@ -26,42 +27,42 @@
 
 ## 📊 Current vs. Proposed Structure
 
-### Current Structure (Problematic)
+### Current Structure (Baseline: Nov 2025)
 
 ```
 miyabi-private/
-├── 📄 36 config files at root (CLAUDE.md, README.md, Cargo.toml, etc.)
-├── 📁 30 directories at root (crates, docs, tools, etc.)
+├── 📄 36+ config files at root (CLAUDE.md, README.md, Cargo.toml, etc.)
+├── 📁 50+ directories at root (crates, docs, tools, apps, services, etc.)
 │
-├── crates/ (48 crates, flat structure)
+├── crates/ (59 crate directories; 39 workspace members defined in Cargo.toml)
 │   ├── miyabi-agent-business
 │   ├── miyabi-agent-codegen
 │   ├── miyabi-agent-coordinator
 │   ├── miyabi-agent-core
 │   ├── ... (44 more, no clear grouping)
 │
-├── docs/ (20+ files)
-├── miyabi_def/ (SWML paper - isolated!)
-├── .claude/ (13 context files)
+├── docs/ (数百ファイル。索引は docs/README.md)
+├── miyabi_def/ (SWML paper - isolated)
+├── .claude/ (context + skills)
 ├── tools/
 ├── scripts/
 ├── deployment/
-└── ... (20+ more top-level dirs)
+└── ... (その他多数)
 
-TOTAL ROOT ITEMS: 66+
+TOTAL ROOT ITEMS: 80+ (頻繁に追加/移動中)
 ```
 
-**Problems**:
-1. ❌ No reflection of SWML Ω function structure
-2. ❌ SWML paper isolated in `miyabi_def/`
-3. ❌ 66+ items at root - cognitive overload
-4. ❌ Flat crate structure - no hierarchy
-5. ❌ Missing 4/6 Ω phase implementations (θ₁, θ₂, θ₃, θ₆)
-6. ❌ Documentation scattered across 5 locations
+**Problems (current baseline)**:
+1. ❌ SWML Ω function構造との対応が明示されていない
+2. ❌ SWML paperが `miyabi_def/` に孤立
+3. ❌ 80+ のルートアイテムで認知負荷が高い
+4. ❌ クレート構成が平坦で階層・フェーズ対応が弱い
+5. ❌ θ₁/θ₂/θ₆ の役割がコード上で明示されていない（マッピング未整理）
+6. ❌ ドキュメントが複数の場所に分散
 
 ---
 
-### Proposed Structure (Aligned with SWML)
+### Target Structure (Aligned with SWML — planned)
 
 ```
 miyabi-private/

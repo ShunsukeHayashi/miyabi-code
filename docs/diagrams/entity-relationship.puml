@@ -1,0 +1,147 @@
+@startuml entity-relationship
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 安全書類管理システム - ER図
+
+' マスタテーブル
+entity "【M1】従業員マスタ" as employee {
+  * 従業員ID
+  --
+  氏名
+  部署
+  役職
+  資格一覧
+  入社日
+}
+
+entity "【M2】現場マスタ" as site {
+  * 現場ID
+  --
+  現場名
+  住所
+  担当者
+  工期
+  ステータス
+}
+
+entity "【M3】車両マスタ" as vehicle {
+  * 車両ID
+  --
+  車両番号
+  車種
+  車検期限
+  保険期限
+}
+
+entity "【M4】資機材マスタ" as equipment {
+  * 資機材ID
+  --
+  品名
+  規格
+  単価
+  在庫数
+}
+
+entity "【M5】協力会社" as subcontractor {
+  * 会社ID
+  --
+  会社名
+  代表者
+  連絡先
+  契約状況
+}
+
+' リース管理
+entity "【リース1】発注依頼" as order_request {
+  * 依頼ID
+  --
+  依頼者 (FK)
+  現場 (FK)
+  資機材 (FK)
+  数量
+  希望日
+  ステータス
+}
+
+entity "【リース2】発注書" as purchase_order {
+  * 発注ID
+  --
+  依頼ID (FK)
+  発注日
+  納期
+  金額
+  承認者
+}
+
+entity "【リース3】納品記録" as delivery {
+  * 納品ID
+  --
+  発注ID (FK)
+  納品日
+  検収者
+  状態
+}
+
+entity "【リース4】返却記録" as return_record {
+  * 返却ID
+  --
+  納品ID (FK)
+  返却日
+  状態
+  清算金額
+}
+
+' 経費管理
+entity "【経費1】経費申請" as expense {
+  * 申請ID
+  --
+  申請者 (FK)
+  現場 (FK)
+  科目
+  金額
+  承認状況
+}
+
+' 勤怠管理
+entity "【勤怠1】日報" as daily_report {
+  * 日報ID
+  --
+  従業員 (FK)
+  現場 (FK)
+  日付
+  出勤時刻
+  退勤時刻
+  作業内容
+}
+
+' 点検
+entity "【点検1】日常点検" as inspection {
+  * 点検ID
+  --
+  車両 (FK)
+  点検者 (FK)
+  日付
+  結果
+  備考
+}
+
+' リレーション
+employee ||--o{ order_request : 依頼
+site ||--o{ order_request : 配属先
+equipment ||--o{ order_request : 対象
+
+order_request ||--o| purchase_order : 発注
+purchase_order ||--o| delivery : 納品
+delivery ||--o| return_record : 返却
+
+employee ||--o{ expense : 申請
+site ||--o{ expense : 計上先
+
+employee ||--o{ daily_report : 記録
+site ||--o{ daily_report : 勤務先
+
+vehicle ||--o{ inspection : 対象
+employee ||--o{ inspection : 実施
+
+@enduml

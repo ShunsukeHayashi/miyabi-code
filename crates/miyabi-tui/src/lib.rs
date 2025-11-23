@@ -1,61 +1,37 @@
 //! Miyabi TUI - Terminal User Interface
 //!
-//! This crate provides a terminal-based user interface for Miyabi,
-//! inspired by OpenAI's Codex CLI TUI and implementing Codex architecture.
+//! This crate provides a comprehensive terminal-based user interface for Miyabi,
+//! featuring multiple views for different functionalities.
 //!
 //! # Features
 //!
-//! - Event-driven architecture with async/await
-//! - Message history with role-based coloring
-//! - Real-time input handling
-//! - State management (Idle, Processing, Streaming, etc.)
-//! - Ctrl+C to quit, Enter to send
+//! - **Agent Dashboard**: Monitor all 21 Miyabi agents
+//! - **A2A Bridge**: Interactive tool execution interface
+//! - **LLM Chat**: Conversational interface with Claude
+//! - **System Monitor**: CPU, memory, and process monitoring
 //!
 //! # Usage
 //!
 //! ```no_run
-//! # #[tokio::main]
-//! # async fn main() -> anyhow::Result<()> {
-//! miyabi_tui::run_tui().await
-//! # }
+//! // Run from command line
+//! cargo run -p miyabi-tui
 //! ```
 
-mod app;
-mod history;
-mod markdown;
-pub mod worktree_monitor;
+pub mod app;
+pub mod event;
+pub mod ui;
+pub mod views;
 
-pub use app::{App, AppEvent, AppState, Message, MessageRole};
-pub use history::{default_history_path, ChatHistory, ChatSession};
-pub use markdown::render_markdown;
-pub use worktree_monitor::{run_worktree_monitor, WorktreeMonitorApp};
+// Premium UI modules
+pub mod shimmer;
+pub mod markdown_render;
+pub mod history_cell;
+pub mod wrapping;
 
-/// Run the Miyabi TUI application
-///
-/// This is the main entry point for the TUI. It initializes the terminal,
-/// runs the main event loop with async event handling, and cleans up on exit.
-///
-/// # Returns
-///
-/// Returns `Ok(())` on successful execution, or an error if the TUI fails to initialize
-/// or run.
-///
-/// # Errors
-///
-/// This function will return an error if:
-/// - Terminal initialization fails (raw mode, alternate screen)
-/// - The event loop encounters a fatal error
-/// - Terminal cleanup fails
-///
-/// # Example
-///
-/// ```no_run
-/// #[tokio::main]
-/// async fn main() -> anyhow::Result<()> {
-///     miyabi_tui::run_tui().await
-/// }
-/// ```
-pub async fn run_tui() -> anyhow::Result<()> {
-    let mut app = App::new();
-    app.run().await
-}
+pub use app::{App, Tab};
+pub use event::{Event, EventHandler};
+pub use views::{AgentDashboard, A2ABridgeView, ChatView, MonitorView};
+pub use shimmer::{shimmer_style, shimmer_text, spinner_frame, dots_frame, ShimmerConfig};
+pub use markdown_render::{MarkdownRenderer, MarkdownStyles};
+pub use history_cell::{HistoryCell, UserMessageCell, AssistantMessageCell, ToolResultCell, SystemMessageCell};
+pub use wrapping::{word_wrap_line, word_wrap_lines, wrap_text, display_width, truncate_with_ellipsis, WrapOptions};

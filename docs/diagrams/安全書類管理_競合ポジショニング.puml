@@ -1,0 +1,49 @@
+@startuml 競合ポジショニングマップ
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundCorner 10
+
+title 安全書類管理システム 競合ポジショニングマップ
+
+rectangle "競合マップ（価格 vs 機能カバー範囲）" {
+
+    note "縦軸: 価格（高→低）\n横軸: 機能範囲（狭→広）" as Legend
+
+    package "高価格帯\n（月額5万円以上）" as High {
+        card "グリーンサイト\n業界標準・安全書類特化\n月額6万円〜" as GS #FFB6C1
+        card "ANDPAD\n総合施工管理\n月額3.6万円〜" as ANDPAD #FFB6C1
+        card "Buildee\n大手向け・高機能\n要問合せ" as Buildee #FFB6C1
+    }
+
+    package "中価格帯\n（月額1-5万円）" as Mid {
+        card "【当社】Lark Base\n安全書類+業務全般\n月額2.98万円" as OUR #90EE90
+        card "現場Plus\n施工管理特化\n月額1万円〜" as GembaPlus #FFFACD
+        card "CONOC\n建設DX全般\n月額3万円〜" as CONOC #FFFACD
+    }
+
+    package "低価格帯\n（月額1万円未満）" as Low {
+        card "Excel/紙ベース\n無料\n機能限定" as Excel #D3D3D3
+        card "無料アプリ\n基本機能のみ" as Free #D3D3D3
+    }
+}
+
+rectangle "当社の差別化ポイント" as Diff {
+    card "1. 8サブシステム統合\n（競合は2-3機能）" as D1
+    card "2. ノーコードカスタマイズ\n（Lark Base基盤）" as D2
+    card "3. 導入期間2週間\n（競合は1-3ヶ月）" as D3
+    card "4. 中小企業向け価格\n（グリーンサイトの50%）" as D4
+}
+
+High -[hidden]d-> Mid
+Mid -[hidden]d-> Low
+
+note right of OUR
+  **競争優位性**
+  ・機能の広さ: 8サブシステム37テーブル
+  ・価格: 競合比50%
+  ・柔軟性: ノーコードカスタマイズ
+  ・速度: 即日〜2週間導入
+end note
+
+@enduml

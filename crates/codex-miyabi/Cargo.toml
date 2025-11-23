@@ -2,6 +2,7 @@
 name = "codex-miyabi"
 version = "0.1.0"
 edition = "2021"
+publish = false
 license = "Apache-2.0"
 description = "Thin CLI to exercise miyabi-integration for Codex × Miyabi Phase 1"
 
@@ -13,7 +14,7 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
-miyabi-integration = { path = "../miyabi-integration" }
+miyabi-integration = { path = "../miyabi-integration", version = "0.1.2" }
 
 [dev-dependencies]
 assert_cmd = "2.0"

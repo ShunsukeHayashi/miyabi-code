@@ -122,7 +122,7 @@ tmux send-keys -t PANE_ID "メッセージ内容" && tmux send-keys -t PANE_ID E
 **実例**:
 ```bash
 # Agent起動
-tmux send-keys -t %6 "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.1 && tmux send-keys -t %6 Enter
+tmux send-keys -t %6 "cd '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private' && claude" && sleep 0.1 && tmux send-keys -t %6 Enter
 
 # タスク割り当て
 tmux send-keys -t %8 "あなたは「ツバキ」です。Issue #673に取り組んでください" && sleep 0.1 && tmux send-keys -t %8 Enter

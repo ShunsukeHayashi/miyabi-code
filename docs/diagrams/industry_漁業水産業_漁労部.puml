@@ -1,0 +1,145 @@
+@startuml dept_fishery_fishing
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 漁労部 業務フロー
+
+|#LightBlue|船長|
+start
+:出港前準備;
+note right
+  ・天候確認
+  ・海況確認
+  ・気象警報確認
+  ・乗組員健康確認
+end note
+
+:乗組員への指示;
+fork
+  :甲板士配置;
+fork again
+  :機関士配置;
+fork again
+  :調理士配置;
+end fork
+
+|#LightCyan|乗組員|
+:船舶点検;
+:漁具点検;
+:冷凍冷蔵設備確認;
+note right
+  ・冷却能力確認
+  ・温度設定
+  ・故障確認
+end note
+
+|#LightBlue|船長|
+:出港;
+
+:操業地への移動;
+while (操業中?) is (継続)
+  :気象・海況監視;
+  note right: リアルタイム監視
+
+  :漁場選定;
+  :漁具投入;
+
+  fork
+    :甲板作業;
+    note right
+      ・漁具展開
+      ・漁獲物処理
+      ・積み込み
+    end note
+  fork again
+    :計測・記録;
+    note right
+      ・水温
+      ・塩分
+      ・漁獲量
+      ・魚種別数量
+    end note
+  end fork
+
+  |#LightGreen|調理士|
+  :鮮度管理;
+  :水産物下処理;
+  :急速冷凍処理;
+
+  |#LightYellow|品質保全|
+  :冷蔵施設温度確認;
+  :鮮度度合い点検;
+  note right
+    ・目視検査
+    ・臭い検査
+    ・質感確認
+  end note
+
+  if (品質OK?) then (yes)
+    :保存継続;
+  else (不良)
+    :原因記録;
+    :改善措置;
+  endif
+endwhile (終了)
+
+|#LightBlue|船長|
+:帰港判断;
+:帰港地へ移動;
+
+|#LightCyan|乗組員|
+:荷降ろし準備;
+:漁獲物データ整理;
+
+|#LightGreen|水揚げ記録|
+:水揚げ量計測;
+:魚種別分類;
+note right
+  ・マグロ
+  ・イワシ
+  ・イカ
+  ・エビ
+  ・その他
+end note
+
+:水産物検品;
+:冷蔵保管指示;
+
+|#LightBlue|船長|
+:水揚げ報告;
+note right: 加工部・販売部へ通知
+  ・総漁獲量
+  ・魚種構成
+  ・品質状態
+  ・配送要件
+end note
+
+:乗組員へ命令;
+
+|#LightCyan|乗組員|
+:甲板清掃;
+:漁具手入れ;
+fork
+  :網洗浄;
+fork again
+  :機器メンテナンス;
+fork again
+  :ロープ交換;
+end fork
+
+|#LightGreen|整備責任者|
+:船舶点検整備;
+:冷凍冷蔵設備保守;
+:次航行の準備;
+
+|#LightBlue|船長|
+:燃料使用量記録;
+:操業レポート作成;
+:乗組員労務記録;
+
+:次の操業計画;
+:資材発注;
+
+stop
+
+@enduml

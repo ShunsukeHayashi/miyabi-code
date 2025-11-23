@@ -1,0 +1,378 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{xeCJK}
+\setCJKmainfont{Hiragino Kaku Gothic Pro W3}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% カラー定義
+\definecolor{primary}{RGB}{37, 99, 235}
+\definecolor{success}{RGB}{34, 197, 94}
+\definecolor{warning}{RGB}{245, 158, 11}
+\definecolor{danger}{RGB}{239, 68, 68}
+\definecolor{lightbg}{RGB}{248, 250, 252}
+
+% ヘッダー設定
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small 安全書類管理システム 事業計画書}
+\fancyhead[R]{\small \thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+
+% タイトル設定
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries}{}{0em}{}
+
+% tcolorbox設定
+\tcbuselibrary{skins,breakable}
+\newtcolorbox{highlight}[1][]{
+  colback=lightbg,
+  colframe=primary,
+  fonttitle=\bfseries,
+  #1
+}
+\newtcolorbox{kpi}{
+  colback=success!10,
+  colframe=success,
+  title=KPI,
+  fonttitle=\bfseries
+}
+
+\begin{document}
+
+% タイトルページ
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Huge\bfseries\color{primary} 安全書類管理システム\\[0.5cm]
+事業計画書}
+
+\vspace{1cm}
+
+{\Large Lark Base プラットフォーム}
+
+\vspace{2cm}
+
+\begin{tcolorbox}[colback=lightbg,colframe=primary,width=12cm]
+\centering
+\begin{tabular}{ll}
+\textbf{市場機会} & TAM 4,800億円 \\
+\textbf{目標ARR} & 11.5億円（3年目） \\
+\textbf{導入企業} & 3,000社（3年目） \\
+\textbf{投資回収} & 1.1ヶ月 \\
+\end{tabular}
+\end{tcolorbox}
+
+\vfill
+
+{\large 作成日: 2025年11月21日}\\
+{\large バージョン: 1.0}
+
+\end{titlepage}
+
+% 目次
+\tableofcontents
+\newpage
+
+% エグゼクティブサマリー
+\section{エグゼクティブサマリー}
+
+\subsection{事業概要}
+
+Lark Base プラットフォーム上に構築した、建設業向け統合安全書類管理システムを中小建設会社・専門工事業者向けに提供するSaaSビジネス。
+
+\begin{kpi}
+\begin{tabular}{lll}
+\textbf{製品構成} & 37テーブル & 8サブシステム統合 \\
+\textbf{自動化} & 29ビュー & 50+リンク関係 \\
+\end{tabular}
+\end{kpi}
+
+\subsection{市場機会}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{TAM}: 4,800億円（建設業DX市場全体）
+\item \textbf{SAM}: 960億円（安全管理・労務管理SaaS）
+\item \textbf{SOM}: 48億円（中小企業向けセグメント）
+\end{itemize}
+
+\subsection{収益目標（3年後）}
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{指標} & \textbf{1年目} & \textbf{2年目} & \textbf{3年目} \\
+\hline
+導入企業数 & 300社 & 1,200社 & 3,000社 \\
+ARR & 9,000万円 & 4.3億円 & 11.5億円 \\
+営業利益率 & -30\% & 5\% & 20\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+% システムアーキテクチャ
+\section{システムアーキテクチャ}
+
+\subsection{全体構成図}
+
+\begin{center}
+\includegraphics[width=\textwidth]{diagrams/system-architecture.png}
+\end{center}
+
+\subsection{データモデル（ER図）}
+
+\begin{center}
+\includegraphics[width=\textwidth]{diagrams/entity-relationship.png}
+\end{center}
+
+\newpage
+
+% 業務フロー
+\section{業務フロー}
+
+\subsection{リース発注フロー}
+
+\begin{center}
+\includegraphics[width=0.8\textwidth]{diagrams/lease-flow.png}
+\end{center}
+
+\newpage
+
+\subsection{安全管理フロー}
+
+\begin{center}
+\includegraphics[width=0.85\textwidth]{diagrams/safety-flow.png}
+\end{center}
+
+\newpage
+
+% 市場分析
+\section{市場分析}
+
+\subsection{建設業界の現状}
+
+\begin{highlight}[title=市場規模]
+\begin{itemize}[leftmargin=*]
+\item 建設市場全体: 約62兆円（2024年）
+\item 建設業許可業者数: 48.4万社
+\item 建設業就業者数: 477万人
+\end{itemize}
+\end{highlight}
+
+\subsection{業界課題}
+
+\begin{enumerate}
+\item \textbf{2024年問題への対応} - 時間外労働上限規制の適用開始
+\item \textbf{労働力不足} - ピーク時比30\%減、高齢化進行
+\item \textbf{DX化の遅れ} - 紙ベースの書類管理が主流
+\item \textbf{法規制の強化} - 安全衛生法改正への対応
+\end{enumerate}
+
+\newpage
+
+% 競合分析
+\section{競合分析}
+
+\subsection{主要競合サービス}
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{サービス} & \textbf{初期費用} & \textbf{月額} & \textbf{導入社数} & \textbf{特徴} \\
+\hline
+グリーンサイト & 〜30万円 & 〜6万円 & 10万社 & 業界標準 \\
+ANDPAD & 10万円 & 3.6万円〜 & 21万社 & 総合管理 \\
+Buildee & 要問合せ & 高価格 & 1.7万件 & 大手向け \\
+現場Plus & 1万円 & 1万円〜 & 6万社 & 中小向け \\
+\hline
+\textbf{当社} & \textbf{0円} & \textbf{9,800円〜} & - & \textbf{統合型} \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{差別化ポイント}
+
+\begin{tcolorbox}[colback=success!10,colframe=success]
+\begin{enumerate}
+\item \textbf{8サブシステム統合} - 競合は2-3機能のみ
+\item \textbf{ノーコードカスタマイズ} - Lark Base基盤で柔軟対応
+\item \textbf{導入スピード} - 最短2週間（競合は1-3ヶ月）
+\item \textbf{コストパフォーマンス} - 競合の50\%以下
+\end{enumerate}
+\end{tcolorbox}
+
+\newpage
+
+% 価格戦略
+\section{価格戦略}
+
+\subsection{料金プラン}
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|l|}
+\hline
+\textbf{プラン} & \textbf{月額} & \textbf{従業員数} & \textbf{現場数} & \textbf{推奨顧客} \\
+\hline
+ライト & 9,800円 & 30名まで & 5件まで & 専門工事業者 \\
+スタンダード & 29,800円 & 100名まで & 20件まで & 中小建設会社 \\
+プロフェッショナル & 59,800円 & 無制限 & 無制限 & 中堅建設会社 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{競合比較}
+
+\begin{itemize}[leftmargin=*]
+\item グリーンサイト比: \textcolor{success}{\textbf{77\%削減}}
+\item ANDPAD比: \textcolor{success}{\textbf{50\%削減}}
+\end{itemize}
+
+\newpage
+
+% Go-to-Market戦略
+\section{Go-to-Market戦略}
+
+\subsection{フェーズ別展開}
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{フェーズ} & \textbf{期間} & \textbf{目標} & \textbf{主要施策} \\
+\hline
+I. PMF検証 & 0-6ヶ月 & 100社 & パイロット・紹介 \\
+II. 初期成長 & 7-12ヶ月 & 300社 & デジタルマーケ \\
+III. スケール & 13-24ヶ月 & 1,200社 & パートナー展開 \\
+IV. 市場リーダー & 25-36ヶ月 & 3,000社 & ブランド確立 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{販売チャネル}
+
+\begin{enumerate}
+\item \textbf{直販}（60\%）- インバウンド中心
+\item \textbf{パートナー}（30\%）- 税理士・社労士・建材商社
+\item \textbf{協会連携}（10\%）- 建設業協会セミナー
+\end{enumerate}
+
+\newpage
+
+% 収益予測
+\section{収益予測}
+
+\subsection{3年収益モデル}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{指標} & \textbf{1年目} & \textbf{2年目} & \textbf{3年目} \\
+\hline
+新規獲得（社） & 300 & 900 & 1,800 \\
+累計企業（社） & 300 & 1,200 & 3,000 \\
+解約率 & 3\% & 2\% & 1.5\% \\
+\hline
+ARR & 9,000万円 & 4.3億円 & 11.5億円 \\
+売上総利益 & 6,300万円 & 3.4億円 & 9.2億円 \\
+営業利益 & -2,700万円 & 2,100万円 & 2.3億円 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{ユニットエコノミクス}
+
+\begin{kpi}
+\begin{tabular}{ll}
+\textbf{LTV} & 720,000円（平均単価30,000円 × 24ヶ月） \\
+\textbf{CAC}（3年目） & 22,000円 \\
+\textbf{LTV/CAC} & \textcolor{success}{\textbf{33倍}} \\
+\textbf{回収期間} & \textcolor{success}{\textbf{1.1ヶ月}} \\
+\end{tabular}
+\end{kpi}
+
+\newpage
+
+% 推奨アクションプラン
+\section{推奨アクションプラン}
+
+\subsection{Top 3 アクション}
+
+\begin{tcolorbox}[colback=primary!10,colframe=primary,title=1. パイロット顧客10社の確保（即座に実行）]
+\begin{itemize}[leftmargin=*]
+\item \textbf{Why}: PMF検証と導入事例作成が最優先
+\item \textbf{What}: 既存ネットワークから無料トライアル提供
+\item \textbf{When}: 今週中に候補リスト作成、来月までに10社確保
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=primary!10,colframe=primary,title=2. 製品LP公開とマーケティング開始（1ヶ月以内）]
+\begin{itemize}[leftmargin=*]
+\item \textbf{Why}: 問い合わせ獲得の仕組み構築が急務
+\item \textbf{What}: LP作成、SEO対策、リスティング広告開始
+\item \textbf{When}: 2週間でLP公開、4週間で広告運用開始
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=primary!10,colframe=primary,title=3. 建設業協会との連携構築（3ヶ月以内）]
+\begin{itemize}[leftmargin=*]
+\item \textbf{Why}: 中小企業へのリーチに最も効率的
+\item \textbf{What}: 地域建設業協会へのアプローチ、セミナー共催
+\item \textbf{When}: 1ヶ月で5協会へ接触、3ヶ月で初回セミナー開催
+\end{itemize}
+\end{tcolorbox}
+
+\newpage
+
+% まとめ
+\section{まとめ}
+
+\subsection{投資対効果}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{指標} & \textbf{値} \\
+\hline
+LTV/CAC比率 & 33倍（3年目） \\
+回収期間 & 1.1ヶ月 \\
+損益分岐点 & 470社（2年目Q2達成予想） \\
+想定Exit（5年目） & ARR 30億円、バリュエーション100-250億円 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{成功要因}
+
+\begin{enumerate}
+\item \textbf{市場タイミング} - 2024年問題への対応需要増
+\item \textbf{価格優位性} - 競合の50\%以下のコスト
+\item \textbf{統合ソリューション} - 8サブシステム一括提供
+\item \textbf{導入容易性} - 最短2週間で運用開始
+\item \textbf{カスタマイズ性} - Lark Baseの柔軟性
+\end{enumerate}
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tcolorbox}[colback=success!20,colframe=success,width=10cm]
+\centering
+\Large\bfseries
+本事業計画に基づき\\
+早期の市場参入を推奨します
+\end{tcolorbox}
+\end{center}
+
+\end{document}

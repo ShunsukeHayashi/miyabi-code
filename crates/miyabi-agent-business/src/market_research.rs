@@ -5,11 +5,19 @@
 //! 市場機会の特定と競合優位性の構築を支援します。
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::env;
 
 /// MarketResearchAgent - 市場調査・競合分析Agent
@@ -259,6 +267,108 @@ impl BaseAgent for MarketResearchAgent {
             metrics: Some(metrics),
             escalation: None,
         })
+    }
+}
+
+#[async_trait]
+impl A2AEnabled for MarketResearchAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new(
+            "MarketResearchAgent",
+            "Market research and competitive analysis agent",
+        )
+        .version("0.1.1")
+        .capability(AgentCapability {
+            id: "research_market".to_string(),
+            name: "Research Market".to_string(),
+            description: "Conduct comprehensive market research including TAM/SAM/SOM, competitive analysis, and trend identification".to_string(),
+            input_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "product": {
+                        "type": "string",
+                        "description": "Product or service to research"
+                    },
+                    "market": {
+                        "type": "string",
+                        "description": "Target market description"
+                    }
+                },
+                "required": ["product"]
+            })),
+            output_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "market_size": { "type": "object" },
+                    "competitive_landscape": { "type": "object" },
+                    "trend_analysis": { "type": "object" },
+                    "market_opportunities": { "type": "object" }
+                }
+            })),
+        })
+        .build()
+    }
+
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "research_market" => {
+                let product = task
+                    .input
+                    .get("product")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing product".to_string())
+                    })?;
+
+                let market = task
+                    .input
+                    .get("market")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("SaaS/Tech");
+
+                let internal_task = Task {
+                    id: task.id.clone(),
+                    title: product.to_string(),
+                    description: market.to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::MarketResearchAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(180),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
+
+                match self.execute(&internal_task).await {
+                    Ok(result) => Ok(A2ATaskResult::Success {
+                        output: result.data.unwrap_or(json!({"status": "completed"})),
+                        artifacts: vec![],
+                        execution_time_ms: start.elapsed().as_millis() as u64,
+                    }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                        "Market research failed: {}",
+                        e
+                    ))),
+                }
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::ReadOnly
     }
 }
 

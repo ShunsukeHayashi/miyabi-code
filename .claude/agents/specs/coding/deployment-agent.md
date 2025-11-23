@@ -413,6 +413,68 @@ firebase login
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.ci/cd_deployment_automation_agent.deploy
+a2a.ci/cd_deployment_automation_agent.health_check
+a2a.ci/cd_deployment_automation_agent.rollback
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.ci/cd_deployment_automation_agent.deploy",
+    "input": {
+      "environment": "staging",
+      "project_id": "my-app-staging",
+      "targets": ["hosting", "functions"]
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// デプロイ実行
+let result = bridge.execute_tool(
+    "a2a.ci/cd_deployment_automation_agent.deploy",
+    json!({
+        "environment": "staging",
+        "project_id": "my-app-staging",
+        "targets": ["hosting", "functions"]
+    })
+).await?;
+
+if result.success {
+    println!("Deployment URL: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "DeploymentAgent"` を指定:
+```
+prompt: "Staging環境にデプロイしてください"
+subagent_type: "DeploymentAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CoordinatorAgent**: deployment種別IssueでDeploymentAgent実行

@@ -1,0 +1,60 @@
+{
+  "description": "Miyabi Lark 統合 - 環境設定",
+  "active_environment": "development",
+  "environments": {
+    "development": {
+      "name": "開発環境",
+      "enabled": true,
+      "features": {
+        "notifications": true,
+        "sync": false,
+        "auto_response": false,
+        "genesis_ai": false
+      },
+      "rate_limits": {
+        "messages_per_minute": 20,
+        "api_calls_per_minute": 100
+      },
+      "groups": {
+        "default_group": "miyabi-dev-test"
+      }
+    },
+    "staging": {
+      "name": "ステージング環境",
+      "enabled": false,
+      "features": {
+        "notifications": true,
+        "sync": true,
+        "auto_response": false,
+        "genesis_ai": false
+      },
+      "rate_limits": {
+        "messages_per_minute": 50,
+        "api_calls_per_minute": 200
+      },
+      "groups": {
+        "default_group": "miyabi-staging"
+      }
+    },
+    "production": {
+      "name": "本番環境",
+      "enabled": false,
+      "features": {
+        "notifications": true,
+        "sync": true,
+        "auto_response": true,
+        "genesis_ai": true
+      },
+      "rate_limits": {
+        "messages_per_minute": 100,
+        "api_calls_per_minute": 500
+      },
+      "groups": {
+        "default_group": "miyabi-team",
+        "agents_group": "miyabi-agents",
+        "orchestra_group": "miyabi-orchestra",
+        "alerts_group": "miyabi-alerts"
+      }
+    }
+  }
+}

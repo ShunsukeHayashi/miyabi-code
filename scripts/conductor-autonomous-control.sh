@@ -4,7 +4,7 @@
 
 set -eo pipefail
 
-WORKING_DIR="/Users/shunsuke/Dev/miyabi-private"
+WORKING_DIR="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 LOG_FILE="$WORKING_DIR/.ai/logs/conductor-control.log"
 AGENT_REGISTRY="$WORKING_DIR/.ai/registry/agent-registry.json"
 TASK_QUEUE_FILE="$WORKING_DIR/.ai/queue/tasks.json"

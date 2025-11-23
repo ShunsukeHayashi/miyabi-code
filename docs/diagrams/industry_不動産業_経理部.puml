@@ -1,0 +1,132 @@
+@startuml dept_realestate_accounting
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 経理部 業務フロー
+
+|#LightGray|売上管理担当|
+start
+:売上報告受領;
+note right
+  ・仲介手数料
+  ・管理料
+  ・コンサル料
+end note
+
+:売上計上処理;
+
+:入金管理;
+fork
+  :仲介手数料入金;
+fork again
+  :管理料入金;
+fork again
+  :組合管理費入金;
+end fork
+
+:売掛金管理;
+if (入金遅延?) then (yes)
+  :各部門へ督促依頼;
+else (no)
+endif
+
+|#LightPink|支払管理担当|
+:支払処理;
+
+:オーナー送金;
+note right
+  ・賃料収入
+  ・管理料差引
+  ・修繕費差引
+end note
+
+:業者支払;
+fork
+  :修繕業者;
+fork again
+  :清掃業者;
+fork again
+  :設備業者;
+end fork
+
+:買掛金管理;
+
+:経費精算;
+fork
+  :広告宣伝費;
+fork again
+  :交通費;
+fork again
+  :通信費;
+end fork
+
+|#LightCyan|決済管理担当|
+:売買決済対応;
+note right: 売買部からの依頼
+
+:決済金管理;
+fork
+  :手付金保管;
+fork again
+  :残代金受領;
+fork again
+  :諸費用精算;
+end fork
+
+:仲介手数料計算;
+:経費精算;
+
+:決済完了報告;
+
+|#LightYellow|財務管理担当|
+:資金繰り管理;
+note right
+  ・月次キャッシュフロー
+  ・決済時期管理
+  ・借入管理
+end note
+
+:月次決算;
+fork
+  :部門別損益;
+fork again
+  :案件別損益;
+fork again
+  :営業利益;
+end fork
+
+:管理組合会計支援;
+:管理組合対応部と連携;
+
+if (四半期/年度末?) then (yes)
+  :決算整理;
+  :財務諸表作成;
+  :税務申告;
+  :監査対応;
+else (no)
+endif
+
+|#LightGreen|予算管理担当|
+:予算編成;
+fork
+  :売上予算;
+fork again
+  :人件費予算;
+fork again
+  :経費予算;
+end fork
+
+:予実管理;
+:KPI管理;
+note right
+  ・仲介件数
+  ・客単価
+  ・管理戸数
+  ・管理料単価
+end note
+
+:経営レポート作成;
+
+stop
+
+@enduml

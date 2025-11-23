@@ -11,7 +11,12 @@
         "color": "🔴",
         "role": "リーダー",
         "parallel": false,
-        "description": "チームのリーダー！みんなに仕事を分けて、順番を決めるよ"
+        "description": "チームのリーダー！みんなに仕事を分けて、順番を決めるよ",
+        "toolNames": [
+          "a2a.task_coordination_and_parallel_execution_agent.decompose_issue",
+          "a2a.task_coordination_and_parallel_execution_agent.generate_execution_plan",
+          "a2a.task_coordination_and_parallel_execution_agent.orchestrate_agents"
+        ]
       },
       "つくるん": {
         "technicalName": "CodeGenAgent",
@@ -19,7 +24,11 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "プログラムを作る天才！AIの力でコードを自動生成するよ"
+        "description": "プログラムを作る天才！AIの力でコードを自動生成するよ",
+        "toolNames": [
+          "a2a.code_generation_agent.generate_code",
+          "a2a.code_generation_agent.generate_documentation"
+        ]
       },
       "めだまん": {
         "technicalName": "ReviewAgent",
@@ -27,7 +36,12 @@
         "color": "🔵",
         "role": "分析役",
         "parallel": true,
-        "description": "コードの品質をチェックする目利き！100点満点で採点するよ"
+        "description": "コードの品質をチェックする目利き！100点満点で採点するよ",
+        "toolNames": [
+          "a2a.code_quality_review_agent.review_code",
+          "a2a.code_quality_review_agent.security_audit",
+          "a2a.code_quality_review_agent.calculate_score"
+        ]
       },
       "みつけるん": {
         "technicalName": "IssueAgent",
@@ -35,7 +49,12 @@
         "color": "🔵",
         "role": "分析役",
         "parallel": true,
-        "description": "GitHub の Issue を分析する探偵！ラベルを自動で付けるよ"
+        "description": "GitHub の Issue を分析する探偵！ラベルを自動で付けるよ",
+        "toolNames": [
+          "a2a.issue_analysis_and_task_metadata_creation_agent.analyze_issue",
+          "a2a.issue_analysis_and_task_metadata_creation_agent.infer_labels",
+          "a2a.issue_analysis_and_task_metadata_creation_agent.create_sub_issue"
+        ]
       },
       "まとめるん": {
         "technicalName": "PRAgent",
@@ -43,7 +62,12 @@
         "color": "🟡",
         "role": "サポート役",
         "parallel": "conditional",
-        "description": "Pull Request を作るまとめ役！コードをキレイにまとめるよ"
+        "description": "Pull Request を作るまとめ役！コードをキレイにまとめるよ",
+        "toolNames": [
+          "a2a.pull_request_creation_and_management_agent.create_pr",
+          "a2a.pull_request_creation_and_management_agent.update_pr",
+          "a2a.pull_request_creation_and_management_agent.assign_reviewers"
+        ]
       },
       "はこぶん": {
         "technicalName": "DeploymentAgent",
@@ -51,7 +75,12 @@
         "color": "🟡",
         "role": "サポート役",
         "parallel": "conditional",
-        "description": "完成したプログラムを配達する配達員！本番環境に届けるよ"
+        "description": "完成したプログラムを配達する配達員！本番環境に届けるよ",
+        "toolNames": [
+          "a2a.ci/cd_deployment_automation_agent.deploy",
+          "a2a.ci/cd_deployment_automation_agent.health_check",
+          "a2a.ci/cd_deployment_automation_agent.rollback"
+        ]
       },
       "つなぐん": {
         "technicalName": "HooksIntegration",
@@ -67,7 +96,12 @@
         "color": "🟡",
         "role": "サポート役",
         "parallel": "conditional",
-        "description": "Issueの状態をピカピカに保つ監視役！ラベルを自動更新するよ"
+        "description": "Issueの状態をピカピカに保つ監視役！ラベルを自動更新するよ",
+        "toolNames": [
+          "a2a.issue_status_monitoring_and_auto-update_agent.refresh_issues",
+          "a2a.issue_status_monitoring_and_auto-update_agent.check_implementation_status",
+          "a2a.issue_status_monitoring_and_auto-update_agent.generate_summary"
+        ]
       },
       "つむっくん": {
         "technicalName": "TmuxControlAgent",
@@ -85,7 +119,12 @@
         "color": "🔴",
         "role": "リーダー",
         "parallel": false,
-        "description": "ビジネス全体の社長さん！8つのステップでビジネスプランを作るよ"
+        "description": "ビジネス全体の社長さん！8つのステップでビジネスプランを作るよ",
+        "toolNames": [
+          "a2a.ai_entrepreneur_support_and_business_planning_agent.create_business_plan",
+          "a2a.ai_entrepreneur_support_and_business_planning_agent.execute_phase",
+          "a2a.ai_entrepreneur_support_and_business_planning_agent.generate_report"
+        ]
       },
       "つくろん": {
         "technicalName": "ProductConceptAgent",
@@ -93,7 +132,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "商品のアイデアを考える発明家！MVPを設計するよ"
+        "description": "商品のアイデアを考える発明家！MVPを設計するよ",
+        "toolNames": [
+          "a2a.product_concept_and_business_model_design_agent.design_concept",
+          "a2a.product_concept_and_business_model_design_agent.design_business_model",
+          "a2a.product_concept_and_business_model_design_agent.define_mvp"
+        ]
       },
       "かくん": {
         "technicalName": "ProductDesignAgent",
@@ -101,7 +145,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "デザインを考える絵描きさん！使いやすい画面を作るよ"
+        "description": "デザインを考える絵描きさん！使いやすい画面を作るよ",
+        "toolNames": [
+          "a2a.product_design_and_service_specification_agent.design_service",
+          "a2a.product_design_and_service_specification_agent.create_content_plan",
+          "a2a.product_design_and_service_specification_agent.define_tech_stack"
+        ]
       },
       "みちびきん": {
         "technicalName": "FunnelDesignAgent",
@@ -109,7 +158,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "お客さんの旅を案内する道先案内人！カスタマージャーニーを作るよ"
+        "description": "お客さんの旅を案内する道先案内人！カスタマージャーニーを作るよ",
+        "toolNames": [
+          "a2a.customer_funnel_design_agent.design_funnel",
+          "a2a.customer_funnel_design_agent.optimize_touchpoints",
+          "a2a.customer_funnel_design_agent.calculate_conversion"
+        ]
       },
       "なりきりん": {
         "technicalName": "PersonaAgent",
@@ -117,7 +171,12 @@
         "color": "🔵",
         "role": "分析役",
         "parallel": true,
-        "description": "お客さんになりきる俳優さん！ペルソナを作るよ"
+        "description": "お客さんになりきる俳優さん！ペルソナを作るよ",
+        "toolNames": [
+          "a2a.persona_and_customer_segment_analysis_agent.analyze_personas",
+          "a2a.persona_and_customer_segment_analysis_agent.create_journey_map",
+          "a2a.persona_and_customer_segment_analysis_agent.identify_pain_points"
+        ]
       },
       "じぶんさん": {
         "technicalName": "SelfAnalysisAgent",
@@ -125,7 +184,12 @@
         "color": "🔵",
         "role": "分析役",
         "parallel": true,
-        "description": "自分のことを深く知る哲学者！SWOT分析をするよ"
+        "description": "自分のことを深く知る哲学者！SWOT分析をするよ",
+        "toolNames": [
+          "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.analyze_self",
+          "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.generate_swot",
+          "a2a.self-analysis_and_business_strategy_planning_agent_with_swot_analysis.extract_skills"
+        ]
       },
       "しらべるん": {
         "technicalName": "MarketResearchAgent",
@@ -133,7 +197,12 @@
         "color": "🔵",
         "role": "分析役",
         "parallel": true,
-        "description": "市場を調べる探偵！競合分析のプロだよ"
+        "description": "市場を調べる探偵！競合分析のプロだよ",
+        "toolNames": [
+          "a2a.market_research_and_competitive_analysis_agent.research_market",
+          "a2a.market_research_and_competitive_analysis_agent.analyze_competitors",
+          "a2a.market_research_and_competitive_analysis_agent.identify_opportunities"
+        ]
       },
       "ひろめるん": {
         "technicalName": "MarketingAgent",
@@ -141,7 +210,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "マーケティング施策を考える宣伝マン！広告戦略を立てるよ"
+        "description": "マーケティング施策を考える宣伝マン！広告戦略を立てるよ",
+        "toolNames": [
+          "a2a.marketing_strategy_and_execution_agent.execute_marketing",
+          "a2a.marketing_strategy_and_execution_agent.plan_ads",
+          "a2a.marketing_strategy_and_execution_agent.optimize_seo"
+        ]
       },
       "かくちゃん": {
         "technicalName": "ContentCreationAgent",
@@ -149,7 +223,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "記事や動画を作るクリエイター！コンテンツ制作のプロだよ"
+        "description": "記事や動画を作るクリエイター！コンテンツ制作のプロだよ",
+        "toolNames": [
+          "a2a.content_creation_and_production_agent.create_content",
+          "a2a.content_creation_and_production_agent.plan_production",
+          "a2a.content_creation_and_production_agent.optimize_distribution"
+        ]
       },
       "つぶやきん": {
         "technicalName": "SNSStrategyAgent",
@@ -157,7 +236,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "SNS 戦略を考える SNS マスター！投稿計画を立てるよ"
+        "description": "SNS 戦略を考える SNS マスター！投稿計画を立てるよ",
+        "toolNames": [
+          "a2a.sns_strategy_and_content_planning_agent.plan_strategy",
+          "a2a.sns_strategy_and_content_planning_agent.create_calendar",
+          "a2a.sns_strategy_and_content_planning_agent.analyze_engagement"
+        ]
       },
       "どうがん": {
         "technicalName": "YouTubeAgent",
@@ -165,7 +249,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "YouTube 動画を企画するプロデューサー！台本も書くよ"
+        "description": "YouTube 動画を企画するプロデューサー！台本も書くよ",
+        "toolNames": [
+          "a2a.youtube_channel_optimization_agent.optimize_channel",
+          "a2a.youtube_channel_optimization_agent.plan_content",
+          "a2a.youtube_channel_optimization_agent.write_script"
+        ]
       },
       "うるん": {
         "technicalName": "SalesAgent",
@@ -173,7 +262,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "営業戦略を立てる営業マン！リードを管理するよ"
+        "description": "営業戦略を立てる営業マン！リードを管理するよ",
+        "toolNames": [
+          "a2a.sales_process_optimization_agent.optimize_sales",
+          "a2a.sales_process_optimization_agent.manage_leads",
+          "a2a.sales_process_optimization_agent.create_pipeline"
+        ]
       },
       "おきゃくさま": {
         "technicalName": "CRMAgent",
@@ -181,7 +275,12 @@
         "color": "🟢",
         "role": "実行役",
         "parallel": true,
-        "description": "お客さんのデータを管理する管理人！LTV を最大化するよ"
+        "description": "お客さんのデータを管理する管理人！LTV を最大化するよ",
+        "toolNames": [
+          "a2a.customer_relationship_management_agent.manage_customers",
+          "a2a.customer_relationship_management_agent.maximize_ltv",
+          "a2a.customer_relationship_management_agent.reduce_churn"
+        ]
       },
       "かぞえるん": {
         "technicalName": "AnalyticsAgent",
@@ -189,7 +288,12 @@
         "color": "🔵",
         "role": "分析役",
         "parallel": true,
-        "description": "データを分析する数学者！レポートを作るよ"
+        "description": "データを分析する数学者！レポートを作るよ",
+        "toolNames": [
+          "a2a.data_analytics_and_business_intelligence_agent.analyze_data",
+          "a2a.data_analytics_and_business_intelligence_agent.generate_report",
+          "a2a.data_analytics_and_business_intelligence_agent.track_kpi"
+        ]
       },
       "いぶさん": {
         "technicalName": "JonathanIveDesignAgent",

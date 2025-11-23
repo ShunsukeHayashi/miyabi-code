@@ -79,6 +79,7 @@ impl DiscordClient {
             .collect();
 
         // ロール一覧
+        #[allow(deprecated)]
         let roles: Vec<RoleInfo> = guild
             .roles
             .iter()

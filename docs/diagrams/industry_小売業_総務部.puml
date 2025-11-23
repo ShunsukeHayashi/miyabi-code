@@ -1,0 +1,135 @@
+@startuml dept_retail_general
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 総務部 業務フロー
+
+|#Lavender|人事担当|
+start
+:人員計画確認;
+note right
+  ・店舗人員要望
+  ・繁忙期対応
+  ・新店舗開店
+end note
+
+:採用活動;
+fork
+  :正社員採用;
+fork again
+  :パート/アルバイト採用;
+end fork
+
+:面接調整;
+:採用決定;
+:入社手続き;
+
+:人員配置管理;
+if (店舗異動?) then (yes)
+  :異動辞令発行;
+  :引継ぎ調整;
+else (no)
+endif
+
+:人事評価対応;
+:給与計算連携;
+
+|#LightCyan|労務管理担当|
+:勤怠管理;
+note right
+  ・シフト管理支援
+  ・残業管理
+  ・有給管理
+end note
+
+:労働法令対応;
+if (36協定超過リスク?) then (yes)
+  :店舗へ警告;
+  :シフト見直し指示;
+else (no)
+endif
+
+:社会保険手続き;
+
+|#LightYellow|店舗開発担当|
+:店舗開発;
+
+if (新店舗?) then (yes)
+  :物件調査;
+  :商圏分析;
+  :出店判断;
+  :賃貸契約;
+  :内装工事;
+  :開店準備;
+else (no)
+endif
+
+:既存店舗管理;
+fork
+  :設備保守;
+fork again
+  :レイアウト変更;
+fork again
+  :改装計画;
+end fork
+
+|#LightPink|施設管理担当|
+:店舗設備管理;
+
+while (営業日?) is (継続)
+  if (設備故障?) then (yes)
+    :修理手配;
+    :応急対応;
+  else (no)
+  endif
+endwhile (終了)
+
+:定期点検;
+:警備管理;
+:清掃管理;
+
+:経理部へ固定資産報告;
+
+|#LightGreen|法務・コンプライアンス担当|
+:契約管理;
+fork
+  :賃貸契約;
+fork again
+  :仕入先契約;
+fork again
+  :業務委託契約;
+end fork
+
+:法令順守管理;
+note right
+  ・景品表示法
+  ・食品衛生法
+  ・消費者契約法
+end note
+
+if (法改正?) then (yes)
+  :影響調査;
+  :店舗へ周知;
+else (no)
+endif
+
+:クレーム対応支援;
+
+|#Lavender|庶務担当|
+:文書管理;
+:備品管理;
+:福利厚生運営;
+:車両管理;
+
+:防災・防犯対策;
+fork
+  :避難訓練;
+fork again
+  :防犯カメラ管理;
+fork again
+  :万引き対策;
+end fork
+
+stop
+
+@enduml

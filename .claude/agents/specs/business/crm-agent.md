@@ -145,6 +145,68 @@ docs/crm/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.customer_relationship_management_agent.manage_customers
+a2a.customer_relationship_management_agent.setup_crm
+a2a.customer_relationship_management_agent.design_customer_success
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.customer_relationship_management_agent.manage_customers",
+    "input": {
+      "sales_process": "docs/sales/sales-process.md",
+      "product_detail": "docs/product/product-detail.md",
+      "upsell_strategy": "docs/funnel/upsell-strategy.md"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.customer_relationship_management_agent.manage_customers",
+    json!({
+        "sales_process": "docs/sales/sales-process.md",
+        "product_detail": "docs/product/product-detail.md",
+        "upsell_strategy": "docs/funnel/upsell-strategy.md"
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "CRMAgent"` を指定:
+```
+prompt: "CRMシステム導入、カスタマーサクセス体制、NPS調査、コミュニティ運営計画を設計してください"
+subagent_type: "CRMAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **SalesAgent**: 前フェーズ（Phase 10）

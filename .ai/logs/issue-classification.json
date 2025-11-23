@@ -1,0 +1,25 @@
+{
+  "classification_rules": {
+    "infrastructure": {
+      "keywords": ["Deploy", "ECS", "ECR", "VPC", "ALB", "Redis", "AWS", "Docker Build", "Push to ECR", "SSL Setup", "Cloud"],
+      "auto_process": false,
+      "action": "generate_runbook"
+    },
+    "code_implementation": {
+      "keywords": ["Implement", "Testing", "Component Tests", "Unit Tests", "E2E", "Frontend", "Backend", "API"],
+      "auto_process": true,
+      "action": "create_pr"
+    },
+    "documentation": {
+      "keywords": ["Documentation", "Docs", "Guide", "Manual", "README"],
+      "auto_process": true,
+      "action": "create_pr"
+    },
+    "research": {
+      "keywords": ["調査", "Research", "Analysis", "Study", "Investigation"],
+      "auto_process": false,
+      "action": "generate_summary"
+    }
+  },
+  "classified_issues": []
+}

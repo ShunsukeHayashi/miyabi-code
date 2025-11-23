@@ -13,7 +13,7 @@ categories = ["api-bindings", "web-programming"]
 
 [dependencies]
 # Core dependencies
-miyabi-types = { path = "../miyabi-types" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
 
 # Async runtime
 tokio = { workspace = true }

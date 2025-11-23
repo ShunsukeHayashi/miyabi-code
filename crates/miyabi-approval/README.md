@@ -23,7 +23,7 @@ use miyabi_approval::{ApprovalGate, ApprovalStore};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create approval gate
-    let gate = ApprovalGate::new("deploy-production")
+    let gate = ApprovalGate::builder("deploy-production")
         .required_approvers(vec!["tech-lead".to_string(), "ciso".to_string()])
         .timeout_seconds(86400) // 24 hours
         .build()?;

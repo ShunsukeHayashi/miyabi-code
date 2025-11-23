@@ -1,0 +1,297 @@
+@startuml dept_fishery_general
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 総務部 業務フロー
+
+|#Lavender|総務部長|
+start
+:本日の運営方針確認;
+note right
+  ・人員配置
+  ・施設管理
+  ・安全管理
+  ・法令対応
+end note
+
+:スタッフ配置;
+fork
+  :人事労務;
+fork again
+  :施設管理;
+fork again
+  :安全衛生;
+fork again
+  :法務・許認可;
+end fork
+
+|#LightBlue|人事労務担当|
+:勤務シフト編成;
+note right
+  ・漁労部
+  ・加工部
+  ・その他部署
+  ・休日要望反映
+end note
+
+:時間給・日給計算;
+note right
+  ・勤務実績
+  ・残業計算
+  ・特勤手当
+  ・歩合給
+end note
+
+:雇用契約管理;
+fork
+  :新入社員採用手続き;
+fork again
+  :退職者対応;
+fork again
+  :契約更新;
+end fork
+
+:採用活動;
+note right
+  ・採用予定人数確認
+  ・求人媒体管理
+  ・応募者面接
+  ・採用決定
+end note
+
+:人材育成;
+fork
+  :安全操船研修;
+fork again
+  :衛生管理研修;
+fork again
+  :新商品加工研修;
+fork again
+  :営業スキル研修;
+end fork
+
+:労務管理;
+note right
+  ・有給休暇管理
+  ・欠勤管理
+  ・遅刻・早退
+  ・労働時間管理
+end note
+
+:健康管理;
+fork
+  :定期健康診断手配;
+fork again
+  :予防接種管理;
+fork again
+  :メンタルケア;
+fork again
+  :傷病者対応;
+end fork
+
+|#LightGreen|施設管理担当|
+:事務所施設管理;
+fork
+  :清掃業務;
+fork again
+  :設備保守;
+fork again
+  :光熱費管理;
+fork again
+  :修繕対応;
+end fork
+
+:漁船・漁具管理;
+note right
+  ・船舶メンテナンス
+  ・漁具修繕
+  ・備品在庫
+  ・購入手配
+end note
+
+:加工施設管理;
+fork
+  :機械保守;
+  note right
+    ・定期点検
+    ・故障対応
+    ・部品交換
+fork again
+  :冷蔵冷凍機管理;
+  note right
+    ・温度管理
+    ・清掃
+    ・ガス充填
+fork again
+  :施設清潔管理;
+  note right
+    ・床清掃
+    ・壁面清掃
+    ・害獣害虫対策
+end fork
+
+:倉庫管理;
+note right
+  ・在庫管理
+  ・整理整頓
+  ・温度・湿度管理
+  ・セキュリティ
+end note
+
+:緊急対応;
+fork
+  :火災対応;
+fork again
+  :水害対応;
+fork again
+  :地震対応;
+fork again
+  :機器故障対応;
+end fork
+
+|#LightCyan|安全衛生担当|
+:安全管理計画;
+note right
+  ・月間安全方針
+  ・KY活動
+  ・パトロール
+  ・ヒヤリハット報告
+end note
+
+:操業安全確認;
+fork
+  :気象情報確認;
+fork again
+  :船舶安全チェック;
+fork again
+  :運行計画確認;
+fork again
+  :乗組員健康確認;
+end fork
+
+:加工施設安全;
+fork
+  :機械安全チェック;
+fork again
+  :通路・階段安全;
+fork again
+  :冷蔵施設安全;
+fork again
+  :薬品管理;
+end fork
+
+:事故・災害対応;
+if (事故発生?) then (yes)
+  :現場確認;
+  :負傷者対応;
+  :事故報告書作成;
+  :原因分析;
+  :再発防止対策;
+else (無事)
+  :定期点検;
+endif
+
+:安全装置点検;
+fork
+  :消火器;
+fork again
+  :防火設備;
+fork again
+  :非常口;
+fork again
+  :非常灯;
+end fork
+
+:衛生教育;
+note right
+  ・食中毒予防
+  ・手洗い・消毒
+  ・作業衣管理
+  ・感染症対策
+end note
+
+|#LightYellow|法務・許認可担当|
+:各種許認可管理;
+fork
+  :漁業免許;
+  note right: 毎年更新
+fork again
+  :食品営業許可;
+  note right: 定期更新
+fork again
+  :HACCP認証;
+fork again
+  :環境許可;
+  note right: 廃棄物処理
+end fork
+
+:法令対応確認;
+fork
+  :漁業法;
+fork again
+  :食品衛生法;
+fork again
+  :労働基準法;
+fork again
+  :環境関連法;
+fork again
+  :税務法;
+end fork
+
+:契約書管理;
+fork
+  :仕入先契約;
+fork again
+  :販売先契約;
+fork again
+  :従業員契約;
+fork again
+  :その他契約;
+end fork
+
+:監査対応;
+note right
+  ・食品衛生監査
+  ・労働基準監査
+  ・税務監査
+  ・環境監査
+end note
+
+:利害関係者対応;
+fork
+  :漁協との協力;
+fork again
+  :自治体連携;
+fork again
+  :関係機関報告;
+end fork
+
+|#Lavender|総務部長|
+:月次報告;
+note right
+  ・人員動向
+  ・安全指数
+  ・施設稼働率
+  ・コスト分析
+end note
+
+:改善提案検討;
+note right
+  ・スタッフからの提案
+  ・効率化案
+  ・コスト削減案
+end note
+
+:経営陣との協議;
+note right
+  ・人員計画
+  ・施設投資
+  ・給与改定
+  ・組織改革
+end note
+
+:翌月計画立案;
+
+stop
+
+@enduml

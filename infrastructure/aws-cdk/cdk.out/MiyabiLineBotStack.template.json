@@ -1,0 +1,1041 @@
+{
+ "Resources": {
+  "ConversationHistoryD9612A4F": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "userId",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "userId",
+      "KeyType": "HASH"
+     }
+    ],
+    "TableName": "miyabi-line-conversations",
+    "TimeToLiveSpecification": {
+     "AttributeName": "ttl",
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/ConversationHistory/Resource"
+   }
+  },
+  "LineUsers9A7E8EC6": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "userId",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "userId",
+      "KeyType": "HASH"
+     }
+    ],
+    "TableName": "miyabi-line-users",
+    "TimeToLiveSpecification": {
+     "AttributeName": "ttl",
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineUsers/Resource"
+   }
+  },
+  "LineBotFunctionServiceRoleC25576F8": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotFunction/ServiceRole/Resource"
+   }
+  },
+  "LineBotFunctionServiceRoleDefaultPolicyEAD3FB79": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ConversationHistoryD9612A4F",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LineUsers9A7E8EC6",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LineBotFunctionServiceRoleDefaultPolicyEAD3FB79",
+    "Roles": [
+     {
+      "Ref": "LineBotFunctionServiceRoleC25576F8"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LineBotFunction6287B7FE": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-112530848482-us-west-2",
+     "S3Key": "ca63c5559080a52c032f20e60c431a0c29e7f837f2d0c3acd05bd901425840b9.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "LINE_CHANNEL_ACCESS_TOKEN": "",
+      "ANTHROPIC_API_KEY": "",
+      "DYNAMODB_TABLE_NAME": {
+       "Ref": "ConversationHistoryD9612A4F"
+      },
+      "RUST_LOG": "info",
+      "LINE_CHANNEL_ID": "",
+      "LINE_CHANNEL_SECRET": "",
+      "LINE_CALLBACK_URL": "https://l7qte1iuk7.execute-api.us-west-2.amazonaws.com/prod/auth/callback",
+      "JWT_SECRET": "CHANGE_ME_b93ro0z221j",
+      "APP_REDIRECT_URL": "https://miyabi.customercloud.ai/",
+      "USERS_TABLE_NAME": {
+       "Ref": "LineUsers9A7E8EC6"
+      }
+     }
+    },
+    "FunctionName": "miyabi-line-bot",
+    "Handler": "bootstrap",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "LineBotFunctionServiceRoleC25576F8",
+      "Arn"
+     ]
+    },
+    "Runtime": "provided.al2023",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "LineBotFunctionServiceRoleDefaultPolicyEAD3FB79",
+    "LineBotFunctionServiceRoleC25576F8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotFunction/Resource",
+    "aws:asset:path": "asset.ca63c5559080a52c032f20e60c431a0c29e7f837f2d0c3acd05bd901425840b9",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LineBotFunctionLogRetention9EAA3C3A": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "LineBotFunction6287B7FE"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotFunction/LogRetention/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs22.x",
+    "Timeout": 900,
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-112530848482-us-west-2",
+     "S3Key": "2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LineBotApi541032A3": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Description": "API Gateway for MIYABI LINE Bot webhook and LINE Login",
+    "Name": "miyabi-line-bot-api"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Resource"
+   }
+  },
+  "LineBotApiCloudWatchRoleA9E0EA1C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/CloudWatchRole/Resource"
+   }
+  },
+  "LineBotApiAccount94DECF7F": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "LineBotApiCloudWatchRoleA9E0EA1C",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LineBotApi541032A3"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Account"
+   }
+  },
+  "LineBotApiDeployment23FEF956ce0ed0b2062dbae88485a955496bbac0": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "API Gateway for MIYABI LINE Bot webhook and LINE Login",
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "DependsOn": [
+    "LineBotApiauthcallbackGETA85A1B5A",
+    "LineBotApiauthcallback70F61B06",
+    "LineBotApiauthlineGET54239D21",
+    "LineBotApiauthline5D071A20",
+    "LineBotApiauth578F5BA0",
+    "LineBotApiwebhookPOSTB21AEB3E",
+    "LineBotApiwebhookE1D7CE30"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Deployment/Resource",
+    "aws:cdk:do-not-refactor": true
+   }
+  },
+  "LineBotApiDeploymentStageprod510D3E32": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "LineBotApiDeployment23FEF956ce0ed0b2062dbae88485a955496bbac0"
+    },
+    "MethodSettings": [
+     {
+      "DataTraceEnabled": false,
+      "HttpMethod": "*",
+      "ResourcePath": "/*",
+      "ThrottlingBurstLimit": 20,
+      "ThrottlingRateLimit": 10
+     }
+    ],
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    },
+    "StageName": "prod"
+   },
+   "DependsOn": [
+    "LineBotApiAccount94DECF7F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/DeploymentStage.prod/Resource"
+   }
+  },
+  "LineBotApiwebhookE1D7CE30": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "LineBotApi541032A3",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "webhook",
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/webhook/Resource"
+   }
+  },
+  "LineBotApiwebhookPOSTApiPermissionMiyabiLineBotStackLineBotApi8558BE7FPOSTwebhook7FA9A008": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LineBotFunction6287B7FE",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-west-2:112530848482:",
+       {
+        "Ref": "LineBotApi541032A3"
+       },
+       "/",
+       {
+        "Ref": "LineBotApiDeploymentStageprod510D3E32"
+       },
+       "/POST/webhook"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/webhook/POST/ApiPermission.MiyabiLineBotStackLineBotApi8558BE7F.POST..webhook"
+   }
+  },
+  "LineBotApiwebhookPOSTApiPermissionTestMiyabiLineBotStackLineBotApi8558BE7FPOSTwebhookDE7744A9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LineBotFunction6287B7FE",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-west-2:112530848482:",
+       {
+        "Ref": "LineBotApi541032A3"
+       },
+       "/test-invoke-stage/POST/webhook"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/webhook/POST/ApiPermission.Test.MiyabiLineBotStackLineBotApi8558BE7F.POST..webhook"
+   }
+  },
+  "LineBotApiwebhookPOSTB21AEB3E": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-west-2:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "LineBotFunction6287B7FE",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "LineBotApiwebhookE1D7CE30"
+    },
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/webhook/POST/Resource"
+   }
+  },
+  "LineBotApiauth578F5BA0": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "LineBotApi541032A3",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "auth",
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/Resource"
+   }
+  },
+  "LineBotApiauthline5D071A20": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "LineBotApiauth578F5BA0"
+    },
+    "PathPart": "line",
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/line/Resource"
+   }
+  },
+  "LineBotApiauthlineGETApiPermissionMiyabiLineBotStackLineBotApi8558BE7FGETauthlineD260E6D5": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LineBotFunction6287B7FE",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-west-2:112530848482:",
+       {
+        "Ref": "LineBotApi541032A3"
+       },
+       "/",
+       {
+        "Ref": "LineBotApiDeploymentStageprod510D3E32"
+       },
+       "/GET/auth/line"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/line/GET/ApiPermission.MiyabiLineBotStackLineBotApi8558BE7F.GET..auth.line"
+   }
+  },
+  "LineBotApiauthlineGETApiPermissionTestMiyabiLineBotStackLineBotApi8558BE7FGETauthlineC6CCC72A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LineBotFunction6287B7FE",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-west-2:112530848482:",
+       {
+        "Ref": "LineBotApi541032A3"
+       },
+       "/test-invoke-stage/GET/auth/line"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/line/GET/ApiPermission.Test.MiyabiLineBotStackLineBotApi8558BE7F.GET..auth.line"
+   }
+  },
+  "LineBotApiauthlineGET54239D21": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-west-2:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "LineBotFunction6287B7FE",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "LineBotApiauthline5D071A20"
+    },
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/line/GET/Resource"
+   }
+  },
+  "LineBotApiauthcallback70F61B06": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "LineBotApiauth578F5BA0"
+    },
+    "PathPart": "callback",
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/callback/Resource"
+   }
+  },
+  "LineBotApiauthcallbackGETApiPermissionMiyabiLineBotStackLineBotApi8558BE7FGETauthcallbackA4CF68BE": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LineBotFunction6287B7FE",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-west-2:112530848482:",
+       {
+        "Ref": "LineBotApi541032A3"
+       },
+       "/",
+       {
+        "Ref": "LineBotApiDeploymentStageprod510D3E32"
+       },
+       "/GET/auth/callback"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/callback/GET/ApiPermission.MiyabiLineBotStackLineBotApi8558BE7F.GET..auth.callback"
+   }
+  },
+  "LineBotApiauthcallbackGETApiPermissionTestMiyabiLineBotStackLineBotApi8558BE7FGETauthcallback4F757661": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LineBotFunction6287B7FE",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-west-2:112530848482:",
+       {
+        "Ref": "LineBotApi541032A3"
+       },
+       "/test-invoke-stage/GET/auth/callback"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/callback/GET/ApiPermission.Test.MiyabiLineBotStackLineBotApi8558BE7F.GET..auth.callback"
+   }
+  },
+  "LineBotApiauthcallbackGETA85A1B5A": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-west-2:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "LineBotFunction6287B7FE",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "LineBotApiauthcallback70F61B06"
+    },
+    "RestApiId": {
+     "Ref": "LineBotApi541032A3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/LineBotApi/Default/auth/callback/GET/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WPT0/DMAzFP8vumYEOce9AnEBMhfvkJqZkzZ+qTpiqKt+dNAVtnPx7L/azU0FV3cPtBs+8larfGt3C/B5Q9iJbx1lNDq1X2fzA1pB4/HQFkjBoW4UwP0cng/ZuebrmA41WM2eVhEYLc+PX+VIP3mg5lb5CSfDuiMwUGOqlZA37KHsKe2QSxncML75rKJArK3DQHQY645SjiUM96JJ+wVpKH10QTzQYP9k8t7hXKv+zKyetkEd9HCWVhX/iN3PlVwpfXi3WSild+srVS5B23b+hzG8xDDEk4bwiOPHNd7WDB7jbnFjr7Zhv1JagWesPEZFL4ZIBAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiLineBotStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "LineBotApiEndpoint96ACF474": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "LineBotApi541032A3"
+      },
+      ".execute-api.us-west-2.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "LineBotApiDeploymentStageprod510D3E32"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "ApiUrl": {
+   "Description": "API Gateway URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "LineBotApi541032A3"
+      },
+      ".execute-api.us-west-2.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "LineBotApiDeploymentStageprod510D3E32"
+      },
+      "/"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiLineBotApiUrl"
+   }
+  },
+  "WebhookUrl": {
+   "Description": "LINE Webhook URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "LineBotApi541032A3"
+      },
+      ".execute-api.us-west-2.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "LineBotApiDeploymentStageprod510D3E32"
+      },
+      "/webhook"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiLineBotWebhookUrl"
+   }
+  },
+  "LineLoginUrl": {
+   "Description": "LINE Login URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "LineBotApi541032A3"
+      },
+      ".execute-api.us-west-2.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "LineBotApiDeploymentStageprod510D3E32"
+      },
+      "/auth/line"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiLineBotLineLoginUrl"
+   }
+  },
+  "LineCallbackUrl": {
+   "Description": "LINE OAuth Callback URL (set this in LINE Console)",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "LineBotApi541032A3"
+      },
+      ".execute-api.us-west-2.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "LineBotApiDeploymentStageprod510D3E32"
+      },
+      "/auth/callback"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiLineBotLineCallbackUrl"
+   }
+  },
+  "LambdaFunctionName": {
+   "Description": "LINE Bot Lambda Function Name",
+   "Value": {
+    "Ref": "LineBotFunction6287B7FE"
+   },
+   "Export": {
+    "Name": "MiyabiLineBotFunctionName"
+   }
+  },
+  "ConversationsTableName": {
+   "Description": "Conversation History Table Name",
+   "Value": {
+    "Ref": "ConversationHistoryD9612A4F"
+   },
+   "Export": {
+    "Name": "MiyabiLineBotConversationsTableName"
+   }
+  },
+  "UsersTableName": {
+   "Description": "LINE Users Table Name",
+   "Value": {
+    "Ref": "LineUsers9A7E8EC6"
+   },
+   "Export": {
+    "Name": "MiyabiLineBotUsersTableName"
+   }
+  },
+  "JwtSecret": {
+   "Description": "JWT Secret (partial - check Lambda env vars for full value)",
+   "Value": "CHANGE_M...",
+   "Export": {
+    "Name": "MiyabiLineBotJwtSecretPartial"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

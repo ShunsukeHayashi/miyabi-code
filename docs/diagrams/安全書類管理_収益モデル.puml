@@ -1,0 +1,50 @@
+@startuml 収益モデル図
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundCorner 10
+
+title 安全書類管理システム 収益モデル
+
+rectangle "収益構造" as Revenue {
+
+    package "基本料金（月額固定）" as Basic {
+        card "ライトプラン\n月額9,800円\n従業員30名まで\n現場5件まで" as Light
+        card "スタンダードプラン\n月額29,800円\n従業員100名まで\n現場20件まで" as Standard
+        card "プロフェッショナルプラン\n月額59,800円\n従業員無制限\n現場無制限" as Pro
+    }
+
+    package "オプション料金" as Option {
+        card "追加現場\n1,000円/現場/月" as OptSite
+        card "追加従業員\n200円/人/月" as OptUser
+        card "API連携\n10,000円/月" as OptAPI
+        card "カスタムレポート\n5,000円/月" as OptReport
+    }
+
+    package "初期費用" as Initial {
+        card "初期設定費\n50,000円" as InitSetup
+        card "データ移行費\n30,000円〜" as InitMigrate
+        card "トレーニング費\n20,000円/回" as InitTrain
+    }
+
+    package "付加価値サービス" as VAS {
+        card "専任サポート\n30,000円/月" as VASSupport
+        card "カスタマイズ開発\n見積別途" as VASCustom
+        card "コンサルティング\n100,000円/日" as VASConsult
+    }
+}
+
+rectangle "収益予測（3年目）" as Forecast {
+    card "導入企業数: 3,000社" as F1
+    card "ARPU: 32,000円/月" as F2
+    card "MRR: 9,600万円" as F3
+    card "ARR: 11.5億円" as F4
+}
+
+Basic -[hidden]r-> Option
+Option -[hidden]r-> Initial
+Initial -[hidden]r-> VAS
+
+Revenue -[hidden]d-> Forecast
+
+@enduml

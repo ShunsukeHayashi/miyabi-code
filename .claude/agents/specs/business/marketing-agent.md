@@ -148,6 +148,70 @@ docs/marketing/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.marketing_strategy_and_execution_agent.execute_marketing
+a2a.marketing_strategy_and_execution_agent.setup_ad_campaign
+a2a.marketing_strategy_and_execution_agent.plan_seo
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.marketing_strategy_and_execution_agent.execute_marketing",
+    "input": {
+      "sns_strategy": "docs/sns/sns-strategy.md",
+      "landing_page": "docs/funnel/landing-page.md",
+      "product_concept": "docs/product/product-concept.md",
+      "budget": 100000
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.marketing_strategy_and_execution_agent.execute_marketing",
+    json!({
+        "sns_strategy": "docs/sns/sns-strategy.md",
+        "landing_page": "docs/funnel/landing-page.md",
+        "product_concept": "docs/product/product-concept.md",
+        "budget": 100000
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "MarketingAgent"` を指定:
+```
+prompt: "広告・SEO・SNS等を駆使した集客施策実行計画を作成し、KPIを設定してください"
+subagent_type: "MarketingAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **SNSStrategyAgent**: 前フェーズ（Phase 8）

@@ -1,0 +1,44 @@
+{
+  "name": "miyabi-mcp",
+  "version": "1.0.0",
+  "description": "Miyabi All-in-One MCP Server - Complete monitoring and control toolkit (75 tools)",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "miyabi",
+    "monitoring",
+    "git",
+    "tmux",
+    "logs",
+    "resources",
+    "network",
+    "process",
+    "files",
+    "claude-code",
+    "github"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@octokit/rest": "^20.0.2",
+    "glob": "^10.3.10",
+    "simple-git": "^3.27.0",
+    "systeminformation": "^5.21.20",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

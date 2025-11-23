@@ -355,6 +355,68 @@ docs/analytics/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.data_analytics_and_business_intelligence_agent.plan_analytics
+a2a.data_analytics_and_business_intelligence_agent.generate_weekly_report
+a2a.data_analytics_and_business_intelligence_agent.propose_improvements
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.data_analytics_and_business_intelligence_agent.plan_analytics",
+    "input": {
+      "all_phases": true,
+      "data_sources": ["ga4", "ads", "crm", "sales", "sns"],
+      "report_type": "weekly"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.data_analytics_and_business_intelligence_agent.plan_analytics",
+    json!({
+        "all_phases": true,
+        "data_sources": ["ga4", "ads", "crm", "sales", "sns"],
+        "report_type": "weekly"
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "AnalyticsAgent"` を指定:
+```
+prompt: "全データを分析し、週次レポート生成、改善施策提案、次サイクル計画を作成してください"
+subagent_type: "AnalyticsAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CRMAgent**: 前フェーズ（Phase 11）

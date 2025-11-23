@@ -1,0 +1,240 @@
+{
+  "main": {
+    "id": "c76b870a1531e86f",
+    "type": "split",
+    "children": [
+      {
+        "id": "a80afdb4b5c40e53",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9a2f37fd53032e9c",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "76d183e8b2ba75b8",
+    "type": "split",
+    "children": [
+      {
+        "id": "108f2deb174409c7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e3f4579f7d771907",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "byModifiedTime",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "a86ab528b55f6395",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "11-23",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "07a68949f16920d7",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 328.5
+  },
+  "right": {
+    "id": "86ca097bcc194821",
+    "type": "split",
+    "children": [
+      {
+        "id": "730f085712a32766",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "06fdfa7b146b3360",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "19be7a14d7a097b8",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "daily-notes/2025-11-16-daily-report.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 2025-11-16-daily-report"
+            }
+          },
+          {
+            "id": "1abd4ae40f774658",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "f3b3f908c9135a8d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "ea4af78c837ebb39",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "lucide-ghost",
+              "title": "calendar"
+            }
+          },
+          {
+            "id": "596207f61fdc3e03",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "architecture/2025-11-17-architecture-pixel-maestro-usability-design.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 2025-11-17-architecture-pixel-maestro-usability-design"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "graph:Open graph view": false,
+      "switcher:Open quick switcher": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "9a2f37fd53032e9c",
+  "lastOpenFiles": [
+    "2025-11-23.md",
+    "DOCUMENTATION_SYSTEM_REPORT.md",
+    "INDEX.md",
+    "WORKFLOWS_DIAGRAM.md",
+    "QUICK_REFERENCE.md",
+    "DIAGRAMS_GALLERY.md",
+    "2025-11-20.md",
+    "OBSIDIAN_USER_GUIDE.md",
+    "OBSIDIAN_USER_GUIDE.md.tmp.62754.1763900644508",
+    "Untitled.canvas",
+    "Untitled 1.canvas",
+    "Untitled.base",
+    "Untitled 1.base",
+    "Untitled 2.canvas",
+    "Untitled 3.canvas",
+    "planning/2025-11-23-obsidian-enhancement-design.md",
+    "templates/drawing.md",
+    "templates/retrospective.md",
+    "templates/decision.md",
+    "templates/meeting.md",
+    "templates/agent-report.md",
+    "templates/sprint.md",
+    "templates/daily.md",
+    "templates/pr.md",
+    "templates/pr.md.tmp.62754.1763900424721",
+    "templates/issue.md",
+    "templates/issue.md.tmp.62754.1763900424580",
+    "retrospectives",
+    "sprints",
+    "daily-notes",
+    "drawings/console",
+    "drawings/agents",
+    "planning/2025-11-23-comprehensive-implementation-plan.md",
+    "reports/2025-11-22-layer-architecture-status.md",
+    "architecture/ORCHESTRA_WINDOW_CONFIGURATION.md",
+    "guides/ORCHESTRA_WORKER_PROTOCOL.md",
+    "reports/2025-11-17-miyabi-latest-complete-overview.md",
+    "context/architecture.md",
+    "context/agents.md",
+    "assets/diagrams/Miyabi System Architecture - Rust Edition.png",
+    "assets/diagrams/Miyabi Worktree Protocol - Parallel Execution Architecture.png",
+    "assets/diagrams/Miyabi Protocols - Task Management & Reporting.png",
+    "assets/diagrams/Miyabi Entity-Relation Model - 12 Entities.png",
+    "assets/diagrams/Miyabi Context Modules - Complete Overview.png",
+    "assets/diagrams/Miyabi Agent System - 20 Agents Architecture.png",
+    "architecture/2025-11-20-claude-directory-index.md"
+  ]
+}

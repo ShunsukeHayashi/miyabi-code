@@ -518,8 +518,7 @@ mod tests {
         let loader = ConfigLoader::new().unwrap();
         let result = loader.load_core();
         // This will fail if config doesn't exist, which is expected in test env
-        if result.is_ok() {
-            let config = result.unwrap();
+        if let Ok(config) = result {
             assert_eq!(config.miyabi.edition, "rust");
         }
     }

@@ -28,13 +28,17 @@ Claude Codeは必要に応じて、これらのモジュールを動的にロー
 | **Labels** | `archive/labels.md` | ~200 tokens | 🗄️ | ✅ Archived - Superseded by miyabi-definition.md |
 | **Worktree** | `worktree.md` | ~300 tokens | ⭐⭐⭐ | Worktreeライフサイクル、並列実行 |
 | **Rust** | `rust.md` | ~300 tokens | ⭐⭐⭐ | Rust 2021 Edition開発ガイド |
+| **Rust Tool Use** | `rust-tool-use-rules.md` | ~1,500 tokens | ⭐⭐⭐⭐ | 🦀 MCP Tool最適化ルール（並列/シーケンシャルパターン、統合ワークフロー） |
 | **TypeScript** | `typescript.md` | ~200 tokens | ⭐ | レガシーTypeScript参考 |
 | **Protocols** | `protocols.md` | ~300 tokens | ⭐⭐ | タスク管理、報告プロトコル |
 | **External Deps** | `external-deps.md` | ~200 tokens | ⭐⭐ | Context7、MCP Servers |
+| **A2A Protocol** | `a2a-protocol.md` | ~2,500 tokens | ⭐⭐⭐⭐ | 🆕 Agent-to-Agent通信プロトコル（Google A2A、Agent Card、Task管理） |
+| **A2A Unified Comm** | `a2a-unified-communication.md` | ~3,500 tokens | ⭐⭐⭐⭐⭐ | 🆕 統一A2A通信アーキテクチャ（Gateway、Router、Queue、全Agent連携） |
 
-**Total Estimated Size**: ~10,300 tokens (個別読み込み時)
+**Total Estimated Size**: ~16,300 tokens (個別読み込み時)
 
 **Note**:
+- 🔗 **A2A Unified**: `a2a-unified-communication.md` is the **core communication architecture** - ALL agent communication uses A2A
 - 🧬 **SWML**: `swml-framework.md` is the **mathematical foundation** providing formal convergence guarantees
 - 🔬 **Omega**: `omega-phases.md` provides **detailed implementation guide** for θ₁-θ₆ phases
 - 🌍 **Society**: `miyabi-society.md` is the **theoretical framework** connecting all agents and components
@@ -155,6 +159,38 @@ Agentとしての理解が必要な場合、まず確認すべきモジュール
 - Mythological Guardian: Cerberus (セキュリティ)、Michael (倫理)
 - Pantheon Council: ガバナンス、意思決定プロトコル
 - AWS Pantheon Architecture: Multi-account strategy
+```
+
+### Pattern 8: 🆕 A2A Protocol統合タスク
+```
+必要なモジュール:
+- a2a-protocol.md 🆕 NEW (Agent Card、Task管理、通信フロー)
+- core-rules.md (MCP確認)
+- agents.md (Agent system)
+- rust.md (Rust実装)
+
+具体例:
+- Agent Card実装: /.well-known/agent.json エンドポイント
+- Task管理: InMemoryTaskStore、TaskStatus
+- A2Aサーバー: axum + JSON-RPC
+- A2Aクライアント: reqwest + serde_json
+- 外部エージェント連携: CrewAI、LangGraph、AutoGen
+```
+
+### Pattern 9: 🦀 MCP Tool最適化タスク
+```
+必要なモジュール:
+- rust-tool-use-rules.md 🦀 NEW (MCP Tool最適化ルール)
+- rust.md (Rust開発ガイド)
+- core-rules.md (MCP First原則)
+- protocols.md (通信プロトコル)
+
+具体例:
+- 並列Tool実行: resource_overview + git_status + tmux_list_sessions
+- シーケンシャルTool: github_get_issue → tmux_send_message → tmux_pane_tail
+- エラーハンドリング: log_get_errors + process_search
+- Rust開発統合: cargo commands + MCP monitoring
+- パフォーマンス最適化: 最小呼び出し原則、キャッシュ活用
 ```
 
 ## 📖 Related Documentation

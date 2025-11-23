@@ -1,0 +1,76 @@
+@startuml industry_security_全体連携
+!theme cerulean-outline
+
+title 警備業 部署間連携図
+
+' 部署の定義
+rectangle "営業部" as sales {
+  :顧客開拓:
+  :提案:
+  :契約:
+}
+
+rectangle "管制部" as control {
+  :出動指示:
+  :現場管理:
+  :事故対応:
+}
+
+rectangle "常駐警備部" as onsite {
+  :巡回警備:
+  :施設管理:
+  :イベント警備:
+}
+
+rectangle "機械警備部" as machine {
+  :監視装置管理:
+  :緊急対応:
+  :保守点検:
+}
+
+rectangle "教育訓練部" as training {
+  :資格取得講座:
+  :実務研修:
+  :安全教育:
+}
+
+rectangle "経理部" as accounting {
+  :請求処理:
+  :勤怠管理:
+  :予算管理:
+}
+
+rectangle "総務部" as general {
+  :人事労務:
+  :採用:
+  :法務:
+}
+
+' 連携の定義
+sales --> accounting : 契約情報
+sales --> control : 受注内容
+
+control --> onsite : 出動指示
+control --> machine : 監視要請
+control --> accounting : 勤務実績
+
+onsite --> control : 報告
+onsite --> training : 能力確認
+onsite --> accounting : 勤務実績
+
+machine --> control : 異常検知
+machine --> training : 装置研修
+machine --> accounting : 稼働データ
+
+training --> onsite : 修了者情報
+training --> general : 従業員管理
+training --> accounting : 研修記録
+
+accounting --> general : 給与データ
+accounting --> sales : 売上管理
+
+general --> sales : 人材情報
+general --> training : 採用情報
+general --> accounting : 勤怠データ
+
+@enduml

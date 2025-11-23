@@ -1,0 +1,78 @@
+@startuml dept_経理部
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+title 経理部 業務フロー
+
+|#LightCyan|日次業務|
+start
+
+fork
+  :請求書受領;
+  :仕訳入力;
+  :支払処理;
+  note right
+    - 振込データ作成
+    - 承認フロー
+    - 実行
+  end note
+fork again
+  :売上計上;
+  :請求書発行;
+  :入金消込;
+fork again
+  :経費精算処理;
+  :小口現金管理;
+end fork
+
+|#LightYellow|工事原価管理|
+:工事別原価集計;
+note right
+  - 材料費
+  - 労務費
+  - 外注費
+  - 経費
+end note
+
+:予算実績対比;
+
+if (原価超過？) then (Yes)
+  :アラート発信;
+  |#LightGreen|工務部|
+  :原因調査;
+  :是正措置;
+  |#LightYellow|工事原価管理|
+endif
+
+:完成工事原価報告;
+
+|#LightPink|月次決算|
+:月末締め処理;
+
+fork
+  :売掛金・買掛金管理;
+fork again
+  :減価償却計算;
+fork again
+  :引当金計上;
+fork again
+  :未成工事支出金計算;
+end fork
+
+:試算表作成;
+:月次報告書作成;
+
+|#Orange|年次業務|
+:決算整理仕訳;
+:財務諸表作成;
+note right
+  - 貸借対照表
+  - 損益計算書
+  - 完成工事原価報告書
+end note
+
+:税務申告;
+:経営審査事項準備;
+
+stop
+
+@enduml

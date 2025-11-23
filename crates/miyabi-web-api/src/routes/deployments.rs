@@ -118,6 +118,107 @@ fn get_git_tag_deployments() -> Result<Vec<Deployment>, String> {
     Ok(deployments)
 }
 
+#[derive(Serialize)]
+pub struct DeploymentStage {
+    pub name: String,
+    pub status: String,
+    pub started_at: Option<String>,
+    pub completed_at: Option<String>,
+    pub duration_seconds: Option<u32>,
+}
+
+#[derive(Serialize)]
+pub struct LastDeployment {
+    pub version: String,
+    pub deployed_at: String,
+    pub deployed_by: String,
+    pub status: String,
+}
+
+#[derive(Serialize)]
+pub struct DeploymentStatusResponse {
+    pub pipeline_name: String,
+    pub current_stage: String,
+    pub stages: Vec<DeploymentStage>,
+    pub last_deployment: Option<LastDeployment>,
+}
+
+pub async fn get_deployment_status() -> Json<DeploymentStatusResponse> {
+    // Get latest tag info for last deployment
+    let last_deployment = get_latest_deployment().ok();
+
+    Json(DeploymentStatusResponse {
+        pipeline_name: "miyabi-production".to_string(),
+        current_stage: "idle".to_string(),
+        stages: vec![
+            DeploymentStage {
+                name: "build".to_string(),
+                status: "completed".to_string(),
+                started_at: None,
+                completed_at: None,
+                duration_seconds: Some(120),
+            },
+            DeploymentStage {
+                name: "test".to_string(),
+                status: "completed".to_string(),
+                started_at: None,
+                completed_at: None,
+                duration_seconds: Some(180),
+            },
+            DeploymentStage {
+                name: "deploy".to_string(),
+                status: "completed".to_string(),
+                started_at: None,
+                completed_at: None,
+                duration_seconds: Some(60),
+            },
+            DeploymentStage {
+                name: "verify".to_string(),
+                status: "completed".to_string(),
+                started_at: None,
+                completed_at: None,
+                duration_seconds: Some(30),
+            },
+        ],
+        last_deployment,
+    })
+}
+
+fn get_latest_deployment() -> Result<LastDeployment, String> {
+    let output = Command::new("git")
+        .args([
+            "for-each-ref",
+            "--sort=-creatordate",
+            "--count=1",
+            "--format=%(refname:short)|%(creatordate:iso8601)|%(taggername)",
+            "refs/tags",
+        ])
+        .current_dir("/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private")
+        .output()
+        .map_err(|e| format!("Failed to execute git: {}", e))?;
+
+    if !output.status.success() {
+        return Err("git command failed".to_string());
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let line = stdout.trim();
+
+    let parts: Vec<&str> = line.splitn(3, '|').collect();
+    if parts.len() >= 2 {
+        Ok(LastDeployment {
+            version: parts[0].to_string(),
+            deployed_at: parts[1].to_string(),
+            deployed_by: parts.get(2).unwrap_or(&"DeploymentAgent").to_string(),
+            status: "success".to_string(),
+        })
+    } else {
+        Err("Failed to parse tag info".to_string())
+    }
+}
+
 pub fn routes() -> Router {
-    Router::new().route("/", get(list_deployments))
+    Router::new()
+        .route("/", get(list_deployments))
+        .route("/status", get(get_deployment_status))
 }

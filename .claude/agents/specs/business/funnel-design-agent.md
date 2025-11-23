@@ -449,6 +449,68 @@ docs/funnel/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.customer_funnel_design_agent.design_funnel
+a2a.customer_funnel_design_agent.create_landing_page
+a2a.customer_funnel_design_agent.design_email_sequence
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.customer_funnel_design_agent.design_funnel",
+    "input": {
+      "product_detail": "docs/product/product-detail.md",
+      "customer_journey_map": "docs/persona/customer-journey-map.md",
+      "content_plan": "docs/content/content-plan.md"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.customer_funnel_design_agent.design_funnel",
+    json!({
+        "product_detail": "docs/product/product-detail.md",
+        "customer_journey_map": "docs/persona/customer-journey-map.md",
+        "content_plan": "docs/content/content-plan.md"
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "FunnelDesignAgent"` を指定:
+```
+prompt: "認知から購入、継続利用までの顧客導線を最適化し、LP、リードマグネット、メールシーケンスを設計してください"
+subagent_type: "FunnelDesignAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **ContentCreationAgent**: 前フェーズ（Phase 6）

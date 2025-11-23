@@ -1,0 +1,29 @@
+\contentsline {section}{\numberline {1}エグゼクティブサマリー}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}導入効果}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}システム概要}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {2}システム構成}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}テーブル一覧（37テーブル）}{3}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}マスタ系（12テーブル）}{3}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}トランザクション系（25テーブル）}{3}{subsubsection.2.1.2}%
+\contentsline {section}{\numberline {3}業務フロー}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}フロー1: リース発注〜請求書申請}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}フロー2: 経費精算（AI自動分類）}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}フロー3: 勤怠管理・アルコールチェック}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}フロー4: 始業前点検}{6}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}フロー5: 安全教育・KY活動}{7}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}フロー6: 事故・ヒヤリハット報告}{7}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}フロー7: 労務調査対応}{8}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}フロー8: 車両管理}{8}{subsection.3.8}%
+\contentsline {section}{\numberline {4}自動化機能}{9}{section.4}%
+\contentsline {subsection}{\numberline {4.1}作成済みビュー（29ビュー）}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}推奨Automation設定}{9}{subsection.4.2}%
+\contentsline {section}{\numberline {5}導入・運用ガイド}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Phase 1: 初期設定（1週間）}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Phase 2: 試験運用（2週間）}{10}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Phase 3: 本格運用}{10}{subsection.5.3}%
+\contentsline {section}{\numberline {6}導入効果}{11}{section.6}%
+\contentsline {subsection}{\numberline {6.1}定量的効果}{11}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}定性的効果}{11}{subsection.6.2}%
+\contentsline {section}{\numberline {7}今後の拡張}{12}{section.7}%
+\contentsline {subsection}{\numberline {7.1}追加機能案}{12}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}サポート体制}{12}{subsection.7.2}%

@@ -495,6 +495,68 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.issue_analysis_and_task_metadata_creation_agent.analyze_issue
+a2a.issue_analysis_and_task_metadata_creation_agent.infer_labels
+a2a.issue_analysis_and_task_metadata_creation_agent.create_sub_issue
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.issue_analysis_and_task_metadata_creation_agent.analyze_issue",
+    "input": {
+      "issue_number": 270,
+      "auto_label": true,
+      "auto_assign": true
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Issue分析実行
+let result = bridge.execute_tool(
+    "a2a.issue_analysis_and_task_metadata_creation_agent.analyze_issue",
+    json!({
+        "issue_number": 270,
+        "auto_label": true,
+        "auto_assign": true
+    })
+).await?;
+
+if result.success {
+    println!("Analysis result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "IssueAgent"` を指定:
+```
+prompt: "Issue #270を分析してラベルを付与してください"
+subagent_type: "IssueAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CoordinatorAgent**: IssueAgent分析結果を元にタスク分解

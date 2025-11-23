@@ -1,0 +1,143 @@
+@startuml dept_restaurant_general
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 総務部 業務フロー
+
+|#Lavender|人事担当|
+start
+:人員計画確認;
+note right
+  ・店舗人員要望
+  ・繁忙期対応
+  ・新店舗開店
+end note
+
+:採用活動;
+fork
+  :社員採用;
+fork again
+  :アルバイト採用;
+end fork
+
+:面接調整;
+:採用決定;
+:入社手続き;
+
+:人員配置管理;
+:シフト管理支援;
+
+:人事評価対応;
+:給与計算連携;
+
+|#LightCyan|労務管理担当|
+:勤怠管理;
+note right
+  ・変形労働時間制
+  ・深夜労働管理
+  ・休日管理
+end note
+
+if (労働時間超過?) then (yes)
+  :店舗へ警告;
+  :シフト見直し指示;
+else (no)
+endif
+
+:社会保険手続き;
+:労働法令対応;
+
+|#LightYellow|教育研修担当|
+:研修プログラム企画;
+
+:新人研修;
+fork
+  :接客マナー;
+fork again
+  :調理基礎;
+fork again
+  :衛生管理;
+fork again
+  :安全管理;
+end fork
+
+:スキルアップ研修;
+:店長研修;
+
+:制服管理;
+fork
+  :制服支給;
+fork again
+  :クリーニング;
+fork again
+  :在庫管理;
+end fork
+
+|#LightPink|店舗開発・施設管理担当|
+:店舗開発;
+
+if (新店舗?) then (yes)
+  :物件調査;
+  :商圏分析;
+  :出店判断;
+  :内装設計;
+  :厨房機器選定;
+  :開店準備;
+else (no)
+endif
+
+:既存店舗管理;
+fork
+  :設備保守;
+fork again
+  :厨房機器メンテナンス;
+fork again
+  :改装計画;
+end fork
+
+:設備故障対応;
+:経理部へ固定資産報告;
+
+|#LightGreen|法務・許認可担当|
+:許認可管理;
+note right
+  ・飲食店営業許可
+  ・深夜酒類提供届出
+  ・食品衛生責任者
+  ・防火管理者
+end note
+
+:許可更新管理;
+:衛生管理部と連携;
+
+:契約管理;
+fork
+  :賃貸契約;
+fork again
+  :仕入先契約;
+fork again
+  :業務委託契約;
+end fork
+
+:法令順守管理;
+note right
+  ・食品衛生法
+  ・食品表示法
+  ・労働基準法
+end note
+
+if (法改正?) then (yes)
+  :影響調査;
+  :店舗へ周知;
+else (no)
+endif
+
+|#Lavender|庶務担当|
+:文書管理;
+:備品管理;
+:福利厚生運営;
+:まかない管理;
+
+stop
+
+@enduml

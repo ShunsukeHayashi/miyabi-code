@@ -28,6 +28,16 @@
   },
   "PostToolCall": [
     {
+      "description": "VOICEVOX ナレーション - ツール実行後にやさしく解説 (デフォルトON)",
+      "enabled": true,
+      "matcher": {},
+      "command": "bash",
+      "args": [
+        "-c",
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/scripts/voicevox-narrator.sh \"$TOOL_NAME\" \"$TOOL_INPUT\" \"$TOOL_OUTPUT\""
+      ]
+    },
+    {
       "description": "Git作業ログ自動収集 - コミット・プッシュ・PR検出",
       "enabled": true,
       "matcher": {

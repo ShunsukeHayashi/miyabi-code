@@ -1,0 +1,19 @@
+{
+  "total_tasks": 100,
+  "epics": 13,
+  "child_tasks": 29,
+  "standalone_tasks": 60,
+  "total_estimated_hours": 9276,
+  "average_hours_per_task": 92.8,
+  "by_state": {
+    "open": 57,
+    "closed": 43
+  },
+  "by_priority": {
+    "P0": 15,
+    "P1": 27,
+    "P2": 18,
+    "P3": 8,
+    "No Priority": 32
+  }
+}

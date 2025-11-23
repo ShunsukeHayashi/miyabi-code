@@ -1,0 +1,85 @@
+@startuml industry_pet_全体連携
+!theme cerulean-outline
+
+title ペット業界 部署間連携図（ペットショップ・動物病院・トリミング統合型施設）
+
+' 部署の定義
+rectangle "販売部" as sales {
+  :顧客対応:
+  :商品販売:
+  :ペット販売:
+}
+
+rectangle "トリミング部" as trimming {
+  :カット・シャンプー:
+  :爪切り・耳掃除:
+  :健康チェック:
+}
+
+rectangle "ホテル部" as hotel {
+  :チェックイン・チェックアウト:
+  :预約管理:
+  :日常ケア:
+}
+
+rectangle "診療部（動物病院）" as medical {
+  :診察:
+  :診断:
+  :治療・投薬:
+}
+
+rectangle "仕入部" as procurement {
+  :ペット仕入:
+  :商品仕入:
+  :医療器材仕入:
+}
+
+rectangle "経理部" as accounting {
+  :会計処理:
+  :請求管理:
+  :入金・支払管理:
+}
+
+rectangle "総務部" as general {
+  :人事労務:
+  :施設管理:
+  :法令遵守:
+}
+
+' 連携の定義
+sales --> trimming : サービス提供案内
+sales --> hotel : ペット受け入れ通知
+sales --> medical : 健康相談
+sales --> accounting : 販売データ
+
+trimming --> medical : 健康状態報告
+trimming --> hotel : ケア情報共有
+trimming --> accounting : サービス売上
+
+hotel --> trimming : 追加ケア依頼
+hotel --> medical : 健康観察結果
+hotel --> accounting : 宿泊売上
+
+medical --> sales : 健康診断結果
+medical --> trimming : 健康指導
+medical --> hotel : 療養指示
+medical --> accounting : 診療売上
+
+procurement --> sales : 在庫補充
+procurement --> trimming : 備品補充
+procurement --> medical : 医療品補充
+procurement --> accounting : 仕入データ
+
+accounting --> general : 財務報告
+accounting --> sales : 売上管理
+accounting --> trimming : 売上管理
+accounting --> hotel : 売上管理
+accounting --> medical : 売上管理
+
+general --> sales : 勤務シフト
+general --> trimming : 勤務シフト
+general --> hotel : 勤務シフト
+general --> medical : 勤務シフト
+general --> accounting : 経費精算
+
+@enduml

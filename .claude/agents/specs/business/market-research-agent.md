@@ -304,6 +304,68 @@ docs/research/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.market_research_and_competitive_analysis_agent.research_market
+a2a.market_research_and_competitive_analysis_agent.analyze_competitors
+a2a.market_research_and_competitive_analysis_agent.identify_opportunities
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.market_research_and_competitive_analysis_agent.research_market",
+    "input": {
+      "industry": "AI Development Tools",
+      "target_market": "Software Developers",
+      "competitor_count": 20
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// 市場調査実行
+let result = bridge.execute_tool(
+    "a2a.market_research_and_competitive_analysis_agent.research_market",
+    json!({
+        "industry": "AI Development Tools",
+        "target_market": "Software Developers",
+        "competitor_count": 20
+    })
+).await?;
+
+if result.success {
+    println!("Market research: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "MarketResearchAgent"` を指定:
+```
+prompt: "AI開発ツール市場の調査と競合20社の分析をしてください"
+subagent_type: "MarketResearchAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **SelfAnalysisAgent**: 前フェーズ（Phase 1）

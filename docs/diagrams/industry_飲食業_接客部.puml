@@ -1,0 +1,124 @@
+@startuml dept_restaurant_service
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 接客部 業務フロー
+
+|#LightCyan|フロアマネージャー|
+start
+:開店前準備;
+fork
+  :テーブル確認;
+fork again
+  :スタッフ身だしなみ確認;
+fork again
+  :本日のおすすめ確認;
+fork again
+  :アレルギー対応確認;
+end fork
+
+:予約確認;
+:席配置計画;
+
+|#LightBlue|ホールスタッフ|
+while (営業時間?) is (継続)
+  :来店対応;
+
+  if (予約客?) then (yes)
+    :予約確認;
+    :予約席案内;
+  else (no)
+    :空席確認;
+    if (空席あり?) then (yes)
+      :席案内;
+    else (no)
+      :待ち時間案内;
+      :ウェイティングリスト登録;
+    endif
+  endif
+
+  :メニュー提供;
+  :お冷/おしぼり提供;
+
+  :オーダー受付;
+  note right
+    ・料理注文
+    ・ドリンク注文
+    ・アレルギー確認
+    ・特別要望
+  end note
+
+  :調理部へオーダー送信;
+
+  :料理提供;
+  :テーブル状況確認;
+
+  if (追加オーダー?) then (yes)
+    :追加注文受付;
+  else (no)
+  endif
+
+  if (クレーム?) then (yes)
+    :状況確認;
+    :フロアマネージャーへ報告;
+  else (no)
+  endif
+endwhile (閉店)
+
+|#LightGreen|会計担当|
+:お会計対応;
+:伝票確認;
+
+fork
+  :現金会計;
+fork again
+  :カード決済;
+fork again
+  :電子マネー;
+fork again
+  :QRコード決済;
+end fork
+
+:レシート発行;
+
+if (クーポン/割引?) then (yes)
+  :割引処理;
+endif
+
+:お見送り;
+
+|#LightCyan|フロアマネージャー|
+:テーブル回転管理;
+
+if (混雑時?) then (yes)
+  :効率的な席配置;
+  :待ち客管理;
+  :キッチンとの連携;
+else (no)
+endif
+
+:スタッフ指導;
+:顧客対応サポート;
+
+:閉店作業;
+fork
+  :テーブル片付け;
+fork again
+  :フロア清掃;
+fork again
+  :備品補充;
+end fork
+
+:日報作成;
+note right
+  ・客数
+  ・回転数
+  ・クレーム内容
+  ・お客様の声
+end note
+
+:店舗運営部へ報告;
+
+stop
+
+@enduml

@@ -1,545 +1,182 @@
 ---
 name: Debugging and Troubleshooting
-description: Systematic debugging workflow for Rust compilation errors, test failures, runtime panics, and performance issues. Use when diagnosing errors, investigating failures, or troubleshooting unexpected behavior.
+description: Systematic error diagnosis and debugging workflow for Rust code. Use when code isn't working, tests fail, or runtime errors occur.
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
-# Debugging and Troubleshooting
+# 🐛 Debugging and Troubleshooting
 
-Comprehensive debugging workflow for Rust projects with systematic error diagnosis and resolution strategies.
+**Version**: 2.0.0
+**Last Updated**: 2025-11-22
+**Priority**: ⭐⭐⭐⭐ (P1 Level)
+**Purpose**: 体系的なエラー診断とRustデバッグワークフロー
 
-## When to Use
+---
 
-- User reports "this code isn't working"
-- User asks "why is this test failing?"
-- User wants to "debug this error"
-- Compilation errors occur
-- Tests fail unexpectedly
-- Runtime panics or crashes
-- Performance degradation
+## 📋 概要
 
-## Debugging Workflow
+コンパイルエラー、テスト失敗、ランタイムエラーに対する
+体系的な診断と解決ワークフローを提供します。
 
-### Step 1: Identify Error Type
+---
 
-Classify the error into one of these categories:
+## 🎯 P0: 呼び出しトリガー
 
-| Type | Examples | Initial Action |
-|------|----------|---------------|
-| **Compilation Error** | Type mismatch, missing trait | Run `cargo check --message-format=json` |
-| **Test Failure** | Assertion failed, panic | Run `cargo test -- --nocapture` |
-| **Runtime Panic** | unwrap() on None, index out of bounds | Check backtrace with `RUST_BACKTRACE=1` |
-| **Logic Error** | Wrong output, unexpected behavior | Add debug prints, use debugger |
-| **Performance Issue** | Slow execution, high memory | Profile with `cargo flamegraph` |
-| **Integration Error** | API failures, DB connection | Check logs, network traces |
+| トリガー | 例 |
+|---------|-----|
+| 動作不良 | "this code isn't working" |
+| テスト失敗 | "why is this test failing?" |
+| エラー解析 | "debug this error" |
+| コンパイルエラー | "compilation error" |
+| ランタイムエラー | "runtime panic" |
 
-### Step 2: Gather Context
+---
 
-```bash
-# Check system information
-rustc --version
-cargo --version
+## 🔧 P1: エラー分類と対処
 
-# Check project structure
-ls -la
+### エラー分類表
 
-# View recent changes
-git diff HEAD~1
+| 分類 | 症状 | 診断コマンド | 優先度 |
+|------|------|-------------|--------|
+| コンパイルエラー | `error[E####]` | `cargo check` | 高 |
+| テスト失敗 | `test ... FAILED` | `cargo test -- --nocapture` | 高 |
+| ランタイムpanic | `thread 'main' panicked` | `RUST_BACKTRACE=1` | 高 |
+| ロジックエラー | 期待と異なる出力 | `dbg!()`, ログ | 中 |
+| パフォーマンス | 遅い・メモリ大 | `cargo bench`, `valgrind` | 中 |
+| 統合エラー | 外部サービス失敗 | ネットワーク診断 | 低 |
 
-# Check environment variables
-env | grep -i rust
-env | grep -i cargo
-```
+---
 
-## Error Type 1: Compilation Errors
+## 🚀 P2: デバッグパターン
 
-### Strategy: Systematic Type Checking
-
-#### Step 1: Run Cargo Check
+### Pattern 1: コンパイルエラー
 
 ```bash
-# Standard check
-cargo check
+# Step 1: エラー確認
+cargo check 2>&1 | head -50
 
-# Check with all features
-cargo check --all-features
+# Step 2: エラーコード解析
+# error[E0277] → Trait未実装
+# error[E0412] → 型未定義
+# error[E0433] → モジュール未解決
 
-# Check all workspace members
-cargo check --workspace
-
-# Get JSON output for parsing
-cargo check --message-format=json 2>&1 | tee check_output.json
+# Step 3: 詳細情報
+rustc --explain E0277
 ```
 
-#### Step 2: Analyze Error Messages
+**よくあるエラーと解決**:
 
-**Common Compilation Errors**:
+| エラーコード | 原因 | 解決策 |
+|-------------|------|--------|
+| E0277 | Trait未実装 | `#[derive(...)]` または手動実装 |
+| E0412 | 型が見つからない | `use`文追加 |
+| E0433 | モジュール解決失敗 | パス確認、`mod`宣言 |
+| E0502 | 借用競合 | 借用スコープ見直し |
+| E0382 | 所有権移動後使用 | `clone()` または参照 |
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `cannot find type X` | Missing import or typo | Add `use` statement or fix name |
-| `trait bound not satisfied` | Missing trait implementation | Implement trait or add derive |
-| `lifetime mismatch` | Conflicting lifetimes | Adjust lifetime annotations |
-| `mutable borrow` | Multiple mut borrows | Refactor to use single mut borrow |
-| `move occurs` | Value moved out | Use reference or `.clone()` |
-| `type mismatch` | Wrong type provided | Cast or convert to expected type |
-
-#### Step 3: Fix Errors Incrementally
+### Pattern 2: テスト失敗
 
 ```bash
-# Fix errors one at a time
-# After each fix, re-run:
-cargo check
+# Step 1: 失敗テスト特定
+cargo test 2>&1 | grep FAILED
 
-# Use clippy for suggestions
-cargo clippy --fix --allow-dirty
-
-# Apply automatic fixes
-cargo fix --allow-dirty
-```
-
-#### Example: Trait Bound Error
-
-**Error**:
-```
-error[E0277]: the trait bound `MyStruct: Clone` is not satisfied
-  --> src/main.rs:10:5
-   |
-10 |     let copied = my_struct.clone();
-   |                           ^^^^^ the trait `Clone` is not implemented for `MyStruct`
-```
-
-**Solution**:
-```rust
-// Add #[derive(Clone)] to struct
-#[derive(Clone)]
-struct MyStruct {
-    field: String,
-}
-```
-
-## Error Type 2: Test Failures
-
-### Strategy: Isolate and Reproduce
-
-#### Step 1: Run Failing Test
-
-```bash
-# Run specific test
-cargo test test_name
-
-# Show output (including println!)
+# Step 2: 詳細出力で実行
 cargo test test_name -- --nocapture
 
-# Show test stdout even on success
-cargo test test_name -- --show-output
-
-# Run tests serially (avoid race conditions)
+# Step 3: 順次実行（並列問題回避）
 cargo test -- --test-threads=1
+
+# Step 4: アサーション詳細
+# pretty_assertions, insta使用推奨
 ```
 
-#### Step 2: Add Debug Output
-
-```rust
-#[test]
-fn test_example() {
-    let result = my_function(input);
-
-    // Add debug output
-    eprintln!("Input: {:?}", input);
-    eprintln!("Result: {:?}", result);
-    eprintln!("Expected: {:?}", expected);
-
-    assert_eq!(result, expected);
-}
-```
-
-#### Step 3: Use Test Debugging Tools
-
-**Pretty Assertions**:
-```rust
-// Add to dev-dependencies
-pretty_assertions = "1.4"
-
-// Use in tests
-use pretty_assertions::assert_eq;
-
-#[test]
-fn test_with_diff() {
-    let expected = vec![1, 2, 3, 4, 5];
-    let actual = vec![1, 2, 3, 4, 6];  // Diff will be shown
-    assert_eq!(actual, expected);
-}
-```
-
-**Snapshot Testing**:
-```rust
-// Add insta for snapshot tests
-insta = "1.34"
-
-use insta::assert_debug_snapshot;
-
-#[test]
-fn test_complex_output() {
-    let result = complex_function();
-    assert_debug_snapshot!(result);
-}
-```
-
-#### Common Test Failure Patterns
-
-| Failure Pattern | Likely Cause | Solution |
-|----------------|--------------|----------|
-| Assertion failed | Wrong expected value | Review logic, update expected |
-| Panic in test | unwrap()/expect() failed | Add error handling |
-| Timeout | Infinite loop or deadlock | Add timeout, check async logic |
-| Flaky test | Race condition | Use test serialization or mocks |
-| Setup failure | Test precondition not met | Check test setup code |
-
-## Error Type 3: Runtime Panics
-
-### Strategy: Backtrace Analysis
-
-#### Step 1: Get Full Backtrace
+### Pattern 3: ランタイムpanic
 
 ```bash
-# Enable full backtrace
-RUST_BACKTRACE=full cargo run
-
-# Or backtrace=1 for shorter version
+# Step 1: バックトレース取得
 RUST_BACKTRACE=1 cargo run
 
-# Run with debug symbols (if release build)
-cargo run --release --features=debug-symbols
+# Step 2: 完全バックトレース
+RUST_BACKTRACE=full cargo run
+
+# Step 3: panic箇所特定
+# at src/lib.rs:42:5 を確認
+
+# Step 4: デバッガ使用
+rust-lldb target/debug/miyabi
 ```
 
-#### Step 2: Analyze Panic Location
-
-**Backtrace Example**:
-```
-thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', src/main.rs:42:18
-stack backtrace:
-   0: rust_begin_unwind
-   1: core::panicking::panic_fmt
-   2: core::panicking::panic
-   3: my_project::my_function
-             at ./src/main.rs:42
-   4: my_project::main
-             at ./src/main.rs:10
-```
-
-**Identify**:
-- Line number: `src/main.rs:42`
-- Cause: `Option::unwrap()` on `None`
-- Call chain: `main` → `my_function` → `unwrap()`
-
-#### Step 3: Fix Common Panic Sources
-
-**Replace unwrap() with proper error handling**:
+### Pattern 4: ロジックエラー
 
 ```rust
-// ❌ Bad: Can panic
-let value = option.unwrap();
+// dbg!マクロ使用
+let result = dbg!(compute_value());
 
-// ✅ Good: Handle None case
-let value = option.expect("Expected value but got None");
+// tracing使用
+tracing::debug!(?value, "computed value");
 
-// ✅ Better: Use pattern matching
-let value = match option {
-    Some(v) => v,
-    None => {
-        eprintln!("Warning: Using default value");
-        default_value()
-    }
-};
-
-// ✅ Best: Propagate error
-let value = option.ok_or(MyError::MissingValue)?;
-```
-
-**Common Panic Sources**:
-
-| Panic | Cause | Fix |
-|-------|-------|-----|
-| `unwrap()` on `None` | Option is None | Use `?`, `unwrap_or()`, or match |
-| `expect()` failed | Option is None | Same as above |
-| `index out of bounds` | Vec/array access beyond length | Use `get()` or check bounds |
-| `divide by zero` | Division by zero | Check denominator |
-| `send on closed channel` | Channel receiver dropped | Check channel status |
-
-## Error Type 4: Logic Errors
-
-### Strategy: Systematic Investigation
-
-#### Step 1: Add Logging
-
-```rust
-use tracing::{info, debug, warn, error};
-
-fn my_function(input: &str) -> Result<String> {
-    debug!("Function called with input: {}", input);
-
-    let processed = process(input);
-    debug!("Processed result: {:?}", processed);
-
-    if processed.is_empty() {
-        warn!("Processed result is empty");
-    }
-
-    Ok(processed)
+// 条件付きログ
+if cfg!(debug_assertions) {
+    println!("Debug: {:?}", state);
 }
 ```
 
-#### Step 2: Use Debugger
+---
 
-**Using rust-lldb**:
-```bash
-# Build with debug symbols
-cargo build
+## ⚡ P3: 高度なデバッグツール
 
-# Run with debugger
-rust-lldb target/debug/my-binary
+### デバッグツール一覧
 
-# Set breakpoint
-(lldb) breakpoint set --file main.rs --line 42
+| ツール | 用途 | コマンド |
+|--------|------|---------|
+| `rust-lldb` | デバッガ | `rust-lldb target/debug/miyabi` |
+| `cargo-expand` | マクロ展開 | `cargo expand` |
+| `cargo-asm` | アセンブリ確認 | `cargo asm` |
+| `valgrind` | メモリ診断 | `valgrind ./target/debug/miyabi` |
+| `miri` | UB検出 | `cargo +nightly miri test` |
 
-# Run
-(lldb) run
-
-# When stopped, inspect variables
-(lldb) frame variable
-(lldb) print my_variable
-(lldb) continue
-```
-
-**Using VS Code**:
+### VS Codeデバッグ設定
 
 ```json
-// .vscode/launch.json
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug",
-            "cargo": {
-                "args": ["build", "--bin=my-binary"]
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        }
-    ]
+  "type": "lldb",
+  "request": "launch",
+  "name": "Debug Miyabi",
+  "cargo": {
+    "args": ["build", "--bin=miyabi"]
+  },
+  "args": [],
+  "cwd": "${workspaceFolder}"
 }
 ```
 
-#### Step 3: Isolate Problem
+---
 
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+## 🛡️ 共通パニック対処
 
-    #[test]
-    fn test_minimal_reproduction() {
-        // Minimal test case that reproduces the bug
-        let input = "problematic input";
-        let result = my_function(input);
+| パニック | 原因 | 対処 |
+|----------|------|------|
+| `unwrap()` on None | Option未処理 | `if let Some` / `?` |
+| `unwrap()` on Err | Result未処理 | `match` / `?` |
+| index out of bounds | 配列範囲外 | `.get()` / bounds check |
+| overflow | 算術オーバーフロー | `checked_*` / `wrapping_*` |
+| stack overflow | 無限再帰 | 再帰ロジック見直し |
 
-        // This should pass but doesn't
-        assert!(result.is_ok());
-    }
-}
-```
+---
 
-## Error Type 5: Performance Issues
+## ✅ 成功基準
 
-### Strategy: Profile and Optimize
+| チェック項目 | 基準 |
+|-------------|------|
+| エラー分類 | 正確な分類 |
+| 根本原因特定 | 原因明確化 |
+| 解決策提示 | 具体的な修正方法 |
+| 再発防止 | テスト追加 |
 
-#### Step 1: Benchmark
+---
 
-```bash
-# Install criterion for benchmarking
-cargo install cargo-criterion
+## 🔗 関連Skills
 
-# Add to Cargo.toml
-# [dev-dependencies]
-# criterion = "0.5"
-
-# Create benchmark
-mkdir -p benches
-cat > benches/my_benchmark.rs <<'EOF'
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use my_project::my_function;
-
-fn benchmark_function(c: &mut Criterion) {
-    c.bench_function("my_function", |b| {
-        b.iter(|| my_function(black_box("input")))
-    });
-}
-
-criterion_group!(benches, benchmark_function);
-criterion_main!(benches);
-EOF
-
-# Run benchmark
-cargo bench
-```
-
-#### Step 2: Profile
-
-```bash
-# Install flamegraph
-cargo install flamegraph
-
-# Generate flamegraph
-cargo flamegraph --bin my-binary
-
-# Open flamegraph.svg in browser
-```
-
-#### Step 3: Identify Bottlenecks
-
-**Common Performance Issues**:
-
-| Issue | Symptom | Solution |
-|-------|---------|----------|
-| Unnecessary clones | High memory usage | Use references instead of `clone()` |
-| N+1 queries | Many small DB queries | Batch queries or use joins |
-| Blocking in async | Async functions block | Use `tokio::spawn_blocking()` |
-| Inefficient algorithms | O(n²) complexity | Use better data structures (HashMap, BTreeSet) |
-| No caching | Repeated computation | Add memoization or caching |
-
-## Error Type 6: Integration Errors
-
-### Strategy: External System Debugging
-
-#### Step 1: Check Dependencies
-
-```bash
-# Check if services are running
-# Example: Database
-nc -zv localhost 5432
-
-# Example: Redis
-redis-cli ping
-
-# Check network connectivity
-curl -v http://api.example.com/health
-```
-
-#### Step 2: Enable Request Logging
-
-```rust
-use reqwest::Client;
-use tracing::info;
-
-let client = Client::builder()
-    .timeout(Duration::from_secs(30))
-    .build()?;
-
-let response = client.get("https://api.example.com/data")
-    .header("Authorization", format!("Bearer {}", token))
-    .send()
-    .await?;
-
-info!("Response status: {}", response.status());
-info!("Response headers: {:?}", response.headers());
-
-let body = response.text().await?;
-info!("Response body: {}", body);
-```
-
-#### Step 3: Mock External Services
-
-```rust
-#[cfg(test)]
-mod tests {
-    use mockito::Server;
-
-    #[tokio::test]
-    async fn test_with_mock() {
-        let mut server = Server::new();
-        let mock = server.mock("GET", "/data")
-            .with_status(200)
-            .with_body(r#"{"result": "ok"}"#)
-            .create();
-
-        let result = fetch_data(&server.url()).await;
-        assert!(result.is_ok());
-
-        mock.assert();
-    }
-}
-```
-
-## Troubleshooting Checklist
-
-When debugging, systematically check:
-
-- [ ] **Error message**: Read the full error message carefully
-- [ ] **Recent changes**: `git diff` - what changed?
-- [ ] **Dependencies**: `cargo update` - outdated crates?
-- [ ] **Environment**: Correct Rust version, environment variables?
-- [ ] **Tests**: Do existing tests pass?
-- [ ] **Minimal reproduction**: Can you create a minimal test case?
-- [ ] **Documentation**: Check docs for API usage
-- [ ] **Issues**: Search GitHub issues for similar problems
-- [ ] **Clean build**: `cargo clean && cargo build`
-- [ ] **Compiler version**: Try stable/nightly Rust
-
-## Advanced Debugging Tools
-
-### cargo-expand
-
-View macro expansions:
-```bash
-cargo install cargo-expand
-cargo expand my_module::my_function
-```
-
-### cargo-asm
-
-View generated assembly:
-```bash
-cargo install cargo-asm
-cargo asm my_project::my_function
-```
-
-### valgrind
-
-Check for memory leaks:
-```bash
-cargo build
-valgrind --leak-check=full ./target/debug/my-binary
-```
-
-### strace
-
-System call tracing:
-```bash
-strace -o trace.log ./target/debug/my-binary
-```
-
-## Common Rust Gotchas
-
-| Gotcha | Problem | Solution |
-|--------|---------|----------|
-| Borrow checker errors | Complex borrow patterns | Simplify logic, use interior mutability (`RefCell`, `Mutex`) |
-| Lifetime errors | Complex lifetime relationships | Use `'static`, simplify data structures |
-| Async runtime not started | Using async without runtime | Add `#[tokio::main]` or start runtime manually |
-| Blocking in async | Blocking I/O in async context | Use `spawn_blocking()` |
-| Integer overflow (debug) | Arithmetic overflow | Use checked/saturating arithmetic |
-
-## Related Files
-
-- **Test Files**: `crates/*/tests/*.rs`
-- **Benchmark Files**: `benches/*.rs`
-- **Cargo Configuration**: `.cargo/config.toml`
-- **Logging Configuration**: `RUST_LOG` environment variable
-
-## Related Skills
-
-- **Rust Development**: For running tests and builds
-- **Performance Analysis**: For profiling (see Phase 8)
-- **Security Audit**: For security-related errors (see Phase 9)
+- **Rust Development**: ビルド・テスト
+- **Performance Analysis**: パフォーマンス問題
+- **Security Audit**: セキュリティ問題

@@ -1,8 +1,15 @@
 [package]
 name = "miyabi-tmux-orchestrator"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
 description = "Tmux-based multi-agent orchestration for Miyabi video generation pipeline"
+keywords = ["tmux", "orchestration", "agents", "miyabi"]
+categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
 
 [dependencies]
 # Core

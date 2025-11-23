@@ -1,0 +1,802 @@
+{
+  "882": {
+    "issue_id": 882,
+    "title": "🐛 Fix build script syntax error in scripts/build-line-bot.sh:25",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "883": {
+    "issue_id": 883,
+    "title": "feat(orchestra): Phase 3 - 200-Agent Live Experiment & Production Readiness",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "884": {
+    "issue_id": 884,
+    "title": "Implement /issue-create slash command - Issue作成コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "885": {
+    "issue_id": 885,
+    "title": "Implement /task-decompose slash command - タスク分解コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "886": {
+    "issue_id": 886,
+    "title": "Implement /worktree-create slash command - Worktree作成コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "887": {
+    "issue_id": 887,
+    "title": "Implement /codegen-execute slash command - コード生成実行コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "888": {
+    "issue_id": 888,
+    "title": "Implement /review-execute slash command - 品質チェック実行コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "889": {
+    "issue_id": 889,
+    "title": "Implement /pr-create slash command - PR作成コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "890": {
+    "issue_id": 890,
+    "title": "Implement /deploy-execute slash command - デプロイ実行コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "891": {
+    "issue_id": 891,
+    "title": "Implement /dashboard slash command - ダッシュボード表示コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "892": {
+    "issue_id": 892,
+    "title": "Implement /worktree-list slash command - Worktree一覧コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "893": {
+    "issue_id": 893,
+    "title": "Implement /pr-list slash command - PR一覧コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "894": {
+    "issue_id": 894,
+    "title": "Implement /quality-score slash command - 品質スコア表示コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "895": {
+    "issue_id": 895,
+    "title": "Implement /deploy-status slash command - デプロイ状況確認コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "896": {
+    "issue_id": 896,
+    "title": "Implement /logs slash command - ログ表示コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "897": {
+    "issue_id": 897,
+    "title": "Implement /health-check slash command - ヘルスチェックコマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "898": {
+    "issue_id": 898,
+    "title": "Implement /issue-analyze slash command - Issue分析コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "899": {
+    "issue_id": 899,
+    "title": "Implement /dag-visualize slash command - DAG可視化コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "900": {
+    "issue_id": 900,
+    "title": "Implement /parallel-execute slash command - 並列実行コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "901": {
+    "issue_id": 901,
+    "title": "Implement /pr-auto-merge slash command - PR自動マージコマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "902": {
+    "issue_id": 902,
+    "title": "Implement /deploy-rollback slash command - ロールバックコマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "903": {
+    "issue_id": 903,
+    "title": "Implement /knowledge-search slash command - ナレッジ検索コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "904": {
+    "issue_id": 904,
+    "title": "Implement /issue-batch slash command - Issue一括作成コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "905": {
+    "issue_id": 905,
+    "title": "Implement /worktree-cleanup slash command - Worktree削除コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "906": {
+    "issue_id": 906,
+    "title": "Implement /history-search slash command - 履歴検索コマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "907": {
+    "issue_id": 907,
+    "title": "Implement /db-backup slash command - データベースバックアップコマンド",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "908": {
+    "issue_id": 908,
+    "title": "Test Issue for #884 - Automated Test",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "909": {
+    "issue_id": 909,
+    "title": "Test Issue #884 - IssueAgent Integration Test",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "964": {
+    "issue_id": 964,
+    "title": "[Agent][P1] Kazuaki AWS Architect Agent - 仕様改善マスターIssue",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "965": {
+    "issue_id": 965,
+    "title": "[P0] Kazuaki Agent - キャラクター性格の拡充",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "966": {
+    "issue_id": 966,
+    "title": "[P0] Kazuaki Agent - IAM権限要件の文書化",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "967": {
+    "issue_id": 967,
+    "title": "[P0] Kazuaki Agent - Rust-Pythonブリッジの詳細化",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "968": {
+    "issue_id": 968,
+    "title": "[P0] Kazuaki Agent - コスト閾値の明確化",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "969": {
+    "issue_id": 969,
+    "title": "🔍 プロジェクト構造の根本的な問題調査と改善提案",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "970": {
+    "issue_id": 970,
+    "title": "🏗️ [P0-CRITICAL] Miyabi Society 完全再構築 - Ultra-Detailed Implementation Plan",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "971": {
+    "issue_id": 971,
+    "title": "🎯 [P0] Miyabi Reconstruction - Master Dependency Graph & Phase Structure",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "972": {
+    "issue_id": 972,
+    "title": "Phase 1.1: PostgreSQL Connection Enablement",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "973": {
+    "issue_id": 973,
+    "title": "Phase 1.2: Base Schema Migration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "974": {
+    "issue_id": 974,
+    "title": "Phase 1.3: Organization/Team Schema Implementation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "975": {
+    "issue_id": 975,
+    "title": "Phase 1.4: RBAC Implementation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "976": {
+    "issue_id": 976,
+    "title": "Phase 1.5: JWT Authentication Implementation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "977": {
+    "issue_id": 977,
+    "title": "🎯 [MASTER] Miyabi Reconstruction - Team Coordination & Context Preservation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "978": {
+    "issue_id": 978,
+    "title": "Phase 3.1: API Client Implementation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "979": {
+    "issue_id": 979,
+    "title": "Phase 3.2: Dashboard UI Modernization",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "980": {
+    "issue_id": 980,
+    "title": "Phase 3.3: Real-Time WebSocket Integration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "981": {
+    "issue_id": 981,
+    "title": "Phase 3.4: Authentication Flow Implementation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "982": {
+    "issue_id": 982,
+    "title": "Phase 3.5: CloudFront Redeployment & E2E Testing",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "983": {
+    "issue_id": 983,
+    "title": "Phase 2.1: Service Layer Refactoring",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "984": {
+    "issue_id": 984,
+    "title": "Phase 2.2: Task Management API Implementation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "985": {
+    "issue_id": 985,
+    "title": "Phase 2.3: Worker & Coordinator Status APIs",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "986": {
+    "issue_id": 986,
+    "title": "Phase 2.4: Uncomment & Test Existing APIs",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "987": {
+    "issue_id": 987,
+    "title": "Phase 2.5: AWS Lambda Deployment & CloudWatch Monitoring",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "988": {
+    "issue_id": 988,
+    "title": "Phase 4.1: Load Testing & Performance Validation (12-16h)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "989": {
+    "issue_id": 989,
+    "title": "Phase 4.2: Security Audit & Penetration Testing (6-8h)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "990": {
+    "issue_id": 990,
+    "title": "Phase 4.3: Monitoring & Alerting Setup (2-3h)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "991": {
+    "issue_id": 991,
+    "title": "Phase 4.4: Disaster Recovery & Rollback (2-3h)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "992": {
+    "issue_id": 992,
+    "title": "Phase 4.5: Documentation & Runbooks (2-3h)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "993": {
+    "issue_id": 993,
+    "title": "Phase 4.6: Production Launch (2-3h)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "996": {
+    "issue_id": 996,
+    "title": "📚 Phase 2.1: Consolidate Overlapping Directories (11% reduction)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "997": {
+    "issue_id": 997,
+    "title": "📊 Phase 2.2: Create Cross-Reference Matrix",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "998": {
+    "issue_id": 998,
+    "title": "🗄️ Phase 2.3: Archive Inactive Content (First Pass)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "999": {
+    "issue_id": 999,
+    "title": "🔄 Phase 3.1: Implement Index Validation Workflow",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1000": {
+    "issue_id": 1000,
+    "title": "🤖 Phase 3.2: Automated Index Update Scripts",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1001": {
+    "issue_id": 1001,
+    "title": "🗄️ Phase 3.3: Complete Archive Cleanup (Final Pass)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1002": {
+    "issue_id": 1002,
+    "title": "📊 Phase 3.4: Navigation Analytics & Hot Topics",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1003": {
+    "issue_id": 1003,
+    "title": "📚 [EPIC] Documentation Optimization v1.1 - Improve Navigation & Reduce Complexity",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1004": {
+    "issue_id": 1004,
+    "title": "🐛 [P0] Lambda Function HTTP Response Issue - Fix lambda_http and Axum integration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1005": {
+    "issue_id": 1005,
+    "title": "🆕 [P1] Phase 3: Connect Dashboard to Production API",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1006": {
+    "issue_id": 1006,
+    "title": "🎨 [P2] Create Miyabi Console - Full Accessible UI/UX for Agent Orchestration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1009": {
+    "issue_id": 1009,
+    "title": "[Miyabi Console] Implement Agents Page - Agent Management & Configuration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1010": {
+    "issue_id": 1010,
+    "title": "[Miyabi Console] Implement Workflows Page - Visual Workflow Automation Builder",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1011": {
+    "issue_id": 1011,
+    "title": "[Miyabi Console] Implement Organizations Page - Multi-Tenant Management",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1012": {
+    "issue_id": 1012,
+    "title": "[Miyabi Console] Implement Notifications Page - Centralized Notification Center",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1013": {
+    "issue_id": 1013,
+    "title": "[Pantheon Webapp] Implement About Page - Project Vision & Miyabi Integration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1014": {
+    "issue_id": 1014,
+    "title": "[Pantheon Webapp] Implement Enhanced Advisors Page - Searchable Directory",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1015": {
+    "issue_id": 1015,
+    "title": "[Pantheon Webapp] Implement Ask the Pantheon - Interactive AI Consultation (Premium)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1016": {
+    "issue_id": 1016,
+    "title": "[Pantheon Webapp] Implement Divisions Page - Deep Dive into 5 Divisions",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1017": {
+    "issue_id": 1017,
+    "title": "[Pantheon Webapp] Implement Miyabi Integration Dashboard - Real-time Agent Activity",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1018": {
+    "issue_id": 1018,
+    "title": "🚀 [EPIC] M1 Infrastructure Blitz - Production Deployment",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1019": {
+    "issue_id": 1019,
+    "title": "📦 Day 1: ECR Repository & Dockerfile Setup",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1020": {
+    "issue_id": 1020,
+    "title": "🐳 Day 2: Docker Image Build & Push to ECR",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1021": {
+    "issue_id": 1021,
+    "title": "🌐 Day 3: Deploy VPC, Security Groups & IAM Roles",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1022": {
+    "issue_id": 1022,
+    "title": "☁️ Day 4: Deploy ECS Cluster, ALB & Redis",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1023": {
+    "issue_id": 1023,
+    "title": "🚀 Day 5: ECS Service Deployment & Validation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1024": {
+    "issue_id": 1024,
+    "title": "🔗 Day 6: Frontend Connection & E2E Integration Testing",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1025": {
+    "issue_id": 1025,
+    "title": "🔒 Day 7: SSL Setup, Documentation & Final Validation",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1026": {
+    "issue_id": 1026,
+    "title": "🧪 Backend Testing: Unit Tests (85% Coverage)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1027": {
+    "issue_id": 1027,
+    "title": "🎨 Frontend Testing: Component Tests (70% Coverage)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1028": {
+    "issue_id": 1028,
+    "title": "🎭 E2E Testing: Critical User Flows (Playwright)",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1029": {
+    "issue_id": 1029,
+    "title": "⚙️ CI/CD Pipeline: GitHub Actions Setup",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1030": {
+    "issue_id": 1030,
+    "title": "🧪 Test: Codex Autonomous Coordinator - System Verification",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1042": {
+    "issue_id": 1042,
+    "title": "docs: Obsidian Documentation System - 最終動作確認とバリデーション",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1043": {
+    "issue_id": 1043,
+    "title": "refactor: PlantUML構文エラー修正とPNG再生成",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1044": {
+    "issue_id": 1044,
+    "title": "docs: Obsidian Documentation メンテナンスガイド作成",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1045": {
+    "issue_id": 1045,
+    "title": "🔌 [Miyabi Console] Rust Backend API Integration",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1046": {
+    "issue_id": 1046,
+    "title": "🔄 [Miyabi Console] WebSocket Real-time Updates",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1047": {
+    "issue_id": 1047,
+    "title": "🧪 [Miyabi Console] Comprehensive Testing Suite",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1048": {
+    "issue_id": 1048,
+    "title": "🚀 [Miyabi Console] Performance Optimization",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1049": {
+    "issue_id": 1049,
+    "title": "🔐 [Miyabi Console] Authentication & Authorization",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  },
+  "1050": {
+    "issue_id": 1050,
+    "title": "✨ [Miyabi Console] New Feature Pages",
+    "depends_on": [],
+    "blocked_by": [],
+    "blocks": [],
+    "prerequisites": []
+  }
+}

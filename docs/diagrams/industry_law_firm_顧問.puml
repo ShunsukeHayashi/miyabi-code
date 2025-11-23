@@ -1,0 +1,94 @@
+@startuml industry_law_firm_顧問
+!theme cerulean-outline
+
+title 法律事務所 - 顧問部門 業務フロー
+
+|顧問先企業|
+|担当弁護士|
+|事務局|
+
+|顧問先企業|
+start
+:顧問契約締結;
+note right
+・月額顧問料
+・相談時間枠
+・対応範囲
+end note
+
+|事務局|
+:顧問先登録;
+:定期請求設定;
+
+|顧問先企業|
+:日常法務相談;
+note right
+・契約書チェック
+・労務問題
+・クレーム対応
+・コンプライアンス
+end note
+
+|担当弁護士|
+:相談対応;
+
+if (時間枠内?) then (はい)
+  :顧問料内対応;
+else (いいえ)
+  :追加報酬見積;
+
+  |顧問先企業|
+  if (追加依頼?) then (はい)
+    :追加依頼確定;
+  else (いいえ)
+    :相談終了;
+  endif
+endif
+
+|担当弁護士|
+:法的アドバイス提供;
+:回答書・意見書作成;
+
+fork
+  :予防法務支援;
+  note right
+  ・社内規程整備
+  ・契約書雛形作成
+  ・マニュアル作成
+  end note
+fork again
+  :研修・セミナー;
+  note right
+  ・コンプライアンス研修
+  ・ハラスメント研修
+  ・契約実務研修
+  end note
+fork again
+  :定期報告会;
+  note right
+  ・法改正情報
+  ・判例動向
+  ・業界トピック
+  end note
+end fork
+
+|事務局|
+:月次顧問料請求;
+
+if (紛争発生?) then (はい)
+  |担当弁護士|
+  :訴訟部門連携;
+  :別途受任契約;
+endif
+
+|担当弁護士|
+:顧問先フォロー;
+note right
+・定期訪問
+・状況確認
+・関係維持
+end note
+
+stop
+
+@enduml

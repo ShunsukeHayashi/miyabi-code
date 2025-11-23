@@ -1,0 +1,77 @@
+{
+  "group_name": "Miyabi Dev Team",
+  "chat_id": "oc_8ea05188f644acc3a74881e79f88fa54",
+  "description": "Miyabi自律型開発フレームワーク - Issue通知・ビルドレポート・Agent状態",
+  "purpose": "development",
+  "created_at": "2025-11-20",
+  "platform": "Lark Suite Global Edition",
+  "enabled_notifications": {
+    "issues": {
+      "opened": true,
+      "closed": true,
+      "assigned": false,
+      "labeled": false
+    },
+    "pull_requests": {
+      "opened": true,
+      "merged": true,
+      "review_requested": false
+    },
+    "builds": {
+      "completed": true,
+      "failed": true,
+      "success": false
+    },
+    "agents": {
+      "status_report": true,
+      "error_alert": true,
+      "blockers": true
+    }
+  },
+  "schedule": {
+    "daily_standup": {
+      "enabled": false,
+      "time": "09:00",
+      "timezone": "Asia/Tokyo"
+    },
+    "agent_report": {
+      "enabled": false,
+      "interval": "4h"
+    }
+  },
+  "settings": {
+    "language": "en",
+    "mention_on_error": true,
+    "quiet_hours": {
+      "enabled": false,
+      "start": "22:00",
+      "end": "08:00"
+    }
+  },
+  "webhook": {
+    "url": "https://open.larksuite.com/open-apis/bot/v2/hook/37b6a36e-677a-4f8f-b89c-b04b51265a25",
+    "enabled": true,
+    "created_at": "2025-11-20T02:30:00Z"
+  },
+  "test_message_sent": {
+    "message_id": "om_x100b5ed2ae37e8a4ee397f2e7a329a1",
+    "timestamp": "2025-11-20T01:25:35Z",
+    "status": "success"
+  },
+  "webhook_test_sent": {
+    "timestamp": "2025-11-20T02:30:00Z",
+    "status": "success"
+  },
+  "event_subscription": {
+    "enabled": true,
+    "url": "https://b5ba86694d3e.ngrok-free.app/webhook/events",
+    "server_port": 3002,
+    "events": ["im.message.receive_v1"],
+    "permissions": ["im:message:send_as_bot"],
+    "test_message_received": {
+      "timestamp": "2025-11-20T02:00:00Z",
+      "status": "success",
+      "message_id": "om_x100b5ed32ea96ca4ee3b1a36298f64e"
+    }
+  }
+}

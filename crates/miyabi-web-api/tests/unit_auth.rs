@@ -6,8 +6,11 @@
 mod helpers;
 mod fixtures;
 
+#[allow(unused_imports)]
 use helpers::{setup_test_database, cleanup_test_database, create_test_jwt, make_request};
+#[allow(unused_imports)]
 use fixtures::UserFixture;
+#[allow(unused_imports)]
 use axum::http::StatusCode;
 
 // ========================================
@@ -20,6 +23,7 @@ async fn test_oauth_callback_success() {
     use helpers::{
         setup_mock_github_server, setup_successful_oauth_flow, create_test_config,
     };
+    #[allow(unused_imports)]
     use std::sync::Arc;
 
     let db = setup_test_database().await;
@@ -58,6 +62,7 @@ async fn test_oauth_callback_success() {
 #[tokio::test]
 #[ignore] // Requires database
 async fn test_oauth_callback_invalid_code() {
+    #[allow(unused_imports)]
     use helpers::{setup_mock_github_server, create_test_config};
     use wiremock::{Mock, ResponseTemplate, matchers::{method, path}};
 

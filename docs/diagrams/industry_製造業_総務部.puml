@@ -1,0 +1,126 @@
+@startuml dept_manufacturing_general
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 総務部 業務フロー
+
+|#Lavender|人事担当|
+start
+:人員計画確認;
+note right: 各部門からの要望
+
+if (採用必要?) then (yes)
+  :採用活動;
+  fork
+    :求人票作成;
+  fork again
+    :採用媒体選定;
+  fork again
+    :面接調整;
+  end fork
+  :採用決定;
+  :入社手続き;
+else (no)
+endif
+
+:人員配置管理;
+:人事評価対応;
+:給与計算連携;
+
+|#LightCyan|労務管理担当|
+:勤怠管理;
+:残業管理;
+
+if (36協定超過リスク?) then (yes)
+  :該当部門へ警告;
+  :対策検討;
+else (no)
+endif
+
+:社会保険手続き;
+:労働法令対応;
+
+|#LightYellow|安全衛生担当|
+:安全衛生管理;
+
+:定期安全パトロール;
+if (危険箇所発見?) then (yes)
+  :改善指示;
+  :是正確認;
+else (no)
+endif
+
+:安全衛生委員会開催;
+:労災対応;
+
+if (労災発生?) then (yes)
+  :応急処置;
+  :労災報告書作成;
+  :再発防止策策定;
+else (no)
+endif
+
+:健康診断実施;
+:作業環境測定;
+
+|#LightPink|施設管理担当|
+:施設管理;
+
+:設備点検計画;
+while (設備点検?) is (継続)
+  :定期点検実施;
+  if (修繕必要?) then (yes)
+    :修繕手配;
+    :予算確認;
+  else (no)
+  endif
+endwhile (完了)
+
+:エネルギー管理;
+note right
+  ・電気
+  ・ガス
+  ・水道
+  ・省エネ推進
+end note
+
+:車両管理;
+:警備・清掃管理;
+
+|#LightGreen|法務・コンプライアンス担当|
+:契約管理;
+fork
+  :契約書審査;
+fork again
+  :契約更新管理;
+fork again
+  :印紙税管理;
+end fork
+
+:知的財産管理;
+:法令順守管理;
+
+if (法改正?) then (yes)
+  :影響調査;
+  :社内規程改定;
+  :関係部門へ周知;
+else (no)
+endif
+
+|#Lavender|庶務担当|
+:文書管理;
+:備品管理;
+:福利厚生運営;
+:来客対応;
+:経理部へ固定資産報告;
+
+:規格認証対応;
+note right
+  ・ISO認証
+  ・環境認証
+  ・各種許認可
+end note
+
+stop
+
+@enduml

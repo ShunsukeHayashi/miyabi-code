@@ -10,6 +10,7 @@
     "@typescript-eslint"
   ],
   "extends": [
+    "next/core-web-vitals",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
@@ -159,21 +160,18 @@
       "error",
       "all"
     ],
-    "brace-style": "off",
-    "@typescript-eslint/brace-style": [
+    "brace-style": [
       "warn",
       "1tbs",
       {
         "allowSingleLine": true
       }
     ],
-    "comma-dangle": "off",
-    "@typescript-eslint/comma-dangle": [
+    "comma-dangle": [
       "warn",
       "always-multiline"
     ],
-    "quotes": "off",
-    "@typescript-eslint/quotes": [
+    "quotes": [
       "warn",
       "single",
       {
@@ -181,13 +179,11 @@
         "allowTemplateLiterals": true
       }
     ],
-    "semi": "off",
-    "@typescript-eslint/semi": [
+    "semi": [
       "error",
       "always"
     ],
-    "indent": "off",
-    "@typescript-eslint/indent": [
+    "indent": [
       "warn",
       2,
       {

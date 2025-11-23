@@ -3,7 +3,7 @@
 # Purpose: Monitor ALL critical infrastructure including Water Spider itself
 # Mission: ABSOLUTE ZERO DOWNTIME - This watchdog watches the watchers
 
-WORKING_DIR="/Users/shunsuke/Dev/miyabi-private"
+WORKING_DIR="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 FAILSAFE_LOG="$WORKING_DIR/.ai/logs/ultimate-failsafe.log"
 FAILSAFE_STATE="$WORKING_DIR/.ai/state/ultimate-failsafe.json"
 CRITICAL_ALERT_LOG="$WORKING_DIR/.ai/logs/ultimate-failsafe-alerts.log"
