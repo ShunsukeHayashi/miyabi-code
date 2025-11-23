@@ -196,7 +196,11 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/infrastructure/deployment", get(routes::infrastructure::status::get_deployment_status))
         // Logs and Worktrees routes - Does NOT require database (mock data)
         .route("/logs", get(routes::logs::list_logs))
-        .route("/worktrees", get(routes::worktrees::list_worktrees));
+        .route("/worktrees", get(routes::worktrees::list_worktrees))
+        // Agents route - Does NOT require database (hardcoded metadata)
+        .route("/agents", get(routes::agents::list_agents))
+        // Deployments route - Does NOT require database (mock data)
+        .route("/deployments", get(routes::deployments::list_deployments));
 
     // COMMENTED OUT: These routes require database (will re-enable with Firebase)
     // // Authentication routes
