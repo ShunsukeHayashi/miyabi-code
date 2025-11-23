@@ -208,7 +208,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/tmux/sessions", get(routes::tmux::list_sessions))
         .route("/tmux/sessions/:name", get(routes::tmux::get_session))
         .route("/tmux/sessions/:name/command", post(routes::tmux::send_command))
-        .route("/tmux/sessions/:name/kill", post(routes::tmux::kill_session));
+        .route("/tmux/sessions/:name/kill", post(routes::tmux::kill_session))
+        // CodeGen routes - Does NOT require database (in-memory + stub data)
+        .nest("/codegen", routes::codegen::routes().with_state(()));
 
     // COMMENTED OUT: These routes require database (will re-enable with Firebase)
     // // Authentication routes
