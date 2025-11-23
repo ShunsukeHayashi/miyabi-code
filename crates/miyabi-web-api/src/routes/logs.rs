@@ -21,7 +21,7 @@ pub struct LogsListResponse {
     pub total: usize,
 }
 
-async fn list_logs() -> Json<LogsListResponse> {
+pub async fn list_logs() -> Json<LogsListResponse> {
     // Mock data - In production, this comes from miyabi-core logger
     let logs = vec![
         LDDLog {
