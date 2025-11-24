@@ -28,7 +28,7 @@ tower-http = { workspace = true }
 sqlx = { version = "0.8.1", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono"] }
 
 # Authentication
-jsonwebtoken = "9.3.1"
+jsonwebtoken = "10.2.0"
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 
 # Serialization
@@ -64,7 +64,7 @@ dotenvy = "0.15"
 
 # WebSocket and concurrency
 dashmap = "6.0"
-redis = { version = "0.27", features = ["tokio-comp", "connection-manager"], optional = true }
+redis = { version = "0.32.7", features = ["tokio-comp", "connection-manager"], optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -16,7 +16,7 @@ miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
 miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 
 # Vector DB
-qdrant-client = "1.9"
+qdrant-client = "1.16"
 
 # HTTP client
 reqwest = { version = "0.12", features = ["json"] }
