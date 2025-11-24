@@ -19,6 +19,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const LogsPage = lazy(() => import('./pages/LogsPage'))
 const WorktreeManagerPage = lazy(() => import('./pages/WorktreeManagerPage'))
 const IssuesPage = lazy(() => import('./pages/IssuesPage'))
+const TaskDAGPage = lazy(() => import('./pages/TaskDAGPage'))
 
 // Loading fallback component
 function PageLoader() {
@@ -110,6 +111,13 @@ function App() {
           <Route path="/issues" element={
             <ProtectedRoute requiredRole={['admin', 'developer']}>
               <IssuesPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Task DAG - admin and developer */}
+          <Route path="/task-dag" element={
+            <ProtectedRoute requiredRole={['admin', 'developer']}>
+              <TaskDAGPage />
             </ProtectedRoute>
           } />
         </Route>
