@@ -1,10 +1,16 @@
 import { render, fireEvent, waitFor } from '@/test/test-utils'
 import WorktreeManagerPage from './WorktreeManagerPage'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 describe('WorktreeManagerPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
   })
 
   describe('Rendering', () => {
