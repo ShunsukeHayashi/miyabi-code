@@ -13,7 +13,7 @@ use ratatui::{
 };
 
 use crate::markdown_render::MarkdownRenderer;
-use crate::wrapping::{wrap_text, truncate_with_ellipsis};
+use crate::wrapping::wrap_text;
 
 /// Trait for renderable history items
 pub trait HistoryCell: Send + Sync {

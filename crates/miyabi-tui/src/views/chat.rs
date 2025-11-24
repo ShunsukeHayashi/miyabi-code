@@ -10,7 +10,6 @@ use ratatui::{
 
 // Additional theme colors for premium look
 const MIYABI_BG: Color = Color::Rgb(26, 27, 38);          // Tokyo Night Background
-const MIYABI_CARD_BG: Color = Color::Rgb(36, 40, 59);     // Card Background
 const MIYABI_BORDER: Color = Color::Rgb(65, 72, 104);     // Subtle Blue-Gray
 use miyabi_llm::AnthropicClient;
 use miyabi_llm::LlmStreamingClient;
@@ -72,7 +71,6 @@ pub struct ChatView {
     pub content_height: u16,
     pub loading: bool,
     client: Option<AnthropicClient>,
-    tools: Vec<AgentTool>,
     pub error: Option<String>,
     pub auto_scroll: bool,
     pub token_count: usize,
@@ -94,39 +92,6 @@ impl ChatView {
             }
             _ => (None, "✗ Set ANTHROPIC_API_KEY".to_string())
         };
-
-        let tools = vec![
-            AgentTool {
-                name: "analyze_issue".to_string(),
-                description: "Analyze GitHub issue".to_string(),
-                input_schema: json!({"type": "object", "properties": {"issue_description": {"type": "string"}}, "required": ["issue_description"]}),
-            },
-            AgentTool {
-                name: "decompose_task".to_string(),
-                description: "Break down task".to_string(),
-                input_schema: json!({"type": "object", "properties": {"task": {"type": "string"}}, "required": ["task"]}),
-            },
-            AgentTool {
-                name: "generate_code".to_string(),
-                description: "Generate Rust code".to_string(),
-                input_schema: json!({"type": "object", "properties": {"requirement": {"type": "string"}}, "required": ["requirement"]}),
-            },
-            AgentTool {
-                name: "review_code".to_string(),
-                description: "Review code".to_string(),
-                input_schema: json!({"type": "object", "properties": {"code": {"type": "string"}}, "required": ["code"]}),
-            },
-            AgentTool {
-                name: "market_research".to_string(),
-                description: "Market research".to_string(),
-                input_schema: json!({"type": "object", "properties": {"product": {"type": "string"}}, "required": ["product"]}),
-            },
-            AgentTool {
-                name: "swot_analysis".to_string(),
-                description: "SWOT analysis".to_string(),
-                input_schema: json!({"type": "object", "properties": {"subject": {"type": "string"}}, "required": ["subject"]}),
-            },
-        ];
 
         let timestamp = chrono::Local::now().format("%H:%M:%S").to_string();
         let system_content = format!(
@@ -157,7 +122,6 @@ impl ChatView {
             content_height: 0,
             loading: false,
             client,
-            tools,
             error: None,
             auto_scroll: true,
             token_count: 0,
