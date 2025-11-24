@@ -7,6 +7,7 @@ import {
   Database,
   FolderGit2,
   GitBranch,
+  GitPullRequest,
   LayoutDashboard,
   LogOut,
   Rocket,
@@ -45,6 +46,7 @@ export default function Sidebar() {
     { name: 'Database', path: '/database', icon: Database },
     { name: 'Logs', path: '/logs', icon: Terminal },
     { name: 'Worktrees', path: '/worktrees', icon: FolderGit2 },
+    { name: 'Issues', path: '/issues', icon: GitPullRequest },
     { name: 'Notifications', path: '/notifications', icon: Bell },
   ];
 
