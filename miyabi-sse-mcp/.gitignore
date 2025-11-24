@@ -1,0 +1,10 @@
+node_modules/
+.env
+*.log
+.DS_Store
+apikey.txt
+# Winston logs
+*.log
+combined.log
+error.log
+server.log
