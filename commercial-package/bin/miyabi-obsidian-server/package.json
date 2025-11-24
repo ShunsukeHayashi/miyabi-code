@@ -1,0 +1,20 @@
+{
+  "name": "@miyabi/obsidian-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Miyabi Obsidian Knowledge System - Connect documentation vault to Claude Code",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.3"
+  }
+}

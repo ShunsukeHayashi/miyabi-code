@@ -1,0 +1,73 @@
+@startuml safety-flow
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 安全管理業務フロー
+
+|#LightGreen|現場作業員|
+start
+:出勤・現場到着;
+
+fork
+  :【勤怠1】日報入力;
+  note right
+    出勤時刻
+    アルコールチェック
+  end note
+fork again
+  :【点検1】車両日常点検;
+  note right
+    - ブレーキ
+    - タイヤ
+    - ライト
+    - オイル
+  end note
+end fork
+
+if (点検結果) then (異常あり)
+  |#LightYellow|管理者|
+  :【点検3】修理記録作成;
+  :修理手配;
+  |#LightGreen|現場作業員|
+  :代替車両使用;
+else (正常)
+endif
+
+:作業開始;
+
+|#LightBlue|安全管理者|
+:【安全1】安全教育計画確認;
+
+if (教育予定あり？) then (Yes)
+  :【安全2】教育実施記録作成;
+  |#LightGreen|現場作業員|
+  :安全教育受講;
+  :受講記録登録;
+endif
+
+:作業実施;
+
+|#LightGreen|現場作業員|
+if (事故・ヒヤリハット発生？) then (Yes)
+  :【安全4】事故報告書作成;
+  note right #FFAAAA
+    - 発生日時
+    - 場所
+    - 状況
+    - 原因分析
+    - 再発防止策
+  end note
+  |#LightBlue|安全管理者|
+  :報告書確認;
+  :是正措置指示;
+  :【安全5】是正措置記録;
+else (No)
+endif
+
+|#LightGreen|現場作業員|
+:作業完了;
+:【勤怠1】退勤記録;
+
+stop
+
+@enduml

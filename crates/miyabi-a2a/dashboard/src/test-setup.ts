@@ -1,4 +1,5 @@
 import { expect, afterEach, vi } from 'vitest';
+import React from 'react';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -21,6 +22,23 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Provide URL helpers for components that generate blobs/links
+// Always override to ensure availability during tests
+// @ts-ignore jsdom does not implement this API
+global.URL.createObjectURL = vi.fn(() => 'mock-url');
+// @ts-ignore jsdom does not implement this API
+global.URL.revokeObjectURL = vi.fn();
+
+// Mock Iconify to avoid timers and window access after teardown
+vi.mock('@iconify/react', () => ({
+  // simple span that carries icon data for assertions
+  Icon: (props: { icon?: string; className?: string }) =>
+    React.createElement('span', {
+      'data-icon': props.icon,
+      className: props.className,
+    }),
+}));
 
 // Mock IntersectionObserver (required for framer-motion)
 global.IntersectionObserver = class IntersectionObserver {

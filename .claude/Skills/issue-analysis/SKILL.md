@@ -4,323 +4,160 @@ description: Analyze GitHub Issues and automatically infer appropriate labels fr
 allowed-tools: Read, Grep, Glob, WebFetch
 ---
 
-# Issue Analysis with Label Inference
+# 🏷️ Issue Analysis with Label Inference
 
-AI-powered Issue analysis and automatic label inference based on Miyabi's 57-label system across 11 categories.
+**Version**: 2.0.0
+**Last Updated**: 2025-11-22
+**Priority**: ⭐⭐⭐⭐ (P1 Level)
+**Purpose**: AI駆動のIssue分析と57ラベルシステムからの自動推論
 
-## When to Use
+---
 
-- User creates a new Issue and asks "what labels should I use?"
-- User requests "analyze this Issue" or "triage issue #270"
-- User asks to "infer labels for this Issue"
-- After Issue creation, to automatically determine appropriate labels
-- When managing Issue backlog and prioritization
+## 📋 概要
 
-## Miyabi's 57-Label System
+Miyabiの57ラベルシステム（11カテゴリ）に基づいたAI駆動のIssue分析と
+自動ラベル推論を実行します。
 
-### 11 Categories Overview
+---
 
-| # | Category | Count | Purpose | Examples |
-|---|----------|-------|---------|----------|
-| 1 | **STATE** | 8 | Lifecycle management | `📥 state:pending`, `✅ state:done` |
-| 2 | **AGENT** | 6 | Agent assignment | `🤖 agent:coordinator`, `🤖 agent:codegen` |
-| 3 | **PRIORITY** | 4 | Priority management | `🔥 priority:P0-Critical`, `📝 priority:P3-Low` |
-| 4 | **TYPE** | 7 | Issue classification | `✨ type:feature`, `🐛 type:bug` |
-| 5 | **SEVERITY** | 4 | Severity/Escalation | `🚨 severity:Sev.1-Critical` |
-| 6 | **PHASE** | 5 | Project phase | `🎯 phase:planning`, `🚀 phase:deployment` |
-| 7 | **SPECIAL** | 7 | Special operations | `🔐 security`, `💰 cost-watch` |
-| 8 | **TRIGGER** | 4 | Automation triggers | `🤖 trigger:agent-execute` |
-| 9 | **QUALITY** | 4 | Quality score | `⭐ quality:excellent`, `🔴 quality:poor` |
-| 10 | **COMMUNITY** | 4 | Community | `👋 good-first-issue`, `🙏 help-wanted` |
-| 11 | **HIERARCHY** | 4 | Issue hierarchy | `🌳 hierarchy:root`, `📄 hierarchy:child` |
+## 🎯 P0: 呼び出しトリガー
 
-## Label Inference Rules
+| トリガー | 例 |
+|---------|-----|
+| ラベル質問 | "what labels should I use?" |
+| Issue分析 | "analyze this Issue", "triage issue #270" |
+| ラベル推論 | "infer labels for this Issue" |
+| Issue作成後 | Issue作成後の自動処理 |
+| バックログ管理 | "prioritize backlog" |
 
-### 1. TYPE Inference (Required - Always 1)
+---
 
-**Keywords → Label Mapping**:
-- **feature**: "add", "implement", "create", "new", "enhance"
-  → `✨ type:feature`
+## 🔧 P1: ラベルカテゴリ一覧
 
-- **bug**: "fix", "crash", "error", "broken", "not working"
-  → `🐛 type:bug`
+### 11カテゴリ・57ラベル
 
-- **docs**: "documentation", "README", "guide", "tutorial"
-  → `📚 type:docs`
+| # | カテゴリ | 数 | 必須/任意 | 用途 |
+|---|---------|-----|---------|------|
+| 1 | **STATE** | 8 | 自動 | ライフサイクル管理 |
+| 2 | **AGENT** | 6 | 推奨 | Agent割り当て |
+| 3 | **PRIORITY** | 4 | 必須 | 優先度管理 |
+| 4 | **TYPE** | 7 | 必須 | Issue分類 |
+| 5 | **SEVERITY** | 4 | 条件 | 重大度（バグのみ） |
+| 6 | **PHASE** | 5 | 推奨 | プロジェクトフェーズ |
+| 7 | **SPECIAL** | 7 | 条件 | 特殊フラグ |
+| 8 | **TRIGGER** | 4 | 自動 | 自動化トリガー |
+| 9 | **QUALITY** | 4 | 自動 | 品質スコア |
+| 10 | **COMMUNITY** | 4 | 推奨 | コミュニティ |
+| 11 | **HIERARCHY** | 4 | 自動 | Issue階層 |
 
-- **refactor**: "refactor", "cleanup", "reorganize", "improve structure"
-  → `🔧 type:refactor`
+---
 
-- **test**: "test", "coverage", "unit test", "e2e", "integration test"
-  → `🧪 type:test`
+## 🚀 P2: ラベル推論ルール
 
-- **architecture**: "architecture", "system design", "microservices", "migration"
-  → `🏗️ type:architecture`
+### TYPE推論（必須・1個）
 
-- **deployment**: "deploy", "CI/CD", "docker", "kubernetes", "infrastructure"
-  → `🚀 type:deployment`
+| キーワード | ラベル | 例 |
+|-----------|--------|-----|
+| "add", "implement", "create", "new" | `✨ type:feature` | 新機能追加 |
+| "fix", "crash", "error", "broken" | `🐛 type:bug` | バグ修正 |
+| "docs", "README", "guide" | `📚 type:docs` | ドキュメント |
+| "refactor", "cleanup", "reorganize" | `🔧 type:refactor` | リファクタ |
+| "test", "coverage", "e2e" | `🧪 type:test` | テスト |
+| "architecture", "system design" | `🏗️ type:architecture` | アーキテクチャ |
+| "deploy", "CI/CD", "docker" | `🚀 type:deployment` | デプロイ |
 
-### 2. PRIORITY Inference (Required - Always 1)
+### PRIORITY推論（必須・1個）
 
-**Urgency & Impact Assessment**:
+| 条件 | ラベル | SLA |
+|------|--------|-----|
+| セキュリティ、本番障害、データ損失 | `🔥 priority:P0-Critical` | 24時間 |
+| 主要機能、重大バグ、性能劣化 | `⚠️ priority:P1-High` | 3日 |
+| 通常機能、標準バグ | `📊 priority:P2-Medium` | 1週間 |
+| 軽微改善、typo | `📝 priority:P3-Low` | なし |
 
-- **P0-Critical**:
-  - Keywords: "security", "data loss", "production down", "urgent", "critical"
-  - Impact: Affects all users, revenue loss, security breach
-  - SLA: 24 hours
-  → `🔥 priority:P0-Critical`
+### SEVERITY推論（条件付き・バグのみ）
 
-- **P1-High**:
-  - Keywords: "major feature", "important bug", "performance degradation"
-  - Impact: Affects many users, significant business impact
-  - SLA: 3 days
-  → `⚠️ priority:P1-High`
+| 条件 | ラベル | エスカレーション |
+|------|--------|----------------|
+| 本番停止、セキュリティ侵害 | `🚨 severity:Sev.1-Critical` | Guardian + CISO |
+| 主要機能障害 | `⚠️ severity:Sev.2-High` | TechLead |
+| 部分的機能問題 | `📊 severity:Sev.3-Medium` | Agent自動 |
+| 軽微UI問題 | `📝 severity:Sev.4-Low` | Agent自動 |
 
-- **P2-Medium**:
-  - Keywords: "normal feature", "standard bug", "improvement"
-  - Impact: Affects some users, moderate business impact
-  - SLA: 1 week
-  → `📊 priority:P2-Medium`
+### SPECIAL推論（条件付き）
 
-- **P3-Low**:
-  - Keywords: "nice-to-have", "typo", "minor improvement", "comment"
-  - Impact: Low business impact
-  - SLA: None (when available)
-  → `📝 priority:P3-Low`
+| キーワード | ラベル | アクション |
+|-----------|--------|-----------|
+| "XSS", "SQL injection", "CVE" | `🔐 security` | CISO通知、Issue非公開 |
+| "Claude API", "high cost" | `💰 cost-watch` | 予算監視 |
+| "depends on #", "blocked by" | `🔄 dependencies` | 依存解決まで待機 |
+| "research", "investigate" | `🎓 learning` | SLA延長 |
+| "experiment", "POC" | `🔬 experiment` | 失敗許容 |
 
-### 3. SEVERITY Inference (Optional - If applicable)
+### COMMUNITY推論（推奨）
 
-**Technical Severity Assessment**:
+| 条件 | ラベル |
+|------|--------|
+| 2時間以内、依存なし、明確な要件 | `👋 good-first-issue` |
+| 外部専門知識が必要 | `🙏 help-wanted` |
 
-- **Sev.1-Critical**: Production outage, security breach, data corruption
-  → `🚨 severity:Sev.1-Critical`
-  → Escalate to: Guardian + CISO + TechLead
+### HIERARCHY推論（自動）
 
-- **Sev.2-High**: Major feature broken, significant performance degradation
-  → `⚠️ severity:Sev.2-High`
-  → Escalate to: TechLead or CISO
+| 条件 | ラベル |
+|------|--------|
+| 親Issueなし | `🌳 hierarchy:root` |
+| 子Issueあり | `📂 hierarchy:parent` |
+| 親Issueあり | `📄 hierarchy:child` |
+| 子Issueなし（末端） | `🍃 hierarchy:leaf` |
 
-- **Sev.3-Medium**: Partial functionality issue
-  → `📊 severity:Sev.3-Medium`
-  → Auto-handled by Agents
+---
 
-- **Sev.4-Low**: Minor UI glitch, cosmetic issue
-  → `📝 severity:Sev.4-Low`
-  → Auto-handled by Agents
+## ⚡ P3: 分析ワークフロー
 
-### 4. SPECIAL Labels Inference (Optional)
+### Step 1: Issue内容読み取り
 
-- **security**: Contains "XSS", "SQL injection", "vulnerability", "CVE"
-  → `🔐 security`
-  → Action: Notify CISO, make Issue private
-
-- **cost-watch**: Contains "large dataset", "expensive API", "Claude API", "high cost"
-  → `💰 cost-watch`
-  → Action: Monitor API usage, check budget
-
-- **dependencies**: Contains "depends on #", "blocked by", "waiting for"
-  → `🔄 dependencies`
-  → Action: Pause until dependencies resolved
-
-- **learning**: Contains "research", "learn", "investigate", "explore"
-  → `🎓 learning`
-  → Action: Extended SLA, lower progress report frequency
-
-- **experiment**: Contains "experiment", "POC", "proof of concept", "trial"
-  → `🔬 experiment`
-  → Action: Allow failure, require Guardian pre-approval
-
-### 5. COMMUNITY Labels Inference (Optional)
-
-- **good-first-issue**: Criteria:
-  - Estimated time < 2 hours
-  - No dependencies
-  - Clear requirements
-  - Simple implementation
-  → `👋 good-first-issue`
-
-- **help-wanted**: Needs external expertise or community review
-  → `🙏 help-wanted`
-
-### 6. HIERARCHY Labels Inference (Automatic)
-
-- **hierarchy:root**: No parent Issue specified
-  → `🌳 hierarchy:root`
-
-- **hierarchy:parent**: Has 1+ child Issues
-  → `📂 hierarchy:parent`
-
-- **hierarchy:child**: Has parent Issue specified
-  → `📄 hierarchy:child`
-
-- **hierarchy:leaf**: No child Issues (terminal node)
-  → `🍃 hierarchy:leaf`
-
-## Analysis Workflow
-
-### Step 1: Read Issue Content
 ```
-- Issue title
-- Issue body (description)
-- Comments (if any)
-- Related Issues (linked Issues)
+- タイトル
+- 本文（説明）
+- コメント（あれば）
+- 関連Issue（リンク）
 ```
 
-### Step 2: Extract Keywords
+### Step 2: キーワード抽出
+
 ```
-- Technical keywords: "security", "performance", "API"
-- Action keywords: "add", "fix", "refactor"
-- Urgency keywords: "urgent", "critical", "nice-to-have"
+- 技術キーワード: "security", "performance", "API"
+- アクションキーワード: "add", "fix", "refactor"
+- 緊急度キーワード: "urgent", "critical", "nice-to-have"
 ```
 
-### Step 3: Apply Inference Rules
+### Step 3: 推論ルール適用
+
 ```
-1. Determine TYPE (required, 1 label)
-2. Determine PRIORITY (required, 1 label)
-3. Determine SEVERITY (if bug/incident)
-4. Check for SPECIAL conditions
-5. Assess COMMUNITY suitability
-6. Determine HIERARCHY position
+1. TYPE決定（必須、1個）
+2. PRIORITY決定（必須、1個）
+3. SEVERITY決定（バグ/インシデント時）
+4. SPECIAL条件チェック
+5. COMMUNITY適合性評価
+6. HIERARCHY位置決定
 ```
 
-### Step 4: Generate Label Set
+### Step 4: ラベルセット生成
+
 ```json
 {
-  "required": [
-    "type:feature",
-    "priority:P1-High"
-  ],
-  "recommended": [
-    "agent:codegen",
-    "phase:planning"
-  ],
-  "optional": [
-    "security",
-    "cost-watch"
-  ],
-  "automatic": [
-    "state:pending",
-    "hierarchy:leaf"
-  ]
+  "required": ["type:feature", "priority:P1-High"],
+  "recommended": ["agent:codegen", "phase:planning"],
+  "optional": ["security", "cost-watch"],
+  "automatic": ["state:pending", "hierarchy:leaf"]
 }
 ```
 
-### Step 5: Provide Rationale
-```
-Explain why each label was selected based on:
-- Issue content analysis
-- Keyword matching
-- Business/technical impact assessment
-- Historical Issue patterns
-```
-
-## Example Analysis
-
-### Example 1: Security Bug
-
-**Issue Title**: "XSS vulnerability in comment form"
-
-**Issue Body**:
-```
-Found XSS vulnerability in `/comments/new` form.
-User input is not sanitized before rendering.
-Affects all users.
-```
-
-**Inferred Labels**:
-```yaml
-Required:
-  - 🐛 type:bug
-  - 🔥 priority:P0-Critical
-
-Recommended:
-  - 🚨 severity:Sev.1-Critical
-  - 🔐 security
-  - 🤖 agent:codegen
-  - 🤖 trigger:agent-execute
-
-Automatic:
-  - 📥 state:pending
-  - 🍃 hierarchy:leaf
-```
-
-**Rationale**:
-- TYPE: `bug` (keyword "vulnerability", "not sanitized")
-- PRIORITY: `P0-Critical` (affects all users, security issue)
-- SEVERITY: `Sev.1-Critical` (security vulnerability)
-- SPECIAL: `security` (keyword "XSS", "vulnerability")
-- TRIGGER: `agent-execute` (urgent, auto-fix recommended)
-
-**Escalation**: Guardian + CISO + TechLead (immediately)
-
 ---
 
-### Example 2: New Feature
+## 📊 出力フォーマット
 
-**Issue Title**: "Add dark mode toggle to settings"
-
-**Issue Body**:
-```
-Add dark mode toggle to user settings page.
-Should persist user preference in localStorage.
-```
-
-**Inferred Labels**:
-```yaml
-Required:
-  - ✨ type:feature
-  - ⚠️ priority:P1-High
-
-Recommended:
-  - 🤖 agent:codegen
-  - 🎯 phase:planning
-
-Automatic:
-  - 📥 state:pending
-  - 🍃 hierarchy:leaf
-```
-
-**Rationale**:
-- TYPE: `feature` (keyword "Add")
-- PRIORITY: `P1-High` (user-facing feature, moderate impact)
-- AGENT: `codegen` (requires UI + logic implementation)
-- PHASE: `planning` (design + implementation needed)
-
-**No Escalation Needed**: Standard Agent workflow
-
----
-
-### Example 3: Documentation Typo
-
-**Issue Title**: "Fix typo in README.md"
-
-**Issue Body**:
-```
-"teh" should be "the" in line 42.
-```
-
-**Inferred Labels**:
-```yaml
-Required:
-  - 📚 type:docs
-  - 📝 priority:P3-Low
-
-Recommended:
-  - 👋 good-first-issue
-
-Automatic:
-  - 📥 state:pending
-  - 🍃 hierarchy:leaf
-```
-
-**Rationale**:
-- TYPE: `docs` (keyword "README", "typo")
-- PRIORITY: `P3-Low` (low impact)
-- COMMUNITY: `good-first-issue` (simple, < 2 hours)
-
-**No Escalation Needed**: Community contribution welcome
-
-## Output Format
+### JSON形式
 
 ```json
 {
@@ -333,30 +170,98 @@ Automatic:
     "estimated_time": "4-6 hours",
     "complexity": "medium",
     "agent_recommendation": "codegen + review",
-    "escalation": "Guardian + CISO + TechLead"
+    "escalation": "Guardian + CISO"
   },
   "labels": {
     "required": ["type:bug", "priority:P0-Critical"],
-    "recommended": ["severity:Sev.1-Critical", "security", "agent:codegen", "trigger:agent-execute"],
+    "recommended": ["severity:Sev.1-Critical", "security"],
     "automatic": ["state:pending", "hierarchy:leaf"]
   },
   "rationale": {
-    "type": "Contains keywords: 'vulnerability', 'XSS', 'affects all users'",
-    "priority": "Security issue with global impact, requires immediate attention",
-    "severity": "Security vulnerability with potential data exposure",
-    "special": "Security-related issue, requires CISO notification"
+    "type": "Keywords: 'vulnerability', 'XSS'",
+    "priority": "Security issue with global impact",
+    "severity": "Security vulnerability"
   }
 }
 ```
 
-## Related Files
+### テキスト形式
 
-- **Label System Guide**: `docs/LABEL_SYSTEM_GUIDE.md`
-- **Label Definitions**: `.github/labels.yml`
-- **IssueAgent Spec**: `.claude/agents/specs/coding/issue-agent.md`
-- **Entity-Relation Model**: `docs/ENTITY_RELATION_MODEL.md`
+```
+🏷️ Issue Analysis Results
 
-## Related Skills
+📋 Issue #270: XSS vulnerability in comment form
 
-- **Agent Execution**: For executing Agents after label assignment
-- **Rust Development**: For implementing label inference logic
+📊 Analysis:
+- Type: bug (Keywords: 'vulnerability', 'XSS')
+- Priority: P0-Critical (Security, global impact)
+- Severity: Sev.1-Critical (Security vulnerability)
+- Estimated: 4-6 hours
+- Agent: codegen + review
+
+🏷️ Labels:
+✅ Required: type:bug, priority:P0-Critical
+📎 Recommended: severity:Sev.1-Critical, security
+🔄 Automatic: state:pending, hierarchy:leaf
+
+⚠️ Escalation: Guardian + CISO (immediately)
+```
+
+---
+
+## 🛡️ エラーハンドリング
+
+### キーワード検出失敗
+
+```
+# デフォルトフォールバック
+TYPE: type:feature (不明な場合)
+PRIORITY: priority:P2-Medium (不明な場合)
+```
+
+### 複数TYPE該当
+
+```
+# 優先順位で決定
+bug > security > feature > docs > test > chore
+```
+
+### コンフリクトするラベル
+
+```
+# 相互排他ラベルのチェック
+state:pending ⊕ state:in-progress
+priority:P0 ⊕ priority:P1
+```
+
+---
+
+## ✅ 成功基準
+
+| チェック項目 | 基準 |
+|-------------|------|
+| TYPE推論 | 1個選択 |
+| PRIORITY推論 | 1個選択 |
+| SEVERITY推論 | バグ時のみ |
+| SPECIAL検出 | 該当時のみ |
+| 根拠提示 | 各ラベルに理由 |
+| エスカレーション | 必要時に推奨 |
+
+---
+
+## 🔗 関連ドキュメント
+
+| ドキュメント | 用途 |
+|-------------|------|
+| `docs/LABEL_SYSTEM_GUIDE.md` | ラベルシステム詳細 |
+| `.github/labels.yml` | ラベル定義 |
+| `agents/specs/coding/issue-agent.md` | IssueAgent仕様 |
+| `docs/ENTITY_RELATION_MODEL.md` | エンティティ関係 |
+
+---
+
+## 📝 関連Skills
+
+- **Agent Execution**: ラベル割り当て後のAgent実行
+- **Git Workflow**: Issue解決後のコミット
+- **Rust Development**: 実装品質チェック

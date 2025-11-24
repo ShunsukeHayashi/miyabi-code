@@ -1,0 +1,105 @@
+@startuml dept_総務部
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+title 総務部 業務フロー
+
+|#LightBlue|労務管理|
+start
+
+partition "入社・退社" {
+  :採用活動;
+  note right
+    - 求人掲載
+    - 面接調整
+    - 内定通知
+  end note
+  
+  :入社手続き;
+  note right
+    - 雇用契約書
+    - 社会保険加入
+    - 雇用保険加入
+    - 給与口座登録
+  end note
+  
+  :退社手続き;
+  note right
+    - 離職票発行
+    - 社会保険喪失届
+    - 退職金計算
+  end note
+}
+
+|#LightYellow|給与計算|
+partition "毎月の給与処理" {
+  :勤怠データ収集;
+  :残業時間計算;
+  :給与計算;
+  note right
+    - 基本給
+    - 各種手当
+    - 控除項目
+    - 社会保険料
+    - 所得税
+  end note
+  
+  :給与明細発行;
+  :振込データ作成;
+  
+  |#LightCyan|経理部|
+  :給与振込実行;
+}
+
+|#LightGreen|社会保険・届出|
+partition "定期届出" {
+  fork
+    :算定基礎届（7月）;
+  fork again
+    :賞与支払届;
+  fork again
+    :年末調整;
+  fork again
+    :労働保険年度更新;
+  end fork
+}
+
+|#LightPink|安全衛生|
+partition "安全衛生管理" {
+  :健康診断手配;
+  :健診結果管理;
+  
+  if (有所見者？) then (Yes)
+    :二次検査手配;
+    :産業医面談;
+  endif
+  
+  :安全衛生委員会運営;
+  :ストレスチェック実施;
+}
+
+|#Orange|建設業特有|
+partition "建設業許可・資格" {
+  :建設業許可更新;
+  note right
+    5年ごと
+  end note
+  
+  :経営事項審査;
+  :技術者資格管理;
+  note right
+    - 1級・2級施工管理技士
+    - 監理技術者
+    - 主任技術者
+  end note
+  
+  :現場配置技術者管理;
+}
+
+|#LightGray|その他管理|
+:車両・備品管理;
+:契約書管理;
+:文書管理;
+
+stop
+
+@enduml

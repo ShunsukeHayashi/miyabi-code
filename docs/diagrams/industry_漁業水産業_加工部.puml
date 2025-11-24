@@ -1,0 +1,152 @@
+@startuml dept_fishery_processing
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 加工部 業務フロー
+
+|#LightGreen|加工部長|
+start
+:本日の加工計画確認;
+note right
+  ・水揚げ予定量
+  ・魚種別内訳
+  ・受注内容
+  ・特別加工依頼
+end note
+
+:スタッフ配置;
+fork
+  :受入担当;
+fork again
+  :下処理担当;
+fork again
+  :加工担当;
+fork again
+  :梱包担当;
+fork again
+  :品質担当;
+end fork
+
+|#LightCyan|受入担当|
+:水産物受け入れ;
+:計量・確認;
+:食材分類;
+fork
+  :急速冷凍品;
+fork again
+  :生鮮品;
+fork again
+  :塩漬品;
+fork again
+  :その他加工品;
+end fork
+
+:一次保存;
+note right
+  ・温度設定確認
+  ・湿度管理
+  ・隔離保管
+end note
+
+|#LightYellow|下処理担当|
+:清浄水での洗浄;
+:鱗・内臓除去;
+fork
+  :フィレ加工;
+fork again
+  :スライス加工;
+fork again
+  :カット加工;
+end fork
+
+:下処理品検査;
+if (品質OK?) then (yes)
+  :次工程へ転送;
+else (不良)
+  :廃棄または再処理;
+endif
+
+|#LightPink|加工担当|
+while (加工継続?) is (yes)
+  :加工指示確認;
+  note right: 販売部からの特注依頼
+
+  fork
+    :冷凍加工;
+    :急速冷凍機へ投入;
+  fork again
+    :塩漬加工;
+    :塩漬樽へ保管;
+  fork again
+    :燻製加工;
+    :燻製炉での処理;
+  fork again
+    :缶詰加工;
+    :加熱・充填・密閉;
+  fork again
+    :乾燥加工;
+    :乾燥機での処理;
+  end fork
+
+  :加工完了;
+endwhile (終了)
+
+|#LightBlue|梱包担当|
+:製品外観検査;
+:梱包資材準備;
+fork
+  :単品梱包;
+  :個別ラベル貼付;
+fork again
+  :箱詰め;
+  :内容物リスト記載;
+fork again
+  :段ボール封入;
+  :外箱ラベル貼付;
+end fork
+
+:配送先別仕分け;
+:冷蔵・常温別分離;
+
+|#LightCyan|品質確認|
+:梱包製品抜き取り検査;
+note right
+  ・外観確認
+  ・寸法確認
+  ・ラベル確認
+  ・重量確認
+end note
+
+if (検査合格?) then (yes)
+  :物流部へ引き渡し;
+else (不合格)
+  :再梱包指示;
+endif
+
+|#LightGreen|加工部長|
+:製造日報作成;
+note right
+  ・加工数量
+  ・加工種別
+  ・歩留り率
+  ・原価計算
+end note
+
+:副産物の分類;
+fork
+  :肥料化;
+fork again
+  :ペットフード化;
+fork again
+  :売却用副産物;
+end fork
+
+:廃棄処理指示;
+:衛生管理部へ報告;
+
+:スタッフシフト評価;
+:翌日計画の策定;
+
+stop
+
+@enduml

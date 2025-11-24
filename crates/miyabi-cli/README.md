@@ -20,17 +20,43 @@ Miyabi CLI - 一つのコマンドで全てが完結。The command-line interfac
 
 ## Installation
 
-### From Source
+### Quick Install (Recommended)
+
+Using [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) for pre-built binaries:
 
 ```bash
-cd crates/miyabi-cli
-cargo install --path .
+cargo binstall miyabi-cli
 ```
 
-### Binary
+### Download Binary
 
 ```bash
+# macOS (Apple Silicon)
+curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-aarch64-apple-darwin.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+
+# macOS (Intel)
+curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-x86_64-apple-darwin.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+
+# Linux (x86_64)
+curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-x86_64-unknown-linux-gnu.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+
+# Linux (ARM64)
+curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-aarch64-unknown-linux-gnu.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+```
+
+### Build from Source
+
+```bash
+# From crates.io
 cargo install miyabi-cli
+
+# From source
+cd crates/miyabi-cli
+cargo install --path .
 ```
 
 ## Usage

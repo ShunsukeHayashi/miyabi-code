@@ -1,0 +1,138 @@
+{
+  "test_run_id": "run-1763608172952",
+  "timestamp": "2025-11-20T03:09:32.952Z",
+  "iteration": 0,
+  "total_tests": 12,
+  "passed": 10,
+  "failed": 2,
+  "skipped": 0,
+  "duration_seconds": "8.24",
+  "failures": [
+    {
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "error": "Cannot read properties of undefined (reading 'project_name')",
+      "duration": 1
+    },
+    {
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "error": "Cannot read properties of undefined (reading 'project_name')",
+      "duration": 0
+    }
+  ],
+  "test_details": [
+    {
+      "suite": "Input Validation",
+      "id": "I-001",
+      "name": "Empty request",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 3,
+      "message": "Correctly rejected empty input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-002",
+      "name": "Whitespace only",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Correctly rejected whitespace input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-003",
+      "name": "Extremely long request",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 3700,
+      "message": "Handled long input gracefully"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-004",
+      "name": "Special characters",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 0,
+      "message": "Rejected malicious input"
+    },
+    {
+      "suite": "Input Validation",
+      "id": "I-005",
+      "name": "Non-English characters",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 3902,
+      "message": "Handled Unicode correctly"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-001",
+      "name": "Invalid APP_ID",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 253,
+      "message": "Correctly rejected invalid APP_ID"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-002",
+      "name": "Invalid APP_SECRET",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 229,
+      "message": "Correctly rejected invalid APP_SECRET"
+    },
+    {
+      "suite": "API Failures",
+      "id": "A-010",
+      "name": "Network timeout",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 4,
+      "message": "Timeout handled correctly"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-001",
+      "name": "No APIs selected",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 1,
+      "message": "Cannot read properties of undefined (reading 'project_name')"
+    },
+    {
+      "suite": "Code Generation",
+      "id": "C-007",
+      "name": "Duplicate API selections",
+      "priority": "P1",
+      "status": "FAIL",
+      "duration": 0,
+      "message": "Cannot read properties of undefined (reading 'project_name')"
+    },
+    {
+      "suite": "Deployment",
+      "id": "D-012",
+      "name": "Health check timeout",
+      "priority": "P0",
+      "status": "PASS",
+      "duration": 5,
+      "message": "Health endpoint responsive"
+    },
+    {
+      "suite": "Network",
+      "id": "N-001",
+      "name": "Slow network simulation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration": 138,
+      "message": "Handled slow network"
+    }
+  ],
+  "success_rate": "83.33%",
+  "meets_criteria": false
+}

@@ -1,0 +1,32 @@
+{
+  "total_checks": 5,
+  "passed": 5,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "All tasks have nodes in graph",
+      "passed": true,
+      "details": "DB: 100, Graph: 100"
+    },
+    {
+      "name": "No orphaned edges",
+      "passed": true,
+      "details": "Found: 0"
+    },
+    {
+      "name": "All dependencies reference existing tasks",
+      "passed": true,
+      "details": "Invalid: 0"
+    },
+    {
+      "name": "EPICs have children (or standalone)",
+      "passed": true,
+      "details": "EPICs without children: 4/13"
+    },
+    {
+      "name": "No self-dependencies",
+      "passed": true,
+      "details": "Self-deps found: 0"
+    }
+  ]
+}

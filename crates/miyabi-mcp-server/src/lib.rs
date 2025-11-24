@@ -76,6 +76,8 @@
 //! }
 //! ```
 
+pub mod a2a_bridge;
+pub mod agent_init;
 pub mod cache;
 pub mod config;
 pub mod error;
@@ -95,9 +97,13 @@ pub use registry::{
     DiscoveryStats, McpServerConnection, RegistryError, RegistryResult, ServerStatus,
     ToolDefinition, ToolRegistry,
 };
-pub use server::McpServer;
+pub use server::{McpServer, A2AExecuteParams, A2AListAgentsParams, A2AListToolsParams};
 pub use service::{ServiceConfig, ServiceStats, ToolRegistryService};
 pub use session_handler::SessionHandler;
+
+// A2A Bridge exports
+pub use a2a_bridge::{A2ABridge, A2AToolDefinition, A2AToolResult};
+pub use agent_init::initialize_all_agents;
 
 // Re-export RPC types for convenience
 pub use rpc::{

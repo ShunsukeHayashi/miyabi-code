@@ -1,5 +1,6 @@
 // ws/message.rs
 // 型安全な WebSocket メッセージプロトコル定義
+#![allow(non_snake_case)]
 
 use serde::{Deserialize, Serialize};
 use std::fmt;

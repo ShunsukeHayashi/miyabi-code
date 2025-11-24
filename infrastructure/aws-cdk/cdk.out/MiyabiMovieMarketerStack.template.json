@@ -1,0 +1,2292 @@
+{
+ "Description": "Miyabi MovieMarketer API - YouTube Content Creation powered by Gemini AI with API Key Authentication",
+ "Resources": {
+  "MovieMarketerLambdaLogGroupE23FF748": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/miyabi-moviemarketer-api",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerLambdaLogGroup/Resource"
+   }
+  },
+  "MovieMarketerAPIGatewayLogGroup34C8D96E": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/apigateway/miyabi-moviemarketer-api",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPIGatewayLogGroup/Resource"
+   }
+  },
+  "MovieMarketerLambdaServiceRole9E1FC7FB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerLambda/ServiceRole/Resource"
+   }
+  },
+  "MovieMarketerLambdaServiceRoleDefaultPolicyF66713A6": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":secretsmanager:us-east-1:112530848482:secret:miyabi/gemini-api-key-??????"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:112530848482:table/miyabi-moviemarketer-api-keys"
+          ]
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "MovieMarketerLambdaServiceRoleDefaultPolicyF66713A6",
+    "Roles": [
+     {
+      "Ref": "MovieMarketerLambdaServiceRole9E1FC7FB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "MovieMarketerLambda540C833D": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "ImageUri": {
+      "Fn::Join": [
+       "",
+       [
+        "112530848482.dkr.ecr.us-east-1.",
+        {
+         "Ref": "AWS::URLSuffix"
+        },
+        "/miyabi-moviemarketer-api:latest"
+       ]
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "NODE_ENV": "production",
+      "GEMINI_API_KEY_SECRET_ARN": {
+       "Fn::Join": [
+        "",
+        [
+         "arn:",
+         {
+          "Ref": "AWS::Partition"
+         },
+         ":secretsmanager:us-east-1:112530848482:secret:miyabi/gemini-api-key"
+        ]
+       ]
+      },
+      "API_KEY_TABLE_NAME": "miyabi-moviemarketer-api-keys",
+      "LOG_LEVEL": "info"
+     }
+    },
+    "FunctionName": "miyabi-moviemarketer-api",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "MovieMarketerLambdaLogGroupE23FF748"
+     }
+    },
+    "MemorySize": 1024,
+    "PackageType": "Image",
+    "Role": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambdaServiceRole9E1FC7FB",
+      "Arn"
+     ]
+    },
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "MovieMarketerLambdaServiceRoleDefaultPolicyF66713A6",
+    "MovieMarketerLambdaServiceRole9E1FC7FB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerLambda/Resource"
+   }
+  },
+  "MovieMarketerAPI5EACC6AC": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Description": "Miyabi MovieMarketer API - YouTube content creation powered by Gemini",
+    "Name": "miyabi-moviemarketer-api"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Resource"
+   }
+  },
+  "MovieMarketerAPICloudWatchRole0FFD80DE": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/CloudWatchRole/Resource"
+   }
+  },
+  "MovieMarketerAPIAccount2434BD66": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "MovieMarketerAPICloudWatchRole0FFD80DE",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "MovieMarketerAPI5EACC6AC"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Account"
+   }
+  },
+  "MovieMarketerAPIDeployment1A35F28A044cfee523d1a9ffec1402b6b1fced27": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "Miyabi MovieMarketer API - YouTube content creation powered by Gemini",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "DependsOn": [
+    "MovieMarketerAPIapimoviemarketerconceptgeneratorOPTIONS754A6117",
+    "MovieMarketerAPIapimoviemarketerconceptgeneratorPOSTE9881A0E",
+    "MovieMarketerAPIapimoviemarketerconceptgenerator4558FD7F",
+    "MovieMarketerAPIapimoviemarketercustomkeywordgeneratorOPTIONS8D393B41",
+    "MovieMarketerAPIapimoviemarketercustomkeywordgeneratorPOST65C15699",
+    "MovieMarketerAPIapimoviemarketercustomkeywordgenerator48ADD4B9",
+    "MovieMarketerAPIapimoviemarketerhearinganalysisOPTIONS57E0D851",
+    "MovieMarketerAPIapimoviemarketerhearinganalysisPOST17F0A765",
+    "MovieMarketerAPIapimoviemarketerhearinganalysis429DD947",
+    "MovieMarketerAPIapimoviemarketerkeywordgeneratorOPTIONSB3A8EC36",
+    "MovieMarketerAPIapimoviemarketerkeywordgeneratorPOST90B3B6BC",
+    "MovieMarketerAPIapimoviemarketerkeywordgenerator1F35124E",
+    "MovieMarketerAPIapimoviemarketerOPTIONSC6490198",
+    "MovieMarketerAPIapimoviemarketerpersonageneratorOPTIONSCCFB0CC5",
+    "MovieMarketerAPIapimoviemarketerpersonageneratorPOST61C86BF7",
+    "MovieMarketerAPIapimoviemarketerpersonagenerator61A60D2F",
+    "MovieMarketerAPIapimoviemarketerplanningpersonageneratorOPTIONSCB7F0243",
+    "MovieMarketerAPIapimoviemarketerplanningpersonageneratorPOST8066CEB2",
+    "MovieMarketerAPIapimoviemarketerplanningpersonageneratorB2172CF0",
+    "MovieMarketerAPIapimoviemarketer18ED79A3",
+    "MovieMarketerAPIapimoviemarketerscriptgeneratorOPTIONS69EBD470",
+    "MovieMarketerAPIapimoviemarketerscriptgeneratorPOST46DA3D05",
+    "MovieMarketerAPIapimoviemarketerscriptgenerator4E9DDC26",
+    "MovieMarketerAPIapimoviemarketertitlegeneratorOPTIONS3E6CCA4B",
+    "MovieMarketerAPIapimoviemarketertitlegeneratorPOSTC74128CF",
+    "MovieMarketerAPIapimoviemarketertitlegeneratorC9928201",
+    "MovieMarketerAPIapiOPTIONS659E4565",
+    "MovieMarketerAPIapi23A3D6FF",
+    "MovieMarketerAPIOPTIONSD2E7D873",
+    "MovieMarketerRequestValidatorAF03DB20"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Deployment/Resource",
+    "aws:cdk:do-not-refactor": true
+   }
+  },
+  "MovieMarketerAPIDeploymentStageprodFD066451": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "AccessLogSetting": {
+     "DestinationArn": {
+      "Fn::GetAtt": [
+       "MovieMarketerAPIGatewayLogGroup34C8D96E",
+       "Arn"
+      ]
+     },
+     "Format": "{\"requestId\":\"$context.requestId\",\"ip\":\"$context.identity.sourceIp\",\"user\":\"$context.identity.user\",\"caller\":\"$context.identity.caller\",\"requestTime\":\"$context.requestTime\",\"httpMethod\":\"$context.httpMethod\",\"resourcePath\":\"$context.resourcePath\",\"status\":\"$context.status\",\"protocol\":\"$context.protocol\",\"responseLength\":\"$context.responseLength\"}"
+    },
+    "DeploymentId": {
+     "Ref": "MovieMarketerAPIDeployment1A35F28A044cfee523d1a9ffec1402b6b1fced27"
+    },
+    "MethodSettings": [
+     {
+      "DataTraceEnabled": true,
+      "HttpMethod": "*",
+      "LoggingLevel": "INFO",
+      "MetricsEnabled": true,
+      "ResourcePath": "/*",
+      "ThrottlingBurstLimit": 200,
+      "ThrottlingRateLimit": 100
+     }
+    ],
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    },
+    "StageName": "prod"
+   },
+   "DependsOn": [
+    "MovieMarketerAPIAccount2434BD66"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/DeploymentStage.prod/Resource"
+   }
+  },
+  "MovieMarketerAPIOPTIONSD2E7D873": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "MovieMarketerAPI5EACC6AC",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapi23A3D6FF": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "MovieMarketerAPI5EACC6AC",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "api",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/Resource"
+   }
+  },
+  "MovieMarketerAPIapiOPTIONS659E4565": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapi23A3D6FF"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketer18ED79A3": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapi23A3D6FF"
+    },
+    "PathPart": "moviemarketer",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerOPTIONSC6490198": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerhearinganalysis429DD947": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "hearing-analysis",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/hearing-analysis/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerhearinganalysisOPTIONS57E0D851": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerhearinganalysis429DD947"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/hearing-analysis/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerhearinganalysisPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerhearinganalysis1B7C2F62": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/hearing-analysis"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/hearing-analysis/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.hearing-analysis"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerhearinganalysisPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerhearinganalysisAC4FD307": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/hearing-analysis"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/hearing-analysis/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.hearing-analysis"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerhearinganalysisPOST17F0A765": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerhearinganalysis429DD947"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/hearing-analysis/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerpersonagenerator61A60D2F": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "persona-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/persona-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerpersonageneratorOPTIONSCCFB0CC5": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerpersonagenerator61A60D2F"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/persona-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerpersonageneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerpersonageneratorC275875F": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/persona-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/persona-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.persona-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerpersonageneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerpersonageneratorF0A66AC3": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/persona-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/persona-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.persona-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerpersonageneratorPOST61C86BF7": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerpersonagenerator61A60D2F"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/persona-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerconceptgenerator4558FD7F": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "concept-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/concept-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerconceptgeneratorOPTIONS754A6117": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerconceptgenerator4558FD7F"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/concept-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerconceptgeneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerconceptgeneratorE3DC0F80": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/concept-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/concept-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.concept-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerconceptgeneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerconceptgenerator7801588C": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/concept-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/concept-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.concept-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerconceptgeneratorPOSTE9881A0E": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerconceptgenerator4558FD7F"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/concept-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerkeywordgenerator1F35124E": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "keyword-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/keyword-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerkeywordgeneratorOPTIONSB3A8EC36": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerkeywordgenerator1F35124E"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/keyword-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerkeywordgeneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerkeywordgenerator79C7BF35": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/keyword-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/keyword-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.keyword-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerkeywordgeneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerkeywordgeneratorD902F494": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/keyword-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/keyword-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.keyword-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerkeywordgeneratorPOST90B3B6BC": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerkeywordgenerator1F35124E"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/keyword-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketertitlegeneratorC9928201": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "title-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/title-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketertitlegeneratorOPTIONS3E6CCA4B": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketertitlegeneratorC9928201"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/title-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketertitlegeneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketertitlegenerator43D87F2D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/title-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/title-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.title-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketertitlegeneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketertitlegenerator66B74656": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/title-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/title-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.title-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketertitlegeneratorPOSTC74128CF": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketertitlegeneratorC9928201"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/title-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerscriptgenerator4E9DDC26": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "script-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/script-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerscriptgeneratorOPTIONS69EBD470": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerscriptgenerator4E9DDC26"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/script-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerscriptgeneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerscriptgenerator78858A91": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/script-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/script-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.script-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerscriptgeneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerscriptgenerator497037A9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/script-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/script-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.script-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerscriptgeneratorPOST46DA3D05": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerscriptgenerator4E9DDC26"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/script-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerplanningpersonageneratorB2172CF0": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "planning-persona-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/planning-persona-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerplanningpersonageneratorOPTIONSCB7F0243": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerplanningpersonageneratorB2172CF0"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/planning-persona-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerplanningpersonageneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerplanningpersonagenerator3026388A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/planning-persona-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/planning-persona-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.planning-persona-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerplanningpersonageneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketerplanningpersonagenerator23DD386A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/planning-persona-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/planning-persona-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.planning-persona-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketerplanningpersonageneratorPOST8066CEB2": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketerplanningpersonageneratorB2172CF0"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/planning-persona-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketercustomkeywordgenerator48ADD4B9": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MovieMarketerAPIapimoviemarketer18ED79A3"
+    },
+    "PathPart": "custom-keyword-generator",
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/custom-keyword-generator/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketercustomkeywordgeneratorOPTIONS8D393B41": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,x-api-key,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketercustomkeywordgenerator48ADD4B9"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/custom-keyword-generator/OPTIONS/Resource"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketercustomkeywordgeneratorPOSTApiPermissionMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketercustomkeywordgeneratorA69415C6": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/",
+       {
+        "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+       },
+       "/POST/api/moviemarketer/custom-keyword-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/custom-keyword-generator/POST/ApiPermission.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.custom-keyword-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketercustomkeywordgeneratorPOSTApiPermissionTestMiyabiMovieMarketerStackMovieMarketerAPIA287A230POSTapimoviemarketercustomkeywordgenerator02CB1D55": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "MovieMarketerLambda540C833D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:112530848482:",
+       {
+        "Ref": "MovieMarketerAPI5EACC6AC"
+       },
+       "/test-invoke-stage/POST/api/moviemarketer/custom-keyword-generator"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/custom-keyword-generator/POST/ApiPermission.Test.MiyabiMovieMarketerStackMovieMarketerAPIA287A230.POST..api.moviemarketer.custom-keyword-generator"
+   }
+  },
+  "MovieMarketerAPIapimoviemarketercustomkeywordgeneratorPOST65C15699": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": true,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "MovieMarketerLambda540C833D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "400"
+     },
+     {
+      "StatusCode": "403"
+     },
+     {
+      "StatusCode": "429"
+     },
+     {
+      "StatusCode": "500"
+     }
+    ],
+    "RequestValidatorId": {
+     "Ref": "MovieMarketerRequestValidatorAF03DB20"
+    },
+    "ResourceId": {
+     "Ref": "MovieMarketerAPIapimoviemarketercustomkeywordgenerator48ADD4B9"
+    },
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/Default/api/moviemarketer/custom-keyword-generator/POST/Resource"
+   }
+  },
+  "MovieMarketerAPIMovieMarketerUsagePlan8CD2C83D": {
+   "Type": "AWS::ApiGateway::UsagePlan",
+   "Properties": {
+    "ApiStages": [
+     {
+      "ApiId": {
+       "Ref": "MovieMarketerAPI5EACC6AC"
+      },
+      "Stage": {
+       "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+      },
+      "Throttle": {}
+     }
+    ],
+    "Description": "Standard usage plan for MovieMarketer API customers",
+    "Quota": {
+     "Limit": 5000,
+     "Period": "DAY"
+    },
+    "Throttle": {
+     "BurstLimit": 200,
+     "RateLimit": 100
+    },
+    "UsagePlanName": "miyabi-moviemarketer-standard-plan"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/MovieMarketerUsagePlan/Resource"
+   }
+  },
+  "MovieMarketerAPIMovieMarketerUsagePlanUsagePlanKeyResourceMiyabiMovieMarketerStackMovieMarketerAPIDefaultAPIKeyC8510BDBE8F3906B": {
+   "Type": "AWS::ApiGateway::UsagePlanKey",
+   "Properties": {
+    "KeyId": {
+     "Ref": "MovieMarketerAPIDefaultAPIKey3C122EFB"
+    },
+    "KeyType": "API_KEY",
+    "UsagePlanId": {
+     "Ref": "MovieMarketerAPIMovieMarketerUsagePlan8CD2C83D"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/MovieMarketerUsagePlan/UsagePlanKeyResource:MiyabiMovieMarketerStackMovieMarketerAPIDefaultAPIKeyC8510BDB"
+   }
+  },
+  "MovieMarketerAPIDefaultAPIKey3C122EFB": {
+   "Type": "AWS::ApiGateway::ApiKey",
+   "Properties": {
+    "Description": "Default API key for testing and initial customer access",
+    "Enabled": true,
+    "Name": "miyabi-moviemarketer-default-key",
+    "StageKeys": [
+     {
+      "RestApiId": {
+       "Ref": "MovieMarketerAPI5EACC6AC"
+      },
+      "StageName": {
+       "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerAPI/DefaultAPIKey/Resource"
+   }
+  },
+  "MovieMarketerRequestValidatorAF03DB20": {
+   "Type": "AWS::ApiGateway::RequestValidator",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "MovieMarketerAPI5EACC6AC"
+    },
+    "ValidateRequestBody": true,
+    "ValidateRequestParameters": false
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/MovieMarketerRequestValidator/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/22Q207DMAyGn2X3WYCCuB9MIASIqhxukZuYkjWpSw5MVZV3J003sUm78uffduw/BS+KK36+gK1bCtkutar5+OpBtCxJnyMKyyvsySlPdrgBh0wOHRiSNX+DWmOWNDWOj0/U3FsKPbv96vYcmQZTS+DjmkSL9sFAg3ehE15RNzUeconWKOdSFpkCw8eKNE6FHEvSSgy5L1Nk0KsGPG5hSK3o/KpXufsfV0JQ6DxbY69pMJgwqQdZstrkFTOkUQpWzK6e0X+TnIo72ld3S2Z+d2mw1JAdnE4ecWDpoClMN81U4U9Ih36AVhLS586PHmsxHu18Cb4PPrKOJPKNO/stLvk1v1hsnFJLm3wqg7ya4x8hIINQ2QEAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "MiyabiMovieMarketerStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "MovieMarketerAPIEndpoint818C3B0D": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "MovieMarketerAPI5EACC6AC"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "APIURL": {
+   "Description": "MovieMarketer API Gateway URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "MovieMarketerAPI5EACC6AC"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+      },
+      "/"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiMovieMarketerAPIURL"
+   }
+  },
+  "APIKeyTableName": {
+   "Description": "DynamoDB table for API key management",
+   "Value": "miyabi-moviemarketer-api-keys",
+   "Export": {
+    "Name": "MiyabiMovieMarketerAPIKeyTable"
+   }
+  },
+  "LambdaFunctionName": {
+   "Description": "Lambda function name",
+   "Value": {
+    "Ref": "MovieMarketerLambda540C833D"
+   },
+   "Export": {
+    "Name": "MiyabiMovieMarketerLambdaName"
+   }
+  },
+  "ECRRepositoryURI": {
+   "Description": "ECR repository URI for Lambda container image",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "112530848482.dkr.ecr.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/miyabi-moviemarketer-api"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiMovieMarketerECRRepo"
+   }
+  },
+  "DefaultAPIKeyID": {
+   "Description": "Default API key ID (use AWS Console to get actual key value)",
+   "Value": {
+    "Ref": "MovieMarketerAPIDefaultAPIKey3C122EFB"
+   },
+   "Export": {
+    "Name": "MiyabiMovieMarketerDefaultAPIKeyID"
+   }
+  },
+  "GeminiAPIKeySecretArn": {
+   "Description": "Secrets Manager ARN for Gemini API key",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "arn:",
+      {
+       "Ref": "AWS::Partition"
+      },
+      ":secretsmanager:us-east-1:112530848482:secret:miyabi/gemini-api-key"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MiyabiMovieMarketerGeminiSecretArn"
+   }
+  },
+  "UsageInstructions": {
+   "Description": "Deployment and testing instructions",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "Next steps:\n1. Build Docker image: cd /Users/shunsuke/Dev/youtube-moviemarketer-api && docker build -f Dockerfile.lambda -t miyabi-moviemarketer-api .\n2. Tag image: docker tag miyabi-moviemarketer-api:latest 112530848482.dkr.ecr.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/miyabi-moviemarketer-api:latest\n3. Login to ECR: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 112530848482.dkr.ecr.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/miyabi-moviemarketer-api\n4. Push image: docker push 112530848482.dkr.ecr.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/miyabi-moviemarketer-api:latest\n5. Get API key: aws apigateway get-api-key --api-key ",
+      {
+       "Ref": "MovieMarketerAPIDefaultAPIKey3C122EFB"
+      },
+      " --include-value\n6. Test API: curl -X POST https://",
+      {
+       "Ref": "MovieMarketerAPI5EACC6AC"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "MovieMarketerAPIDeploymentStageprodFD066451"
+      },
+      "/api/moviemarketer/hearing-analysis -H \"x-api-key: YOUR_KEY\" -H \"Content-Type: application/json\" -d '{\"youtubePurpose\":\"...\", \"serviceDetails\":\"...\"}'"
+     ]
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

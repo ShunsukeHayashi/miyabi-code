@@ -10,11 +10,11 @@ keywords = ["agents", "ai", "coordination", "dag", "orchestration"]
 categories = ["development-tools", "web-programming"]
 
 [dependencies]
-miyabi-agent-core = { path = "../miyabi-agent-core" }
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-github = { path = "../miyabi-github" }
-miyabi-llm = { path = "../miyabi-llm" }
+miyabi-agent-core = { path = "../miyabi-agent-core", version = "0.1.2" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
+miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 
 tokio = { workspace = true }
 serde = { workspace = true }
@@ -31,6 +31,7 @@ workflow_dsl = ["dep:miyabi-workflow", "dep:uuid"]
 
 [dependencies.miyabi-workflow]
 path = "../miyabi-workflow"
+version = "0.1.2"
 optional = true
 
 [dependencies.uuid]
@@ -39,5 +40,5 @@ features = ["v4"]
 optional = true
 
 [dev-dependencies]
-miyabi-agent-business = { path = "../miyabi-agent-business" }
+miyabi-agent-business = { path = "../miyabi-agent-business", version = "0.1.2" }
 tempfile = "3.13"

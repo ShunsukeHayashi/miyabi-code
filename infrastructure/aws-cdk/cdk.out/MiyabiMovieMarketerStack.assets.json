@@ -1,0 +1,21 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "a20f3e9aaaf1154878a9dd11f4db1c5620f249678a379d315f8722fc8a4f6f7a": {
+      "displayName": "MiyabiMovieMarketerStack Template",
+      "source": {
+        "path": "MiyabiMovieMarketerStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "112530848482-us-east-1-14b2d451": {
+          "bucketName": "cdk-hnb659fds-assets-112530848482-us-east-1",
+          "objectKey": "a20f3e9aaaf1154878a9dd11f4db1c5620f249678a379d315f8722fc8a4f6f7a.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::112530848482:role/cdk-hnb659fds-file-publishing-role-112530848482-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

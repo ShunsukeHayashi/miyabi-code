@@ -146,8 +146,7 @@ mod tests {
 
     #[test]
     fn test_prompt_engine_creation() {
-        let engine = PromptEngine::new();
-        assert!(true); // エンジン作成成功
+        let _engine = PromptEngine::new();
     }
 
     #[test]

@@ -2,6 +2,7 @@
 name = "miyabi-dag"
 version.workspace = true
 edition = "2021"
+publish = false
 authors = ["Shunsuke Hayashi"]
 license = "Apache-2.0"
 description = "DAG-based task graph for Miyabi Ω-System - θ₃ Allocation Phase"
@@ -12,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 # Core dependencies
-miyabi-types = { path = "../miyabi-types" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
 
 # Error handling
 thiserror = { workspace = true }

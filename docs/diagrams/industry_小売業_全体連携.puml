@@ -1,0 +1,61 @@
+@startuml industry_retail_overview
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 部署間連携図
+
+rectangle "店舗運営部" as store #LightBlue
+rectangle "仕入部" as procurement #LightPink
+rectangle "販売部" as sales #LightGreen
+rectangle "在庫管理部" as inventory #LightYellow
+rectangle "経理部" as accounting #LightGray
+rectangle "総務部" as general #Lavender
+
+' 店舗運営部からの連携
+store --> sales : 販売実績\n顧客対応状況
+store --> inventory : 在庫補充依頼\n棚卸結果
+store --> procurement : 商品要望\n売れ筋情報
+store --> accounting : 売上報告\nレジ締め
+store --> general : 人員要請\n設備修繕依頼
+
+' 仕入部からの連携
+procurement --> inventory : 入荷予定\n商品情報
+procurement --> store : 新商品案内\n欠品連絡
+procurement --> accounting : 仕入報告\n支払依頼
+procurement --> sales : 販促企画連携
+
+' 販売部からの連携
+sales --> store : 販促計画\nキャンペーン指示
+sales --> procurement : 販売計画\n発注依頼
+sales --> inventory : 在庫確認\n配送依頼
+sales --> accounting : 売上予測\n販促費
+
+' 在庫管理部からの連携
+inventory --> store : 商品配送\n在庫情報
+inventory --> procurement : 在庫状況\n発注提案
+inventory --> accounting : 在庫金額\n廃棄ロス報告
+
+' 経理部からの連携
+accounting --> store : 予算配分\n売上分析
+accounting --> procurement : 支払完了\n予算状況
+accounting --> sales : 販促予算
+accounting --> general : 経費精算
+
+' 総務部からの連携
+general --> store : 人員配置\n店舗設備
+general --> procurement : 契約管理
+general --> sales : 法務支援
+general --> inventory : 倉庫管理\n配送車両
+general --> accounting : 固定資産管理
+
+note right of store
+  小売業の最前線
+  顧客接点・売上創出
+end note
+
+note bottom of inventory
+  商品流通の要
+  在庫最適化・物流管理
+end note
+
+@enduml

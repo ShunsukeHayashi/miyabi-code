@@ -1,0 +1,111 @@
+{
+  "type": "template",
+  "description": "Miyabi Agent状態レポートカード",
+  "version": "1.0.0",
+  "schedule": "every 4 hours",
+  "fallback_message": {
+    "msg_type": "text",
+    "content": {
+      "text": "🤖 Miyabi Agent 状態レポート\n\n✅ 稼働中: ${agents.active_count}/${agents.total_count}\n📊 完了タスク: ${agents.completed_tasks}\n🔄 進行中: ${agents.in_progress_tasks}\n❌ ブロッカー: ${agents.blockers_count}\n\n最終更新: ${report.timestamp}"
+    }
+  },
+  "interactive_card_template": {
+    "config": {
+      "wide_screen_mode": true
+    },
+    "header": {
+      "template": "blue",
+      "title": {
+        "content": "🤖 Miyabi Agent 状態レポート",
+        "tag": "plain_text"
+      },
+      "subtitle": {
+        "content": "${report.timestamp}",
+        "tag": "plain_text"
+      }
+    },
+    "elements": [
+      {
+        "tag": "div",
+        "text": {
+          "content": "**📊 システム概要**",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "div",
+        "fields": [
+          {
+            "is_short": true,
+            "text": {
+              "content": "**稼働中Agent:**\n${agents.active_count}/${agents.total_count}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**完了タスク:**\n${agents.completed_tasks}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**進行中:**\n${agents.in_progress_tasks}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**ブロッカー:**\n${agents.blockers_count}",
+              "tag": "lark_md"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "hr"
+      },
+      {
+        "tag": "div",
+        "text": {
+          "content": "**🔧 Agent詳細**",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "div",
+        "text": {
+          "content": "${agents.details}",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "hr"
+      },
+      {
+        "tag": "div",
+        "text": {
+          "content": "**⚠️ 注意が必要な項目**\n${agents.alerts}",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "action",
+        "actions": [
+          {
+            "tag": "button",
+            "text": {
+              "content": "詳細ダッシュボード",
+              "tag": "plain_text"
+            },
+            "url": "${dashboard.url}",
+            "type": "primary"
+          }
+        ]
+      }
+    ]
+  }
+}

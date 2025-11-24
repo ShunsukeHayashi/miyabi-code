@@ -23,19 +23,14 @@ pub mod auto;
 pub mod manual;
 
 /// Execution mode for CodeGenAgent
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ExecutionMode {
     /// Automated code generation using LLM providers
+    #[default]
     Auto,
     /// Manual implementation guided by Claude Code
     Manual,
-}
-
-impl Default for ExecutionMode {
-    fn default() -> Self {
-        Self::Auto
-    }
 }
 
 impl std::fmt::Display for ExecutionMode {

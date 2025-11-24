@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn test_generate_prompt() {
         let generator = PromptGenerator::new();
-        let mut segment = Segment {
+        let segment = Segment {
             id: 0,
             start_time: 0.0,
             end_time: 5.0,

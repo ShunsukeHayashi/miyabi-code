@@ -2,6 +2,7 @@
 name = "miyabi-voice-guide"
 version = "0.1.0"
 edition = "2021"
+publish = false
 authors = ["Shunsuke Hayashi <supernovasyun@gmail.com>"]
 license = "Apache-2.0"
 description = "Voice-First Onboarding system for Miyabi - automatic voice guidance"

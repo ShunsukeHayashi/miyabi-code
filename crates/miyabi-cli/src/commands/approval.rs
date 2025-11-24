@@ -108,7 +108,7 @@ impl ApprovalCommand {
             })?;
 
         // Recreate gate (with minimal config, only need store)
-        let gate = ApprovalGate::new(&state.gate_id)
+        let gate = ApprovalGate::builder(&state.gate_id)
             .required_approvers(state.required_approvers.clone())
             .timeout_seconds(state.timeout_seconds)
             .build()
@@ -158,7 +158,7 @@ impl ApprovalCommand {
             })?;
 
         // Recreate gate
-        let gate = ApprovalGate::new(&state.gate_id)
+        let gate = ApprovalGate::builder(&state.gate_id)
             .required_approvers(state.required_approvers.clone())
             .timeout_seconds(state.timeout_seconds)
             .build()

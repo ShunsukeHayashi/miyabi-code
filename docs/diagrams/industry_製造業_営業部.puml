@@ -1,0 +1,118 @@
+@startuml dept_manufacturing_sales
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 営業部 業務フロー
+
+|#LightBlue|営業担当|
+start
+:案件情報入手;
+note right
+  ・新規引合い
+  ・既存顧客からの相談
+  ・展示会/Web問合せ
+end note
+
+:顧客ニーズヒアリング;
+fork
+  :製品仕様確認;
+fork again
+  :数量確認;
+fork again
+  :納期確認;
+fork again
+  :予算確認;
+end fork
+
+:技術部門へ仕様相談;
+
+if (特注品?) then (yes)
+  :設計部門へ見積依頼;
+  :製造可能性確認;
+else (no)
+  :標準品で対応;
+endif
+
+:見積書作成;
+note right
+  ・製品単価
+  ・数量割引
+  ・輸送費
+  ・納期
+end note
+
+:経理部へ与信確認;
+
+if (与信OK?) then (yes)
+  :見積提出;
+else (no)
+  :取引条件調整;
+  :前金/保証要求;
+endif
+
+|#LightCyan|受注処理担当|
+:顧客から注文書受領;
+:注文内容確認;
+
+if (見積と一致?) then (yes)
+  :受注登録;
+else (no)
+  :内容確認;
+  :修正見積発行;
+endif
+
+:受注確認書送付;
+
+:生産管理部へ生産依頼;
+note right
+  ・製品仕様
+  ・数量
+  ・希望納期
+end note
+
+:納期回答受領;
+
+if (希望納期OK?) then (yes)
+  :顧客へ納期確定連絡;
+else (no)
+  :納期調整交渉;
+endif
+
+|#LightGreen|出荷・納品担当|
+:出荷準備状況確認;
+:物流部へ出荷指示;
+
+:出荷完了報告受領;
+:顧客へ出荷連絡;
+
+:納品確認;
+if (納品完了?) then (yes)
+  :検収書受領;
+else (no)
+  :納品トラブル対応;
+endif
+
+|#LightBlue|営業担当|
+:請求書発行依頼;
+:経理部へ売上報告;
+
+:入金確認;
+if (入金遅延?) then (yes)
+  :督促連絡;
+  :経理部と連携;
+else (no)
+endif
+
+:アフターフォロー;
+note right
+  ・使用状況確認
+  ・追加ニーズ把握
+  ・クレーム対応
+end note
+
+:顧客情報更新;
+:次回提案準備;
+
+stop
+
+@enduml

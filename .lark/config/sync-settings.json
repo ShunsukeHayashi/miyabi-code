@@ -1,0 +1,85 @@
+{
+  "description": "GitHub ↔ Lark 双方向同期設定",
+  "version": "1.0.0",
+  "sync_service": {
+    "name": "miyabi-lark-sync",
+    "path": "../../integrations/miyabi-lark-sync",
+    "enabled": false,
+    "port": 3100,
+    "note": "P1フェーズで有効化予定"
+  },
+  "github_to_lark": {
+    "enabled": true,
+    "events": {
+      "issues": {
+        "opened": {
+          "enabled": true,
+          "target": "group_chat",
+          "template": "issue-notification"
+        },
+        "closed": {
+          "enabled": true,
+          "target": "group_chat",
+          "template": "issue-closed"
+        },
+        "labeled": {
+          "enabled": false
+        },
+        "assigned": {
+          "enabled": true,
+          "target": "direct_message",
+          "template": "issue-assigned"
+        }
+      },
+      "pull_requests": {
+        "opened": {
+          "enabled": true,
+          "target": "group_chat",
+          "template": "pr-notification"
+        },
+        "merged": {
+          "enabled": true,
+          "target": "group_chat",
+          "template": "pr-merged"
+        },
+        "review_requested": {
+          "enabled": true,
+          "target": "direct_message"
+        }
+      },
+      "workflow_run": {
+        "completed": {
+          "enabled": true,
+          "target": "group_chat",
+          "template": "build-report",
+          "filter": ["failure", "success"]
+        }
+      }
+    }
+  },
+  "lark_to_github": {
+    "enabled": false,
+    "note": "P2フェーズで実装予定",
+    "commands": {
+      "@MiyabiBot create issue": {
+        "action": "create_github_issue",
+        "permission": "team_members"
+      },
+      "@MiyabiBot deploy": {
+        "action": "trigger_workflow",
+        "permission": "admins_only"
+      }
+    }
+  },
+  "field_mapping": {
+    "issue_to_lark_base": {
+      "github_number": "issue_id",
+      "github_title": "title",
+      "github_state": "status",
+      "github_labels": "labels",
+      "github_assignee": "assignee",
+      "github_created_at": "created_date",
+      "github_updated_at": "updated_date"
+    }
+  }
+}

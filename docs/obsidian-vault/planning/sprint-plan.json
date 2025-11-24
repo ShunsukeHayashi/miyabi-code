@@ -1,0 +1,448 @@
+[
+  {
+    "number": 1,
+    "start_date": "2025-11-19",
+    "tasks": [
+      {
+        "id": 1018,
+        "title": "🚀 [EPIC] M1 Infrastructure Blitz - Production Deployment",
+        "priority": "🔥 priority:P0-Critical",
+        "estimated_hours": 40
+      }
+    ],
+    "total_hours": 40,
+    "by_priority": {
+      "p0": 1,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    }
+  },
+  {
+    "number": 2,
+    "start_date": "2025-12-03",
+    "tasks": [
+      {
+        "id": 970,
+        "title": "🏗️ [P0-CRITICAL] Miyabi Society 完全再構築 - Ultra-Detailed Implementation Plan",
+        "priority": "🔥 priority:P0-Critical",
+        "estimated_hours": 180
+      }
+    ],
+    "total_hours": 180,
+    "by_priority": {
+      "p0": 1,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    }
+  },
+  {
+    "number": 3,
+    "start_date": "2025-12-17",
+    "tasks": [
+      {
+        "id": 1049,
+        "title": "🔐 [Miyabi Console] Authentication & Authorization",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 5
+      },
+      {
+        "id": 1045,
+        "title": "🔌 [Miyabi Console] Rust Backend API Integration",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 1
+      },
+      {
+        "id": 1028,
+        "title": "🎭 E2E Testing: Critical User Flows (Playwright)",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 7
+      },
+      {
+        "id": 1027,
+        "title": "🎨 Frontend Testing: Component Tests (70% Coverage)",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 7
+      },
+      {
+        "id": 1026,
+        "title": "🧪 Backend Testing: Unit Tests (85% Coverage)",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 10
+      },
+      {
+        "id": 1024,
+        "title": "🔗 Day 6: Frontend Connection & E2E Integration Testing",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 8
+      },
+      {
+        "id": 1015,
+        "title": "[Pantheon Webapp] Implement Ask the Pantheon - Interactive AI Consultation (Premium)",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 14
+      },
+      {
+        "id": 977,
+        "title": "🎯 [MASTER] Miyabi Reconstruction - Team Coordination & Context Preservation",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 976,
+        "title": "Phase 1.5: JWT Authentication Implementation",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 10
+      },
+      {
+        "id": 975,
+        "title": "Phase 1.4: RBAC Implementation",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 14
+      }
+    ],
+    "total_hours": 78.5,
+    "by_priority": {
+      "p0": 0,
+      "p1": 10,
+      "p2": 0,
+      "p3": 0
+    }
+  },
+  {
+    "number": 4,
+    "start_date": "2025-12-31",
+    "tasks": [
+      {
+        "id": 974,
+        "title": "Phase 1.3: Organization/Team Schema Implementation",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 20
+      },
+      {
+        "id": 973,
+        "title": "Phase 1.2: Base Schema Migration",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 14
+      },
+      {
+        "id": 972,
+        "title": "Phase 1.1: PostgreSQL Connection Enablement",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 10
+      },
+      {
+        "id": 971,
+        "title": "🎯 [P0] Miyabi Reconstruction - Master Dependency Graph & Phase Structure",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 20
+      },
+      {
+        "id": 969,
+        "title": "🔍 プロジェクト構造の根本的な問題調査と改善提案",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 8
+      },
+      {
+        "id": 968,
+        "title": "[P0] Kazuaki Agent - コスト閾値の明確化",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 8
+      }
+    ],
+    "total_hours": 80,
+    "by_priority": {
+      "p0": 0,
+      "p1": 6,
+      "p2": 0,
+      "p3": 0
+    }
+  },
+  {
+    "number": 5,
+    "start_date": "2026-01-14",
+    "tasks": [
+      {
+        "id": 967,
+        "title": "[P0] Kazuaki Agent - Rust-Pythonブリッジの詳細化",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 8
+      },
+      {
+        "id": 966,
+        "title": "[P0] Kazuaki Agent - IAM権限要件の文書化",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 8
+      },
+      {
+        "id": 965,
+        "title": "[P0] Kazuaki Agent - キャラクター性格の拡充",
+        "priority": "⚠️ priority:P1-High",
+        "estimated_hours": 8
+      },
+      {
+        "id": 1047,
+        "title": "🧪 [Miyabi Console] Comprehensive Testing Suite",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 1
+      },
+      {
+        "id": 1046,
+        "title": "🔄 [Miyabi Console] WebSocket Real-time Updates",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 1
+      },
+      {
+        "id": 1030,
+        "title": "🧪 Test: Codex Autonomous Coordinator - System Verification",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 4
+      },
+      {
+        "id": 1025,
+        "title": "🔒 Day 7: SSL Setup, Documentation & Final Validation",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 1017,
+        "title": "[Pantheon Webapp] Implement Miyabi Integration Dashboard - Real-time Agent Activity",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 7
+      },
+      {
+        "id": 1016,
+        "title": "[Pantheon Webapp] Implement Divisions Page - Deep Dive into 5 Divisions",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 5
+      },
+      {
+        "id": 1014,
+        "title": "[Pantheon Webapp] Implement Enhanced Advisors Page - Searchable Directory",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 6
+      },
+      {
+        "id": 1013,
+        "title": "[Pantheon Webapp] Implement About Page - Project Vision & Miyabi Integration",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 3.5
+      },
+      {
+        "id": 1011,
+        "title": "[Miyabi Console] Implement Organizations Page - Multi-Tenant Management",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 7
+      },
+      {
+        "id": 1010,
+        "title": "[Miyabi Console] Implement Workflows Page - Visual Workflow Automation Builder",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 10
+      }
+    ],
+    "total_hours": 71,
+    "by_priority": {
+      "p0": 0,
+      "p1": 3,
+      "p2": 10,
+      "p3": 0
+    }
+  },
+  {
+    "number": 6,
+    "start_date": "2026-01-28",
+    "tasks": [
+      {
+        "id": 964,
+        "title": "[Agent][P1] Kazuaki AWS Architect Agent - 仕様改善マスターIssue",
+        "priority": "📊 priority:P2-Medium",
+        "estimated_hours": 25
+      },
+      {
+        "id": 1050,
+        "title": "✨ [Miyabi Console] New Feature Pages",
+        "priority": "📝 priority:P3-Low",
+        "estimated_hours": 3.5
+      },
+      {
+        "id": 1048,
+        "title": "🚀 [Miyabi Console] Performance Optimization",
+        "priority": "📝 priority:P3-Low",
+        "estimated_hours": 1
+      },
+      {
+        "id": 1012,
+        "title": "[Miyabi Console] Implement Notifications Page - Centralized Notification Center",
+        "priority": "📝 priority:P3-Low",
+        "estimated_hours": 5
+      },
+      {
+        "id": 1044,
+        "title": "docs: Obsidian Documentation メンテナンスガイド作成",
+        "priority": "no-priority",
+        "estimated_hours": 4
+      },
+      {
+        "id": 1043,
+        "title": "refactor: PlantUML構文エラー修正とPNG再生成",
+        "priority": "no-priority",
+        "estimated_hours": 4
+      },
+      {
+        "id": 1042,
+        "title": "docs: Obsidian Documentation System - 最終動作確認とバリデーション",
+        "priority": "no-priority",
+        "estimated_hours": 4
+      },
+      {
+        "id": 1006,
+        "title": "🎨 [P2] Create Miyabi Console - Full Accessible UI/UX for Agent Orchestration",
+        "priority": "no-priority",
+        "estimated_hours": 4
+      },
+      {
+        "id": 1005,
+        "title": "🆕 [P1] Phase 3: Connect Dashboard to Production API",
+        "priority": "no-priority",
+        "estimated_hours": 1
+      },
+      {
+        "id": 993,
+        "title": "Phase 4.6: Production Launch (2-3h)",
+        "priority": "no-priority",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 992,
+        "title": "Phase 4.5: Documentation & Runbooks (2-3h)",
+        "priority": "no-priority",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 991,
+        "title": "Phase 4.4: Disaster Recovery & Rollback (2-3h)",
+        "priority": "no-priority",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 990,
+        "title": "Phase 4.3: Monitoring & Alerting Setup (2-3h)",
+        "priority": "no-priority",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 989,
+        "title": "Phase 4.2: Security Audit & Penetration Testing (6-8h)",
+        "priority": "no-priority",
+        "estimated_hours": 7
+      }
+    ],
+    "total_hours": 68.5,
+    "by_priority": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "p3": 3
+    }
+  },
+  {
+    "number": 7,
+    "start_date": "2026-02-11",
+    "tasks": [
+      {
+        "id": 988,
+        "title": "Phase 4.1: Load Testing & Performance Validation (12-16h)",
+        "priority": "no-priority",
+        "estimated_hours": 14
+      },
+      {
+        "id": 987,
+        "title": "Phase 2.5: AWS Lambda Deployment & CloudWatch Monitoring",
+        "priority": "no-priority",
+        "estimated_hours": 9
+      },
+      {
+        "id": 986,
+        "title": "Phase 2.4: Uncomment & Test Existing APIs",
+        "priority": "no-priority",
+        "estimated_hours": 5
+      },
+      {
+        "id": 985,
+        "title": "Phase 2.3: Worker & Coordinator Status APIs",
+        "priority": "no-priority",
+        "estimated_hours": 5
+      },
+      {
+        "id": 984,
+        "title": "Phase 2.2: Task Management API Implementation",
+        "priority": "no-priority",
+        "estimated_hours": 9
+      },
+      {
+        "id": 983,
+        "title": "Phase 2.1: Service Layer Refactoring",
+        "priority": "no-priority",
+        "estimated_hours": 11
+      },
+      {
+        "id": 982,
+        "title": "Phase 3.5: CloudFront Redeployment & E2E Testing",
+        "priority": "no-priority",
+        "estimated_hours": 6
+      },
+      {
+        "id": 981,
+        "title": "Phase 3.4: Authentication Flow Implementation",
+        "priority": "no-priority",
+        "estimated_hours": 2.5
+      },
+      {
+        "id": 980,
+        "title": "Phase 3.3: Real-Time WebSocket Integration",
+        "priority": "no-priority",
+        "estimated_hours": 5
+      },
+      {
+        "id": 979,
+        "title": "Phase 3.2: Dashboard UI Modernization",
+        "priority": "no-priority",
+        "estimated_hours": 9
+      }
+    ],
+    "total_hours": 75.5,
+    "by_priority": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    }
+  },
+  {
+    "number": 8,
+    "start_date": "2026-02-25",
+    "tasks": [
+      {
+        "id": 978,
+        "title": "Phase 3.1: API Client Implementation",
+        "priority": "no-priority",
+        "estimated_hours": 7
+      },
+      {
+        "id": 883,
+        "title": "feat(orchestra): Phase 3 - 200-Agent Live Experiment & Production Readiness",
+        "priority": "no-priority",
+        "estimated_hours": 1
+      }
+    ],
+    "total_hours": 8,
+    "by_priority": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "p3": 0
+    }
+  }
+]

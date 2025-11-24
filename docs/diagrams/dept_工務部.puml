@@ -1,0 +1,108 @@
+@startuml dept_工務部
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+title 工務部 業務フロー
+
+|#LightBlue|着工準備|
+start
+
+:工事引継ぎ受領;
+note right
+  営業部より
+  - 契約書
+  - 図面
+  - 仕様書
+  - 予算
+end note
+
+:施工計画書作成;
+:工程表作成;
+:安全計画書作成;
+
+fork
+  :協力会社選定・発注;
+fork again
+  :資機材手配;
+fork again
+  :届出書類作成;
+  note right
+    - 建築確認
+    - 道路使用許可
+    - 近隣挨拶
+  end note
+end fork
+
+|#LightYellow|施工管理|
+partition "日次管理" {
+  :朝礼・KY活動;
+  :作業指示;
+  :進捗確認;
+  :工事写真撮影;
+  :日報作成;
+}
+
+partition "品質管理" {
+  :検査・立会;
+  note right
+    - 配筋検査
+    - コンクリート打設
+    - 中間検査
+  end note
+  
+  if (不適合？) then (Yes)
+    :是正措置;
+    :再検査;
+  endif
+}
+
+|#LightPink|安全管理|
+partition "安全活動" {
+  :新規入場者教育;
+  :安全パトロール;
+  
+  if (危険箇所？) then (Yes)
+    :是正指示;
+    :改善確認;
+  endif
+  
+  :災害防止協議会;
+}
+
+|#LightGreen|原価管理|
+:出来高管理;
+:実行予算管理;
+
+if (予算超過？) then (Yes)
+  :原因分析;
+  :対策立案;
+  
+  |#LightCyan|経理部|
+  :報告;
+  
+  |#LightGreen|原価管理|
+endif
+
+|#Orange|竣工|
+:竣工検査準備;
+:施主検査対応;
+:是正工事;
+:引渡し;
+
+fork
+  :竣工図書作成;
+  note right
+    - 竣工図
+    - 取扱説明書
+    - 保証書
+  end note
+fork again
+  :完成工事報告;
+fork again
+  :協力会社精算;
+end fork
+
+:アフター対応;
+
+stop
+
+@enduml

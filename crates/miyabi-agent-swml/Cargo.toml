@@ -13,7 +13,7 @@ categories.workspace = true
 
 [dependencies]
 # Core Miyabi dependencies
-miyabi-types = { path = "../miyabi-types" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
 # miyabi-core = { path = "../miyabi-core" }  # TODO: Enable when needed
 # miyabi-llm = { path = "../miyabi-llm" }  # TODO: Enable for θ₁, θ₂
 # miyabi-agent-core = { path = "../miyabi-agent-core" }  # TODO: Enable when needed

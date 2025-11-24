@@ -1,0 +1,97 @@
+@startuml industry_hotel_フロント
+!theme cerulean-outline
+
+title ホテル・旅館 - フロント部署 詳細業務フロー
+
+|フロント|
+start
+
+:来館者対応開始;
+
+if (予約あり?) then (はい)
+  :予約情報確認;
+  :本人確認;
+else (いいえ)
+  :空室確認;
+  if (空室あり?) then (はい)
+    :当日予約作成;
+    :料金説明;
+  else (いいえ)
+    :満室案内;
+    :近隣施設紹介;
+    stop
+  endif
+endif
+
+:チェックイン手続き;
+
+fork
+  :宿泊カード記入;
+fork again
+  :支払い方法確認;
+fork again
+  :特別要望確認;
+end fork
+
+:客室割り当て;
+:ルームキー発行;
+
+:館内案内;
+note right
+  - 食事時間・場所
+  - 大浴場利用時間
+  - Wi-Fi情報
+  - 非常口案内
+end note
+
+:荷物預かり/搬送手配;
+
+|フロント|
+:滞在中対応;
+
+repeat
+  :顧客要望受付;
+
+  if (要望種別?) then (客室関連)
+    :客室部門へ連絡;
+  else if (食事関連) then
+    :レストラン部門へ連絡;
+  else if (設備関連) then
+    :施設管理部門へ連絡;
+  else (外部手配)
+    :タクシー/観光手配;
+  endif
+
+  :対応完了報告;
+repeat while (追加要望あり?) is (はい)
+
+:チェックアウト対応;
+
+fork
+  :利用明細確認;
+fork again
+  :追加料金計算;
+fork again
+  :忘れ物確認;
+end fork
+
+:精算処理;
+
+if (支払い方法?) then (現金)
+  :現金精算;
+  :領収書発行;
+else if (カード) then
+  :カード決済;
+  :利用控え発行;
+else (後日請求)
+  :請求書作成依頼;
+  :経理部門へ送付;
+endif
+
+:お見送り;
+:顧客情報更新;
+:日報作成;
+
+stop
+
+@enduml

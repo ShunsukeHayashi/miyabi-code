@@ -230,3 +230,169 @@ async fn get_database_tables() -> Vec<TableInfo> {
 
     vec![]
 }
+
+// Topology types
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
+pub struct TopologyNode {
+    pub id: String,
+    pub name: String,
+    pub node_type: String,
+    pub status: String,
+    pub connections: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TopologyResponse {
+    pub nodes: Vec<TopologyNode>,
+    pub edges: Vec<TopologyEdge>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TopologyEdge {
+    pub from: String,
+    pub to: String,
+    pub edge_type: String,
+}
+
+pub async fn get_infrastructure_topology() -> Json<TopologyResponse> {
+    // Build topology from running services and git worktrees
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+
+    // Add API server node
+    nodes.push(TopologyNode {
+        id: "api-server".to_string(),
+        name: "Miyabi Web API".to_string(),
+        node_type: "service".to_string(),
+        status: "running".to_string(),
+        connections: vec!["database".to_string(), "tmux".to_string()],
+    });
+
+    // Add database node
+    nodes.push(TopologyNode {
+        id: "database".to_string(),
+        name: "SQLite/PostgreSQL".to_string(),
+        node_type: "database".to_string(),
+        status: "connected".to_string(),
+        connections: vec![],
+    });
+
+    // Add tmux node
+    let tmux_status = get_tmux_status();
+    nodes.push(TopologyNode {
+        id: "tmux".to_string(),
+        name: "Tmux Sessions".to_string(),
+        node_type: "service".to_string(),
+        status: tmux_status,
+        connections: vec![],
+    });
+
+    // Add console frontend
+    nodes.push(TopologyNode {
+        id: "console".to_string(),
+        name: "Miyabi Console".to_string(),
+        node_type: "frontend".to_string(),
+        status: "running".to_string(),
+        connections: vec!["api-server".to_string()],
+    });
+
+    // Add GitHub integration
+    nodes.push(TopologyNode {
+        id: "github".to_string(),
+        name: "GitHub".to_string(),
+        node_type: "external".to_string(),
+        status: "connected".to_string(),
+        connections: vec![],
+    });
+
+    // Add git worktrees as nodes
+    if let Ok(worktrees) = get_worktree_nodes() {
+        for wt in worktrees {
+            edges.push(TopologyEdge {
+                from: "github".to_string(),
+                to: wt.id.clone(),
+                edge_type: "worktree".to_string(),
+            });
+            nodes.push(wt);
+        }
+    }
+
+    // Build edges from connections
+    for node in &nodes {
+        for conn in &node.connections {
+            edges.push(TopologyEdge {
+                from: node.id.clone(),
+                to: conn.clone(),
+                edge_type: "connection".to_string(),
+            });
+        }
+    }
+
+    Json(TopologyResponse { nodes, edges })
+}
+
+fn get_tmux_status() -> String {
+    let output = Command::new("tmux")
+        .args(["list-sessions"])
+        .output();
+
+    match output {
+        Ok(out) if out.status.success() => "running".to_string(),
+        _ => "stopped".to_string(),
+    }
+}
+
+fn get_worktree_nodes() -> Result<Vec<TopologyNode>, String> {
+    let output = Command::new("git")
+        .args(["worktree", "list", "--porcelain"])
+        .current_dir("/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private")
+        .output()
+        .map_err(|e| format!("Failed to execute git worktree list: {}", e))?;
+
+    if !output.status.success() {
+        return Err("git worktree list failed".to_string());
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut nodes = Vec::new();
+    let mut current_path = String::new();
+    let mut current_branch = String::new();
+
+    for line in stdout.lines() {
+        if line.starts_with("worktree ") {
+            current_path = line.strip_prefix("worktree ").unwrap_or("").to_string();
+        } else if line.starts_with("branch ") {
+            current_branch = line
+                .strip_prefix("branch refs/heads/")
+                .unwrap_or("")
+                .to_string();
+        } else if line.is_empty() && !current_path.is_empty() {
+            // Skip main worktree
+            if !current_path.ends_with("miyabi-private") {
+                let name = current_path
+                    .split('/')
+                    .last()
+                    .unwrap_or("unknown")
+                    .to_string();
+
+                nodes.push(TopologyNode {
+                    id: format!("wt-{}", name),
+                    name: if current_branch.is_empty() {
+                        name
+                    } else {
+                        current_branch.clone()
+                    },
+                    node_type: "worktree".to_string(),
+                    status: "active".to_string(),
+                    connections: vec![],
+                });
+            }
+            current_path.clear();
+            current_branch.clear();
+        }
+    }
+
+    Ok(nodes)
+}

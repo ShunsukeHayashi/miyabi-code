@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import { render } from '../test/test-utils'
 import Layout from './Layout'
@@ -13,6 +13,15 @@ vi.mock('react-router-dom', async () => {
 })
 
 describe('Layout', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
   it('renders without crashing', () => {
     render(<Layout />)
     expect(screen.getByTestId('outlet')).toBeInTheDocument()

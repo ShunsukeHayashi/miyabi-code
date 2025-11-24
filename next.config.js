@@ -30,7 +30,7 @@ const nextConfig = {
 
   // ESLint チェック
   eslint: {
-    dirs: ['app', 'components', 'lib'],
+    dirs: ['app', 'components', 'lib', 'src'],
   },
 };
 

@@ -138,7 +138,7 @@ pub async fn trigger_agent_restart(
 ) -> Result<String, String> {
     // This will call tmux send-keys to restart Claude Code in the pane
     let restart_script = format!(
-        r#"tmux send-keys -t {} "cd '/Users/shunsuke/Dev/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t {} Enter"#,
+        r#"tmux send-keys -t {} "cd '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private' && claude" && sleep 0.5 && tmux send-keys -t {} Enter"#,
         pane_id, pane_id
     );
 

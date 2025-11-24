@@ -1,0 +1,133 @@
+@startuml dept_retail_accounting
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 経理部 業務フロー
+
+|#LightGray|売上管理担当|
+start
+:日次売上集計;
+note right: 全店舗のPOSデータ
+
+fork
+  :現金売上;
+fork again
+  :カード売上;
+fork again
+  :電子マネー;
+fork again
+  :ポイント利用;
+end fork
+
+:売上計上処理;
+:入金管理;
+
+if (現金過不足?) then (yes)
+  :店舗へ確認;
+  :差異調整;
+else (no)
+endif
+
+:カード会社からの入金確認;
+:手数料計算;
+
+|#LightPink|支払管理担当|
+:仕入支払処理;
+note right: 仕入部からの支払依頼
+
+:請求書照合;
+:支払スケジュール管理;
+
+if (支払条件?) then (現金)
+  :現金支払処理;
+else (手形/振込)
+  :振込/手形処理;
+endif
+
+:買掛金管理;
+
+:経費精算;
+fork
+  :店舗経費;
+fork again
+  :本部経費;
+fork again
+  :販促費;
+end fork
+
+|#LightCyan|在庫原価担当|
+:在庫評価;
+note right: 在庫管理部からの報告
+
+:売上原価計算;
+:粗利計算;
+
+:廃棄ロス計上;
+:棚卸差異処理;
+
+:商品別収益分析;
+note right
+  ・粗利率
+  ・交叉比率
+  ・在庫回転率
+end note
+
+|#LightYellow|財務管理担当|
+:資金繰り管理;
+note right
+  ・日次資金繰り
+  ・週次予測
+  ・月次計画
+end note
+
+:月次決算;
+fork
+  :売上総利益計算;
+fork again
+  :営業利益計算;
+fork again
+  :店舗別損益;
+end fork
+
+:店舗別収益分析;
+:本部経費配賦;
+
+if (四半期/年度末?) then (yes)
+  :決算整理;
+  :財務諸表作成;
+  :税務申告;
+  :監査対応;
+else (no)
+endif
+
+|#LightGreen|予算管理担当|
+:予算編成;
+fork
+  :売上予算;
+fork again
+  :仕入予算;
+fork again
+  :経費予算;
+fork again
+  :販促予算;
+end fork
+
+:予実管理;
+if (予算乖離?) then (yes)
+  :原因分析;
+  :各部門へフィードバック;
+else (no)
+endif
+
+:経営レポート作成;
+:KPI管理;
+note right
+  ・売上成長率
+  ・営業利益率
+  ・在庫回転率
+  ・販管費率
+end note
+
+stop
+
+@enduml

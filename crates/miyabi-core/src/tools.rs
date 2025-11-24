@@ -4,12 +4,14 @@
 //! Each tool is a function that LLM can call, with permission checking based on ExecutionMode.
 
 use crate::{ApprovalDecision, ApprovalSystem, CommandApproval, ExecutionMode, FileChangeApproval};
+use miyabi_github::GitHubClient;
 use miyabi_types::error::Result;
 use miyabi_types::MiyabiError;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
+use std::sync::Arc;
 use tokio::fs;
 
 /// Tool registry managing available tools
@@ -17,6 +19,8 @@ pub struct ToolRegistry {
     mode: ExecutionMode,
     working_dir: PathBuf,
     approval_system: ApprovalSystem,
+    /// GitHub client for Issue/PR operations
+    github_client: Option<Arc<GitHubClient>>,
 }
 
 impl ToolRegistry {
@@ -27,6 +31,7 @@ impl ToolRegistry {
             mode,
             working_dir: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
             approval_system: ApprovalSystem::new(interactive),
+            github_client: None,
         }
     }
 
@@ -34,6 +39,30 @@ impl ToolRegistry {
     pub fn with_working_dir(mut self, dir: PathBuf) -> Self {
         self.working_dir = dir;
         self
+    }
+
+    /// Set GitHub client for Issue/PR operations
+    pub fn with_github_client(mut self, client: Arc<GitHubClient>) -> Self {
+        self.github_client = Some(client);
+        self
+    }
+
+    /// Initialize GitHub client from environment variables
+    ///
+    /// Reads GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO from environment.
+    pub fn with_github_from_env(mut self) -> Result<Self> {
+        let token = std::env::var("GITHUB_TOKEN")
+            .map_err(|_| MiyabiError::Config("GITHUB_TOKEN not set".to_string()))?;
+        let owner = std::env::var("GITHUB_OWNER")
+            .map_err(|_| MiyabiError::Config("GITHUB_OWNER not set".to_string()))?;
+        let repo = std::env::var("GITHUB_REPO")
+            .map_err(|_| MiyabiError::Config("GITHUB_REPO not set".to_string()))?;
+
+        let client = GitHubClient::new(&token, &owner, &repo)
+            .map_err(|e| MiyabiError::GitHub(e.to_string()))?;
+
+        self.github_client = Some(Arc::new(client));
+        Ok(self)
     }
 
     /// Get all available tool definitions based on execution mode
@@ -550,10 +579,37 @@ impl ToolRegistry {
             ));
         }
 
-        // Placeholder - will integrate with miyabi-github
+        let github_client = self.github_client.as_ref().ok_or_else(|| {
+            MiyabiError::Config("GitHub client not configured. Use with_github_from_env() or with_github_client()".to_string())
+        })?;
+
+        let title = args["title"]
+            .as_str()
+            .ok_or_else(|| MiyabiError::ToolError("Missing 'title' parameter".to_string()))?;
+        let body = args["body"].as_str();
+
+        // Create the issue
+        let issue = github_client.create_issue(title, body).await
+            .map_err(|e| MiyabiError::GitHub(format!("Failed to create issue: {}", e)))?;
+
+        // Add labels if provided
+        if let Some(labels_arr) = args["labels"].as_array() {
+            let labels: Vec<String> = labels_arr
+                .iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect();
+
+            if !labels.is_empty() {
+                github_client.add_labels(issue.number, &labels).await
+                    .map_err(|e| MiyabiError::GitHub(format!("Failed to add labels: {}", e)))?;
+            }
+        }
+
         Ok(ToolResult::success(json!({
-            "message": "create_issue not yet implemented - requires miyabi-github integration",
-            "title": args["title"],
+            "number": issue.number,
+            "url": issue.url,
+            "title": issue.title,
+            "state": format!("{:?}", issue.state),
         })))
     }
 
@@ -564,10 +620,32 @@ impl ToolRegistry {
             ));
         }
 
-        // Placeholder - will integrate with miyabi-github
+        let github_client = self.github_client.as_ref().ok_or_else(|| {
+            MiyabiError::Config("GitHub client not configured. Use with_github_from_env() or with_github_client()".to_string())
+        })?;
+
+        let title = args["title"]
+            .as_str()
+            .ok_or_else(|| MiyabiError::ToolError("Missing 'title' parameter".to_string()))?;
+        let body = args["body"].as_str();
+        let branch = args["branch"]
+            .as_str()
+            .ok_or_else(|| MiyabiError::ToolError("Missing 'branch' parameter".to_string()))?;
+        let base = args["base"].as_str().unwrap_or("main");
+        let draft = args["draft"].as_bool().unwrap_or(false);
+
+        // Create the pull request
+        let pr = github_client.create_pull_request(title, branch, base, body, draft).await
+            .map_err(|e| MiyabiError::GitHub(format!("Failed to create PR: {}", e)))?;
+
         Ok(ToolResult::success(json!({
-            "message": "create_pr not yet implemented - requires miyabi-github integration",
-            "title": args["title"],
+            "number": pr.number,
+            "url": pr.url,
+            "title": title,
+            "state": format!("{:?}", pr.state),
+            "head": branch,
+            "base": base,
+            "draft": draft,
         })))
     }
 

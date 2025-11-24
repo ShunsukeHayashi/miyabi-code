@@ -1,0 +1,109 @@
+@startuml dept_manufacturing_quality
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 品質管理部 業務フロー
+
+|#LightYellow|受入検査担当|
+start
+:資材入荷通知受領;
+note right: 購買部からの連絡
+
+:受入検査実施;
+fork
+  :外観検査;
+fork again
+  :寸法検査;
+fork again
+  :材質確認;
+end fork
+
+if (検査合格?) then (yes)
+  :合格判定;
+  :受入記録作成;
+  :生産管理部へ通知;
+else (no)
+  :不合格判定;
+  :購買部へ連絡;
+  :仕入先への是正要求;
+endif
+
+|#LightCyan|工程品質担当|
+:工程内検査計画作成;
+
+while (生産中?) is (継続)
+  :工程巡回検査;
+  :測定データ収集;
+
+  if (異常検知?) then (yes)
+    :生産停止指示;
+    :原因調査;
+    :是正処置指示;
+    :効果確認;
+  else (no)
+    :記録更新;
+  endif
+endwhile (終了)
+
+:工程能力分析;
+note right
+  ・Cp/Cpk算出
+  ・傾向分析
+  ・改善提案
+end note
+
+|#LightPink|最終検査担当|
+:完成品検査依頼受領;
+note right: 生産管理部からの依頼
+
+:最終検査実施;
+fork
+  :機能検査;
+fork again
+  :外観検査;
+fork again
+  :性能検査;
+fork again
+  :包装状態確認;
+end fork
+
+if (全項目合格?) then (yes)
+  :検査成績書作成;
+  :合格ラベル発行;
+  :出荷可能判定;
+else (no)
+  :不適合品報告書作成;
+  if (手直し可能?) then (yes)
+    :手直し指示;
+    :再検査実施;
+  else (no)
+    :廃棄処理;
+  endif
+endif
+
+|#LightGreen|品質保証担当|
+:品質データ集計;
+:品質レポート作成;
+note right
+  ・月次品質報告
+  ・不良率推移
+  ・是正処置状況
+end note
+
+:品質会議開催;
+:改善活動推進;
+
+if (顧客クレーム?) then (yes)
+  :クレーム受付;
+  :原因調査;
+  :是正・予防処置;
+  :顧客報告書作成;
+else (no)
+endif
+
+:ISO監査対応;
+:文書管理;
+
+stop
+
+@enduml

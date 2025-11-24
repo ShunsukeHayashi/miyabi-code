@@ -18,8 +18,8 @@
       "args": [],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",
-        "REPO_OWNER": "ShunsukeHayashi",
-        "REPO_NAME": "Miyabi",
+        "REPO_OWNER": "customer-cloud",
+        "REPO_NAME": "miyabi-private",
         "RUST_LOG": "miyabi_mcp_server=info,miyabi_agents=debug"
       },
       "disabled": false,
@@ -113,6 +113,33 @@
       },
       "disabled": false,
       "description": "Miyabi Discord community management - subproject for community operations"
+    },
+
+    "lark-openapi": {
+      "command": "node",
+      "args": [
+        "mcp-servers/lark-openapi-mcp-enhanced/dist/cli.js",
+        "mcp",
+        "--mode",
+        "stdio",
+        "--app-id",
+        "cli_a8d2fdb1f1f8d02d",
+        "--app-secret",
+        "V7mzILXEgIaqLwLXtyZstekRJsjRsFfJ",
+        "--tools",
+        "bitable_v1_app_get,bitable_v1_app_create,bitable_v1_app_copy,bitable_v1_appTable_list,bitable_v1_appTable_create,bitable_v1_appTableField_list,bitable_v1_appTableField_create,bitable_v1_appTableRecord_list,bitable_v1_appTableRecord_get,bitable_v1_appTableRecord_create,bitable_v1_appTableRecord_batchCreate,bitable_v1_appTableRecord_update,bitable_v1_appTableRecord_batchUpdate,bitable_v1_appTableRecord_delete,bitable_v1_appTableRecord_batchDelete,bitable_v1_appTableRecord_search,bitable_v1_appTableView_list,im_v1_message_create,im_v1_message_list,im_v1_chat_create,im_v1_chat_list,im_v1_chatMembers_get"
+      ],
+      "disabled": false,
+      "description": "Lark OpenAPI MCP - Bitable/Base + IM tools (optimized selection)"
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "Miyabi tmux MCP Server - Multithread communication aggregation & CommHub"
     }
   }
 }

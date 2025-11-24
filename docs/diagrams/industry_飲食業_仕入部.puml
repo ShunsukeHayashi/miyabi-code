@@ -1,0 +1,112 @@
+@startuml dept_restaurant_procurement
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 仕入部 業務フロー
+
+|#LightPink|バイヤー|
+start
+:仕入計画策定;
+note right
+  ・季節メニュー対応
+  ・売上予測に基づく数量
+  ・原価率目標
+end note
+
+:仕入先選定;
+fork
+  :生鮮食品業者;
+fork again
+  :青果業者;
+fork again
+  :酒類業者;
+fork again
+  :消耗品業者;
+end fork
+
+if (新規仕入先?) then (yes)
+  :品質確認;
+  :衛生管理部へ監査依頼;
+  :取引条件交渉;
+else (no)
+  :既存仕入先継続;
+endif
+
+:価格交渉;
+:発注条件確定;
+
+|#LightCyan|発注担当|
+:店舗からの発注依頼受領;
+note right: 店舗運営部からの依頼
+
+:在庫確認;
+:発注数量決定;
+
+:発注処理;
+note right
+  ・品目
+  ・数量
+  ・納品日時
+  ・納品場所
+end note
+
+:仕入先へ発注;
+
+|#LightYellow|検品担当|
+:入荷検品;
+fork
+  :数量確認;
+fork again
+  :品質確認;
+fork again
+  :鮮度確認;
+fork again
+  :温度確認;
+end fork
+
+if (品質OK?) then (yes)
+  :検収完了;
+  :温度記録;
+else (no)
+  :不良品報告;
+  :返品処理;
+  :バイヤーへ連絡;
+endif
+
+:適切な保管;
+note right
+  ・冷蔵庫
+  ・冷凍庫
+  ・常温倉庫
+  ・先入れ先出し
+end note
+
+:調理部へ引渡;
+
+|#LightPink|バイヤー|
+:仕入実績管理;
+:経理部へ仕入報告;
+:支払依頼;
+
+:原価管理;
+if (原価率高騰?) then (yes)
+  :代替品検討;
+  :価格改定交渉;
+  :メニュー改定提案;
+else (no)
+endif
+
+:仕入先評価;
+note right
+  ・品質安定性
+  ・納期遵守
+  ・価格
+  ・衛生管理
+end note
+
+:食材トレンド調査;
+:新メニュー提案;
+
+stop
+
+@enduml

@@ -1,0 +1,72 @@
+@startuml industry_運送物流_全体連携
+!theme cerulean-outline
+
+title 運送・物流業界 部署間連携図
+
+' 部署の定義
+rectangle "配車" as dispatch {
+  :配車計画:
+  :ルート最適化:
+  :車両割当:
+}
+
+rectangle "運行管理" as operation {
+  :運行指示:
+  :点呼:
+  :労務管理:
+}
+
+rectangle "倉庫" as warehouse {
+  :入出庫管理:
+  :在庫管理:
+  :ピッキング:
+}
+
+rectangle "営業" as sales {
+  :顧客開拓:
+  :見積作成:
+  :契約管理:
+}
+
+rectangle "安全管理" as safety {
+  :安全教育:
+  :事故対応:
+  :法令遵守:
+}
+
+rectangle "経理" as accounting {
+  :請求処理:
+  :支払管理:
+  :原価計算:
+}
+
+rectangle "総務" as general {
+  :人事労務:
+  :車両管理:
+  :免許管理:
+}
+
+' 連携の定義
+sales --> dispatch : 受注情報
+sales --> warehouse : 出荷依頼
+
+dispatch --> operation : 配車計画
+dispatch --> warehouse : 出荷スケジュール
+
+operation --> dispatch : 運行実績
+operation --> safety : 事故報告
+operation --> general : 勤怠情報
+
+warehouse --> dispatch : 出荷準備完了
+warehouse --> operation : 積込情報
+
+safety --> operation : 安全指示
+safety --> general : 教育記録
+
+accounting --> sales : 請求情報
+accounting --> general : 経費精算
+
+general --> operation : 車両情報
+general --> accounting : 勤怠データ
+
+@enduml

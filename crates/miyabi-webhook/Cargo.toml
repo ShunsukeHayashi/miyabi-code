@@ -2,6 +2,7 @@
 name = "miyabi-webhook"
 version = "0.1.0"
 edition = "2021"
+publish = false
 authors = ["Miyabi Contributors"]
 description = "Webhook signature verification for Miyabi Agent-to-Agent communication"
 license = "MIT"
@@ -16,8 +17,8 @@ chrono = { workspace = true, features = ["serde"] }
 thiserror = { workspace = true }
 
 # Phase 1 dependencies
-miyabi-orchestrator = { path = "../miyabi-orchestrator" }
-miyabi-types = { path = "../miyabi-types" }
+miyabi-orchestrator = { path = "../miyabi-orchestrator", version = "0.1.2" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
 anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

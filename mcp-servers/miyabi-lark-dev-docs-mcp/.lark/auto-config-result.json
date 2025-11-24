@@ -1,0 +1,13 @@
+{
+  "app_id": "cli_a994d7e3b8789e1a",
+  "webhook_url": "https://b5ba86694d3e.ngrok-free.app/webhook/events",
+  "group_chat_id": "oc_8ea05188f644acc3a74881e79f88fa54",
+  "event_subscription": {
+    "events": [
+      "im.message.receive_v1"
+    ],
+    "status": "manual_setup_required"
+  },
+  "test_message_id": null,
+  "configured_at": "2025-11-20T02:59:53.638Z"
+}

@@ -1,0 +1,116 @@
+@startuml codex-miyabi-gap-analysis
+
+title Codex CLI vs Miyabi CLI - Architecture Gap Analysis
+
+skinparam component {
+    BackgroundColor<<gap>> #FF6347
+    BackgroundColor<<impl>> #32CD32
+}
+
+' ========================================
+' Codex TUI Architecture (Left)
+' ========================================
+package "OpenAI Codex TUI (20,969 lines)" as CodexTUI {
+
+    rectangle "Core (3,000+ lines)" as CodexCore {
+        component "app.rs (1,509 lines)" as CodexApp
+        component "chatwidget.rs (3,656 lines)" as CodexChatWidget
+        component "lib.rs (690 lines)" as CodexLib
+    }
+
+    rectangle "Bottom Pane (9,000+ lines)" as BottomPane {
+        component "chat_composer.rs (3,938 lines)" as ChatComposer <<gap>>
+        component "approval_overlay.rs (656 lines)" as ApprovalOverlay <<gap>>
+        component "feedback_view.rs (555 lines)" as FeedbackView <<gap>>
+        component "textarea.rs (2,213 lines)" as Textarea <<gap>>
+        component "command_popup.rs (417 lines)" as CommandPopup <<gap>>
+    }
+
+    rectangle "Rendering (3,500+ lines)" as Rendering {
+        component "history_cell.rs (2,419 lines)" as CodexHistoryCell
+        component "markdown_render.rs (655 lines)" as CodexMarkdown
+        component "markdown_stream.rs (690 lines)" as MarkdownStream <<gap>>
+        component "diff_render.rs (715 lines)" as DiffRender <<gap>>
+        component "wrapping.rs (652 lines)" as Wrapping <<gap>>
+    }
+
+    rectangle "Advanced Features" as Advanced {
+        component "resume_picker.rs (1,580 lines)" as ResumePicker <<gap>>
+        component "pager_overlay.rs (913 lines)" as PagerOverlay <<gap>>
+        component "terminal_palette.rs (401 lines)" as TerminalPalette <<gap>>
+        component "app_backtrack.rs (586 lines)" as Backtrack <<gap>>
+        component "file_search.rs (204 lines)" as FileSearch <<gap>>
+    }
+
+    rectangle "Streaming & Events" as Streaming {
+        component "streaming module" as StreamingModule <<gap>>
+        component "exec_cell module" as ExecCell <<gap>>
+        component "onboarding module" as Onboarding <<gap>>
+    }
+}
+
+' ========================================
+' Miyabi TUI Architecture (Right)
+' ========================================
+package "Miyabi TUI (1,214 lines)" as MiyabiTUI {
+
+    rectangle "Core (250 lines)" as MiyabiCore {
+        component "app.rs (174 lines)" as MiyabiApp <<impl>>
+        component "lib.rs (35 lines)" as MiyabiLib <<impl>>
+        component "ui.rs (80 lines)" as MiyabiUI <<impl>>
+    }
+
+    rectangle "Views (900+ lines)" as Views {
+        component "chat.rs (~900 lines)" as MiyabiChat <<impl>>
+        component "dashboard.rs" as Dashboard <<impl>>
+        component "a2a_bridge.rs" as A2ABridge <<impl>>
+        component "monitor.rs" as Monitor <<impl>>
+    }
+
+    rectangle "Rendering (600 lines)" as MiyabiRendering {
+        component "history_cell.rs (302 lines)" as MiyabiHistoryCell <<impl>>
+        component "markdown_render.rs (316 lines)" as MiyabiMarkdown <<impl>>
+        component "shimmer.rs (192 lines)" as MiyabiShimmer <<impl>>
+    }
+
+    rectangle "Missing Critical" as Missing {
+        component "chat_composer (not separated)" as MissingComposer <<gap>>
+        component "approval_overlay (none)" as MissingApproval <<gap>>
+        component "wrapping (basic only)" as MissingWrapping <<gap>>
+        component "streaming (basic only)" as MissingStreaming <<gap>>
+    }
+}
+
+' ========================================
+' Gap Arrows
+' ========================================
+ChatComposer -[hidden]-> MissingComposer
+ApprovalOverlay -[hidden]-> MissingApproval
+Wrapping -[hidden]-> MissingWrapping
+StreamingModule -[hidden]-> MissingStreaming
+
+' ========================================
+' Legend
+' ========================================
+legend right
+    |= Color |= Status |
+    | <#32CD32> | Implemented |
+    | <#FF6347> | Gap (Not Implemented) |
+endlegend
+
+' ========================================
+' Notes
+' ========================================
+note bottom of CodexTUI
+    Total: 20,969 lines
+    Files: 50+
+    Features: Complete CLI experience
+end note
+
+note bottom of MiyabiTUI
+    Total: 1,214 lines
+    Files: 10
+    Gap Ratio: 17:1
+end note
+
+@enduml

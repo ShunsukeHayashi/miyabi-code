@@ -1,0 +1,99 @@
+@startuml dept_購買部
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+title 購買部（資材部）業務フロー
+
+|#LightBlue|発注管理|
+start
+
+:発注依頼受付;
+note right
+  工務部より
+  - 資材
+  - 機材
+  - 外注
+end note
+
+:業者選定;
+note right
+  - 価格比較
+  - 納期確認
+  - 品質評価
+end note
+
+:見積取得;
+
+if (予算内？) then (Yes)
+  :発注書作成;
+else (No)
+  :値引き交渉;
+  :代替品検討;
+endif
+
+:発注実行;
+
+|#LightYellow|納品管理|
+:納期管理;
+
+if (納期遅延？) then (Yes)
+  :督促;
+  :現場報告;
+endif
+
+:納品検収;
+note right
+  - 数量確認
+  - 品質確認
+  - 不良品対応
+end note
+
+:検収記録登録;
+
+|#LightGreen|協力会社管理|
+partition "業者管理" {
+  :協力会社登録;
+  note right
+    - 建設業許可
+    - 保険加入状況
+    - 施工実績
+  end note
+  
+  :評価・ランク付け;
+  note right
+    - 品質
+    - 価格
+    - 対応力
+    - 安全
+  end note
+  
+  :取引条件管理;
+}
+
+|#LightPink|在庫管理|
+partition "資材管理" {
+  :在庫確認;
+  :入出庫管理;
+  
+  if (在庫不足？) then (Yes)
+    :発注手配;
+  endif
+  
+  :棚卸;
+}
+
+|#Orange|支払管理|
+:請求書照合;
+
+if (金額相違？) then (Yes)
+  :業者確認;
+  :修正依頼;
+endif
+
+:支払依頼;
+
+|#LightCyan|経理部|
+:支払処理;
+
+stop
+
+@enduml

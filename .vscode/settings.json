@@ -12,6 +12,7 @@
   // ==========================================
 
   // Rust Analyzer - 30+ crates workspace optimization
+  "rust-analyzer.server.path": "/Users/shunsuke/.cargo/bin/rust-analyzer",
   "rust-analyzer.cargo.features": "all",
   "rust-analyzer.check.features": "all",
   "rust-analyzer.checkOnSave.command": "clippy",
@@ -98,7 +99,7 @@
   // ==========================================
 
   // フォント設定 - 可読性最適化（見やすさ重視）
-  "editor.fontFamily": "'JetBrains Mono', 'Cascadia Code', 'Monaspace Neon', 'SF Mono', Menlo, monospace",
+  "editor.fontFamily": "'SF Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace",
   "editor.fontSize": 18,
   "editor.fontLigatures": true,
   "editor.lineHeight": 32,
@@ -106,7 +107,7 @@
   "editor.fontWeight": "450",
 
   // ターミナルフォント - 可読性最適化（見やすさ重視）
-  "terminal.integrated.fontFamily": "'JetBrains Mono', 'Cascadia Code', 'SF Mono', monospace",
+  "terminal.integrated.fontFamily": "'SF Mono', 'JetBrains Mono', 'Cascadia Code', monospace",
   "terminal.integrated.fontSize": 17,
   "terminal.integrated.lineHeight": 1.8,
   "terminal.integrated.fontWeight": "450",
@@ -334,7 +335,7 @@
   // ==========================================
 
   "debug.console.fontSize": 16,
-  "debug.console.fontFamily": "'JetBrains Mono', 'Cascadia Code', monospace",
+  "debug.console.fontFamily": "'SF Mono', 'JetBrains Mono', 'Cascadia Code', monospace",
   "debug.internalConsoleOptions": "openOnSessionStart",
   "debug.openDebug": "openOnDebugBreak",
   "debug.showBreakpointsInOverviewRuler": true,

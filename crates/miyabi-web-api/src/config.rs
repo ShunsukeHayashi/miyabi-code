@@ -53,12 +53,14 @@ impl AppConfig {
         // Load .env file if it exists
         dotenvy::dotenv().ok();
 
-        // TEMPORARY: Make database optional for Telegram-only deployment
-        // TODO: Replace with Firebase/Firestore from scratch
-        let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| {
-            eprintln!("WARNING: DATABASE_URL not set, using dummy value");
-            "postgresql://dummy:dummy@localhost:5432/dummy".to_string()
-        });
+        // DATABASE_URL is required for PostgreSQL connection
+        // For local development, use: postgresql://miyabi_admin:miyabi_local_dev@localhost:5432/miyabi
+        let database_url = env::var("DATABASE_URL").map_err(|_| {
+            "DATABASE_URL environment variable is required.\n\
+             Example: DATABASE_URL=postgresql://user:password@host:5432/database\n\
+             For local development: DATABASE_URL=postgresql://miyabi_admin:miyabi_local_dev@localhost:5432/miyabi"
+                .to_string()
+        })?;
 
         let server_address =
             env::var("SERVER_ADDRESS").unwrap_or_else(|_| "0.0.0.0:8080".to_string());

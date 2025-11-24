@@ -1,0 +1,77 @@
+@startuml industry_agriculture_全体連携
+!theme cerulean-outline
+
+title 農業・畜産業 部署間連携図
+
+' 部署の定義
+rectangle "生産管理" as prod_mgmt {
+  :計画策定:
+  :スケジュール管理:
+  :生産実績管理:
+}
+
+rectangle "栽培/飼育" as cultivation {
+  :種付け/畜舎管理:
+  :日常管理:
+  :給餌/防疫:
+}
+
+rectangle "収穫/出荷" as harvest {
+  :収穫・搬出:
+  :仕分け・検品:
+  :配送手配:
+}
+
+rectangle "品質管理" as quality {
+  :検査基準設定:
+  :出荷検査:
+  :不良品対応:
+}
+
+rectangle "販売" as sales {
+  :顧客開拓:
+  :受注・出荷指示:
+  :顧客管理:
+}
+
+rectangle "経理" as accounting {
+  :売上管理:
+  :仕入原価管理:
+  :経費管理:
+}
+
+rectangle "総務" as general {
+  :施設管理:
+  :人事労務:
+  :コンプライアンス:
+}
+
+' 連携の定義
+prod_mgmt --> cultivation : 栽培計画・飼育計画
+prod_mgmt --> harvest : 出荷予定
+prod_mgmt --> accounting : 生産実績
+
+cultivation --> prod_mgmt : 進捗報告
+cultivation --> harvest : 収穫・搬出準備
+cultivation --> quality : 製品提出
+
+harvest --> quality : 検査依頼
+harvest --> sales : 出荷・配送
+harvest --> prod_mgmt : 実績報告
+
+quality --> harvest : 検査結果
+quality --> accounting : 規格外数量
+quality --> sales : 品質データ
+
+sales --> accounting : 売上情報
+sales --> harvest : 出荷指示・受注
+sales --> prod_mgmt : 受注情報
+
+accounting --> prod_mgmt : 予算・コスト
+accounting --> general : 給与・経費
+
+general --> cultivation : 施設・設備管理
+general --> prod_mgmt : 人事情報
+general --> accounting : 労務データ
+
+@enduml

@@ -1,0 +1,181 @@
+{
+  "timestamp": "2025-11-15T20:07:46+09:00",
+  "projects": [
+  {
+    "project_id": "miyabi-webui",
+    "project_name": "miyaui weuui",
+    "status": "active",
+    "created_at": "2025-11-15T19:47:43+09:00",
+    "owner": "orchestrator",
+    "tasks": [],
+    "metrics": {
+      "total_tasks": 0,
+      "completed_tasks": 0,
+      "failed_tasks": 0,
+      "success_rate": 0.0
+    }
+  }
+],
+  "tasks": [
+  {
+    "progress_id": "task-agent_execution-1763203664",
+    "task_id": "task-agent_execution-1763203664",
+    "task_type": "agent_execution",
+    "status": "completed",
+    "progress": {
+      "current": 0,
+      "total": 0,
+      "percentage": 0
+    },
+    "updated_at": "2025-11-15T19:47:44+09:00",
+    "details": {
+      "phase": "Initializing",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/uiux-agent-review-20251115-193649.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-agent_execution-1763203842",
+    "task_id": "task-agent_execution-1763203842",
+    "task_type": "agent_execution",
+    "status": "completed",
+    "progress": {
+      "current": 0,
+      "total": 0,
+      "percentage": 0
+    },
+    "updated_at": "2025-11-15T19:50:42+09:00",
+    "details": {
+      "phase": "Initializing",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/uiux-agent-review-20251115-193649.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-agent_execution-1763204866",
+    "task_id": "task-agent_execution-1763204866",
+    "task_type": "agent_execution",
+    "status": "completed",
+    "progress": {
+      "current": 0,
+      "total": 0,
+      "percentage": 0
+    },
+    "updated_at": "2025-11-15T20:07:46+09:00",
+    "details": {
+      "phase": "Initializing",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/uiux-agent-review-20251115-193649.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-cdk_deploy-1763203664",
+    "task_id": "task-cdk_deploy-1763203664",
+    "task_type": "cdk_deploy",
+    "status": "pending",
+    "progress": {
+      "current": 0,
+      "total": 0,
+      "percentage": 0
+    },
+    "updated_at": "2025-11-15T19:47:44+09:00",
+    "details": {
+      "phase": "Initializing",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/cdk-redeploy.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-cdk_deploy-1763203841",
+    "task_id": "task-cdk_deploy-1763203841",
+    "task_type": "cdk_deploy",
+    "status": "completed",
+    "progress": {
+      "current": 29,
+      "total": 29,
+      "percentage": 100
+    },
+    "updated_at": "2025-11-15T19:50:41+09:00",
+    "details": {
+      "phase": "PM | CREATE_IN_PROGRESS",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/cdk-deploy-learn-fixed.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-cdk_deploy-1763203842",
+    "task_id": "task-cdk_deploy-1763203842",
+    "task_type": "cdk_deploy",
+    "status": "pending",
+    "progress": {
+      "current": 0,
+      "total": 0,
+      "percentage": 0
+    },
+    "updated_at": "2025-11-15T19:50:42+09:00",
+    "details": {
+      "phase": "Initializing",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/cdk-redeploy.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-cdk_deploy-1763204866",
+    "task_id": "task-cdk_deploy-1763204866",
+    "task_type": "cdk_deploy",
+    "status": "pending",
+    "progress": {
+      "current": 0,
+      "total": 0,
+      "percentage": 0
+    },
+    "updated_at": "2025-11-15T20:07:46+09:00",
+    "details": {
+      "phase": "Initializing",
+      "log_file": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/.claude/logs/cdk-redeploy.log"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  },
+  {
+    "progress_id": "task-webui-server",
+    "task_id": "task-webui-server",
+    "task_type": "webui_server",
+    "status": "running",
+    "progress": {
+      "current": 1,
+      "total": 1,
+      "percentage": 100
+    },
+    "updated_at": "2025-11-15T20:07:46+09:00",
+    "details": {
+      "phase": "Server Running",
+      "url": "http://localhost:3000"
+    },
+    "metadata": {
+      "project_id": "miyabi-webui",
+      "agent": "orchestrator"
+    }
+  }
+]
+}

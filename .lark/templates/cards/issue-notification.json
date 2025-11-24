@@ -1,0 +1,91 @@
+{
+  "type": "template",
+  "data": {
+    "type": "template",
+    "data": {
+      "template_id": "AAqkXYLJZehus",
+      "template_variable": {
+        "issue_number": "${issue.number}",
+        "issue_title": "${issue.title}",
+        "issue_url": "${issue.html_url}",
+        "issue_author": "${issue.user.login}",
+        "issue_created_at": "${issue.created_at}",
+        "issue_labels": "${issue.labels}",
+        "issue_priority": "${issue.priority}",
+        "issue_body": "${issue.body}"
+      }
+    }
+  },
+  "description": "GitHub Issue作成通知カード",
+  "version": "1.0.0",
+  "fallback_message": {
+    "msg_type": "text",
+    "content": {
+      "text": "🆕 新しいIssueが作成されました\n\n📋 #${issue.number}: ${issue.title}\n👤 作成者: ${issue.user.login}\n🏷️ ラベル: ${issue.labels}\n🔗 ${issue.html_url}"
+    }
+  },
+  "interactive_card_template": {
+    "config": {
+      "wide_screen_mode": true
+    },
+    "header": {
+      "template": "blue",
+      "title": {
+        "content": "🆕 新しいIssue: #${issue.number}",
+        "tag": "plain_text"
+      }
+    },
+    "elements": [
+      {
+        "tag": "div",
+        "text": {
+          "content": "**${issue.title}**",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "hr"
+      },
+      {
+        "tag": "div",
+        "fields": [
+          {
+            "is_short": true,
+            "text": {
+              "content": "**作成者:**\n${issue.user.login}",
+              "tag": "lark_md"
+            }
+          },
+          {
+            "is_short": true,
+            "text": {
+              "content": "**優先度:**\n${issue.priority}",
+              "tag": "lark_md"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "div",
+        "text": {
+          "content": "**ラベル:** ${issue.labels}",
+          "tag": "lark_md"
+        }
+      },
+      {
+        "tag": "action",
+        "actions": [
+          {
+            "tag": "button",
+            "text": {
+              "content": "GitHubで表示",
+              "tag": "plain_text"
+            },
+            "url": "${issue.html_url}",
+            "type": "primary"
+          }
+        ]
+      }
+    ]
+  }
+}

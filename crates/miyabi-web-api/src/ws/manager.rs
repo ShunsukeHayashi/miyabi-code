@@ -202,6 +202,6 @@ mod tests {
             .await
             .expect("Failed to broadcast");
 
-        assert!(manager.get_subscriber_count("exec-test") >= 0);
+        assert_eq!(manager.get_subscriber_count("exec-test"), 0);
     }
 }

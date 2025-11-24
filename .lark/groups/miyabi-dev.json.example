@@ -1,0 +1,57 @@
+{
+  "group_name": "Miyabi Dev Team",
+  "chat_id": "oc_xxxxxxxxxxxxxxxx",
+  "description": "Miyabi開発チーム - Issue通知・ビルドレポート・Agent状態",
+  "purpose": "development",
+  "created_at": "2025-11-20",
+  "enabled_notifications": {
+    "issues": {
+      "opened": true,
+      "closed": true,
+      "assigned": false,
+      "labeled": false
+    },
+    "pull_requests": {
+      "opened": true,
+      "merged": true,
+      "review_requested": false
+    },
+    "builds": {
+      "completed": true,
+      "failed": true,
+      "success": false
+    },
+    "agents": {
+      "status_report": true,
+      "error_alert": true,
+      "blockers": true
+    }
+  },
+  "schedule": {
+    "daily_standup": {
+      "enabled": true,
+      "time": "09:00",
+      "timezone": "Asia/Tokyo"
+    },
+    "agent_report": {
+      "enabled": true,
+      "interval": "4h"
+    }
+  },
+  "members": [
+    {
+      "open_id": "ou_xxxxxxxx",
+      "name": "開発者1",
+      "role": "admin"
+    }
+  ],
+  "settings": {
+    "language": "ja",
+    "mention_on_error": true,
+    "quiet_hours": {
+      "enabled": false,
+      "start": "22:00",
+      "end": "08:00"
+    }
+  }
+}

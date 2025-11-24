@@ -1,0 +1,32 @@
+{
+  "total": 100,
+  "by_priority": {
+    "🔥 priority:P0-Critical": 7,
+    "priority:P0-Critical": 8,
+    "⚠️ priority:P1-High": 21,
+    "priority:P1-High": 6,
+    "📊 priority:P2-Medium": 11,
+    "priority:P2-Medium": 7,
+    "📝 priority:P3-Low": 3,
+    "priority:P3-Low": 5,
+    "no-priority": 32
+  },
+  "by_type": {
+    "✨ type:feature": 37,
+    "type:feature": 25,
+    "🐛 type:bug": 1,
+    "📚 type:docs": 7,
+    "type:test": 1,
+    "no-type": 29
+  },
+  "by_state": {
+    "CLOSED": 43,
+    "OPEN": 57
+  },
+  "by_phase": {
+    "🏗️ phase:implementation": 21,
+    "no-phase": 73,
+    "🎯 phase:planning": 1,
+    "🎯 phase:foundation": 5
+  }
+}

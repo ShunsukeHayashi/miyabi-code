@@ -4,13 +4,21 @@
 //! Supports Staging (auto-deploy) and Production (approval-required) environments.
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_types::agent::{
     AgentMetrics, AgentType, EscalationInfo, EscalationTarget, ResultStatus, Severity,
 };
 use miyabi_types::error::{MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, Task};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::HashMap;
 use std::path::Path;
 use std::process::Stdio;
@@ -499,6 +507,142 @@ pub struct RollbackResult {
     pub success: bool,
     pub previous_version: String,
     pub duration_ms: u64,
+}
+
+#[async_trait]
+impl A2AEnabled for DeploymentAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("DeploymentAgent", "CI/CD deployment automation agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "deploy".to_string(),
+                name: "Deploy Application".to_string(),
+                description: "Build, test, deploy, and health check application".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "environment": { "type": "string", "enum": ["staging", "production"] },
+                        "health_url": { "type": "string", "description": "Health check endpoint URL" }
+                    },
+                    "required": ["environment"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "environment": { "type": "string" },
+                        "build": { "type": "object" },
+                        "tests": { "type": "object" },
+                        "deployment": { "type": "object" },
+                        "health_check": { "type": "object" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "health_check".to_string(),
+                name: "Health Check".to_string(),
+                description: "Perform health check on deployed application".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "url": { "type": "string" },
+                        "retries": { "type": "integer", "default": 5 }
+                    },
+                    "required": ["url"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "success": { "type": "boolean" },
+                        "attempts": { "type": "integer" },
+                        "status_code": { "type": "integer" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "rollback".to_string(),
+                name: "Rollback Deployment".to_string(),
+                description: "Rollback to previous version".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "environment": { "type": "string", "enum": ["staging", "production"] }
+                    },
+                    "required": ["environment"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "success": { "type": "boolean" },
+                        "previous_version": { "type": "string" },
+                        "duration_ms": { "type": "integer" }
+                    }
+                })),
+            })
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "health_check" => {
+                let url = task.input.get("url")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing url".to_string()))?;
+
+                let retries = task.input.get("retries")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(5) as u32;
+
+                let result = self.health_check(url, retries).await.map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Health check failed: {}", e))
+                })?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(&result).unwrap_or_default(),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "rollback" => {
+                let environment_str = task.input.get("environment")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("staging");
+
+                let environment = match environment_str {
+                    "production" => Environment::Production,
+                    _ => Environment::Staging,
+                };
+
+                let project_path = std::env::current_dir().map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Failed to get cwd: {}", e))
+                })?;
+
+                let result = self.rollback(environment, &project_path).await.map_err(|e| {
+                    A2AIntegrationError::TaskExecutionFailed(format!("Rollback failed: {}", e))
+                })?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(&result).unwrap_or_default(),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "deploy" => {
+                // Full deploy would use execute() which handles all phases
+                Err(A2AIntegrationError::TaskExecutionFailed(
+                    "Full deploy should use execute() method via standard agent interface".to_string()
+                ))
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(
+                format!("Unknown capability: {}", task.capability)
+            ))
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::FullAccess // Needs command execution and Firebase CLI
+    }
 }
 
 #[cfg(test)]

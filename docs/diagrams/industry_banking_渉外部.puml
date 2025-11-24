@@ -1,0 +1,19 @@
+@startuml industry_banking_渉外部
+!theme cerulean
+title 金融・銀行業 - 渉外部 業務フロー
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+swimlane 渉外営業担当 #E5FFE5
+swimlane 顧客関係係 #CCFFCC
+swimlane 事業承継係 #B3FFB3
+swimlane 渉外管理者 #99FF99
+start
+:経営支援営業活動;
+:顧客企業訪問準備\n・資料準備\n・事前情報収集;
+:【渉外営業担当】\n▶ 企業訪問\n▶ 経営層との面談\n▶ 企業分析・評価;
+:【顧客関係係】\n▶ 企業情報整理\n▶ 経営課題抽出\n▶ ニーズ確認;
+:【渉外管理者】\n▶ 案件進捗管理\n▶ 対応品質確認\n▶ 顧客満足度評価;
+:四半期・年間レポート;
+end
+@enduml

@@ -13,16 +13,16 @@ categories.workspace = true
 
 [dependencies]
 # Merged from miyabi-scheduler + miyabi-feedback-loop
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-agent-codegen = { path = "../miyabi-agent-codegen" }
-miyabi-agent-core = { path = "../miyabi-agent-core" }
-miyabi-agent-review = { path = "../miyabi-agent-review" }
-miyabi-agent-issue = { path = "../miyabi-agent-issue" }
-miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator" }
-miyabi-worktree = { path = "../miyabi-worktree" }
-miyabi-github = { path = "../miyabi-github" }
-miyabi-session-manager = { path = "../miyabi-session-manager" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-agent-codegen = { path = "../miyabi-agent-codegen", version = "0.1.2" }
+miyabi-agent-core = { path = "../miyabi-agent-core", version = "0.1.2" }
+miyabi-agent-review = { path = "../miyabi-agent-review", version = "0.1.2" }
+miyabi-agent-issue = { path = "../miyabi-agent-issue", version = "0.1.2" }
+miyabi-agent-coordinator = { path = "../miyabi-agent-coordinator", version = "0.1.2" }
+miyabi-worktree = { path = "../miyabi-worktree", version = "0.1.2" }
+miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
+miyabi-session-manager = { path = "../miyabi-session-manager", version = "0.1.2" }
 
 # Core dependencies
 thiserror.workspace = true
@@ -38,6 +38,7 @@ serde_json.workspace = true
 
 # Date/Time
 chrono.workspace = true
+reqwest = { version = "0.12", features = ["json"] }
 
 # Logging
 tracing.workspace = true

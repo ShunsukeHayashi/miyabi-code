@@ -1,539 +1,174 @@
-use anyhow::Result;
-use crossterm::{
-    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    ExecutableCommand,
-};
-use ratatui::{
-    backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
-    style::{Color, Style},
-    text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
-    Frame, Terminal,
-};
-use std::io::stdout;
-use std::sync::Arc;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
-use tracing::{debug, info};
+//! Application state and main loop
 
-// LLM Integration
-use futures::{stream::BoxStream, StreamExt};
-use miyabi_llm::{AnthropicClient, LlmError, Message as LlmMessage, OpenAIClient, Role as LlmRole};
+use crate::event::{Event, EventHandler};
+use crate::ui;
+use crate::views::{AgentDashboard, A2ABridgeView, ChatView, MonitorView};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::prelude::*;
+use std::time::Duration;
 
-/// LLM Provider wrapper for both OpenAI and Anthropic
-enum LlmProvider {
-    OpenAI(Arc<OpenAIClient>),
-    Anthropic(Arc<AnthropicClient>),
+/// Active tab in the TUI
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Tab {
+    Dashboard,
+    A2ABridge,
+    Chat,
+    Monitor,
 }
 
-impl LlmProvider {
-    /// Initialize from environment variables
-    /// Priority: OPENAI_API_KEY > ANTHROPIC_API_KEY
-    fn from_env() -> Option<Self> {
-        // Try OpenAI first
-        if let Ok(client) = OpenAIClient::from_env() {
-            info!("Initialized OpenAI client (gpt-4o)");
-            return Some(LlmProvider::OpenAI(Arc::new(client)));
-        }
-
-        // Fallback to Anthropic
-        if let Ok(client) = AnthropicClient::from_env() {
-            info!("Initialized Anthropic client (claude-3-5-sonnet-20241022)");
-            return Some(LlmProvider::Anthropic(Arc::new(client)));
-        }
-
-        None
-    }
-
-    /// Get streaming chat completion
-    async fn chat_stream(
-        &self,
-        messages: Vec<LlmMessage>,
-    ) -> Result<BoxStream<'static, Result<String, LlmError>>, LlmError> {
+impl Tab {
+    pub fn title(&self) -> &'static str {
         match self {
-            LlmProvider::OpenAI(client) => {
-                let stream = client.chat_stream(messages).await?;
-                Ok(Box::pin(stream))
-            }
-            LlmProvider::Anthropic(client) => {
-                let stream = client.chat_stream(messages).await?;
-                Ok(Box::pin(stream))
-            }
+            Tab::Dashboard => "Dashboard",
+            Tab::A2ABridge => "A2A Bridge",
+            Tab::Chat => "LLM Chat",
+            Tab::Monitor => "Monitor",
         }
     }
 
-    /// Get provider name for display
-    fn name(&self) -> &str {
+    pub fn all() -> &'static [Tab] {
+        &[Tab::Dashboard, Tab::A2ABridge, Tab::Chat, Tab::Monitor]
+    }
+
+    pub fn next(&self) -> Tab {
         match self {
-            LlmProvider::OpenAI(_) => "OpenAI (GPT-4o)",
-            LlmProvider::Anthropic(_) => "Anthropic (Claude 3.5 Sonnet)",
+            Tab::Dashboard => Tab::A2ABridge,
+            Tab::A2ABridge => Tab::Chat,
+            Tab::Chat => Tab::Monitor,
+            Tab::Monitor => Tab::Dashboard,
+        }
+    }
+
+    pub fn prev(&self) -> Tab {
+        match self {
+            Tab::Dashboard => Tab::Monitor,
+            Tab::A2ABridge => Tab::Dashboard,
+            Tab::Chat => Tab::A2ABridge,
+            Tab::Monitor => Tab::Chat,
         }
     }
 }
 
-/// Main TUI application
+/// Main application state
 pub struct App {
-    /// Message history
-    messages: Vec<Message>,
-
-    /// Current input buffer
-    input: String,
-
-    /// Cursor position in input
-    cursor_position: usize,
-
-    /// Scroll offset for message list
-    #[allow(dead_code)]
-    scroll_offset: u16,
-
-    /// Application state
-    state: AppState,
-
-    /// Should quit flag
-    should_quit: bool,
-
-    /// Event sender
-    event_tx: UnboundedSender<AppEvent>,
-
-    /// Event receiver
-    event_rx: UnboundedReceiver<AppEvent>,
-
-    /// LLM provider (OpenAI or Anthropic)
-    llm_provider: Option<LlmProvider>,
-}
-
-/// Application state
-#[derive(Debug, Clone, PartialEq)]
-pub enum AppState {
-    /// Idle, waiting for input
-    Idle,
-    /// Processing user message
-    Processing,
-    /// Streaming assistant response
-    Streaming,
-    /// Waiting for user approval
-    WaitingForApproval,
-    /// Executing tool
-    ExecutingTool,
-}
-
-/// Message in conversation history
-#[derive(Debug, Clone)]
-pub struct Message {
-    /// Message role
-    pub role: MessageRole,
-    /// Message content
-    pub content: String,
-    /// Timestamp
-    pub timestamp: std::time::SystemTime,
-}
-
-/// Message role
-#[derive(Debug, Clone, PartialEq)]
-pub enum MessageRole {
-    /// User message
-    User,
-    /// Assistant message
-    Assistant,
-    /// System message
-    System,
-    /// Tool call
-    ToolCall,
-    /// Tool result
-    ToolResult,
-}
-
-/// Application events
-#[derive(Debug, Clone)]
-pub enum AppEvent {
-    /// Quit application
-    Quit,
-    /// Submit current input
-    Submit,
-    /// Assistant response chunk
-    AssistantChunk(String),
-    /// Assistant response complete
-    AssistantComplete(String),
-    /// State change
-    StateChange(AppState),
-    /// Error occurred
-    Error(String),
-    /// Tool execution started
-    ToolStart(String),
-    /// Tool execution completed
-    ToolComplete(String),
+    /// Current active tab
+    pub active_tab: Tab,
+    /// Should quit the application
+    pub should_quit: bool,
+    /// Dashboard view state
+    pub dashboard: AgentDashboard,
+    /// A2A Bridge view state
+    pub a2a_bridge: A2ABridgeView,
+    /// Chat view state
+    pub chat: ChatView,
+    /// Monitor view state
+    pub monitor: MonitorView,
+    /// Status message
+    pub status: String,
 }
 
 impl App {
-    /// Create new TUI application
     pub fn new() -> Self {
-        let (event_tx, event_rx) = unbounded_channel();
-
-        // Try to initialize LLM provider (OpenAI or Anthropic)
-        let llm_provider = LlmProvider::from_env();
-
-        if let Some(ref provider) = llm_provider {
-            info!("LLM provider initialized: {}", provider.name());
-        } else {
-            info!("No LLM provider available. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.");
-        }
-
         Self {
-            messages: vec![Message {
-                role: MessageRole::System,
-                content: "Welcome to Miyabi TUI! Type a message and press Enter.".to_string(),
-                timestamp: std::time::SystemTime::now(),
-            }],
-            input: String::new(),
-            cursor_position: 0,
-            scroll_offset: 0,
-            state: AppState::Idle,
+            active_tab: Tab::Dashboard,
             should_quit: false,
-            event_tx,
-            event_rx,
-            llm_provider,
+            dashboard: AgentDashboard::new(),
+            a2a_bridge: A2ABridgeView::new(),
+            chat: ChatView::new(),
+            monitor: MonitorView::new(),
+            status: "Welcome to Miyabi TUI! Press ? for help.".to_string(),
         }
     }
 
-    /// Run the TUI application
-    pub async fn run(&mut self) -> Result<()> {
-        info!("Starting Miyabi TUI");
+    /// Main application loop
+    pub async fn run<B: Backend>(&mut self, terminal: &mut Terminal<B>) -> Result<(), Box<dyn std::error::Error>> {
+        let mut event_handler = EventHandler::new(Duration::from_millis(100));
 
-        // Initialize terminal
-        enable_raw_mode()?;
-        stdout().execute(EnterAlternateScreen)?;
+        loop {
+            // Draw UI
+            terminal.draw(|f| ui::draw(f, self))?;
 
-        let backend = CrosstermBackend::new(stdout());
-        let mut terminal = Terminal::new(backend)?;
-        terminal.clear()?;
-
-        // Main event loop
-        while !self.should_quit {
-            // Render frame
-            terminal.draw(|frame| self.render(frame))?;
-
-            // Use tokio::select! to handle both terminal and app events
-            tokio::select! {
-                // Terminal events (keyboard input)
-                result = Self::poll_terminal_event() => {
-                    if let Some(event) = result? {
-                        self.handle_key_event(event).await?;
-                    }
+            // Handle events
+            match event_handler.next().await? {
+                Event::Tick => {
+                    self.on_tick().await;
                 }
-                // App events (LLM responses, state changes)
-                Some(app_event) = self.event_rx.recv() => {
-                    self.handle_app_event(app_event).await?;
+                Event::Key(key) => {
+                    self.on_key(key).await;
                 }
+                Event::Mouse(_) => {}
+                Event::Resize(_, _) => {}
+            }
+
+            if self.should_quit {
+                break;
             }
         }
 
-        // Cleanup
-        disable_raw_mode()?;
-        stdout().execute(LeaveAlternateScreen)?;
-
-        info!("Miyabi TUI shutdown complete");
         Ok(())
     }
 
-    /// Render the TUI
-    fn render(&self, frame: &mut Frame) {
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length(3), // Header
-                Constraint::Min(0),    // Messages
-                Constraint::Length(3), // Input
-            ])
-            .split(frame.area());
-
-        // Header
-        let header = Paragraph::new("Miyabi TUI - Codex Architecture")
-            .block(Block::default().borders(Borders::ALL))
-            .style(Style::default().fg(Color::Cyan));
-        frame.render_widget(header, chunks[0]);
-
-        // Messages
-        let items: Vec<ListItem> = self
-            .messages
-            .iter()
-            .map(|msg| {
-                let (prefix, color) = match msg.role {
-                    MessageRole::User => ("You: ", Color::Green),
-                    MessageRole::Assistant => ("Miyabi: ", Color::Blue),
-                    MessageRole::System => ("System: ", Color::Yellow),
-                    MessageRole::ToolCall => ("Tool: ", Color::Magenta),
-                    MessageRole::ToolResult => ("Result: ", Color::Cyan),
-                };
-
-                let line = Line::from(vec![
-                    Span::styled(prefix, Style::default().fg(color)),
-                    Span::raw(&msg.content),
-                ]);
-
-                ListItem::new(line)
-            })
-            .collect();
-
-        let list = List::new(items).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(format!("Messages ({})", self.state_string())),
-        );
-        frame.render_widget(list, chunks[1]);
-
-        // Input
-        let input = Paragraph::new(self.input.as_str()).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Input (Ctrl+C to quit, Enter to send)"),
-        );
-        frame.render_widget(input, chunks[2]);
-
-        // Cursor
-        frame.set_cursor_position((
-            chunks[2].x + self.cursor_position as u16 + 1,
-            chunks[2].y + 1,
-        ));
+    /// Handle tick event (update state)
+    async fn on_tick(&mut self) {
+        self.monitor.update();
+        self.dashboard.update();
     }
 
-    /// Get state string for display
-    fn state_string(&self) -> String {
-        match self.state {
-            AppState::Idle => "Idle",
-            AppState::Processing => "Processing...",
-            AppState::Streaming => "Streaming...",
-            AppState::WaitingForApproval => "Waiting for approval",
-            AppState::ExecutingTool => "Executing tool...",
-        }
-        .to_string()
-    }
-
-    /// Poll for terminal events (non-blocking)
-    async fn poll_terminal_event() -> Result<Option<KeyEvent>> {
-        if event::poll(std::time::Duration::from_millis(100))? {
-            if let Event::Key(key) = event::read()? {
-                return Ok(Some(key));
-            }
-        }
-        Ok(None)
-    }
-
-    /// Handle keyboard events
-    async fn handle_key_event(&mut self, key: KeyEvent) -> Result<()> {
-        // Ctrl+C to quit
-        if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
-            debug!("Quit requested");
-            self.should_quit = true;
-            return Ok(());
-        }
-
+    /// Handle key event
+    async fn on_key(&mut self, key: KeyEvent) {
+        // Global keys
         match key.code {
-            KeyCode::Enter => {
-                debug!("Submit requested");
-                self.submit_message();
+            KeyCode::Char('q') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.should_quit = true;
+                return;
             }
-            KeyCode::Char(c) => {
-                self.input.insert(self.cursor_position, c);
-                self.cursor_position += 1;
+            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.should_quit = true;
+                return;
             }
-            KeyCode::Backspace => {
-                if self.cursor_position > 0 {
-                    self.input.remove(self.cursor_position - 1);
-                    self.cursor_position -= 1;
-                }
+            KeyCode::Tab => {
+                self.active_tab = self.active_tab.next();
+                return;
             }
-            KeyCode::Left => {
-                if self.cursor_position > 0 {
-                    self.cursor_position -= 1;
-                }
+            KeyCode::BackTab => {
+                self.active_tab = self.active_tab.prev();
+                return;
             }
-            KeyCode::Right => {
-                if self.cursor_position < self.input.len() {
-                    self.cursor_position += 1;
-                }
+            KeyCode::Char('1') => {
+                self.active_tab = Tab::Dashboard;
+                return;
             }
-            KeyCode::Home => {
-                self.cursor_position = 0;
+            KeyCode::Char('2') => {
+                self.active_tab = Tab::A2ABridge;
+                return;
             }
-            KeyCode::End => {
-                self.cursor_position = self.input.len();
+            KeyCode::Char('3') => {
+                self.active_tab = Tab::Chat;
+                return;
+            }
+            KeyCode::Char('4') => {
+                self.active_tab = Tab::Monitor;
+                return;
             }
             _ => {}
         }
 
-        Ok(())
-    }
-
-    /// Submit current input as message
-    fn submit_message(&mut self) {
-        if self.input.is_empty() {
-            return;
-        }
-
-        debug!("Submitting message: {}", self.input);
-
-        // Add user message
-        let user_msg = Message {
-            role: MessageRole::User,
-            content: self.input.clone(),
-            timestamp: std::time::SystemTime::now(),
-        };
-        self.messages.push(user_msg.clone());
-
-        // Clear input
-        let input_text = std::mem::take(&mut self.input);
-        self.cursor_position = 0;
-
-        debug!("Message submitted: {}", input_text);
-
-        // Send to LLM (async background task)
-        if let Some(ref provider) = self.llm_provider {
-            self.send_to_llm(provider, input_text);
-        } else {
-            // No LLM provider available - show error
-            let _ = self.event_tx.send(AppEvent::Error(
-                "LLM provider not initialized. Set OPENAI_API_KEY or ANTHROPIC_API_KEY."
-                    .to_string(),
-            ));
-        }
-    }
-
-    /// Send message to LLM and stream responses
-    fn send_to_llm(&self, provider: &LlmProvider, _user_input: String) {
-        let event_tx = self.event_tx.clone();
-        let messages = self.messages.clone();
-        let provider = match provider {
-            LlmProvider::OpenAI(client) => LlmProvider::OpenAI(Arc::clone(client)),
-            LlmProvider::Anthropic(client) => LlmProvider::Anthropic(Arc::clone(client)),
-        };
-
-        // Spawn background task for LLM API call
-        tokio::spawn(async move {
-            // Change state to Streaming
-            let _ = event_tx.send(AppEvent::StateChange(AppState::Streaming));
-
-            // Convert messages to LLM format
-            let llm_messages: Vec<LlmMessage> = messages
-                .iter()
-                .filter(|m| m.role == MessageRole::User || m.role == MessageRole::Assistant)
-                .map(|m| LlmMessage {
-                    role: match m.role {
-                        MessageRole::User => LlmRole::User,
-                        MessageRole::Assistant => LlmRole::Assistant,
-                        _ => LlmRole::User, // Fallback
-                    },
-                    content: m.content.clone(),
-                })
-                .collect();
-
-            // Call LLM with streaming
-            match provider.chat_stream(llm_messages).await {
-                Ok(mut stream) => {
-                    // Stream chunks as they arrive
-                    while let Some(chunk_result) = stream.next().await {
-                        match chunk_result {
-                            Ok(text) => {
-                                let _ = event_tx.send(AppEvent::AssistantChunk(text));
-                            }
-                            Err(e) => {
-                                let _ =
-                                    event_tx.send(AppEvent::Error(format!("Stream error: {}", e)));
-                                break;
-                            }
-                        }
-                    }
-
-                    // Stream complete, return to idle
-                    let _ = event_tx.send(AppEvent::StateChange(AppState::Idle));
-                }
-                Err(e) => {
-                    let _ = event_tx.send(AppEvent::Error(format!("Stream start failed: {}", e)));
+        // Tab-specific keys
+        match self.active_tab {
+            Tab::Dashboard => self.dashboard.on_key(key),
+            Tab::A2ABridge => {
+                // on_key returns true if we should execute tool
+                if self.a2a_bridge.on_key(key) {
+                    self.a2a_bridge.execute_tool().await;
                 }
             }
-        });
-    }
-
-    /// Handle application events
-    async fn handle_app_event(&mut self, event: AppEvent) -> Result<()> {
-        match event {
-            AppEvent::Quit => {
-                debug!("Quit event received");
-                self.should_quit = true;
-            }
-            AppEvent::Submit => {
-                self.submit_message();
-            }
-            AppEvent::AssistantChunk(chunk) => {
-                debug!("Assistant chunk: {}", chunk);
-                self.state = AppState::Streaming;
-                // Append to last assistant message or create new one
-                if let Some(last) = self.messages.last_mut() {
-                    if last.role == MessageRole::Assistant {
-                        last.content.push_str(&chunk);
-                        return Ok(());
-                    }
+            Tab::Chat => {
+                // on_key returns true if we should send message
+                if self.chat.on_key(key) {
+                    self.chat.send_message().await;
                 }
-                // Create new assistant message
-                self.messages.push(Message {
-                    role: MessageRole::Assistant,
-                    content: chunk,
-                    timestamp: std::time::SystemTime::now(),
-                });
             }
-            AppEvent::ToolStart(tool_name) => {
-                debug!("Tool start: {}", tool_name);
-                self.state = AppState::ExecutingTool;
-                self.messages.push(Message {
-                    role: MessageRole::ToolCall,
-                    content: format!("Executing: {}", tool_name),
-                    timestamp: std::time::SystemTime::now(),
-                });
-            }
-            AppEvent::ToolComplete(result) => {
-                debug!("Tool complete: {}", result);
-                self.state = AppState::Idle;
-                self.messages.push(Message {
-                    role: MessageRole::ToolResult,
-                    content: result,
-                    timestamp: std::time::SystemTime::now(),
-                });
-            }
-            AppEvent::AssistantComplete(response) => {
-                debug!("Assistant response complete: {} chars", response.len());
-                self.state = AppState::Idle;
-                self.messages.push(Message {
-                    role: MessageRole::Assistant,
-                    content: response,
-                    timestamp: std::time::SystemTime::now(),
-                });
-            }
-            AppEvent::StateChange(new_state) => {
-                debug!("State change: {:?}", new_state);
-                self.state = new_state;
-            }
-            AppEvent::Error(error) => {
-                debug!("Error occurred: {}", error);
-                self.state = AppState::Idle;
-                self.messages.push(Message {
-                    role: MessageRole::System,
-                    content: format!("Error: {}", error),
-                    timestamp: std::time::SystemTime::now(),
-                });
-            }
+            Tab::Monitor => self.monitor.on_key(key),
         }
-
-        Ok(())
-    }
-
-    /// Get event sender
-    pub fn event_sender(&self) -> UnboundedSender<AppEvent> {
-        self.event_tx.clone()
-    }
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self::new()
     }
 }

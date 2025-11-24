@@ -449,6 +449,80 @@ am start -n md.obsidian/.MainActivity
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+A2A Bridgeを使用してRust AgentをMCP経由で呼び出すことができます。
+
+### 概要
+
+- **21個のAgent**がA2A Bridgeで利用可能
+- **Coding Agents (7個)**: CoordinatorAgent, CodeGenAgent, ReviewAgent, IssueAgent, PRAgent, DeploymentAgent, RefresherAgent
+- **Business Agents (14個)**: AIEntrepreneurAgent, SelfAnalysisAgent, MarketResearchAgent, PersonaAgent, ProductConceptAgent, ProductDesignAgent, ContentCreationAgent, FunnelDesignAgent, SNSStrategyAgent, MarketingAgent, SalesAgent, CRMAgent, AnalyticsAgent, YouTubeAgent
+
+### ツール命名規則
+
+```
+a2a.<agent_description>.<capability>
+```
+
+**例**:
+- `a2a.code_generation_agent.generate_code`
+- `a2a.task_coordination_and_parallel_execution_agent.orchestrate_agents`
+- `a2a.market_research_and_competitive_analysis_agent.analyze_competitors`
+
+### MCP JSON-RPC呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.code_generation_agent.generate_code",
+    "input": {
+      "issue_number": 123,
+      "context": "Fix authentication bug"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// ツール実行
+let result = bridge.execute_tool(
+    "a2a.code_generation_agent.generate_code",
+    json!({
+        "issue_number": 123,
+        "language": "rust"
+    })
+).await?;
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで`subagent_type`を指定:
+```
+- description: "コード生成"
+- prompt: "Issue #123のバグを修正"
+- subagent_type: "CodeGenAgent"
+```
+
+### 詳細ドキュメント
+
+- `.claude/agents/RUST_TOOL_USE_GUIDE.md` - 完全ガイド
+- `.claude/agents/agent-name-mapping.json` - Agent名とツール名の対応
+
+---
+
 ## 📚 詳細ドキュメント
 
 各トピックの詳細は以下を参照:
@@ -551,6 +625,6 @@ Issue作成 → コード実装 → PR作成 → デプロイ を完全自動化
 
 ---
 
-**最終更新**: 2025-11-19
+**最終更新**: 2025-11-22
 **次回レビュー**: 機能追加時または環境変更時
 **メンテナー**: Claude Code on Pixel

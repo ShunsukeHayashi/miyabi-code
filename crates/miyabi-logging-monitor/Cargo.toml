@@ -2,6 +2,7 @@
 name = "miyabi-logging-monitor"
 version = "0.1.0"
 edition = "2021"
+publish = false
 description = "Logging and monitoring system for Miyabi video generation pipeline"
 
 [dependencies]

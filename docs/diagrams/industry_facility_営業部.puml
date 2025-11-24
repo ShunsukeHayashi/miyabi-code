@@ -1,0 +1,64 @@
+@startuml industry_facility_営業部
+!theme cerulean-outline
+
+title 設備工事業 営業部 業務フロー
+
+skinparam swimlaneWidth 250
+skinparam swimlaneHeight 80
+
+swimlane 営業担当者 {
+  start
+  :顧客リスト確認;
+  -> 電話/訪問;
+  -> ニーズヒアリング;
+  if (新規案件?) then (はい)
+    -> 案件情報登録;
+  else (いいえ)
+    -> 既存客とのフォロー;
+  endif
+  -> 見積条件確認;
+  :見積作成依頼;
+}
+
+swimlane 営業事務 {
+  :見積依頼受領;
+  -> 顧客情報確認;
+  -> 数量/仕様確認;
+  :見積作成管理;
+}
+
+swimlane 経理部 {
+  :原価情報確認;
+  -> 利益率計算;
+  -> 見積金額決定;
+  :見積完成;
+}
+
+swimlane 営業担当者（続き） {
+  :見積資料受取;
+  -> 顧客プレゼン;
+  if (受注?) then (はい)
+    -> 契約書作成;
+    -> 契約締結;
+    -> 設計部へ引継;
+  else (いいえ)
+    -> 競合分析;
+    -> 提案改善;
+    -> 再提案;
+    note right
+      失注案件として記録
+      今後の参考資料化
+    end note
+  endif
+  -> 営業報告書作成;
+  :月間実績まとめ;
+}
+
+swimlane 営業管理者 {
+  :営業実績確認;
+  -> 売上目標進捗管理;
+  -> 営業評価;
+  :営業会議開催;
+}
+
+@enduml

@@ -1,0 +1,29 @@
+{
+  "name": "miyabi-console-infrastructure",
+  "version": "1.0.0",
+  "description": "AWS CDK infrastructure for Miyabi Console",
+  "main": "app.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy --profile miyabi-production --require-approval never",
+    "deploy:staging": "cdk deploy MiyabiConsoleStagingStack --profile miyabi-production",
+    "deploy:prod": "cdk deploy MiyabiConsoleProductionStack --profile miyabi-production",
+    "destroy": "cdk destroy --profile miyabi-production",
+    "diff": "cdk diff --profile miyabi-production"
+  },
+  "keywords": ["miyabi", "aws", "cdk", "infrastructure"],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "aws-cdk": "^2.110.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.110.0",
+    "constructs": "^10.3.0"
+  }
+}

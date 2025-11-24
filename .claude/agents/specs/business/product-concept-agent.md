@@ -433,6 +433,68 @@ docs/product/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.product_concept_and_business_model_design_agent.design_concept
+a2a.product_concept_and_business_model_design_agent.create_revenue_model
+a2a.product_concept_and_business_model_design_agent.generate_bmc
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.product_concept_and_business_model_design_agent.design_concept",
+    "input": {
+      "persona_data": "docs/persona/persona-sheet.md",
+      "market_opportunities": "docs/research/market-opportunities.md",
+      "pricing_strategy": "subscription"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// プロダクトコンセプト設計
+let result = bridge.execute_tool(
+    "a2a.product_concept_and_business_model_design_agent.design_concept",
+    json!({
+        "persona_data": "docs/persona/persona-sheet.md",
+        "market_opportunities": "docs/research/market-opportunities.md",
+        "pricing_strategy": "subscription"
+    })
+).await?;
+
+if result.success {
+    println!("Product concept: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "ProductConceptAgent"` を指定:
+```
+prompt: "プロダクトコンセプトとビジネスモデルキャンバスを設計してください"
+subagent_type: "ProductConceptAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **PersonaAgent**: 前フェーズ（Phase 3）

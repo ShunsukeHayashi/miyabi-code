@@ -1,0 +1,124 @@
+@startuml industry_医療クリニック_総務
+!theme cerulean-outline
+
+title 医療・クリニック - 総務部門 業務フロー
+
+|総務|
+start
+
+fork
+  :人事労務管理;
+fork again
+  :設備管理;
+fork again
+  :法令遵守・許認可;
+fork again
+  :渉外対応;
+end fork
+
+' 人事労務管理
+:採用活動;
+if (欠員発生?) then (はい)
+  :求人作成;
+  :採用媒体掲載;
+  :応募者対応;
+  :面接調整;
+  :採否決定;
+  :入職手続;
+else (いいえ)
+endif
+
+:勤怠管理;
+fork
+  :出勤簿確認;
+fork again
+  :シフト作成;
+fork again
+  :有給管理;
+fork again
+  :残業管理;
+end fork
+
+|経理|
+:勤怠データ送付;
+
+|総務|
+:労務管理;
+fork
+  :社会保険手続;
+fork again
+  :雇用保険手続;
+fork again
+  :健康診断手配;
+fork again
+  :研修計画;
+end fork
+
+' 設備管理
+:設備点検;
+note right
+  - 医療機器定期点検
+  - 空調設備
+  - 電気設備
+  - 給排水設備
+end note
+
+if (修繕必要?) then (はい)
+  :業者手配;
+  :見積取得;
+  :修繕実施;
+  :完了確認;
+else (いいえ)
+endif
+
+:備品管理;
+:消耗品発注;
+:清掃管理;
+
+' 法令遵守・許認可
+:各種届出管理;
+note right
+  - 診療所開設届
+  - 保険医療機関届
+  - 麻薬施用者免許
+  - 各種指定申請
+end note
+
+if (届出期限?) then (はい)
+  :届出書類準備;
+  :行政機関提出;
+  :受理確認;
+else (いいえ)
+endif
+
+:医療法遵守確認;
+:個人情報保護;
+:安全管理;
+
+' 渉外対応
+:行政対応;
+fork
+  :保健所立入検査対応;
+fork again
+  :厚生局適時調査対応;
+fork again
+  :消防署立入検査対応;
+end fork
+
+:業者対応;
+:地域連携;
+
+' 緊急対応
+if (災害・緊急事態?) then (はい)
+  :BCP発動;
+  :職員安否確認;
+  :施設被害確認;
+  :診療継続判断;
+else (いいえ)
+endif
+
+:業務終了;
+
+stop
+
+@enduml

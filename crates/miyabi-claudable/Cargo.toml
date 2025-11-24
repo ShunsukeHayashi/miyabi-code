@@ -12,8 +12,8 @@ categories = ["web-programming::http-client", "development-tools"]
 
 [dependencies]
 # Miyabi crates
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
 
 # HTTP client
 reqwest = { version = "0.12", features = ["json"] }

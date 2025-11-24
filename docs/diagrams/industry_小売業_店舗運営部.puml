@@ -1,0 +1,110 @@
+@startuml dept_retail_store
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 店舗運営部 業務フロー
+
+|#LightBlue|店長|
+start
+:開店準備;
+fork
+  :レジ準備;
+fork again
+  :売場点検;
+fork again
+  :スタッフ朝礼;
+end fork
+
+:当日の販売目標確認;
+:販促企画確認;
+
+|#LightCyan|スタッフ|
+:接客販売;
+
+while (営業時間中?) is (継続)
+  :来客対応;
+  if (接客必要?) then (yes)
+    :ニーズヒアリング;
+    :商品提案;
+    if (購入決定?) then (yes)
+      :レジ会計;
+      :ポイント処理;
+      :包装・お渡し;
+    else (no)
+      :検討継続;
+    endif
+  else (no)
+    :売場整理;
+    :補充作業;
+  endif
+endwhile (閉店)
+
+|#LightGreen|売場担当|
+:商品陳列;
+note right
+  ・VMD(ビジュアルマーチャンダイジング)
+  ・POPセッティング
+  ・季節展示
+end note
+
+:品出し作業;
+:前出し作業;
+
+:在庫チェック;
+if (欠品あり?) then (yes)
+  :在庫管理部へ補充依頼;
+else (no)
+endif
+
+if (売れ残り/期限切れ?) then (yes)
+  :値引き処理;
+  :廃棄処理;
+endif
+
+|#LightYellow|レジ担当|
+:レジ業務;
+fork
+  :現金会計;
+fork again
+  :キャッシュレス決済;
+fork again
+  :ポイントカード処理;
+fork again
+  :返品・交換対応;
+end fork
+
+:精算業務;
+:レジ締め作業;
+
+|#LightBlue|店長|
+:売上集計;
+:日報作成;
+note right
+  ・売上実績
+  ・客数/客単価
+  ・特記事項
+end note
+
+:経理部へ売上報告;
+
+:翌日準備;
+fork
+  :発注業務;
+fork again
+  :シフト確認;
+fork again
+  :清掃点検;
+end fork
+
+:閉店作業;
+
+if (クレーム発生?) then (yes)
+  :クレーム対応;
+  :報告書作成;
+  :本部へ報告;
+else (no)
+endif
+
+stop
+
+@enduml

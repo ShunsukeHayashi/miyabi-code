@@ -132,6 +132,66 @@ mod tests {
 }
 ```
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.code_generation_agent.generate_code
+a2a.code_generation_agent.generate_documentation
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.code_generation_agent.generate_code",
+    "input": {
+      "issue_number": 123,
+      "language": "rust",
+      "include_tests": true,
+      "include_docs": true
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// コード生成実行
+let result = bridge.execute_tool(
+    "a2a.code_generation_agent.generate_code",
+    json!({
+        "issue_number": 123,
+        "language": "rust",
+        "include_tests": true
+    })
+).await?;
+
+if result.success {
+    println!("Generated code: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "CodeGenAgent"` を指定:
+```
+prompt: "Issue #123のコードを生成してください"
+subagent_type: "CodeGenAgent"
+```
+
 ## 実行コマンド
 
 ### ローカル実行
@@ -146,6 +206,9 @@ cargo run --bin miyabi-cli -- agent execute --issue 123 --dry-run
 # Release build（最適化済み）
 cargo build --release
 ./target/release/miyabi-cli agent execute --issue 123
+
+# MCP Server経由（Rust高速実行）
+cargo run -p miyabi-mcp-server
 ```
 
 ### GitHub Actions実行

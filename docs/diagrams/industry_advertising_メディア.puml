@@ -1,0 +1,104 @@
+@startuml industry_advertising_メディア
+!theme cerulean-outline
+
+title 広告・マーケティング会社 - メディア部門 業務フロー
+
+|企画|
+|メディアプランナー|
+|メディアバイヤー|
+|運用担当|
+|経理|
+
+|企画|
+start
+:メディア戦略共有;
+
+|メディアプランナー|
+:メディアリサーチ;
+note right
+・媒体特性分析
+・接触率データ
+・CPM/CPC比較
+・競合出稿状況
+end note
+
+:メディアプラン策定;
+note right
+・媒体選定
+・出稿時期
+・予算配分
+・KPI設定
+end note
+
+fork
+  :マス媒体プラン;
+  note right
+  ・TV
+  ・ラジオ
+  ・新聞
+  ・雑誌
+  ・OOH
+  end note
+fork again
+  :デジタル媒体プラン;
+  note right
+  ・リスティング広告
+  ・ディスプレイ広告
+  ・SNS広告
+  ・動画広告
+  end note
+end fork
+
+|メディアバイヤー|
+:媒体社交渉;
+note right
+・枠確保
+・料金交渉
+・特典獲得
+end note
+
+:発注・契約;
+
+|経理|
+:媒体費予算管理;
+
+|メディアバイヤー|
+:出稿スケジュール管理;
+:素材入稿手配;
+
+|運用担当|
+if (デジタル広告?) then (はい)
+  :広告配信設定;
+  note right
+  ・ターゲティング設定
+  ・入札設定
+  ・クリエイティブ設定
+  end note
+
+  :運用最適化;
+  note right
+  ・入札調整
+  ・配信先調整
+  ・クリエイティブ改善
+  end note
+
+  :日次/週次レポート;
+endif
+
+|メディアプランナー|
+:効果測定;
+note right
+・リーチ/フリークエンシー
+・CTR/CVR
+・ROI分析
+・ブランドリフト調査
+end note
+
+:キャンペーンレポート作成;
+
+|経理|
+:媒体費精算;
+
+stop
+
+@enduml

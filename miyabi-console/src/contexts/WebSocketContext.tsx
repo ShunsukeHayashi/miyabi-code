@@ -65,7 +65,7 @@ interface WebSocketContextValue {
 const WebSocketContext = createContext<WebSocketContextValue | null>(null)
 
 // Configuration
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws'
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/api/v1/ws'
 const RECONNECT_DELAY_BASE = 1000
 const MAX_RECONNECT_DELAY = 30000
 const MAX_RECONNECT_ATTEMPTS = 10

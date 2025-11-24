@@ -1,0 +1,66 @@
+@startuml industry_介護福祉_全体連携
+!theme cerulean-outline
+
+title 介護・福祉業界 部署間連携図
+
+' 部署の定義
+rectangle "ケアマネジャー" as caremanager {
+  :ケアプラン作成:
+  :サービス調整:
+  :モニタリング:
+}
+
+rectangle "介護" as care {
+  :身体介護:
+  :生活支援:
+  :レクリエーション:
+}
+
+rectangle "相談員" as counselor {
+  :入所相談:
+  :家族対応:
+  :苦情対応:
+}
+
+rectangle "栄養" as nutrition {
+  :献立作成:
+  :栄養管理:
+  :食事提供:
+}
+
+rectangle "事務" as office {
+  :受付対応:
+  :書類管理:
+  :行政対応:
+}
+
+rectangle "経理" as accounting {
+  :介護報酬請求:
+  :会計処理:
+  :給与計算:
+}
+
+' 連携の定義
+caremanager --> care : ケアプラン
+caremanager --> counselor : 利用者情報
+caremanager --> nutrition : 栄養ケア計画
+
+care --> caremanager : サービス実施報告
+care --> nutrition : 食事摂取状況
+care --> counselor : 利用者状態報告
+
+counselor --> caremanager : 入所・相談情報
+counselor --> office : 契約書類
+counselor --> care : 家族要望
+
+nutrition --> care : 食事提供
+nutrition --> caremanager : 栄養状態報告
+
+office --> counselor : 問い合わせ取次
+office --> accounting : 利用実績
+office --> caremanager : 行政通知
+
+accounting --> office : 請求書
+accounting --> caremanager : 加算情報
+
+@enduml

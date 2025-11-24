@@ -84,7 +84,14 @@ impl BackpressureManager {
         let queue = match self.queues.get(execution_id) {
             Some(q) => q.value().clone(),
             None => {
-                let (tx, _) = mpsc::channel(self.config.max_queue_size);
+                let (tx, mut rx) = mpsc::channel(self.config.max_queue_size);
+
+                tokio::spawn(async move {
+                    while rx.recv().await.is_some() {
+                        // Drop messages when no consumer is attached yet to keep the channel alive
+                    }
+                });
+
                 self.queues.insert(execution_id.to_string(), tx.clone());
                 tx
             }
@@ -129,7 +136,7 @@ impl BackpressureManager {
                 );
 
                 // キューを再作成（最も古いメッセージが削除される）
-                if let Some((_, queue)) = self.queues.remove(execution_id) {
+                if let Some((_, _queue)) = self.queues.remove(execution_id) {
                     let (tx, _) = mpsc::channel(self.config.max_queue_size);
                     self.queues.insert(execution_id.to_string(), tx.clone());
 
@@ -150,7 +157,7 @@ impl BackpressureManager {
                 );
 
                 // キュー再作成で効果的に FIFO 削除を実現
-                if let Some((_, queue)) = self.queues.remove(execution_id) {
+                if let Some((_, _queue)) = self.queues.remove(execution_id) {
                     let (tx, _) = mpsc::channel(self.config.max_queue_size);
                     self.queues.insert(execution_id.to_string(), tx.clone());
 

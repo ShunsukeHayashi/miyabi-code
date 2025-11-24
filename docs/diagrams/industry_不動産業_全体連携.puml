@@ -1,0 +1,60 @@
+@startuml industry_realestate_overview
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 部署間連携図
+
+rectangle "仲介営業部" as brokerage #LightBlue
+rectangle "賃貸管理部" as rental #LightGreen
+rectangle "売買部" as sales #LightPink
+rectangle "管理組合対応部" as association #LightYellow
+rectangle "経理部" as accounting #LightGray
+rectangle "総務部" as general #Lavender
+
+' 仲介営業部からの連携
+brokerage --> rental : 賃貸契約成立\n入居者情報
+brokerage --> sales : 売買案件紹介\n顧客紹介
+brokerage --> accounting : 仲介手数料\n売上報告
+brokerage --> general : 宅建業法対応\n重説作成支援
+
+' 賃貸管理部からの連携
+rental --> brokerage : 空室情報\n募集依頼
+rental --> association : 共用部管理連携\n入居者対応
+rental --> accounting : 管理料収入\nオーナー送金
+rental --> general : 契約書管理\n保険対応
+
+' 売買部からの連携
+sales --> brokerage : 物件情報\n顧客紹介依頼
+sales --> accounting : 売上報告\n決済金管理
+sales --> general : 登記対応\n契約書管理
+
+' 管理組合対応部からの連携
+association --> rental : 修繕計画共有\n管理規約情報
+association --> accounting : 管理費収入\n修繕積立金
+association --> general : 総会運営支援\n法務相談
+
+' 経理部からの連携
+accounting --> brokerage : 手数料計算\n予算管理
+accounting --> rental : オーナー精算\n入金管理
+accounting --> sales : 決済管理\n資金管理
+accounting --> association : 組合会計支援
+accounting --> general : 経費精算
+
+' 総務部からの連携
+general --> brokerage : 宅建士管理\n研修実施
+general --> rental : 法令対応\n保険管理
+general --> sales : 登記手続き支援
+general --> association : 法務支援
+general --> accounting : 固定資産管理
+
+note right of brokerage
+  顧客接点の中心
+  物件と顧客のマッチング
+end note
+
+note bottom of association
+  マンション管理
+  長期修繕計画策定
+end note
+
+@enduml

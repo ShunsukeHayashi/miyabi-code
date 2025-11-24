@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE GUARDIAN HIERARCHY - Autonomous Agent Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #e5e5e5;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(#222 1px, transparent 1px),
+                linear-gradient(90deg, #222 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.2;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Scanline Effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 999;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.9);
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 0.5em;
+            color: #10b981;
+            text-transform: uppercase;
+        }
+
+        .status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #10b981; }
+            50% { opacity: 0.5; box-shadow: 0 0 20px #10b981; }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            z-index: 10;
+            padding: 50px 0;
+        }
+
+        /* Layer Base Style */
+        .layer {
+            position: relative;
+            background: #0a0a0a;
+            border: 2px solid #333;
+            padding: 30px 60px;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+        }
+
+        .layer:hover {
+            transform: scale(1.02);
+        }
+
+        .layer.active {
+            animation: layerPulse 0.5s ease-in-out;
+        }
+
+        @keyframes layerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .layer-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .layer-subtitle {
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            opacity: 0.7;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .layer-desc {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* Guardian Layer */
+        .guardian {
+            border-color: #ff0055;
+            width: 300px;
+        }
+
+        .guardian .layer-title {
+            color: #ff0055;
+        }
+
+        .guardian .layer-subtitle {
+            color: #ff0055;
+        }
+
+        .guardian.active {
+            box-shadow: 0 0 50px rgba(255, 0, 85, 0.6);
+            border-color: #ff0055;
+            background: rgba(255, 0, 85, 0.05);
+        }
+
+        /* Maestro Layer */
+        .maestro {
+            border-color: #ffcc00;
+            width: 450px;
+        }
+
+        .maestro .layer-title {
+            color: #ffcc00;
+        }
+
+        .maestro .layer-subtitle {
+            color: #ffcc00;
+        }
+
+        .maestro.active {
+            box-shadow: 0 0 50px rgba(255, 204, 0, 0.6);
+            border-color: #ffcc00;
+            background: rgba(255, 204, 0, 0.05);
+        }
+
+        /* Swarm Layer */
+        .swarm {
+            border-color: #00ccff;
+            width: 700px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .swarm .layer-title {
+            color: #00ccff;
+        }
+
+        .swarm .layer-subtitle {
+            color: #00ccff;
+        }
+
+        .swarm.active {
+            box-shadow: 0 0 50px rgba(0, 204, 255, 0.6);
+            border-color: #00ccff;
+            background: rgba(0, 204, 255, 0.05);
+        }
+
+        .swarm-counter {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #00ccff;
+            margin-top: 20px;
+            letter-spacing: 0.1em;
+        }
+
+        /* Connection Lines */
+        .connection {
+            width: 3px;
+            height: 80px;
+            background: linear-gradient(180deg, #333, transparent);
+            position: relative;
+        }
+
+        .connection.active {
+            background: linear-gradient(180deg, #10b981, transparent);
+            animation: flowDown 0.8s ease-out;
+        }
+
+        @keyframes flowDown {
+            0% { height: 0; }
+            100% { height: 80px; }
+        }
+
+        .packet {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #10b981;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            box-shadow: 0 0 20px #10b981;
+            display: none;
+        }
+
+        .packet.moving {
+            display: block;
+            animation: moveDown 0.8s ease-out forwards;
+        }
+
+        @keyframes moveDown {
+            0% { top: 0; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Particle Canvas */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Control Button */
+        .controls {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .execute-btn {
+            background: transparent;
+            border: 3px solid #10b981;
+            color: #10b981;
+            padding: 20px 60px;
+            font-size: 1.3rem;
+            font-family: inherit;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        }
+
+        .execute-btn:hover {
+            background: #10b981;
+            color: #0a0a0a;
+            box-shadow: 0 0 30px #10b981;
+        }
+
+        .execute-btn:active {
+            transform: scale(0.95);
+        }
+
+        .execute-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Terminal Log */
+        .terminal {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: 200px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            padding: 15px;
+            font-size: 0.75rem;
+            overflow-y: auto;
+            z-index: 100;
+            font-family: 'Courier New', monospace;
+        }
+
+        .terminal-line {
+            color: #10b981;
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .terminal-line.error {
+            color: #ff0055;
+        }
+
+        .terminal-line.success {
+            color: #00ccff;
+        }
+
+        /* Matrix Background Canvas */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Loading Animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeOut 1s ease-out 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; pointer-events: none; }
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            color: #10b981;
+            animation: loadingPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading">
+    <div class="loading-text">INITIALIZING GUARDIAN PROTOCOL...</div>
+</div>
+
+<!-- Matrix Background -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- Header -->
+<div class="header">
+    <div class="logo">THE GUARDIAN HIERARCHY</div>
+    <div class="status">
+        <div class="status-dot"></div>
+        <span style="font-size: 0.9rem; letter-spacing: 0.2em;">SYSTEM READY</span>
+    </div>
+</div>
+
+<!-- Main Architecture Visualization -->
+<div class="container">
+    <!-- Layer 1: Guardian -->
+    <div class="layer guardian" id="guardian">
+        <div class="layer-title">THE GUARDIAN</div>
+        <div class="layer-subtitle">Level 1: You</div>
+        <div class="layer-desc">Natural language commands via Pixel interface</div>
+    </div>
+
+    <div class="connection" id="conn1">
+        <div class="packet" id="packet1"></div>
+    </div>
+
+    <!-- Layer 2: Maestro -->
+    <div class="layer maestro" id="maestro">
+        <div class="layer-title">THE MAESTRO</div>
+        <div class="layer-subtitle">Level 2: Local Orchestrator</div>
+        <div class="layer-desc">MacBook - translates intent into tactical directives</div>
+    </div>
+
+    <div class="connection" id="conn2">
+        <div class="packet" id="packet2"></div>
+    </div>
+
+    <!-- Layer 3: Swarm -->
+    <div class="layer swarm" id="swarm">
+        <canvas id="particle-canvas"></canvas>
+        <div style="position: relative; z-index: 2;">
+            <div class="layer-title">THE SWARM</div>
+            <div class="layer-subtitle">Level 3: AWS EC2</div>
+            <div class="layer-desc">Full scale infrastructure mobilization</div>
+            <div class="swarm-counter" id="counter">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- Control Button -->
+<div class="controls">
+    <button class="execute-btn" id="execute-btn" onclick="executeCommand()">EXECUTE COMMAND</button>
+</div>
+
+<!-- Terminal Log -->
+<div class="terminal" id="terminal">
+    <div class="terminal-line">> System initialized</div>
+    <div class="terminal-line">> Awaiting command...</div>
+</div>
+
+<script>
+    // Matrix Background Effect
+    const matrixCanvas = document.getElementById('matrix-canvas');
+    const matrixCtx = matrixCanvas.getContext('2d');
+    matrixCanvas.width = window.innerWidth;
+    matrixCanvas.height = window.innerHeight;
+
+    const matrixChars = '01GUARDIAN';
+    const fontSize = 14;
+    const columns = matrixCanvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+        matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+        matrixCtx.fillStyle = '#10b981';
+        matrixCtx.font = `${fontSize}px monospace`;
+
+        for (let i = 0; i < drops.length; i++) {
+            const char = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+            const x = i * fontSize;
+            const y = drops[i] * fontSize;
+
+            matrixCtx.fillText(char, x, y);
+
+            if (y > matrixCanvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+
+    setInterval(drawMatrix, 50);
+
+    // Particle System for Swarm
+    const particleCanvas = document.getElementById('particle-canvas');
+    const particleCtx = particleCanvas.getContext('2d');
+    let particles = [];
+    let animating = false;
+
+    function resizeParticleCanvas() {
+        const swarm = document.getElementById('swarm');
+        particleCanvas.width = swarm.clientWidth;
+        particleCanvas.height = swarm.clientHeight;
+    }
+
+    window.addEventListener('resize', resizeParticleCanvas);
+    setTimeout(resizeParticleCanvas, 100);
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * particleCanvas.width;
+            this.y = Math.random() * particleCanvas.height;
+            this.vx = (Math.random() - 0.5) * 3;
+            this.vy = (Math.random() - 0.5) * 3;
+            this.size = Math.random() * 2 + 1;
+            this.color = `rgba(0, 204, 255, ${Math.random() * 0.5 + 0.5})`;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
+        }
+
+        draw() {
+            particleCtx.fillStyle = this.color;
+            particleCtx.beginPath();
+            particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            particleCtx.fill();
+        }
+    }
+
+    function animateParticles() {
+        if (!animating) return;
+
+        particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        requestAnimationFrame(animateParticles);
+    }
+
+    // Terminal Logging
+    function log(message, type = 'normal') {
+        const terminal = document.getElementById('terminal');
+        const line = document.createElement('div');
+        line.className = `terminal-line ${type}`;
+        line.textContent = `> ${message}`;
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Activate Layer
+    function activateLayer(layerId, duration = 500) {
+        const layer = document.getElementById(layerId);
+        layer.classList.add('active');
+        setTimeout(() => layer.classList.remove('active'), duration);
+    }
+
+    // Send Packet Animation
+    function sendPacket(connId, packetId, callback) {
+        const conn = document.getElementById(connId);
+        const packet = document.getElementById(packetId);
+
+        conn.classList.add('active');
+        packet.classList.add('moving');
+
+        setTimeout(() => {
+            conn.classList.remove('active');
+            packet.classList.remove('moving');
+            if (callback) callback();
+        }, 800);
+    }
+
+    // Execute Command Sequence
+    async function executeCommand() {
+        const btn = document.getElementById('execute-btn');
+        btn.disabled = true;
+
+        log('GUARDIAN initiates command...', 'normal');
+        activateLayer('guardian');
+
+        await sleep(800);
+
+        log('Connecting to MAESTRO...', 'normal');
+        sendPacket('conn1', 'packet1', () => {
+            log('MAESTRO connection established [0.002ms]', 'success');
+            activateLayer('maestro');
+        });
+
+        await sleep(1500);
+
+        log('INPUT RECEIVED: "Target market domination"', 'normal');
+        log('MAESTRO: Parsing intent...', 'normal');
+        log('DEPLOYING STRATEGY: AGGRESSIVE', 'normal');
+
+        await sleep(1000);
+
+        log('Connecting to AWS EC2...', 'normal');
+        sendPacket('conn2', 'packet2', () => {
+            log('COORDINATOR connection established', 'success');
+            activateLayer('swarm');
+        });
+
+        await sleep(1500);
+
+        log('PROVISIONING INSTANCES...', 'normal');
+        deploySwarm();
+    }
+
+    // Deploy Swarm with Counter Animation
+    function deploySwarm() {
+        animating = true;
+
+        // Spawn particles
+        for (let i = 0; i < 1000; i++) {
+            particles.push(new Particle());
+        }
+
+        animateParticles();
+
+        // Counter animation
+        const counter = document.getElementById('counter');
+        const milestones = [
+            { value: 50000, label: '50,000 AGENTS ONLINE' },
+            { value: 250000, label: '250,000 AGENTS ONLINE' },
+            { value: 1000000, label: '1,000,000 AGENTS ONLINE' },
+            { value: 25000000, label: '25,000,000 AGENTS ONLINE' },
+            { value: 250000000, label: '250,000,000 AGENTS READY' }
+        ];
+
+        let currentIndex = 0;
+
+        function updateCounter() {
+            if (currentIndex >= milestones.length) {
+                log('DEPLOYMENT COMPLETE', 'success');
+                log('SWARM: 250,000,000 AGENTS READY', 'success');
+                log('WAITING FOR COMMAND...', 'success');
+                document.getElementById('execute-btn').disabled = false;
+                return;
+            }
+
+            const milestone = milestones[currentIndex];
+            counter.textContent = milestone.value.toLocaleString();
+            log(`SWARM: ${milestone.label}`, 'success');
+
+            currentIndex++;
+            setTimeout(updateCounter, 400);
+        }
+
+        updateCounter();
+    }
+
+    // Utility
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Window Resize
+    window.addEventListener('resize', () => {
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,185 @@
+@startuml dept_fishery_quality
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 品質管理部 業務フロー
+
+|#LightCyan|品質部長|
+start
+:本日の検査計画確認;
+note right
+  ・水揚げスケジュール
+  ・加工製造予定
+  ・検査優先順位
+  ・特別検査項目
+end note
+
+:検査スタッフ配置;
+fork
+  :受入検査担当;
+fork again
+  :工程検査担当;
+fork again
+  :製品検査担当;
+fork again
+  :環境検査担当;
+end fork
+
+|#LightGreen|受入検査担当|
+:漁獲物受け入れ検査;
+note right
+  ・外観確認
+  ・臭い確認
+  ・触感確認
+  ・温度測定
+end note
+
+if (品質基準OK?) then (yes)
+  :受け入れ承認;
+  :加工部へ引き渡し;
+else (不合格)
+  :廃棄指示;
+  :漁労部へ報告;
+endif
+
+:冷蔵施設温度確認;
+note right
+  ・冷蔵庫: 2-5°C
+  ・冷凍庫: -18°C以下
+  ・記録保管: 2年
+end note
+
+|#LightYellow|工程検査担当|
+while (加工継続?) is (yes)
+  :下処理品検査;
+  note right
+    ・清浄度確認
+    ・サイズ確認
+    ・混在物確認
+  end note
+
+  :加工中検査;
+  fork
+    :冷凍品検査;
+    note right: 凍結状態確認
+  fork again
+    :塩漬品検査;
+    note right: 塩漬度確認
+  fork again
+    :燻製品検査;
+    note right: 燻製色確認
+  fork again
+    :缶詰検査;
+    note right: 密閉確認
+  end fork
+
+  if (品質基準OK?) then (yes)
+    :工程継続承認;
+  else (不合格)
+    :加工部へ改善指示;
+  endif
+endwhile (終了)
+
+|#LightBlue|製品検査担当|
+:完成製品検査;
+note right
+  ・外観検査
+  ・品質検査
+  ・重量検査
+  ・ラベル検査
+end note
+
+:衛生検査;
+fork
+  :細菌検査;
+  note right: 月1回
+fork again
+  :異物検査;
+  note right: 毎製造ロット
+fork again
+  :農薬残留検査;
+  note right: 定期実施
+end fork
+
+if (全検査合格?) then (yes)
+  :品質証明書発行;
+  :販売部へ通知;
+else (不合格)
+  :製品隔離;
+  :原因調査;
+  :改善措置実施;
+endif
+
+|#LightPink|環境検査担当|
+:加工施設環境検査;
+note right
+  ・清潔度
+  ・蒸気・湿度
+  ・騒音・振動
+end note
+
+:害獣害虫検査;
+fork
+  :定期巡回;
+fork again
+  :粘着トラップ確認;
+fork again
+  :防虫網点検;
+end fork
+
+:設備点検;
+fork
+  :冷蔵冷凍設備;
+fork again
+  :加工機械;
+fork again
+  :殺菌装置;
+end fork
+
+if (不具合発見?) then (yes)
+  :メンテナンス依頼;
+  :総務部に報告;
+else (正常)
+  :点検記録;
+endif
+
+|#LightCyan|品質部長|
+:各種認証管理;
+note right
+  ・HACCP認証
+  ・ISO認証
+  ・地域ブランド認証
+  ・有機認証
+end note
+
+:検査日報作成;
+note right
+  ・検査件数
+  ・合格率
+  ・不合格原因
+  ・改善状況
+end note
+
+:法令対応確認;
+fork
+  :食品衛生法;
+fork again
+  :水産物品質管理法;
+fork again
+  :表示法;
+fork again
+  :原産地表示法;
+end fork
+
+:改善提案会議;
+note right
+  ・月1回開催
+  ・全部署参加
+  ・改善状況確認
+end note
+
+:来月検査計画;
+
+stop
+
+@enduml

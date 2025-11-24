@@ -1,0 +1,66 @@
+@startuml dept_営業部
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+title 営業部 業務フロー
+
+|#LightBlue|営業担当|
+start
+:案件情報入手;
+note right
+  - 紹介
+  - 入札公告
+  - 既存顧客
+end note
+
+:顧客情報登録;
+:現場調査・ヒアリング;
+
+|#LightYellow|積算担当|
+:数量拾い出し;
+:単価設定;
+:見積書作成;
+note right
+  - 材料費
+  - 労務費
+  - 外注費
+  - 経費
+  - 利益
+end note
+
+|#LightBlue|営業担当|
+:見積提出;
+
+if (受注？) then (Yes)
+  :契約書作成;
+  :契約締結;
+  
+  |#LightGreen|工務部|
+  :工事引継ぎ;
+  note right
+    - 図面
+    - 仕様書
+    - 予算書
+    - 工程表
+  end note
+  
+  |#LightBlue|営業担当|
+  :顧客フォロー;
+  :追加工事対応;
+  
+  fork
+    :完成検査立会;
+  fork again
+    :請求書発行依頼;
+  end fork
+  
+  :入金確認;
+  :アフターフォロー;
+  
+else (No)
+  :失注分析;
+  :次回提案準備;
+endif
+
+stop
+
+@enduml

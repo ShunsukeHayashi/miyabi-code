@@ -1,0 +1,441 @@
+"""
+Miyabi Data Warehouse - Daily Issue Processing ETL
+Version: 1.0.0
+
+This DAG extracts issue processing data from the source database,
+transforms it with business logic, and loads it into the data warehouse.
+
+Schedule: Daily at 2 AM
+"""
+
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+import pandas as pd
+import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Default arguments
+default_args = {
+    'owner': 'miyabi-dw',
+    'depends_on_past': False,
+    'start_date': datetime(2025, 1, 1),
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'retries': 2,
+    'retry_delay': timedelta(minutes=5),
+}
+
+# DAG definition
+dag = DAG(
+    'daily_issue_processing_etl',
+    default_args=default_args,
+    description='Extract, transform, and load issue processing metrics',
+    schedule_interval='0 2 * * *',  # 2 AM daily
+    catchup=False,
+    max_active_runs=1,
+    tags=['miyabi', 'etl', 'daily', 'issue-processing'],
+)
+
+# ============================================================================
+# EXTRACT
+# ============================================================================
+
+extract_sql = """
+-- Extract issues with all related data for the specified date
+SELECT
+    i.id AS issue_id,
+    i.number AS issue_number,
+    i.title,
+    i.description,
+    i.priority,
+    i.complexity,
+    i.issue_type,
+    i.repository,
+    i.created_at AS issue_created_at,
+    i.updated_at AS issue_updated_at,
+    i.closed_at AS issue_closed_at,
+
+    -- Agent execution data (using DISTINCT ON to get latest execution)
+    ae.agent_id,
+    ae.started_at AS agent_started_at,
+    ae.completed_at AS agent_completed_at,
+    ae.execution_duration_ms,
+    ae.memory_usage_mb,
+    ae.cpu_usage_percent,
+    ae.llm_tokens_input,
+    ae.llm_tokens_output,
+    ae.llm_cost_usd,
+    ae.success AS agent_success,
+
+    -- Code generation data
+    cg.total_files_generated,
+    cg.total_lines_generated,
+    cg.compilation_time_ms,
+    cg.clippy_warnings,
+    cg.fmt_issues,
+
+    -- Review data
+    rr.review_score,
+    rr.test_coverage_percent,
+
+    -- Deployment data
+    dp.deployment_status,
+    dp.deployment_duration_seconds,
+    dp.infrastructure_cost_usd AS deployment_infra_cost,
+
+    -- Commit information
+    cm.commit_sha,
+    cm.pr_number,
+
+    -- Label information (aggregate labels)
+    array_agg(DISTINCT lh.label_name) FILTER (WHERE lh.label_name IS NOT NULL) AS labels,
+
+    -- Worktree
+    ws.worktree_path,
+    ws.branch_name
+
+FROM issues i
+LEFT JOIN LATERAL (
+    SELECT *
+    FROM agent_execution_logs
+    WHERE issue_id = i.id
+    ORDER BY completed_at DESC NULLS LAST
+    LIMIT 1
+) ae ON TRUE
+LEFT JOIN code_gen_tasks cg ON i.id = cg.issue_id
+LEFT JOIN review_results rr ON i.id = rr.issue_id
+LEFT JOIN deployment_pipelines dp ON i.id = dp.issue_id
+LEFT JOIN commits cm ON i.id = cm.issue_id
+LEFT JOIN label_history lh ON i.id = lh.issue_id
+LEFT JOIN worktree_states ws ON i.id = ws.associated_issue_id
+
+WHERE
+    i.updated_at >= '{{ ds }}'::DATE
+    AND i.updated_at < '{{ ds }}'::DATE + INTERVAL '1 day'
+
+GROUP BY
+    i.id, i.number, i.title, i.description, i.priority, i.complexity,
+    i.issue_type, i.repository, i.created_at, i.updated_at, i.closed_at,
+    ae.agent_id, ae.started_at, ae.completed_at, ae.execution_duration_ms,
+    ae.memory_usage_mb, ae.cpu_usage_percent, ae.llm_tokens_input,
+    ae.llm_tokens_output, ae.llm_cost_usd, ae.success,
+    cg.total_files_generated, cg.total_lines_generated, cg.compilation_time_ms,
+    cg.clippy_warnings, cg.fmt_issues,
+    rr.review_score, rr.test_coverage_percent,
+    dp.deployment_status, dp.deployment_duration_seconds, dp.infrastructure_cost_usd,
+    cm.commit_sha, cm.pr_number,
+    ws.worktree_path, ws.branch_name
+
+ORDER BY i.updated_at DESC;
+"""
+
+extract_task = PostgresOperator(
+    task_id='extract_issues',
+    postgres_conn_id='miyabi_source_db',
+    sql=extract_sql,
+    dag=dag,
+)
+
+# ============================================================================
+# TRANSFORM
+# ============================================================================
+
+def transform_issue_facts(**context):
+    """
+    Transform extracted issue data into fact table format
+    """
+    ti = context['task_instance']
+    execution_date = context['execution_date']
+
+    logger.info(f"Transforming issue facts for {execution_date}")
+
+    # Get extract results from XCom
+    source_hook = PostgresHook(postgres_conn_id='miyabi_source_db')
+    df = source_hook.get_pandas_df(extract_sql.replace('{{ ds }}', execution_date.strftime('%Y-%m-%d')))
+
+    if df.empty:
+        logger.warning("No data extracted for transformation")
+        return 0
+
+    logger.info(f"Extracted {len(df)} records for transformation")
+
+    # DW connection
+    dw_hook = PostgresHook(postgres_conn_id='miyabi_dw')
+    dw_engine = dw_hook.get_sqlalchemy_engine()
+
+    # Helper function to lookup dimension keys
+    def lookup_dimension_key(table, id_column, id_value, current_only=False):
+        if pd.isna(id_value) or id_value is None:
+            return None
+
+        query = f"SELECT {table.replace('dim_', '')}_key FROM {table} WHERE {id_column} = %s"
+        if current_only:
+            query += " AND is_current = TRUE"
+        query += " LIMIT 1"
+
+        result = dw_hook.get_first(query, parameters=(str(id_value),))
+        return result[0] if result else None
+
+    # Calculate derived metrics
+    df['processing_duration_seconds'] = (
+        (pd.to_datetime(df['agent_completed_at']) - pd.to_datetime(df['agent_started_at']))
+        .dt.total_seconds()
+        .fillna(0)
+        .astype(int)
+    )
+
+    df['files_modified'] = df['total_files_generated'].fillna(0).astype(int)
+    df['lines_of_code_generated'] = df['total_lines_generated'].fillna(0).astype(int)
+
+    # Quality metrics
+    df['review_score'] = df['review_score'].fillna(0).clip(0, 1)
+    df['test_coverage_percent'] = df['test_coverage_percent'].fillna(0).clip(0, 100)
+    df['clippy_warnings'] = df['clippy_warnings'].fillna(0).astype(int)
+    df['fmt_issues'] = df['fmt_issues'].fillna(0).astype(int)
+
+    # Success indicators
+    df['build_success'] = (df['clippy_warnings'] == 0) & (df['fmt_issues'] == 0)
+    df['test_success'] = df['test_coverage_percent'] >= 70
+    df['deployment_success'] = df['deployment_status'] == 'SUCCESS'
+
+    # Cost metrics
+    df['ai_cost_usd'] = df['llm_cost_usd'].fillna(0)
+    df['infrastructure_cost_usd'] = df['deployment_infra_cost'].fillna(0)
+
+    # Lookup dimension keys
+    logger.info("Looking up dimension keys...")
+
+    df['issue_key'] = df.apply(
+        lambda row: lookup_dimension_key('dim_issue', 'issue_id', row['issue_id'], current_only=True),
+        axis=1
+    )
+    df['agent_key'] = df.apply(
+        lambda row: lookup_dimension_key('dim_agent', 'agent_id', row['agent_id']),
+        axis=1
+    )
+    df['time_key'] = pd.to_datetime(df['agent_started_at']).dt.strftime('%Y%m%d').astype('Int64')
+    df['worktree_key'] = df.apply(
+        lambda row: lookup_dimension_key('dim_worktree', 'worktree_path', row['worktree_path']),
+        axis=1
+    )
+
+    # Get primary label key
+    def get_primary_label_key(labels):
+        # Handle None, empty arrays, and NaN
+        if labels is None:
+            return None
+        if isinstance(labels, (list, tuple, np.ndarray)):
+            if len(labels) == 0:
+                return None
+        elif pd.isna(labels):
+            return None
+
+        # Convert to list if needed
+        if isinstance(labels, str):
+            labels = [labels]
+        elif isinstance(labels, np.ndarray):
+            labels = labels.tolist()
+
+        # Priority order
+        for priority in ['P0', 'P1', 'P2', 'P3', 'P4']:
+            if priority in labels:
+                return lookup_dimension_key('dim_label', 'label_name', priority)
+        # Return first label
+        return lookup_dimension_key('dim_label', 'label_name', labels[0]) if labels and len(labels) > 0 else None
+
+    df['label_key'] = df['labels'].apply(get_primary_label_key)
+
+    # Select fact table columns
+    fact_columns = {
+        'issue_key': 'issue_key',
+        'agent_key': 'agent_key',
+        'time_key': 'time_key',
+        'label_key': 'label_key',
+        'worktree_key': 'worktree_key',
+        'processing_duration_seconds': 'processing_duration_seconds',
+        'lines_of_code_generated': 'lines_of_code_generated',
+        'files_modified': 'files_modified',
+        'review_score': 'review_score',
+        'test_coverage_percent': 'test_coverage_percent',
+        'clippy_warnings': 'clippy_warnings',
+        'fmt_issues': 'fmt_issues',
+        'build_success': 'build_success',
+        'test_success': 'test_success',
+        'deployment_success': 'deployment_success',
+        'ai_cost_usd': 'ai_cost_usd',
+        'infrastructure_cost_usd': 'infrastructure_cost_usd',
+        'agent_started_at': 'started_at',
+        'agent_completed_at': 'completed_at',
+        'issue_number': 'issue_number',
+        'commit_sha': 'commit_sha',
+        'pr_number': 'pr_number',
+    }
+
+    result_df = df[list(fact_columns.keys())].rename(columns=fact_columns)
+
+    # Filter out records with missing required keys
+    required_keys = ['issue_key', 'agent_key', 'time_key']
+    before_count = len(result_df)
+    result_df = result_df.dropna(subset=required_keys)
+    after_count = len(result_df)
+
+    if before_count > after_count:
+        logger.warning(f"Dropped {before_count - after_count} records due to missing dimension keys")
+
+    # Convert to appropriate types for PostgreSQL
+    result_df['issue_key'] = result_df['issue_key'].astype('Int64')
+    result_df['agent_key'] = result_df['agent_key'].astype('Int64')
+    result_df['time_key'] = result_df['time_key'].astype('Int64')
+    result_df['label_key'] = result_df['label_key'].astype('Int64')
+    result_df['worktree_key'] = result_df['worktree_key'].astype('Int64')
+
+    # Save to staging table
+    logger.info(f"Loading {len(result_df)} records to staging table...")
+    result_df.to_sql(
+        'issue_processing_facts',
+        dw_engine,
+        schema='staging',
+        if_exists='replace',
+        index=False,
+        method='multi',
+        chunksize=1000
+    )
+
+    logger.info(f"Successfully transformed and staged {len(result_df)} records")
+    return len(result_df)
+
+transform_task = PythonOperator(
+    task_id='transform_issue_facts',
+    python_callable=transform_issue_facts,
+    provide_context=True,
+    dag=dag,
+)
+
+# ============================================================================
+# LOAD
+# ============================================================================
+
+load_sql = """
+-- Load from staging to fact table with upsert
+INSERT INTO fact_issue_processing (
+    issue_key,
+    agent_key,
+    time_key,
+    label_key,
+    worktree_key,
+    processing_duration_seconds,
+    lines_of_code_generated,
+    files_modified,
+    review_score,
+    test_coverage_percent,
+    clippy_warnings,
+    fmt_issues,
+    build_success,
+    test_success,
+    deployment_success,
+    ai_cost_usd,
+    infrastructure_cost_usd,
+    started_at::TIMESTAMP,
+    completed_at::TIMESTAMP,
+    issue_number,
+    commit_sha,
+    pr_number
+)
+SELECT
+    issue_key,
+    agent_key,
+    time_key,
+    label_key,
+    worktree_key,
+    processing_duration_seconds,
+    lines_of_code_generated,
+    files_modified,
+    review_score,
+    test_coverage_percent,
+    clippy_warnings,
+    fmt_issues,
+    build_success,
+    test_success,
+    deployment_success,
+    ai_cost_usd,
+    infrastructure_cost_usd,
+    started_at::TIMESTAMP,
+    completed_at::TIMESTAMP,
+    issue_number,
+    commit_sha,
+    pr_number
+FROM staging.issue_processing_facts
+ON CONFLICT (issue_number, started_at)
+DO UPDATE SET
+    processing_duration_seconds = EXCLUDED.processing_duration_seconds,
+    lines_of_code_generated = EXCLUDED.lines_of_code_generated,
+    files_modified = EXCLUDED.files_modified,
+    review_score = EXCLUDED.review_score,
+    test_coverage_percent = EXCLUDED.test_coverage_percent,
+    clippy_warnings = EXCLUDED.clippy_warnings,
+    fmt_issues = EXCLUDED.fmt_issues,
+    build_success = EXCLUDED.build_success,
+    test_success = EXCLUDED.test_success,
+    deployment_success = EXCLUDED.deployment_success,
+    ai_cost_usd = EXCLUDED.ai_cost_usd,
+    infrastructure_cost_usd = EXCLUDED.infrastructure_cost_usd;
+"""
+
+load_task = PostgresOperator(
+    task_id='load_fact_issue_processing',
+    postgres_conn_id='miyabi_dw',
+    sql=load_sql,
+    dag=dag,
+)
+
+# ============================================================================
+# DATA QUALITY CHECKS
+# ============================================================================
+
+check_referential_integrity_sql = """
+-- Check that all foreign keys exist
+SELECT
+    CASE
+        WHEN COUNT(*) = 0 THEN 1
+        ELSE 0
+    END AS integrity_ok
+FROM (
+    SELECT 'Missing issue_key' AS issue, COUNT(*) AS cnt
+    FROM fact_issue_processing f
+    LEFT JOIN dim_issue d ON f.issue_key = d.issue_key AND d.is_current = TRUE
+    WHERE d.issue_key IS NULL
+
+    UNION ALL
+
+    SELECT 'Missing agent_key', COUNT(*)
+    FROM fact_issue_processing f
+    LEFT JOIN dim_agent d ON f.agent_key = d.agent_key
+    WHERE d.agent_key IS NULL
+
+    UNION ALL
+
+    SELECT 'Missing time_key', COUNT(*)
+    FROM fact_issue_processing f
+    LEFT JOIN dim_time d ON f.time_key = d.time_key
+    WHERE d.time_key IS NULL
+) issues
+WHERE cnt > 0;
+"""
+
+check_integrity_task = PostgresOperator(
+    task_id='check_referential_integrity',
+    postgres_conn_id='miyabi_dw',
+    sql=check_referential_integrity_sql,
+    dag=dag,
+)
+
+# ============================================================================
+# TASK DEPENDENCIES
+# ============================================================================
+
+extract_task >> transform_task >> load_task >> check_integrity_task

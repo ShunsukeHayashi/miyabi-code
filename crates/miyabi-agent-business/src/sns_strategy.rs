@@ -6,11 +6,16 @@
 //! 包括的なソーシャルメディア戦略を提供します。
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder},
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::env;
 
 /// SNSStrategyAgent - SNS戦略・ソーシャルメディア運用Agent
@@ -270,6 +275,37 @@ impl BaseAgent for SNSStrategyAgent {
             escalation: None,
         })
     }
+}
+
+#[async_trait]
+impl A2AEnabled for SNSStrategyAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("SNSStrategyAgent", "SNS strategy and social media management agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "plan_sns".to_string(),
+                name: "Plan SNS Strategy".to_string(),
+                description: "Create platform-specific SNS strategies with content calendars".to_string(),
+                input_schema: Some(json!({"type": "object", "properties": {"brand": {"type": "string"}, "platforms": {"type": "array"}}, "required": ["brand"]})),
+                output_schema: Some(json!({"type": "object", "properties": {"platform_strategies": {"type": "object"}}})),
+            })
+            .build()
+    }
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+        match task.capability.as_str() {
+            "plan_sns" => {
+                let brand = task.input.get("brand").and_then(|v| v.as_str()).ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing brand".to_string()))?;
+                let internal_task = Task { id: task.id.clone(), title: brand.to_string(), description: "SNS strategy".to_string(), task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None, assigned_agent: Some(AgentType::SNSStrategyAgent), dependencies: vec![], estimated_duration: Some(180), status: None, start_time: None, end_time: None, metadata: None };
+                match self.execute(&internal_task).await {
+                    Ok(result) => Ok(A2ATaskResult::Success { output: result.data.unwrap_or(json!({"status": "completed"})), artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64 }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("SNS strategy failed: {}", e))),
+                }
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+        }
+    }
+    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
 }
 
 #[cfg(test)]

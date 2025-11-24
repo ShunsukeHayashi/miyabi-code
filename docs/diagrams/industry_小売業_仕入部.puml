@@ -1,0 +1,114 @@
+@startuml dept_retail_procurement
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 小売業 仕入部 業務フロー
+
+|#LightPink|バイヤー|
+start
+:市場調査;
+note right
+  ・トレンド分析
+  ・競合調査
+  ・顧客ニーズ分析
+end note
+
+:仕入計画策定;
+fork
+  :季節商品計画;
+fork again
+  :定番商品計画;
+fork again
+  :催事商品計画;
+end fork
+
+:仕入先選定;
+if (新規仕入先?) then (yes)
+  :取引条件交渉;
+  :サンプル確認;
+  :品質チェック;
+else (no)
+  :既存仕入先評価;
+endif
+
+:商談・交渉;
+fork
+  :価格交渉;
+fork again
+  :納期交渉;
+fork again
+  :返品条件交渉;
+fork again
+  :リベート交渉;
+end fork
+
+:発注決定;
+
+|#LightCyan|発注担当|
+:発注書作成;
+note right
+  ・商品コード
+  ・数量
+  ・納品日
+  ・納品場所
+end note
+
+:発注処理;
+:仕入先へ発注送信;
+
+:納期管理;
+while (入荷完了?) is (未完了)
+  :進捗確認;
+  if (納期遅延?) then (yes)
+    :仕入先へ催促;
+    :店舗/在庫管理部へ通知;
+  else (no)
+  endif
+endwhile (完了)
+
+|#LightYellow|検品担当|
+:入荷検品;
+fork
+  :数量確認;
+fork again
+  :品質確認;
+fork again
+  :包装状態確認;
+end fork
+
+if (不良品あり?) then (yes)
+  :返品処理;
+  :仕入先へクレーム;
+else (no)
+endif
+
+:商品マスタ登録;
+:値付け作業;
+:在庫管理部へ引渡;
+
+|#LightPink|バイヤー|
+:仕入実績管理;
+:経理部へ仕入報告;
+:支払依頼;
+
+:販売動向分析;
+if (売れ行き不振?) then (yes)
+  :値下げ検討;
+  :返品検討;
+  :販売部へ販促依頼;
+else (no)
+endif
+
+:仕入先評価;
+note right
+  ・納期遵守率
+  ・品質評価
+  ・価格競争力
+  ・欠品率
+end note
+
+:次期仕入計画へ反映;
+
+stop
+
+@enduml

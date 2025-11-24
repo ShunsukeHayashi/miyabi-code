@@ -3,7 +3,7 @@
 # Version: 1.0.0
 # Purpose: Monitor all agents and auto-recovery
 
-WORKING_DIR="/Users/shunsuke/Dev/miyabi-private"
+WORKING_DIR="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 CONDUCTOR_PANE="%1"
 LOG_FILE="$WORKING_DIR/.ai/logs/water-spider.log"
 

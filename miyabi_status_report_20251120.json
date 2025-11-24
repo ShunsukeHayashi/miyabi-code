@@ -1,0 +1,204 @@
+{
+  "report_metadata": {
+    "timestamp": "2025-11-20T03:45:00+09:00",
+    "from_layer": "Layer 2 (MacBook Pro)",
+    "to_layer": "Layer 1 (Google Pixel)",
+    "to_email": "hayashi.s@customercloud.ai",
+    "operator": "Claude",
+    "version": "1.0.0"
+  },
+  "system_status": {
+    "sessions": {
+      "total_count": 9,
+      "total_panes": 42,
+      "active_sessions": [
+        {"name": "miyabi", "windows": 8, "purpose": "Development/Coding"},
+        {"name": "miyabi-orchestra", "windows": 2, "purpose": "Agent orchestration"},
+        {"name": "miyabi-reconstruction", "windows": 6, "purpose": "Refactoring"},
+        {"name": "miyabi-apex-deploy", "windows": 4, "purpose": "Deployment"},
+        {"name": "miyabi-mcp-servers", "windows": 8, "purpose": "MCP development"},
+        {"name": "gemini-3-ui", "windows": 4, "purpose": "Adaptive UI runtime"},
+        {"name": "claude-code-hub", "windows": 1, "purpose": "Claude Code integration"}
+      ],
+      "temp_sessions": [
+        {"name": "17", "windows": 1, "recommended_action": "kill"},
+        {"name": "18", "windows": 1, "recommended_action": "kill"}
+      ]
+    },
+    "resources": {
+      "cpu": {
+        "usage_percent": 26.4,
+        "cores": 10,
+        "status": "normal"
+      },
+      "memory": {
+        "total_gb": 64,
+        "used_gb": 63.89,
+        "usage_percent": 99.84,
+        "status": "warning_high"
+      },
+      "disk": {
+        "available_gb": 334.88,
+        "usage_percent": 62.96,
+        "status": "normal"
+      },
+      "processes": {
+        "total": 1077,
+        "running": 20,
+        "sleeping": 1056
+      }
+    },
+    "git_repository": {
+      "branch": "main",
+      "latest_commit": {
+        "hash": "144f057",
+        "short_message": "feat(mcp): add Miyabi Commercial Business Agents - complete package",
+        "date": "2025-11-19T11:24:36+09:00",
+        "author": "Shunsuke Hayashi"
+      }
+    }
+  },
+  "completed_features": {
+    "commercial_agents": {
+      "status": "production_ready",
+      "agents": [
+        {"name": "つぶやくん", "type": "SNS Strategy Agent"},
+        {"name": "書くちゃん", "type": "Content Creation Agent"},
+        {"name": "動画くん", "type": "YouTube Optimization Agent"},
+        {"name": "広める", "type": "Marketing Automation Agent"},
+        {"name": "数える", "type": "Analytics Agent"},
+        {"name": "支える", "type": "CRM Agent"}
+      ],
+      "licensing": {
+        "tiers": ["STARTER", "PRO", "ENTERPRISE"],
+        "features": ["tier-based licensing", "machine binding", "offline validation"]
+      },
+      "deployment": {
+        "binary_compilation": true,
+        "production_ready": true
+      }
+    }
+  },
+  "issues": {
+    "critical": [],
+    "high": [
+      {
+        "id": "MEM-001",
+        "type": "memory_usage",
+        "severity": "high",
+        "description": "Memory usage at 99.84%",
+        "cause": "Temp sessions 17, 18 running unnecessarily",
+        "recommendation": "Kill temp sessions to free 50-100MB",
+        "commands": [
+          "tmux kill-session -t 17",
+          "tmux kill-session -t 18"
+        ],
+        "risk": "low",
+        "time_required_minutes": 2
+      }
+    ],
+    "medium": [
+      {
+        "id": "DB-001",
+        "type": "database_connection",
+        "severity": "medium",
+        "description": "PostgreSQL connection errors in Airflow ETL",
+        "error": "psycopg2.OperationalError: role does not exist",
+        "impact": "Data Warehouse ETL jobs (dev environment only)",
+        "priority": "medium"
+      }
+    ],
+    "low": [
+      {
+        "id": "WORKER-001",
+        "type": "file_missing",
+        "severity": "low",
+        "description": "Polling worker state file missing",
+        "impact": "Worker state monitoring only",
+        "blocking": false
+      }
+    ]
+  },
+  "optimization_plan": {
+    "recommended_plan": "A",
+    "plan_a_conservative": {
+      "name": "Conservative Optimization",
+      "actions": [
+        "Kill temp sessions 17, 18",
+        "Stop unused MCP development servers"
+      ],
+      "expected_memory_gain_mb": "50-100",
+      "expected_memory_percent": "99.5%",
+      "time_required_minutes": 2,
+      "risk_level": "low"
+    },
+    "plan_b_aggressive": {
+      "name": "Aggressive Optimization",
+      "actions": [
+        "Plan A actions",
+        "Close unused applications (VOICEVOX, old Chrome tabs)",
+        "Clear system cache (sudo purge)"
+      ],
+      "expected_memory_gain_mb": "5000-10000",
+      "expected_memory_percent": "85-90%",
+      "time_required_minutes": 5,
+      "risk_level": "medium"
+    }
+  },
+  "next_actions": {
+    "immediate": [
+      {
+        "action": "Execute memory optimization",
+        "status": "awaiting_approval",
+        "plan": "A or B"
+      },
+      {
+        "action": "Confirm socai session launch readiness",
+        "status": "ready"
+      },
+      {
+        "action": "Continue GEMINI3 Adaptive UI development",
+        "status": "in_progress"
+      }
+    ],
+    "this_week": [
+      "Complete CommHub Phase 2 integration",
+      "Test miyabi ↔ socai session communication",
+      "Deploy Commercial Agents MCP package",
+      "Rust MCP migration Phase 1"
+    ],
+    "this_month": [
+      "Multi-layer device integration (Pixel ↔ Mac ↔ Cloud)",
+      "Voice assistant integration",
+      "Automated reporting system",
+      "Predictive issue detection"
+    ]
+  },
+  "mcp_servers": {
+    "active": [
+      {"name": "miyabi-tmux", "status": "running"},
+      {"name": "miyabi-rules", "status": "running"},
+      {"name": "miyabi-obsidian", "status": "running"},
+      {"name": "miyabi-github", "status": "running"},
+      {"name": "gemini3-adaptive-runtime", "status": "running"},
+      {"name": "gemini3-uiux-designer", "status": "running"},
+      {"name": "miyabi-sse-gateway", "status": "running"},
+      {"name": "lark-wiki-mcp-agents", "status": "running"}
+    ],
+    "in_development": [
+      {"name": "miyabi-commercial-agents", "status": "production_ready"},
+      {"name": "miyabi-rust-migration", "status": "phase_0_complete"}
+    ]
+  },
+  "key_insights": {
+    "system_health": "Generally healthy, memory optimization needed",
+    "development_progress": "Commercial Agents package completed and deployed",
+    "architecture": "Multi-session tmux orchestration working well",
+    "next_phase": "Layer 1-2-3 integration (Pixel ↔ Mac ↔ Cloud)"
+  },
+  "files_created": {
+    "markdown_report": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_status_report_20251120.md",
+    "json_report": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/miyabi_status_report_20251120.json",
+    "email_text": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/email_to_pixel_20251120.txt"
+  }
+}

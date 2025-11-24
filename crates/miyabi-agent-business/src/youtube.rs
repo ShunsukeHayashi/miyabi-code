@@ -6,11 +6,16 @@
 //! 包括的なYouTube戦略を提供します。
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder},
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::env;
 
 /// YouTubeAgent - YouTube戦略・動画コンテンツ企画Agent
@@ -295,6 +300,37 @@ impl BaseAgent for YouTubeAgent {
             escalation: None,
         })
     }
+}
+
+#[async_trait]
+impl A2AEnabled for YouTubeAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("YouTubeAgent", "YouTube strategy and video content planning agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "plan_youtube".to_string(),
+                name: "Plan YouTube Strategy".to_string(),
+                description: "Create channel strategy with content planning, SEO, and monetization".to_string(),
+                input_schema: Some(json!({"type": "object", "properties": {"channel": {"type": "string"}, "niche": {"type": "string"}}, "required": ["channel"]})),
+                output_schema: Some(json!({"type": "object", "properties": {"youtube_strategy": {"type": "object"}}})),
+            })
+            .build()
+    }
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+        match task.capability.as_str() {
+            "plan_youtube" => {
+                let channel = task.input.get("channel").and_then(|v| v.as_str()).ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing channel".to_string()))?;
+                let internal_task = Task { id: task.id.clone(), title: channel.to_string(), description: "YouTube strategy".to_string(), task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None, assigned_agent: Some(AgentType::YouTubeAgent), dependencies: vec![], estimated_duration: Some(180), status: None, start_time: None, end_time: None, metadata: None };
+                match self.execute(&internal_task).await {
+                    Ok(result) => Ok(A2ATaskResult::Success { output: result.data.unwrap_or(json!({"status": "completed"})), artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64 }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("YouTube strategy failed: {}", e))),
+                }
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+        }
+    }
+    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
 }
 
 #[cfg(test)]

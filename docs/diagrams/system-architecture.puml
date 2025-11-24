@@ -1,117 +1,63 @@
-@startuml Agentic OS - System Architecture
+@startuml system-architecture
 !theme cerulean-outline
 skinparam backgroundColor #FEFEFE
-skinparam defaultFontName Arial
+skinparam handwritten false
 
-title Agentic OS - System Architecture
+title 安全書類管理システム - システムアーキテクチャ
 
-' GitHub as Operating System
-package "GitHub (Agentic OS)" {
-  component [Issues\n<Process Control>] as Issues
-  component [Projects V2\n<Data Persistence>] as Projects
-  component [Actions\n<Execution Engine>] as Actions
-  component [Labels\n<State Machine>] as Labels
-  component [Webhooks\n<Event Bus>] as Webhooks
+package "Lark Base Platform" {
+    rectangle "安全書類管理システム" as main #LightBlue {
 
-  database "Repository\n<File System>" as Repo
+        package "マスタデータ層" as master #E8F5E9 {
+            database "【M1】従業員マスタ" as m1
+            database "【M2】現場マスタ" as m2
+            database "【M3】車両マスタ" as m3
+            database "【M4】資機材マスタ" as m4
+            database "【M5】下請け・協力会社" as m5
+        }
+
+        package "リース管理" as lease #FFF3E0 {
+            collections "【リース1】発注依頼" as l1
+            collections "【リース2】発注書" as l2
+            collections "【リース3】納品記録" as l3
+            collections "【リース4】返却記録" as l4
+            collections "【リース5】請求照合" as l5
+        }
+
+        package "経費・勤怠管理" as expense #E3F2FD {
+            collections "【経費1-4】経費関連" as e1
+            collections "【勤怠1-2】勤怠関連" as a1
+        }
+
+        package "安全管理" as safety #FFEBEE {
+            collections "【点検1-4】点検簿" as i1
+            collections "【労務1-3】労務調査" as lab1
+            collections "【安全1-5】安全教育・事故" as s1
+        }
+    }
 }
 
-' AI Layer
-package "AI Agents Layer" {
-  component [Coordinator Agent\n<Task Orchestration>] as Coordinator
-  component [CodeGen Agent\n<Code Generation>] as CodeGen
-  component [Review Agent\n<Quality Assurance>] as Review
-  component [Issue Agent\n<Issue Management>] as IssueAgent
-  component [PR Agent\n<Pull Request>] as PRAgent
-  component [Deployment Agent\n<CI/CD>] as Deployment
+cloud "外部連携" as external {
+    actor "現場作業員" as worker
+    actor "管理者" as admin
+    actor "経理担当" as accounting
 }
 
-' Tools & Scripts
-package "Tools & Automation" {
-  component [Parallel Executor\n<Multi-Worker>] as ParallelExec
-  component [KPI Collector\n<Analytics>] as KPI
-  component [Dashboard Generator\n<Reporting>] as Dashboard
-  component [Project Manager\n<Projects V2 API>] as ProjectMgr
-  component [Rich CLI\n<UI System>] as CLI
-}
+worker --> l1 : 発注依頼
+worker --> e1 : 経費申請
+worker --> a1 : 勤怠入力
+worker --> i1 : 点検実施
 
-' External Services
-cloud "External Services" {
-  component [Anthropic Claude\n<LLM>] as Claude
-  component [GitHub API\n<REST/GraphQL>] as GitHubAPI
-}
+admin --> l2 : 承認・発注
+admin --> s1 : 安全管理
+admin --> lab1 : 労務管理
 
-' Human Interface
-actor "Developer/Guardian" as Human
+accounting --> l5 : 請求照合
+accounting --> e1 : 経費承認
 
-' Relationships - Human to GitHub
-Human --> Issues : Create Issue
-Human --> Actions : Approve/Monitor
-Human --> Repo : Code Review
-
-' Relationships - GitHub Internal
-Issues --> Labels : Tag with
-Issues --> Projects : Track in
-Actions --> Repo : Deploy to
-Webhooks --> Actions : Trigger
-
-' Relationships - AI Agents to GitHub
-Coordinator --> Issues : Analyze
-Coordinator --> Projects : Update Status
-CodeGen --> Repo : Generate Code
-Review --> Repo : Review Changes
-IssueAgent --> Issues : Manage
-PRAgent --> Repo : Create PR
-Deployment --> Actions : Trigger Deploy
-
-' Relationships - AI Agents Internal
-Coordinator --> CodeGen : Delegate
-Coordinator --> Review : Delegate
-Coordinator --> Deployment : Delegate
-Issues --> Coordinator : Trigger
-
-' Relationships - Tools
-ParallelExec --> Coordinator : Orchestrate
-ParallelExec --> IssueAgent : Execute
-ParallelExec --> PRAgent : Execute
-KPI --> GitHubAPI : Query Metrics
-Dashboard --> KPI : Aggregate Data
-ProjectMgr --> Projects : Manage Items
-CLI --> Human : Rich Output
-
-' Relationships - External Services
-Coordinator --> Claude : Query LLM
-CodeGen --> Claude : Generate
-Review --> Claude : Analyze
-GitHubAPI --> Projects : GraphQL API
-GitHubAPI --> Issues : REST API
-
-' Data Flow
-Projects ..> Dashboard : Metrics
-Actions ..> KPI : Build Data
-Labels ..> Dashboard : Status
-
-note right of Coordinator
-  **Task Orchestration**
-  - DAG Construction
-  - Dependency Resolution
-  - Parallel Execution
-  - State Management
-end note
-
-note right of Projects
-  **GitHub Projects V2**
-  - Persistent State
-  - Task Tracking
-  - Progress Metrics
-  - Custom Fields
-end note
-
-note bottom of ParallelExec
-  **Multi-Worker System**
-  - Concurrent Issue Processing
-  - Load Balancing
-  - Rate Limit Management
-end note
+m1 ..> l1 : 参照
+m2 ..> l1 : 参照
+m3 ..> i1 : 参照
+m4 ..> l1 : 参照
 
 @enduml

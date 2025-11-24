@@ -306,6 +306,66 @@ Execution time: 9.2 seconds
    → エスカレーション: CoordinatorAgentに通知
 ```
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.issue_status_monitoring_and_auto-update_agent.refresh_issues
+a2a.issue_status_monitoring_and_auto-update_agent.check_implementation_status
+a2a.issue_status_monitoring_and_auto-update_agent.generate_summary
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.issue_status_monitoring_and_auto-update_agent.refresh_issues",
+    "input": {
+      "dry_run": false,
+      "include_closed": false
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Issue状態更新実行
+let result = bridge.execute_tool(
+    "a2a.issue_status_monitoring_and_auto-update_agent.refresh_issues",
+    json!({
+        "dry_run": false,
+        "include_closed": false
+    })
+).await?;
+
+if result.success {
+    println!("Refresh summary: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "RefresherAgent"` を指定:
+```
+prompt: "全Issueのステータスを最新状態に更新してください"
+subagent_type: "RefresherAgent"
+```
+
+---
+
 ## 連携Agent
 
 - **CoordinatorAgent**: 不整合検出時にエスカレーション

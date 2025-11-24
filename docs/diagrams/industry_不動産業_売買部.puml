@@ -1,0 +1,133 @@
+@startuml dept_realestate_sales
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 売買部 業務フロー
+
+|#LightPink|売買営業担当|
+start
+:売却相談受付;
+note right
+  ・オーナーからの相談
+  ・相続案件
+  ・住み替え
+end note
+
+:物件査定;
+fork
+  :現地調査;
+fork again
+  :周辺取引事例調査;
+fork again
+  :収益還元法;
+fork again
+  :原価法;
+end fork
+
+:査定書作成;
+:売出価格提案;
+
+:媒介契約締結;
+note right
+  ・専属専任媒介
+  ・専任媒介
+  ・一般媒介
+end note
+
+|#LightCyan|販売活動担当|
+:販売活動;
+fork
+  :レインズ登録;
+fork again
+  :自社サイト掲載;
+fork again
+  :ポータルサイト掲載;
+fork again
+  :チラシ配布;
+end fork
+
+:購入希望者対応;
+:内見調整;
+:仲介営業部と連携;
+
+:購入申込受付;
+
+|#LightPink|売買営業担当|
+:売買条件交渉;
+fork
+  :価格交渉;
+fork again
+  :引渡時期;
+fork again
+  :付帯設備;
+fork again
+  :契約条件;
+end fork
+
+:売主・買主調整;
+
+if (条件合意?) then (yes)
+  :契約準備;
+else (no)
+  :継続交渉;
+endif
+
+|#LightGreen|契約担当|
+:重要事項説明書作成;
+note right
+  ・登記情報
+  ・法令制限
+  ・ライフライン
+  ・契約条件
+end note
+
+:総務部へ確認依頼;
+
+:重要事項説明実施;
+:契約書作成;
+:売買契約締結;
+:手付金受領;
+
+|#LightYellow|決済担当|
+:決済準備;
+
+:住宅ローン審査対応;
+if (ローン利用?) then (yes)
+  :金融機関連携;
+  :融資実行調整;
+else (no)
+endif
+
+:登記準備;
+fork
+  :所有権移転;
+fork again
+  :抵当権設定;
+fork again
+  :抵当権抹消;
+end fork
+
+:総務部へ登記手続き依頼;
+
+:決済実行;
+note right
+  ・残代金受領
+  ・固定資産税精算
+  ・管理費精算
+  ・諸費用支払
+end note
+
+:鍵引渡し;
+:物件引渡し;
+
+|#LightPink|売買営業担当|
+:仲介手数料請求;
+:経理部へ売上報告;
+
+:アフターフォロー;
+:紹介依頼;
+:顧客データベース更新;
+
+stop
+
+@enduml

@@ -400,7 +400,7 @@ export function TmuxMonitorPanelV2({ className }: TmuxMonitorPanelV2Props) {
     try {
       const config = {
         session_name: 'miyabi-auto-dev',
-        repo_root: '/Users/shunsuke/Dev/miyabi-private',
+        repo_root: '/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private',
         task_file: '',
         enable_claude_code: true,
         enable_codex: true,

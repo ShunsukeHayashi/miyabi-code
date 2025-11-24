@@ -1,0 +1,127 @@
+@startuml dept_manufacturing_logistics
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 物流部 業務フロー
+
+|#LightCyan|入荷管理担当|
+start
+:入荷予定確認;
+note right: 購買部からの連絡
+
+:入荷準備;
+fork
+  :荷受場所確保;
+fork again
+  :フォークリフト手配;
+fork again
+  :保管場所確保;
+end fork
+
+:入荷検品;
+:数量確認;
+
+if (数量一致?) then (yes)
+  :入荷処理完了;
+else (no)
+  :過不足報告;
+  :購買部へ連絡;
+endif
+
+:倉庫へ格納;
+:ロケーション登録;
+:在庫データ更新;
+
+|#LightGreen|在庫管理担当|
+:在庫管理;
+
+while (営業日?) is (継続)
+  :在庫状況確認;
+
+  if (在庫過少?) then (yes)
+    :購買部へ補充依頼;
+  else (no)
+  endif
+
+  if (長期滞留品?) then (yes)
+    :滞留品リスト作成;
+    :処分検討依頼;
+  else (no)
+  endif
+endwhile (終了)
+
+:定期棚卸実施;
+fork
+  :実地棚卸;
+fork again
+  :帳簿照合;
+end fork
+
+if (差異あり?) then (yes)
+  :差異原因調査;
+  :在庫調整処理;
+  :経理部へ報告;
+else (no)
+endif
+
+|#LightBlue|出荷管理担当|
+:出荷指示受領;
+note right: 営業部からの依頼
+
+:出荷準備;
+:ピッキング指示書作成;
+
+:ピッキング作業;
+:検品作業;
+note right
+  ・品番確認
+  ・数量確認
+  ・品質確認
+end note
+
+if (ピッキング完了?) then (yes)
+  :梱包作業;
+else (no)
+  :在庫不足報告;
+  :営業部へ連絡;
+endif
+
+:送り状作成;
+:配送手配;
+
+if (自社便?) then (yes)
+  :配送ルート計画;
+  :ドライバー割当;
+else (no)
+  :運送会社手配;
+  :集荷依頼;
+endif
+
+:出荷完了処理;
+:営業部へ出荷報告;
+:在庫データ更新;
+
+|#LightYellow|配送管理担当|
+:配送状況追跡;
+
+if (配送完了?) then (yes)
+  :納品確認;
+  :受領書回収;
+else (no)
+  :遅延対応;
+  :顧客連絡;
+endif
+
+:物流費集計;
+:経理部へ報告;
+
+:物流効率分析;
+note right
+  ・配送コスト
+  ・積載率
+  ・リードタイム
+end note
+
+stop
+
+@enduml

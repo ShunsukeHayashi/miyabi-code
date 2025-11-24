@@ -155,6 +155,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ isOpen, onClose }) =
                       isSelected={autoRefreshEnabled}
                       onValueChange={setAutoRefreshEnabled}
                       color="primary"
+                      aria-label="Auto-refresh toggle"
                     />
                   </div>
 

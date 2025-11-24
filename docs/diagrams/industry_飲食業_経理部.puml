@@ -1,0 +1,146 @@
+@startuml dept_restaurant_accounting
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 経理部 業務フロー
+
+|#LightGray|売上管理担当|
+start
+:日次売上集計;
+note right: 全店舗POSデータ
+
+fork
+  :現金売上;
+fork again
+  :カード売上;
+fork again
+  :電子マネー;
+fork again
+  :デリバリー売上;
+end fork
+
+:売上計上処理;
+
+:入金管理;
+if (現金過不足?) then (yes)
+  :店舗へ確認;
+  :差異調整;
+else (no)
+endif
+
+:決済代行会社からの入金確認;
+:手数料計算;
+
+|#LightPink|原価管理担当|
+:食材原価計算;
+note right: 仕入部からの報告
+
+:原価率分析;
+note right
+  ・食材原価率目標: 30%前後
+  ・メニュー別原価
+  ・日次/月次推移
+end note
+
+if (原価率超過?) then (yes)
+  :原因分析;
+  fork
+    :食材ロス;
+  fork again
+    :仕入価格上昇;
+  fork again
+    :ポーション管理;
+  end fork
+  :改善策提案;
+else (no)
+endif
+
+:廃棄ロス計上;
+
+|#LightCyan|支払管理担当|
+:仕入支払処理;
+note right: 仕入部からの支払依頼
+
+:請求書照合;
+:支払スケジュール管理;
+
+:支払処理実行;
+:買掛金管理;
+
+:経費精算;
+fork
+  :店舗経費;
+fork again
+  :人件費;
+fork again
+  :水道光熱費;
+fork again
+  :消耗品費;
+end fork
+
+|#LightYellow|財務管理担当|
+:資金繰り管理;
+note right
+  ・日次資金繰り
+  ・仕入支払サイクル
+  ・売上入金サイクル
+end note
+
+:月次決算;
+fork
+  :売上総利益;
+fork again
+  :営業利益;
+fork again
+  :店舗別損益;
+end fork
+
+:FL比率分析;
+note right
+  F(Food)原価 + L(Labor)人件費
+  目標: 60%以下
+end note
+
+:店舗収益性分析;
+fork
+  :客単価;
+fork again
+  :回転率;
+fork again
+  :坪効率;
+end fork
+
+if (四半期/年度末?) then (yes)
+  :決算整理;
+  :財務諸表作成;
+  :税務申告;
+else (no)
+endif
+
+|#LightGreen|予算管理担当|
+:予算編成;
+fork
+  :売上予算;
+fork again
+  :原価予算;
+fork again
+  :人件費予算;
+fork again
+  :経費予算;
+end fork
+
+:予実管理;
+:経営レポート作成;
+
+:KPI管理;
+note right
+  ・売上成長率
+  ・原価率
+  ・人件費率
+  ・客単価
+  ・回転率
+end note
+
+stop
+
+@enduml

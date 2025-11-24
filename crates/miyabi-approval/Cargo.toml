@@ -10,9 +10,9 @@ keywords = ["approval", "workflow", "human-in-loop", "gates", "orchestration"]
 categories = ["development-tools", "web-programming"]
 
 [dependencies]
-miyabi-core = { path = "../miyabi-core" }
-miyabi-types = { path = "../miyabi-types" }
-miyabi-workflow = { path = "../miyabi-workflow" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-workflow = { path = "../miyabi-workflow", version = "0.1.2" }
 
 tokio = { workspace = true }
 serde = { workspace = true }

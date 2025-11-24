@@ -1,5 +1,6 @@
 import { Avatar, Button, Tooltip } from '@heroui/react';
 import {
+  BarChart3,
   Bell,
   Building2,
   ChevronLeft,
@@ -7,8 +8,10 @@ import {
   Database,
   FolderGit2,
   GitBranch,
+  GitPullRequest,
   LayoutDashboard,
   LogOut,
+  Network,
   Rocket,
   Server,
   Terminal,
@@ -45,6 +48,9 @@ export default function Sidebar() {
     { name: 'Database', path: '/database', icon: Database },
     { name: 'Logs', path: '/logs', icon: Terminal },
     { name: 'Worktrees', path: '/worktrees', icon: FolderGit2 },
+    { name: 'Issues', path: '/issues', icon: GitPullRequest },
+    { name: 'Task DAG', path: '/task-dag', icon: Network },
+    { name: 'Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Notifications', path: '/notifications', icon: Bell },
   ];
 

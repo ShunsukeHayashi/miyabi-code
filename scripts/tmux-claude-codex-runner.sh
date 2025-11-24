@@ -6,7 +6,7 @@
 set -e
 
 SESSION="claude-codex-auto"
-WORKDIR="/Users/shunsuke/Dev/miyabi-private"
+WORKDIR="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 TASK_FILE="${1:-tasks/auto-dev-tasks.md}"
 
 # Colors

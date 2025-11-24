@@ -5,7 +5,7 @@
 
 set -e  # Exit on error
 
-WORKING_DIR="/Users/shunsuke/Dev/miyabi-private"
+WORKING_DIR="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 SESSION_NAME="miyabi-orchestra"
 WINDOW_NAME="orchestra"
 

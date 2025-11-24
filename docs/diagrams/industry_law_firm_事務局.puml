@@ -1,0 +1,98 @@
+@startuml industry_law_firm_事務局
+!theme cerulean-outline
+
+title 法律事務所 - 事務局 業務フロー
+
+|弁護士|
+|事務局長|
+|事務スタッフ|
+|外部機関|
+
+|弁護士|
+start
+:業務指示;
+
+|事務スタッフ|
+fork
+  :書類作成業務;
+  note right
+  ・訴状/答弁書の清書
+  ・契約書製本
+  ・内容証明作成
+  ・各種申立書
+  end note
+fork again
+  :スケジュール管理;
+  note right
+  ・裁判期日管理
+  ・相談予約管理
+  ・弁護士スケジュール
+  ・会議室予約
+  end note
+fork again
+  :ファイリング;
+  note right
+  ・案件ファイル作成
+  ・証拠書類整理
+  ・判例資料整理
+  ・電子データ管理
+  end note
+end fork
+
+|外部機関|
+:裁判所対応;
+note right
+・書類提出
+・記録閲覧
+・謄写申請
+・各種証明書取得
+end note
+
+|事務スタッフ|
+:請求・入金管理;
+note right
+・請求書発行
+・入金確認
+・督促連絡
+・消込処理
+end note
+
+|事務局長|
+:経理業務;
+note right
+・月次決算
+・経費精算
+・振込処理
+・資金管理
+end note
+
+|事務スタッフ|
+:来客・電話対応;
+:郵便物管理;
+:備品管理;
+
+|事務局長|
+:弁護士会対応;
+note right
+・会費納付
+・届出書提出
+・研修申込
+end note
+
+:採用・労務管理;
+note right
+・事務スタッフ採用
+・勤怠管理
+・給与計算
+end note
+
+:事務所運営管理;
+note right
+・設備管理
+・セキュリティ管理
+・業者対応
+end note
+
+stop
+
+@enduml

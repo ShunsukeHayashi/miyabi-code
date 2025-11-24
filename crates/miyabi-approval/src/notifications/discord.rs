@@ -78,8 +78,17 @@ impl DiscordNotifier {
 
     /// Send a Discord embed
     pub async fn send_embed(&self, embed: DiscordEmbed) -> Result<()> {
+        self.send_embed_with_content(embed, None).await
+    }
+
+    /// Send a Discord embed with optional plain text content
+    pub async fn send_embed_with_content(
+        &self,
+        embed: DiscordEmbed,
+        content: Option<String>,
+    ) -> Result<()> {
         let payload = DiscordPayload {
-            content: None,
+            content,
             embeds: Some(vec![embed]),
         };
 
@@ -221,12 +230,14 @@ impl DiscordNotifier {
 impl Notifier for DiscordNotifier {
     async fn send_approval_request(&self, req: &ApprovalRequest) -> Result<()> {
         let embed = self.build_approval_embed(req);
-        self.send_embed(embed).await
+        let content = self.formatter.format_approval_request(req);
+        self.send_embed_with_content(embed, Some(content)).await
     }
 
     async fn send_status_update(&self, status: &WorkflowStatusUpdate) -> Result<()> {
         let embed = self.build_status_embed(status);
-        self.send_embed(embed).await
+        let content = self.formatter.format_status_update(status);
+        self.send_embed_with_content(embed, Some(content)).await
     }
 
     async fn send_error(&self, error: &str) -> Result<()> {
@@ -241,6 +252,7 @@ impl Notifier for DiscordNotifier {
             timestamp: Some(chrono::Utc::now().to_rfc3339()),
         };
 
-        self.send_embed(embed).await
+        let content = self.formatter.format_error(error);
+        self.send_embed_with_content(embed, Some(content)).await
     }
 }

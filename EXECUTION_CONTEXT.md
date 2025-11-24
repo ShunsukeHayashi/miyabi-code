@@ -66,7 +66,7 @@ This issue requires **manual implementation** in the current Claude Code session
 
 ## 📁 Working Directory
 
-Current Worktree: `/Users/shunsuke/Dev/miyabi-private`
+Current Worktree: `/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private`
 
 All implementation should be done in this directory.
 

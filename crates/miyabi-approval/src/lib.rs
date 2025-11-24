@@ -12,7 +12,7 @@
 //! use miyabi_approval::{ApprovalGate, ApprovalStore};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let gate = ApprovalGate::new("deploy-production")
+//! let gate = ApprovalGate::builder("deploy-production")
 //!     .required_approvers(vec!["tech-lead".to_string(), "ciso".to_string()])
 //!     .timeout_seconds(86400) // 24 hours
 //!     .build()?;

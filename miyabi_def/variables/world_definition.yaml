@@ -135,7 +135,7 @@ world:
       repository:
         primary: "https://github.com/ShunsukeHayashi/Miyabi"
         public: "https://github.com/ShunsukeHayashi/Miyabi"
-        private: "/Users/shunsuke/Dev/miyabi-private"
+        private: "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 
       # Deployment
       deployment:

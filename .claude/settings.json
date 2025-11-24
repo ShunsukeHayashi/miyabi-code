@@ -28,6 +28,10 @@
     "PostToolUse": [],
     "Stop": [
       {
+        "command": ".claude/hooks/stop-speak.sh",
+        "description": "VOICEVOX/Say speech notification when Claude Code stops"
+      },
+      {
         "command": ".claude/hooks/session-continue.sh",
         "description": "Prompt to continue or save session state"
       }

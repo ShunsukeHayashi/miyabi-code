@@ -87,7 +87,7 @@ pub struct SendCommandResponse {
 /// Send a command to a specific TMUX pane
 pub async fn send_command(Query(params): Query<SendCommandQuery>) -> Json<SendCommandResponse> {
     // Safety check: whitelist allowed commands
-    let allowed_prefixes = vec!["miyabi", "cargo", "git", "ls", "pwd", "cd", "echo"];
+    let allowed_prefixes = ["miyabi", "cargo", "git", "ls", "pwd", "cd", "echo"];
 
     let is_safe = allowed_prefixes.iter().any(|prefix| params.command.starts_with(prefix));
 
@@ -102,9 +102,8 @@ pub async fn send_command(Query(params): Query<SendCommandQuery>) -> Json<SendCo
     }
 
     // Send command via tmux send-keys
-    let result = Command::new("tmux")
-        .args(&["send-keys", "-t", &params.pane, &params.command, "C-m"])
-        .output();
+    let result =
+        Command::new("tmux").args(["send-keys", "-t", &params.pane, &params.command, "C-m"]).output();
 
     match result {
         Ok(output) if output.status.success() => Json(SendCommandResponse {
@@ -133,7 +132,7 @@ pub struct KillSessionResponse {
 }
 
 pub async fn kill_session(Path(session_name): Path<String>) -> Json<KillSessionResponse> {
-    let result = Command::new("tmux").args(&["kill-session", "-t", &session_name]).output();
+    let result = Command::new("tmux").args(["kill-session", "-t", &session_name]).output();
 
     match result {
         Ok(output) if output.status.success() => Json(KillSessionResponse {
@@ -158,7 +157,7 @@ pub async fn kill_session(Path(session_name): Path<String>) -> Json<KillSessionR
 fn get_tmux_sessions() -> Vec<TmuxSession> {
     // Get list of sessions
     let sessions_output =
-        Command::new("tmux").args(&["list-sessions", "-F", "#{session_name}"]).output();
+        Command::new("tmux").args(["list-sessions", "-F", "#{session_name}"]).output();
 
     let sessions_output = match sessions_output {
         Ok(output) if output.status.success() => output,
@@ -192,7 +191,7 @@ fn get_tmux_sessions() -> Vec<TmuxSession> {
 /// Get all windows for a TMUX session
 fn get_tmux_windows(session_name: &str) -> Vec<TmuxWindow> {
     let windows_output = Command::new("tmux")
-        .args(&[
+        .args([
             "list-windows",
             "-t",
             session_name,
@@ -242,7 +241,7 @@ fn get_tmux_panes(session_name: &str, window_id: &str) -> Vec<TmuxPane> {
     let target = format!("{}:{}", session_name, window_id);
 
     let panes_output = Command::new("tmux")
-        .args(&[
+        .args([
             "list-panes",
             "-t",
             &target,
@@ -307,23 +306,21 @@ pub fn routes() -> Router {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_send_command_safety() {
         // This test verifies that only safe commands are allowed
-        let allowed = vec!["miyabi status", "cargo test", "git status", "ls -la", "pwd"];
-        let disallowed = vec!["rm -rf /", "sudo shutdown", "dd if=/dev/zero"];
+        let allowed = ["miyabi status", "cargo test", "git status", "ls -la", "pwd"];
+        let disallowed = ["rm -rf /", "sudo shutdown", "dd if=/dev/zero"];
 
         for cmd in allowed {
-            let is_safe = vec!["miyabi", "cargo", "git", "ls", "pwd"]
+            let is_safe = ["miyabi", "cargo", "git", "ls", "pwd"]
                 .iter()
                 .any(|prefix| cmd.starts_with(prefix));
             assert!(is_safe, "Command '{}' should be allowed", cmd);
         }
 
         for cmd in disallowed {
-            let is_safe = vec!["miyabi", "cargo", "git", "ls", "pwd"]
+            let is_safe = ["miyabi", "cargo", "git", "ls", "pwd"]
                 .iter()
                 .any(|prefix| cmd.starts_with(prefix));
             assert!(!is_safe, "Command '{}' should be disallowed", cmd);

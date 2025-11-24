@@ -4,8 +4,15 @@
 //! a Directed Acyclic Graph (DAG) for dependency management.
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
 use miyabi_core::task_metadata::{TaskMetadata, TaskMetadataManager};
+use miyabi_core::ExecutionMode;
 use miyabi_github::GitHubClient;
 use miyabi_types::agent::{AgentMetrics, AgentType, ResultStatus};
 use miyabi_types::error::{MiyabiError, Result};
@@ -837,6 +844,136 @@ impl BaseAgent for CoordinatorAgent {
             metrics: Some(metrics),
             escalation: None,
         })
+    }
+}
+
+/// A2A Protocol Implementation for CoordinatorAgent
+///
+/// This enables CoordinatorAgent to:
+/// - Participate in agent-to-agent communication
+/// - Execute native Rust tools for high-performance operations
+/// - Expose its capabilities to other agents
+#[async_trait]
+impl A2AEnabled for CoordinatorAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("coordinator-agent", "Coordinator Agent")
+            .description("Task decomposition and DAG construction for complex issues")
+            .version("0.1.0")
+            .capability(AgentCapability {
+                id: "decompose_issue".to_string(),
+                name: "Issue Decomposition".to_string(),
+                description: "Break down issues into executable tasks with DAG".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "issue_number": { "type": "integer" },
+                        "owner": { "type": "string" },
+                        "repo": { "type": "string" }
+                    },
+                    "required": ["issue_number"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "tasks": { "type": "array" },
+                        "dag": { "type": "object" },
+                        "estimated_duration": { "type": "integer" }
+                    }
+                })),
+            })
+            .capability(AgentCapability {
+                id: "generate_plans".to_string(),
+                name: "Plans Generation".to_string(),
+                description: "Generate Plans.md from task decomposition".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "decomposition": { "type": "object" }
+                    },
+                    "required": ["decomposition"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "markdown": { "type": "string" }
+                    }
+                })),
+            })
+            .input_mode("json")
+            .output_mode("json")
+            .metadata("agent_type", json!("CoordinatorAgent"))
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+
+        match task.capability.as_str() {
+            "decompose_issue" => {
+                let issue_number = task.input["issue_number"]
+                    .as_u64()
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing issue_number".to_string()))?;
+
+                // Get owner/repo from input or config
+                let owner = task.input["owner"]
+                    .as_str()
+                    .map(|s| s.to_string())
+                    .or_else(|| self.config.repo_owner.clone())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing owner".to_string()))?;
+
+                let repo = task.input["repo"]
+                    .as_str()
+                    .map(|s| s.to_string())
+                    .or_else(|| self.config.repo_name.clone())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing repo".to_string()))?;
+
+                // Fetch issue
+                let github_client = GitHubClient::new(&self.config.github_token, &owner, &repo)
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                let issue = github_client
+                    .get_issue(issue_number)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                // Decompose
+                let decomposition = self
+                    .decompose_issue(&issue)
+                    .await
+                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(e.to_string()))?;
+
+                Ok(A2ATaskResult::Success {
+                    output: serde_json::to_value(decomposition)
+                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            "generate_plans" => {
+                let decomposition: TaskDecomposition = serde_json::from_value(
+                    task.input["decomposition"].clone()
+                )
+                .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid decomposition: {}", e)))?;
+
+                let markdown = self.generate_plans_md(&decomposition);
+
+                Ok(A2ATaskResult::Success {
+                    output: json!({ "markdown": markdown }),
+                    artifacts: vec![],
+                    execution_time_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode {
+        // CoordinatorAgent needs file access for reading project structure
+        // but doesn't need full command execution
+        ExecutionMode::FileEdits
     }
 }
 

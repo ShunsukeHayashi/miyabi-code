@@ -606,6 +606,7 @@ export default function OrganizationsPage() {
                                   size="sm"
                                   selectedKeys={[member.role]}
                                   className="w-32"
+                                  aria-label={`Change role for ${member.full_name}`}
                                   onSelectionChange={(keys) => {
                                     const newRole = Array.from(keys)[0] as string
                                     handleUpdateMemberRole(member.id, newRole)

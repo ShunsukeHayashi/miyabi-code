@@ -1,0 +1,175 @@
+{
+  "total_epics": 18,
+  "epics_with_children": 14,
+  "total_child_tasks": 46,
+  "details": [
+    {
+      "epic_id": 965,
+      "epic_title": "[P0] Kazuaki Agent - キャラクター性格の拡充",
+      "children_count": 0,
+      "children": []
+    },
+    {
+      "epic_id": 966,
+      "epic_title": "[P0] Kazuaki Agent - IAM権限要件の文書化",
+      "children_count": 1,
+      "children": [
+        967
+      ]
+    },
+    {
+      "epic_id": 967,
+      "epic_title": "[P0] Kazuaki Agent - Rust-Pythonブリッジの詳細化",
+      "children_count": 0,
+      "children": []
+    },
+    {
+      "epic_id": 968,
+      "epic_title": "[P0] Kazuaki Agent - コスト閾値の明確化",
+      "children_count": 0,
+      "children": []
+    },
+    {
+      "epic_id": 971,
+      "epic_title": "🎯 [P0] Miyabi Reconstruction - Master Dependency Graph & Phase Structure",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 972,
+      "epic_title": "Phase 1.1: PostgreSQL Connection Enablement",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 973,
+      "epic_title": "Phase 1.2: Base Schema Migration",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 974,
+      "epic_title": "Phase 1.3: Organization/Team Schema Implementation",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 975,
+      "epic_title": "Phase 1.4: RBAC Implementation",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 976,
+      "epic_title": "Phase 1.5: JWT Authentication Implementation",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 977,
+      "epic_title": "🎯 [MASTER] Miyabi Reconstruction - Team Coordination & Context Preservation",
+      "children_count": 17,
+      "children": [
+        977,
+        993,
+        992,
+        991,
+        990,
+        989,
+        988,
+        987,
+        986,
+        985,
+        984,
+        983,
+        982,
+        981,
+        980,
+        979,
+        978
+      ]
+    },
+    {
+      "epic_id": 983,
+      "epic_title": "Phase 2.1: Service Layer Refactoring",
+      "children_count": 4,
+      "children": [
+        977,
+        987,
+        986,
+        985
+      ]
+    },
+    {
+      "epic_id": 984,
+      "epic_title": "Phase 2.2: Task Management API Implementation",
+      "children_count": 2,
+      "children": [
+        986,
+        985
+      ]
+    },
+    {
+      "epic_id": 985,
+      "epic_title": "Phase 2.3: Worker & Coordinator Status APIs",
+      "children_count": 2,
+      "children": [
+        986,
+        985
+      ]
+    },
+    {
+      "epic_id": 986,
+      "epic_title": "Phase 2.4: Uncomment & Test Existing APIs",
+      "children_count": 2,
+      "children": [
+        987,
+        986
+      ]
+    },
+    {
+      "epic_id": 987,
+      "epic_title": "Phase 2.5: AWS Lambda Deployment & CloudWatch Monitoring",
+      "children_count": 1,
+      "children": [
+        977
+      ]
+    },
+    {
+      "epic_id": 1003,
+      "epic_title": "📚 [EPIC] Documentation Optimization v1.1 - Improve Navigation & Reduce Complexity",
+      "children_count": 0,
+      "children": []
+    },
+    {
+      "epic_id": 1018,
+      "epic_title": "🚀 [EPIC] M1 Infrastructure Blitz - Production Deployment",
+      "children_count": 11,
+      "children": [
+        1023,
+        1022,
+        1021,
+        1020,
+        1019,
+        1029,
+        1028,
+        1027,
+        1026,
+        1024,
+        1025
+      ]
+    }
+  ]
+}

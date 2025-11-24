@@ -1,0 +1,33 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Motivation}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Contributions}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Organization}{4}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Related Work}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Multi-Agent Systems}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Human-AI Collaboration}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Leadership Frameworks}{4}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Preliminaries}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Mathematical Notation}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Shunsuke's World Model Logic (SWML)}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Miyabi Society Formula}{5}{subsection.3.3}%
+\contentsline {section}{\numberline {4}The Pantheon Formula}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Core Definition}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Hierarchical Structure}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Six-Layer Expansion}{7}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Our Leadership Principles}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}The Fifteen Principles}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}The Human-Agent Harmony Principle (P₁₅)}{8}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Convergence and Emergence Theorems}{9}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Convergence Theorem}{9}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Emergence Theorem}{10}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Implementation Architecture}{11}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Rust Type System}{11}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Execution Algorithm}{12}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}tmux Orchestration}{13}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Evaluation}{13}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Experimental Setup}{13}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Results}{14}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Conclusion}{14}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Future Work}{14}{subsection.9.1}%
+\contentsline {section}{\numberline {A}Mathematical Symbols}{15}{appendix.A}%
+\contentsline {section}{\numberline {B}Implementation Details}{15}{appendix.B}%

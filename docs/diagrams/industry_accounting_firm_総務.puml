@@ -1,0 +1,93 @@
+@startuml industry_accounting_firm_総務
+!theme cerulean-outline
+
+title 会計事務所 - 総務部門 業務フロー
+
+|クライアント|
+|総務担当|
+|各部門|
+|所長|
+
+|クライアント|
+start
+:問い合わせ・来所;
+
+|総務担当|
+:受付対応;
+:担当部門振り分け;
+
+|各部門|
+:専門対応;
+
+|総務担当|
+fork
+  :スケジュール管理;
+  note right
+  ・税理士面談予約
+  ・決算スケジュール
+  ・年末調整スケジュール
+  ・研修予定
+  end note
+fork again
+  :書類管理;
+  note right
+  ・契約書保管
+  ・顧客資料保管
+  ・申告書控え保管
+  ・電子データバックアップ
+  end note
+fork again
+  :備品・設備管理;
+  note right
+  ・事務用品発注
+  ・PC/プリンター管理
+  ・会計ソフト管理
+  ・セキュリティ管理
+  end note
+end fork
+
+:新規顧客受付;
+note right
+・見積書作成
+・契約書作成
+・顧問契約締結
+・顧客データ登録
+end note
+
+|所長|
+:契約条件確認;
+
+|総務担当|
+:採用・労務管理;
+note right
+・求人募集
+・面接調整
+・入退社手続き
+・勤怠管理
+end note
+
+:研修・教育管理;
+note right
+・外部研修申込
+・資格取得支援
+・所内勉強会企画
+end note
+
+:税理士会対応;
+note right
+・会費納付
+・届出書提出
+・研修報告
+end note
+
+:事務所運営;
+note right
+・来客対応
+・電話応対
+・郵便物管理
+・清掃管理
+end note
+
+stop
+
+@enduml

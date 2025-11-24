@@ -148,6 +148,68 @@ docs/sales/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.sales_process_optimization_agent.optimize_sales
+a2a.sales_process_optimization_agent.create_sales_materials
+a2a.sales_process_optimization_agent.design_pricing_strategy
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.sales_process_optimization_agent.optimize_sales",
+    "input": {
+      "kpi_dashboard": "docs/marketing/kpi-dashboard.md",
+      "email_sequence": "docs/funnel/email-sequence.md",
+      "revenue_model": "docs/product/revenue-model.md"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.sales_process_optimization_agent.optimize_sales",
+    json!({
+        "kpi_dashboard": "docs/marketing/kpi-dashboard.md",
+        "email_sequence": "docs/funnel/email-sequence.md",
+        "revenue_model": "docs/product/revenue-model.md"
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "SalesAgent"` を指定:
+```
+prompt: "リード→顧客の転換率を最大化し、セールスプロセス、価格戦略、クロージングスクリプトを最適化してください"
+subagent_type: "SalesAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **MarketingAgent**: 前フェーズ（Phase 9）

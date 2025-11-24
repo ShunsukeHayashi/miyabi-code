@@ -1,0 +1,103 @@
+version: '3.9'
+
+services:
+  # PostgreSQL 15 Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: miyabi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: miyabi
+      POSTGRES_PASSWORD: miyabi_dev_password
+      POSTGRES_DB: miyabi_web
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+      TZ: Asia/Tokyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./crates/miyabi-web-api/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U miyabi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for caching & session storage)
+  redis:
+    image: redis:7-alpine
+    container_name: miyabi-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Rust Web API (Development)
+  api:
+    build:
+      context: .
+      dockerfile: crates/miyabi-web-api/Dockerfile
+      target: development
+    container_name: miyabi-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://miyabi:miyabi_dev_password@postgres:5432/miyabi_web
+      REDIS_URL: redis://redis:6379
+      RUST_LOG: debug
+      RUST_BACKTRACE: 1
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./crates/miyabi-web-api:/app
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    command: cargo watch -x run
+
+  # Next.js Frontend (Development)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+      target: development
+    container_name: miyabi-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_WS_URL: ws://localhost:8080
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  cargo_cache:
+    driver: local
+  target_cache:
+    driver: local
+
+networks:
+  default:
+    name: miyabi-network
+    driver: bridge

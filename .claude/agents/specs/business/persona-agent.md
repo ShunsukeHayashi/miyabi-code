@@ -396,6 +396,68 @@ docs/persona/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.persona_and_customer_segment_analysis_agent.analyze_personas
+a2a.persona_and_customer_segment_analysis_agent.create_journey_map
+a2a.persona_and_customer_segment_analysis_agent.identify_pain_points
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.persona_and_customer_segment_analysis_agent.analyze_personas",
+    "input": {
+      "target": "Software Developers",
+      "market_data": "docs/research/market-trends.md",
+      "persona_count": 5
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// ペルソナ分析実行
+let result = bridge.execute_tool(
+    "a2a.persona_and_customer_segment_analysis_agent.analyze_personas",
+    json!({
+        "target": "Software Developers",
+        "market_data": "docs/research/market-trends.md",
+        "persona_count": 5
+    })
+).await?;
+
+if result.success {
+    println!("Personas: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "PersonaAgent"` を指定:
+```
+prompt: "ターゲット顧客のペルソナを5人設定してカスタマージャーニーを作成してください"
+subagent_type: "PersonaAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **SelfAnalysisAgent**: 前々フェーズ（Phase 1）

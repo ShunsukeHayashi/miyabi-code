@@ -45,8 +45,8 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 chrono = "0.4"
 
 # Internal dependencies
-miyabi-types = { path = "../miyabi-types" }
-miyabi-llm = { path = "../miyabi-llm" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 
 [dev-dependencies]
 tokio-test = "0.4"

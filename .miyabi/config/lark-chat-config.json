@@ -1,0 +1,7 @@
+{
+  "chat_name": "Miyabi Dev Team",
+  "chat_id": "oc_8ea05188f644acc3a74881e79f88fa54",
+  "webhook_url": "https://open.larksuite.com/open-apis/bot/v2/hook/YOUR_WEBHOOK_ID",
+  "signing_secret": "YOUR_SIGNING_SECRET",
+  "note": "Update webhook_url and signing_secret with actual values from Lark Bot configuration"
+}

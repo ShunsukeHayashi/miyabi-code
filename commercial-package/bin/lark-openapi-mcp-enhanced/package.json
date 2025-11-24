@@ -1,0 +1,85 @@
+{
+  "name": "@larksuiteoapi/lark-mcp",
+  "version": "0.4.0",
+  "description": "Feishu/Lark OpenAPI MCP",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "chenli.idevlab",
+  "license": "MIT",
+  "bin": {
+    "lark-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "CHANGELOG.md",
+    "README.md",
+    "README_ZH.md",
+    "README_RECALL.md",
+    "README_RECALL_ZH.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "yarn build",
+    "test": "NODE_OPTIONS='--max-old-space-size=4096' jest --forceExit --detectOpenHandles",
+    "test:watch": "NODE_OPTIONS='--max-old-space-size=4096' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--max-old-space-size=4096' jest --coverage --forceExit",
+    "bot:deploy": "./quick-deploy.sh",
+    "bot:start": "node deploy-lark-workspace-bot.js",
+    "bot:dev": "NODE_ENV=development node deploy-lark-workspace-bot.js",
+    "bot:prod": "NODE_ENV=production node deploy-lark-workspace-bot.js",
+    "test:integration": "node -e \"require('./lark-workspace-integration').testWorkspaceIntegration()\"",
+    "test:agent": "node test-chat-agent.js",
+    "test:agent-tools": "node test-agent-with-tools.js",
+    "login": "./lark-cli-login.js",
+    "setup": "source setup-env.sh",
+    "status": "./lark-cli-login.js",
+    "docker:build": "./scripts/docker-build.sh",
+    "docker:build:dev": "./scripts/docker-build.sh 0.3.1 development",
+    "docker:build:prod": "./scripts/docker-build.sh 0.3.1 production",
+    "docker:run": "./scripts/docker-run.sh",
+    "docker:run:dev": "./scripts/docker-run.sh --target development",
+    "docker:run:prod": "./scripts/docker-run.sh --target production",
+    "docker:stdio": "./scripts/docker-run.sh --mode stdio",
+    "docker:sse": "./scripts/docker-run.sh --mode sse",
+    "docker:compose:dev": "docker-compose --profile development up",
+    "docker:compose:prod": "docker-compose --profile production up",
+    "docker:compose:genesis": "docker-compose --profile genesis up"
+  },
+  "keywords": [
+    "feishu",
+    "lark",
+    "mcp",
+    "open-api",
+    "ai"
+  ],
+  "homepage": "https://github.com/larksuite/lark-openapi-mcp",
+  "engines": {
+    "node": ">=16.20.0"
+  },
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.47.0",
+    "@modelcontextprotocol/sdk": "^1.11.0",
+    "axios": "^1.8.4",
+    "commander": "^13.1.0",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.4.5",
+    "jest": "^29.7.0",
+    "prettier": "^3.5.3",
+    "socket.io": "^4.8.1",
+    "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}

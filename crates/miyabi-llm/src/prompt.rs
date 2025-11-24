@@ -44,10 +44,11 @@ pub enum PromptError {
 pub type Result<T> = std::result::Result<T, PromptError>;
 
 /// Response format specification
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum ResponseFormat {
     /// Plain text response
+    #[default]
     PlainText,
 
     /// JSON response with optional schema
@@ -65,12 +66,6 @@ pub enum ResponseFormat {
         /// Programming language (e.g., "rust", "python", "javascript")
         language: String,
     },
-}
-
-impl Default for ResponseFormat {
-    fn default() -> Self {
-        Self::PlainText
-    }
 }
 
 /// LLM Prompt Template

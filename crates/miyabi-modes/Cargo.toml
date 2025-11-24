@@ -23,8 +23,8 @@ tracing = "0.1"
 chrono = "0.4"
 
 # Internal dependencies
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
 
 [dev-dependencies]
 tokio-test = "0.4"

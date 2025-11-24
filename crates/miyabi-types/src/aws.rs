@@ -133,6 +133,7 @@ pub enum TaskStatus {
     Completed,
     Failed,
     Cancelled,
+    Blocked,
 }
 
 impl HistoricalAgent {

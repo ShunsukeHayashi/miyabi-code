@@ -426,6 +426,68 @@ docs/business-plan/
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.ai_entrepreneur_support_and_business_planning_agent.create_business_plan
+a2a.ai_entrepreneur_support_and_business_planning_agent.analyze_market
+a2a.ai_entrepreneur_support_and_business_planning_agent.design_funding_plan
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.ai_entrepreneur_support_and_business_planning_agent.create_business_plan",
+    "input": {
+      "target_market": "AIヘルスケア市場",
+      "keywords": ["AI", "健康管理"],
+      "business_idea": "AI健康アシスタント"
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// Agent実行
+let result = bridge.execute_tool(
+    "a2a.ai_entrepreneur_support_and_business_planning_agent.create_business_plan",
+    json!({
+        "target_market": "AIヘルスケア市場",
+        "keywords": ["AI", "健康管理"],
+        "business_idea": "AI健康アシスタント"
+    })
+).await?;
+
+if result.success {
+    println!("Result: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "AIEntrepreneurAgent"` を指定:
+```
+prompt: "市場分析から資金調達計画まで、包括的なビジネスプランを作成してください"
+subagent_type: "AIEntrepreneurAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CoordinatorAgent**: タスク分解と実行順序管理

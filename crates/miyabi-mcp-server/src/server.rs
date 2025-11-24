@@ -5,22 +5,43 @@ use jsonrpc_stdio_server::ServerBuilder as StdioServerBuilder;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::a2a_bridge::A2ABridge;
 use crate::config::{ServerConfig, TransportMode};
 use crate::error::{Result, ServerError};
 use crate::rpc::{
     AgentExecuteParams, IssueFetchParams, IssueListParams, KnowledgeSearchParams, RpcContext,
 };
 use crate::session_handler::SessionHandler;
+use serde::{Deserialize, Serialize};
 use crate::session_rpc::{
     SessionGetParams, SessionHandoffParams, SessionLineageParams, SessionListParams,
     SessionMonitorParams, SessionSpawnParams, SessionTerminateParams,
 };
+
+/// A2A tool execution parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct A2AExecuteParams {
+    /// Tool name in format: a2a.<agent>.<capability>
+    pub tool_name: String,
+    /// Tool input arguments
+    #[serde(default)]
+    pub input: serde_json::Value,
+}
+
+/// A2A list agents parameters (empty for now)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct A2AListAgentsParams {}
+
+/// A2A list tools parameters (empty for now)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct A2AListToolsParams {}
 
 /// MCP Server
 pub struct McpServer {
     config: ServerConfig,
     context: Arc<RwLock<RpcContext>>,
     session_handler: Option<Arc<SessionHandler>>,
+    a2a_bridge: Option<Arc<A2ABridge>>,
 }
 
 impl McpServer {
@@ -31,6 +52,26 @@ impl McpServer {
             config,
             context: Arc::new(RwLock::new(context)),
             session_handler: None,
+            a2a_bridge: None,
+        })
+    }
+
+    /// Create new MCP server with A2A Bridge enabled
+    pub async fn with_a2a_bridge(config: ServerConfig) -> Result<Self> {
+        let context = RpcContext::new(config.clone())?;
+
+        // Initialize A2ABridge
+        let a2a_bridge = A2ABridge::new()
+            .await
+            .map_err(|e| ServerError::Internal(format!("Failed to create A2ABridge: {}", e)))?;
+
+        tracing::info!("A2ABridge initialized");
+
+        Ok(Self {
+            config,
+            context: Arc::new(RwLock::new(context)),
+            session_handler: None,
+            a2a_bridge: Some(Arc::new(a2a_bridge)),
         })
     }
 
@@ -48,7 +89,37 @@ impl McpServer {
             config,
             context: Arc::new(RwLock::new(context)),
             session_handler: Some(Arc::new(session_handler)),
+            a2a_bridge: None,
         })
+    }
+
+    /// Create new MCP server with both session management and A2A Bridge
+    pub async fn with_all_features(config: ServerConfig) -> Result<Self> {
+        let context = RpcContext::new(config.clone())?;
+
+        // Initialize SessionHandler
+        let sessions_dir = config.working_dir.join(".ai/sessions");
+        let session_handler = SessionHandler::new(sessions_dir.to_str().unwrap()).await?;
+
+        // Initialize A2ABridge
+        let a2a_bridge = A2ABridge::new()
+            .await
+            .map_err(|e| ServerError::Internal(format!("Failed to create A2ABridge: {}", e)))?;
+
+        tracing::info!("SessionManager initialized: {}", sessions_dir.display());
+        tracing::info!("A2ABridge initialized");
+
+        Ok(Self {
+            config,
+            context: Arc::new(RwLock::new(context)),
+            session_handler: Some(Arc::new(session_handler)),
+            a2a_bridge: Some(Arc::new(a2a_bridge)),
+        })
+    }
+
+    /// Get A2A Bridge reference (for registering agents)
+    pub fn a2a_bridge(&self) -> Option<Arc<A2ABridge>> {
+        self.a2a_bridge.clone()
     }
 
     /// Setup JSON-RPC handlers
@@ -279,6 +350,55 @@ impl McpServer {
             tracing::info!("Session management RPC methods registered (8 methods)");
         } else {
             tracing::info!("Session management disabled (use with_session_manager() to enable)");
+        }
+
+        // A2A Bridge methods (if A2ABridge is available)
+        if let Some(a2a_bridge) = &self.a2a_bridge {
+            let bridge = a2a_bridge.clone();
+
+            // a2a.execute - Execute an A2A tool
+            {
+                let b = bridge.clone();
+                io.add_method("a2a.execute", move |params: Params| {
+                    let b = b.clone();
+                    async move {
+                        let params: A2AExecuteParams = params.parse()?;
+                        let result = b
+                            .execute_tool(&params.tool_name, params.input)
+                            .await
+                            .map_err(|e| jsonrpc_core::Error::invalid_params(e.to_string()))?;
+                        Ok(serde_json::to_value(result).unwrap())
+                    }
+                });
+            }
+
+            // a2a.list_agents - List registered agents
+            {
+                let b = bridge.clone();
+                io.add_method("a2a.list_agents", move |_params: Params| {
+                    let b = b.clone();
+                    async move {
+                        let agents = b.list_agents().await;
+                        Ok(serde_json::to_value(agents).unwrap())
+                    }
+                });
+            }
+
+            // a2a.list_tools - List available A2A tools
+            {
+                let b = bridge.clone();
+                io.add_method("a2a.list_tools", move |_params: Params| {
+                    let b = b.clone();
+                    async move {
+                        let tools = b.get_tool_definitions().await;
+                        Ok(serde_json::to_value(tools).unwrap())
+                    }
+                });
+            }
+
+            tracing::info!("A2A Bridge RPC methods registered (3 methods)");
+        } else {
+            tracing::info!("A2A Bridge disabled (use with_a2a_bridge() to enable)");
         }
 
         io

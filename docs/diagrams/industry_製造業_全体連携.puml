@@ -1,0 +1,62 @@
+@startuml industry_manufacturing_overview
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 部署間連携図
+
+rectangle "営業部" as sales #LightBlue
+rectangle "生産管理部" as production #LightGreen
+rectangle "品質管理部" as quality #LightYellow
+rectangle "購買部" as procurement #LightPink
+rectangle "物流部" as logistics #LightCyan
+rectangle "経理部" as accounting #LightGray
+rectangle "総務部" as general #Lavender
+
+' 営業部からの連携
+sales --> production : 受注情報\n生産依頼
+sales --> logistics : 出荷指示\n納期調整
+sales --> accounting : 売上報告\n請求依頼
+
+' 生産管理部からの連携
+production --> procurement : 資材発注依頼\n在庫補充依頼
+production --> quality : 品質検査依頼\n工程品質確認
+production --> logistics : 完成品引渡\n出荷準備依頼
+production --> accounting : 製造原価報告
+
+' 品質管理部からの連携
+quality --> production : 検査結果\n改善指示
+quality --> procurement : 受入検査結果\n仕入先評価
+
+' 購買部からの連携
+procurement --> production : 資材納入通知\n在庫情報
+procurement --> accounting : 仕入報告\n支払依頼
+procurement --> logistics : 資材受入依頼
+
+' 物流部からの連携
+logistics --> sales : 出荷完了報告\n在庫状況
+logistics --> accounting : 物流費報告
+
+' 経理部からの連携
+accounting --> sales : 入金状況\n与信情報
+accounting --> procurement : 支払完了報告
+accounting --> general : 予算執行状況
+
+' 総務部からの連携
+general --> sales : 人員配置\n福利厚生
+general --> production : 安全管理\n設備保全
+general --> quality : 規格認証対応
+general --> procurement : 契約管理
+general --> logistics : 車両管理\n施設管理
+general --> accounting : 固定資産管理
+
+note right of production
+  製造業の中核
+  生産計画と実績管理
+end note
+
+note bottom of quality
+  品質保証
+  ISO/JIS対応
+end note
+
+@enduml

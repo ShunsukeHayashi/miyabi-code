@@ -1,0 +1,63 @@
+@startuml industry_restaurant_overview
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 部署間連携図
+
+rectangle "店舗運営部" as store #LightBlue
+rectangle "仕入部" as procurement #LightPink
+rectangle "調理部" as kitchen #LightGreen
+rectangle "接客部" as service #LightCyan
+rectangle "衛生管理部" as hygiene #LightYellow
+rectangle "経理部" as accounting #LightGray
+rectangle "総務部" as general #Lavender
+
+' 店舗運営部からの連携
+store --> kitchen : 予約状況\n営業計画
+store --> service : シフト指示\nサービス基準
+store --> procurement : 発注依頼\n在庫状況
+store --> accounting : 売上報告\nレジ締め
+store --> general : 人員要請\n設備修繕
+
+' 仕入部からの連携
+procurement --> kitchen : 食材納品\n新商品提案
+procurement --> hygiene : 仕入先情報\n食材品質
+procurement --> accounting : 仕入報告\n支払依頼
+
+' 調理部からの連携
+kitchen --> service : 料理提供\n調理時間連絡
+kitchen --> procurement : 食材使用報告\n発注依頼
+kitchen --> hygiene : 調理記録\n温度管理
+
+' 接客部からの連携
+service --> kitchen : オーダー\n顧客要望
+service --> store : 顧客対応報告\n売上状況
+service --> accounting : 会計処理
+
+' 衛生管理部からの連携
+hygiene --> store : 衛生指導\n監査結果
+hygiene --> kitchen : 衛生基準\n検査結果
+hygiene --> procurement : 仕入先監査\n品質基準
+
+' 経理部からの連携
+accounting --> store : 予算配分\n収益分析
+accounting --> procurement : 支払完了\n予算状況
+accounting --> general : 経費精算
+
+' 総務部からの連携
+general --> store : 人員配置\n店舗設備
+general --> service : 接客研修\n制服管理
+general --> hygiene : 法令対応\n許認可管理
+general --> accounting : 固定資産管理
+
+note right of kitchen
+  飲食業の核心
+  品質と効率の両立
+end note
+
+note bottom of hygiene
+  食の安全を守る
+  HACCP対応必須
+end note
+
+@enduml

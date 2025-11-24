@@ -1,0 +1,67 @@
+@startuml lease-flow
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title リース発注業務フロー
+
+|現場担当者|
+start
+:資機材必要性を認識;
+:【リース1】発注依頼を作成;
+note right
+  - 資機材マスタから選択
+  - 現場マスタから選択
+  - 数量・希望日を入力
+end note
+
+|管理者|
+:依頼内容を確認;
+if (承認？) then (Yes)
+  :【リース2】発注書を作成;
+  :リース会社へ発注;
+else (No)
+  :差し戻し;
+  |現場担当者|
+  :内容修正;
+  detach
+endif
+
+|リース会社|
+:納品準備;
+:現場へ配送;
+
+|現場担当者|
+:納品物を確認;
+:【リース3】納品記録を登録;
+note right
+  - 数量確認
+  - 状態確認
+  - 写真添付
+end note
+
+:資機材を使用;
+
+:使用完了;
+:【リース4】返却記録を登録;
+note right
+  - 返却日
+  - 状態確認
+  - 損傷有無
+end note
+
+|経理担当|
+:【リース5】請求照合;
+note right
+  - 発注金額と請求金額を照合
+  - 差異があればアラート
+end note
+
+if (照合OK？) then (Yes)
+  :支払処理;
+  stop
+else (No)
+  :差異調査;
+  :リース会社へ確認;
+endif
+
+@enduml

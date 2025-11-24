@@ -354,9 +354,104 @@ pub async fn logout(State(_state): State<AppState>) -> Result<StatusCode> {
     Ok(StatusCode::OK)
 }
 
+/// Mock login request
+#[derive(Deserialize, utoipa::ToSchema)]
+pub struct MockLoginRequest {
+    github_id: i64,
+    email: String,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+/// Mock login handler (development only)
+///
+/// Creates a mock user for testing without OAuth flow
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/mock",
+    tag = "auth",
+    request_body = MockLoginRequest,
+    responses(
+        (status = 200, description = "Mock login successful", body = TokenResponse),
+        (status = 500, description = "Internal server error")
+    )
+)]
+pub async fn mock_login(
+    State(state): State<AppState>,
+    Json(request): Json<MockLoginRequest>,
+) -> Result<(StatusCode, Json<TokenResponse>)> {
+    // Create or update mock user
+    let user = create_or_update_user(
+        &state.db,
+        request.github_id,
+        &request.email,
+        request.name.as_deref(),
+        Some("https://avatars.githubusercontent.com/u/0"),
+        "mock-access-token",
+    )
+    .await?;
+
+    // Generate JWT tokens
+    let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+    let access_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
+    let refresh_token = jwt_manager.create_token(&user.id.to_string(), user.github_id)?;
+
+    Ok((
+        StatusCode::OK,
+        Json(TokenResponse {
+            access_token,
+            refresh_token,
+            expires_in: state.config.jwt_expiration,
+            user: UserResponse {
+                id: user.id.to_string(),
+                github_id: user.github_id,
+                email: user.email,
+                name: user.name,
+                avatar_url: user.avatar_url,
+            },
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::AppConfig;
+    use axum::{extract::State, http::{header, StatusCode}, response::IntoResponse};
+    use sqlx::postgres::PgPoolOptions;
+    use std::sync::Arc;
+
+    fn test_config() -> AppConfig {
+        AppConfig {
+            database_url: "postgres://postgres:postgres@localhost/test".to_string(),
+            server_address: "127.0.0.1:8080".to_string(),
+            jwt_secret: "test_jwt_secret_key_for_routes".to_string(),
+            github_client_id: "test-client-id".to_string(),
+            github_client_secret: "test-client-secret".to_string(),
+            github_callback_url: "http://localhost:8080/api/v1/auth/github/callback".to_string(),
+            frontend_url: "http://localhost:3000".to_string(),
+            jwt_expiration: 3600,
+            refresh_expiration: 604800,
+            environment: "test".to_string(),
+        }
+    }
+
+    fn test_state() -> AppState {
+        let config = Arc::new(test_config());
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .connect_lazy(&config.database_url)
+            .expect("failed to create lazy pool");
+
+        AppState {
+            db: pool,
+            jwt_secret: config.jwt_secret.clone(),
+            jwt_manager: Arc::new(JwtManager::new(&config.jwt_secret, config.jwt_expiration)),
+            ws_manager: Arc::new(crate::websocket::WsState::new()),
+            event_broadcaster: crate::events::EventBroadcaster::new(),
+            config,
+        }
+    }
 
     #[test]
     fn test_user_response_serialization() {
@@ -371,5 +466,72 @@ mod tests {
         let json = serde_json::to_string(&response).unwrap();
         assert!(json.contains("github_id"));
         assert!(json.contains("12345"));
+    }
+
+    #[tokio::test]
+    async fn github_oauth_initiate_uses_redirect_parameter() {
+        let state = test_state();
+        let redirect = github_oauth_initiate(
+            State(state),
+            axum::extract::Query(GitHubInitQuery {
+                redirect: Some("/custom/path".to_string()),
+            }),
+        )
+        .await
+        .unwrap()
+        .into_response();
+
+        let location = redirect
+            .headers()
+            .get(header::LOCATION)
+            .expect("location header")
+            .to_str()
+            .unwrap();
+
+        assert!(location.contains("client_id=test-client-id"));
+        assert!(location.contains("redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fv1%2Fauth%2Fgithub%2Fcallback"));
+        assert!(location.contains("state=%2Fcustom%2Fpath"));
+    }
+
+    #[tokio::test]
+    async fn github_oauth_initiate_defaults_to_dashboard() {
+        let state = test_state();
+        let redirect = github_oauth_initiate(
+            State(state),
+            axum::extract::Query(GitHubInitQuery { redirect: None }),
+        )
+        .await
+        .unwrap()
+        .into_response();
+
+        let location = redirect
+            .headers()
+            .get(header::LOCATION)
+            .expect("location header")
+            .to_str()
+            .unwrap();
+
+        assert!(location.contains("state=%2Fdashboard"));
+    }
+
+    #[tokio::test]
+    async fn refresh_token_rejects_invalid_token() {
+        let state = test_state();
+        let result = refresh_token(
+            State(state),
+            Json(RefreshTokenRequest {
+                refresh_token: "invalid-token".to_string(),
+            }),
+        )
+        .await;
+
+        assert!(matches!(result, Err(AppError::Jwt(_))));
+    }
+
+    #[tokio::test]
+    async fn logout_returns_ok() {
+        let state = test_state();
+        let status = logout(State(state)).await.unwrap();
+        assert_eq!(status, StatusCode::OK);
     }
 }

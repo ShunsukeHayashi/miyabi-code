@@ -1,0 +1,19 @@
+@startuml industry_banking_審査部
+!theme cerulean
+title 金融・銀行業 - 審査部 業務フロー
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+swimlane 審査スタッフ #FFFFE5
+swimlane 個人審査係 #FFFACC
+swimlane 法人審査係 #FFF5B3
+swimlane 審査管理者 #FFF099
+start
+:審査申請書受領\n・融資部から提出\n・書類一式確認;
+:【審査スタッフ】\n▶ 提出書類確認\n▶ 不備チェック\n▶ 追加資料要求判定;
+:審査判定会議準備\n・決定理由整理\n・条件確認;
+:【審査管理者】\n▶ 最終判定会議実施\n▶ 方針確認\n▶ 条件決定;
+:【審査管理者】\n▶ 審査記録保管\n▶ 統計集計\n▶ 品質管理;
+:月次審査統計;
+end
+@enduml

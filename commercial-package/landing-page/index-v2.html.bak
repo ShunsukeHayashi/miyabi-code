@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Miyabi Society Control - 次世代自律型AI開発プラットフォーム。30分で160アプリ開発、2週間で通常6ヶ月の開発を実現。">
+    <meta property="og:title" content="Miyabi Society Control - 無料お試し版">
+    <meta property="og:description" content="ByteDance公式パートナーによる革新的AI開発プラットフォーム">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://miyabi-world.com">
+    <title>Miyabi Society Control - 無料お試し版 | 次世代AI開発プラットフォーム</title>
+    
+    <style>
+        :root {
+            --primary-blue: #0066CC;
+            --dark-blue: #004999;
+            --accent-purple: #764ba2;
+            --dark-gray: #1a1a1a;
+            --light-gray: #f5f7fa;
+            --success-green: #00C851;
+            --warning-yellow: #ffbb33;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+            line-height: 1.8;
+            color: var(--dark-gray);
+            background: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+            z-index: 1000;
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-cta {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+        }
+        
+        .nav-cta:hover {
+            background: var(--dark-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+        }
+        
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            background: linear-gradient(135deg, #0066CC 0%, #004999 50%, #764ba2 100%);
+            color: white;
+            padding: 120px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 25px;
+            letter-spacing: -0.02em;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+        
+        .hero-cta-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .cta-primary {
+            background: white;
+            color: var(--primary-blue);
+            padding: 20px 45px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 18px 43px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-secondary:hover {
+            background: white;
+            color: var(--primary-blue);
+        }
+        
+        /* Trust Bar */
+        .trust-bar {
+            background: var(--light-gray);
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        .trust-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .trust-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .trust-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .trust-item {
+            font-weight: 700;
+            color: var(--dark-gray);
+            font-size: 1.1rem;
+        }
+        
+        /* Stats Section */
+        .stats {
+            background: white;
+            padding: 80px 40px;
+        }
+        
+        .stats-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--light-gray) 0%, white 100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: #666;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 100px 40px;
+            background: var(--light-gray);
+        }
+        
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-header h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--dark-gray);
+            margin-bottom: 20px;
+        }
+        
+        .section-header p {
+            font-size: 1.3rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-blue);
+            box-shadow: 0 20px 40px rgba(0, 102, 204, 0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        /* Trial Info */
+        .trial-info {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            padding: 60px 40px;
+            margin: 80px 0;
+        }
+        
+        .trial-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+        
+        .trial-content {
+            flex: 1;
+        }
+        
+        .trial-content h3 {
+            font-size: 2.5rem;
+            color: var(--dark-gray);
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .trial-features {
+            list-style: none;
+            margin: 30px 0;
+        }
+        
+        .trial-features li {
+            padding: 10px 0;
+            font-size: 1.1rem;
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .trial-features li::before {
+            content: '✓';
+            color: var(--success-green);
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        /* Installation */
+        .installation {
+            padding: 100px 40px;
+            background: white;
+        }
+        
+        .installation-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .install-steps {
+            margin-top: 50px;
+        }
+        
+        .install-step {
+            margin-bottom: 40px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: var(--primary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .install-step h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--dark-gray);
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            overflow-x: auto;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 8px;
+            right: 15px;
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Final CTA */
+        .final-cta {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            padding: 100px 40px;
+            text-align: center;
+        }
+        
+        .final-cta h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        
+        .final-cta p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+        
+        .urgency-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 30px;
+            color: var(--warning-yellow);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--dark-gray);
+            color: white;
+            padding: 60px 40px 30px;
+        }
+        
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        
+        .footer-text {
+            opacity: 0.7;
+            margin: 10px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-cta-group {
+                flex-direction: column;
+            }
+            
+            .section-header h2 {
+                font-size: 2rem;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .trial-container {
+                flex-direction: column;
+            }
+            
+            .nav-container {
+                padding: 0 20px;
+            }
+            
+            .stat-number {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="logo">Miyabi</div>
+            <a href="#download" class="nav-cta">無料ダウンロード</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">🚀 ByteDance Global Official Partner</div>
+                <h1>Miyabi Society Control</h1>
+                <p class="hero-subtitle">
+                    次世代自律型AI開発プラットフォーム。<br>
+                    30分で160アプリ、2週間で通常6ヶ月の開発を実現。
+                </p>
+                <div class="hero-cta-group">
+                    <a href="#download" class="cta-primary">
+                        📦 無料ダウンロード（30日間）
+                    </a>
+                    <a href="#features" class="cta-secondary">詳細を見る</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Bar -->
+    <section class="trust-bar">
+        <div class="trust-container">
+            <div class="trust-label">Trusted By</div>
+            <div class="trust-logos">
+                <div class="trust-item">ByteDance</div>
+                <div class="trust-item">Anthropic</div>
+                <div class="trust-item">AWS Partner</div>
+                <div class="trust-item">Enterprise Ready</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-number">19</div>
+                <div class="stat-label">MCPサーバー</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">75+</div>
+                <div class="stat-label">統合ツール</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">160</div>
+                <div class="stat-label">30分でアプリ開発</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">12x</div>
+                <div class="stat-label">開発速度向上</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>なぜMiyabi Society Controlなのか？</h2>
+                <p>従来の開発手法を根本から変革する6つの理由</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>完全自動化ワークフロー</h3>
+                    <p>GitHub Issue作成からコード実装、PR作成、AWSデプロイまで完全自動化。人間の介入なしで本番環境へ。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Anti-LLMアプローチ</h3>
+                    <p>関数発火ベースのシステムで、速い・安い・暴走しない。GPT-3でGPT-5を超えるパフォーマンスを実証済み。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>WAW統合</h3>
+                    <p>Worldwide Agent Webによるエージェント中心の検索空間。量子理論ベースのパラレルワールド生成。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🏭</div>
+                    <h3>AI Factory</h3>
+                    <p>ユニクロ・コストコ型のAIプロダクト量産システム。Factory + Shop + Research Lab の統合構造。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>19の統合MCPサーバー</h3>
+                    <p>Git、Tmux、リソース監視、ログ集約、ビジネスエージェントなど、全てが一つのパッケージに統合。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>エンタープライズセキュリティ</h3>
+                    <p>AWS統合、強固なセキュリティ、ローカルファイルシステム管理。本番環境対応済み。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trial Info -->
+    <div class="trial-info">
+        <div class="trial-container">
+            <div class="trial-content">
+                <h3>🎁 無料お試し版で利用可能</h3>
+                <ul class="trial-features">
+                    <li>30日間の完全機能アクセス</li>
+                    <li>19のMCPサーバーすべて利用可能</li>
+                    <li>75以上のツール・コマンド</li>
+                    <li>自動オンボーディングプロセス</li>
+                    <li>Claude Desktop自動統合</li>
+                    <li>ライセンスキー不要（自動発行）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Section -->
+    <section class="installation" id="download">
+        <div class="installation-container">
+            <div class="section-header">
+                <h2>📥 インストール方法</h2>
+                <p>たった3ステップで、次世代AI開発環境を手に入れる</p>
+            </div>
+            
+            <div class="install-steps">
+                <div class="install-step">
+                    <div class="step-number">1</div>
+                    <h3>ダウンロード</h3>
+                    <div class="code-block" data-lang="bash">curl -L -o miyabi-trial.tar.gz \
+  https://miyabi-world.com/downloads/miyabi-society-trial-v1.0.0.tar.gz</div>
+                </div>
+                
+                <div class="install-step">
+                    <div class="step-number">2</div>
+                    <h3>解凍</h3>
+                    <div class="code-block" data-lang="bash">tar -xzf miyabi-trial.tar.gz
+cd miyabi-society-trial-v1.0.0</div>
+                </div>
+                
+                <div class="install-step">
+                    <div class="step-number">3</div>
+                    <h3>インストール実行</h3>
+                    <div class="code-block" data-lang="bash">./install.sh</div>
+                    <p style="margin-top: 20px; color: #666;">
+                        インストーラーが自動的にトライアルライセンス生成、MCPサーバーのインストール、Claude Desktopの設定を行います。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="final-cta-container">
+            <h2>今すぐ始めましょう</h2>
+            <p>
+                別に入れてやらないけど、見たいんだったら見せてあげてもいいけどどう？
+            </p>
+            <a href="https://miyabi-world.com/downloads/miyabi-society-trial-v1.0.0.tar.gz" 
+               class="cta-primary" 
+               download>
+                📦 無料ダウンロード（30日間）
+            </a>
+            <p class="urgency-text">⚠️ 今最後だけど。</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-logo">Miyabi Society Control</div>
+            <p class="footer-text">&copy; 2025 Customer Cloud Inc. | ByteDance Global Official Partner</p>
+            <p class="footer-text">次世代自律型AI開発プラットフォーム</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,56 @@
+@startuml 市場セグメント図
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundCorner 10
+
+title 安全書類管理システム 市場セグメント分析
+
+package "TAM (全市場): 4,800億円" as TAM {
+    note "建設業許可業者 48.4万社\n建設業DX関連市場全体" as N1
+}
+
+package "SAM (対象市場): 960億円" as SAM {
+    rectangle "Tier 1: 大手ゼネコン" as T1 {
+        card "500社" as T1_num
+        card "年商100億円以上" as T1_rev
+        card "複数現場同時稼働" as T1_char
+    }
+
+    rectangle "Tier 2: 中堅建設会社" as T2 {
+        card "8,000社" as T2_num
+        card "年商5-100億円" as T2_rev
+        card "10-50現場/年" as T2_char
+    }
+
+    rectangle "Tier 3: 中小建設会社" as T3 {
+        card "40,000社" as T3_num
+        card "年商1-5億円" as T3_rev
+        card "5-20現場/年" as T3_char
+    }
+
+    rectangle "Tier 4: 専門工事業者" as T4 {
+        card "150,000社" as T4_num
+        card "年商1億円未満" as T4_rev
+        card "下請け中心" as T4_char
+    }
+}
+
+package "SOM (獲得可能市場): 48億円" as SOM {
+    rectangle "初期ターゲット" as Target {
+        card "中小建設会社 2,000社\n(Tier 3の5%)" as TargetA
+        card "専門工事業者 3,000社\n(Tier 4の2%)" as TargetB
+    }
+}
+
+TAM -[hidden]d-> SAM
+SAM -[hidden]d-> SOM
+
+note right of SOM
+  **3年目標**
+  - 5,000社導入
+  - ARPU: 月額3万円
+  - 年間売上: 18億円
+end note
+
+@enduml

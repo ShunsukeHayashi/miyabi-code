@@ -315,6 +315,68 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.code_quality_review_agent.review_code
+a2a.code_quality_review_agent.security_audit
+a2a.code_quality_review_agent.calculate_score
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.code_quality_review_agent.review_code",
+    "input": {
+      "files": ["crates/miyabi-agents/src/*.rs"],
+      "include_security_scan": true,
+      "threshold": 80
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// コードレビュー実行
+let result = bridge.execute_tool(
+    "a2a.code_quality_review_agent.review_code",
+    json!({
+        "files": ["crates/miyabi-agents/src/*.rs"],
+        "include_security_scan": true,
+        "threshold": 80
+    })
+).await?;
+
+if result.success {
+    println!("Quality score: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "ReviewAgent"` を指定:
+```
+prompt: "crates/miyabi-agents/src/*.rs のコード品質をレビューしてください"
+subagent_type: "ReviewAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CodeGenAgent**: コード生成Agent (ReviewAgent検証対象)

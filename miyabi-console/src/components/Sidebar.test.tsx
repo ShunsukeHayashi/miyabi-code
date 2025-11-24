@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import { render } from '../test/test-utils'
 import Sidebar from './Sidebar'
@@ -15,6 +15,15 @@ vi.mock('../contexts/AuthContext', () => ({
 }))
 
 describe('Sidebar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
   it('renders without crashing', () => {
     render(<Sidebar />)
     expect(document.body).toBeInTheDocument()

@@ -1,0 +1,123 @@
+@startuml dept_realestate_brokerage
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 不動産業 仲介営業部 業務フロー
+
+|#LightBlue|営業担当|
+start
+:顧客対応;
+note right
+  ・来店客対応
+  ・Web問合せ
+  ・紹介客
+end note
+
+:ニーズヒアリング;
+fork
+  :希望エリア;
+fork again
+  :予算;
+fork again
+  :間取り/広さ;
+fork again
+  :入居時期;
+end fork
+
+if (賃貸?) then (yes)
+  :賃貸物件検索;
+else (no)
+  :売買物件検索;
+endif
+
+:物件提案;
+:内見調整;
+
+|#LightCyan|物件案内|
+:現地案内;
+note right
+  ・物件説明
+  ・周辺環境案内
+  ・設備確認
+end note
+
+:顧客反応確認;
+if (気に入った?) then (yes)
+  :申込手続き案内;
+else (no)
+  :条件再確認;
+  :別物件提案;
+endif
+
+|#LightBlue|営業担当|
+:申込受付;
+
+if (賃貸?) then (yes)
+  :入居審査手続き;
+  fork
+    :保証会社審査;
+  fork again
+    :オーナー審査;
+  end fork
+
+  if (審査通過?) then (yes)
+    :契約手続き準備;
+  else (no)
+    :別物件提案;
+    stop
+  endif
+else (no)
+  :購入申込書受領;
+  :売主との交渉;
+endif
+
+|#LightGreen|契約手続き|
+:重要事項説明書作成;
+note right
+  ・物件情報
+  ・法令制限
+  ・取引条件
+end note
+
+:総務部へ重説確認依頼;
+
+:重要事項説明実施;
+note right: 宅地建物取引士が説明
+
+:契約書作成;
+:契約締結;
+:手付金/初期費用受領;
+
+if (賃貸?) then (yes)
+  :賃貸管理部へ入居者情報引継;
+  :鍵引渡し調整;
+else (no)
+  :決済日調整;
+  :売買部へ引継;
+endif
+
+|#LightBlue|営業担当|
+:仲介手数料請求;
+:経理部へ売上報告;
+
+:顧客フォロー;
+:紹介依頼;
+:顧客データベース更新;
+
+|#LightPink|物件仕入|
+:物件情報収集;
+fork
+  :オーナーからの預かり;
+fork again
+  :レインズ情報;
+fork again
+  :業者間情報;
+end fork
+
+:物件査定;
+:媒介契約締結;
+:広告掲載;
+
+stop
+
+@enduml

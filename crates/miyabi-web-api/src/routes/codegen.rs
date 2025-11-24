@@ -20,7 +20,7 @@ pub fn routes() -> Router {
 }
 
 /// LLM Provider selection
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum LlmProvider {
     /// Anthropic Claude (直接API - Claude Code不要)
@@ -30,15 +30,10 @@ pub enum LlmProvider {
     Gpt4,
     /// GPT-OSS-20B via Ollama (デフォルト)
     #[serde(rename = "gpt-oss")]
+    #[default]
     GptOss,
     /// Groq (高速推論)
     Groq,
-}
-
-impl Default for LlmProvider {
-    fn default() -> Self {
-        Self::GptOss
-    }
 }
 
 /// Request body for code generation

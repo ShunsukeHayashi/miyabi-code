@@ -3,7 +3,7 @@
 # Version: 3.0.0 - Performance Management Edition
 # Purpose: Monitor, manage performance, enforce SLA, and continuous improvement
 
-WORKING_DIR="/Users/shunsuke/Dev/miyabi-private"
+WORKING_DIR="/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private"
 CONDUCTOR_PANE="%1"
 LOG_FILE="$WORKING_DIR/.ai/logs/water-spider.log"
 RELAY_LOG_FILE="$WORKING_DIR/.ai/logs/water-spider-relay.log"

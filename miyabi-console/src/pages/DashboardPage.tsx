@@ -14,7 +14,8 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Bot, Zap, Server, Database, AlertCircle, Loader2 } from 'lucide-react'
-import { apiClient, SystemMetrics, handleApiError } from '@/lib/api/client'
+import { dashboardService } from '@/lib/services'
+import { handleApiError } from '@/lib/api/client'
 
 interface DashboardStats {
   activeAgents: number
@@ -45,7 +46,9 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         setError(null)
-        const metrics: SystemMetrics = await apiClient.getSystemMetrics()
+
+        // Use dashboardService to fetch all data
+        const { summary, metrics } = await dashboardService.refresh()
 
         // Convert uptime seconds to human readable
         const hours = Math.floor(metrics.uptime_seconds / 3600)
@@ -53,10 +56,10 @@ export default function DashboardPage() {
         const uptimeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
 
         setStats({
-          activeAgents: metrics.active_agents,
-          totalAgents: 14, // Total available agents in Miyabi system
-          runningTasks: metrics.total_tasks - metrics.completed_tasks,
-          completedToday: metrics.completed_tasks,
+          activeAgents: summary.activeAgents,
+          totalAgents: summary.totalAgents,
+          runningTasks: summary.pendingTasks,
+          completedToday: summary.completedTasks,
           cpuUsage: metrics.cpu_usage,
           memoryUsage: metrics.memory_usage,
           diskUsage: metrics.disk_usage,
@@ -72,7 +75,8 @@ export default function DashboardPage() {
     }
 
     fetchStats()
-    const interval = setInterval(fetchStats, 5000)
+    // Auto-refresh every 30 seconds (as per issue #979 requirements)
+    const interval = setInterval(fetchStats, 30000)
     return () => clearInterval(interval)
   }, [])
 

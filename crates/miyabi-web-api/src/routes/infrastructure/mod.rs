@@ -8,6 +8,7 @@ pub fn routes() -> Router {
         .route("/status", get(status::get_infrastructure_status))
         .route("/database", get(status::get_database_status))
         .route("/deployment", get(status::get_deployment_status))
+        .route("/topology", get(status::get_infrastructure_topology))
 }
 
 #[derive(Debug, Serialize, Deserialize)]

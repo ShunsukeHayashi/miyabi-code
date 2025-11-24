@@ -11,9 +11,9 @@ categories = ["development-tools", "database"]
 readme = "README.md"
 
 [dependencies]
-miyabi-types = { path = "../miyabi-types" }
-miyabi-core = { path = "../miyabi-core" }
-miyabi-llm = { path = "../miyabi-llm" }
+miyabi-types = { path = "../miyabi-types", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
+miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 
 # Vector DB
 qdrant-client = "1.16"

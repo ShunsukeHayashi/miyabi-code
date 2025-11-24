@@ -1,0 +1,108 @@
+{
+  "version": "1.1.0",
+  "created": "2025-11-21T11:30:00+09:00",
+  "updated": "2025-11-21T11:50:00+09:00",
+  "status": "active",
+  
+  "layers": {
+    "layer1": {
+      "name": "Google Pixel",
+      "type": "mobile",
+      "communication": "lark",
+      "status": "connected"
+    },
+    "layer2": {
+      "name": "Mac Local",
+      "type": "desktop",
+      "communication": "direct",
+      "status": "active"
+    },
+    "layer3": {
+      "name": "Cloud (MAJIN)",
+      "type": "server",
+      "ip": "54.92.67.11",
+      "status": "active"
+    }
+  },
+  
+  "tmux": {
+    "session": "miyabi-orchestrator",
+    "agentWindow": "agent",
+    "agentPane": "%13",
+    "windows": {
+      "1": { "name": "main", "pane": "%9", "purpose": "MCP server" },
+      "2": { "name": "monitor", "panes": ["%10", "%11", "%12"], "purpose": "SSH monitoring" },
+      "3": { "name": "agent", "pane": "%13", "purpose": "Claude Code Agent - Layer 1" }
+    }
+  },
+  
+  "lark_integration": {
+    "target_group": {
+      "name": "Miyabi Dev Team",
+      "chat_id": "oc_8ea05188f644acc3a74881e79f88fa54"
+    },
+    "endpoints": {
+      "https": "https://cc2s2zotea.execute-api.ap-northeast-1.amazonaws.com/webhook/events",
+      "backend": "54.92.67.11:3001"
+    },
+    "events": {
+      "subscribed": ["im.message.receive_v1"],
+      "service": "miyabi-lark-events.service"
+    }
+  },
+  
+  "ssh_bridge": {
+    "majin_to_mac": {
+      "host_alias": "miyabi-mac",
+      "target_ip": "100.112.127.63",
+      "user": "shunsuke",
+      "method": "tailscale"
+    }
+  },
+  
+  "notification_levels": {
+    "critical": {
+      "emoji": "🔴",
+      "description": "エラー・承認要求",
+      "immediate": true
+    },
+    "important": {
+      "emoji": "🟡", 
+      "description": "タスク完了",
+      "immediate": true
+    },
+    "info": {
+      "emoji": "🟢",
+      "description": "定期状態報告",
+      "immediate": false
+    }
+  },
+  
+  "commands": {
+    "shortcuts": {
+      "状態": "システム全体の状態確認",
+      "セッション": "tmuxセッション状態",
+      "ログ": "最新ログ表示",
+      "承認": "保留中タスク承認",
+      "却下": "保留中タスク却下"
+    },
+    "standard": {
+      "Issue #XXX 開始": "指定Issueのタスク開始",
+      "Issue #XXX 確認": "指定Issueの進捗確認",
+      "デプロイ承認": "本番デプロイの承認"
+    }
+  },
+  
+  "architecture": {
+    "description": "Layer 1 → MAJIN Event Server → SSH → Mac tmux → Claude Code",
+    "flow": [
+      "1. Lark message from Google Pixel",
+      "2. AWS API Gateway receives webhook",
+      "3. MAJIN Event Server processes event",
+      "4. SSH to Mac Local (Tailscale VPN)",
+      "5. tmux send-keys to agent pane (%13)",
+      "6. Claude Code executes command",
+      "7. Result sent back via Lark"
+    ]
+  }
+}

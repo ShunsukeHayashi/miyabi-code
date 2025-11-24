@@ -1,0 +1,118 @@
+@startuml dept_restaurant_kitchen
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 飲食業 調理部 業務フロー
+
+|#LightGreen|料理長|
+start
+:当日の仕込み計画;
+note right
+  ・予約数確認
+  ・仕入食材確認
+  ・特別注文確認
+end note
+
+:調理スタッフ配置;
+fork
+  :前菜担当;
+fork again
+  :メイン担当;
+fork again
+  :デザート担当;
+fork again
+  :洗い場担当;
+end fork
+
+|#LightCyan|仕込み担当|
+:食材受入;
+:食材検品;
+:下処理;
+fork
+  :野菜カット;
+fork again
+  :肉・魚処理;
+fork again
+  :ソース・出汁準備;
+fork again
+  :デザート仕込み;
+end fork
+
+:仕込み完了報告;
+
+|#LightGreen|料理長|
+:仕込み品質確認;
+
+|#LightYellow|調理担当|
+while (営業時間?) is (継続)
+  :オーダー受付;
+  note right: 接客部からのオーダー
+
+  :調理開始;
+  fork
+    :前菜調理;
+  fork again
+    :メイン調理;
+  fork again
+    :サイドディッシュ;
+  end fork
+
+  :盛り付け;
+  :品質チェック;
+  note right
+    ・味
+    ・見た目
+    ・温度
+    ・ポーション
+  end note
+
+  if (品質OK?) then (yes)
+    :接客部へ提供;
+    :提供時間記録;
+  else (no)
+    :作り直し;
+  endif
+endwhile (終了)
+
+|#LightGreen|料理長|
+:営業終了処理;
+
+:食材使用量記録;
+:廃棄量記録;
+:原価計算;
+
+if (原価率高?) then (yes)
+  :原因分析;
+  :改善策検討;
+endif
+
+:翌日仕込み計画;
+:仕入部へ発注依頼;
+
+|#LightPink|衛生管理|
+:調理場清掃;
+:機器洗浄;
+:温度記録;
+note right
+  ・冷蔵庫温度
+  ・冷凍庫温度
+  ・調理温度
+end note
+
+:衛生管理部へ記録提出;
+
+|#LightGreen|料理長|
+:メニュー開発;
+fork
+  :新メニュー試作;
+fork again
+  :季節メニュー企画;
+fork again
+  :コスト計算;
+end fork
+
+:スタッフ技術指導;
+
+stop
+
+@enduml

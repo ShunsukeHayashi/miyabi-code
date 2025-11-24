@@ -1,0 +1,116 @@
+@startgantt
+title Miyabi Project - Gantt Chart
+scale 1
+printscale weekly
+
+legend
+|= Priority |= Color |
+| P0-Critical | <color:red>Red |
+| P1-High | <color:orange>Orange |
+| P2-Medium | <color:green>Green |
+| P3-Low | <color:blue>Blue |
+endlegend
+
+
+-- EPIC #1018: 🚀 (EPIC) M1 Infrastructure Blitz - Production Dep --
+[#1028 🎭 E2E Testing: Critical User Flows (Playwright)] as [T1028] lasts 1 days
+[T1028] is colored in orange
+[#1027 🎨 Frontend Testing: Component Tests (70% Coverage)] as [T1027] lasts 1 days
+[T1027] is colored in orange
+[T1027] starts at [T1028]'s end
+[#1026 🧪 Backend Testing: Unit Tests (85% Coverage)] as [T1026] lasts 2 days
+[T1026] is colored in orange
+[T1026] starts at [T1027]'s end
+[#1024 🔗 Day 6: Frontend Connection & E2E Integration Testing] as [T1024] lasts 1 days
+[T1024] is colored in orange
+[T1024] starts at [T1026]'s end
+[#1025 🔒 Day 7: SSL Setup, Documentation & Final Validation] as [T1025] lasts 1 days
+[T1025] is colored in green
+[T1025] starts at [T1024]'s end
+
+-- EPIC #977: 🎯 (MASTER) Miyabi Reconstruction - Team Coordinat --
+[#993 Phase 4.6: Production Launch (2-3h)] as [T993] lasts 1 days
+[T993] is colored in gray
+[#992 Phase 4.5: Documentation & Runbooks (2-3h)] as [T992] lasts 1 days
+[T992] is colored in gray
+[T992] starts at [T993]'s end
+[#991 Phase 4.4: Disaster Recovery & Rollback (2-3h)] as [T991] lasts 1 days
+[T991] is colored in gray
+[T991] starts at [T992]'s end
+[#990 Phase 4.3: Monitoring & Alerting Setup (2-3h)] as [T990] lasts 1 days
+[T990] is colored in gray
+[T990] starts at [T991]'s end
+[#989 Phase 4.2: Security Audit & Penetration Testing (6-8h)] as [T989] lasts 1 days
+[T989] is colored in gray
+[T989] starts at [T990]'s end
+[#988 Phase 4.1: Load Testing & Performance Validation (12-16h)] as [T988] lasts 2 days
+[T988] is colored in gray
+[T988] starts at [T989]'s end
+[#987 Phase 2.5: AWS Lambda Deployment & CloudWatch Monitoring] as [T987] lasts 2 days
+[T987] is colored in gray
+[T987] starts at [T988]'s end
+[#986 Phase 2.4: Uncomment & Test Existing APIs] as [T986] lasts 1 days
+[T986] is colored in gray
+[T986] starts at [T987]'s end
+[#985 Phase 2.3: Worker & Coordinator Status APIs] as [T985] lasts 1 days
+[T985] is colored in gray
+[T985] starts at [T986]'s end
+[#984 Phase 2.2: Task Management API Implementation] as [T984] lasts 2 days
+[T984] is colored in gray
+[T984] starts at [T985]'s end
+[#983 Phase 2.1: Service Layer Refactoring] as [T983] lasts 2 days
+[T983] is colored in gray
+[T983] starts at [T984]'s end
+[#982 Phase 3.5: CloudFront Redeployment & E2E Testing] as [T982] lasts 1 days
+[T982] is colored in gray
+[T982] starts at [T983]'s end
+[#981 Phase 3.4: Authentication Flow Implementation] as [T981] lasts 1 days
+[T981] is colored in gray
+[T981] starts at [T982]'s end
+[#980 Phase 3.3: Real-Time WebSocket Integration] as [T980] lasts 1 days
+[T980] is colored in gray
+[T980] starts at [T981]'s end
+[#979 Phase 3.2: Dashboard UI Modernization] as [T979] lasts 2 days
+[T979] is colored in gray
+[T979] starts at [T980]'s end
+[#978 Phase 3.1: API Client Implementation] as [T978] lasts 1 days
+[T978] is colored in gray
+[T978] starts at [T979]'s end
+
+-- EPIC #976: Phase 1.5: JWT Authentication Implementation --
+[#977 🎯 (MASTER) Miyabi Reconstruction - Team Coordination & Cont] as [T977] lasts 1 days
+[T977] is colored in orange
+[#975 Phase 1.4: RBAC Implementation] as [E975] lasts 2 days
+[E975] is colored in orange
+[#974 Phase 1.3: Organization/Team Schema Implementation] as [E974] lasts 3 days
+[E974] is colored in orange
+[#973 Phase 1.2: Base Schema Migration] as [E973] lasts 2 days
+[E973] is colored in orange
+[#972 Phase 1.1: PostgreSQL Connection Enablement] as [E972] lasts 2 days
+[E972] is colored in orange
+[#971 🎯 (P0) Miyabi Reconstruction - Master Dependency Graph & Ph] as [E971] lasts 3 days
+[E971] is colored in orange
+[#968 (P0) Kazuaki Agent - コスト閾値の明確化] as [E968] lasts 1 days
+[E968] is colored in orange
+[#967 (P0) Kazuaki Agent - Rust-Pythonブリッジの詳細化] as [E967] lasts 1 days
+[E967] is colored in orange
+
+-- EPIC #966: (P0) Kazuaki Agent - IAM権限要件の文書化 --
+[#967 (P0) Kazuaki Agent - Rust-Pythonブリッジの詳細化] as [T967] lasts 1 days
+[T967] is colored in orange
+[#965 (P0) Kazuaki Agent - キャラクター性格の拡充] as [E965] lasts 1 days
+[E965] is colored in orange
+
+-- Standalone High-Priority Tasks --
+[#970 🏗️ (P0-CRITICAL) Miyabi Society 完全再構築 - Ultra-Detailed Impl] as [S970] lasts 23 days
+[S970] is colored in red
+[#1049 🔐 (Miyabi Console) Authentication & Authorization] as [S1049] lasts 1 days
+[S1049] is colored in orange
+[#1045 🔌 (Miyabi Console) Rust Backend API Integration] as [S1045] lasts 1 days
+[S1045] is colored in orange
+[#1015 (Pantheon Webapp) Implement Ask the Pantheon - Interactive A] as [S1015] lasts 2 days
+[S1015] is colored in orange
+[#969 🔍 プロジェクト構造の根本的な問題調査と改善提案] as [S969] lasts 1 days
+[S969] is colored in orange
+
+@endgantt

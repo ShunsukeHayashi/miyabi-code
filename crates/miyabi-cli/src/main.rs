@@ -177,6 +177,12 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Initialize rustls CryptoProvider (required for TLS/HTTPS operations)
+    // This must be done before any network operations
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("Failed to install rustls crypto provider");
+
     let cli = Cli::parse();
 
     // Initialize logger

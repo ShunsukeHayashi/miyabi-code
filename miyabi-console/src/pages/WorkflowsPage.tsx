@@ -559,6 +559,7 @@ export default function WorkflowsPage() {
                 />
                 <Select
                   label="Node Type"
+                  aria-label="Node type selector"
                   selectedKeys={[selectedNode.type || 'action']}
                   isDisabled
                 >

@@ -1,0 +1,157 @@
+@startuml industry_ITソフトウェア_インフラ
+!theme cerulean-outline
+
+title IT・ソフトウェア - インフラ部門 業務フロー
+
+|インフラ|
+start
+
+' 環境構築
+fork
+  :環境構築;
+fork again
+  :運用監視;
+fork again
+  :セキュリティ;
+end fork
+
+' 開発環境構築
+|PM|
+:環境要件受領;
+
+|インフラ|
+:インフラ設計;
+note right
+  - クラウド/オンプレ選定
+  - ネットワーク設計
+  - サーバー構成
+  - ストレージ設計
+end note
+
+:IaC(Infrastructure as Code)作成;
+note right
+  - Terraform
+  - CloudFormation
+  - Ansible
+end note
+
+:環境構築;
+
+fork
+  :開発環境;
+fork again
+  :テスト環境;
+fork again
+  :ステージング環境;
+fork again
+  :本番環境;
+end fork
+
+|開発|
+:環境情報共有;
+
+|インフラ|
+' CI/CD構築
+:CI/CDパイプライン構築;
+note right
+  - GitHub Actions
+  - Jenkins
+  - GitLab CI
+end note
+
+:自動デプロイ設定;
+
+' デプロイ
+|開発|
+:デプロイ依頼受領;
+
+|インフラ|
+:デプロイ準備;
+
+if (本番デプロイ?) then (はい)
+  :変更管理申請;
+  :承認取得;
+  :メンテナンス通知;
+else (いいえ)
+endif
+
+:デプロイ実行;
+
+:動作確認;
+
+if (問題あり?) then (はい)
+  :切り戻し実行;
+  :原因調査;
+else (いいえ)
+endif
+
+|PM|
+:デプロイ完了報告;
+
+|インフラ|
+' 運用監視
+:監視設定;
+note right
+  - サーバー監視
+  - アプリケーション監視
+  - ログ監視
+  - 死活監視
+end note
+
+:アラート設定;
+
+if (アラート発生?) then (はい)
+  :アラート確認;
+
+  if (障害?) then (はい)
+    :障害対応開始;
+
+    if (インフラ起因?) then (はい)
+      :インフラ対応;
+      :リソース増強;
+      :設定変更;
+    else (いいえ)
+      |開発|
+      :開発へエスカレーション;
+
+      |インフラ|
+    endif
+
+    |サポート|
+    :障害連絡;
+
+    |インフラ|
+    :障害報告書作成;
+  else (いいえ)
+    :監視調整;
+  endif
+else (いいえ)
+endif
+
+:パフォーマンスチューニング;
+:キャパシティプランニング;
+
+' セキュリティ
+:セキュリティ対策;
+note right
+  - ファイアウォール
+  - WAF
+  - 暗号化
+  - アクセス制御
+end note
+
+:脆弱性管理;
+:パッチ適用;
+
+:セキュリティ監査対応;
+
+' バックアップ・DR
+:バックアップ運用;
+:リストア訓練;
+:DR計画;
+
+:業務終了;
+
+stop
+
+@enduml

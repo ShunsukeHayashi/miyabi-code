@@ -3,21 +3,16 @@
 use serde::{Deserialize, Serialize};
 
 /// Reasoning effort level for LLM inference
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ReasoningEffort {
     /// Low effort - fast inference for simple tasks
     Low,
     /// Medium effort - balanced quality and speed
+    #[default]
     Medium,
     /// High effort - high quality reasoning for complex tasks
     High,
-}
-
-impl Default for ReasoningEffort {
-    fn default() -> Self {
-        Self::Medium
-    }
 }
 
 impl std::fmt::Display for ReasoningEffort {

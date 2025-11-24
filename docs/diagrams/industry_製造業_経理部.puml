@@ -1,0 +1,126 @@
+@startuml dept_manufacturing_accounting
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 製造業 経理部 業務フロー
+
+|#LightGray|売上管理担当|
+start
+:売上報告受領;
+note right: 営業部からの報告
+
+:売上計上処理;
+:請求書発行;
+
+:入金管理;
+while (入金確認?) is (未入金)
+  :入金状況確認;
+  if (入金遅延?) then (yes)
+    :営業部へ督促依頼;
+  else (no)
+  endif
+endwhile (入金済)
+
+:入金消込処理;
+:売掛金管理更新;
+
+|#LightPink|支払管理担当|
+:支払依頼受領;
+note right: 購買部からの依頼
+
+:請求書照合;
+fork
+  :発注書との照合;
+fork again
+  :検収データとの照合;
+fork again
+  :金額確認;
+end fork
+
+if (照合OK?) then (yes)
+  :支払予定登録;
+else (no)
+  :購買部へ確認;
+endif
+
+:支払承認申請;
+:支払処理実行;
+:買掛金消込;
+
+|#LightCyan|原価管理担当|
+:製造原価データ受領;
+note right: 生産管理部からの報告
+
+:原価集計;
+fork
+  :材料費;
+fork again
+  :労務費;
+fork again
+  :経費;
+end fork
+
+:製品別原価計算;
+:原価差異分析;
+note right
+  ・標準原価との比較
+  ・差異原因分析
+  ・改善提案
+end note
+
+:原価レポート作成;
+
+|#LightYellow|財務管理担当|
+:資金繰り管理;
+
+:月次決算処理;
+fork
+  :試算表作成;
+fork again
+  :部門別損益;
+fork again
+  :製品別損益;
+end fork
+
+:決算報告書作成;
+
+if (四半期/年度末?) then (yes)
+  :決算整理仕訳;
+  :財務諸表作成;
+  :税務申告準備;
+  :監査対応;
+else (no)
+endif
+
+|#LightGreen|予算管理担当|
+:予算編成;
+:予算vs実績管理;
+
+if (予算超過?) then (yes)
+  :原因分析;
+  :該当部門へ報告;
+  :対策検討;
+else (no)
+endif
+
+:経営会議資料作成;
+
+|#LightGray|与信管理担当|
+:与信審査依頼受領;
+note right: 営業部からの依頼
+
+:信用調査;
+fork
+  :財務データ分析;
+fork again
+  :取引履歴確認;
+fork again
+  :外部信用情報確認;
+end fork
+
+:与信限度額設定;
+:営業部へ回答;
+
+stop
+
+@enduml

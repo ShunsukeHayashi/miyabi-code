@@ -333,6 +333,70 @@ Resource not accessible by integration (403)
 
 ---
 
+## 🦀 Rust Tool Use (A2A Bridge)
+
+### Tool名
+```
+a2a.pull_request_creation_and_management_agent.create_pr
+a2a.pull_request_creation_and_management_agent.update_pr
+a2a.pull_request_creation_and_management_agent.assign_reviewers
+```
+
+### MCP経由の呼び出し
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "a2a.execute",
+  "params": {
+    "tool_name": "a2a.pull_request_creation_and_management_agent.create_pr",
+    "input": {
+      "issue_number": 270,
+      "branch": "fix/firebase-auth-error",
+      "base_branch": "main",
+      "draft": true
+    }
+  }
+}
+```
+
+### Rust直接呼び出し
+
+```rust
+use miyabi_mcp_server::{A2ABridge, initialize_all_agents};
+use serde_json::json;
+
+// Bridge初期化
+let bridge = A2ABridge::new().await?;
+initialize_all_agents(&bridge).await?;
+
+// PR作成実行
+let result = bridge.execute_tool(
+    "a2a.pull_request_creation_and_management_agent.create_pr",
+    json!({
+        "issue_number": 270,
+        "branch": "fix/firebase-auth-error",
+        "base_branch": "main",
+        "draft": true
+    })
+).await?;
+
+if result.success {
+    println!("PR created: {}", result.output);
+}
+```
+
+### Claude Code Sub-agent呼び出し
+
+Task toolで `subagent_type: "PRAgent"` を指定:
+```
+prompt: "Issue #270のPRを作成してください"
+subagent_type: "PRAgent"
+```
+
+---
+
 ## 関連Agent
 
 - **CodeGenAgent**: コード生成完了後にPRAgent実行

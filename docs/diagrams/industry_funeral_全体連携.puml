@@ -1,0 +1,80 @@
+@startuml industry_funeral_overview
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 葬儀業 部署間連携図
+
+rectangle "相談受付部" as reception #FFE6E6
+rectangle "葬儀ディレクター部" as director #E6F2FF
+rectangle "式場管理部" as venue #F0FFE6
+rectangle "搬送部" as transport #FFE6F0
+rectangle "アフター部" as after #FFF9E6
+rectangle "経理部" as accounting #E6E6E6
+rectangle "総務部" as general #F0E6FF
+
+' 相談受付部からの連携
+reception --> director : 葬儀プラン\n遺族要望
+reception --> transport : 搬送依頼\n故人情報
+reception --> accounting : 契約情報\n希望プラン金額
+reception --> general : 人員配置要請\n施設確保
+
+' 葬儀ディレクター部からの連携
+director --> venue : 式次第\n装飾指示\nセッティング
+director --> transport : スケジュール\n搬送指示\n保管管理
+director --> reception : 進捗状況\n変更対応
+director --> after : 遺族情報\nアフターケア指示
+director --> general : 人員指示\n緊急対応
+
+' 式場管理部からの連携
+venue --> director : セッティング完了\n装飾状況
+venue --> transport : 式場温度管理\n搬送スケジュール
+venue --> accounting : 設営費用\n消耗品使用
+venue --> general : 設備修繕要請\n清掃スタッフ
+
+' 搬送部からの連携
+transport --> director : 搬送完了報告\n保管管理状況
+transport --> venue : 搬送タイミング\n搬入情報
+transport --> accounting : 搬送費用\n保管費用
+transport --> general : 人員要請\n車両維持費
+
+' アフター部からの連携
+after --> reception : 遺族情報引継ぎ\nフォローアップ提案
+after --> director : 進捗確認\n特別対応要請
+after --> accounting : 追加サービス費用\n返金対応
+after --> general : 人員配置要請\n葬儀後片付け
+
+' 経理部からの連携
+accounting --> reception : 請求額確定\n支払管理
+accounting --> director : 予算確認\nコスト管理
+accounting --> venue : 支払処理\n費用精算
+accounting --> transport : 支払完了\n領収書発行
+accounting --> after : 追加費用計算\nキャンセル対応
+accounting --> general : 給与計算\n経費精算
+
+' 総務部からの連携
+general --> reception : 人員配置\n相談環境維持
+general --> director : スタッフ管理\n研修対応
+general --> venue : 施設管理\nセッティング支援
+general --> transport : 運転手管理\n車両維持管理
+general --> after : 人員配置\nグリーフケア研修
+general --> accounting : 固定資産管理\n給与管理
+
+note right of director
+  葬儀業の中心
+  遺族要望と実務の調整
+  全部署の統括
+end note
+
+note bottom of transport
+  遺体尊厳管理
+  法的対応必須
+  温度・湿度管理厳格
+end note
+
+note top of after
+  葬儀後のサポート
+  遺族満足度向上
+  リピート依頼につながる
+end note
+
+@enduml

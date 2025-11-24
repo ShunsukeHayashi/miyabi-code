@@ -1,0 +1,231 @@
+@startuml dept_fishery_logistics
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 物流部 業務フロー
+
+|#LightPink|物流部長|
+start
+:本日の配送計画確認;
+note right
+  ・出荷予定数
+  ・配送先数
+  ・配送距離
+  ・天候・交通状況
+end note
+
+:スタッフ配置;
+fork
+  :荷受け担当;
+fork again
+  :梱包検査担当;
+fork again
+  :車両運行管理;
+fork again
+  :配送担当;
+fork again
+  :返品受付担当;
+end fork
+
+|#LightCyan|荷受け担当|
+:加工部からの製品受け取り;
+note right
+  ・数量確認
+  ・品質確認
+  ・温度確認
+  ・梱包状態確認
+end note
+
+:配送形態別に分類;
+fork
+  :冷蔵便配送品;
+fork again
+  :冷凍便配送品;
+fork again
+  :常温配送品;
+fork again
+  :特急配送品;
+end fork
+
+:保管倉庫へ移動;
+note right
+  ・冷蔵庫: 2-5°C
+  ・冷凍庫: -18°C以下
+  ・常温倉庫: 15-20°C
+
+end note
+
+|#LightGreen|梱包検査担当|
+:配送前検査;
+fork
+  :外箱確認;
+  note right
+    ・破損なし
+    ・水濡れなし
+    ・ラベル正確
+  end note
+fork again
+  :内容物確認;
+  note right
+    ・数量確認
+    ・品質確認
+    ・アレルギー表示確認
+  end note
+fork again
+  :冷度確認;
+  note right
+    ・保冷剤充分量
+    ・ドライアイス量
+    ・温度測定
+  end note
+end fork
+
+if (検査合格?) then (yes)
+  :配送車へ積み込み;
+else (不合格)
+  :加工部へ返送;
+  :再梱包指示;
+endif
+
+|#LightBlue|車両運行管理|
+:配送車両の確認;
+fork
+  :冷蔵車点検;
+  note right
+    ・冷却能力
+    ・温度設定
+    ・故障確認
+  end note
+fork again
+  :冷凍車点検;
+  note right
+    ・冷却能力
+    ・温度設定
+    ・故障確認
+  end note
+fork again
+  :一般トラック点検;
+  note right
+    ・安全装置
+    ・破損確認
+    ・積載可能量
+  end note
+end fork
+
+:ドライバー安全指導;
+note right
+  ・交通安全
+  ・積載方法
+  ・配送先情報
+  ・緊急対応
+end note
+
+:配送ルート計画;
+note right
+  ・配送先順序
+  ・所要時間
+  ・最短ルート
+  ・休憩ポイント
+end note
+
+|#LightYellow|配送担当|
+while (配送継続?) is (yes)
+  :配送先へ移動;
+  note right: GPS位置記録
+
+  :顧客への連絡;
+  note right
+    ・到着予定時刻
+    ・配送予定日時
+    ・特別指示確認
+  end note
+
+  :製品搬入;
+  fork
+    :製品確認;
+    note right: 受け取り人による確認
+  fork again
+    :配送記録作成;
+    note right
+      ・受け取り署名
+      ・受け取り時刻
+      ・配送状態
+    end note
+  fork again
+    :領収書発行;
+  end fork
+
+  if (受け取りOK?) then (yes)
+    :配送完了;
+  else (問題あり)
+    :状況報告;
+    :代替対応;
+  endif
+endwhile (終了)
+
+:配送報告;
+
+|#LightPink|返品受付担当|
+:返品・クレーム処理;
+note right
+  ・品質問題
+  ・配送遅延
+  ・誤配送
+  ・破損
+end note
+
+:返品原因分析;
+fork
+  :商品品質問題;
+  note right: 加工部へ報告
+fork again
+  :配送時破損;
+  note right: 配送方法改善
+fork again
+  :その他;
+  note right: 顧客対応
+end fork
+
+:返金・交換処理;
+note right
+  ・返送指示
+  ・代替品手配
+  ・代金返金
+end note
+
+:経理部へ報告;
+
+|#LightPink|物流部長|
+:配送実績分析;
+note right
+  ・配送件数
+  ・配送距離
+  ・配送遅延率
+  ・返品率
+  ・破損率
+end note
+
+:配送コスト分析;
+note right
+  ・燃料費
+  ・人件費
+  ・車両維持費
+  ・保管費
+end note
+
+:効率改善;
+fork
+  :ルート最適化;
+fork again
+  :梱包方法改善;
+fork again
+  :保管容量検討;
+fork again
+  :配送業者評価;
+end fork
+
+:翌日配送計画;
+
+stop
+
+@enduml

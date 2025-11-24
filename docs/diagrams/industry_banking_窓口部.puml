@@ -1,0 +1,29 @@
+@startuml industry_banking_窓口部
+!theme cerulean
+
+title 金融・銀行業 - 窓口部 業務フロー
+
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+
+swimlane 窓口スタッフ #FFE5E5
+swimlane 案内・相談係 #FFCCCC
+swimlane 事務処理係 #FFB3B3
+swimlane 管理者 #FF9999
+
+start
+:営業時間開始;
+:【窓口スタッフ】\n▶ 設営・清掃\n▶ レジ点検;
+:顧客来店\n顧客対応開始;
+:【案内・相談係】\n▶ 顧客挨拶\n▶ 用件確認;
+:【事務処理係】\n▶ 申込書受取\n▶ 本人確認書確認\n▶ 手続き説明;
+:【事務処理係】\n▶ 書類整備\n▶ 内容チェック\n▶ 顧客満足度確認;
+:顧客対応終了;
+:【管理者】\n▶ 対応記録\n▶ 品質確認;
+:営業終了準備\n・レジ精査\n・施錠確認;
+:【管理者】\n▶ 日報作成\n▶ 売上確認;
+:営業終了;
+end
+
+@enduml

@@ -1,0 +1,264 @@
+@startuml dept_fishery_accounting
+!theme cerulean-outline
+skinparam backgroundColor #FEFEFE
+
+title 漁業・水産業 経理部 業務フロー
+
+|#LightGray|経理部長|
+start
+:日々の基本業務確認;
+note right
+  ・現金出納
+  ・請求書発行
+  ・支払い処理
+  ・仕訳入力
+end note
+
+:スタッフ配置;
+fork
+  :現金係;
+fork again
+  :請求係;
+fork again
+  :支払係;
+fork again
+  :記帳係;
+end fork
+
+|#LightBlue|現金係|
+:前日の現金残高確認;
+:本日の現金出納表作成;
+note right
+  ・入金
+  ・出金
+  ・残高
+end note
+
+while (営業中?) is (yes)
+  :売上現金受け取り;
+  note right
+    ・販売部から入金
+    ・現金確認
+    ・金額確認
+  end note
+
+  :出金処理;
+  fork
+    :従業員給与手払い;
+fork again
+    :仕入先支払い;
+fork again
+    :日常経費支払い;
+    note right
+      ・燃料代
+      ・食糧
+      ・雑費
+    end note
+  end fork
+
+  :現金出納帳記録;
+endwhile (終了)
+
+:本日現金突合;
+if (ズレあり?) then (yes)
+  :原因調査;
+  :修正処理;
+else (一致)
+  :翌日へ;
+endif
+
+|#LightCyan|請求係|
+:販売部からの売上データ受け取り;
+note right
+  ・納品実績
+  ・金額
+  ・顧客情報
+  ・配送実績
+end note
+
+:請求書作成;
+fork
+  :月締請求;
+note right
+  ・日付ごと集計
+  ・合計金額計算
+  ・消費税計算
+fork again
+  :都度請求;
+note right: 即日請求
+fork again
+  :定期請求;
+note right: 定額契約客
+end fork
+
+:請求書送付;
+fork
+  :郵送;
+fork again
+  :メール;
+fork again
+  :EDI送信;
+end fork
+
+:売掛金管理;
+note right
+  ・請求残高
+  ・入金期限
+  ・未入金顧客
+  ・督促状況
+end note
+
+|#LightGreen|支払係|
+:仕入先支払い;
+note right
+  ・飼料購入代
+  ・設備修繕費
+  ・委託加工費
+  ・運送費
+end note
+
+:従業員給与支払い;
+note right
+  ・基本給
+  ・手当
+  ・控除額
+  ・振込処理
+end note
+
+:各種支払い処理;
+fork
+  :税金支払い;
+  note right
+    ・消費税
+    ・所得税
+    ・法人税
+fork again
+  :保険料支払い;
+  note right
+    ・社会保険
+    ・雇用保険
+    ・火災保険
+fork again
+  :公共料金支払い;
+  note right
+    ・電気代
+    ・水道代
+    ・ガス代
+    ・通信費
+end fork
+
+:支払い記録;
+note right
+  ・支払先
+  ・支払日
+  ・支払額
+  ・領収書保管
+end note
+
+|#LightYellow|記帳係|
+:日々の仕訳入力;
+fork
+  :売上仕訳;
+  note right
+    借:売掛金
+    貸:売上
+fork again
+  :仕入仕訳;
+  note right
+    借:仕入
+    貸:買掛金
+fork again
+  :経費仕訳;
+  note right
+    借:各種費用
+    貸:現金/銀行
+fork again
+  :給与仕訳;
+  note right
+    借:給与費
+    貸:給与支払金
+end fork
+
+:試算表作成;
+note right
+  ・月次試算表
+  ・科目別集計
+  ・前月比較
+end note
+
+:決算準備;
+note right
+  ・期中修正仕訳
+  ・決算仕訳
+  ・勘定科目調整
+end note
+
+|#LightGray|経理部長|
+:月次決算処理;
+
+fork
+  :売上分析;
+  note right
+    ・総売上
+    ・商品別売上
+    ・顧客別売上
+    ・売上原価率
+fork again
+  :原価管理;
+  note right
+    ・漁獲原価
+    ・加工原価
+    ・梱包原価
+    ・配送原価
+fork again
+  :経費分析;
+  note right
+    ・給与費
+    ・燃料費
+    ・減価償却費
+    ・その他経費
+fork again
+  :利益分析;
+  note right
+    ・粗利益
+    ・営業利益
+    ・経常利益
+end fork
+
+:経営指標作成;
+note right
+  ・原価率
+  ・利益率
+  ・回転率
+  ・効率指標
+end note
+
+:経営分析レポート作成;
+note right
+  ・財務状況
+  ・課題分析
+  ・改善提案
+end note
+
+:税務申告準備;
+note right
+  ・所得税申告
+  ・消費税申告
+  ・法人税申告
+  ・各種控除計算
+end note
+
+:決算書作成;
+fork
+  :損益計算書;
+fork again
+  :貸借対照表;
+fork again
+  :キャッシュフロー計算書;
+end fork
+
+:経営陣へ報告;
+
+stop
+
+@enduml

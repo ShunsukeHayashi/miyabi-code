@@ -5,11 +5,19 @@
 //! アーキテクチャ設計から開発ロードマップまで一貫した技術仕様を構築します。
 
 use async_trait::async_trait;
-use miyabi_agent_core::BaseAgent;
+use miyabi_agent_core::{
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
+    BaseAgent,
+};
+use miyabi_core::ExecutionMode;
 use miyabi_llm::{GPTOSSProvider, LLMContext, LLMConversation, LLMError, LLMPromptTemplate};
 use miyabi_types::error::{AgentError, MiyabiError, Result};
 use miyabi_types::{AgentConfig, AgentResult, AgentType, Task};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::env;
 
 /// ProductDesignAgent - プロダクト設計・技術仕様立案Agent
@@ -268,6 +276,63 @@ impl BaseAgent for ProductDesignAgent {
             escalation: None,
         })
     }
+}
+
+#[async_trait]
+impl A2AEnabled for ProductDesignAgent {
+    fn agent_card(&self) -> A2AAgentCard {
+        AgentCardBuilder::new("ProductDesignAgent", "Product design and technical specification agent")
+            .version("0.1.1")
+            .capability(AgentCapability {
+                id: "design_product".to_string(),
+                name: "Design Product".to_string(),
+                description: "Create UX design, system architecture, and technical specifications".to_string(),
+                input_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "concept": { "type": "string", "description": "Product concept" },
+                        "requirements": { "type": "string", "description": "Technical requirements" }
+                    },
+                    "required": ["concept"]
+                })),
+                output_schema: Some(json!({
+                    "type": "object",
+                    "properties": {
+                        "user_experience": { "type": "object" },
+                        "system_architecture": { "type": "object" },
+                        "tech_stack": { "type": "object" }
+                    }
+                })),
+            })
+            .build()
+    }
+
+    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+        let start = std::time::Instant::now();
+        match task.capability.as_str() {
+            "design_product" => {
+                let concept = task.input.get("concept").and_then(|v| v.as_str())
+                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing concept".to_string()))?;
+                let requirements = task.input.get("requirements").and_then(|v| v.as_str()).unwrap_or("Web application");
+                let internal_task = Task {
+                    id: task.id.clone(), title: concept.to_string(), description: requirements.to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None,
+                    assigned_agent: Some(AgentType::ProductDesignAgent), dependencies: vec![], estimated_duration: Some(180),
+                    status: None, start_time: None, end_time: None, metadata: None,
+                };
+                match self.execute(&internal_task).await {
+                    Ok(result) => Ok(A2ATaskResult::Success {
+                        output: result.data.unwrap_or(json!({"status": "completed"})),
+                        artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64,
+                    }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Product design failed: {}", e))),
+                }
+            }
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+        }
+    }
+
+    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
 }
 
 #[cfg(test)]
