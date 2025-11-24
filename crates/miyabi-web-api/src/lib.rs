@@ -158,7 +158,12 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .max_lifetime(Some(std::time::Duration::from_secs(1800)))
         .connect(&config.database_url)
         .await
-        .map_err(AppError::Database)?;
+        .map_err(|e| {
+            tracing::error!("Failed to connect to PostgreSQL: {}", e);
+            tracing::error!("Connection URL host: {}", config.database_url.split('@').last().unwrap_or("unknown"));
+            tracing::error!("Ensure PostgreSQL is running and DATABASE_URL is correct");
+            AppError::Database(e)
+        })?;
 
     // Verify database connection with a simple query
     sqlx::query("SELECT 1")
