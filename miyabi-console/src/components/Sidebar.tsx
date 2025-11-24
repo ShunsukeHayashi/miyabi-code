@@ -1,5 +1,6 @@
 import { Avatar, Button, Tooltip } from '@heroui/react';
 import {
+  BarChart3,
   Bell,
   Building2,
   ChevronLeft,
@@ -49,6 +50,7 @@ export default function Sidebar() {
     { name: 'Worktrees', path: '/worktrees', icon: FolderGit2 },
     { name: 'Issues', path: '/issues', icon: GitPullRequest },
     { name: 'Task DAG', path: '/task-dag', icon: Network },
+    { name: 'Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Notifications', path: '/notifications', icon: Bell },
   ];
 
