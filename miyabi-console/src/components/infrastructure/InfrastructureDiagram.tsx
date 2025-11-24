@@ -108,7 +108,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       },
     })
 
-    yPos += 150
+    yPos += 150;
 
     // Internet Gateway
     if (topology.internetGateway) {
@@ -202,7 +202,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       })
     })
 
-    yPos += 150
+    yPos += 150;
 
     // Compute Layer (ECS, ALB)
     let xPos = 200
@@ -270,7 +270,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       xPos += 280
     })
 
-    yPos += 150
+    yPos += 150;
 
     // Data Layer
     xPos = 300
@@ -306,7 +306,7 @@ export default function InfrastructureDiagram({ topology }: InfrastructureDiagra
       xPos += 350
     })
 
-    yPos += 150
+    yPos += 150;
 
     // IAM Roles
     xPos = 400
