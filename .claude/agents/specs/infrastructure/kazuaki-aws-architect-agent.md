@@ -128,6 +128,217 @@ Agent(Intent, World₀) = lim_{n→∞} (θ₆ ◦ θ₅ ◦ θ₄ ◦ θ₃ ◦
 
 ---
 
+## 必須IAM権限
+
+KazuakiエージェントがAWS環境を操作するために必要なIAM権限を定義します。
+セキュリティを確保しながら、フェーズに応じた適切な権限を付与します。
+
+### 最小権限 (θ₁-θ₃: Read-Only Operations)
+
+**用途**: Discover, Plan, Allocate フェーズ（読み取り専用）
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "IdentityAccess",
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity",
+        "sts:GetAccessKeyInfo"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EC2ReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "ec2:Get*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "S3ReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:List*",
+        "s3:Get*",
+        "s3:HeadBucket",
+        "s3:HeadObject"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "RDSReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "rds:Describe*",
+        "rds:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IAMReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "iam:Get*",
+        "iam:List*",
+        "iam:SimulatePrincipalPolicy"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudWatchReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:Get*",
+        "cloudwatch:List*",
+        "cloudwatch:Describe*",
+        "logs:Get*",
+        "logs:Describe*",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CostExplorerReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ce:Get*",
+        "ce:Describe*",
+        "ce:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "LambdaReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:Get*",
+        "lambda:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ECSReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:Describe*",
+        "ecs:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SecurityServicesReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "guardduty:Get*",
+        "guardduty:List*",
+        "securityhub:Get*",
+        "securityhub:List*",
+        "securityhub:Describe*",
+        "config:Get*",
+        "config:Describe*",
+        "config:List*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+### 完全権限 (θ₄: Write Operations with Approval)
+
+**用途**: Deploy フェーズ（変更実行）- **要承認**
+
+**重要**: 完全権限は以下の条件を満たす場合のみ付与:
+
+| 条件 | 要件 |
+|------|------|
+| **MFA必須** | Hardware Token または Virtual MFA |
+| **承認者** | Platform Team Lead + Security Team |
+| **監査ログ** | CloudTrail 全アクション記録 |
+| **時間制限** | Session Duration 最大1時間 |
+| **IP制限** | VPN/オフィスIPのみ許可 |
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "FullAccessWithMFA",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        },
+        "NumericLessThan": {
+          "aws:MultiFactorAuthAge": "3600"
+        }
+      }
+    },
+    {
+      "Sid": "DenyDangerousActions",
+      "Effect": "Deny",
+      "Action": [
+        "organizations:LeaveOrganization",
+        "organizations:DeleteOrganization",
+        "iam:DeleteAccountPasswordPolicy",
+        "iam:CreateUser",
+        "iam:DeleteUser",
+        "ec2:DeleteVpc",
+        "rds:DeleteDBCluster",
+        "s3:DeleteBucket"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+### IAM Role設定
+
+**Role名**: `KazuakiAgentRole`
+
+```yaml
+# Trust Policy
+AssumeRolePolicyDocument:
+  Version: "2012-10-17"
+  Statement:
+    - Effect: Allow
+      Principal:
+        Service: lambda.amazonaws.com
+      Action: sts:AssumeRole
+    - Effect: Allow
+      Principal:
+        AWS: arn:aws:iam::ACCOUNT_ID:role/MiyabiOrchestratorRole
+      Action: sts:AssumeRole
+      Condition:
+        StringEquals:
+          sts:ExternalId: "miyabi-kazuaki-agent"
+
+# Session Duration
+MaxSessionDuration: 3600  # 1 hour
+
+# Permission Boundary
+PermissionsBoundary: arn:aws:iam::ACCOUNT_ID:policy/MiyabiAgentBoundary
+```
+
+### セキュリティ監査要件
+
+| 項目 | 要件 |
+|------|------|
+| **CloudTrail** | 全APIコール記録、90日以上保持 |
+| **Config Rules** | iam-user-mfa-enabled, root-account-mfa-enabled |
+| **GuardDuty** | 異常検知有効化 |
+| **Access Analyzer** | 外部アクセス分析有効化 |
+
+---
+
 ## Agent Cycle (θ₁-θ₆)
 
 ### θ₁: Understand (理解フェーズ)
