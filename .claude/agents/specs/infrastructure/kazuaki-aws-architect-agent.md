@@ -1024,33 +1024,414 @@ miyabi aws learn --cycle-id <cycle_id>
 
 ## 実行例
 
-### Full Cycle実行
+### CLI実行
+
 ```bash
 # 完全な6フェーズサイクル実行
 miyabi aws full-cycle
 
-# または個別フェーズ実行
-miyabi aws discover       # θ₁
-miyabi aws plan           # θ₂
-miyabi aws allocate       # θ₃
-miyabi aws execute        # θ₄
-miyabi aws integrate      # θ₅
-miyabi aws learn          # θ₆
+# 個別フェーズ実行
+miyabi aws discover       # θ₁ - リソース検出
+miyabi aws plan           # θ₂ - 最適化プラン生成
+miyabi aws allocate       # θ₃ - リソース配分
+miyabi aws execute        # θ₄ - 変更適用
+miyabi aws integrate      # θ₅ - 統合テスト
+miyabi aws learn          # θ₆ - 学習・改善
+
+# オプション付き実行
+miyabi aws discover --region ap-northeast-1 --profile miyabi-prod
+miyabi aws plan --output terraform --dry-run
+miyabi aws execute --plan-id plan-20251126-001 --auto-approve=false
 ```
 
-### Rustコードから実行
+### Rust実装例
+
+#### 基本的なAgent実行
+
 ```rust
-use miyabi_aws_agent::AwsAgent;
+use miyabi_aws_agent::{AwsAgent, AgentConfig, WorldState};
+use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let agent = AwsAgent::new();
+    // Agent設定
+    let config = AgentConfig::builder()
+        .region("ap-northeast-1")
+        .profile("miyabi-prod")
+        .dry_run(false)
+        .build()?;
 
-    // Full cycle
-    let output = agent.full_cycle().await?;
-    println!("{}", output);
+    let agent = AwsAgent::new(config);
+
+    // Full cycle実行
+    let result = agent.full_cycle().await?;
+
+    println!("Cycle completed:");
+    println!("  Resources scanned: {}", result.metrics.resources_scanned);
+    println!("  Changes applied: {}", result.metrics.changes_applied);
+    println!("  Cost impact: ${:.2}/month", result.metrics.cost_impact);
 
     Ok(())
+}
+```
+
+#### θ₁ Discover実装詳細
+
+```rust
+use miyabi_aws_agent::{AwsAgent, DiscoverOptions, ResourceFilter};
+use aws_sdk_ec2::Client as Ec2Client;
+
+impl AwsAgent {
+    /// θ₁: AWS環境を網羅的にスキャンし、World₀を構築
+    pub async fn discover(&self, options: DiscoverOptions) -> Result<WorldState> {
+        let mut world_state = WorldState::new();
+
+        // EC2インスタンス検出
+        let ec2_client = Ec2Client::new(&self.aws_config);
+        let instances = ec2_client
+            .describe_instances()
+            .filters(options.filters.to_ec2_filters())
+            .send()
+            .await?;
+
+        for reservation in instances.reservations() {
+            for instance in reservation.instances() {
+                world_state.add_resource(Resource::Ec2Instance {
+                    instance_id: instance.instance_id().unwrap_or_default().to_string(),
+                    instance_type: instance.instance_type().map(|t| t.as_str().to_string()),
+                    state: instance.state().map(|s| s.name().map(|n| n.as_str().to_string())).flatten(),
+                    launch_time: instance.launch_time().map(|t| t.to_string()),
+                    tags: instance.tags().iter().map(|t| {
+                        (t.key().unwrap_or_default().to_string(),
+                         t.value().unwrap_or_default().to_string())
+                    }).collect(),
+                });
+            }
+        }
+
+        // S3バケット検出
+        let s3_client = aws_sdk_s3::Client::new(&self.aws_config);
+        let buckets = s3_client.list_buckets().send().await?;
+
+        for bucket in buckets.buckets() {
+            world_state.add_resource(Resource::S3Bucket {
+                name: bucket.name().unwrap_or_default().to_string(),
+                creation_date: bucket.creation_date().map(|d| d.to_string()),
+            });
+        }
+
+        // RDS検出
+        let rds_client = aws_sdk_rds::Client::new(&self.aws_config);
+        let db_instances = rds_client.describe_db_instances().send().await?;
+
+        for db in db_instances.db_instances() {
+            world_state.add_resource(Resource::RdsInstance {
+                db_instance_id: db.db_instance_identifier().unwrap_or_default().to_string(),
+                engine: db.engine().unwrap_or_default().to_string(),
+                instance_class: db.db_instance_class().unwrap_or_default().to_string(),
+                status: db.db_instance_status().unwrap_or_default().to_string(),
+            });
+        }
+
+        // コスト情報取得
+        let ce_client = aws_sdk_costexplorer::Client::new(&self.aws_config);
+        let cost_data = self.fetch_cost_data(&ce_client).await?;
+        world_state.set_cost_data(cost_data);
+
+        // レポート生成
+        world_state.generate_discovery_report()?;
+
+        Ok(world_state)
+    }
+}
+```
+
+#### θ₄ Execute (Terraform適用)
+
+```rust
+use miyabi_aws_agent::{ExecutePlan, TerraformRunner, RollbackStrategy};
+use std::process::Command;
+
+impl AwsAgent {
+    /// θ₄: Terraformを実行し、変更を適用
+    pub async fn execute(&self, plan: ExecutePlan) -> Result<ExecuteResult> {
+        // 事前チェック
+        self.validate_plan(&plan)?;
+
+        // スナップショット作成（ロールバック用）
+        let snapshot = self.create_rollback_snapshot().await?;
+
+        // Terraform実行
+        let terraform = TerraformRunner::new(&plan.terraform_dir);
+
+        // terraform init
+        terraform.init().await?;
+
+        // terraform plan
+        let plan_output = terraform.plan(&plan.var_file).await?;
+
+        if !plan.auto_approve {
+            // 承認待ち
+            self.request_approval(&plan_output).await?;
+        }
+
+        // terraform apply
+        let apply_result = match terraform.apply(&plan.var_file).await {
+            Ok(result) => result,
+            Err(e) => {
+                // 自動ロールバック
+                tracing::error!("Terraform apply failed: {:?}", e);
+                self.rollback(&snapshot).await?;
+                return Err(e.into());
+            }
+        };
+
+        // 変更監視設定
+        self.setup_change_monitoring(&apply_result).await?;
+
+        Ok(ExecuteResult {
+            success: true,
+            changes_applied: apply_result.resources_changed,
+            outputs: apply_result.outputs,
+            snapshot_id: snapshot.id,
+        })
+    }
+
+    /// ロールバック実行
+    async fn rollback(&self, snapshot: &Snapshot) -> Result<()> {
+        tracing::warn!("Initiating rollback to snapshot: {}", snapshot.id);
+
+        let terraform = TerraformRunner::new(&snapshot.terraform_dir);
+        terraform.apply_state(&snapshot.state_file).await?;
+
+        // エスカレーション通知
+        self.escalate(EscalationLevel::Platform,
+            "Automatic rollback executed due to deployment failure").await?;
+
+        Ok(())
+    }
+}
+```
+
+#### エスカレーション実装
+
+```rust
+use miyabi_aws_agent::{EscalationLevel, Notifier};
+
+impl AwsAgent {
+    /// エスカレーション処理
+    pub async fn escalate(&self, level: EscalationLevel, message: &str) -> Result<()> {
+        let notifier = Notifier::new(&self.config);
+
+        match level {
+            EscalationLevel::Auto => {
+                // Level 1: 自動修復試行
+                tracing::info!("Attempting auto-recovery: {}", message);
+            }
+            EscalationLevel::Platform => {
+                // Level 2: Platform Teamへ通知
+                notifier.send_lark("#platform-ops", &format!(
+                    "⚠️ **Kazuaki Agent Alert**\n\n{}\n\nAction required.",
+                    message
+                )).await?;
+            }
+            EscalationLevel::Cfo => {
+                // Level 3: CFOへコスト承認リクエスト
+                notifier.send_lark("#cost-approval", &format!(
+                    "💰 **Cost Approval Required**\n\n{}\n\nPlease review and approve.",
+                    message
+                )).await?;
+            }
+            EscalationLevel::Security => {
+                // Level 4: Security Teamへ通知
+                notifier.send_lark("#security-alerts", &format!(
+                    "🔒 **Security Review Required**\n\n{}\n\nImmediate attention needed.",
+                    message
+                )).await?;
+            }
+            EscalationLevel::Human => {
+                // Level 5: 人間への緊急エスカレーション
+                notifier.send_email(
+                    &self.config.escalation_email,
+                    "🚨 CRITICAL: Kazuaki Agent Escalation",
+                    message
+                ).await?;
+                notifier.send_lark_dm(&self.config.guardian_id, message).await?;
+            }
+        }
+
+        Ok(())
+    }
+}
+```
+
+### Python Service実装例
+
+#### θ₂ Generate (最適化プラン生成)
+
+```python
+# services/aws-miyabi-agent/aws_miyabi_agent/agents/generate.py
+
+from dataclasses import dataclass
+from typing import List, Dict, Any
+import boto3
+
+@dataclass
+class OptimizationPlan:
+    cost_savings: float
+    recommendations: List[Dict[str, Any]]
+    terraform_changes: List[str]
+    risk_level: str
+
+class GenerateAgent:
+    def __init__(self):
+        self.ce_client = boto3.client('ce')
+        self.ec2_client = boto3.client('ec2')
+
+    async def execute(self, config: dict, context: dict) -> OptimizationPlan:
+        """θ₂: 最適化プランを生成"""
+        world_state = context.get('world_state', {})
+
+        recommendations = []
+        total_savings = 0.0
+
+        # 1. Reserved Instance推奨
+        ri_recommendations = await self._analyze_ri_opportunities(world_state)
+        recommendations.extend(ri_recommendations)
+        total_savings += sum(r['monthly_savings'] for r in ri_recommendations)
+
+        # 2. インスタンスライトサイジング
+        rightsizing = await self._analyze_rightsizing(world_state)
+        recommendations.extend(rightsizing)
+        total_savings += sum(r['monthly_savings'] for r in rightsizing)
+
+        # 3. 未使用リソース検出
+        unused = await self._find_unused_resources(world_state)
+        recommendations.extend(unused)
+        total_savings += sum(r['monthly_savings'] for r in unused)
+
+        # Terraformコード生成
+        terraform_changes = self._generate_terraform(recommendations)
+
+        return OptimizationPlan(
+            cost_savings=total_savings,
+            recommendations=recommendations,
+            terraform_changes=terraform_changes,
+            risk_level=self._assess_risk(recommendations)
+        )
+
+    async def _analyze_ri_opportunities(self, world_state: dict) -> List[dict]:
+        """Reserved Instance購入推奨を分析"""
+        response = self.ce_client.get_reservation_purchase_recommendation(
+            Service='Amazon Elastic Compute Cloud - Compute',
+            LookbackPeriodInDays='SIXTY_DAYS',
+            TermInYears='ONE_YEAR',
+            PaymentOption='NO_UPFRONT'
+        )
+
+        recommendations = []
+        for rec in response.get('Recommendations', []):
+            for detail in rec.get('RecommendationDetails', []):
+                recommendations.append({
+                    'type': 'reserved_instance',
+                    'instance_type': detail.get('InstanceDetails', {}).get('EC2InstanceDetails', {}).get('InstanceType'),
+                    'monthly_savings': float(detail.get('EstimatedMonthlySavingsAmount', 0)),
+                    'upfront_cost': float(detail.get('UpfrontCost', 0)),
+                    'break_even_months': detail.get('EstimatedBreakEvenInMonths'),
+                })
+
+        return recommendations
+
+    async def _analyze_rightsizing(self, world_state: dict) -> List[dict]:
+        """インスタンスサイズ最適化を分析"""
+        response = self.ce_client.get_rightsizing_recommendation(
+            Service='AmazonEC2',
+            Configuration={
+                'RecommendationTarget': 'SAME_INSTANCE_FAMILY',
+                'BenefitsConsidered': True
+            }
+        )
+
+        recommendations = []
+        for rec in response.get('RightsizingRecommendations', []):
+            if rec.get('RightsizingType') == 'Modify':
+                current = rec.get('CurrentInstance', {})
+                target = rec.get('ModifyRecommendationDetail', {}).get('TargetInstances', [{}])[0]
+
+                recommendations.append({
+                    'type': 'rightsizing',
+                    'instance_id': current.get('ResourceId'),
+                    'current_type': current.get('InstanceType'),
+                    'recommended_type': target.get('ExpectedResourceUtilization', {}).get('EC2ResourceUtilization', {}).get('MaxCpuUtilizationPercentage'),
+                    'monthly_savings': float(rec.get('EstimatedMonthlySavings', {}).get('Value', 0)),
+                })
+
+        return recommendations
+
+    def _generate_terraform(self, recommendations: List[dict]) -> List[str]:
+        """Terraform変更コードを生成"""
+        changes = []
+
+        for rec in recommendations:
+            if rec['type'] == 'rightsizing':
+                changes.append(f'''
+# Rightsizing: {rec['instance_id']}
+resource "aws_instance" "{rec['instance_id'].replace('-', '_')}" {{
+  instance_type = "{rec['recommended_type']}"
+  # ... other config preserved
+}}
+''')
+
+        return changes
+```
+
+### 統合テスト例
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio;
+
+    #[tokio::test]
+    async fn test_discover_phase() {
+        let config = AgentConfig::builder()
+            .region("ap-northeast-1")
+            .dry_run(true)
+            .build()
+            .unwrap();
+
+        let agent = AwsAgent::new(config);
+        let world_state = agent.discover(DiscoverOptions::default()).await.unwrap();
+
+        assert!(world_state.resources.len() > 0);
+        assert!(world_state.cost_data.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_plan_generation() {
+        let agent = AwsAgent::new(AgentConfig::default());
+
+        // Mock world state
+        let world_state = WorldState::mock();
+
+        let plans = agent.plan(world_state).await.unwrap();
+
+        assert!(plans.cost_optimization.is_some());
+        assert!(plans.security_improvements.len() >= 0);
+    }
+
+    #[tokio::test]
+    async fn test_escalation_levels() {
+        let agent = AwsAgent::new(AgentConfig::default());
+
+        // Platform escalation should succeed
+        let result = agent.escalate(
+            EscalationLevel::Platform,
+            "Test escalation"
+        ).await;
+        assert!(result.is_ok());
+    }
 }
 ```
 
