@@ -159,7 +159,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
                 },
             };
 
-            if sender.send(Message::Text(json)).await.is_err() {
+            if sender.send(Message::Text(json.into())).await.is_err() {
                 break;
             }
         }
@@ -217,7 +217,7 @@ where
             // Safely truncate at character boundary
             let truncated = json.chars().take(200).collect::<String>();
             info!("📤 WebSocket sending JSON (first 200 chars): {}...", truncated);
-            if let Err(e) = sender.send(Message::Text(json)).await {
+            if let Err(e) = sender.send(Message::Text(json.into())).await {
                 debug!("Failed to send agents data (client may have disconnected): {}", e);
                 return Err(axum::Error::new(e));
             }
@@ -239,7 +239,7 @@ where
         Ok(Ok(status)) => {
             let msg = DashboardUpdate::SystemStatus { status };
             let json = serde_json::to_string(&msg).unwrap();
-            if let Err(e) = sender.send(Message::Text(json)).await {
+            if let Err(e) = sender.send(Message::Text(json.into())).await {
                 debug!("Failed to send system status (client may have disconnected): {}", e);
                 return Err(axum::Error::new(e));
             }

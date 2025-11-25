@@ -406,7 +406,7 @@ async fn handle_websocket(mut socket: WebSocket, state: Arc<ServerState>) {
                         "{}".to_string()
                     });
 
-                    if let Err(e) = socket.send(Message::Text(msg)).await {
+                    if let Err(e) = socket.send(Message::Text(msg.into())).await {
                         error!("Failed to send WebSocket message: {}", e);
                         break;
                     }
@@ -421,7 +421,7 @@ async fn handle_websocket(mut socket: WebSocket, state: Arc<ServerState>) {
                             });
 
                             let msg = serde_json::to_string(&update).unwrap();
-                            if let Err(e) = socket.send(Message::Text(msg)).await {
+                            if let Err(e) = socket.send(Message::Text(msg.into())).await {
                                 error!("Failed to send WebSocket message: {}", e);
                                 break;
                             }
