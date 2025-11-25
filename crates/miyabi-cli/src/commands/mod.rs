@@ -14,6 +14,7 @@ pub mod knowledge;
 pub mod r#loop;
 pub mod mode;
 pub mod parallel;
+pub mod report;
 pub mod setup;
 pub mod status;
 // Temporarily disabled until Issue #719 is merged
