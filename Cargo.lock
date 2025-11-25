@@ -333,6 +333,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-sdk-cloudwatch"
+version = "1.98.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "268e7edbdcc7fdf469801f5fd4b94f04698e3a2f2a6376d82f89aef3712cc8f7"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-compression",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-query",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-smithy-xml",
+ "aws-types",
+ "fastrand",
+ "flate2",
+ "http 0.2.12",
+ "http-body 0.4.6",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
 name = "aws-sdk-dynamodb"
 version = "1.100.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -582,6 +608,23 @@ dependencies = [
  "pin-project-lite",
  "sha1",
  "sha2",
+ "tracing",
+]
+
+[[package]]
+name = "aws-smithy-compression"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f29ef43748637ea19e0d264ad38da275af1aa28a14aa5f7e9ed29c790473768f"
+dependencies = [
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "bytes 1.11.0",
+ "flate2",
+ "futures-util",
+ "http 0.2.12",
+ "http-body 0.4.6",
+ "pin-project-lite",
  "tracing",
 ]
 
@@ -1288,7 +1331,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3685,7 +3728,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-a2a-gateway"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "axum 0.8.7",
  "chrono",
@@ -4123,7 +4166,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-discord-mcp-server"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4359,7 +4402,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-logging-monitor"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4490,7 +4533,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-seedance-api"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4603,6 +4646,9 @@ name = "miyabi-web-api"
 version = "0.1.2"
 dependencies = [
  "assert-json-diff",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-cloudwatch",
  "axum 0.8.7",
  "chrono",
  "dashmap",
@@ -4639,7 +4685,7 @@ dependencies = [
 
 [[package]]
 name = "miyabi-webhook"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -8815,7 +8861,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
