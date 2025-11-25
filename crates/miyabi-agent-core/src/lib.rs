@@ -8,6 +8,7 @@ pub mod auto_index_hook;
 pub mod base;
 pub mod config;
 pub mod hooks;
+pub mod metrics;
 pub mod observable;
 pub mod orchestration;
 pub mod prompt_enhancement;
@@ -29,6 +30,9 @@ pub use config::{
     AgentsConfig, RuntimeConfig,
 };
 pub use hooks::{AgentHook, AuditLogHook, EnvironmentCheckHook, HookedAgent, MetricsHook};
+pub use metrics::{
+    AgentCounters, CloudWatchMetricsHook, MetricsConfig, MetricsRegistry, MetricsSummary,
+};
 pub use observable::{LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
 pub use prompt_enhancement::{AgentPromptEnhancer, PromptEnhancementConfig, PromptTemplate};
