@@ -3,6 +3,7 @@ pub mod agents;
 pub mod approval;
 pub mod auth;
 pub mod codegen;
+pub mod coordinators;
 pub mod dashboard;
 pub mod database;
 pub mod deployments;
@@ -23,6 +24,7 @@ pub mod telegram;
 pub mod timeline;
 pub mod tmux;
 pub mod websocket;
+pub mod workers;
 pub mod workflows;
 pub mod worktrees;
 

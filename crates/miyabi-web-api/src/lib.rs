@@ -266,7 +266,10 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Organization routes - Phase 1.4: RBAC Implementation (#970)
         .nest("/organizations", routes::organizations::routes())
         // Task Management routes - Phase 2.1: Task Management API (#970)
-        .nest("/tasks", routes::tasks::routes());
+        .nest("/tasks", routes::tasks::routes())
+        // Worker & Coordinator Status routes - Phase 2.3 (#985)
+        .nest("/workers", routes::workers::routes())
+        .nest("/coordinators", routes::coordinators::routes());
 
     // Build main router
     let app = Router::new()
