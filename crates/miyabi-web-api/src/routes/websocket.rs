@@ -110,7 +110,7 @@ async fn handle_agent_events(socket: WebSocket, state: AppState) {
                         }
                     };
 
-                    if sender.send(Message::Text(event_json)).await.is_err() {
+                    if sender.send(Message::Text(event_json.into())).await.is_err() {
                         tracing::info!("WebSocket connection closed");
                         break;
                     }
@@ -165,7 +165,7 @@ async fn handle_execution_logs(socket: WebSocket, state: AppState, execution_id:
     if let Ok(logs) = executor.get_logs(execution_id, Some(1000)).await {
         for log in &logs {
             let log_json = serde_json::to_string(&log).unwrap_or_default();
-            let _ = tx.send(Message::Text(log_json));
+            let _ = tx.send(Message::Text(log_json.into()));
 
             if log.timestamp > last_timestamp {
                 last_timestamp = log.timestamp;
@@ -188,7 +188,7 @@ async fn handle_execution_logs(socket: WebSocket, state: AppState, execution_id:
                 Ok(logs) if !logs.is_empty() => {
                     for log in &logs {
                         let log_json = serde_json::to_string(&log).unwrap_or_default();
-                        if tx_clone.send(Message::Text(log_json)).is_err() {
+                        if tx_clone.send(Message::Text(log_json.into())).is_err() {
                             return; // Channel closed
                         }
 
@@ -217,7 +217,7 @@ async fn handle_execution_logs(socket: WebSocket, state: AppState, execution_id:
                         "type": "execution_complete",
                         "status": status
                     });
-                    let _ = tx_clone.send(Message::Text(completion.to_string()));
+                    let _ = tx_clone.send(Message::Text(completion.to_string().into()));
                     break;
                 },
                 _ => {},

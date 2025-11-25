@@ -272,7 +272,7 @@ async fn handle_approval_stream(mut socket: WebSocket, approval_id: String, stat
                             };
 
                             if let Ok(json) = serde_json::to_string(&message) {
-                                if socket.send(Message::Text(json)).await.is_err() {
+                                if socket.send(Message::Text(json.into())).await.is_err() {
                                     break; // Client disconnected
                                 }
                             }
@@ -291,7 +291,7 @@ async fn handle_approval_stream(mut socket: WebSocket, approval_id: String, stat
                             message: format!("Approval not found: {}", approval_id),
                         };
                         if let Ok(json) = serde_json::to_string(&error_msg) {
-                            let _ = socket.send(Message::Text(json)).await;
+                            let _ = socket.send(Message::Text(json.into())).await;
                         }
                         break;
                     }
@@ -302,7 +302,7 @@ async fn handle_approval_stream(mut socket: WebSocket, approval_id: String, stat
                             message: format!("Internal server error: {}", e),
                         };
                         if let Ok(json) = serde_json::to_string(&error_msg) {
-                            let _ = socket.send(Message::Text(json)).await;
+                            let _ = socket.send(Message::Text(json.into())).await;
                         }
                         break;
                     }
