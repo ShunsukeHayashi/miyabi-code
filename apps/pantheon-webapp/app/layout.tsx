@@ -1,10 +1,12 @@
 /**
  * Root Layout
  * Issue: #1017 - Pantheon Webapp
+ * Updated: #980 - Phase 3.3: Real-Time WebSocket Integration
  */
 
 import type { Metadata } from 'next';
 import './globals.css';
+import { Providers, NavbarContent } from './providers';
 
 export const metadata: Metadata = {
   title: 'Pantheon Webapp - Miyabi Integration',
@@ -19,50 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  🏛️ Pantheon
-                </span>
-              </div>
-              <div className="flex items-center space-x-4">
-                <a
-                  href="/dashboard"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Dashboard
-                </a>
-                <a
-                  href="/about"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  About
-                </a>
-                <a
-                  href="/divisions"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Divisions
-                </a>
-                <a
-                  href="/advisors"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Advisors
-                </a>
-                <a
-                  href="/miyabi-integration"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Miyabi Integration
-                </a>
-              </div>
-            </div>
-          </div>
-        </nav>
-        <main>{children}</main>
+        <Providers>
+          <NavbarContent />
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );

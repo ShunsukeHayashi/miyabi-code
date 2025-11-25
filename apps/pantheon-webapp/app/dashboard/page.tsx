@@ -1,6 +1,7 @@
 /**
  * Operations Dashboard Page
  * Issue: #979 - Phase 3.2: Dashboard UI Modernization
+ * Updated: #980 - Phase 3.3: Real-Time WebSocket Integration
  *
  * Real-time dashboard for Miyabi Agent operations.
  * Connects to Web API backend for live data with:
@@ -8,6 +9,7 @@
  * - Recent Activity feed with filtering
  * - Agent Status monitoring
  * - Task management
+ * - Real-time WebSocket updates
  */
 
 'use client';
@@ -16,6 +18,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useDashboardSummary, useRecentActivities, useAgents, useTasks } from '../../lib/hooks';
 import { SummaryCards, RecentActivityFeed, AgentStatusGrid, TaskList } from './components';
+import { LiveStatusIndicator } from '../../components/LiveStatusIndicator';
+import { useWebSocketNotifications } from '../../hooks/useWebSocketNotifications';
 
 // Refresh interval selector
 function RefreshSelector({
@@ -46,36 +50,6 @@ function RefreshSelector({
           </option>
         ))}
       </select>
-    </div>
-  );
-}
-
-// Connection status indicator
-function ConnectionStatus({ isConnected, lastUpdated }: { isConnected: boolean; lastUpdated: Date | null }) {
-  return (
-    <div className="flex items-center space-x-4">
-      <div className="flex items-center space-x-2">
-        <span className="relative flex h-3 w-3">
-          <span
-            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-              isConnected ? 'bg-green-400' : 'bg-red-400'
-            }`}
-          />
-          <span
-            className={`relative inline-flex rounded-full h-3 w-3 ${
-              isConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          />
-        </span>
-        <span className={`text-sm ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
-          {isConnected ? 'Connected' : 'Disconnected'}
-        </span>
-      </div>
-      {lastUpdated && (
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          Last updated: {lastUpdated.toLocaleTimeString()}
-        </span>
-      )}
     </div>
   );
 }
@@ -111,6 +85,15 @@ function QuickActionCard({ title, description, icon, href }: QuickActionCardProp
 }
 
 export default function DashboardPage() {
+  // Enable WebSocket notifications for this page
+  useWebSocketNotifications({
+    enabled: true,
+    showAgentExecutionStarted: true,
+    showAgentExecutionCompleted: true,
+    showAgentExecutionFailed: true,
+    showTaskStatusChanged: true,
+  });
+
   const [refreshInterval, setRefreshInterval] = useState(30000);
 
   // Fetch data using custom hooks
@@ -137,7 +120,6 @@ export default function DashboardPage() {
   });
 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const isConnected = !summaryError;
 
   useEffect(() => {
     if (!summaryLoading) {
@@ -158,7 +140,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="mt-4 md:mt-0 flex flex-col sm:flex-row sm:items-center gap-4">
-              <ConnectionStatus isConnected={isConnected} lastUpdated={lastUpdated} />
+              <LiveStatusIndicator showLastUpdate={true} className="text-white" />
               <RefreshSelector value={refreshInterval} onChange={setRefreshInterval} />
             </div>
           </div>
