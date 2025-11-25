@@ -1,8 +1,10 @@
 /**
  * App Providers
  * Issue: #980 - Phase 3.3: Real-Time WebSocket Integration
+ * Issue: #981 - Phase 3.4: Authentication Flow Implementation
  *
  * Wraps the application with necessary providers:
+ * - Auth Provider for authentication state
  * - WebSocket Provider for real-time updates
  * - Toast Provider for notifications
  */
@@ -10,8 +12,10 @@
 'use client';
 
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from '../components/ui/Toast';
 import { NavbarConnectionStatus } from '../components/LiveStatusIndicator';
+import { NavbarUserProfile } from './components/UserProfile';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -19,11 +23,13 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <ToastProvider maxToasts={5} defaultDuration={5000}>
-      <WebSocketProvider autoConnect={true} fallbackPollingInterval={30000}>
-        {children}
-      </WebSocketProvider>
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider maxToasts={5} defaultDuration={5000}>
+        <WebSocketProvider autoConnect={true} fallbackPollingInterval={30000}>
+          {children}
+        </WebSocketProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 
@@ -74,6 +80,9 @@ export function NavbarContent() {
             </a>
             <div className="hidden sm:flex items-center pl-4 border-l border-gray-200 dark:border-gray-700">
               <NavbarConnectionStatus />
+            </div>
+            <div className="flex items-center pl-4 border-l border-gray-200 dark:border-gray-700">
+              <NavbarUserProfile />
             </div>
           </div>
         </div>

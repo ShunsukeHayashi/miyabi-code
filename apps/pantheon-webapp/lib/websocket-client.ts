@@ -21,6 +21,7 @@ export type WebSocketEventType =
   | 'agent_execution_completed'
   | 'agent_execution_failed'
   | 'task_status_changed'
+  | 'agent_status_changed'
   | 'system_notification';
 
 export interface WebSocketEvent {
@@ -28,11 +29,13 @@ export interface WebSocketEvent {
   payload: {
     execution_id?: string;
     task_id?: string;
+    agent_id?: string;
     agent_type?: string;
     status?: string;
     repository?: string;
     timestamp: string;
     message?: string;
+    title?: string;
     details?: Record<string, unknown>;
   };
 }
