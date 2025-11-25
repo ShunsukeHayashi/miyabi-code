@@ -270,6 +270,46 @@ service_access_principals = [
 3. **Service Restrictions**: Block unused/risky services
 4. **Encryption Requirements**: Enforce EBS/S3 encryption
 
+## Pre-built SCP Policies (Phase 2)
+
+This module includes pre-built SCP policy files in `policies/`:
+
+| Policy File | Description | Recommended Target |
+|-------------|-------------|-------------------|
+| `scp-deny-root-user.json` | Block root user actions | All OUs |
+| `scp-deny-leave-organization.json` | Prevent accounts from leaving | All OUs |
+| `scp-restrict-regions.json` | Limit to ap-northeast-1/3, us-east-1, us-west-2 | Production, Staging |
+| `scp-require-imdsv2.json` | Require IMDSv2 for EC2 | Production |
+| `scp-require-encrypted-volumes.json` | Require EBS encryption | Production |
+| `scp-deny-public-s3.json` | Block public S3 buckets | All OUs |
+| `scp-deny-cloudtrail-disable.json` | Protect CloudTrail | Security, Production |
+| `scp-deny-config-disable.json` | Protect AWS Config | Security, Production |
+| `scp-deny-guardduty-disable.json` | Protect GuardDuty | Security, Production |
+
+### Tag and Backup Policies
+
+| Policy File | Description |
+|-------------|-------------|
+| `tag-policy-standard.json` | Enforce Environment, Project, Owner, CostCenter tags |
+| `backup-policy-standard.json` | Daily/Weekly backups with DR replication |
+
+### Using Pre-built Policies
+
+```hcl
+service_control_policies = [
+  {
+    name        = "DenyRootUser"
+    description = "Deny root user actions"
+    content     = file("${path.module}/policies/scp-deny-root-user.json")
+  },
+  {
+    name        = "RestrictRegions"
+    description = "Limit to approved regions"
+    content     = file("${path.module}/policies/scp-restrict-regions.json")
+  },
+]
+```
+
 ## Related Resources
 
 - [AWS Organizations Documentation](https://docs.aws.amazon.com/organizations/)

@@ -1,0 +1,255 @@
+# AWS Organizations Configuration for Miyabi
+# Issue: #814 - AWS Multi-Account Strategy
+#
+# Copy this file to organizations.tfvars and customize for your environment
+
+#------------------------------------------------------------------------------
+# Organization Settings
+#------------------------------------------------------------------------------
+
+create_organization = false  # Set true only for initial setup
+
+organization_root_id = "r-xxxx"  # Your organization root ID
+
+feature_set = "ALL"
+
+#------------------------------------------------------------------------------
+# Organizational Units
+#------------------------------------------------------------------------------
+
+organizational_units = [
+  # Root level OUs
+  { name = "Security", parent = "root" },
+  { name = "Infrastructure", parent = "root" },
+  { name = "Workloads", parent = "root" },
+  { name = "Sandbox", parent = "root" },
+  { name = "Suspended", parent = "root" },
+
+  # Child OUs under Workloads
+  { name = "Development", parent = "Workloads" },
+  { name = "Staging", parent = "Workloads" },
+  { name = "Production", parent = "Workloads" },
+]
+
+#------------------------------------------------------------------------------
+# AWS Accounts
+#------------------------------------------------------------------------------
+
+accounts = [
+  # Security Accounts
+  {
+    name        = "miyabi-security"
+    email       = "aws+security@example.com"
+    ou_name     = "Security"
+    environment = "shared"
+    tags = {
+      Purpose = "Security Hub, GuardDuty, Config Aggregation"
+    }
+  },
+  {
+    name        = "miyabi-log-archive"
+    email       = "aws+logs@example.com"
+    ou_name     = "Security"
+    environment = "shared"
+    tags = {
+      Purpose = "CloudTrail, VPC Flow Logs, S3 Access Logs"
+    }
+  },
+
+  # Infrastructure Accounts
+  {
+    name        = "miyabi-network"
+    email       = "aws+network@example.com"
+    ou_name     = "Infrastructure"
+    environment = "shared"
+    tags = {
+      Purpose = "Transit Gateway, Direct Connect, VPN"
+    }
+  },
+  {
+    name        = "miyabi-shared-services"
+    email       = "aws+shared@example.com"
+    ou_name     = "Infrastructure"
+    environment = "shared"
+    tags = {
+      Purpose = "CI/CD, Container Registry, Artifact Storage"
+    }
+  },
+
+  # Workload Accounts
+  {
+    name        = "miyabi-dev"
+    email       = "aws+dev@example.com"
+    ou_name     = "Development"
+    environment = "development"
+    tags = {
+      Purpose = "Development Environment"
+    }
+  },
+  {
+    name        = "miyabi-staging"
+    email       = "aws+staging@example.com"
+    ou_name     = "Staging"
+    environment = "staging"
+    tags = {
+      Purpose = "Staging Environment"
+    }
+  },
+  {
+    name        = "miyabi-prod"
+    email       = "aws+prod@example.com"
+    ou_name     = "Production"
+    environment = "production"
+    tags = {
+      Purpose = "Production Environment"
+    }
+  },
+
+  # Sandbox
+  {
+    name        = "miyabi-sandbox"
+    email       = "aws+sandbox@example.com"
+    ou_name     = "Sandbox"
+    environment = "sandbox"
+    tags = {
+      Purpose = "Experimentation and Testing"
+    }
+  },
+]
+
+#------------------------------------------------------------------------------
+# Service Control Policies
+#------------------------------------------------------------------------------
+
+service_control_policies = [
+  {
+    name        = "DenyRootUser"
+    description = "Deny all actions for root user"
+    content     = file("../modules/organizations/policies/scp-deny-root-user.json")
+  },
+  {
+    name        = "DenyLeaveOrganization"
+    description = "Prevent accounts from leaving the organization"
+    content     = file("../modules/organizations/policies/scp-deny-leave-organization.json")
+  },
+  {
+    name        = "RestrictRegions"
+    description = "Restrict services to approved regions only"
+    content     = file("../modules/organizations/policies/scp-restrict-regions.json")
+  },
+  {
+    name        = "RequireIMDSv2"
+    description = "Require IMDSv2 for EC2 instances"
+    content     = file("../modules/organizations/policies/scp-require-imdsv2.json")
+  },
+  {
+    name        = "RequireEncryptedVolumes"
+    description = "Require encryption for EBS volumes"
+    content     = file("../modules/organizations/policies/scp-require-encrypted-volumes.json")
+  },
+  {
+    name        = "DenyPublicS3"
+    description = "Prevent S3 buckets from being public"
+    content     = file("../modules/organizations/policies/scp-deny-public-s3.json")
+  },
+  {
+    name        = "DenyCloudTrailDisable"
+    description = "Prevent disabling CloudTrail"
+    content     = file("../modules/organizations/policies/scp-deny-cloudtrail-disable.json")
+  },
+  {
+    name        = "DenyConfigDisable"
+    description = "Prevent disabling AWS Config"
+    content     = file("../modules/organizations/policies/scp-deny-config-disable.json")
+  },
+  {
+    name        = "DenyGuardDutyDisable"
+    description = "Prevent disabling GuardDuty"
+    content     = file("../modules/organizations/policies/scp-deny-guardduty-disable.json")
+  },
+]
+
+#------------------------------------------------------------------------------
+# SCP Attachments
+#------------------------------------------------------------------------------
+
+scp_attachments = [
+  # Apply to all accounts (via root OUs)
+  { policy_name = "DenyLeaveOrganization", target_type = "ou", target_name = "Security" },
+  { policy_name = "DenyLeaveOrganization", target_type = "ou", target_name = "Infrastructure" },
+  { policy_name = "DenyLeaveOrganization", target_type = "ou", target_name = "Workloads" },
+  { policy_name = "DenyLeaveOrganization", target_type = "ou", target_name = "Sandbox" },
+
+  # Security controls for production
+  { policy_name = "DenyRootUser", target_type = "ou", target_name = "Production" },
+  { policy_name = "RequireIMDSv2", target_type = "ou", target_name = "Production" },
+  { policy_name = "RequireEncryptedVolumes", target_type = "ou", target_name = "Production" },
+  { policy_name = "DenyPublicS3", target_type = "ou", target_name = "Production" },
+  { policy_name = "DenyCloudTrailDisable", target_type = "ou", target_name = "Production" },
+  { policy_name = "DenyConfigDisable", target_type = "ou", target_name = "Production" },
+  { policy_name = "DenyGuardDutyDisable", target_type = "ou", target_name = "Production" },
+
+  # Region restrictions
+  { policy_name = "RestrictRegions", target_type = "ou", target_name = "Production" },
+  { policy_name = "RestrictRegions", target_type = "ou", target_name = "Staging" },
+
+  # Security OU protections
+  { policy_name = "DenyRootUser", target_type = "ou", target_name = "Security" },
+  { policy_name = "DenyCloudTrailDisable", target_type = "ou", target_name = "Security" },
+  { policy_name = "DenyConfigDisable", target_type = "ou", target_name = "Security" },
+  { policy_name = "DenyGuardDutyDisable", target_type = "ou", target_name = "Security" },
+]
+
+#------------------------------------------------------------------------------
+# Tag Policies
+#------------------------------------------------------------------------------
+
+tag_policies = [
+  {
+    name        = "StandardTagPolicy"
+    description = "Enforce standard tagging across all resources"
+    content     = file("../modules/organizations/policies/tag-policy-standard.json")
+  },
+]
+
+#------------------------------------------------------------------------------
+# Backup Policies
+#------------------------------------------------------------------------------
+
+backup_policies = [
+  {
+    name        = "StandardBackupPolicy"
+    description = "Standard backup policy for production workloads"
+    content     = file("../modules/organizations/policies/backup-policy-standard.json")
+  },
+]
+
+#------------------------------------------------------------------------------
+# Delegated Administrators
+#------------------------------------------------------------------------------
+
+delegated_administrators = [
+  {
+    account_id        = "123456789012"  # Security account
+    service_principal = "securityhub.amazonaws.com"
+  },
+  {
+    account_id        = "123456789012"  # Security account
+    service_principal = "guardduty.amazonaws.com"
+  },
+  {
+    account_id        = "123456789012"  # Security account
+    service_principal = "config.amazonaws.com"
+  },
+]
+
+#------------------------------------------------------------------------------
+# Common Tags
+#------------------------------------------------------------------------------
+
+common_tags = {
+  Project     = "Miyabi"
+  ManagedBy   = "Terraform"
+  Environment = "shared"
+  Owner       = "platform-team"
+}

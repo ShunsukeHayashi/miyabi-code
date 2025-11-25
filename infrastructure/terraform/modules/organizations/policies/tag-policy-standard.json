@@ -1,0 +1,92 @@
+{
+  "tags": {
+    "Environment": {
+      "tag_key": {
+        "@@assign": "Environment"
+      },
+      "tag_value": {
+        "@@assign": [
+          "development",
+          "staging",
+          "production",
+          "shared",
+          "sandbox"
+        ]
+      },
+      "enforced_for": {
+        "@@assign": [
+          "ec2:instance",
+          "ec2:volume",
+          "s3:bucket",
+          "rds:db",
+          "lambda:function"
+        ]
+      }
+    },
+    "Project": {
+      "tag_key": {
+        "@@assign": "Project"
+      },
+      "tag_value": {
+        "@@assign": [
+          "Miyabi",
+          "Infrastructure",
+          "Security",
+          "Monitoring"
+        ]
+      },
+      "enforced_for": {
+        "@@assign": [
+          "ec2:instance",
+          "ec2:volume",
+          "s3:bucket",
+          "rds:db",
+          "lambda:function"
+        ]
+      }
+    },
+    "Owner": {
+      "tag_key": {
+        "@@assign": "Owner"
+      },
+      "enforced_for": {
+        "@@assign": [
+          "ec2:instance",
+          "s3:bucket"
+        ]
+      }
+    },
+    "CostCenter": {
+      "tag_key": {
+        "@@assign": "CostCenter"
+      },
+      "tag_value": {
+        "@@assign": [
+          "engineering",
+          "operations",
+          "security",
+          "shared"
+        ]
+      },
+      "enforced_for": {
+        "@@assign": [
+          "ec2:instance",
+          "rds:db"
+        ]
+      }
+    },
+    "ManagedBy": {
+      "tag_key": {
+        "@@assign": "ManagedBy"
+      },
+      "tag_value": {
+        "@@assign": [
+          "Terraform",
+          "CloudFormation",
+          "Manual",
+          "Miyabi"
+        ]
+      }
+    }
+  }
+}
