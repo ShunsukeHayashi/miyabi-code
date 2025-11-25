@@ -29,6 +29,12 @@ export default function RootLayout({
               </div>
               <div className="flex items-center space-x-4">
                 <a
+                  href="/about"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  About
+                </a>
+                <a
                   href="/miyabi-integration"
                   className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
