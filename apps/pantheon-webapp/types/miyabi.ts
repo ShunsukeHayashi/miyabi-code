@@ -3,48 +3,76 @@
  * Issue: #1017 - Pantheon Webapp Miyabi Integration Dashboard
  */
 
+export type ConsultationStatus = 'success' | 'in_progress' | 'failed';
+
+export type ApiStatus = 'healthy' | 'degraded' | 'down';
+
+export type TimeRange = '1h' | '24h' | '7d' | '30d';
+
+export type ActivityType =
+  | 'consultation_started'
+  | 'consultation_completed'
+  | 'wisdom_applied'
+  | 'agent_online'
+  | 'agent_offline'
+  | 'task_created';
+
 export interface SystemStatus {
-  agents_online: number;
-  api_status: 'healthy' | 'degraded' | 'down';
-  consultations_today: number;
-  avg_response_time: number;
+  agentsOnline: number;
+  agentsTotal: number;
+  apiStatus: ApiStatus;
+  consultationsToday: number;
+  avgResponseTime: number;
+  lastUpdated: string;
 }
 
 export interface MiyabiConsultation {
   id: string;
-  task_id: string;
-  task_title: string;
-  advisor_id: string;
-  advisor_name: string;
+  taskId: string;
+  taskTitle: string;
+  advisorId: string;
+  advisorName: string;
+  advisorDivision: string;
+  advisorIcon: string;
   wisdom: string;
-  result: 'success' | 'in_progress' | 'failed';
-  created_at: string;
-  completed_at?: string;
+  status: ConsultationStatus;
+  confidence: number;
+  createdAt: string;
+  completedAt?: string;
 }
 
 export interface AdvisorMetrics {
-  advisor_id: string;
-  advisor_name: string;
-  consultation_count: number;
-  success_rate: number;
-  avg_confidence: number;
-  top_wisdom: string;
+  advisorId: string;
+  advisorName: string;
+  division: string;
+  divisionIcon: string;
+  consultationCount: number;
+  successRate: number;
+  avgConfidence: number;
+  topWisdom: string;
 }
 
 export interface DivisionMetrics {
-  division_id: string;
-  division_name: string;
-  consultation_count: number;
-  success_rate: number;
-  active_advisors: number;
+  divisionId: string;
+  divisionName: string;
+  divisionIcon: string;
+  color: string;
+  consultationCount: number;
+  successRate: number;
+  avgResponseTime: number;
 }
 
 export interface Activity {
   id: string;
-  type: 'consultation_started' | 'consultation_completed' | 'advisor_assigned' | 'task_created';
+  type: ActivityType;
   message: string;
   timestamp: string;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    advisorName?: string;
+    taskTitle?: string;
+    status?: ConsultationStatus;
+    divisionIcon?: string;
+  };
 }
 
 export interface IntegrationDashboardState {
@@ -55,7 +83,7 @@ export interface IntegrationDashboardState {
   activityStream: Activity[];
   filters: {
     division?: string;
-    timeRange: '1h' | '24h' | '7d' | '30d';
+    timeRange: TimeRange;
   };
   isLoading: boolean;
   error: string | null;
