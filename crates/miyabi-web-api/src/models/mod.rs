@@ -1,5 +1,9 @@
 //! Database models and DTOs
 
+pub mod organization;
+
+pub use organization::*;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
