@@ -248,6 +248,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/auth/github/callback", get(routes::auth::github_oauth_callback))
         .route("/auth/refresh", post(routes::auth::refresh_token))
         .route("/auth/logout", post(routes::auth::logout))
+        .route("/auth/switch-organization", post(routes::auth::switch_organization))
         .route("/auth/mock", post(routes::auth::mock_login))
         // Repository routes - Phase 2.4: Re-enabled with database
         .route("/repositories", get(routes::repositories::list_repositories))

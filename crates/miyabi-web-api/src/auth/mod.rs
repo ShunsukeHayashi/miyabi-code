@@ -34,12 +34,38 @@ impl JwtManager {
     ///
     /// Returns error if token creation fails
     pub fn create_token(&self, user_id: &str, github_id: i64) -> Result<String> {
+        self.create_token_with_org(user_id, github_id, None, None)
+    }
+
+    /// Creates a JWT token with organization context
+    ///
+    /// Phase 1.5: Extended token creation with org_id and org_role
+    ///
+    /// # Arguments
+    ///
+    /// * `user_id` - User UUID
+    /// * `github_id` - GitHub user ID
+    /// * `org_id` - Optional organization UUID
+    /// * `org_role` - Optional organization role
+    ///
+    /// # Errors
+    ///
+    /// Returns error if token creation fails
+    pub fn create_token_with_org(
+        &self,
+        user_id: &str,
+        github_id: i64,
+        org_id: Option<&str>,
+        org_role: Option<&str>,
+    ) -> Result<String> {
         let now = chrono::Utc::now().timestamp();
         let claims = Claims {
             sub: user_id.to_string(),
             exp: now + self.expiration,
             iat: now,
             github_id,
+            org_id: org_id.map(|s| s.to_string()),
+            org_role: org_role.map(|s| s.to_string()),
         };
 
         encode(&Header::default(), &claims, &self.encoding_key).map_err(AppError::Jwt)

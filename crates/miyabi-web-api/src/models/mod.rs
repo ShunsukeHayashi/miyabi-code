@@ -278,7 +278,9 @@ pub struct CreateWorkflowRequest {
 }
 
 /// JWT claims
-#[derive(Debug, Serialize, Deserialize)]
+///
+/// Extended in Phase 1.5 to include optional organization context
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     /// Subject (user ID)
     pub sub: String,
@@ -288,6 +290,12 @@ pub struct Claims {
     pub iat: i64,
     /// GitHub user ID
     pub github_id: i64,
+    /// Current organization ID (optional, set when user selects an org)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub org_id: Option<String>,
+    /// User's role in the current organization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub org_role: Option<String>,
 }
 
 /// Task model
