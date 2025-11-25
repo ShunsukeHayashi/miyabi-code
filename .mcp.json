@@ -4,7 +4,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-obsidian-server/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-obsidian-server/dist/index.js"
       ],
       "env": {}
     },
@@ -12,10 +12,10 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/gemini3-adaptive-runtime/dist/index.js"
       ],
       "env": {
-        "GEMINI_API_KEY": "AIzaSyCLgJKwLjkJzfc010-BLT6igmwXggHTWA8",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "GEMINI_MODEL": "gemini-3-pro-preview",
         "GEMINI_THINKING_LEVEL": "high"
       }
@@ -24,10 +24,10 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/gemini3-uiux-designer/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/gemini3-uiux-designer/dist/index.js"
       ],
       "env": {
-        "GEMINI_API_KEY": "AIzaSyCLgJKwLjkJzfc010-BLT6igmwXggHTWA8",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
         "GEMINI_MODEL": "gemini-3-pro-preview",
         "GEMINI_THINKING_LEVEL": "high"
       }
@@ -36,7 +36,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-tmux-server/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-tmux-server/dist/index.js"
       ],
       "env": {}
     },
@@ -44,7 +44,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-rules-server/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-rules-server/dist/index.js"
       ],
       "env": {}
     },
@@ -52,20 +52,35 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-sse-gateway/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-sse-gateway/dist/index.js"
       ],
       "env": {}
     },
-    "lark-wiki-agents": {
+    "miyabi-github": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/lark-wiki-mcp-agents/dist/index.js"
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-github/dist/index.js"
       ],
       "env": {
-        "LARK_APP_ID": "cli_a8d2fdb1f1f8d02d",
-        "LARK_APP_SECRET": "V7mzILXEgIaqLwLXtyZstekRJsjRsFfJ"
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
       }
+    },
+    "miyabi-file-access": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "env": {}
+    },
+    "miyabi-pixel-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers/miyabi-pixel-mcp/dist/index.js"
+      ],
+      "env": {}
     }
   }
 }
