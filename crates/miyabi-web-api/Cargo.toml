@@ -20,7 +20,7 @@ miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 miyabi-approval = { path = "../miyabi-approval", version = "0.1.2" }
 
 # Web framework
-axum = { version = "0.7", features = ["ws"] }
+axum = { version = "0.8", features = ["ws"] }
 tower = { workspace = true }
 tower-http = { workspace = true }
 
