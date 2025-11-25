@@ -1,9 +1,15 @@
 [package]
 name = "miyabi-seedance-api"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
 description = "BytePlus Seedance API client for Miyabi video generation"
+keywords = ["seedance", "byteplus", "video", "generation", "miyabi"]
+categories = ["api-bindings", "multimedia::video"]
+readme = "README.md"
 
 [dependencies]
 # Core

@@ -1,10 +1,15 @@
 [package]
 name = "codex-miyabi"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
-license = "Apache-2.0"
 description = "Thin CLI to exercise miyabi-integration for Codex × Miyabi Phase 1"
+keywords = ["codex", "miyabi", "cli", "integration"]
+categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
 
 [dependencies]
 clap = { workspace = true, features = ["derive", "cargo", "env"] }

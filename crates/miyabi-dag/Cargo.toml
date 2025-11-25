@@ -1,14 +1,14 @@
 [package]
 name = "miyabi-dag"
 version.workspace = true
-edition = "2021"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
-authors = ["Shunsuke Hayashi"]
-license = "Apache-2.0"
 description = "DAG-based task graph for Miyabi Ω-System - θ₃ Allocation Phase"
 keywords = ["dag", "graph", "parallel", "task", "workflow"]
 categories = ["algorithms", "data-structures"]
-repository = "https://github.com/ShunsukeHayashi/Miyabi"
 readme = "README.md"
 
 [dependencies]
