@@ -17,6 +17,7 @@ pub mod parallel;
 pub mod report;
 pub mod setup;
 pub mod status;
+pub mod tmux;
 // Temporarily disabled until Issue #719 is merged
 // pub mod workflow;
 pub mod worktree;
@@ -34,5 +35,6 @@ pub use parallel::ParallelCommand;
 pub use r#loop::LoopCommand;
 pub use setup::SetupCommand;
 pub use status::StatusCommand;
+pub use tmux::TmuxCommand;
 // pub use workflow::WorkflowCommand; // Temporarily disabled
 pub use worktree::{WorktreeCommand, WorktreeSubcommand};

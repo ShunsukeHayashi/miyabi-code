@@ -24,6 +24,7 @@ use commands::{
     ParallelCommand,
     SetupCommand,
     StatusCommand,
+    TmuxCommand,
     // WorkflowCommand, // Temporarily disabled
     WorktreeCommand,
     WorktreeSubcommand,
@@ -173,6 +174,11 @@ enum Commands {
         #[command(subcommand)]
         command: A2ACommand,
     },
+    /// Tmux layout optimization
+    Tmux {
+        #[command(subcommand)]
+        command: TmuxCommand,
+    },
 }
 
 #[tokio::main]
@@ -311,6 +317,7 @@ async fn main() -> Result<()> {
         //     cmd.execute().await
         // }
         Some(Commands::A2a { command }) => command.execute().await,
+        Some(Commands::Tmux { command }) => command.execute().await,
         None => {
             println!("{}", "✨ Miyabi".cyan().bold());
             println!("{}", "一つのコマンドで全てが完結".dimmed());
