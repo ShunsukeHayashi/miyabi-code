@@ -1,4 +1,6 @@
-//! Event system for broadcasting agent execution updates
+//! Event system for broadcasting agent execution and task updates
+//!
+//! Issue: #970 Phase 2.1 - Extended for Task events
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -8,6 +10,35 @@ use uuid::Uuid;
 
 /// Maximum number of events to buffer
 const EVENT_BUFFER_SIZE: usize = 1000;
+
+/// Generic event types for the system
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum Event {
+    /// Task created
+    TaskCreated {
+        task_id: String,
+        name: String,
+        priority: String,
+    },
+    /// Task updated
+    TaskUpdated {
+        task_id: String,
+        status: String,
+    },
+    /// Task completed
+    TaskCompleted {
+        task_id: String,
+        name: String,
+    },
+    /// Task failed
+    TaskFailed {
+        task_id: String,
+        error: String,
+    },
+    /// Agent event wrapper
+    Agent(AgentEvent),
+}
 
 /// Agent execution event types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,22 +81,25 @@ pub enum AgentEvent {
     },
 }
 
-/// Event broadcaster for agent execution events
+/// Event broadcaster for agent execution and task events
 #[derive(Clone)]
 pub struct EventBroadcaster {
-    sender: Arc<broadcast::Sender<AgentEvent>>,
+    agent_sender: Arc<broadcast::Sender<AgentEvent>>,
+    event_sender: Arc<broadcast::Sender<Event>>,
 }
 
 impl EventBroadcaster {
     /// Creates a new event broadcaster
     pub fn new() -> Self {
-        let (sender, _) = broadcast::channel(EVENT_BUFFER_SIZE);
+        let (agent_sender, _) = broadcast::channel(EVENT_BUFFER_SIZE);
+        let (event_sender, _) = broadcast::channel(EVENT_BUFFER_SIZE);
         Self {
-            sender: Arc::new(sender),
+            agent_sender: Arc::new(agent_sender),
+            event_sender: Arc::new(event_sender),
         }
     }
 
-    /// Broadcasts an event to all subscribers
+    /// Broadcasts a generic event to all subscribers
     ///
     /// # Arguments
     ///
@@ -74,31 +108,67 @@ impl EventBroadcaster {
     /// # Returns
     ///
     /// Number of receivers that received the event
-    pub fn broadcast(&self, event: AgentEvent) -> usize {
-        match self.sender.send(event) {
+    pub fn broadcast(&self, event: Event) -> usize {
+        match self.event_sender.send(event) {
             Ok(count) => {
                 tracing::debug!("Broadcasted event to {} subscribers", count);
                 count
-            },
+            }
             Err(e) => {
                 tracing::warn!("Failed to broadcast event: {}", e);
                 0
-            },
+            }
         }
     }
 
-    /// Creates a new subscriber to receive events
+    /// Broadcasts an agent event to all subscribers
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - Agent event to broadcast
     ///
     /// # Returns
     ///
-    /// Receiver that will receive all future events
-    pub fn subscribe(&self) -> broadcast::Receiver<AgentEvent> {
-        self.sender.subscribe()
+    /// Number of receivers that received the event
+    pub fn broadcast_agent(&self, event: AgentEvent) -> usize {
+        match self.agent_sender.send(event) {
+            Ok(count) => {
+                tracing::debug!("Broadcasted agent event to {} subscribers", count);
+                count
+            }
+            Err(e) => {
+                tracing::warn!("Failed to broadcast agent event: {}", e);
+                0
+            }
+        }
     }
 
-    /// Gets the current number of active subscribers
+    /// Creates a new subscriber to receive agent events
+    ///
+    /// # Returns
+    ///
+    /// Receiver that will receive all future agent events
+    pub fn subscribe(&self) -> broadcast::Receiver<AgentEvent> {
+        self.agent_sender.subscribe()
+    }
+
+    /// Creates a new subscriber to receive generic events
+    ///
+    /// # Returns
+    ///
+    /// Receiver that will receive all future generic events
+    pub fn subscribe_events(&self) -> broadcast::Receiver<Event> {
+        self.event_sender.subscribe()
+    }
+
+    /// Gets the current number of active agent subscribers
     pub fn subscriber_count(&self) -> usize {
-        self.sender.receiver_count()
+        self.agent_sender.receiver_count()
+    }
+
+    /// Gets the current number of active event subscribers
+    pub fn event_subscriber_count(&self) -> usize {
+        self.event_sender.receiver_count()
     }
 
     /// Broadcasts execution started event
@@ -109,7 +179,7 @@ impl EventBroadcaster {
         issue_number: i32,
         agent_type: String,
     ) {
-        self.broadcast(AgentEvent::ExecutionStarted {
+        self.broadcast_agent(AgentEvent::ExecutionStarted {
             execution_id,
             repository_id,
             issue_number,
@@ -120,7 +190,7 @@ impl EventBroadcaster {
 
     /// Broadcasts execution progress event
     pub fn execution_progress(&self, execution_id: Uuid, progress: u8, message: String) {
-        self.broadcast(AgentEvent::ExecutionProgress {
+        self.broadcast_agent(AgentEvent::ExecutionProgress {
             execution_id,
             progress: progress.min(100),
             message,
@@ -135,7 +205,7 @@ impl EventBroadcaster {
         quality_score: Option<i32>,
         pr_number: Option<i32>,
     ) {
-        self.broadcast(AgentEvent::ExecutionCompleted {
+        self.broadcast_agent(AgentEvent::ExecutionCompleted {
             execution_id,
             quality_score,
             pr_number,
@@ -145,7 +215,7 @@ impl EventBroadcaster {
 
     /// Broadcasts execution failed event
     pub fn execution_failed(&self, execution_id: Uuid, error: String) {
-        self.broadcast(AgentEvent::ExecutionFailed {
+        self.broadcast_agent(AgentEvent::ExecutionFailed {
             execution_id,
             error,
             timestamp: Utc::now(),
@@ -154,7 +224,7 @@ impl EventBroadcaster {
 
     /// Broadcasts execution log event
     pub fn execution_log(&self, execution_id: Uuid, log_level: String, message: String) {
-        self.broadcast(AgentEvent::ExecutionLog {
+        self.broadcast_agent(AgentEvent::ExecutionLog {
             execution_id,
             log_level,
             message,

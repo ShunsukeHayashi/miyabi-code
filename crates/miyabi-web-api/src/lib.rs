@@ -264,7 +264,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/dashboard/summary", get(routes::dashboard::get_dashboard_summary))
         .route("/dashboard/recent", get(routes::dashboard::get_recent_executions))
         // Organization routes - Phase 1.4: RBAC Implementation (#970)
-        .nest("/organizations", routes::organizations::routes());
+        .nest("/organizations", routes::organizations::routes())
+        // Task Management routes - Phase 2.1: Task Management API (#970)
+        .nest("/tasks", routes::tasks::routes());
 
     // Build main router
     let app = Router::new()
