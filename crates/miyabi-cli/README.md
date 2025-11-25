@@ -32,19 +32,19 @@ cargo binstall miyabi-cli
 
 ```bash
 # macOS (Apple Silicon)
-curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-aarch64-apple-darwin.tar.gz | tar xz
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-aarch64-apple-darwin.tar.gz | tar xz
 sudo mv miyabi /usr/local/bin/
 
 # macOS (Intel)
-curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-x86_64-apple-darwin.tar.gz | tar xz
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-x86_64-apple-darwin.tar.gz | tar xz
 sudo mv miyabi /usr/local/bin/
 
 # Linux (x86_64)
-curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-x86_64-unknown-linux-gnu.tar.gz | tar xz
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-x86_64-unknown-linux-gnu.tar.gz | tar xz
 sudo mv miyabi /usr/local/bin/
 
 # Linux (ARM64)
-curl -sSL https://github.com/ShunsukeHayashi/Miyabi/releases/latest/download/miyabi-aarch64-unknown-linux-gnu.tar.gz | tar xz
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-aarch64-unknown-linux-gnu.tar.gz | tar xz
 sudo mv miyabi /usr/local/bin/
 ```
 
