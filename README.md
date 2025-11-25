@@ -1,5 +1,9 @@
 # 🎨 Miyabi Dashboard
 
+[![Crates.io](https://img.shields.io/crates/v/miyabi-cli.svg)](https://crates.io/crates/miyabi-cli)
+[![Downloads](https://img.shields.io/crates/d/miyabi-cli.svg)](https://crates.io/crates/miyabi-cli)
+[![License](https://img.shields.io/crates/l/miyabi-cli.svg)](https://crates.io/crates/miyabi-cli)
+
 **完全自律型AI開発オペレーションプラットフォーム - Web Dashboard**
 
 Miyabi の Agent ステータス、Issue 一覧、開発進捗をリアルタイムで可視化する Web アプリケーション。
@@ -15,6 +19,51 @@ Miyabi の Agent ステータス、Issue 一覧、開発進捗をリアルタイ
 - **Issue Dashboard**: GitHub Issues を優先度・ラベル別に一覧表示
 - **Progress Tracking**: 各Agentの進捗率 (0-100%) を視覚化
 - **GitHub Integration**: GitHub API を使った実際のIssueデータ取得
+
+---
+
+## 📦 Installation
+
+### CLI Installation (miyabi-cli)
+
+#### Option 1: cargo-binstall (Recommended - Fast)
+
+```bash
+# Install cargo-binstall if not already installed
+cargo install cargo-binstall
+
+# Install miyabi-cli (downloads pre-built binary)
+cargo binstall miyabi-cli
+```
+
+#### Option 2: From crates.io
+
+```bash
+cargo install miyabi-cli
+```
+
+#### Option 3: Direct Binary Download
+
+```bash
+# macOS (Apple Silicon)
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-aarch64-apple-darwin.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+
+# macOS (Intel)
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-x86_64-apple-darwin.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+
+# Linux (x86_64)
+curl -sSL https://github.com/customer-cloud/miyabi-private/releases/latest/download/miyabi-x86_64-unknown-linux-gnu.tar.gz | tar xz
+sudo mv miyabi /usr/local/bin/
+```
+
+#### Verify Installation
+
+```bash
+miyabi --version
+miyabi --help
+```
 
 ---
 
