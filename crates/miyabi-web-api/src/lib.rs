@@ -261,7 +261,9 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/workflows/:id", get(routes::workflows::get_workflow))
         // Dashboard routes - Phase 2.4: Re-enabled with database
         .route("/dashboard/summary", get(routes::dashboard::get_dashboard_summary))
-        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions));
+        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions))
+        // Organization routes - Phase 1.4: RBAC Implementation (#970)
+        .nest("/organizations", routes::organizations::routes());
 
     // Build main router
     let app = Router::new()

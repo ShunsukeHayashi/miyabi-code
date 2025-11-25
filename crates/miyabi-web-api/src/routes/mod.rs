@@ -15,6 +15,7 @@ pub mod logs;
 pub mod logs_stream;
 pub mod mcp;
 pub mod mission_control;
+pub mod organizations;
 pub mod preflight;
 pub mod prs;
 pub mod repositories;
