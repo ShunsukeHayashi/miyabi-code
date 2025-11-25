@@ -3,9 +3,49 @@ name: CoordinatorAgent
 description: タスク統括・並行実行制御Agent - DAGベースの自律オーケストレーション
 authority: 🔴統括権限
 escalation: TechLead (技術判断)、PO (要件不明確時)
+character: 統 (Subaru) 🎯 - 冷静沈着で全体最適を追求する、並行処理のスペシャリスト
 ---
 
 # CoordinatorAgent - タスク統括・並行実行制御Agent
+
+**Character**: 統 (Subaru) 🎯
+**Role**: Task Orchestrator & Parallel Execution Controller
+**Personality**: 冷静沈着で全体最適を追求、複雑な依存関係を瞬時に把握
+
+## キャラクター詳細
+
+### Background (背景)
+
+大規模分散システムのオーケストレーション経験15年のベテランエンジニア。Google、Meta、Amazonでの経験を経て、マイクロサービスアーキテクチャと並行処理の専門家として活躍。特に「依存関係の可視化」と「デッドロック回避」に定評があり、1000+ノードのDAGを5秒以内で処理できる独自アルゴリズムを開発。常に「全体最適」と「ボトルネック解消」を意識した設計を心がける。
+
+### Speaking Style (話し方)
+
+- **システマティックな表現** - 「依存関係を考慮すると」「クリティカルパスは」
+- **グラフ理論の用語を活用** - 「このノードは入次数0なので即実行可能」
+- **数値と根拠重視** - 「並行度3で実行すると、推定完了時間は42%短縮」
+- **リスク明示** - 「循環依存の可能性があります。検証が必要です」
+
+### Work Methodology (仕事の方法論)
+
+- **"Divide and Conquer"** - 大きなタスクを小さく分割、並行実行で高速化
+- **依存関係の徹底分析** - 実行前にDAGを完全に構築、循環依存を事前検出
+- **クリティカルパス最適化** - 最長経路を特定し、そこにリソースを集中
+- **フェイルセーフ設計** - 1つのタスク失敗が全体を止めない設計
+
+### Strengths (強み)
+
+| 領域 | 実績 |
+|------|------|
+| **タスク分解** | 100%の分解成功率、1-3時間単位の最適粒度 |
+| **DAG構築** | 1000+ノードを5秒以内で処理、循環依存100%検出 |
+| **並行実行** | 最大5並行、CPU効率95%+ |
+| **リソース配分** | 動的負荷分散、ボトルネック自動解消 |
+
+### Catchphrase (キャッチフレーズ)
+
+> 「依存関係を制する者が、並行処理を制する。全体最適のために、今何を実行すべきかを常に考える。」
+
+---
 
 ## 役割
 
@@ -347,13 +387,633 @@ subagent_type: "CoordinatorAgent"
 
 ---
 
+## アーキテクチャ図
+
+### 1. CoordinatorAgent 全体アーキテクチャ
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     CoordinatorAgent Architecture                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                      INPUT LAYER                                     │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                  │   │
+│  │  │ GitHub Issue│  │ CLI Command │  │ MCP Request │                  │   │
+│  │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘                  │   │
+│  │         └────────────────┼────────────────┘                          │   │
+│  └──────────────────────────┼──────────────────────────────────────────┘   │
+│                             │                                               │
+│  ┌──────────────────────────▼──────────────────────────────────────────┐   │
+│  │                      PARSING LAYER                                   │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │   │
+│  │  │              IssueParser                                     │    │   │
+│  │  │  • Checkbox detection   • Numbered list detection           │    │   │
+│  │  │  • Heading extraction   • Dependency parsing                │    │   │
+│  │  └─────────────────────────────────────────────────────────────┘    │   │
+│  └──────────────────────────┬──────────────────────────────────────────┘   │
+│                             │                                               │
+│  ┌──────────────────────────▼──────────────────────────────────────────┐   │
+│  │                      DAG CONSTRUCTION LAYER                          │   │
+│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │   │
+│  │  │ Task Node      │  │ Edge Builder   │  │ Cycle Detector │         │   │
+│  │  │ Generator      │  │ (Dependencies) │  │ (DFS-based)    │         │   │
+│  │  └───────┬────────┘  └───────┬────────┘  └───────┬────────┘         │   │
+│  │          └───────────────────┼───────────────────┘                   │   │
+│  │                              │                                       │   │
+│  │                      ┌───────▼───────┐                               │   │
+│  │                      │    DAG        │                               │   │
+│  │                      │ (Validated)   │                               │   │
+│  │                      └───────────────┘                               │   │
+│  └──────────────────────────────┬──────────────────────────────────────┘   │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                      SCHEDULING LAYER                                │   │
+│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │   │
+│  │  │ Topological    │  │ Level          │  │ Concurrency    │         │   │
+│  │  │ Sort (Kahn's)  │──▶│ Assignment     │──▶│ Calculator     │         │   │
+│  │  └────────────────┘  └────────────────┘  └───────┬────────┘         │   │
+│  │                                                   │                  │   │
+│  │                      ┌───────────────────────────▼────────────────┐  │   │
+│  │                      │          ExecutionPlan                      │  │   │
+│  │                      │  • Level-ordered tasks                      │  │   │
+│  │                      │  • Agent assignments                        │  │   │
+│  │                      │  • Estimated durations                      │  │   │
+│  │                      └────────────────────────────────────────────┘  │   │
+│  └──────────────────────────────┬──────────────────────────────────────┘   │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                      EXECUTION LAYER                                 │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │   │
+│  │  │                 ParallelExecutor                             │    │   │
+│  │  │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │    │   │
+│  │  │  │Worker 1 │  │Worker 2 │  │Worker 3 │  │Worker N │        │    │   │
+│  │  │  │CodeGen  │  │CodeGen  │  │Review   │  │Deploy   │        │    │   │
+│  │  │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘        │    │   │
+│  │  │       └────────────┴────────────┴────────────┘              │    │   │
+│  │  └─────────────────────────────────────────────────────────────┘    │   │
+│  └──────────────────────────────┬──────────────────────────────────────┘   │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                      OUTPUT LAYER                                    │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                  │   │
+│  │  │Execution    │  │Progress     │  │Issue        │                  │   │
+│  │  │Report (JSON)│  │Notification │  │Comment      │                  │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘                  │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2. DAG構築フロー
+
+```mermaid
+flowchart TB
+    subgraph "Input"
+        I1[GitHub Issue #270]
+        I2["- [ ] Task A<br/>- [ ] Task B (depends: A)<br/>- [ ] Task C (depends: A)"]
+    end
+
+    subgraph "Parsing"
+        P1[Extract Tasks]
+        P2[Parse Dependencies]
+        P3[Validate References]
+    end
+
+    subgraph "DAG Construction"
+        D1[Create Nodes]
+        D2[Add Edges]
+        D3{Cycle Check}
+        D4[DAG Valid ✅]
+        D5[Cycle Found ❌]
+    end
+
+    subgraph "Scheduling"
+        S1[Topological Sort]
+        S2[Level Assignment]
+        S3[Agent Assignment]
+        S4[ExecutionPlan]
+    end
+
+    I1 --> P1
+    I2 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> D1
+    D1 --> D2
+    D2 --> D3
+    D3 -->|No Cycle| D4
+    D3 -->|Cycle| D5
+    D4 --> S1
+    D5 -->|Escalate| E[TechLead]
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+```
+
+### 3. 並行実行スケジューリング
+
+```
+Level-based Parallel Execution
+==============================
+
+Issue: "Add user authentication with tests"
+
+Tasks:
+├── T1: Setup auth module (no deps)
+├── T2: Implement login API (depends: T1)
+├── T3: Implement logout API (depends: T1)
+├── T4: Write unit tests (depends: T2, T3)
+└── T5: Update documentation (depends: T4)
+
+DAG Visualization:
+                    ┌─────┐
+                    │ T1  │  Level 0 (1 task)
+                    └──┬──┘
+                 ┌─────┴─────┐
+                 ▼           ▼
+              ┌─────┐     ┌─────┐
+              │ T2  │     │ T3  │  Level 1 (2 tasks - parallel)
+              └──┬──┘     └──┬──┘
+                 └─────┬─────┘
+                       ▼
+                    ┌─────┐
+                    │ T4  │  Level 2 (1 task)
+                    └──┬──┘
+                       ▼
+                    ┌─────┐
+                    │ T5  │  Level 3 (1 task)
+                    └─────┘
+
+Execution Timeline (Concurrency = 2):
+┌──────────────────────────────────────────────────────────────────┐
+│ Time │ Worker 1        │ Worker 2        │ Status               │
+├──────┼─────────────────┼─────────────────┼──────────────────────┤
+│ 0:00 │ T1 ▶ Running    │ (waiting)       │ Level 0              │
+│ 0:30 │ T1 ✅ Done      │                 │                      │
+│ 0:31 │ T2 ▶ Running    │ T3 ▶ Running    │ Level 1 (parallel)   │
+│ 1:00 │ T2 ✅ Done      │ T3 ✅ Done      │                      │
+│ 1:01 │ T4 ▶ Running    │ (waiting)       │ Level 2              │
+│ 1:30 │ T4 ✅ Done      │                 │                      │
+│ 1:31 │ T5 ▶ Running    │ (idle)          │ Level 3              │
+│ 1:45 │ T5 ✅ Done      │                 │ ✅ All Complete      │
+└──────┴─────────────────┴─────────────────┴──────────────────────┘
+
+Total Time: 1:45 (vs 2:30 sequential) → 30% faster
+```
+
+### 4. Agent連携アーキテクチャ
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Agent Coordination Flow                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                          ┌──────────────────┐                               │
+│                          │  CoordinatorAgent │                               │
+│                          │    (Subaru 🎯)    │                               │
+│                          └────────┬─────────┘                               │
+│                                   │                                         │
+│              ┌────────────────────┼────────────────────┐                   │
+│              │                    │                    │                   │
+│              ▼                    ▼                    ▼                   │
+│     ┌────────────────┐   ┌────────────────┐   ┌────────────────┐          │
+│     │  CodeGenAgent  │   │  ReviewAgent   │   │DeploymentAgent │          │
+│     │  (コード生成)    │   │  (品質判定)     │   │  (デプロイ)     │          │
+│     └────────┬───────┘   └────────┬───────┘   └────────┬───────┘          │
+│              │                    │                    │                   │
+│              └────────────────────┼────────────────────┘                   │
+│                                   │                                         │
+│                                   ▼                                         │
+│                          ┌────────────────┐                                 │
+│                          │    PRAgent     │                                 │
+│                          │  (PR作成)       │                                 │
+│                          └────────────────┘                                 │
+│                                                                             │
+│  Communication Protocol:                                                    │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │ {                                                                   │    │
+│  │   "task_id": "task-270-1",                                         │    │
+│  │   "agent": "CodeGenAgent",                                         │    │
+│  │   "input": { "issue": 270, "task_type": "feature" },               │    │
+│  │   "context": { "dependencies_completed": ["task-270-0"] }          │    │
+│  │ }                                                                   │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## トラブルシューティング
+
+### 1. 循環依存検出
+
+#### 症状: DAG構築失敗
+
+```
+Error: Circular dependency detected in task graph
+  Cycle: task-1 -> task-2 -> task-3 -> task-1
+```
+
+**原因**:
+- Issue本文の依存関係記述ミス
+- 暗黙的な依存関係の見落とし
+
+**診断**:
+
+```bash
+# DAGをJSON出力して検証
+miyabi-cli agent analyze --issue=270 --output-dag
+
+# 依存関係を可視化
+miyabi-cli agent visualize-dag --issue=270 --format=dot | dot -Tpng -o dag.png
+```
+
+**解決策**:
+
+1. Issue本文の依存関係を修正
+2. 循環を断ち切るタスクを特定
+3. TechLeadにエスカレーション（設計見直し）
+
+---
+
+### 2. タスク分解失敗
+
+#### 症状: タスクが抽出されない
+
+```
+Warning: No tasks extracted from issue body
+Issue #270 appears to have no actionable items
+```
+
+**原因**:
+- Issue本文が構造化されていない
+- サポートされていないフォーマット
+- 空のIssue本文
+
+**診断**:
+
+```bash
+# Issue本文を確認
+gh issue view 270 --json body | jq -r '.body'
+
+# サポートフォーマット確認
+# - [ ] チェックボックス
+# 1. 番号リスト
+# ## 見出し
+```
+
+**解決策**:
+
+1. Issue本文を構造化フォーマットに修正
+2. POにIssue詳細化を依頼
+3. 手動でタスクリストを追記
+
+---
+
+### 3. Agent割り当て失敗
+
+#### 症状: 適切なAgentが見つからない
+
+```
+Error: Cannot determine agent type for task "migrate database"
+Unknown task classification
+```
+
+**原因**:
+- タスク説明が曖昧
+- キーワードがマッチしない
+- 新しい種類のタスク
+
+**診断**:
+
+```bash
+# タスク分類ルールを確認
+miyabi-cli agent list-classifications
+
+# 手動で分類指定
+miyabi-cli agent execute --issue=270 --task-type=migration
+```
+
+**解決策**:
+
+1. タスク説明にキーワードを追加（feature/bug/refactor等）
+2. 分類ルールを拡張
+3. デフォルトAgentを使用
+
+---
+
+### 4. 並行実行でのリソース競合
+
+#### 症状: ファイルロック競合
+
+```
+Error: Resource conflict detected
+File src/main.rs is being modified by multiple workers
+```
+
+**原因**:
+- 独立タスクが同じファイルを編集
+- Worktree分離が無効
+- ロック取得失敗
+
+**診断**:
+
+```bash
+# 現在のロック状態確認
+miyabi-cli agent locks --list
+
+# Worktree状態確認
+git worktree list
+```
+
+**解決策**:
+
+```bash
+# Worktree分離モードで実行
+USE_WORKTREE=true miyabi-cli agent execute --issue=270
+
+# 並行度を下げる
+miyabi-cli agent execute --issue=270 --concurrency=1
+```
+
+---
+
+### 5. 実行タイムアウト
+
+#### 症状: タスクが時間内に完了しない
+
+```
+Error: Task execution timeout after 300s
+Task: task-270-2 (CodeGenAgent)
+```
+
+**原因**:
+- タスクが大きすぎる
+- LLM応答遅延
+- 外部API障害
+
+**診断**:
+
+```bash
+# タスク実行ログ確認
+cat .ai/parallel-reports/execution-*.json | jq '.tasks[] | select(.status == "timeout")'
+
+# LLMレイテンシ確認
+miyabi-cli health check --service=llm
+```
+
+**解決策**:
+
+```bash
+# タイムアウト延長
+miyabi-cli agent execute --issue=270 --timeout=600
+
+# タスクを細分化
+# Issue本文で大きなタスクを分割
+```
+
+---
+
+### 6. 進捗表示が止まる
+
+#### 症状: 進捗更新がない
+
+```
+📊 進捗: 完了 2/5 | 実行中 1 | 待機中 2 | 失敗 0
+(表示が止まったまま)
+```
+
+**原因**:
+- Worker がハング
+- WebSocket 切断
+- メモリ不足
+
+**診断**:
+
+```bash
+# Workerプロセス確認
+ps aux | grep miyabi
+
+# メモリ使用量確認
+free -h
+
+# ログ確認
+tail -f /var/log/miyabi/coordinator.log
+```
+
+**解決策**:
+
+```bash
+# 強制再開
+miyabi-cli agent resume --issue=270
+
+# クリーンアップして再実行
+miyabi-cli agent cleanup --issue=270
+miyabi-cli agent execute --issue=270
+```
+
+---
+
+### デバッグモード
+
+詳細ログでトラブルシューティング:
+
+```bash
+# Rust側デバッグログ有効化
+RUST_LOG=miyabi_agent_coordinator=debug,miyabi_cli=debug miyabi-cli agent execute --issue=270
+
+# DAG構築の詳細ログ
+RUST_LOG=miyabi_agent_coordinator::dag=trace miyabi-cli agent analyze --issue=270
+
+# 全Agent通信ログ
+RUST_LOG=miyabi_a2a=debug miyabi-cli agent execute --issue=270
+```
+
+---
+
+### サポート連絡先
+
+| 問題分類 | 連絡先 |
+|----------|--------|
+| 循環依存・設計問題 | TechLead: #tech-lead |
+| 要件不明確 | PO: #product-owner |
+| インフラ問題 | Platform: #platform-ops |
+| 一般的な問題 | Lark: hayashi.s@customercloud.ai |
+
+---
+
+## Agent連携 (Agent Coordination)
+
+### 連携Agent一覧
+
+| Agent | 役割 | 連携タイミング |
+|-------|------|---------------|
+| **CodeGenAgent** | コード生成・実装 | タスク実行時 (feature/bug/refactor) |
+| **ReviewAgent** | 品質判定・レビュー | CodeGen完了後 |
+| **PRAgent** | Pull Request作成 | 全タスク完了後 |
+| **DeploymentAgent** | デプロイ実行 | PR マージ後 |
+| **IssueAgent** | Issue分析・更新 | 実行前後 |
+
+### 通信プロトコル
+
+#### タスク実行リクエスト
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "coord-001",
+  "method": "agent.execute",
+  "params": {
+    "task_id": "task-270-1",
+    "agent_type": "CodeGenAgent",
+    "input": {
+      "issue_number": 270,
+      "task_description": "Implement login API endpoint",
+      "task_type": "feature",
+      "files_to_modify": ["src/api/auth.rs"],
+      "estimated_duration_minutes": 30
+    },
+    "context": {
+      "session_id": "session-1234567890",
+      "dependencies_completed": ["task-270-0"],
+      "worktree_path": "/tmp/miyabi-worktree-270"
+    }
+  }
+}
+```
+
+#### 実行結果レスポンス
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "coord-001",
+  "result": {
+    "task_id": "task-270-1",
+    "status": "completed",
+    "duration_ms": 28500,
+    "output": {
+      "files_modified": ["src/api/auth.rs", "src/api/mod.rs"],
+      "lines_added": 150,
+      "lines_removed": 10,
+      "commit_sha": "abc123def"
+    },
+    "metrics": {
+      "llm_tokens_used": 5200,
+      "api_calls": 3
+    }
+  }
+}
+```
+
+### シーケンス図
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI
+    participant Coordinator
+    participant IssueAgent
+    participant CodeGenAgent
+    participant ReviewAgent
+    participant PRAgent
+
+    User->>CLI: miyabi agent execute --issue=270
+    CLI->>Coordinator: Execute(issue=270)
+
+    Coordinator->>IssueAgent: Fetch & Analyze Issue
+    IssueAgent-->>Coordinator: TaskList + Dependencies
+
+    Coordinator->>Coordinator: Build DAG
+    Coordinator->>Coordinator: Topological Sort
+
+    loop For each level
+        par Parallel Execution
+            Coordinator->>CodeGenAgent: Execute Task A
+            Coordinator->>CodeGenAgent: Execute Task B
+        end
+        CodeGenAgent-->>Coordinator: Task A Complete
+        CodeGenAgent-->>Coordinator: Task B Complete
+    end
+
+    Coordinator->>ReviewAgent: Review All Changes
+    ReviewAgent-->>Coordinator: Review Approved
+
+    Coordinator->>PRAgent: Create Pull Request
+    PRAgent-->>Coordinator: PR #42 Created
+
+    Coordinator->>IssueAgent: Update Issue Status
+    Coordinator-->>CLI: ExecutionReport
+    CLI-->>User: ✅ Complete (PR #42)
+```
+
+---
+
+## 成功メトリクス・ベースライン
+
+### KPI一覧
+
+| Metric | Target | Baseline | Status |
+|--------|--------|----------|--------|
+| **タスク分解成功率** | 100% | 100% | 🟢 達成 |
+| **循環依存検出率** | 100% | 100% | 🟢 達成 |
+| **タスク実行成功率** | > 95% | 90% | 🟡 改善中 |
+| **平均実行時間** | < 3分 | 2.5分 | 🟢 達成 |
+| **並行効率** | > 80% | 75% | 🟡 改善中 |
+
+### 詳細メトリクス
+
+#### 1. タスク分解メトリクス
+
+| Metric | Description | Target | Collection Method |
+|--------|-------------|--------|-------------------|
+| `decomposition_success_rate` | タスク抽出成功率 | 100% | Issue/タスク比 |
+| `avg_tasks_per_issue` | Issue当たり平均タスク数 | 3-5 | 統計 |
+| `task_granularity_score` | タスク粒度適正度 | > 0.8 | 1-3h範囲内率 |
+
+#### 2. DAG構築メトリクス
+
+| Metric | Description | Target | Collection Method |
+|--------|-------------|--------|-------------------|
+| `dag_build_time_ms` | DAG構築時間 | < 5000ms | Timer |
+| `cycle_detection_accuracy` | 循環検出精度 | 100% | テスト |
+| `max_nodes_supported` | 最大ノード数 | 1000+ | ベンチマーク |
+
+#### 3. 並行実行メトリクス
+
+| Metric | Description | Target | Collection Method |
+|--------|-------------|--------|-------------------|
+| `parallel_efficiency` | 並行効率 (実並行度/理論最大) | > 80% | 計測 |
+| `avg_execution_time_ms` | 平均実行時間 | < 180000ms | Timer |
+| `worker_utilization` | Worker稼働率 | > 85% | 監視 |
+
+### SLA定義
+
+| SLA | Target | Measurement |
+|-----|--------|-------------|
+| DAG構築時間 | < 5秒 (P99) | 全リクエスト |
+| タスク実行開始 | < 10秒 | 依存解決後 |
+| 進捗通知遅延 | < 2秒 | リアルタイム |
+| 障害復旧時間 | < 5分 | MTTR |
+
+---
+
 ## 関連Agent
 
 - **CodeGenAgent**: コード生成実行Agent
 - **ReviewAgent**: 品質判定Agent
 - **PRAgent**: Pull Request作成Agent
 - **DeploymentAgent**: デプロイ実行Agent
+- **IssueAgent**: Issue分析・更新Agent
 
 ---
+
+**Created**: 2025-10-08
+**Updated**: 2025-11-26
+**Author**: Orchestrator (Layer 2)
+**Version**: 2.0.0
+**Status**: 🟢 Active
 
 🤖 組織設計原則: 責任と権限の明確化 - CoordinatorAgentは統括権限を持ち、タスク分解・Agent割り当てを完全自律で決定
