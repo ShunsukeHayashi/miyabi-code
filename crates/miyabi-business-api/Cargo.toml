@@ -13,7 +13,7 @@ categories.workspace = true
 
 [dependencies]
 # Web framework
-axum = "0.7"
+axum = "0.8"
 
 # Database ORM
 sea-orm = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
@@ -51,4 +51,4 @@ miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 
 [dev-dependencies]
 tokio-test = "0.4"
-mockall = "0.13"
+mockall = "0.14"

@@ -52,7 +52,7 @@ prost = { version = "0.14", optional = true }
 tonic-prost = { version = "0.14", optional = true }
 
 # HTTP REST API support (for dashboard)
-axum = { version = "0.7", features = ["ws"], optional = true }
+axum = { version = "0.8", features = ["ws"], optional = true }
 tower-http = { version = "0.6", features = ["cors"], optional = true }
 
 # Additional dependencies for HTTP server binary

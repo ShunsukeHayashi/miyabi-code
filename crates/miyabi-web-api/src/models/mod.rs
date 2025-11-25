@@ -1,5 +1,9 @@
 //! Database models and DTOs
 
+pub mod organization;
+
+pub use organization::*;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -274,7 +278,9 @@ pub struct CreateWorkflowRequest {
 }
 
 /// JWT claims
-#[derive(Debug, Serialize, Deserialize)]
+///
+/// Extended in Phase 1.5 to include optional organization context
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     /// Subject (user ID)
     pub sub: String,
@@ -284,6 +290,145 @@ pub struct Claims {
     pub iat: i64,
     /// GitHub user ID
     pub github_id: i64,
+    /// Current organization ID (optional, set when user selects an org)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub org_id: Option<String>,
+    /// User's role in the current organization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub org_role: Option<String>,
+}
+
+/// Task model
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct Task {
+    /// Unique task ID
+    pub id: Uuid,
+    /// User ID who created the task
+    pub user_id: Uuid,
+    /// Repository ID
+    pub repository_id: Option<Uuid>,
+    /// Task name
+    pub name: String,
+    /// Task description
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Task priority (P0, P1, P2)
+    pub priority: String,
+    /// Task status (pending, running, completed, failed)
+    pub status: String,
+    /// Agent type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_type: Option<String>,
+    /// Issue number
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issue_number: Option<i32>,
+    /// Retry count
+    #[serde(default)]
+    pub retry_count: i32,
+    /// Maximum retries
+    #[serde(default)]
+    pub max_retries: i32,
+    /// Additional metadata (JSON)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+    /// Task creation timestamp
+    pub created_at: DateTime<Utc>,
+    /// Last update timestamp
+    pub updated_at: DateTime<Utc>,
+    /// Task started at
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub started_at: Option<DateTime<Utc>>,
+    /// Task completed at
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<DateTime<Utc>>,
+}
+
+/// Create task request
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct CreateTaskRequest {
+    /// Repository ID
+    pub repository_id: Option<Uuid>,
+    /// Task name
+    pub name: String,
+    /// Task description
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Task priority (P0, P1, P2)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<String>,
+    /// Agent type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_type: Option<String>,
+    /// Issue number
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issue_number: Option<i32>,
+    /// Additional metadata (JSON)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// Update task request
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct UpdateTaskRequest {
+    /// Task name
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// Task description
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Task priority
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<String>,
+    /// Task status
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    /// Additional metadata
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// Task query filters
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct TaskQueryFilters {
+    /// Filter by status
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    /// Filter by priority
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<String>,
+    /// Filter by repository ID
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repository_id: Option<Uuid>,
+    /// Filter by agent type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_type: Option<String>,
+    /// Page number (default: 1)
+    #[serde(default = "default_page")]
+    pub page: i64,
+    /// Page limit (default: 20)
+    #[serde(default = "default_limit")]
+    pub limit: i64,
+}
+
+fn default_page() -> i64 {
+    1
+}
+
+fn default_limit() -> i64 {
+    20
+}
+
+/// Task dependency model
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct TaskDependency {
+    /// Unique dependency ID
+    pub id: Uuid,
+    /// Task ID
+    pub task_id: Uuid,
+    /// Depends on task ID
+    pub depends_on_task_id: Uuid,
+    /// Dependency creation timestamp
+    pub created_at: DateTime<Utc>,
 }
 
 /// Task model

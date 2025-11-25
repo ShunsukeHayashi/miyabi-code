@@ -2,13 +2,12 @@
   "name": "pantheon-webapp",
   "version": "0.1.0",
   "description": "Pantheon Society management dashboard",
-  "main": "src/index.tsx",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src/",
-    "test": "jest"
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "^14.0.0",
@@ -18,8 +17,13 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
-    "typescript": "^5.0.0",
-    "eslint": "^8.0.0"
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

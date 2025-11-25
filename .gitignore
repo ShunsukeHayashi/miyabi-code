@@ -53,10 +53,6 @@ infrastructure/terraform/**/.terraform/
 
 # Embedded git repositories (worktrees)
 .worktrees/
-crates/miyabi-orchestrator/worktrees/
-
-# Miyabi runtime state files (auto-generated)
-.miyabi/polling-worker-state.json
 
 # Terraform
 **/.terraform/

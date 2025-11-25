@@ -356,9 +356,151 @@ pub async fn execute_agent(
     })
 }
 
+// ============================================================================
+// Worker/Coordinator Status API (Phase 2.2)
+// ============================================================================
+
+/// Worker status response
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkerStatusResponse {
+    pub workers: Vec<Agent>,
+    pub total_count: usize,
+    pub active_count: usize,
+    pub idle_count: usize,
+}
+
+/// Coordinator status response
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CoordinatorStatusResponse {
+    pub coordinators: Vec<Agent>,
+    pub total_count: usize,
+    pub active_count: usize,
+}
+
+/// System overview response
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemOverviewResponse {
+    pub total_agents: usize,
+    pub workers: WorkerSummary,
+    pub coordinators: CoordinatorSummary,
+    pub coding_agents: AgentCategorySummary,
+    pub business_agents: AgentCategorySummary,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkerSummary {
+    pub total: usize,
+    pub active: usize,
+    pub idle: usize,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CoordinatorSummary {
+    pub total: usize,
+    pub active: usize,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentCategorySummary {
+    pub total: usize,
+    pub active: usize,
+    pub names: Vec<String>,
+}
+
+/// Get all workers (Layer 4 agents)
+pub async fn list_workers() -> Json<WorkerStatusResponse> {
+    let agents = get_agents();
+    let workers: Vec<Agent> = agents.into_iter().filter(|a| a.layer == 4).collect();
+
+    let total_count = workers.len();
+    let active_count = workers.iter().filter(|w| w.status == "running" || w.status == "busy").count();
+    let idle_count = total_count - active_count;
+
+    Json(WorkerStatusResponse {
+        workers,
+        total_count,
+        active_count,
+        idle_count,
+    })
+}
+
+/// Get all coordinators (Layer 3 agents)
+pub async fn list_coordinators() -> Json<CoordinatorStatusResponse> {
+    let agents = get_agents();
+    let coordinators: Vec<Agent> = agents.into_iter().filter(|a| a.layer == 3).collect();
+
+    let total_count = coordinators.len();
+    let active_count = coordinators.iter().filter(|c| c.status == "running" || c.status == "busy").count();
+
+    Json(CoordinatorStatusResponse {
+        coordinators,
+        total_count,
+        active_count,
+    })
+}
+
+/// Get system overview
+pub async fn get_system_overview() -> Json<SystemOverviewResponse> {
+    let agents = get_agents();
+
+    let workers: Vec<&Agent> = agents.iter().filter(|a| a.layer == 4).collect();
+    let coordinators: Vec<&Agent> = agents.iter().filter(|a| a.layer == 3).collect();
+
+    // Coding agents (7): Coordinator, CodeGen, Review, Issue, PR, Deployment, Refresher
+    let coding_names = vec![
+        "CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "IssueAgent",
+        "PRAgent", "DeploymentAgent", "RefresherAgent"
+    ];
+    let coding_agents: Vec<&Agent> = agents.iter()
+        .filter(|a| coding_names.contains(&a.name.as_str()))
+        .collect();
+
+    // Business agents (14): Everything else
+    let business_agents: Vec<&Agent> = agents.iter()
+        .filter(|a| !coding_names.contains(&a.name.as_str()))
+        .collect();
+
+    let workers_active = workers.iter().filter(|w| w.status == "running" || w.status == "busy").count();
+    let coordinators_active = coordinators.iter().filter(|c| c.status == "running" || c.status == "busy").count();
+    let coding_active = coding_agents.iter().filter(|a| a.status == "running" || a.status == "busy").count();
+    let business_active = business_agents.iter().filter(|a| a.status == "running" || a.status == "busy").count();
+
+    Json(SystemOverviewResponse {
+        total_agents: agents.len(),
+        workers: WorkerSummary {
+            total: workers.len(),
+            active: workers_active,
+            idle: workers.len() - workers_active,
+        },
+        coordinators: CoordinatorSummary {
+            total: coordinators.len(),
+            active: coordinators_active,
+        },
+        coding_agents: AgentCategorySummary {
+            total: coding_agents.len(),
+            active: coding_active,
+            names: coding_agents.iter().map(|a| a.name.clone()).collect(),
+        },
+        business_agents: AgentCategorySummary {
+            total: business_agents.len(),
+            active: business_active,
+            names: business_agents.iter().map(|a| a.name.clone()).collect(),
+        },
+    })
+}
+
 pub fn routes() -> Router {
     Router::new()
         .route("/", get(list_agents))
+        .route("/overview", get(get_system_overview))
+        .route("/workers", get(list_workers))
+        .route("/coordinators", get(list_coordinators))
         .route("/:agent_type", get(get_agent_status))
         .route("/:agent_type/execute", post(execute_agent))
 }

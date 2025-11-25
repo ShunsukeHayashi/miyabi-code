@@ -3,11 +3,12 @@
 use crate::{
     auth::JwtManager,
     error::{AppError, Result},
-    models::User,
+    middleware::AuthenticatedUser,
+    models::{OrgMemberRole, User},
     AppState,
 };
 use axum::{
-    extract::State,
+    extract::{Extension, State},
     http::StatusCode,
     response::{IntoResponse, Redirect},
     Json,
@@ -352,6 +353,103 @@ pub async fn logout(State(_state): State<AppState>) -> Result<StatusCode> {
     // For now, we rely on client-side token removal
 
     Ok(StatusCode::OK)
+}
+
+/// Switch organization request
+///
+/// Phase 1.5: Request to switch to a different organization context
+#[derive(Deserialize, utoipa::ToSchema)]
+pub struct SwitchOrganizationRequest {
+    /// Organization ID to switch to (None to clear org context)
+    pub organization_id: Option<Uuid>,
+}
+
+/// Switch organization response
+#[derive(Serialize, utoipa::ToSchema)]
+pub struct SwitchOrganizationResponse {
+    /// New access token with org context
+    pub access_token: String,
+    /// Organization ID (if set)
+    pub organization_id: Option<String>,
+    /// User's role in the organization
+    pub organization_role: Option<String>,
+}
+
+/// Switch organization handler
+///
+/// Phase 1.5: Issues a new token with organization context
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/switch-organization",
+    tag = "auth",
+    request_body = SwitchOrganizationRequest,
+    responses(
+        (status = 200, description = "Organization switched", body = SwitchOrganizationResponse),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Not a member of the organization"),
+        (status = 500, description = "Internal server error")
+    )
+)]
+pub async fn switch_organization(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthenticatedUser>,
+    Json(request): Json<SwitchOrganizationRequest>,
+) -> Result<(StatusCode, Json<SwitchOrganizationResponse>)> {
+    let jwt_manager = JwtManager::new(&state.jwt_secret, state.config.jwt_expiration);
+
+    // If no org_id provided, issue token without org context
+    let (org_id, org_role) = match request.organization_id {
+        None => (None, None),
+        Some(org_id) => {
+            // Verify user is a member of the organization
+            let membership = sqlx::query_as::<_, (OrgMemberRole, String)>(
+                r#"
+                SELECT role, status
+                FROM organization_members
+                WHERE organization_id = $1 AND user_id = $2
+                "#,
+            )
+            .bind(org_id)
+            .bind(auth_user.user_id)
+            .fetch_optional(&state.db)
+            .await
+            .map_err(AppError::Database)?;
+
+            match membership {
+                Some((role, status)) if status == "active" => {
+                    (Some(org_id.to_string()), Some(role.to_string()))
+                }
+                Some((_, status)) => {
+                    return Err(AppError::Authorization(format!(
+                        "Membership is not active: {}",
+                        status
+                    )));
+                }
+                None => {
+                    return Err(AppError::Authorization(
+                        "Not a member of this organization".to_string(),
+                    ));
+                }
+            }
+        }
+    };
+
+    // Issue new token with org context
+    let access_token = jwt_manager.create_token_with_org(
+        &auth_user.user_id.to_string(),
+        auth_user.github_id,
+        org_id.as_deref(),
+        org_role.as_deref(),
+    )?;
+
+    Ok((
+        StatusCode::OK,
+        Json(SwitchOrganizationResponse {
+            access_token,
+            organization_id: org_id,
+            organization_role: org_role,
+        }),
+    ))
 }
 
 /// Mock login request

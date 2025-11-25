@@ -248,6 +248,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/auth/github/callback", get(routes::auth::github_oauth_callback))
         .route("/auth/refresh", post(routes::auth::refresh_token))
         .route("/auth/logout", post(routes::auth::logout))
+        .route("/auth/switch-organization", post(routes::auth::switch_organization))
         .route("/auth/mock", post(routes::auth::mock_login))
         // Repository routes - Phase 2.4: Re-enabled with database
         .route("/repositories", get(routes::repositories::list_repositories))
@@ -261,7 +262,11 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/workflows/:id", get(routes::workflows::get_workflow))
         // Dashboard routes - Phase 2.4: Re-enabled with database
         .route("/dashboard/summary", get(routes::dashboard::get_dashboard_summary))
-        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions));
+        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions))
+        // Organization routes - Phase 1.4: RBAC Implementation (#970)
+        .nest("/organizations", routes::organizations::routes())
+        // Task Management routes - Phase 2.1: Task Management API (#970)
+        .nest("/tasks", routes::tasks::routes());
 
     // Build main router
     let app = Router::new()
