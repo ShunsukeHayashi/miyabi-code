@@ -61,6 +61,351 @@ Agent(Intent, World₀) = lim_{n→∞} (θ₆ ◦ θ₅ ◦ θ₄ ◦ θ₃ ◦
 
 ---
 
+## アーキテクチャ図
+
+### 1. θ-Phase サイクルフロー
+
+Kazuakiの6フェーズ実行サイクルの詳細フロー:
+
+```mermaid
+flowchart TB
+    subgraph "θ₁ Understand"
+        U1[AWS Resource Scan] --> U2[Cost Analysis]
+        U2 --> U3[Security Audit]
+        U3 --> U4[Performance Metrics]
+        U4 --> U5[World₀ State Build]
+    end
+
+    subgraph "θ₂ Generate"
+        G1[Cost Optimization Plan] --> G2[Security Improvement Plan]
+        G2 --> G3[Architecture Optimization]
+        G3 --> G4[IaC Template Generation]
+    end
+
+    subgraph "θ₃ Allocate"
+        A1[Resource Sizing] --> A2[Priority Assignment]
+        A2 --> A3[Rollback Strategy]
+        A3 --> A4[Execution Plan]
+    end
+
+    subgraph "θ₄ Execute"
+        E1[Terraform Init] --> E2[Terraform Plan]
+        E2 --> E3{Approval?}
+        E3 -->|Yes| E4[Terraform Apply]
+        E3 -->|No| E5[Abort]
+        E4 --> E6{Success?}
+        E6 -->|No| E7[Auto Rollback]
+        E6 -->|Yes| E8[Change Monitoring]
+    end
+
+    subgraph "θ₅ Integrate"
+        I1[Integration Tests] --> I2[Performance Tests]
+        I2 --> I3[Dashboard Update]
+        I3 --> I4[Documentation Update]
+        I4 --> I5[Team Notification]
+    end
+
+    subgraph "θ₆ Learn"
+        L1[Performance Analysis] --> L2[Failure Analysis]
+        L2 --> L3[Knowledge Base Update]
+        L3 --> L4[Next Iteration Recommendations]
+    end
+
+    U5 --> G1
+    G4 --> A1
+    A4 --> E1
+    E8 --> I1
+    E7 --> I1
+    I5 --> L1
+    L4 -->|Next Cycle| U1
+
+    style U5 fill:#4CAF50
+    style E4 fill:#2196F3
+    style E7 fill:#f44336
+    style L4 fill:#9C27B0
+```
+
+### 2. AWS Organization 構造図
+
+マルチアカウント戦略のOU構造:
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                    AWS Organization (Master Account)                  │
+│                         miyabi-master                                │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │                    Root OU                                   │    │
+│  │                                                              │    │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │    │
+│  │  │ Security OU  │  │ Workloads OU │  │  Sandbox OU  │       │    │
+│  │  ├──────────────┤  ├──────────────┤  ├──────────────┤       │    │
+│  │  │              │  │              │  │              │       │    │
+│  │  │ ┌──────────┐ │  │ ┌──────────┐ │  │ ┌──────────┐ │       │    │
+│  │  │ │ Log      │ │  │ │Production│ │  │ │Developer │ │       │    │
+│  │  │ │ Archive  │ │  │ │OU        │ │  │ │Accounts  │ │       │    │
+│  │  │ └──────────┘ │  │ ├──────────┤ │  │ └──────────┘ │       │    │
+│  │  │              │  │ │ miyabi-  │ │  │              │       │    │
+│  │  │ ┌──────────┐ │  │ │ prod     │ │  │              │       │    │
+│  │  │ │ Security │ │  │ └──────────┘ │  │              │       │    │
+│  │  │ │ Tooling  │ │  │              │  │              │       │    │
+│  │  │ └──────────┘ │  │ ┌──────────┐ │  │              │       │    │
+│  │  │              │  │ │Staging OU│ │  │              │       │    │
+│  │  │ ┌──────────┐ │  │ ├──────────┤ │  │              │       │    │
+│  │  │ │ Audit    │ │  │ │ miyabi-  │ │  │              │       │    │
+│  │  │ │ Account  │ │  │ │ staging  │ │  │              │       │    │
+│  │  │ └──────────┘ │  │ └──────────┘ │  │              │       │    │
+│  │  │              │  │              │  │              │       │    │
+│  │  └──────────────┘  │ ┌──────────┐ │  │              │       │    │
+│  │                    │ │  Dev OU  │ │  │              │       │    │
+│  │                    │ ├──────────┤ │  │              │       │    │
+│  │                    │ │ miyabi-  │ │  │              │       │    │
+│  │                    │ │ dev      │ │  │              │       │    │
+│  │                    │ └──────────┘ │  │              │       │    │
+│  │                    └──────────────┘  └──────────────┘       │    │
+│  │                                                              │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  Service Control Policies (SCPs):                                   │
+│  ├─ DenyRootUser                                                    │
+│  ├─ RequireIMDSv2                                                   │
+│  ├─ DenyLeavingOrg                                                  │
+│  └─ EnforceS3Encryption                                             │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### 3. エスカレーション決定木
+
+問題発生時のエスカレーションフロー:
+
+```mermaid
+flowchart TD
+    START[問題発生] --> ASSESS{重大度評価}
+
+    ASSESS -->|軽微| L1[Level 1: 自動修復]
+    ASSESS -->|中程度| L2[Level 2: Platform Team]
+    ASSESS -->|コスト関連| L3[Level 3: CFO]
+    ASSESS -->|セキュリティ| L4[Level 4: Security Team]
+    ASSESS -->|Critical| L5[Level 5: Human Guardian]
+
+    L1 --> L1A{自動修復成功?}
+    L1A -->|Yes| RESOLVED[解決]
+    L1A -->|No| L2
+
+    L2 --> L2A[Slack #platform-ops]
+    L2A --> L2B{15分以内に応答?}
+    L2B -->|Yes| L2C[対応実施]
+    L2B -->|No| L5
+
+    L3 --> L3A[Slack #cost-approval]
+    L3A --> L3B{承認?}
+    L3B -->|Yes| EXECUTE[実行]
+    L3B -->|No| ABORT[中止]
+
+    L4 --> L4A[Slack #security-alerts]
+    L4A --> L4B[即時対応]
+    L4B --> L4C{追加対応必要?}
+    L4C -->|Yes| L5
+    L4C -->|No| RESOLVED
+
+    L5 --> L5A[Email + Lark DM]
+    L5A --> L5B[緊急連絡]
+    L5B --> HUMAN[人間が判断]
+
+    L2C --> RESOLVED
+    EXECUTE --> RESOLVED
+
+    style L1 fill:#4CAF50
+    style L2 fill:#8BC34A
+    style L3 fill:#FFC107
+    style L4 fill:#FF9800
+    style L5 fill:#f44336
+    style RESOLVED fill:#2196F3
+```
+
+### 4. システム全体アーキテクチャ
+
+Kazuaki Agentの技術スタック:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           User Interface Layer                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐         │
+│  │   CLI (Rust)    │  │  Dashboard UI   │  │   Slack/Lark    │         │
+│  │  miyabi aws     │  │   (React)       │  │   Integration   │         │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘         │
+└───────────┼─────────────────────┼─────────────────────┼─────────────────┘
+            │                     │                     │
+            ▼                     ▼                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Agent Core Layer                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    miyabi-aws-agent (Rust)                       │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │   │
+│  │  │ AgentCore│  │ Config   │  │ Bridge   │  │ Notifier │         │   │
+│  │  │ Engine   │  │ Manager  │  │ Executor │  │ Service  │         │   │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘         │   │
+│  └─────────────────────────┬───────────────────────────────────────┘   │
+│                            │ subprocess (stdio)                        │
+│  ┌─────────────────────────▼───────────────────────────────────────┐   │
+│  │                  aws-miyabi-agent (Python)                       │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │   │
+│  │  │ Understand│ │ Generate │  │ Allocate │  │ Execute  │         │   │
+│  │  │ Agent    │  │ Agent    │  │ Agent    │  │ Agent    │         │   │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘         │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Infrastructure Layer                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐               │
+│  │   Terraform   │  │  AWS SDK      │  │  CloudWatch   │               │
+│  │   Runner      │  │  (boto3)      │  │  Client       │               │
+│  └───────┬───────┘  └───────┬───────┘  └───────┬───────┘               │
+└──────────┼──────────────────┼──────────────────┼────────────────────────┘
+           │                  │                  │
+           ▼                  ▼                  ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              AWS Cloud                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐                  │
+│   │   EC2       │   │   S3        │   │   RDS       │                  │
+│   │  Instances  │   │  Buckets    │   │  Databases  │                  │
+│   └─────────────┘   └─────────────┘   └─────────────┘                  │
+│                                                                         │
+│   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐                  │
+│   │   Lambda    │   │   VPC       │   │   IAM       │                  │
+│   │  Functions  │   │  Networks   │   │  Policies   │                  │
+│   └─────────────┘   └─────────────┘   └─────────────┘                  │
+│                                                                         │
+│   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐                  │
+│   │ CloudWatch  │   │   Cost      │   │  Security   │                  │
+│   │   Logs      │   │  Explorer   │   │    Hub      │                  │
+│   └─────────────┘   └─────────────┘   └─────────────┘                  │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 5. データフロー図
+
+θ-Phase間のデータフロー:
+
+```mermaid
+flowchart LR
+    subgraph "Input"
+        I1[AWS APIs]
+        I2[Cost Explorer]
+        I3[CloudWatch]
+        I4[Config Rules]
+    end
+
+    subgraph "θ₁ Understand"
+        U[WorldState Builder]
+    end
+
+    subgraph "θ₂ Generate"
+        G[Plan Generator]
+    end
+
+    subgraph "θ₃ Allocate"
+        A[Resource Allocator]
+    end
+
+    subgraph "θ₄ Execute"
+        E[Terraform Engine]
+    end
+
+    subgraph "θ₅ Integrate"
+        INT[Test Runner]
+    end
+
+    subgraph "θ₆ Learn"
+        L[Knowledge Engine]
+    end
+
+    subgraph "Output"
+        O1[Reports]
+        O2[Terraform Files]
+        O3[Notifications]
+        O4[Metrics]
+    end
+
+    I1 --> U
+    I2 --> U
+    I3 --> U
+    I4 --> U
+
+    U -->|world_state.json| G
+    G -->|plans/*.md| A
+    G -->|terraform/*| A
+    A -->|execution_plan.json| E
+    E -->|deployment_report.md| INT
+    INT -->|test_results.json| L
+    L -->|learning_report.md| U
+
+    G --> O1
+    G --> O2
+    E --> O3
+    L --> O4
+```
+
+### 6. デプロイメントアーキテクチャ
+
+本番環境でのKazuakiデプロイ構成:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        VPC: miyabi-vpc                          │
+│                        10.0.0.0/16                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────┐  ┌─────────────────────────┐      │
+│  │   Private Subnet A      │  │   Private Subnet B      │      │
+│  │   10.0.1.0/24           │  │   10.0.2.0/24           │      │
+│  │   AZ: ap-northeast-1a   │  │   AZ: ap-northeast-1c   │      │
+│  │                         │  │                         │      │
+│  │  ┌───────────────────┐  │  │  ┌───────────────────┐  │      │
+│  │  │ ECS Fargate       │  │  │  │ ECS Fargate       │  │      │
+│  │  │ Kazuaki Agent     │  │  │  │ Kazuaki Agent     │  │      │
+│  │  │ (Standby)         │  │  │  │ (Active)          │  │      │
+│  │  └───────────────────┘  │  │  └───────────────────┘  │      │
+│  │                         │  │                         │      │
+│  │  ┌───────────────────┐  │  │  ┌───────────────────┐  │      │
+│  │  │ RDS (Standby)     │  │  │  │ RDS (Primary)     │  │      │
+│  │  │ PostgreSQL        │  │  │  │ PostgreSQL        │  │      │
+│  │  └───────────────────┘  │  │  └───────────────────┘  │      │
+│  │                         │  │                         │      │
+│  └─────────────────────────┘  └─────────────────────────┘      │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────┐       │
+│  │                   NAT Gateway                        │       │
+│  └─────────────────────────────────────────────────────┘       │
+│                            │                                    │
+└────────────────────────────┼────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Internet Gateway                           │
+└─────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        AWS Services                             │
+│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐        │
+│  │  S3  │ │ STS  │ │ IAM  │ │  CE  │ │  CW  │ │ SSM  │        │
+│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 責任範囲
 
 ### 1. AWS Organization Management
