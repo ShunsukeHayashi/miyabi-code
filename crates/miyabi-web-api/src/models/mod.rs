@@ -1,8 +1,10 @@
 //! Database models and DTOs
 
 pub mod organization;
+pub mod rbac;
 
 pub use organization::*;
+pub use rbac::*;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
