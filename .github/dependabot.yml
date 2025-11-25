@@ -61,3 +61,35 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(docker)"
+
+  # NPM - Pantheon Webapp (Issue #852)
+  - package-ecosystem: "npm"
+    directory: "/apps/pantheon-webapp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ShunsukeHayashi"
+    labels:
+      - "dependencies"
+      - "🔄 dependencies"
+      - "javascript"
+      - "pantheon-webapp"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      next-ecosystem:
+        patterns:
+          - "next*"
+          - "eslint-config-next"
+      testing:
+        patterns:
+          - "@playwright/*"
+          - "playwright"

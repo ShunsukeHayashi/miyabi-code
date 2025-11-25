@@ -1,0 +1,198 @@
+# Pantheon Webapp Deploy Pipeline
+# Issue: #852 - GitHub Actions CI/CD パイプライン構築
+
+name: Pantheon Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/pantheon-webapp/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+defaults:
+  run:
+    working-directory: apps/pantheon-webapp
+
+env:
+  AWS_REGION: ap-northeast-1
+  S3_BUCKET_STAGING: pantheon-webapp-staging
+  S3_BUCKET_PRODUCTION: pantheon-webapp-production
+  CLOUDFRONT_DISTRIBUTION_STAGING: ${{ secrets.CLOUDFRONT_DISTRIBUTION_STAGING }}
+  CLOUDFRONT_DISTRIBUTION_PRODUCTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_PRODUCTION }}
+
+jobs:
+  # Determine deployment environment
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      s3_bucket: ${{ steps.set-env.outputs.s3_bucket }}
+      cloudfront_id: ${{ steps.set-env.outputs.cloudfront_id }}
+    steps:
+      - name: Set environment
+        id: set-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          else
+            ENV="staging"
+          fi
+
+          echo "environment=${ENV}" >> $GITHUB_OUTPUT
+
+          if [ "${ENV}" == "production" ]; then
+            echo "s3_bucket=${{ env.S3_BUCKET_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "cloudfront_id=${{ env.CLOUDFRONT_DISTRIBUTION_PRODUCTION }}" >> $GITHUB_OUTPUT
+          else
+            echo "s3_bucket=${{ env.S3_BUCKET_STAGING }}" >> $GITHUB_OUTPUT
+            echo "cloudfront_id=${{ env.CLOUDFRONT_DISTRIBUTION_STAGING }}" >> $GITHUB_OUTPUT
+          fi
+
+  # Build the application
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: setup
+    environment: ${{ needs.setup.outputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/pantheon-webapp/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for ${{ needs.setup.outputs.environment }}
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ vars.NEXT_PUBLIC_WS_URL }}
+          NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+
+      - name: Export static files
+        run: |
+          # Next.js static export
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pantheon-build-${{ needs.setup.outputs.environment }}
+          path: apps/pantheon-webapp/out
+          retention-days: 7
+
+  # Deploy to S3 and invalidate CloudFront
+  deploy:
+    name: Deploy to ${{ needs.setup.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    environment: ${{ needs.setup.outputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pantheon-build-${{ needs.setup.outputs.environment }}
+          path: out
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync out/ s3://${{ needs.setup.outputs.s3_bucket }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "_next/data/*"
+
+          # HTML files with shorter cache
+          aws s3 sync out/ s3://${{ needs.setup.outputs.s3_bucket }}/ \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --include "*.html"
+        working-directory: .
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.setup.outputs.cloudfront_id }} \
+            --paths "/*"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ needs.setup.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **S3 Bucket**: ${{ needs.setup.outputs.s3_bucket }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **CloudFront Distribution**: ${{ needs.setup.outputs.cloudfront_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed at**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+  # Smoke test after deployment
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: [setup, deploy]
+    steps:
+      - name: Wait for CloudFront propagation
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          if [ "${{ needs.setup.outputs.environment }}" == "production" ]; then
+            URL="https://pantheon.example.com"
+          else
+            URL="https://staging.pantheon.example.com"
+          fi
+
+          echo "Testing ${URL}..."
+
+          for i in {1..5}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}")
+            if [ "${STATUS}" == "200" ]; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            echo "Attempt ${i}/5: Got status ${STATUS}, retrying..."
+            sleep 10
+          done
+
+          echo "Health check failed after 5 attempts"
+          exit 1
+
+  # Notify on completion
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [setup, deploy, smoke-test]
+    if: always()
+    steps:
+      - name: Send notification
+        run: |
+          if [ "${{ needs.smoke-test.result }}" == "success" ]; then
+            echo "Deployment to ${{ needs.setup.outputs.environment }} succeeded!"
+          else
+            echo "Deployment to ${{ needs.setup.outputs.environment }} failed!"
+          fi

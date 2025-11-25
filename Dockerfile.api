@@ -1,0 +1,43 @@
+# Miyabi Web API Dockerfile
+# Issue: #852 - GitHub Actions CI/CD パイプライン構築
+
+FROM debian:bookworm-slim AS runtime
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 miyabi
+
+# Set working directory
+WORKDIR /app
+
+# Copy pre-built binary
+COPY target/release/miyabi-web-api /app/miyabi-web-api
+
+# Make binary executable
+RUN chmod +x /app/miyabi-web-api
+
+# Change ownership to non-root user
+RUN chown -R miyabi:miyabi /app
+
+# Switch to non-root user
+USER miyabi
+
+# Set environment variables
+ENV RUST_LOG=info,miyabi_web_api=debug
+ENV SERVER_ADDRESS=0.0.0.0:4000
+
+# Expose port
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4000/health || exit 1
+
+# Run the binary
+CMD ["/app/miyabi-web-api"]
