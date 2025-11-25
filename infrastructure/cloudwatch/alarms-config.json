@@ -1,0 +1,144 @@
+{
+  "Alarms": [
+    {
+      "AlarmName": "Miyabi-API-HighErrorRate",
+      "AlarmDescription": "Triggers when API error rate exceeds 5% for 5 minutes",
+      "MetricName": "ErrorRate",
+      "Namespace": "Miyabi/API",
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 5,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-API-HighLatency",
+      "AlarmDescription": "Triggers when P95 latency exceeds 500ms for 5 minutes",
+      "MetricName": "ResponseTime",
+      "Namespace": "Miyabi/API",
+      "ExtendedStatistic": "p95",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 500,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-Lambda-HighErrors",
+      "AlarmDescription": "Triggers when Lambda errors exceed 10 in 5 minutes",
+      "MetricName": "Errors",
+      "Namespace": "AWS/Lambda",
+      "Dimensions": [
+        {
+          "Name": "FunctionName",
+          "Value": "miyabi-api-production"
+        }
+      ],
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 10,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-Lambda-Throttling",
+      "AlarmDescription": "Triggers when Lambda throttling occurs",
+      "MetricName": "Throttles",
+      "Namespace": "AWS/Lambda",
+      "Dimensions": [
+        {
+          "Name": "FunctionName",
+          "Value": "miyabi-api-production"
+        }
+      ],
+      "Statistic": "Sum",
+      "Period": 60,
+      "EvaluationPeriods": 1,
+      "Threshold": 1,
+      "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-RDS-HighCPU",
+      "AlarmDescription": "Triggers when RDS CPU exceeds 80% for 10 minutes",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/RDS",
+      "Dimensions": [
+        {
+          "Name": "DBInstanceIdentifier",
+          "Value": "miyabi-db"
+        }
+      ],
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 80,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-RDS-LowMemory",
+      "AlarmDescription": "Triggers when RDS freeable memory drops below 256MB",
+      "MetricName": "FreeableMemory",
+      "Namespace": "AWS/RDS",
+      "Dimensions": [
+        {
+          "Name": "DBInstanceIdentifier",
+          "Value": "miyabi-db"
+        }
+      ],
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 268435456,
+      "ComparisonOperator": "LessThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-RDS-HighConnections",
+      "AlarmDescription": "Triggers when RDS connections exceed 80% of max",
+      "MetricName": "DatabaseConnections",
+      "Namespace": "AWS/RDS",
+      "Dimensions": [
+        {
+          "Name": "DBInstanceIdentifier",
+          "Value": "miyabi-db"
+        }
+      ],
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 80,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "Miyabi-APIGateway-5xxErrors",
+      "AlarmDescription": "Triggers when API Gateway 5xx errors exceed 10 in 5 minutes",
+      "MetricName": "5XXError",
+      "Namespace": "AWS/ApiGateway",
+      "Dimensions": [
+        {
+          "Name": "ApiName",
+          "Value": "miyabi-api"
+        }
+      ],
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 10,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "AlarmActions": ["arn:aws:sns:ap-northeast-1:ACCOUNT_ID:miyabi-alerts"],
+      "TreatMissingData": "notBreaching"
+    }
+  ]
+}
