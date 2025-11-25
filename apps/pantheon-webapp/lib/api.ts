@@ -1,7 +1,366 @@
 /**
- * Miyabi API Client
- * Issue: #1017 - Pantheon Webapp Miyabi Integration Dashboard
+ * Miyabi API Client - Production Ready
+ * Issue: #978 - Phase 3.1: API Client Implementation
+ *
+ * Features:
+ * - JWT authentication handling
+ * - Request/response interceptors
+ * - Retry logic with exponential backoff
+ * - Comprehensive error handling
+ * - TypeScript types for all responses
  */
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface ApiError {
+  status: number;
+  message: string;
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+  };
+}
+
+export interface RetryConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+}
+
+type RequestInterceptor = (config: RequestInit) => RequestInit | Promise<RequestInit>;
+type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
+
+// =============================================================================
+// Configuration
+// =============================================================================
+
+const DEFAULT_CONFIG = {
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1',
+  timeout: 30000,
+  retry: {
+    maxRetries: 3,
+    baseDelay: 1000,
+    maxDelay: 10000,
+  } as RetryConfig,
+};
+
+// =============================================================================
+// Token Management
+// =============================================================================
+
+class TokenManager {
+  private static ACCESS_TOKEN_KEY = 'miyabi_access_token';
+  private static REFRESH_TOKEN_KEY = 'miyabi_refresh_token';
+
+  static getAccessToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  static setAccessToken(token: string): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+  }
+
+  static getRefreshToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  static setRefreshToken(token: string): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+  }
+
+  static clearTokens(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  static isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
+  }
+}
+
+// =============================================================================
+// API Client Class
+// =============================================================================
+
+class ApiClient {
+  private baseUrl: string;
+  private retryConfig: RetryConfig;
+  private requestInterceptors: RequestInterceptor[] = [];
+  private responseInterceptors: ResponseInterceptor[] = [];
+
+  constructor(config = DEFAULT_CONFIG) {
+    this.baseUrl = config.baseUrl;
+    this.retryConfig = config.retry;
+
+    // Add default auth interceptor
+    this.addRequestInterceptor(this.authInterceptor.bind(this));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Interceptors
+  // ---------------------------------------------------------------------------
+
+  addRequestInterceptor(interceptor: RequestInterceptor): void {
+    this.requestInterceptors.push(interceptor);
+  }
+
+  addResponseInterceptor(interceptor: ResponseInterceptor): void {
+    this.responseInterceptors.push(interceptor);
+  }
+
+  private async authInterceptor(config: RequestInit): Promise<RequestInit> {
+    const token = TokenManager.getAccessToken();
+    if (token && !TokenManager.isTokenExpired(token)) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
+    }
+    return config;
+  }
+
+  private async applyRequestInterceptors(config: RequestInit): Promise<RequestInit> {
+    let result = config;
+    for (const interceptor of this.requestInterceptors) {
+      result = await interceptor(result);
+    }
+    return result;
+  }
+
+  private async applyResponseInterceptors(response: Response): Promise<Response> {
+    let result = response;
+    for (const interceptor of this.responseInterceptors) {
+      result = await interceptor(result);
+    }
+    return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Retry Logic
+  // ---------------------------------------------------------------------------
+
+  private async sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private calculateDelay(attempt: number): number {
+    const delay = this.retryConfig.baseDelay * Math.pow(2, attempt);
+    const jitter = Math.random() * 1000;
+    return Math.min(delay + jitter, this.retryConfig.maxDelay);
+  }
+
+  private shouldRetry(status: number, attempt: number): boolean {
+    if (attempt >= this.retryConfig.maxRetries) return false;
+    // Retry on network errors (status 0) or server errors (5xx)
+    return status === 0 || (status >= 500 && status < 600);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Core Request Method
+  // ---------------------------------------------------------------------------
+
+  async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    attempt = 0
+  ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+
+    let config: RequestInit = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    };
+
+    // Apply request interceptors
+    config = await this.applyRequestInterceptors(config);
+
+    try {
+      let response = await fetch(url, config);
+
+      // Apply response interceptors
+      response = await this.applyResponseInterceptors(response);
+
+      // Handle 401 - try to refresh token
+      if (response.status === 401) {
+        const refreshed = await this.refreshToken();
+        if (refreshed) {
+          // Retry with new token
+          return this.request<T>(endpoint, options, attempt);
+        }
+        // Refresh failed, clear tokens
+        TokenManager.clearTokens();
+        throw this.createError(response, 'Authentication required');
+      }
+
+      // Handle errors
+      if (!response.ok) {
+        if (this.shouldRetry(response.status, attempt)) {
+          await this.sleep(this.calculateDelay(attempt));
+          return this.request<T>(endpoint, options, attempt + 1);
+        }
+        throw await this.parseError(response);
+      }
+
+      // Handle empty response
+      const text = await response.text();
+      if (!text) return {} as T;
+
+      return JSON.parse(text) as T;
+    } catch (error) {
+      // Network error - retry if appropriate
+      if (error instanceof TypeError && this.shouldRetry(0, attempt)) {
+        await this.sleep(this.calculateDelay(attempt));
+        return this.request<T>(endpoint, options, attempt + 1);
+      }
+      throw error;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Token Refresh
+  // ---------------------------------------------------------------------------
+
+  private async refreshToken(): Promise<boolean> {
+    const refreshToken = TokenManager.getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      if (!response.ok) return false;
+
+      const data = await response.json();
+      TokenManager.setAccessToken(data.access_token);
+      if (data.refresh_token) {
+        TokenManager.setRefreshToken(data.refresh_token);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Error Handling
+  // ---------------------------------------------------------------------------
+
+  private createError(response: Response, message: string): ApiError {
+    return {
+      status: response.status,
+      message,
+      code: 'API_ERROR',
+    };
+  }
+
+  private async parseError(response: Response): Promise<ApiError> {
+    try {
+      const data = await response.json();
+      return {
+        status: response.status,
+        message: data.message || data.error || response.statusText,
+        code: data.code,
+        details: data.details,
+      };
+    } catch {
+      return {
+        status: response.status,
+        message: response.statusText,
+        code: 'PARSE_ERROR',
+      };
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // HTTP Methods
+  // ---------------------------------------------------------------------------
+
+  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    const url = params
+      ? `${endpoint}?${new URLSearchParams(params).toString()}`
+      : endpoint;
+    return this.request<T>(url, { method: 'GET' });
+  }
+
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+}
+
+// =============================================================================
+// Singleton Instance
+// =============================================================================
+
+export const apiClient = new ApiClient();
+
+// =============================================================================
+// Auth Utilities
+// =============================================================================
+
+export const auth = {
+  setTokens: (accessToken: string, refreshToken?: string) => {
+    TokenManager.setAccessToken(accessToken);
+    if (refreshToken) {
+      TokenManager.setRefreshToken(refreshToken);
+    }
+  },
+  clearTokens: () => TokenManager.clearTokens(),
+  isAuthenticated: () => {
+    const token = TokenManager.getAccessToken();
+    return token !== null && !TokenManager.isTokenExpired(token);
+  },
+  getAccessToken: () => TokenManager.getAccessToken(),
+};
+
+// =============================================================================
+// Legacy Exports (for backward compatibility)
+// =============================================================================
 
 import type {
   SystemStatus,
@@ -9,165 +368,24 @@ import type {
   AdvisorMetrics,
   DivisionMetrics,
   Activity,
-} from '@/types/miyabi';
-
-const API_BASE = process.env.NEXT_PUBLIC_MIYABI_API_URL || 'http://localhost:8080/api/v1';
-
-async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
-}
+} from '../types/miyabi';
 
 export const miyabiApi = {
-  // System Status
-  getStatus: () => fetchApi<SystemStatus>('/miyabi/status'),
-
-  // Consultations
-  getConsultations: (params?: { limit?: number; timeRange?: string }) => {
-    const query = new URLSearchParams();
-    if (params?.limit) query.set('limit', params.limit.toString());
-    if (params?.timeRange) query.set('time_range', params.timeRange);
-    return fetchApi<{ consultations: MiyabiConsultation[] }>(
-      `/miyabi/consultations?${query.toString()}`
-    );
-  },
-
-  // Advisor Metrics
+  getStatus: () => apiClient.get<SystemStatus>('/miyabi/status'),
+  getConsultations: (params?: { limit?: number; timeRange?: string }) =>
+    apiClient.get<{ consultations: MiyabiConsultation[] }>('/miyabi/consultations', {
+      ...(params?.limit && { limit: params.limit.toString() }),
+      ...(params?.timeRange && { time_range: params.timeRange }),
+    }),
   getAdvisorMetrics: () =>
-    fetchApi<{ advisors: AdvisorMetrics[] }>('/miyabi/metrics/advisors'),
-
-  // Division Metrics
+    apiClient.get<{ advisors: AdvisorMetrics[] }>('/miyabi/metrics/advisors'),
   getDivisionMetrics: () =>
-    fetchApi<{ divisions: DivisionMetrics[] }>('/miyabi/metrics/divisions'),
-
-  // Activity Stream
-  getActivity: (params?: { limit?: number }) => {
-    const query = new URLSearchParams();
-    if (params?.limit) query.set('limit', params.limit.toString());
-    return fetchApi<{ activities: Activity[] }>(`/miyabi/activity?${query.toString()}`);
-  },
+    apiClient.get<{ divisions: DivisionMetrics[] }>('/miyabi/metrics/divisions'),
+  getActivity: (params?: { limit?: number }) =>
+    apiClient.get<{ activities: Activity[] }>('/miyabi/activity', {
+      ...(params?.limit && { limit: params.limit.toString() }),
+    }),
 };
 
-// Mock data for development
-export const mockData = {
-  systemStatus: {
-    agents_online: 21,
-    api_status: 'healthy' as const,
-    consultations_today: 47,
-    avg_response_time: 1.2,
-  },
-  consultations: [
-    {
-      id: '1',
-      task_id: 'task-001',
-      task_title: 'Deploy Web API v1.1',
-      advisor_id: 'leonardo',
-      advisor_name: 'Leonardo da Vinci',
-      wisdom: 'Simplicity is the ultimate sophistication.',
-      result: 'success' as const,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      completed_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      task_id: 'task-002',
-      task_title: 'Resolve merge conflict in feature branch',
-      advisor_id: 'sun-tzu',
-      advisor_name: 'Sun Tzu',
-      wisdom: 'In the midst of chaos, there is also opportunity.',
-      result: 'in_progress' as const,
-      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '3',
-      task_id: 'task-003',
-      task_title: 'Optimize database queries',
-      advisor_id: 'einstein',
-      advisor_name: 'Albert Einstein',
-      wisdom: 'Everything should be made as simple as possible, but not simpler.',
-      result: 'success' as const,
-      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      completed_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    },
-  ],
-  advisorMetrics: [
-    {
-      advisor_id: 'leonardo',
-      advisor_name: 'Leonardo da Vinci',
-      consultation_count: 15,
-      success_rate: 93.3,
-      avg_confidence: 0.87,
-      top_wisdom: 'Simplicity is the ultimate sophistication.',
-    },
-    {
-      advisor_id: 'sun-tzu',
-      advisor_name: 'Sun Tzu',
-      consultation_count: 12,
-      success_rate: 91.7,
-      avg_confidence: 0.85,
-      top_wisdom: 'In the midst of chaos, there is also opportunity.',
-    },
-    {
-      advisor_id: 'einstein',
-      advisor_name: 'Albert Einstein',
-      consultation_count: 10,
-      success_rate: 90.0,
-      avg_confidence: 0.89,
-      top_wisdom: 'Everything should be made as simple as possible, but not simpler.',
-    },
-  ],
-  divisionMetrics: [
-    {
-      division_id: 'innovation',
-      division_name: 'Innovation Division',
-      consultation_count: 20,
-      success_rate: 92.0,
-      active_advisors: 5,
-    },
-    {
-      division_id: 'strategy',
-      division_name: 'Strategy Division',
-      consultation_count: 15,
-      success_rate: 88.5,
-      active_advisors: 4,
-    },
-    {
-      division_id: 'operations',
-      division_name: 'Operations Division',
-      consultation_count: 12,
-      success_rate: 94.2,
-      active_advisors: 3,
-    },
-  ],
-  activities: [
-    {
-      id: '1',
-      type: 'consultation_completed' as const,
-      message: 'Leonardo da Vinci completed consultation for "Deploy Web API v1.1"',
-      timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      type: 'consultation_started' as const,
-      message: 'Sun Tzu started consultation for "Resolve merge conflict"',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '3',
-      type: 'task_created' as const,
-      message: 'New task created: "Implement user authentication"',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    },
-  ],
-};
+// Mock data for development (re-exported)
+export { mockSystemStatus as mockData } from '../data/miyabi-mock';
