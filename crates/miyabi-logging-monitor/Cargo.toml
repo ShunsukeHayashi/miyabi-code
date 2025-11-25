@@ -1,9 +1,15 @@
 [package]
 name = "miyabi-logging-monitor"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
 description = "Logging and monitoring system for Miyabi video generation pipeline"
+keywords = ["logging", "monitoring", "tracing", "miyabi", "observability"]
+categories = ["development-tools::debugging", "development-tools::profiling"]
+readme = "README.md"
 
 [dependencies]
 # Core

@@ -1,12 +1,15 @@
 [package]
 name = "miyabi-webhook"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
-authors = ["Miyabi Contributors"]
 description = "Webhook signature verification for Miyabi Agent-to-Agent communication"
-license = "MIT"
-repository = "https://github.com/ShunsukeHayashi/miyabi-private"
+keywords = ["webhook", "signature", "verification", "miyabi", "security"]
+categories = ["web-programming", "cryptography"]
+readme = "README.md"
 
 [dependencies]
 hmac = "0.12"

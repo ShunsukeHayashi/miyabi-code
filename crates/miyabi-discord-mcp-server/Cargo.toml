@@ -1,12 +1,15 @@
 [package]
 name = "miyabi-discord-mcp-server"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
-authors = ["Miyabi Contributors"]
 description = "Discord MCP Server for Miyabi - JSON-RPC 2.0 interface to Discord API"
-license = "MIT"
-repository = "https://github.com/ShunsukeHayashi/Miyabi"
+keywords = ["discord", "mcp", "json-rpc", "miyabi", "bot"]
+categories = ["network-programming", "api-bindings"]
+readme = "README.md"
 
 [dependencies]
 # Discord API

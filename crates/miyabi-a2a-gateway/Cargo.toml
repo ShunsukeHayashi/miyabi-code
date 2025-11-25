@@ -1,11 +1,15 @@
 [package]
 name = "miyabi-a2a-gateway"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
 publish = false
 description = "A2A (Agent-to-Agent) Gateway for unified inter-agent communication"
-authors = ["Miyabi Team"]
-license = "MIT"
+keywords = ["a2a", "gateway", "agents", "miyabi", "communication"]
+categories = ["network-programming", "asynchronous"]
+readme = "README.md"
 
 [dependencies]
 # Async runtime
