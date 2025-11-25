@@ -1056,9 +1056,333 @@ async fn main() -> Result<()> {
 
 ---
 
+## トラブルシューティング
+
+Kazuakiエージェント運用時に発生する一般的な問題と解決策。
+
+### 1. AWS認証エラー
+
+#### 症状: "AWS credentials not found"
+
+```
+Error: AWS credentials not found. Please configure AWS CLI or set environment variables.
+```
+
+**原因**:
+- AWS CLIが未設定
+- 環境変数 `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` 未設定
+- IAM Roleの assume-role 失敗
+
+**解決策**:
+
+```bash
+# 方法1: AWS CLIプロファイル設定
+aws configure --profile miyabi-prod
+# Access Key ID: AKIA...
+# Secret Access Key: ...
+# Region: ap-northeast-1
+
+# 方法2: 環境変数設定
+export AWS_ACCESS_KEY_ID="AKIA..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_REGION="ap-northeast-1"
+
+# 方法3: IAM Role使用（推奨）
+aws sts assume-role \
+  --role-arn arn:aws:iam::ACCOUNT:role/KazuakiAgentRole \
+  --role-session-name kazuaki-session \
+  --external-id miyabi-kazuaki-agent
+
+# 確認
+aws sts get-caller-identity
+```
+
+---
+
+### 2. IAM権限不足
+
+#### 症状: "AccessDenied" or "UnauthorizedAccess"
+
+```
+botocore.exceptions.ClientError: An error occurred (AccessDenied) when calling the DescribeInstances operation
+```
+
+**原因**:
+- IAMポリシーに必要な権限が不足
+- リソースベースのポリシー制限
+- Permission Boundaryによる制限
+
+**診断**:
+
+```bash
+# 現在の権限を確認
+aws iam simulate-principal-policy \
+  --policy-source-arn arn:aws:iam::ACCOUNT:role/KazuakiAgentRole \
+  --action-names ec2:DescribeInstances \
+  --resource-arns "*"
+
+# IAMロールのポリシー確認
+aws iam list-attached-role-policies --role-name KazuakiAgentRole
+aws iam list-role-policies --role-name KazuakiAgentRole
+```
+
+**解決策**:
+
+1. 必要な権限を確認（本ドキュメント「必須IAM権限」セクション参照）
+2. IAMポリシーを更新
+3. Permission Boundaryの制限を確認・調整
+
+---
+
+### 3. Terraform State Lock
+
+#### 症状: "Error acquiring the state lock"
+
+```
+Error: Error acquiring the state lock
+│ Error message: ConditionalCheckFailedException: The conditional request failed
+│ Lock Info:
+│   ID:        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+│   Path:      s3://miyabi-terraform-state/prod/terraform.tfstate
+│   Operation: OperationTypePlan
+│   Who:       user@hostname
+│   Created:   2025-11-17 10:00:00 UTC
+```
+
+**原因**:
+- 前回の `terraform plan/apply` が異常終了
+- 他のユーザー/プロセスがロックを保持
+- DynamoDBのロックレコードが残存
+
+**解決策**:
+
+```bash
+# 方法1: ロックを強制解除（危険 - 他に実行中がないことを確認）
+terraform force-unlock xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# 方法2: DynamoDBから直接削除
+aws dynamodb delete-item \
+  --table-name miyabi-terraform-locks \
+  --key '{"LockID": {"S": "s3://miyabi-terraform-state/prod/terraform.tfstate"}}'
+
+# 方法3: ロック情報確認
+aws dynamodb get-item \
+  --table-name miyabi-terraform-locks \
+  --key '{"LockID": {"S": "s3://miyabi-terraform-state/prod/terraform.tfstate"}}'
+```
+
+**予防策**:
+- `terraform plan` 前に既存ロックを確認
+- CI/CDでは排他制御を設定
+
+---
+
+### 4. Python Service起動エラー
+
+#### 症状: "ModuleNotFoundError" or "Python bridge failed"
+
+```
+Error: Python bridge execution failed
+Caused by: ModuleNotFoundError: No module named 'boto3'
+```
+
+**原因**:
+- Python仮想環境が未アクティベート
+- 依存パッケージ未インストール
+- Pythonバージョン不一致
+
+**解決策**:
+
+```bash
+# 仮想環境の作成と依存インストール
+cd services/aws-miyabi-agent
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+
+# 依存確認
+pip list | grep -E "boto3|botocore"
+
+# Pythonバージョン確認（3.11+必須）
+python3 --version
+
+# 環境変数設定
+export MIYABI_PYTHON_PATH="$(pwd)/.venv/bin/python3"
+export MIYABI_AWS_SERVICE_PATH="$(pwd)"
+```
+
+---
+
+### 5. CloudWatch メトリクス取得失敗
+
+#### 症状: "No datapoints returned"
+
+```
+Warning: No CloudWatch metrics found for the specified period
+```
+
+**原因**:
+- メトリクスがまだ発行されていない
+- 時間範囲が適切でない
+- 名前空間/ディメンションの指定ミス
+
+**診断**:
+
+```bash
+# 利用可能なメトリクス確認
+aws cloudwatch list-metrics --namespace AWS/EC2
+
+# 特定メトリクスのデータポイント確認
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/EC2 \
+  --metric-name CPUUtilization \
+  --dimensions Name=InstanceId,Value=i-1234567890abcdef0 \
+  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
+  --period 300 \
+  --statistics Average
+```
+
+**解決策**:
+
+1. 時間範囲を広げる（直近1時間→24時間）
+2. Period を調整（60秒→300秒）
+3. 正しいディメンション名を確認
+
+---
+
+### 6. Cost Explorer APIエラー
+
+#### 症状: "OptInRequired" or "Data not available"
+
+```
+botocore.exceptions.ClientError: An error occurred (OptInRequired) when calling the GetCostAndUsage operation
+```
+
+**原因**:
+- Cost Explorerが有効化されていない
+- 新規アカウントでデータ蓄積中
+- リンクアカウントでの権限不足
+
+**解決策**:
+
+```bash
+# Cost Explorer有効化（アカウント管理者のみ）
+aws ce get-cost-and-usage \
+  --time-period Start=2025-11-01,End=2025-11-30 \
+  --granularity MONTHLY \
+  --metrics BlendedCost
+
+# エラーが出た場合はAWSコンソールから有効化:
+# https://console.aws.amazon.com/cost-management/home#/cost-explorer
+```
+
+**注意**: Cost Explorer有効化後、データが利用可能になるまで24時間かかる場合があります。
+
+---
+
+### 7. リージョン不一致
+
+#### 症状: リソースが見つからない
+
+```
+Error: Resource not found in ap-northeast-1
+```
+
+**原因**:
+- リソースが別リージョンに存在
+- デフォルトリージョン設定ミス
+
+**診断**:
+
+```bash
+# 現在のリージョン確認
+aws configure get region
+
+# 全リージョンでリソース検索（EC2の例）
+for region in $(aws ec2 describe-regions --query 'Regions[].RegionName' --output text); do
+  echo "=== $region ==="
+  aws ec2 describe-instances --region $region --query 'Reservations[].Instances[].InstanceId' --output text
+done
+```
+
+**解決策**:
+
+```bash
+# 正しいリージョンを設定
+export AWS_REGION=us-east-1
+# または
+aws configure set region us-east-1
+```
+
+---
+
+### 8. エスカレーション通知失敗
+
+#### 症状: Lark/Slack通知が届かない
+
+```
+Error: Failed to send escalation notification
+```
+
+**原因**:
+- Webhook URLが未設定/期限切れ
+- ネットワーク制限（Firewall）
+- メッセージフォーマットエラー
+
+**診断**:
+
+```bash
+# 環境変数確認
+echo $LARK_WEBHOOK_URL
+echo $SLACK_WEBHOOK_URL
+
+# Webhook接続テスト
+curl -X POST "$LARK_WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  -d '{"msg_type":"text","content":{"text":"Test from Kazuaki Agent"}}'
+```
+
+**解決策**:
+
+1. Webhook URLを再生成
+2. 環境変数を正しく設定
+3. ファイアウォール/プロキシ設定を確認
+
+---
+
+### デバッグモード
+
+詳細なログ出力でトラブルシューティングを行う:
+
+```bash
+# Rust側デバッグログ有効化
+RUST_LOG=miyabi_aws_agent=debug,miyabi_cli=debug miyabi aws discover
+
+# Python側詳細ログ
+export MIYABI_DEBUG=1
+export BOTO3_LOGLEVEL=DEBUG
+
+# AWS CLI デバッグモード
+aws --debug ec2 describe-instances
+```
+
+---
+
+### サポート連絡先
+
+| 問題分類 | 連絡先 |
+|----------|--------|
+| AWS権限・アカウント | Platform Team: #platform-ops |
+| コスト関連 | CFO Escalation: #cost-approval |
+| セキュリティ | Security Team: #security-alerts |
+| 一般的な問題 | Lark: hayashi.s@customercloud.ai |
+
+---
+
 **Created**: 2025-11-17
 **Author**: Orchestrator (Layer 2)
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Status**: 🟢 Active
 
 🌸 **Kazuaki - Precision AWS Architecture with Harmony** 🌸
