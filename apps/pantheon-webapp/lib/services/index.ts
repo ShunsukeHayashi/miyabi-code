@@ -9,6 +9,7 @@ export { dashboardService } from './dashboard';
 export type {
   DashboardSummary,
   RecentActivity,
+  RecentActivitiesResponse,
   DashboardMetrics,
 } from './dashboard';
 

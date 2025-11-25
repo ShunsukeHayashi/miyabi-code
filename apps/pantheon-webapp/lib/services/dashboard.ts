@@ -11,11 +11,11 @@ import { apiClient } from '../api';
 
 export interface DashboardSummary {
   totalExecutions: number;
-  running: number;
-  completed: number;
-  failed: number;
-  repositories: number;
-  pullRequests: number;
+  runningExecutions: number;
+  completedExecutions: number;
+  failedExecutions: number;
+  activeRepositories: number;
+  pendingPRs: number;
   avgExecutionTime: number;
   lastUpdated: string;
 }
@@ -30,6 +30,15 @@ export interface RecentActivity {
   timestamp: string;
   duration?: number;
   details?: string;
+  executionId?: string;
+  issueNumber?: number;
+}
+
+export interface RecentActivitiesResponse {
+  activities: RecentActivity[];
+  total: number;
+  page: number;
+  hasMore: boolean;
 }
 
 export interface DashboardMetrics {
@@ -69,17 +78,18 @@ export const dashboardService = {
     limit?: number;
     status?: string;
     type?: string;
-  }): Promise<RecentActivity[]> => {
+    page?: number;
+  }): Promise<RecentActivitiesResponse> => {
     const queryParams: Record<string, string> = {};
     if (params?.limit) queryParams.limit = params.limit.toString();
     if (params?.status) queryParams.status = params.status;
     if (params?.type) queryParams.type = params.type;
+    if (params?.page) queryParams.page = params.page.toString();
 
-    const response = await apiClient.get<{ activities: RecentActivity[] }>(
+    return apiClient.get<RecentActivitiesResponse>(
       '/dashboard/recent',
       queryParams
     );
-    return response.activities;
   },
 
   /**
