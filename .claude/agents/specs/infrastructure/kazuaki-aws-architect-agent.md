@@ -1309,14 +1309,193 @@ miyabi aws learn --cycle-id <cycle_id>
 
 ## 成功メトリクス
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **月額コスト削減** | > 20% | Before/After Cost比較 |
-| **セキュリティスコア** | > 90/100 | AWS Security Hub Score |
-| **リソース使用率** | 60-80% | CloudWatch Metrics |
-| **デプロイ成功率** | > 95% | 成功デプロイ数 / 総デプロイ数 |
-| **平均復旧時間 (MTTR)** | < 15 min | インシデント発生→解決までの時間 |
-| **自動化率** | > 80% | 自動実行タスク / 総タスク |
+### KPI概要
+
+| Metric | Target | Baseline | Current | Status |
+|--------|--------|----------|---------|--------|
+| **月額コスト削減** | > 20% | 0% | - | 🔵 Pending |
+| **セキュリティスコア** | > 90/100 | 65/100 | - | 🔵 Pending |
+| **リソース使用率** | 60-80% | 45% | - | 🔵 Pending |
+| **デプロイ成功率** | > 95% | 80% | - | 🔵 Pending |
+| **平均復旧時間 (MTTR)** | < 15 min | 45 min | - | 🔵 Pending |
+| **自動化率** | > 80% | 30% | - | 🔵 Pending |
+
+### 詳細メトリクス定義
+
+#### 1. コスト最適化メトリクス
+
+| メトリクス | 定義 | 計算方法 | ベースライン | 目標 |
+|-----------|------|----------|--------------|------|
+| **月額コスト削減率** | 最適化前後のコスト差 | `(Before - After) / Before × 100` | 0% | > 20% |
+| **未使用リソース率** | 使われていないリソースの割合 | `未使用リソース数 / 総リソース数` | 25% | < 5% |
+| **RI/SP カバレッジ** | Reserved Instance活用率 | `RI適用時間 / 総稼働時間` | 40% | > 70% |
+| **スポット活用率** | Spot Instance活用率 | `Spot稼働時間 / Dev/Test稼働時間` | 10% | > 50% |
+| **コスト異常検知** | 異常支出の早期発見 | `検知から対応までの時間` | 24h | < 1h |
+
+**CloudWatch ダッシュボード設定**:
+```json
+{
+  "metrics": [
+    ["AWS/Billing", "EstimatedCharges", "Currency", "USD"],
+    ["CostExplorer", "UnblendedCost", "SERVICE", "AmazonEC2"],
+    ["CostExplorer", "UnblendedCost", "SERVICE", "AmazonRDS"],
+    ["CostExplorer", "UnblendedCost", "SERVICE", "AmazonS3"]
+  ],
+  "period": 86400,
+  "stat": "Sum"
+}
+```
+
+#### 2. セキュリティメトリクス
+
+| メトリクス | 定義 | ベースライン | 目標 | アラート閾値 |
+|-----------|------|--------------|------|-------------|
+| **Security Hub Score** | AWS Security Hub総合スコア | 65/100 | > 90/100 | < 70 |
+| **Critical Findings** | 重大な脆弱性数 | 15件 | 0件 | > 0 |
+| **High Findings** | 高リスク脆弱性数 | 45件 | < 5件 | > 10 |
+| **IAM Access Analyzer** | 外部アクセス警告数 | 8件 | 0件 | > 0 |
+| **GuardDuty Findings** | 脅威検出数（30日） | 25件 | < 5件 | > 10 |
+| **暗号化カバレッジ** | 暗号化済みリソース率 | 60% | 100% | < 90% |
+
+**Security Hub フィルター**:
+```bash
+aws securityhub get-findings \
+  --filters '{"SeverityLabel": [{"Value": "CRITICAL", "Comparison": "EQUALS"}]}' \
+  --max-items 100
+```
+
+#### 3. パフォーマンスメトリクス
+
+| メトリクス | 定義 | ベースライン | 目標 | アラート閾値 |
+|-----------|------|--------------|------|-------------|
+| **平均CPU使用率** | EC2/ECS CPU平均 | 45% | 60-80% | > 85% or < 20% |
+| **平均メモリ使用率** | EC2/ECS Memory平均 | 50% | 60-80% | > 90% |
+| **RDS接続数** | データベース接続数 | 50 | < 100 | > 80% of max |
+| **API レイテンシ P95** | API Gateway遅延 | 800ms | < 500ms | > 1000ms |
+| **Lambda Duration P95** | Lambda実行時間 | 3000ms | < 1000ms | > 5000ms |
+| **エラー率** | 5XX/Total requests | 2% | < 0.1% | > 1% |
+
+**CloudWatch Alarms 設定例**:
+```terraform
+resource "aws_cloudwatch_metric_alarm" "cpu_high" {
+  alarm_name          = "kazuaki-cpu-utilization-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 85
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+}
+```
+
+#### 4. 運用メトリクス
+
+| メトリクス | 定義 | ベースライン | 目標 | 計測方法 |
+|-----------|------|--------------|------|----------|
+| **デプロイ成功率** | 成功/総デプロイ | 80% | > 95% | CI/CDログ |
+| **デプロイ頻度** | 週あたりデプロイ数 | 2回 | > 10回 | GitHub Actions |
+| **変更リードタイム** | コミット→本番までの時間 | 7日 | < 1日 | Git timestamp |
+| **MTTR** | 障害復旧時間 | 45分 | < 15分 | インシデントログ |
+| **MTBF** | 障害間隔 | 7日 | > 30日 | インシデントログ |
+| **ロールバック率** | ロールバック/デプロイ | 15% | < 5% | Terraform State |
+
+#### 5. 自動化メトリクス
+
+| メトリクス | 定義 | ベースライン | 目標 |
+|-----------|------|--------------|------|
+| **IaC カバレッジ** | Terraform管理リソース率 | 60% | > 95% |
+| **手動操作率** | コンソール直接操作 | 40% | < 5% |
+| **自動修復率** | 自動で解決された問題 | 20% | > 70% |
+| **アラート自動対応率** | 自動対応アラート | 10% | > 50% |
+| **ドキュメント自動生成** | 自動生成ドキュメント率 | 30% | > 80% |
+
+### メトリクス収集アーキテクチャ
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Data Sources                              │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
+│  │CloudWatch│  │  Cost    │  │ Security │  │ Config   │    │
+│  │ Metrics  │  │ Explorer │  │   Hub    │  │  Rules   │    │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
+└───────┼─────────────┼─────────────┼─────────────┼───────────┘
+        │             │             │             │
+        ▼             ▼             ▼             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Kazuaki Metrics Collector                   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              metrics_collector.py                    │    │
+│  │  - collect_cost_metrics()                           │    │
+│  │  - collect_security_metrics()                       │    │
+│  │  - collect_performance_metrics()                    │    │
+│  │  - collect_operational_metrics()                    │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Metrics Storage                           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
+│  │ TimeStream│  │    S3   │  │PostgreSQL│                  │
+│  │ (realtime)│  │(archive)│  │(analysis)│                  │
+│  └──────────┘  └──────────┘  └──────────┘                  │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Visualization                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
+│  │CloudWatch│  │  Grafana │  │  Custom  │                  │
+│  │Dashboard │  │Dashboard │  │ Reports  │                  │
+│  └──────────┘  └──────────┘  └──────────┘                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 週次レポートテンプレート
+
+```markdown
+# Kazuaki Agent Weekly Report
+**Period**: YYYY-MM-DD ~ YYYY-MM-DD
+**Generated**: YYYY-MM-DD HH:MM:SS
+
+## Executive Summary
+- Cost savings this week: $X,XXX (XX%)
+- Security score: XX/100 (↑/↓ X points)
+- Deployments: X successful, X failed
+- Incidents: X (MTTR: XX min)
+
+## Cost Metrics
+| Metric | Last Week | This Week | Change |
+|--------|-----------|-----------|--------|
+| Total Cost | $X,XXX | $X,XXX | ↓ X% |
+| EC2 | $X,XXX | $X,XXX | ↓ X% |
+| RDS | $XXX | $XXX | - |
+| S3 | $XX | $XX | - |
+
+## Security Metrics
+| Finding Type | Last Week | This Week | Change |
+|--------------|-----------|-----------|--------|
+| Critical | X | X | ↓ X |
+| High | XX | XX | ↓ X |
+| Medium | XX | XX | - |
+
+## Action Items
+1. [ ] Action item 1
+2. [ ] Action item 2
+```
+
+### SLA定義
+
+| サービスレベル | 定義 | 目標 | 測定期間 |
+|---------------|------|------|----------|
+| **可用性** | サービス稼働時間 | 99.9% | 月次 |
+| **レスポンスタイム** | P95 API遅延 | < 500ms | 日次 |
+| **障害対応** | P0障害の初動 | < 15分 | インシデント毎 |
+| **変更実施** | 通常変更のリードタイム | < 24時間 | 変更毎 |
+| **コストレポート** | 月次レポート提出 | 翌月5日 | 月次 |
 
 ---
 
