@@ -170,6 +170,327 @@ graph TD
 
 ---
 
+## Rust-Python Bridge アーキテクチャ
+
+KazuakiエージェントはRust CLIからPython Serviceを呼び出すブリッジアーキテクチャを採用しています。
+これにより、RustのパフォーマンスとPythonのAWSライブラリ（boto3）の豊富な機能を両立しています。
+
+### アーキテクチャ図
+
+```plantuml
+@startuml Kazuaki Rust-Python Bridge
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle uml2
+
+package "Rust Layer" {
+    [miyabi-cli] as CLI
+    [miyabi-aws-agent] as RustAgent
+    [BridgeExecutor] as Bridge
+}
+
+package "Python Layer" {
+    [aws_miyabi_agent] as PythonService
+    [agents/] as Agents
+    [boto3] as Boto3
+}
+
+cloud "AWS" {
+    [EC2/Lambda/S3/RDS] as AWSServices
+    [CloudWatch] as CW
+    [Cost Explorer] as CE
+}
+
+CLI --> RustAgent : "miyabi aws <cmd>"
+RustAgent --> Bridge : "execute_python()"
+Bridge --> PythonService : "subprocess (stdio)"
+PythonService --> Agents : "phase dispatch"
+Agents --> Boto3 : "AWS API calls"
+Boto3 --> AWSServices : "HTTPS"
+Boto3 --> CW : "metrics/logs"
+Boto3 --> CE : "cost data"
+
+note right of Bridge
+  通信方式: subprocess + stdio
+  データ形式: JSON
+  タイムアウト: 300秒
+end note
+
+@enduml
+```
+
+### 通信方式
+
+**プロセス間通信**: サブプロセス実行 + 標準入出力 (stdio)
+
+```
+┌─────────────────┐         ┌─────────────────┐
+│   Rust CLI      │         │  Python Service │
+│                 │         │                 │
+│  BridgeExecutor │──stdin─▶│  main.py        │
+│                 │◀─stdout─│                 │
+└─────────────────┘         └─────────────────┘
+```
+
+**選定理由**:
+- **シンプルさ**: HTTP/gRPCサーバー不要、プロセス起動のみ
+- **分離性**: Python環境がクラッシュしてもRust側に影響しない
+- **デバッグ容易性**: 標準入出力でログ確認可能
+- **セキュリティ**: ネットワークポート開放不要
+
+### API仕様
+
+#### リクエスト形式 (stdin → Python)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-001",
+  "method": "execute_phase",
+  "params": {
+    "phase": "understand|generate|allocate|execute|integrate|learn",
+    "config": {
+      "aws_region": "ap-northeast-1",
+      "profile": "miyabi-prod",
+      "dry_run": false
+    },
+    "context": {
+      "world_state": { ... },
+      "previous_output": { ... }
+    }
+  }
+}
+```
+
+#### レスポンス形式 (Python → stdout)
+
+**成功時**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-001",
+  "result": {
+    "status": "success",
+    "phase": "understand",
+    "output": {
+      "world_state": { ... },
+      "reports": ["discovery_report.md"],
+      "metrics": {
+        "resources_scanned": 1234,
+        "duration_ms": 45000
+      }
+    }
+  }
+}
+```
+
+**エラー時**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-001",
+  "error": {
+    "code": -32000,
+    "message": "AWS API Error",
+    "data": {
+      "aws_error_code": "AccessDenied",
+      "service": "ec2",
+      "operation": "DescribeInstances",
+      "retryable": false
+    }
+  }
+}
+```
+
+#### エラーコード定義
+
+| コード | 名称 | 説明 |
+|--------|------|------|
+| -32700 | ParseError | JSON解析エラー |
+| -32600 | InvalidRequest | リクエスト形式不正 |
+| -32601 | MethodNotFound | 未知のメソッド |
+| -32602 | InvalidParams | パラメータ不正 |
+| -32603 | InternalError | 内部エラー |
+| -32000 | AWSError | AWS APIエラー |
+| -32001 | AuthenticationError | AWS認証エラー |
+| -32002 | RateLimitError | APIレート制限 |
+| -32003 | TimeoutError | タイムアウト |
+
+### Rust実装 (BridgeExecutor)
+
+```rust
+// crates/miyabi-aws-agent/src/bridge.rs
+
+use std::process::{Command, Stdio};
+use serde::{Deserialize, Serialize};
+
+pub struct BridgeExecutor {
+    python_path: PathBuf,
+    service_path: PathBuf,
+    timeout: Duration,
+}
+
+impl BridgeExecutor {
+    /// Python Serviceを実行し、結果を取得
+    pub async fn execute(&self, request: BridgeRequest) -> Result<BridgeResponse> {
+        let mut child = Command::new(&self.python_path)
+            .arg(&self.service_path)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        // リクエスト送信
+        let stdin = child.stdin.as_mut().unwrap();
+        serde_json::to_writer(stdin, &request)?;
+
+        // タイムアウト付きで待機
+        let output = tokio::time::timeout(
+            self.timeout,
+            child.wait_with_output()
+        ).await??;
+
+        // レスポンス解析
+        let response: BridgeResponse = serde_json::from_slice(&output.stdout)?;
+        Ok(response)
+    }
+}
+```
+
+### Python実装 (main.py)
+
+```python
+# services/aws-miyabi-agent/aws_miyabi_agent/main.py
+
+import sys
+import json
+from typing import Any
+from .agents import UnderstandAgent, GenerateAgent, AllocateAgent
+
+PHASE_HANDLERS = {
+    "understand": UnderstandAgent(),
+    "generate": GenerateAgent(),
+    "allocate": AllocateAgent(),
+    # θ₄-θ₆ は実装予定
+}
+
+def handle_request(request: dict) -> dict:
+    """JSON-RPCリクエストを処理"""
+    method = request.get("method")
+    params = request.get("params", {})
+    request_id = request.get("id")
+
+    try:
+        if method == "execute_phase":
+            phase = params["phase"]
+            handler = PHASE_HANDLERS.get(phase)
+            if not handler:
+                return error_response(request_id, -32601, f"Unknown phase: {phase}")
+
+            result = handler.execute(params["config"], params.get("context"))
+            return success_response(request_id, result)
+        else:
+            return error_response(request_id, -32601, f"Unknown method: {method}")
+
+    except Exception as e:
+        return error_response(request_id, -32603, str(e))
+
+def main():
+    """stdinからリクエストを読み、stdoutにレスポンスを書く"""
+    request = json.load(sys.stdin)
+    response = handle_request(request)
+    json.dump(response, sys.stdout)
+    sys.stdout.flush()
+
+if __name__ == "__main__":
+    main()
+```
+
+### エラーハンドリング・リトライ戦略
+
+#### リトライ対象エラー
+
+| エラー種別 | リトライ | 最大回数 | 待機時間 |
+|------------|----------|----------|----------|
+| AWS Throttling | ✅ | 5回 | Exponential backoff (1s, 2s, 4s, 8s, 16s) |
+| Network Timeout | ✅ | 3回 | 固定 5秒 |
+| Service Unavailable | ✅ | 3回 | Exponential backoff |
+| Authentication Error | ❌ | - | 即時エスカレーション |
+| Permission Denied | ❌ | - | 即時エスカレーション |
+| Invalid Parameter | ❌ | - | 即時失敗 |
+
+#### Rustリトライ実装
+
+```rust
+// crates/miyabi-aws-agent/src/bridge.rs
+
+impl BridgeExecutor {
+    pub async fn execute_with_retry(&self, request: BridgeRequest) -> Result<BridgeResponse> {
+        let mut attempts = 0;
+        let max_attempts = 3;
+
+        loop {
+            match self.execute(request.clone()).await {
+                Ok(response) => return Ok(response),
+                Err(e) if e.is_retryable() && attempts < max_attempts => {
+                    attempts += 1;
+                    let delay = Duration::from_secs(2_u64.pow(attempts));
+                    tokio::time::sleep(delay).await;
+                    tracing::warn!(
+                        "Retry attempt {}/{}: {:?}",
+                        attempts, max_attempts, e
+                    );
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+}
+```
+
+#### Pythonリトライ実装 (boto3)
+
+```python
+# services/aws-miyabi-agent/aws_miyabi_agent/utils/retry.py
+
+import botocore.config
+
+AWS_CONFIG = botocore.config.Config(
+    retries={
+        'max_attempts': 5,
+        'mode': 'adaptive'  # Adaptive retry mode
+    },
+    connect_timeout=10,
+    read_timeout=60
+)
+
+def get_boto3_client(service_name: str):
+    """リトライ設定済みのboto3クライアントを取得"""
+    return boto3.client(service_name, config=AWS_CONFIG)
+```
+
+### 環境変数
+
+| 変数名 | 説明 | デフォルト |
+|--------|------|------------|
+| `MIYABI_PYTHON_PATH` | Pythonインタプリタパス | `python3` |
+| `MIYABI_AWS_SERVICE_PATH` | Pythonサービスパス | `services/aws-miyabi-agent` |
+| `MIYABI_BRIDGE_TIMEOUT` | タイムアウト秒数 | `300` |
+| `AWS_PROFILE` | AWS プロファイル | `default` |
+| `AWS_REGION` | AWS リージョン | `ap-northeast-1` |
+
+### 関連ファイル
+
+| ファイル | 説明 |
+|----------|------|
+| `crates/miyabi-aws-agent/src/bridge.rs` | Rust側ブリッジ実装 |
+| `crates/miyabi-aws-agent/src/lib.rs` | エージェントエントリポイント |
+| `services/aws-miyabi-agent/aws_miyabi_agent/main.py` | Python側エントリポイント |
+| `services/aws-miyabi-agent/aws_miyabi_agent/agents/` | フェーズハンドラ |
+| `services/aws-miyabi-agent/pyproject.toml` | Python依存関係 |
+
+---
+
 ## 必須IAM権限
 
 KazuakiエージェントがAWS環境を操作するために必要なIAM権限を定義します。
