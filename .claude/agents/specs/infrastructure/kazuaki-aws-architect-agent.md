@@ -1056,6 +1056,221 @@ async fn main() -> Result<()> {
 
 ---
 
+## Agent連携 (Agent Coordination)
+
+Kazuakiは他のMiyabi Agentと連携して、エンドツーエンドの自動化を実現します。
+
+### 連携アーキテクチャ
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │           Orchestrator (Layer 2)            │
+                    │        タスク分配・進捗管理・優先度制御        │
+                    └──────────────────┬──────────────────────────┘
+                                       │
+           ┌───────────────────────────┼───────────────────────────┐
+           │                           │                           │
+           ▼                           ▼                           ▼
+    ┌─────────────┐           ┌─────────────┐           ┌─────────────┐
+    │ CodeGenAgent│           │   Kazuaki   │           │ DeployAgent │
+    │  コード生成  │◀─────────▶│AWS Architect│◀─────────▶│   デプロイ  │
+    └─────────────┘           └──────┬──────┘           └─────────────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    │                │                │
+                    ▼                ▼                ▼
+           ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+           │SecurityAgent│  │  CostAgent  │  │AnalyticsAgent│
+           │セキュリティ │  │コスト最適化 │  │  分析・監視  │
+           └─────────────┘  └─────────────┘  └─────────────┘
+```
+
+### Upstream Dependencies (入力元)
+
+Kazuakiが依存する上流Agent:
+
+| Agent | 提供データ | 用途 |
+|-------|-----------|------|
+| **Orchestrator** | タスク指示、優先度 | θ-cycle開始トリガー |
+| **CodeGenAgent** | IaCコード、Lambda関数 | θ₄ Deployの入力 |
+| **PRAgent** | マージされたインフラ変更 | 本番適用判断 |
+| **IssueAgent** | インフラ関連Issue | 作業スコープ定義 |
+
+### Downstream Consumers (出力先)
+
+Kazuakiの出力を利用する下流Agent:
+
+| Agent | 受け取るデータ | 用途 |
+|-------|---------------|------|
+| **DeploymentAgent** | 環境情報、エンドポイント | アプリデプロイ先決定 |
+| **SecurityAgent** | セキュリティ監査結果 | 脆弱性対応優先度 |
+| **CostAgent** | コスト分析レポート | 予算管理・最適化提案 |
+| **AnalyticsAgent** | CloudWatchメトリクス | ダッシュボード表示 |
+| **RefresherAgent** | インフラ状態 | コンテキスト更新 |
+
+### 共有リソース
+
+複数Agentで共有するリソース:
+
+| リソース | 場所 | 管理者 |
+|----------|------|--------|
+| **Terraform State** | `s3://miyabi-terraform-state/` | Kazuaki (排他ロック) |
+| **AWS Credentials** | AWS Secrets Manager | Platform Team |
+| **監視ダッシュボード** | CloudWatch | Kazuaki + Analytics |
+| **コスト予算** | AWS Budgets | CostAgent + Kazuaki |
+| **セキュリティポリシー** | AWS IAM | SecurityAgent + Kazuaki |
+
+### 連携プロトコル
+
+#### 1. タスク受信 (Orchestrator → Kazuaki)
+
+```json
+{
+  "task_id": "aws-001",
+  "type": "infrastructure_change",
+  "priority": "P1",
+  "payload": {
+    "action": "scale_up",
+    "target": "production",
+    "parameters": {
+      "instance_type": "t3.large",
+      "min_count": 3,
+      "max_count": 10
+    }
+  },
+  "deadline": "2025-11-26T12:00:00Z",
+  "requester": "DeploymentAgent"
+}
+```
+
+#### 2. 状態報告 (Kazuaki → Orchestrator)
+
+```json
+{
+  "task_id": "aws-001",
+  "status": "completed",
+  "phase": "θ₅_integrate",
+  "result": {
+    "success": true,
+    "changes_applied": 3,
+    "resources_affected": ["i-abc123", "i-def456", "i-ghi789"],
+    "metrics": {
+      "execution_time_ms": 45000,
+      "rollback_required": false
+    }
+  },
+  "next_action": "notify_deployment_agent"
+}
+```
+
+#### 3. 依頼転送 (Kazuaki → SecurityAgent)
+
+```json
+{
+  "request_type": "security_review",
+  "from": "KazuakiAgent",
+  "to": "SecurityAgent",
+  "payload": {
+    "change_type": "iam_policy_update",
+    "policy_document": { ... },
+    "risk_assessment": "medium",
+    "urgency": "normal"
+  },
+  "callback_url": "kazuaki://task/aws-001/security-approval"
+}
+```
+
+### 連携シナリオ
+
+#### シナリオ1: 新環境構築
+
+```mermaid
+sequenceDiagram
+    participant O as Orchestrator
+    participant K as Kazuaki
+    participant C as CodeGenAgent
+    participant D as DeploymentAgent
+    participant S as SecurityAgent
+
+    O->>K: 新環境構築リクエスト
+    K->>K: θ₁ Understand (現状把握)
+    K->>K: θ₂ Generate (IaCテンプレート生成)
+    K->>S: セキュリティレビュー依頼
+    S-->>K: 承認 (条件付き)
+    K->>K: θ₃ Allocate (リソース配分)
+    K->>K: θ₄ Execute (Terraform apply)
+    K->>D: 環境情報通知
+    D->>D: アプリデプロイ
+    K->>K: θ₅ Integrate (統合テスト)
+    K->>K: θ₆ Learn (学習)
+    K->>O: 完了報告
+```
+
+#### シナリオ2: コスト最適化
+
+```mermaid
+sequenceDiagram
+    participant Cost as CostAgent
+    participant K as Kazuaki
+    participant O as Orchestrator
+
+    Cost->>K: コスト超過アラート
+    K->>K: θ₁ Discover (リソース分析)
+    K->>K: θ₂ Generate (最適化プラン)
+    K->>O: 承認リクエスト ($1,000超)
+    O-->>K: CFO承認
+    K->>K: θ₄ Execute (RI購入, 右サイジング)
+    K->>Cost: 削減レポート送信
+```
+
+#### シナリオ3: セキュリティインシデント対応
+
+```mermaid
+sequenceDiagram
+    participant S as SecurityAgent
+    participant K as Kazuaki
+    participant O as Orchestrator
+
+    S->>K: 脆弱性検出 (Critical)
+    K->>O: P0エスカレーション
+    O-->>K: 即時対応指示
+    K->>K: θ₄ Execute (セキュリティグループ修正)
+    K->>K: θ₅ Integrate (修正検証)
+    K->>S: 対応完了報告
+    S->>S: 再スキャン
+```
+
+### Agent間通信設定
+
+**環境変数**:
+
+```bash
+# Agent Discovery
+export MIYABI_ORCHESTRATOR_URL="http://orchestrator:8080"
+export MIYABI_AGENT_REGISTRY="http://registry:8081"
+
+# 連携先Agent
+export SECURITY_AGENT_ENDPOINT="http://security-agent:8082"
+export COST_AGENT_ENDPOINT="http://cost-agent:8083"
+export DEPLOYMENT_AGENT_ENDPOINT="http://deployment-agent:8084"
+
+# メッセージング
+export MIYABI_MESSAGE_BROKER="redis://localhost:6379"
+export MIYABI_AGENT_QUEUE="kazuaki-tasks"
+```
+
+### 連携時の注意事項
+
+| 項目 | 注意点 |
+|------|--------|
+| **タイムアウト** | Agent間通信は30秒タイムアウト。長時間タスクは非同期化 |
+| **リトライ** | 3回リトライ後にエスカレーション |
+| **デッドロック防止** | Terraform State ロックは最大10分で強制解除 |
+| **優先度競合** | Orchestratorによる優先度調停。P0は割り込み可 |
+| **障害時** | Circuit Breaker パターン。他Agent障害時は単独実行可能 |
+
+---
+
 ## トラブルシューティング
 
 Kazuakiエージェント運用時に発生する一般的な問題と解決策。
