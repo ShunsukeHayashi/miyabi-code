@@ -293,7 +293,6 @@ async fn show_stats(workspace: Option<String>, json_output: bool) -> Result<()> 
         let json = serde_json::json!({
             "collection_name": config.vector_db.collection,
             "points_count": info.points_count,
-            "vectors_count": info.vectors_count,
         });
         println!("{}", serde_json::to_string_pretty(&json)?);
     } else {
@@ -304,10 +303,6 @@ async fn show_stats(workspace: Option<String>, json_output: bool) -> Result<()> 
 
         if let Some(count) = info.points_count {
             println!("Total Entries: {}", count.to_string().cyan());
-        }
-
-        if let Some(count) = info.vectors_count {
-            println!("Total Vectors: {}", count.to_string().cyan());
         }
 
         if let Some(ref workspace_filter) = workspace {
