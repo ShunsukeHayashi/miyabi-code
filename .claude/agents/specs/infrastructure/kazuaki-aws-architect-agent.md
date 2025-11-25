@@ -2500,6 +2500,912 @@ aws --debug ec2 describe-instances
 
 ---
 
+## セキュリティアーキテクチャ
+
+Kazuaki Agentが管理するAWSインフラのセキュリティアーキテクチャ詳細。
+
+### 1. セキュリティレイヤー概要
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         Security Architecture Layers                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Layer 7: APPLICATION SECURITY                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • WAF Rules          • Input Validation    • OWASP Top 10          │   │
+│  │  • Rate Limiting      • API Authentication  • XSS/CSRF Protection   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Layer 6: DATA SECURITY                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • Encryption at Rest (KMS)    • Encryption in Transit (TLS 1.3)   │   │
+│  │  • Key Rotation                • Data Classification               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Layer 5: IDENTITY & ACCESS                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • IAM Roles & Policies        • RBAC Implementation               │   │
+│  │  • Service Control Policies    • Permission Boundaries             │   │
+│  │  • MFA Enforcement             • SSO Integration                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Layer 4: NETWORK SECURITY                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • VPC Design          • Security Groups     • NACLs                │   │
+│  │  • Private Subnets     • Transit Gateway     • VPN/Direct Connect   │   │
+│  │  • VPC Endpoints       • Network Firewall                           │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Layer 3: INFRASTRUCTURE SECURITY                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • AMI Hardening       • Patch Management    • Instance Profiles   │   │
+│  │  • Container Security  • Secrets Management  • EBS Encryption      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Layer 2: DETECTIVE CONTROLS                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • CloudTrail          • GuardDuty          • Security Hub         │   │
+│  │  • Config Rules        • Access Analyzer    • Macie (S3 Data)      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Layer 1: GOVERNANCE & COMPLIANCE                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  • AWS Organizations   • SCPs               • Tag Policies         │   │
+│  │  • Conformance Packs   • Audit Manager      • Control Tower        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 2. IAMセキュリティモデル
+
+#### 2.1 最小権限の原則
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    IAM Least Privilege Model                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│    ┌─────────────────┐                                                     │
+│    │  Root Account   │  ← 緊急時のみ (MFA必須、通常は無効化)                │
+│    │   (DO NOT USE)  │                                                     │
+│    └────────┬────────┘                                                     │
+│             │                                                              │
+│    ┌────────▼────────┐                                                     │
+│    │  Organization   │  ← Service Control Policies                        │
+│    │      Admin      │    (組織全体の権限境界)                              │
+│    └────────┬────────┘                                                     │
+│             │                                                              │
+│    ┌────────┴────────────────────────────────┐                            │
+│    │                                         │                            │
+│    ▼                                         ▼                            │
+│  ┌──────────────┐                    ┌──────────────┐                     │
+│  │ Workload OU  │                    │ Security OU  │                     │
+│  │  Accounts    │                    │   Account    │                     │
+│  └──────┬───────┘                    └──────┬───────┘                     │
+│         │                                   │                             │
+│  ┌──────┴──────────────────────────────────┴──────┐                      │
+│  │                                                 │                      │
+│  │  ┌─────────────────────────────────────────┐   │                      │
+│  │  │        Permission Boundaries            │   │                      │
+│  │  │   (IAM Role の最大権限を制限)            │   │                      │
+│  │  └─────────────────────────────────────────┘   │                      │
+│  │                      │                         │                      │
+│  │  ┌──────────────────┴──────────────────┐      │                      │
+│  │  │                                     │      │                      │
+│  │  ▼                                     ▼      │                      │
+│  │  ┌─────────────┐             ┌─────────────┐  │                      │
+│  │  │ Task Role A │             │ Task Role B │  │                      │
+│  │  │ (EC2 Only)  │             │ (S3 Only)   │  │                      │
+│  │  └─────────────┘             └─────────────┘  │                      │
+│  │                                                │                      │
+│  └────────────────────────────────────────────────┘                      │
+│                                                                           │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 2.2 Kazuaki Agent IAMロール設計
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "KazuakiAgentBasePermissions",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "rds:Describe*",
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketLocation",
+        "cloudwatch:GetMetricData",
+        "cloudwatch:ListMetrics"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": ["ap-northeast-1", "us-east-1"]
+        }
+      }
+    },
+    {
+      "Sid": "DenyHighRiskActions",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreateUser",
+        "iam:DeleteUser",
+        "iam:AttachUserPolicy",
+        "organizations:*",
+        "account:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+#### 2.3 Service Control Policy (SCP)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyRegionsOutsideAllowed",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:*",
+        "organizations:*",
+        "support:*",
+        "budgets:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": [
+            "ap-northeast-1",
+            "us-east-1",
+            "eu-west-1"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "RequireMFAForCriticalActions",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:TerminateInstances",
+        "rds:DeleteDBInstance",
+        "s3:DeleteBucket"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "BoolIfExists": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 3. ネットワークセキュリティ
+
+#### 3.1 VPCアーキテクチャ
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            VPC: 10.0.0.0/16                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Availability Zone A                    Availability Zone C                 │
+│  ┌─────────────────────────────┐       ┌─────────────────────────────┐     │
+│  │                             │       │                             │     │
+│  │  ┌─────────────────────┐   │       │   ┌─────────────────────┐   │     │
+│  │  │ Public Subnet       │   │       │   │ Public Subnet       │   │     │
+│  │  │ 10.0.1.0/24         │   │       │   │ 10.0.3.0/24         │   │     │
+│  │  │ ┌─────┐ ┌─────────┐ │   │       │   │ ┌─────┐ ┌─────────┐ │   │     │
+│  │  │ │ NAT │ │   ALB   │ │   │       │   │ │ NAT │ │   ALB   │ │   │     │
+│  │  │ └──┬──┘ └────┬────┘ │   │       │   │ └──┬──┘ └────┬────┘ │   │     │
+│  │  └────│─────────│──────┘   │       │   └────│─────────│──────┘   │     │
+│  │       │         │          │       │        │         │          │     │
+│  │  ┌────▼─────────▼──────┐   │       │   ┌────▼─────────▼──────┐   │     │
+│  │  │ Private Subnet      │   │       │   │ Private Subnet      │   │     │
+│  │  │ 10.0.10.0/24        │   │       │   │ 10.0.30.0/24        │   │     │
+│  │  │ ┌─────────────────┐ │   │◄──────►   │ ┌─────────────────┐ │   │     │
+│  │  │ │  ECS Fargate    │ │   │       │   │ │  ECS Fargate    │ │   │     │
+│  │  │ │  (App Tier)     │ │   │       │   │ │  (App Tier)     │ │   │     │
+│  │  │ └─────────────────┘ │   │       │   │ └─────────────────┘ │   │     │
+│  │  └──────────│──────────┘   │       │   └──────────│──────────┘   │     │
+│  │             │              │       │              │              │     │
+│  │  ┌──────────▼──────────┐   │       │   ┌──────────▼──────────┐   │     │
+│  │  │ Data Subnet         │   │       │   │ Data Subnet         │   │     │
+│  │  │ 10.0.100.0/24       │   │       │   │ 10.0.130.0/24       │   │     │
+│  │  │ ┌─────────────────┐ │   │       │   │ ┌─────────────────┐ │   │     │
+│  │  │ │   RDS Primary   │ │───────────────│ │   RDS Standby   │ │   │     │
+│  │  │ │   (No Internet) │ │   │       │   │ │   (No Internet) │ │   │     │
+│  │  │ └─────────────────┘ │   │       │   │ └─────────────────┘ │   │     │
+│  │  └─────────────────────┘   │       │   └─────────────────────┘   │     │
+│  │                             │       │                             │     │
+│  └─────────────────────────────┘       └─────────────────────────────┘     │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────┐     │
+│  │                    VPC Endpoints (Interface)                       │     │
+│  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐          │     │
+│  │  │  ECR   │ │  KMS   │ │  SSM   │ │  Logs  │ │   S3   │          │     │
+│  │  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘          │     │
+│  └───────────────────────────────────────────────────────────────────┘     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 3.2 Security Group設計
+
+```hcl
+# ALB Security Group
+resource "aws_security_group" "alb" {
+  name        = "miyabi-alb-sg"
+  description = "ALB Security Group - HTTPS only"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTPS from Internet"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app.id]
+  }
+
+  tags = {
+    Name = "miyabi-alb-sg"
+    SecurityLevel = "Public"
+  }
+}
+
+# Application Security Group
+resource "aws_security_group" "app" {
+  name        = "miyabi-app-sg"
+  description = "Application Tier - ALB only"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "From ALB"
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  egress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.db.id]
+  }
+
+  egress {
+    description = "HTTPS to VPC Endpoints"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  tags = {
+    Name = "miyabi-app-sg"
+    SecurityLevel = "Private"
+  }
+}
+
+# Database Security Group
+resource "aws_security_group" "db" {
+  name        = "miyabi-db-sg"
+  description = "Database Tier - App only"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "PostgreSQL from App"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app.id]
+  }
+
+  # No egress - database does not initiate connections
+
+  tags = {
+    Name = "miyabi-db-sg"
+    SecurityLevel = "Restricted"
+  }
+}
+```
+
+---
+
+### 4. データ保護
+
+#### 4.1 暗号化戦略
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Data Encryption Strategy                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                     AT REST ENCRYPTION                                 │ │
+│  │                                                                        │ │
+│  │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐               │ │
+│  │  │    S3       │    │    RDS      │    │    EBS      │               │ │
+│  │  │ AES-256-GCM │    │ AES-256-GCM │    │ AES-256-GCM │               │ │
+│  │  │  (SSE-KMS)  │    │   (KMS)     │    │   (KMS)     │               │ │
+│  │  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘               │ │
+│  │         │                  │                  │                       │ │
+│  │         └──────────────────┼──────────────────┘                       │ │
+│  │                            │                                          │ │
+│  │                    ┌───────▼───────┐                                  │ │
+│  │                    │   AWS KMS     │                                  │ │
+│  │                    │  CMK (Rotate  │                                  │ │
+│  │                    │   every 90d)  │                                  │ │
+│  │                    └───────────────┘                                  │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                    IN TRANSIT ENCRYPTION                               │ │
+│  │                                                                        │ │
+│  │    Client ──TLS 1.3──► ALB ──TLS 1.2──► App ──TLS 1.2──► RDS          │ │
+│  │                                                                        │ │
+│  │    Certificate Management:                                             │ │
+│  │    • ACM for public endpoints (auto-renewal)                          │ │
+│  │    • Private CA for internal services                                  │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 4.2 KMS キー管理
+
+```hcl
+# Customer Managed Key for Miyabi
+resource "aws_kms_key" "miyabi_main" {
+  description             = "Main encryption key for Miyabi workloads"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow Kazuaki Agent"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_iam_role.kazuaki_agent.arn
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow CloudWatch Logs"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.ap-northeast-1.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "miyabi-main-key"
+    Environment = var.environment
+    ManagedBy   = "Kazuaki-Agent"
+  }
+}
+
+resource "aws_kms_alias" "miyabi_main" {
+  name          = "alias/miyabi-main"
+  target_key_id = aws_kms_key.miyabi_main.key_id
+}
+```
+
+#### 4.3 Secrets Management
+
+```hcl
+# Secrets Manager for database credentials
+resource "aws_secretsmanager_secret" "db_credentials" {
+  name        = "miyabi/production/db-credentials"
+  description = "RDS database credentials for Miyabi"
+  kms_key_id  = aws_kms_key.miyabi_main.arn
+
+  tags = {
+    Environment = var.environment
+    Application = "miyabi"
+  }
+}
+
+resource "aws_secretsmanager_secret_rotation" "db_credentials" {
+  secret_id           = aws_secretsmanager_secret.db_credentials.id
+  rotation_lambda_arn = aws_lambda_function.secret_rotation.arn
+
+  rotation_rules {
+    automatically_after_days = 30
+  }
+}
+```
+
+---
+
+### 5. 脅威検出とインシデント対応
+
+#### 5.1 検出サービス統合
+
+```mermaid
+flowchart TB
+    subgraph "Detection Layer"
+        GT[GuardDuty<br/>Threat Detection]
+        SH[Security Hub<br/>Aggregation]
+        MA[Macie<br/>Data Discovery]
+        IA[IAM Access Analyzer<br/>Permission Analysis]
+        CT[CloudTrail<br/>API Audit]
+        CF[Config<br/>Compliance]
+    end
+
+    subgraph "Analysis Layer"
+        EV[EventBridge]
+        LA[Lambda<br/>Auto Remediation]
+        KA[Kazuaki Agent<br/>Analysis]
+    end
+
+    subgraph "Response Layer"
+        SN[SNS<br/>Notifications]
+        LK[Lark<br/>Alerts]
+        TK[Ticket System]
+        RB[Runbook<br/>Automation]
+    end
+
+    GT --> SH
+    MA --> SH
+    IA --> SH
+    CT --> SH
+    CF --> SH
+
+    SH --> EV
+    EV --> LA
+    EV --> KA
+
+    LA --> SN
+    KA --> SN
+    SN --> LK
+    SN --> TK
+    LA --> RB
+```
+
+#### 5.2 GuardDuty 設定
+
+```hcl
+resource "aws_guardduty_detector" "main" {
+  enable = true
+
+  datasources {
+    s3_logs {
+      enable = true
+    }
+    kubernetes {
+      audit_logs {
+        enable = true
+      }
+    }
+    malware_protection {
+      scan_ec2_instance_with_findings {
+        ebs_volumes {
+          enable = true
+        }
+      }
+    }
+  }
+
+  finding_publishing_frequency = "FIFTEEN_MINUTES"
+
+  tags = {
+    Name        = "miyabi-guardduty"
+    ManagedBy   = "Kazuaki-Agent"
+  }
+}
+
+# Auto-remediation for high-severity findings
+resource "aws_cloudwatch_event_rule" "guardduty_high_severity" {
+  name        = "guardduty-high-severity"
+  description = "Trigger on GuardDuty high severity findings"
+
+  event_pattern = jsonencode({
+    source      = ["aws.guardduty"]
+    detail-type = ["GuardDuty Finding"]
+    detail = {
+      severity = [{ numeric = [">=", 7] }]
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "remediation_lambda" {
+  rule      = aws_cloudwatch_event_rule.guardduty_high_severity.name
+  target_id = "SendToLambda"
+  arn       = aws_lambda_function.auto_remediation.arn
+}
+```
+
+#### 5.3 インシデント対応プレイブック
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     Incident Response Playbook                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SEVERITY LEVELS:                                                           │
+│                                                                             │
+│  ┌──────────┬─────────────────────────────────────────────────────────┐    │
+│  │ Critical │ Data breach, account compromise, service outage         │    │
+│  │  (SEV-1) │ Response: 15 min | Escalation: Immediate                │    │
+│  ├──────────┼─────────────────────────────────────────────────────────┤    │
+│  │   High   │ Security misconfiguration, unauthorized access attempt  │    │
+│  │  (SEV-2) │ Response: 1 hour | Escalation: 4 hours                  │    │
+│  ├──────────┼─────────────────────────────────────────────────────────┤    │
+│  │  Medium  │ Policy violation, suspicious activity                   │    │
+│  │  (SEV-3) │ Response: 4 hours | Escalation: 24 hours                │    │
+│  ├──────────┼─────────────────────────────────────────────────────────┤    │
+│  │   Low    │ Best practice deviation, informational                  │    │
+│  │  (SEV-4) │ Response: 24 hours | Escalation: N/A                    │    │
+│  └──────────┴─────────────────────────────────────────────────────────┘    │
+│                                                                             │
+│  RESPONSE WORKFLOW:                                                         │
+│                                                                             │
+│  1. DETECT ──► 2. TRIAGE ──► 3. CONTAIN ──► 4. ERADICATE ──► 5. RECOVER   │
+│       │            │              │              │               │          │
+│       ▼            ▼              ▼              ▼               ▼          │
+│  GuardDuty    Kazuaki       Isolate        Root Cause       Restore        │
+│  Security Hub  Analysis     Resources      Analysis         Services       │
+│  CloudTrail   Severity      Block IPs      Remove Threat    Verify         │
+│               Assignment    Revoke Keys    Patch Systems    Monitor        │
+│                                                                             │
+│  6. LESSONS LEARNED:                                                        │
+│     • Document incident timeline                                            │
+│     • Update runbooks                                                       │
+│     • Implement preventive controls                                         │
+│     • Share findings with team                                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 6. コンプライアンスとガバナンス
+
+#### 6.1 コンプライアンスフレームワーク対応
+
+| Framework | Status | Coverage | Notes |
+|-----------|--------|----------|-------|
+| **CIS AWS Foundations** | 🟢 Active | 95% | 自動修復有効 |
+| **AWS Well-Architected** | 🟢 Active | 90% | 四半期レビュー |
+| **SOC 2 Type II** | 🟡 Preparing | 80% | 2025-Q2目標 |
+| **ISO 27001** | 🟡 Preparing | 70% | 2025-Q3目標 |
+| **GDPR** | 🟢 Compliant | 100% | データ所在地: ap-northeast-1 |
+| **PCI DSS** | ⚪ Not Required | - | 支払い処理は外部委託 |
+
+#### 6.2 AWS Config Rules
+
+```hcl
+# CIS AWS Foundations Benchmark conformance pack
+resource "aws_config_conformance_pack" "cis_benchmark" {
+  name = "miyabi-cis-benchmark"
+
+  template_body = <<-EOT
+    Resources:
+      RootAccountMFAEnabled:
+        Type: AWS::Config::ConfigRule
+        Properties:
+          ConfigRuleName: root-account-mfa-enabled
+          Source:
+            Owner: AWS
+            SourceIdentifier: ROOT_ACCOUNT_MFA_ENABLED
+
+      S3BucketPublicReadProhibited:
+        Type: AWS::Config::ConfigRule
+        Properties:
+          ConfigRuleName: s3-bucket-public-read-prohibited
+          Source:
+            Owner: AWS
+            SourceIdentifier: S3_BUCKET_PUBLIC_READ_PROHIBITED
+
+      EC2InstanceNoPublicIP:
+        Type: AWS::Config::ConfigRule
+        Properties:
+          ConfigRuleName: ec2-instance-no-public-ip
+          Source:
+            Owner: AWS
+            SourceIdentifier: EC2_INSTANCE_NO_PUBLIC_IP
+
+      RDSStorageEncrypted:
+        Type: AWS::Config::ConfigRule
+        Properties:
+          ConfigRuleName: rds-storage-encrypted
+          Source:
+            Owner: AWS
+            SourceIdentifier: RDS_STORAGE_ENCRYPTED
+
+      EncryptedVolumes:
+        Type: AWS::Config::ConfigRule
+        Properties:
+          ConfigRuleName: encrypted-volumes
+          Source:
+            Owner: AWS
+            SourceIdentifier: ENCRYPTED_VOLUMES
+  EOT
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+# Custom rule for Miyabi-specific requirements
+resource "aws_config_config_rule" "miyabi_required_tags" {
+  name = "miyabi-required-tags"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "REQUIRED_TAGS"
+  }
+
+  input_parameters = jsonencode({
+    tag1Key   = "Environment"
+    tag2Key   = "ManagedBy"
+    tag3Key   = "CostCenter"
+  })
+
+  scope {
+    compliance_resource_types = [
+      "AWS::EC2::Instance",
+      "AWS::RDS::DBInstance",
+      "AWS::S3::Bucket"
+    ]
+  }
+}
+```
+
+#### 6.3 Security Hub ダッシュボード
+
+```json
+{
+  "Version": "2020-01-01",
+  "Dashboard": {
+    "Name": "Kazuaki-Security-Dashboard",
+    "Widgets": [
+      {
+        "Title": "Security Score Trend",
+        "Type": "Line",
+        "Metrics": ["SecurityHub.SecurityScore"],
+        "Period": "7d"
+      },
+      {
+        "Title": "Findings by Severity",
+        "Type": "Pie",
+        "GroupBy": "Severity",
+        "Filter": "ProductName:SecurityHub"
+      },
+      {
+        "Title": "Top Failed Controls",
+        "Type": "Table",
+        "Limit": 10,
+        "SortBy": "FailedResourceCount"
+      },
+      {
+        "Title": "Compliance Status by Framework",
+        "Type": "Bar",
+        "GroupBy": "ComplianceStandardName"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 7. セキュリティ監視とアラート
+
+#### 7.1 CloudWatch アラーム
+
+```hcl
+# Root account usage alarm
+resource "aws_cloudwatch_metric_alarm" "root_account_usage" {
+  alarm_name          = "root-account-usage"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "RootAccountUsageCount"
+  namespace           = "CloudTrail"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 0
+  alarm_description   = "CRITICAL: Root account was used!"
+  alarm_actions       = [aws_sns_topic.security_alerts.arn]
+  treat_missing_data  = "notBreaching"
+
+  tags = {
+    Severity = "Critical"
+    Category = "Security"
+  }
+}
+
+# Unauthorized API calls alarm
+resource "aws_cloudwatch_metric_alarm" "unauthorized_api_calls" {
+  alarm_name          = "unauthorized-api-calls"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "UnauthorizedAttemptCount"
+  namespace           = "CloudTrail"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 10
+  alarm_description   = "High number of unauthorized API calls detected"
+  alarm_actions       = [aws_sns_topic.security_alerts.arn]
+
+  tags = {
+    Severity = "High"
+    Category = "Security"
+  }
+}
+
+# Security group changes alarm
+resource "aws_cloudwatch_metric_alarm" "security_group_changes" {
+  alarm_name          = "security-group-changes"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "SecurityGroupEventCount"
+  namespace           = "CloudTrail"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 0
+  alarm_description   = "Security group configuration changed"
+  alarm_actions       = [aws_sns_topic.security_alerts.arn]
+
+  tags = {
+    Severity = "Medium"
+    Category = "Security"
+  }
+}
+```
+
+#### 7.2 CloudTrail メトリクスフィルター
+
+```hcl
+# Metric filter for root account usage
+resource "aws_cloudwatch_log_metric_filter" "root_account_usage" {
+  name           = "RootAccountUsage"
+  pattern        = <<PATTERN
+{ $.userIdentity.type = "Root" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != "AwsServiceEvent" }
+PATTERN
+  log_group_name = aws_cloudwatch_log_group.cloudtrail.name
+
+  metric_transformation {
+    name      = "RootAccountUsageCount"
+    namespace = "CloudTrail"
+    value     = "1"
+  }
+}
+
+# Metric filter for unauthorized API calls
+resource "aws_cloudwatch_log_metric_filter" "unauthorized_api_calls" {
+  name           = "UnauthorizedAPICalls"
+  pattern        = <<PATTERN
+{ ($.errorCode = "*UnauthorizedAccess*") || ($.errorCode = "AccessDenied*") }
+PATTERN
+  log_group_name = aws_cloudwatch_log_group.cloudtrail.name
+
+  metric_transformation {
+    name      = "UnauthorizedAttemptCount"
+    namespace = "CloudTrail"
+    value     = "1"
+  }
+}
+
+# Metric filter for security group changes
+resource "aws_cloudwatch_log_metric_filter" "security_group_changes" {
+  name           = "SecurityGroupChanges"
+  pattern        = <<PATTERN
+{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }
+PATTERN
+  log_group_name = aws_cloudwatch_log_group.cloudtrail.name
+
+  metric_transformation {
+    name      = "SecurityGroupEventCount"
+    namespace = "CloudTrail"
+    value     = "1"
+  }
+}
+```
+
+---
+
+### 8. セキュリティチェックリスト
+
+Kazuaki Agentが自動チェックするセキュリティ項目:
+
+#### 8.1 Identity & Access Management
+
+- [ ] MFA enabled for all IAM users
+- [ ] No root account access keys
+- [ ] IAM password policy enforced (min 14 chars, complexity)
+- [ ] IAM roles used for cross-account access
+- [ ] Unused credentials removed (90+ days inactive)
+- [ ] Permission boundaries applied to all roles
+- [ ] Access Analyzer enabled
+
+#### 8.2 Network Security
+
+- [ ] VPC Flow Logs enabled
+- [ ] No public S3 buckets
+- [ ] No security groups with 0.0.0.0/0 ingress (except ALB)
+- [ ] VPC endpoints for AWS services
+- [ ] NACLs configured for subnet isolation
+- [ ] WAF enabled on public endpoints
+
+#### 8.3 Data Protection
+
+- [ ] S3 buckets encrypted (SSE-KMS)
+- [ ] RDS instances encrypted
+- [ ] EBS volumes encrypted
+- [ ] KMS key rotation enabled
+- [ ] Secrets in Secrets Manager (not in code)
+- [ ] TLS 1.2+ enforced
+
+#### 8.4 Logging & Monitoring
+
+- [ ] CloudTrail enabled in all regions
+- [ ] CloudTrail logs encrypted
+- [ ] CloudTrail log validation enabled
+- [ ] S3 access logging enabled
+- [ ] VPC Flow Logs to CloudWatch
+- [ ] GuardDuty enabled
+- [ ] Security Hub enabled
+
+#### 8.5 Compliance
+
+- [ ] Config enabled
+- [ ] Config rules active
+- [ ] Conformance packs deployed
+- [ ] Resource tagging enforced
+- [ ] Backup policies in place
+
+---
+
 **Created**: 2025-11-17
 **Author**: Orchestrator (Layer 2)
 **Version**: 1.1.0
