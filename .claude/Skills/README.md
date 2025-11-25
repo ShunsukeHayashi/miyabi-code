@@ -3,13 +3,13 @@
 **Version**: 2.0.0
 **Last Updated**: 2025-11-22
 **Priority**: ⭐⭐⭐⭐⭐ (P0 Level)
-**Total Skills**: 20 Skills (15 Technical + 5 Business)
+**Total Skills**: 21 Skills (16 Technical + 5 Business)
 
 ---
 
 ## 📋 概要
 
-このディレクトリには、Claude Codeの能力を拡張する**20個のSpecialized Skills**が格納されています。
+このディレクトリには、Claude Codeの能力を拡張する**21個のSpecialized Skills**が格納されています。
 Skillsは**model-invoked**（モデル自動呼び出し）で、タスクに応じて自動的にアクティベートされます。
 
 ---
@@ -85,6 +85,7 @@ graph TD
 | 13 | **claude-code-x** | Claude Code拡張機能 | Bash, API | "parallel", "headless" |
 | 14 | **voicevox** | 音声合成統合 | Bash, API | "speak", "narrate" |
 | 15 | **paper2agent** | 論文→Agent変換 | Read, Write | "paper to agent", "research" |
+| 16 | **tdd-workflow** | TDD Red-Green-Refactor | Bash, Write | "TDD", "write tests first" |
 
 ### Business Skills (5個)
 
