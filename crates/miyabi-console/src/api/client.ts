@@ -1,6 +1,25 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+// Get API base URL from environment with validation
+const getApiBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+
+  // In development, fallback to localhost is acceptable
+  if (import.meta.env.DEV) {
+    return envUrl || 'http://localhost:8080/api/v1';
+  }
+
+  // In production/staging, require explicit configuration
+  if (!envUrl) {
+    console.error('[Miyabi Console] VITE_API_BASE_URL is not configured. API calls will fail.');
+    // Return a placeholder that will clearly fail
+    return '/api/v1';
+  }
+
+  return envUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +27,11 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Log configuration in development
+if (import.meta.env.DEV) {
+  console.log('[Miyabi Console] API Base URL:', API_BASE_URL);
+}
 
 export interface AgentStatus {
   name: string;
