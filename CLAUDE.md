@@ -1,7 +1,7 @@
 # Miyabi - Pixel/Termux Development Manual
 
-**Version**: 5.0-Pixel
-**Last Updated**: 2025-11-19
+**Version**: 5.1-Pixel
+**Last Updated**: 2025-11-26
 **Environment**: Termux on Pixel 9 Pro XL
 **Format**: Mobile-First Agent Instruction Manual
 
@@ -16,7 +16,7 @@
 **Core Identity**:
 - 📱 Pixel Termux環境での開発
 - 🔌 24個のMCPサーバーを活用
-- 🌉 MacBook (MUGEN) / EC2 (MAJIN) との連携
+- 🌉 MacBook / EC2 MUGEN / EC2 MAJIN との連携
 - 🚀 モバイルファーストな開発体験
 
 ---
@@ -112,24 +112,50 @@ mcp-tools             # 全MCPサーバーリスト表示
 
 ---
 
-## 🌉 リモート連携 (MUGEN/MAJIN)
+## 🌉 リモート連携
 
-### MacBook MUGEN (無限)
+### 🚨 マシン命名規則（重要）
 
-**用途**: メイン開発環境・ビルド・テスト実行
+```
+❌ MacBook = MUGEN ではない！
+✅ MUGEN = EC2 (44.250.27.197)
+✅ MacBook = MacBook (Tailscale経由)
+```
+
+| 略称 | 正式名 | 種別 | IP | SSH Host |
+|------|--------|------|-----|----------|
+| 📱 **Pixel** | Pixel 9 Pro XL | Android/Termux | ローカル | - |
+| 💻 **MacBook** | MacBook | ローカルMac | 100.112.127.63 | `mac`, `macbook` |
+| ⚡ **MUGEN** | EC2 無限 | AWS EC2 | 44.250.27.197 | `mugen` |
+| ⚡ **MAJIN** | EC2 魔人 | AWS EC2 | 54.92.67.11 | `majin` |
+
+---
+
+### 💻 MacBook
+
+**用途**: メイン開発環境・Claude Desktop
 
 **接続**:
 ```bash
-mugen           # SSH接続
-c               # Claude Code起動
-cc              # Claude Code + tmux
-cm              # mosh接続
+ssh mac         # SSH接続
+ssh macbook     # 同上
+```
+
+---
+
+### ⚡ EC2 MUGEN (無限)
+
+**用途**: 高負荷ビルド・テスト・常時稼働サーバー
+
+**接続**:
+```bash
+ssh mugen       # SSH接続
 ```
 
 **ファイル同期**:
 ```bash
-msync           # MacBookから同期 (pull)
-mpush           # MacBookへ同期 (push)
+msync           # MUGENから同期 (pull)
+mpush           # MUGENへ同期 (push)
 ```
 
 **Git操作**:
@@ -148,7 +174,9 @@ mbc             # Cargo clippy
 mbr             # Cargo build --release
 ```
 
-### EC2 MAJIN (魔人)
+---
+
+### ⚡ EC2 MAJIN (魔人)
 
 **用途**: 高負荷処理・並列実行・GPU処理
 
@@ -565,11 +593,11 @@ mgit            # Git status
 mcp-tools       # MCPサーバーリスト
 
 # リモート接続
-c               # MUGEN Claude Code
-j               # MAJIN CPU接続
-jg              # MAJIN GPU接続
+ssh mac         # MacBook接続
+ssh mugen       # EC2 MUGEN接続
+ssh majin       # EC2 MAJIN接続
 
-# 同期
+# 同期 (EC2 MUGEN)
 msync           # MUGENから同期
 mpush           # MUGENへ同期
 
@@ -616,15 +644,22 @@ $AWS_ACCESS_KEY_ID      # AWS認証情報
 - **3D可視化システム**
 
 **開発体制**:
-- **Pixel (MAESTRO)**: 指揮・モバイル開発
-- **MacBook MUGEN (ORCHESTRATOR)**: メイン開発
-- **EC2 MAJIN (COORDINATOR)**: 並列実行・高負荷処理
+- **📱 Pixel (MAESTRO)**: 指揮・モバイル開発
+- **💻 MacBook (ORCHESTRATOR)**: メイン開発・Claude Desktop
+- **⚡ EC2 MUGEN - 無限 (COORDINATOR)**: 高負荷ビルド・常時稼働サーバー
+- **⚡ EC2 MAJIN - 魔人**: 並列実行・GPU処理
 
 **GitHub as OS アーキテクチャ**:
 Issue作成 → コード実装 → PR作成 → デプロイ を完全自動化
 
 ---
 
-**最終更新**: 2025-11-22
+**最終更新**: 2025-11-26
 **次回レビュー**: 機能追加時または環境変更時
 **メンテナー**: Claude Code on Pixel
+
+---
+
+## 📝 更新履歴
+
+- **2025-11-26**: マシン命名規則を修正（MacBook ≠ MUGEN、MUGEN = EC2）
