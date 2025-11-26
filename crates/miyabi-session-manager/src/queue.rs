@@ -180,7 +180,10 @@ impl MessageQueue {
             // Remove expired messages first
             let expired = queue_guard.remove_expired();
             if expired > 0 {
-                info!("Removed {} expired messages from session {}", expired, session_id);
+                info!(
+                    "Removed {} expired messages from session {}",
+                    expired, session_id
+                );
             }
 
             if let Some(mut message) = queue_guard.dequeue() {

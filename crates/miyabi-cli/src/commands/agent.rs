@@ -44,7 +44,12 @@ impl AgentCommand {
     }
 
     pub async fn execute(&self) -> Result<()> {
-        println!("{}", format!("🤖 Running {} agent...", self.agent_type).cyan().bold());
+        println!(
+            "{}",
+            format!("🤖 Running {} agent...", self.agent_type)
+                .cyan()
+                .bold()
+        );
 
         // Parse agent type
         let agent_type = self.parse_agent_type()?;
@@ -79,8 +84,11 @@ impl AgentCommand {
             AgentType::AnalyticsAgent => self.run_analytics_agent(config).await?,
 
             _ => {
-                println!("{}", format!("Agent type {:?} not yet implemented", agent_type).yellow());
-            },
+                println!(
+                    "{}",
+                    format!("Agent type {:?} not yet implemented", agent_type).yellow()
+                );
+            }
         }
 
         println!();
@@ -246,7 +254,7 @@ impl AgentCommand {
                 println!("{}", "✅ Manual mode setup complete".green().bold());
 
                 Ok(())
-            },
+            }
             ExecutionMode::Auto => {
                 println!("{}", "  🤖 Auto Mode: LLM Code Generation".cyan().bold());
                 println!();
@@ -271,7 +279,7 @@ impl AgentCommand {
                 }
 
                 Ok(())
-            },
+            }
         }
     }
 
@@ -337,7 +345,10 @@ impl AgentCommand {
                 println!("    Severity: {:?}", analysis.severity);
                 println!("    Impact: {:?}", analysis.impact);
                 println!("    Assigned Agent: {:?}", analysis.assigned_agent);
-                println!("    Estimated Duration: {} minutes", analysis.estimated_duration);
+                println!(
+                    "    Estimated Duration: {} minutes",
+                    analysis.estimated_duration
+                );
                 println!("    Dependencies: {}", analysis.dependencies.join(", "));
                 println!("    Applied Labels: {}", analysis.labels.join(", "));
             }
@@ -437,7 +448,10 @@ impl AgentCommand {
         }
 
         if let Some(ref escalation) = result.escalation {
-            println!("    Escalation: {:?} ({})", escalation.target, escalation.reason);
+            println!(
+                "    Escalation: {:?} ({})",
+                escalation.target, escalation.reason
+            );
         }
 
         Ok(())
@@ -478,8 +492,9 @@ impl AgentCommand {
         if let Some(data) = result.data {
             println!(
                 "    Summary: {}",
-                data.get("summary")
-                    .unwrap_or(&serde_json::Value::String("No summary available".to_string()))
+                data.get("summary").unwrap_or(&serde_json::Value::String(
+                    "No summary available".to_string()
+                ))
             );
         }
 
@@ -494,29 +509,50 @@ mod tests {
     #[test]
     fn test_parse_agent_type() {
         let cmd = AgentCommand::new("coordinator".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CoordinatorAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CoordinatorAgent
+        ));
 
         let cmd = AgentCommand::new("codegen".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CodeGenAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CodeGenAgent
+        ));
 
         let cmd = AgentCommand::new("code-gen".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CodeGenAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CodeGenAgent
+        ));
 
         let cmd = AgentCommand::new("invalid".to_string(), None, None);
         assert!(cmd.parse_agent_type().is_err());
 
         // Test Business Agent types
         let cmd = AgentCommand::new("ai-entrepreneur".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::AIEntrepreneurAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::AIEntrepreneurAgent
+        ));
 
         let cmd = AgentCommand::new("entrepreneur".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::AIEntrepreneurAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::AIEntrepreneurAgent
+        ));
 
         let cmd = AgentCommand::new("marketing".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::MarketingAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::MarketingAgent
+        ));
 
         let cmd = AgentCommand::new("analytics".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::AnalyticsAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::AnalyticsAgent
+        ));
     }
 
     #[test]
@@ -533,10 +569,16 @@ mod tests {
     #[test]
     fn test_parse_agent_type_case_insensitive() {
         let cmd = AgentCommand::new("COORDINATOR".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CoordinatorAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CoordinatorAgent
+        ));
 
         let cmd = AgentCommand::new("CoDeGen".to_string(), None, None);
-        assert!(matches!(cmd.parse_agent_type().unwrap(), AgentType::CodeGenAgent));
+        assert!(matches!(
+            cmd.parse_agent_type().unwrap(),
+            AgentType::CodeGenAgent
+        ));
     }
 
     #[test]

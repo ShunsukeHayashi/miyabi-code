@@ -31,8 +31,14 @@ async fn test_e2e_issue_to_plans_workflow() {
     println!("{}", "=".repeat(80));
 
     // Setup: Initialize git repository
-    harness.init_git_repo().await.expect("Failed to initialize git repo");
-    harness.create_initial_commit().await.expect("Failed to create initial commit");
+    harness
+        .init_git_repo()
+        .await
+        .expect("Failed to initialize git repo");
+    harness
+        .create_initial_commit()
+        .await
+        .expect("Failed to create initial commit");
 
     println!("✅ Test environment initialized");
 
@@ -58,7 +64,9 @@ async fn test_e2e_issue_to_plans_workflow() {
     // Step 2: Analyze issue with IssueAgent
     println!("\n📝 Step 2: Analyze Issue with IssueAgent");
     let issue_agent = IssueAgent::new(harness.config().clone());
-    let analysis = issue_agent.analyze_issue(&issue).expect("Failed to analyze issue");
+    let analysis = issue_agent
+        .analyze_issue(&issue)
+        .expect("Failed to analyze issue");
 
     println!("  Issue Type: {:?}", analysis.issue_type);
     println!("  Severity: {:?}", analysis.severity);
@@ -73,11 +81,16 @@ async fn test_e2e_issue_to_plans_workflow() {
     // Step 3: Decompose issue with CoordinatorAgent
     println!("\n📝 Step 3: Decompose Issue with CoordinatorAgent");
     let coordinator = CoordinatorAgent::new(harness.config().clone());
-    let decomposition =
-        coordinator.decompose_issue(&issue).await.expect("Failed to decompose issue");
+    let decomposition = coordinator
+        .decompose_issue(&issue)
+        .await
+        .expect("Failed to decompose issue");
 
     println!("  Tasks Created: {}", decomposition.tasks.len());
-    println!("  Total Duration: {} min", decomposition.estimated_total_duration);
+    println!(
+        "  Total Duration: {} min",
+        decomposition.estimated_total_duration
+    );
     println!("  Has Cycles: {}", decomposition.has_cycles);
 
     for (i, task) in decomposition.tasks.iter().enumerate() {
@@ -90,7 +103,10 @@ async fn test_e2e_issue_to_plans_workflow() {
         );
     }
 
-    assert!(!decomposition.tasks.is_empty(), "Should create at least one task");
+    assert!(
+        !decomposition.tasks.is_empty(),
+        "Should create at least one task"
+    );
     println!("  ✅ Issue decomposed successfully");
 
     // Step 4: Generate Plans.md
@@ -99,7 +115,10 @@ async fn test_e2e_issue_to_plans_workflow() {
 
     println!("  Plans.md Length: {} bytes", plans_md.len());
     assert!(plans_md.contains(&format!("# Plans for Issue #{}", issue.number)));
-    assert!(plans_md.contains("```mermaid"), "Should contain Mermaid diagram");
+    assert!(
+        plans_md.contains("```mermaid"),
+        "Should contain Mermaid diagram"
+    );
     assert!(plans_md.contains("graph TD"), "Should contain task graph");
 
     // Save Plans.md to test directory
@@ -112,16 +131,23 @@ async fn test_e2e_issue_to_plans_workflow() {
 
     // Step 5: Verify Plans.md content
     println!("\n📝 Step 5: Verify Plans.md Content");
-    let plans_content =
-        tokio::fs::read_to_string(&plans_path).await.expect("Failed to read Plans.md");
+    let plans_content = tokio::fs::read_to_string(&plans_path)
+        .await
+        .expect("Failed to read Plans.md");
 
     // Note: Summary section may have emoji (## 📋 Summary), so we check for "Summary" substring
-    assert!(plans_content.contains("Summary"), "Should contain Summary section");
+    assert!(
+        plans_content.contains("Summary"),
+        "Should contain Summary section"
+    );
     assert!(
         plans_content.contains("Task Breakdown") || plans_content.contains("Tasks"),
         "Should contain Task Breakdown or Tasks section"
     );
-    assert!(plans_content.contains("Dependencies"), "Should contain Dependencies section");
+    assert!(
+        plans_content.contains("Dependencies"),
+        "Should contain Dependencies section"
+    );
     assert!(
         plans_content.contains("Execution Plan"),
         "Should contain Execution Plan section"
@@ -142,7 +168,10 @@ async fn test_e2e_issue_to_plans_workflow() {
     println!("  ✅ Issue created and analyzed");
     println!("  ✅ {} tasks decomposed", decomposition.tasks.len());
     println!("  ✅ Plans.md generated ({} bytes)", plans_md.len());
-    println!("  ✅ Total estimated time: {} minutes", decomposition.estimated_total_duration);
+    println!(
+        "  ✅ Total estimated time: {} minutes",
+        decomposition.estimated_total_duration
+    );
 
     // Cleanup
     harness.cleanup().await;
@@ -155,11 +184,20 @@ async fn test_e2e_worktree_workflow() {
     println!("🚀 Starting E2E Test: Worktree Workflow");
     println!("{}", "=".repeat(80));
 
-    let harness = TestHarness::builder().with_temp_prefix("miyabi-worktree-e2e-").build().await;
+    let harness = TestHarness::builder()
+        .with_temp_prefix("miyabi-worktree-e2e-")
+        .build()
+        .await;
 
     // Initialize git repo
-    harness.init_git_repo().await.expect("Failed to init git repo");
-    harness.create_initial_commit().await.expect("Failed to create initial commit");
+    harness
+        .init_git_repo()
+        .await
+        .expect("Failed to init git repo");
+    harness
+        .create_initial_commit()
+        .await
+        .expect("Failed to create initial commit");
 
     println!("✅ Test environment initialized");
 
@@ -197,9 +235,12 @@ mod tests {
 
     // Step 2: Commit changes
     println!("\n📝 Step 2: Commit Changes");
-    create_test_commit(harness.context().root_path(), "feat: add test library with hello function")
-        .await
-        .expect("Failed to commit");
+    create_test_commit(
+        harness.context().root_path(),
+        "feat: add test library with hello function",
+    )
+    .await
+    .expect("Failed to commit");
     println!("  ✅ Changes committed");
 
     // Step 3: Verify git history
@@ -234,7 +275,9 @@ async fn test_e2e_mock_github_api() {
 
     let harness = TestHarness::builder().with_mock_github().build().await;
 
-    let mock = harness.mock_github().expect("Mock GitHub should be available");
+    let mock = harness
+        .mock_github()
+        .expect("Mock GitHub should be available");
 
     // Step 1: Create issues
     println!("\n📝 Step 1: Create Test Issues");

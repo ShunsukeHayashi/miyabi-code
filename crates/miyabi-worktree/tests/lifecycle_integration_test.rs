@@ -65,7 +65,10 @@ async fn test_worktree_creation_and_deletion() {
         WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
     // Create worktree
-    let worktree = manager.create_worktree(100).await.expect("Failed to create worktree");
+    let worktree = manager
+        .create_worktree(100)
+        .await
+        .expect("Failed to create worktree");
 
     assert_eq!(worktree.issue_number, 100);
     assert_eq!(worktree.status, WorktreeStatus::Active);
@@ -78,7 +81,10 @@ async fn test_worktree_creation_and_deletion() {
     assert_eq!(list[0].issue_number, 100);
 
     // Delete worktree
-    manager.remove_worktree(&worktree.id).await.expect("Failed to remove worktree");
+    manager
+        .remove_worktree(&worktree.id)
+        .await
+        .expect("Failed to remove worktree");
 
     // Verify deletion
     assert!(!worktree.path.exists());
@@ -95,7 +101,10 @@ async fn test_worktree_status_transitions() {
     let manager =
         WorktreeManager::new(&repo_path, &worktree_base, 3).expect("Failed to create manager");
 
-    let worktree = manager.create_worktree(200).await.expect("Failed to create worktree");
+    let worktree = manager
+        .create_worktree(200)
+        .await
+        .expect("Failed to create worktree");
 
     assert_eq!(worktree.status, WorktreeStatus::Active);
 
@@ -105,7 +114,10 @@ async fn test_worktree_status_transitions() {
         .await
         .expect("Failed to update status");
 
-    let updated = manager.get_worktree(&worktree.id).await.expect("Failed to get worktree");
+    let updated = manager
+        .get_worktree(&worktree.id)
+        .await
+        .expect("Failed to get worktree");
     assert_eq!(updated.status, WorktreeStatus::Idle);
 
     // Transition to Completed
@@ -114,11 +126,17 @@ async fn test_worktree_status_transitions() {
         .await
         .expect("Failed to update status");
 
-    let updated = manager.get_worktree(&worktree.id).await.expect("Failed to get worktree");
+    let updated = manager
+        .get_worktree(&worktree.id)
+        .await
+        .expect("Failed to get worktree");
     assert_eq!(updated.status, WorktreeStatus::Completed);
 
     // Cleanup
-    manager.remove_worktree(&worktree.id).await.expect("Failed to remove worktree");
+    manager
+        .remove_worktree(&worktree.id)
+        .await
+        .expect("Failed to remove worktree");
 }
 
 #[tokio::test]
@@ -131,9 +149,18 @@ async fn test_multiple_worktrees_creation() {
         WorktreeManager::new(&repo_path, &worktree_base, 5).expect("Failed to create manager");
 
     // Create 3 worktrees
-    let _w1 = manager.create_worktree(301).await.expect("Failed to create worktree 1");
-    let _w2 = manager.create_worktree(302).await.expect("Failed to create worktree 2");
-    let _w3 = manager.create_worktree(303).await.expect("Failed to create worktree 3");
+    let _w1 = manager
+        .create_worktree(301)
+        .await
+        .expect("Failed to create worktree 1");
+    let _w2 = manager
+        .create_worktree(302)
+        .await
+        .expect("Failed to create worktree 2");
+    let _w3 = manager
+        .create_worktree(303)
+        .await
+        .expect("Failed to create worktree 3");
 
     // Verify all exist
     let list = manager.list_worktrees().await;
@@ -175,8 +202,14 @@ async fn test_worktree_manager_stats() {
     let w2 = manager.create_worktree(402).await.expect("Failed");
     let w3 = manager.create_worktree(403).await.expect("Failed");
 
-    manager.update_status(&w2.id, WorktreeStatus::Completed).await.expect("Failed");
-    manager.update_status(&w3.id, WorktreeStatus::Failed).await.expect("Failed");
+    manager
+        .update_status(&w2.id, WorktreeStatus::Completed)
+        .await
+        .expect("Failed");
+    manager
+        .update_status(&w3.id, WorktreeStatus::Failed)
+        .await
+        .expect("Failed");
 
     let stats = manager.stats().await;
     assert_eq!(stats.total, 3);
@@ -226,7 +259,10 @@ async fn test_worktree_get_operations() {
     let worktree = manager.create_worktree(600).await.expect("Failed");
 
     // Get worktree by ID
-    let retrieved = manager.get_worktree(&worktree.id).await.expect("Failed to get worktree");
+    let retrieved = manager
+        .get_worktree(&worktree.id)
+        .await
+        .expect("Failed to get worktree");
 
     assert_eq!(retrieved.id, worktree.id);
     assert_eq!(retrieved.issue_number, 600);
@@ -238,7 +274,10 @@ async fn test_worktree_get_operations() {
     assert_eq!(list[0].id, worktree.id);
 
     // Cleanup
-    manager.remove_worktree(&worktree.id).await.expect("Failed to remove");
+    manager
+        .remove_worktree(&worktree.id)
+        .await
+        .expect("Failed to remove");
 }
 
 #[tokio::test]
@@ -255,7 +294,9 @@ async fn test_worktree_error_handling_nonexistent() {
     assert!(result.is_err());
 
     // Try to update non-existent worktree
-    let result = manager.update_status("nonexistent-id", WorktreeStatus::Completed).await;
+    let result = manager
+        .update_status("nonexistent-id", WorktreeStatus::Completed)
+        .await;
     assert!(result.is_err());
 
     // Try to remove non-existent worktree
@@ -336,7 +377,10 @@ async fn test_worktree_branch_management() {
     assert!(stdout.contains("feature/issue-900"));
 
     // Cleanup
-    manager.remove_worktree(&worktree.id).await.expect("Failed to remove");
+    manager
+        .remove_worktree(&worktree.id)
+        .await
+        .expect("Failed to remove");
 
     // Verify branch was deleted
     let output = std::process::Command::new("git")
@@ -368,7 +412,10 @@ async fn test_worktree_path_structure() {
     assert!(worktree.path.join(".git").exists());
 
     // Cleanup
-    manager.remove_worktree(&worktree.id).await.expect("Failed to remove");
+    manager
+        .remove_worktree(&worktree.id)
+        .await
+        .expect("Failed to remove");
 }
 
 #[tokio::test]

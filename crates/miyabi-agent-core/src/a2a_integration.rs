@@ -271,9 +271,9 @@ pub trait A2AEnabled: BaseAgent {
 
         let result = match tool_name {
             "read_file" => {
-                let path = args["path"]
-                    .as_str()
-                    .ok_or_else(|| A2AIntegrationError::ToolExecutionFailed("Missing path".to_string()))?;
+                let path = args["path"].as_str().ok_or_else(|| {
+                    A2AIntegrationError::ToolExecutionFailed("Missing path".to_string())
+                })?;
 
                 match tokio::fs::read_to_string(path).await {
                     Ok(content) => serde_json::json!({ "content": content }),
@@ -281,20 +281,25 @@ pub trait A2AEnabled: BaseAgent {
                 }
             }
             "list_files" => {
-                let path = args["path"]
-                    .as_str()
-                    .ok_or_else(|| A2AIntegrationError::ToolExecutionFailed("Missing path".to_string()))?;
+                let path = args["path"].as_str().ok_or_else(|| {
+                    A2AIntegrationError::ToolExecutionFailed("Missing path".to_string())
+                })?;
 
                 let mut entries = Vec::new();
-                let mut dir = tokio::fs::read_dir(path).await
+                let mut dir = tokio::fs::read_dir(path)
+                    .await
                     .map_err(|e| A2AIntegrationError::ToolExecutionFailed(e.to_string()))?;
 
-                while let Some(entry) = dir.next_entry().await
+                while let Some(entry) = dir
+                    .next_entry()
+                    .await
                     .map_err(|e| A2AIntegrationError::ToolExecutionFailed(e.to_string()))?
                 {
                     let path = entry.path();
                     let name = entry.file_name().to_string_lossy().to_string();
-                    let is_dir = entry.file_type().await
+                    let is_dir = entry
+                        .file_type()
+                        .await
                         .map(|ft| ft.is_dir())
                         .unwrap_or(false);
 
@@ -308,9 +313,9 @@ pub trait A2AEnabled: BaseAgent {
                 serde_json::json!({ "entries": entries })
             }
             "search_code" => {
-                let pattern = args["pattern"]
-                    .as_str()
-                    .ok_or_else(|| A2AIntegrationError::ToolExecutionFailed("Missing pattern".to_string()))?;
+                let pattern = args["pattern"].as_str().ok_or_else(|| {
+                    A2AIntegrationError::ToolExecutionFailed("Missing pattern".to_string())
+                })?;
 
                 // Validate regex pattern
                 let _regex = regex::Regex::new(pattern)
@@ -370,7 +375,10 @@ pub trait A2AGatewayClient: Send + Sync {
     async fn send_task(&self, task: A2ATask) -> Result<A2ATaskResult, A2AIntegrationError>;
 
     /// Discover agents by capability
-    async fn discover_agents(&self, capability: &str) -> Result<Vec<A2AAgentCard>, A2AIntegrationError>;
+    async fn discover_agents(
+        &self,
+        capability: &str,
+    ) -> Result<Vec<A2AAgentCard>, A2AIntegrationError>;
 
     /// Get a specific agent's card
     async fn get_agent_card(&self, agent_id: &str) -> Result<A2AAgentCard, A2AIntegrationError>;
@@ -495,7 +503,10 @@ mod tests {
                 .build()
         }
 
-        async fn handle_a2a_task(&self, task: A2ATask) -> Result<A2ATaskResult, A2AIntegrationError> {
+        async fn handle_a2a_task(
+            &self,
+            task: A2ATask,
+        ) -> Result<A2ATaskResult, A2AIntegrationError> {
             Ok(A2ATaskResult::Success {
                 output: serde_json::json!({ "result": "ok", "task_id": task.id }),
                 artifacts: vec![],
@@ -519,10 +530,9 @@ mod tests {
         let agent = TestAgent;
 
         // Test list_files on a known directory
-        let result = agent.execute_native_tool(
-            "list_files",
-            serde_json::json!({ "path": "/tmp" })
-        ).await;
+        let result = agent
+            .execute_native_tool("list_files", serde_json::json!({ "path": "/tmp" }))
+            .await;
 
         assert!(result.is_ok());
         let result = result.unwrap();
@@ -534,10 +544,9 @@ mod tests {
     async fn test_tool_not_found() {
         let agent = TestAgent;
 
-        let result = agent.execute_native_tool(
-            "nonexistent_tool",
-            serde_json::json!({})
-        ).await;
+        let result = agent
+            .execute_native_tool("nonexistent_tool", serde_json::json!({}))
+            .await;
 
         assert!(matches!(result, Err(A2AIntegrationError::ToolNotFound(_))));
     }

@@ -28,12 +28,16 @@ impl TaskService {
     ) -> Result<Task, ApiError> {
         // Validate request
         if request.name.trim().is_empty() {
-            return Err(ApiError::Validation("Task name cannot be empty".to_string()));
+            return Err(ApiError::Validation(
+                "Task name cannot be empty".to_string(),
+            ));
         }
 
         let priority = request.priority.unwrap_or_else(|| "P2".to_string());
         if !["P0", "P1", "P2"].contains(&priority.as_str()) {
-            return Err(ApiError::Validation("Invalid priority. Must be P0, P1, or P2".to_string()));
+            return Err(ApiError::Validation(
+                "Invalid priority. Must be P0, P1, or P2".to_string(),
+            ));
         }
 
         let task = sqlx::query_as::<_, Task>(
@@ -117,7 +121,11 @@ impl TaskService {
             param_index += 1;
         }
 
-        query.push_str(&format!(" ORDER BY created_at DESC LIMIT ${} OFFSET ${}", param_index, param_index + 1));
+        query.push_str(&format!(
+            " ORDER BY created_at DESC LIMIT ${} OFFSET ${}",
+            param_index,
+            param_index + 1
+        ));
 
         // Execute count query
         let mut count_q = sqlx::query_scalar(&count_query).bind(user_id);
@@ -220,16 +228,14 @@ impl TaskService {
         sqlx::query("DELETE FROM task_dependencies WHERE task_id = $1 OR depends_on_task_id = $1")
             .bind(task_id)
             .execute(&self.pool)
-            .await
-            ?;
+            .await?;
 
         // Delete task
         sqlx::query("DELETE FROM tasks WHERE id = $1 AND user_id = $2")
             .bind(task_id)
             .bind(user_id)
             .execute(&self.pool)
-            .await
-            ?;
+            .await?;
 
         Ok(())
     }
@@ -247,7 +253,9 @@ impl TaskService {
 
         // Cannot depend on self
         if task_id == depends_on_task_id {
-            return Err(ApiError::Validation("Task cannot depend on itself".to_string()));
+            return Err(ApiError::Validation(
+                "Task cannot depend on itself".to_string(),
+            ));
         }
 
         // Try to add dependency (will fail if cycle detected due to DB trigger)
@@ -266,10 +274,14 @@ impl TaskService {
 
         match dependency {
             Ok(Some(dep)) => Ok(dep),
-            Ok(None) => Err(ApiError::Validation("Dependency already exists".to_string())),
+            Ok(None) => Err(ApiError::Validation(
+                "Dependency already exists".to_string(),
+            )),
             Err(e) => {
                 if e.to_string().contains("Circular dependency") {
-                    Err(ApiError::Validation("Circular dependency detected".to_string()))
+                    Err(ApiError::Validation(
+                        "Circular dependency detected".to_string(),
+                    ))
                 } else {
                     Err(ApiError::Database(e))
                 }
@@ -291,14 +303,17 @@ impl TaskService {
             .bind(task_id)
             .bind(depends_on_task_id)
             .execute(&self.pool)
-            .await
-            ?;
+            .await?;
 
         Ok(())
     }
 
     /// Get task dependencies (upstream)
-    pub async fn get_dependencies(&self, task_id: Uuid, user_id: Uuid) -> Result<Vec<Task>, ApiError> {
+    pub async fn get_dependencies(
+        &self,
+        task_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Vec<Task>, ApiError> {
         // Verify task belongs to user
         self.get_task(task_id, user_id).await?;
 
@@ -313,14 +328,17 @@ impl TaskService {
         .bind(task_id)
         .bind(user_id)
         .fetch_all(&self.pool)
-        .await
-        ?;
+        .await?;
 
         Ok(tasks)
     }
 
     /// Get task dependents (downstream)
-    pub async fn get_dependents(&self, task_id: Uuid, user_id: Uuid) -> Result<Vec<Task>, ApiError> {
+    pub async fn get_dependents(
+        &self,
+        task_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Vec<Task>, ApiError> {
         // Verify task belongs to user
         self.get_task(task_id, user_id).await?;
 
@@ -335,14 +353,17 @@ impl TaskService {
         .bind(task_id)
         .bind(user_id)
         .fetch_all(&self.pool)
-        .await
-        ?;
+        .await?;
 
         Ok(tasks)
     }
 
     /// Get topologically sorted tasks (for execution order)
-    pub async fn get_execution_order(&self, user_id: Uuid, repository_id: Uuid) -> Result<Vec<Task>, ApiError> {
+    pub async fn get_execution_order(
+        &self,
+        user_id: Uuid,
+        repository_id: Uuid,
+    ) -> Result<Vec<Task>, ApiError> {
         // Get all tasks for this repository
         let tasks = sqlx::query_as::<_, Task>(
             "SELECT * FROM tasks WHERE user_id = $1 AND repository_id = $2 AND status != 'completed' AND status != 'cancelled'"
@@ -364,8 +385,7 @@ impl TaskService {
         .bind(user_id)
         .bind(repository_id)
         .fetch_all(&self.pool)
-        .await
-        ?;
+        .await?;
 
         // Perform topological sort
         let sorted = self.topological_sort(tasks, dependencies)?;
@@ -373,14 +393,21 @@ impl TaskService {
     }
 
     /// Topological sort using Kahn's algorithm
-    fn topological_sort(&self, tasks: Vec<Task>, dependencies: Vec<TaskDependency>) -> Result<Vec<Task>, ApiError> {
+    fn topological_sort(
+        &self,
+        tasks: Vec<Task>,
+        dependencies: Vec<TaskDependency>,
+    ) -> Result<Vec<Task>, ApiError> {
         let mut task_map: HashMap<Uuid, Task> = tasks.into_iter().map(|t| (t.id, t)).collect();
         let mut in_degree: HashMap<Uuid, usize> = task_map.keys().map(|&id| (id, 0)).collect();
         let mut adjacency: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
 
         // Build adjacency list and calculate in-degrees
         for dep in dependencies {
-            adjacency.entry(dep.depends_on_task_id).or_insert_with(Vec::new).push(dep.task_id);
+            adjacency
+                .entry(dep.depends_on_task_id)
+                .or_insert_with(Vec::new)
+                .push(dep.task_id);
             *in_degree.entry(dep.task_id).or_insert(0) += 1;
         }
 
@@ -412,7 +439,9 @@ impl TaskService {
 
         // If not all tasks are sorted, there's a cycle (shouldn't happen due to DB constraint)
         if sorted.len() != task_map.len() + sorted.len() {
-            return Err(ApiError::Internal("Cycle detected in task dependencies".to_string()));
+            return Err(ApiError::Internal(
+                "Cycle detected in task dependencies".to_string(),
+            ));
         }
 
         Ok(sorted)
@@ -424,14 +453,20 @@ impl TaskService {
 
         // Check if task is in pending state
         if task.status != "pending" {
-            return Err(ApiError::Validation(format!("Task cannot be started from {} state", task.status)));
+            return Err(ApiError::Validation(format!(
+                "Task cannot be started from {} state",
+                task.status
+            )));
         }
 
         // Check if all dependencies are completed
         let dependencies = self.get_dependencies(task_id, user_id).await?;
         for dep in dependencies {
             if dep.status != "completed" {
-                return Err(ApiError::Validation(format!("Dependency {} is not completed", dep.name)));
+                return Err(ApiError::Validation(format!(
+                    "Dependency {} is not completed",
+                    dep.name
+                )));
             }
         }
 
@@ -450,11 +485,19 @@ impl TaskService {
     }
 
     /// Complete task
-    pub async fn complete_task(&self, task_id: Uuid, user_id: Uuid, result: Option<serde_json::Value>) -> Result<Task, ApiError> {
+    pub async fn complete_task(
+        &self,
+        task_id: Uuid,
+        user_id: Uuid,
+        result: Option<serde_json::Value>,
+    ) -> Result<Task, ApiError> {
         let task = self.get_task(task_id, user_id).await?;
 
         if task.status != "running" {
-            return Err(ApiError::Validation(format!("Task cannot be completed from {} state", task.status)));
+            return Err(ApiError::Validation(format!(
+                "Task cannot be completed from {} state",
+                task.status
+            )));
         }
 
         let task = sqlx::query_as::<_, Task>(
@@ -472,7 +515,12 @@ impl TaskService {
     }
 
     /// Fail task
-    pub async fn fail_task(&self, task_id: Uuid, user_id: Uuid, error_message: String) -> Result<Task, ApiError> {
+    pub async fn fail_task(
+        &self,
+        task_id: Uuid,
+        user_id: Uuid,
+        error_message: String,
+    ) -> Result<Task, ApiError> {
         let task = self.get_task(task_id, user_id).await?;
 
         // Check if we should retry
@@ -511,7 +559,10 @@ impl TaskService {
         let task = self.get_task(task_id, user_id).await?;
 
         if task.status == "completed" || task.status == "cancelled" {
-            return Err(ApiError::Validation(format!("Cannot cancel task in {} state", task.status)));
+            return Err(ApiError::Validation(format!(
+                "Cannot cancel task in {} state",
+                task.status
+            )));
         }
 
         let task = sqlx::query_as::<_, Task>(
@@ -541,7 +592,10 @@ impl TaskService {
         if valid_transitions.contains(&(from, to)) {
             Ok(())
         } else {
-            Err(ApiError::Validation(format!("Invalid status transition from {} to {}", from, to)))
+            Err(ApiError::Validation(format!(
+                "Invalid status transition from {} to {}",
+                from, to
+            )))
         }
     }
 }
@@ -554,15 +608,23 @@ mod tests {
     #[ignore = "requires database connection"]
     fn test_validate_status_transition_valid() {
         let service = TaskService::new(PgPool::connect_lazy("postgres://localhost/test").unwrap());
-        assert!(service.validate_status_transition("pending", "running").is_ok());
-        assert!(service.validate_status_transition("running", "completed").is_ok());
+        assert!(service
+            .validate_status_transition("pending", "running")
+            .is_ok());
+        assert!(service
+            .validate_status_transition("running", "completed")
+            .is_ok());
     }
 
     #[test]
     #[ignore = "requires database connection"]
     fn test_validate_status_transition_invalid() {
         let service = TaskService::new(PgPool::connect_lazy("postgres://localhost/test").unwrap());
-        assert!(service.validate_status_transition("completed", "pending").is_err());
-        assert!(service.validate_status_transition("pending", "completed").is_err());
+        assert!(service
+            .validate_status_transition("completed", "pending")
+            .is_err());
+        assert!(service
+            .validate_status_transition("pending", "completed")
+            .is_err());
     }
 }

@@ -40,10 +40,11 @@ impl QdrantClient {
         let collection_name = &self.config.vector_db.collection;
 
         // Collection存在確認
-        let exists =
-            self.client.collection_exists(collection_name).await.map_err(|e| {
-                KnowledgeError::Qdrant(format!("Failed to check collection: {}", e))
-            })?;
+        let exists = self
+            .client
+            .collection_exists(collection_name)
+            .await
+            .map_err(|e| KnowledgeError::Qdrant(format!("Failed to check collection: {}", e)))?;
 
         if exists {
             info!("Collection '{}' already exists", collection_name);
@@ -224,8 +225,9 @@ impl QdrantClient {
 
         // Scroll through all points
         loop {
-            let mut builder =
-                ScrollPointsBuilder::new(collection_name).with_payload(true).limit(100);
+            let mut builder = ScrollPointsBuilder::new(collection_name)
+                .with_payload(true)
+                .limit(100);
 
             if let Some(offset_id) = offset {
                 builder = builder.offset(offset_id);
@@ -251,8 +253,10 @@ impl QdrantClient {
                     .map(|s| s.to_string())
                     .unwrap_or_default();
 
-                let timestamp_str =
-                    payload.get("timestamp").and_then(|v| v.as_str()).map_or("", |v| v);
+                let timestamp_str = payload
+                    .get("timestamp")
+                    .and_then(|v| v.as_str())
+                    .map_or("", |v| v);
 
                 let timestamp = DateTime::parse_from_rfc3339(timestamp_str)
                     .map(|dt| dt.with_timezone(&chrono::Utc))
@@ -263,7 +267,7 @@ impl QdrantClient {
                     Some(pid) => match &pid.point_id_options {
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(n)) => {
                             n.to_string()
-                        },
+                        }
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(u)) => u.clone(),
                         None => String::new(),
                     },
@@ -272,14 +276,26 @@ impl QdrantClient {
 
                 let metadata = KnowledgeMetadata {
                     workspace,
-                    worktree: payload.get("worktree").and_then(|v| v.as_str()).map(String::from),
-                    agent: payload.get("agent").and_then(|v| v.as_str()).map(String::from),
+                    worktree: payload
+                        .get("worktree")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
+                    agent: payload
+                        .get("agent")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
                     issue_number: payload
                         .get("issue_number")
                         .and_then(|v| v.as_integer())
                         .map(|i| i as u32),
-                    task_type: payload.get("task_type").and_then(|v| v.as_str()).map(String::from),
-                    outcome: payload.get("outcome").and_then(|v| v.as_str()).map(String::from),
+                    task_type: payload
+                        .get("task_type")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
+                    outcome: payload
+                        .get("outcome")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
                     tools_used: None,
                     files_changed: None,
                     extra: serde_json::Map::new(),
@@ -311,10 +327,11 @@ impl QdrantClient {
     pub async fn collection_info(&self) -> Result<CollectionInfo> {
         let collection_name = &self.config.vector_db.collection;
 
-        let info =
-            self.client.collection_info(collection_name).await.map_err(|e| {
-                KnowledgeError::Qdrant(format!("Failed to get collection info: {}", e))
-            })?;
+        let info = self
+            .client
+            .collection_info(collection_name)
+            .await
+            .map_err(|e| KnowledgeError::Qdrant(format!("Failed to get collection info: {}", e)))?;
 
         Ok(info.result.unwrap())
     }

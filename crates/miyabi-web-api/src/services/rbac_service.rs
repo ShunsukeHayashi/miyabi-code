@@ -3,11 +3,11 @@
 //! Issue: #975 Phase 1.4 - RBAC Implementation
 //! Provides authorization checking and permission management.
 
+use crate::error::{AppError, Result};
 use crate::models::rbac::{
     EffectivePermission, Permission, PermissionCheckResult, Role, RoleWithPermissions,
     UserPermission,
 };
-use crate::error::{AppError, Result};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -31,15 +31,13 @@ impl RbacService {
         permission_code: &str,
     ) -> Result<PermissionCheckResult> {
         // Check using the has_permission function
-        let result: Option<(bool,)> = sqlx::query_as(
-            "SELECT has_permission($1, $2, $3)"
-        )
-        .bind(user_id)
-        .bind(organization_id)
-        .bind(permission_code)
-        .fetch_optional(&self.db)
-        .await
-        .map_err(AppError::Database)?;
+        let result: Option<(bool,)> = sqlx::query_as("SELECT has_permission($1, $2, $3)")
+            .bind(user_id)
+            .bind(organization_id)
+            .bind(permission_code)
+            .fetch_optional(&self.db)
+            .await
+            .map_err(AppError::Database)?;
 
         let allowed = result.map(|(b,)| b).unwrap_or(false);
 
@@ -53,7 +51,7 @@ impl RbacService {
                   AND organization_id = $2
                   AND permission_code = $3
                 LIMIT 1
-                "#
+                "#,
             )
             .bind(user_id)
             .bind(organization_id)
@@ -83,7 +81,9 @@ impl RbacService {
         permission_codes: &[&str],
     ) -> Result<bool> {
         for code in permission_codes {
-            let result = self.check_permission(user_id, organization_id, code).await?;
+            let result = self
+                .check_permission(user_id, organization_id, code)
+                .await?;
             if result.allowed {
                 return Ok(true);
             }
@@ -99,7 +99,9 @@ impl RbacService {
         permission_codes: &[&str],
     ) -> Result<bool> {
         for code in permission_codes {
-            let result = self.check_permission(user_id, organization_id, code).await?;
+            let result = self
+                .check_permission(user_id, organization_id, code)
+                .await?;
             if !result.allowed {
                 return Ok(false);
             }
@@ -120,7 +122,7 @@ impl RbacService {
             WHERE user_id = $1
               AND organization_id = $2
             ORDER BY category, permission_code
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(organization_id)
@@ -144,7 +146,7 @@ impl RbacService {
             WHERE user_id = $1
               AND organization_id = $2
               AND status = 'active'
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(organization_id)
@@ -162,7 +164,7 @@ impl RbacService {
             SELECT id, code, name, description, category, created_at
             FROM permissions
             ORDER BY category, code
-            "#
+            "#,
         )
         .fetch_all(&self.db)
         .await
@@ -178,7 +180,7 @@ impl RbacService {
             SELECT id, code, name, description, scope, is_system, created_at
             FROM roles
             ORDER BY scope, code
-            "#
+            "#,
         )
         .fetch_all(&self.db)
         .await
@@ -188,14 +190,17 @@ impl RbacService {
     }
 
     /// Get role with its permissions
-    pub async fn get_role_with_permissions(&self, role_code: &str) -> Result<Option<RoleWithPermissions>> {
+    pub async fn get_role_with_permissions(
+        &self,
+        role_code: &str,
+    ) -> Result<Option<RoleWithPermissions>> {
         // Get the role
         let role: Option<Role> = sqlx::query_as(
             r#"
             SELECT id, code, name, description, scope, is_system, created_at
             FROM roles
             WHERE code = $1
-            "#
+            "#,
         )
         .bind(role_code)
         .fetch_optional(&self.db)
@@ -215,7 +220,7 @@ impl RbacService {
             JOIN roles r ON rp.role_id = r.id
             WHERE r.code = $1
             ORDER BY p.category, p.code
-            "#
+            "#,
         )
         .bind(role_code)
         .fetch_all(&self.db)
@@ -235,16 +240,18 @@ impl RbacService {
         expires_at: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<UserPermission> {
         // Get permission ID from code
-        let permission: Option<(Uuid,)> = sqlx::query_as(
-            "SELECT id FROM permissions WHERE code = $1"
-        )
-        .bind(permission_code)
-        .fetch_optional(&self.db)
-        .await
-        .map_err(AppError::Database)?;
+        let permission: Option<(Uuid,)> =
+            sqlx::query_as("SELECT id FROM permissions WHERE code = $1")
+                .bind(permission_code)
+                .fetch_optional(&self.db)
+                .await
+                .map_err(AppError::Database)?;
 
         let Some((permission_id,)) = permission else {
-            return Err(AppError::NotFound(format!("Permission not found: {}", permission_code)));
+            return Err(AppError::NotFound(format!(
+                "Permission not found: {}",
+                permission_code
+            )));
         };
 
         // Insert the user permission
@@ -277,16 +284,18 @@ impl RbacService {
         organization_id: Option<Uuid>,
     ) -> Result<bool> {
         // Get permission ID from code
-        let permission: Option<(Uuid,)> = sqlx::query_as(
-            "SELECT id FROM permissions WHERE code = $1"
-        )
-        .bind(permission_code)
-        .fetch_optional(&self.db)
-        .await
-        .map_err(AppError::Database)?;
+        let permission: Option<(Uuid,)> =
+            sqlx::query_as("SELECT id FROM permissions WHERE code = $1")
+                .bind(permission_code)
+                .fetch_optional(&self.db)
+                .await
+                .map_err(AppError::Database)?;
 
         let Some((permission_id,)) = permission else {
-            return Err(AppError::NotFound(format!("Permission not found: {}", permission_code)));
+            return Err(AppError::NotFound(format!(
+                "Permission not found: {}",
+                permission_code
+            )));
         };
 
         // Delete the user permission
@@ -296,7 +305,7 @@ impl RbacService {
             WHERE user_id = $1
               AND permission_id = $2
               AND (organization_id = $3 OR ($3 IS NULL AND organization_id IS NULL))
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(permission_id)
@@ -318,7 +327,7 @@ impl RbacService {
               AND organization_id = $2
               AND role = 'owner'
               AND status = 'active'
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(organization_id)
@@ -339,7 +348,7 @@ impl RbacService {
               AND organization_id = $2
               AND role IN ('owner', 'admin')
               AND status = 'active'
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(organization_id)
@@ -359,7 +368,7 @@ impl RbacService {
             WHERE user_id = $1
               AND team_id = $2
               AND role = 'lead'
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(team_id)

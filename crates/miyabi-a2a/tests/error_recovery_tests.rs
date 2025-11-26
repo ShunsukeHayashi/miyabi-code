@@ -291,9 +291,11 @@ async fn test_cancel_task_success() {
         storage: Arc::new(storage),
     };
 
-    let response =
-        cancel_task(axum::extract::State(state.clone()), axum::extract::Path("1".to_string()))
-            .await;
+    let response = cancel_task(
+        axum::extract::State(state.clone()),
+        axum::extract::Path("1".to_string()),
+    )
+    .await;
 
     assert!(response.is_ok());
     let response = response.unwrap();
@@ -308,8 +310,11 @@ async fn test_cancel_task_success() {
 async fn test_cancel_task_not_found() {
     let state = create_test_state();
 
-    let response =
-        cancel_task(axum::extract::State(state), axum::extract::Path("999".to_string())).await;
+    let response = cancel_task(
+        axum::extract::State(state),
+        axum::extract::Path("999".to_string()),
+    )
+    .await;
 
     assert!(response.is_err());
     let error = response.unwrap_err();
@@ -330,8 +335,11 @@ async fn test_cancel_task_invalid_state() {
         storage: Arc::new(storage),
     };
 
-    let response =
-        cancel_task(axum::extract::State(state), axum::extract::Path("1".to_string())).await;
+    let response = cancel_task(
+        axum::extract::State(state),
+        axum::extract::Path("1".to_string()),
+    )
+    .await;
 
     assert!(response.is_err());
     let error = response.unwrap_err();
@@ -343,8 +351,11 @@ async fn test_cancel_task_invalid_state() {
 async fn test_cancel_task_invalid_task_id() {
     let state = create_test_state();
 
-    let response =
-        cancel_task(axum::extract::State(state), axum::extract::Path("invalid".to_string())).await;
+    let response = cancel_task(
+        axum::extract::State(state),
+        axum::extract::Path("invalid".to_string()),
+    )
+    .await;
 
     assert!(response.is_err());
     let error = response.unwrap_err();

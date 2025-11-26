@@ -159,7 +159,10 @@ impl PRAgent {
             .and_then(|v| v.as_str())
             .ok_or_else(|| MiyabiError::Validation("Branch name is missing".to_string()))?;
 
-        let base_branch = metadata.get("baseBranch").and_then(|v| v.as_str()).unwrap_or("main");
+        let base_branch = metadata
+            .get("baseBranch")
+            .and_then(|v| v.as_str())
+            .unwrap_or("main");
 
         // Generate PR title and body
         let title = self.generate_pr_title(task);
@@ -184,7 +187,12 @@ impl PRAgent {
         let client = GitHubClient::new(&github_token, repo_owner.clone(), repo_name.clone())?;
 
         // Create draft PR
-        tracing::info!("Creating draft PR: {} from {} to {}", title, branch, base_branch);
+        tracing::info!(
+            "Creating draft PR: {} from {} to {}",
+            title,
+            branch,
+            base_branch
+        );
 
         let pr = client
             .create_pull_request(&title, branch, base_branch, Some(&body), true)
@@ -328,24 +336,39 @@ impl A2AEnabled for PRAgent {
             .build()
     }
 
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
             "create_pr" => {
-                let branch = task.input.get("branch")
+                let branch = task
+                    .input
+                    .get("branch")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing branch".to_string()))?;
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing branch".to_string())
+                    })?;
 
-                let title = task.input.get("title")
+                let title = task
+                    .input
+                    .get("title")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?;
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing title".to_string())
+                    })?;
 
-                let base_branch = task.input.get("base_branch")
+                let base_branch = task
+                    .input
+                    .get("base_branch")
                     .and_then(|v| v.as_str())
                     .unwrap_or("main");
 
-                let description = task.input.get("description")
+                let description = task
+                    .input
+                    .get("description")
                     .and_then(|v| v.as_str())
                     .unwrap_or("");
 
@@ -388,9 +411,10 @@ impl A2AEnabled for PRAgent {
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(
-                format!("Unknown capability: {}", task.capability)
-            ))
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
         }
     }
 
@@ -457,12 +481,30 @@ mod tests {
 
     #[test]
     fn test_conventional_commits_prefix() {
-        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Feature), "feat");
-        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Bug), "fix");
-        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Refactor), "refactor");
-        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Docs), "docs");
-        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Test), "test");
-        assert_eq!(PRAgent::get_conventional_commits_prefix(TaskType::Deployment), "ci");
+        assert_eq!(
+            PRAgent::get_conventional_commits_prefix(TaskType::Feature),
+            "feat"
+        );
+        assert_eq!(
+            PRAgent::get_conventional_commits_prefix(TaskType::Bug),
+            "fix"
+        );
+        assert_eq!(
+            PRAgent::get_conventional_commits_prefix(TaskType::Refactor),
+            "refactor"
+        );
+        assert_eq!(
+            PRAgent::get_conventional_commits_prefix(TaskType::Docs),
+            "docs"
+        );
+        assert_eq!(
+            PRAgent::get_conventional_commits_prefix(TaskType::Test),
+            "test"
+        );
+        assert_eq!(
+            PRAgent::get_conventional_commits_prefix(TaskType::Deployment),
+            "ci"
+        );
     }
 
     #[test]
@@ -474,9 +516,15 @@ mod tests {
         );
 
         // Keyword detection (returns first keyword found in keywords array)
-        assert_eq!(PRAgent::detect_scope_from_title("Fix API error"), Some("api".to_string()));
+        assert_eq!(
+            PRAgent::detect_scope_from_title("Fix API error"),
+            Some("api".to_string())
+        );
 
-        assert_eq!(PRAgent::detect_scope_from_title("Update DB schema"), Some("db".to_string()));
+        assert_eq!(
+            PRAgent::detect_scope_from_title("Update DB schema"),
+            Some("db".to_string())
+        );
 
         // Multiple keywords - returns first in array order
         assert_eq!(
@@ -566,6 +614,9 @@ mod tests {
 
         let result = agent.execute(&task).await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("metadata is required"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("metadata is required"));
     }
 }

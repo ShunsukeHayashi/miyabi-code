@@ -83,7 +83,10 @@ fn test_issue_url_construction() {
     let repo = "test-repo";
     let issue_number = 418;
 
-    let url = format!("https://github.com/{}/{}/issues/{}", owner, repo, issue_number);
+    let url = format!(
+        "https://github.com/{}/{}/issues/{}",
+        owner, repo, issue_number
+    );
     assert_eq!(url, "https://github.com/test-owner/test-repo/issues/418");
 }
 
@@ -111,7 +114,10 @@ fn test_issue_label_parsing() {
     assert_eq!(*type_labels[0], "type:test");
 
     // Parse priority
-    let priority_labels: Vec<_> = labels.iter().filter(|l| l.starts_with("priority:")).collect();
+    let priority_labels: Vec<_> = labels
+        .iter()
+        .filter(|l| l.starts_with("priority:"))
+        .collect();
     assert_eq!(priority_labels.len(), 1);
     assert_eq!(*priority_labels[0], "priority:P1-High");
 }

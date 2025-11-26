@@ -18,9 +18,7 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
     // Phase 1: Create A2A Bridge
     println!("📦 Phase 1: Creating A2A Bridge...");
     let start = Instant::now();
-    let bridge = A2ABridge::new()
-        .await
-        .expect("Failed to create A2ABridge");
+    let bridge = A2ABridge::new().await.expect("Failed to create A2ABridge");
     println!("   ✅ Bridge created in {:?}\n", start.elapsed());
 
     // Phase 2: Register all 21 agents
@@ -29,7 +27,11 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
     let count = initialize_all_agents(&bridge)
         .await
         .expect("Failed to initialize agents");
-    println!("   ✅ Registered {} agents in {:?}\n", count, start.elapsed());
+    println!(
+        "   ✅ Registered {} agents in {:?}\n",
+        count,
+        start.elapsed()
+    );
     assert_eq!(count, 21, "Expected 21 agents, got {}", count);
 
     // Phase 3: List registered agents
@@ -48,7 +50,8 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
     println!("   Found {} tools:", tools.len());
 
     // Group tools by agent
-    let mut tools_by_agent: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+    let mut tools_by_agent: std::collections::HashMap<String, Vec<String>> =
+        std::collections::HashMap::new();
     for tool in &tools {
         let parts: Vec<&str> = tool.name.split('.').collect();
         if parts.len() >= 2 {
@@ -90,7 +93,10 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
 
     println!("   Execution time: {:?}", start.elapsed());
     println!("   Success: {}", result.success);
-    println!("   Output: {}", serde_json::to_string_pretty(&result.output).unwrap_or_default());
+    println!(
+        "   Output: {}",
+        serde_json::to_string_pretty(&result.output).unwrap_or_default()
+    );
     if let Some(err) = &result.error {
         println!("   Error: {}", err);
     }
@@ -149,7 +155,10 @@ async fn test_e2e_rust_tool_invocation_full_flow() {
 
     assert!(!result.success, "Invalid tool should fail");
     assert!(result.error.is_some(), "Should have error message");
-    println!("   ✅ Invalid tool correctly rejected: {}", result.error.unwrap_or_default());
+    println!(
+        "   ✅ Invalid tool correctly rejected: {}",
+        result.error.unwrap_or_default()
+    );
     println!();
 
     // Test 5e: Test non-existent agent
@@ -179,7 +188,9 @@ async fn test_e2e_tool_execution_timing() {
     println!("\n⏱️ Tool Execution Timing Test\n");
 
     let bridge = A2ABridge::new().await.expect("Failed to create bridge");
-    initialize_all_agents(&bridge).await.expect("Failed to init agents");
+    initialize_all_agents(&bridge)
+        .await
+        .expect("Failed to init agents");
 
     let tools = bridge.get_tool_definitions().await;
 
@@ -225,10 +236,10 @@ async fn test_e2e_tool_execution_timing() {
 async fn test_e2e_concurrent_tool_execution() {
     println!("\n🔄 Concurrent Tool Execution Test\n");
 
-    let bridge = std::sync::Arc::new(
-        A2ABridge::new().await.expect("Failed to create bridge")
-    );
-    initialize_all_agents(&bridge).await.expect("Failed to init agents");
+    let bridge = std::sync::Arc::new(A2ABridge::new().await.expect("Failed to create bridge"));
+    initialize_all_agents(&bridge)
+        .await
+        .expect("Failed to init agents");
 
     // Execute multiple tools concurrently
     let bridge1 = bridge.clone();
@@ -246,12 +257,30 @@ async fn test_e2e_concurrent_tool_execution() {
     let elapsed = start.elapsed();
 
     println!("Concurrent execution completed in {:?}", elapsed);
-    println!("   Result 1: {}", r1.as_ref().map(|r| r.success.to_string()).unwrap_or_else(|e| e.to_string()));
-    println!("   Result 2: {}", r2.as_ref().map(|r| r.success.to_string()).unwrap_or_else(|e| e.to_string()));
-    println!("   Result 3: {}", r3.as_ref().map(|r| r.success.to_string()).unwrap_or_else(|e| e.to_string()));
+    println!(
+        "   Result 1: {}",
+        r1.as_ref()
+            .map(|r| r.success.to_string())
+            .unwrap_or_else(|e| e.to_string())
+    );
+    println!(
+        "   Result 2: {}",
+        r2.as_ref()
+            .map(|r| r.success.to_string())
+            .unwrap_or_else(|e| e.to_string())
+    );
+    println!(
+        "   Result 3: {}",
+        r3.as_ref()
+            .map(|r| r.success.to_string())
+            .unwrap_or_else(|e| e.to_string())
+    );
     println!();
 
     // Verify all completed
-    assert!(r1.is_ok() && r2.is_ok() && r3.is_ok(), "All concurrent executions should complete");
+    assert!(
+        r1.is_ok() && r2.is_ok() && r3.is_ok(),
+        "All concurrent executions should complete"
+    );
     println!("✅ Concurrent execution test passed!\n");
 }

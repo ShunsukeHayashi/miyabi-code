@@ -105,7 +105,9 @@ impl ApprovalState {
             return false;
         }
 
-        let elapsed = Utc::now().signed_duration_since(self.created_at).num_seconds() as u64;
+        let elapsed = Utc::now()
+            .signed_duration_since(self.created_at)
+            .num_seconds() as u64;
 
         elapsed >= self.timeout_seconds
     }

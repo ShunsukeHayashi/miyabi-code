@@ -91,7 +91,8 @@ pub async fn get_database_status_detailed() -> Json<DatabaseStatusDetailed> {
 }
 
 fn get_tables_from_migrations() -> Result<Vec<String>, String> {
-    let migrations_dir = "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/crates/miyabi-web-api/migrations";
+    let migrations_dir =
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/crates/miyabi-web-api/migrations";
 
     let mut tables = Vec::new();
 

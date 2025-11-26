@@ -321,7 +321,9 @@ mod tests {
         let result: std::result::Result<(), io::Error> =
             Err(io::Error::from(io::ErrorKind::NotFound));
 
-        let error = result.with_context(|| "Failed to load configuration").unwrap_err();
+        let error = result
+            .with_context(|| "Failed to load configuration")
+            .unwrap_err();
 
         assert_eq!(error.code(), ErrorCode::INTERNAL_ERROR);
         assert!(error.to_string().contains("Failed to load configuration"));

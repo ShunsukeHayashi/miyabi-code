@@ -130,7 +130,10 @@ impl HeadlessOrchestrator {
     pub fn new(config: HeadlessOrchestratorConfig) -> Self {
         info!("🚀 Initializing Headless Orchestrator");
         info!("   Autonomous mode: {}", config.autonomous_mode);
-        info!("   Auto-approve threshold: {}", config.auto_approve_complexity);
+        info!(
+            "   Auto-approve threshold: {}",
+            config.auto_approve_complexity
+        );
         info!("   Auto-merge threshold: {}", config.auto_merge_quality);
         info!("   Dry-run: {}", config.dry_run);
 
@@ -161,12 +164,12 @@ impl HeadlessOrchestrator {
                 Ok(manager) => {
                     info!("   WorktreeManager initialized: .worktrees/ (max 5 concurrent)");
                     Some(Arc::new(manager))
-                },
+                }
                 Err(e) => {
                     warn!("   Failed to initialize WorktreeManager: {}", e);
                     warn!("   Continuing without worktree support");
                     None
-                },
+                }
             }
         } else {
             info!("   Dry-run mode: WorktreeManager disabled");
@@ -200,7 +203,7 @@ impl HeadlessOrchestrator {
             agent_config,
             github_client: None,
             worktree_manager,
-            pr_creator: None, // Will be initialized when GitHub client is set
+            pr_creator: None,    // Will be initialized when GitHub client is set
             skills_bridge: None, // Will be initialized via with_skills_bridge()
             active_executions: Arc::new(RwLock::new(std::collections::HashMap::new())),
         }
@@ -209,8 +212,10 @@ impl HeadlessOrchestrator {
     /// Enable SessionManager for Agent-to-Agent handoff with Message Queue
     pub async fn with_session_manager(mut self) -> Result<Self> {
         if !self.config.dry_run {
-            let session_manager =
-                SessionManager::new(".ai/sessions").await?.with_message_queue(true).await?;
+            let session_manager = SessionManager::new(".ai/sessions")
+                .await?
+                .with_message_queue(true)
+                .await?;
             info!("   SessionManager initialized: .ai/sessions/ (Message Queue enabled)");
             self.session_manager = Some(Arc::new(session_manager));
         } else {
@@ -220,7 +225,12 @@ impl HeadlessOrchestrator {
     }
 
     /// Enable Skills Bridge for skill execution integration
-    pub fn with_skills_bridge(mut self) -> (Self, tokio::sync::mpsc::UnboundedReceiver<crate::skills_bridge::OrchestratorEvent>) {
+    pub fn with_skills_bridge(
+        mut self,
+    ) -> (
+        Self,
+        tokio::sync::mpsc::UnboundedReceiver<crate::skills_bridge::OrchestratorEvent>,
+    ) {
         let (bridge, event_rx) = SkillsBridge::new();
         info!("   Skills Bridge initialized: Orchestrator ↔ Skills integration enabled");
         self.skills_bridge = Some(Arc::new(bridge));
@@ -234,7 +244,10 @@ impl HeadlessOrchestrator {
     ) -> Self {
         info!("🚀 Initializing Headless Orchestrator with GitHub integration");
         info!("   Autonomous mode: {}", config.autonomous_mode);
-        info!("   Auto-approve threshold: {}", config.auto_approve_complexity);
+        info!(
+            "   Auto-approve threshold: {}",
+            config.auto_approve_complexity
+        );
         info!("   Auto-merge threshold: {}", config.auto_merge_quality);
         info!("   Dry-run: {}", config.dry_run);
 
@@ -265,12 +278,12 @@ impl HeadlessOrchestrator {
                 Ok(manager) => {
                     info!("   WorktreeManager initialized: .worktrees/ (max 5 concurrent)");
                     Some(Arc::new(manager))
-                },
+                }
                 Err(e) => {
                     warn!("   Failed to initialize WorktreeManager: {}", e);
                     warn!("   Continuing without worktree support");
                     None
-                },
+                }
             }
         } else {
             info!("   Dry-run mode: WorktreeManager disabled");
@@ -300,7 +313,10 @@ impl HeadlessOrchestrator {
                 base_branch: "main".to_string(),
                 draft: false,
             };
-            info!("   PRCreator initialized: base_branch={}", pr_config.base_branch);
+            info!(
+                "   PRCreator initialized: base_branch={}",
+                pr_config.base_branch
+            );
             Some(PRCreator::new(pr_config))
         } else {
             info!("   Dry-run mode: PRCreator disabled");
@@ -349,7 +365,9 @@ impl HeadlessOrchestrator {
         }
 
         // Phase 1: Issue Analysis
-        let analysis_result = self.run_phase_1_issue_analysis(issue, &mut state_machine).await?;
+        let analysis_result = self
+            .run_phase_1_issue_analysis(issue, &mut state_machine)
+            .await?;
 
         // Check complexity and decide
         let decision = self
@@ -369,10 +387,14 @@ impl HeadlessOrchestrator {
                 self.notification_service.send(&notification).await?;
 
                 // Continue to Phase 2: Task Decomposition
-                let decomposition =
-                    self.run_phase_2_task_decomposition(issue, &mut state_machine).await?;
+                let decomposition = self
+                    .run_phase_2_task_decomposition(issue, &mut state_machine)
+                    .await?;
 
-                info!("✅ Phase 2 complete: {} tasks generated", decomposition.tasks.len());
+                info!(
+                    "✅ Phase 2 complete: {} tasks generated",
+                    decomposition.tasks.len()
+                );
 
                 // Continue to Phase 3: Worktree Creation (if multiple tasks and worktree enabled)
                 if decomposition.tasks.len() > 1 {
@@ -464,7 +486,7 @@ impl HeadlessOrchestrator {
                 } else {
                     info!("⏭️  Phase 3 skipped: Single task execution (worktree not needed)");
                 }
-            },
+            }
             Decision::NotifyAndProceed { delay_seconds } => {
                 info!(
                     "🔔 Notifying and proceeding after {}s for Issue #{}",
@@ -483,10 +505,14 @@ impl HeadlessOrchestrator {
                 tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
 
                 // Continue to Phase 2: Task Decomposition
-                let decomposition =
-                    self.run_phase_2_task_decomposition(issue, &mut state_machine).await?;
+                let decomposition = self
+                    .run_phase_2_task_decomposition(issue, &mut state_machine)
+                    .await?;
 
-                info!("✅ Phase 2 complete: {} tasks generated", decomposition.tasks.len());
+                info!(
+                    "✅ Phase 2 complete: {} tasks generated",
+                    decomposition.tasks.len()
+                );
 
                 // Continue to Phase 3: Worktree Creation (if multiple tasks and worktree enabled)
                 if decomposition.tasks.len() > 1 {
@@ -578,9 +604,12 @@ impl HeadlessOrchestrator {
                 } else {
                     info!("⏭️  Phase 3 skipped: Single task execution (worktree not needed)");
                 }
-            },
+            }
             Decision::EscalateToHuman { reason } => {
-                warn!("⚠️  Escalating Issue #{} to human: {}", issue.number, reason);
+                warn!(
+                    "⚠️  Escalating Issue #{} to human: {}",
+                    issue.number, reason
+                );
 
                 // Send escalation notification
                 let notification = Notification::escalation(
@@ -599,10 +628,10 @@ impl HeadlessOrchestrator {
                     error: Some(format!("Escalated: {}", reason)),
                     duration_seconds: 0,
                 });
-            },
+            }
             _ => {
                 return Err(anyhow!("Unexpected decision: {:?}", decision));
-            },
+            }
         }
 
         // Remove from active executions when done
@@ -647,12 +676,16 @@ impl HeadlessOrchestrator {
             analysis.complexity, analysis.complexity_level
         );
         info!("   Suggested labels: {:?}", analysis.labels);
-        info!("   Estimated duration: {} hours", analysis.estimated_duration_hours);
+        info!(
+            "   Estimated duration: {} hours",
+            analysis.estimated_duration_hours
+        );
         info!("   Reasoning: {}", analysis.reasoning);
 
         // Apply labels to GitHub Issue if client is available
         if let Some(client) = &self.github_client {
-            self.apply_labels_to_issue(client, issue.number, &analysis.labels).await?;
+            self.apply_labels_to_issue(client, issue.number, &analysis.labels)
+                .await?;
         } else if !self.config.dry_run {
             warn!(
                 "GitHub client not configured, skipping label application for Issue #{}",
@@ -702,22 +735,31 @@ impl HeadlessOrchestrator {
         labels: &[String],
     ) -> Result<()> {
         if self.config.dry_run {
-            info!("   [DRY-RUN] Would apply labels to Issue #{}: {:?}", issue_number, labels);
+            info!(
+                "   [DRY-RUN] Would apply labels to Issue #{}: {:?}",
+                issue_number, labels
+            );
             return Ok(());
         }
 
-        info!("🏷️  Applying labels to Issue #{}: {:?}", issue_number, labels);
+        info!(
+            "🏷️  Applying labels to Issue #{}: {:?}",
+            issue_number, labels
+        );
 
         match client.add_labels(issue_number, labels).await {
             Ok(_) => {
                 info!("✅ Successfully applied labels to Issue #{}", issue_number);
                 Ok(())
-            },
+            }
             Err(e) => {
-                warn!("⚠️  Failed to apply labels to Issue #{}: {}", issue_number, e);
+                warn!(
+                    "⚠️  Failed to apply labels to Issue #{}: {}",
+                    issue_number, e
+                );
                 // Don't fail the entire workflow if label application fails
                 Ok(())
-            },
+            }
         }
     }
 
@@ -853,7 +895,10 @@ impl HeadlessOrchestrator {
         decomposition: &TaskDecomposition,
         state_machine: &mut StateMachine,
     ) -> Result<Vec<WorktreeInfo>> {
-        info!("🌳 Phase 3: Worktree Creation for {} tasks", decomposition.tasks.len());
+        info!(
+            "🌳 Phase 3: Worktree Creation for {} tasks",
+            decomposition.tasks.len()
+        );
 
         let worktree_manager = self
             .worktree_manager
@@ -870,7 +915,12 @@ impl HeadlessOrchestrator {
 
         // Create a worktree for each task
         for (idx, task) in decomposition.tasks.iter().enumerate() {
-            info!("   Creating worktree {}/{}: {}", idx + 1, decomposition.tasks.len(), task.title);
+            info!(
+                "   Creating worktree {}/{}: {}",
+                idx + 1,
+                decomposition.tasks.len(),
+                task.title
+            );
 
             // Create worktree for this task
             let worktree = worktree_manager.create_worktree(issue.number).await?;
@@ -920,8 +970,14 @@ impl HeadlessOrchestrator {
         worktrees: &[WorktreeInfo],
         state_machine: &mut StateMachine,
     ) -> Result<crate::claude_code_executor::ExecutionResult> {
-        info!("🚀 Phase 4: CodeGen Execution (5-Worlds Parallel) for #{}", issue.number);
-        info!("   Worktrees: {:?}", worktrees.iter().map(|w| &w.path).collect::<Vec<_>>());
+        info!(
+            "🚀 Phase 4: CodeGen Execution (5-Worlds Parallel) for #{}",
+            issue.number
+        );
+        info!(
+            "   Worktrees: {:?}",
+            worktrees.iter().map(|w| &w.path).collect::<Vec<_>>()
+        );
 
         let executor = self
             .claude_code_executor
@@ -944,8 +1000,9 @@ impl HeadlessOrchestrator {
         }
 
         // Use the first worktree as base (or primary worktree for the issue)
-        let base_worktree =
-            worktrees.first().ok_or_else(|| anyhow!("No worktrees available for Phase 4"))?;
+        let base_worktree = worktrees
+            .first()
+            .ok_or_else(|| anyhow!("No worktrees available for Phase 4"))?;
 
         info!("   Base worktree: {:?}", base_worktree.path);
         info!("   Executing 5-Worlds parallel execution...");
@@ -957,7 +1014,10 @@ impl HeadlessOrchestrator {
 
         info!("   5-Worlds execution complete:");
         info!("     Success: {}", execution_result.success);
-        info!("     Confidence: {}%", (execution_result.confidence * 100.0).round());
+        info!(
+            "     Confidence: {}%",
+            (execution_result.confidence * 100.0).round()
+        );
         info!(
             "     Successful worlds: {}/{}",
             execution_result.successful_worlds, execution_result.total_worlds
@@ -966,7 +1026,10 @@ impl HeadlessOrchestrator {
         // Display individual world results
         for world_result in &execution_result.world_results {
             let status_icon = if world_result.success { "✅" } else { "❌" };
-            info!("     {} World {}: {}", status_icon, world_result.world_id, world_result.message);
+            info!(
+                "     {} World {}: {}",
+                status_icon, world_result.world_id, world_result.message
+            );
         }
 
         if execution_result.success {
@@ -1122,11 +1185,16 @@ impl HeadlessOrchestrator {
         branch_name: String,
         state_machine: &mut StateMachine,
     ) -> Result<crate::pr_creator::PullRequest> {
-        info!("📝 Phase 7: PR Creation & Auto-Description for #{}", issue.number);
+        info!(
+            "📝 Phase 7: PR Creation & Auto-Description for #{}",
+            issue.number
+        );
         info!("   Branch: {}", branch_name);
 
-        let pr_creator =
-            self.pr_creator.as_ref().ok_or_else(|| anyhow!("PRCreator not initialized"))?;
+        let pr_creator = self
+            .pr_creator
+            .as_ref()
+            .ok_or_else(|| anyhow!("PRCreator not initialized"))?;
 
         if self.config.dry_run {
             info!("   [DRY-RUN] Skipping actual PR creation");
@@ -1151,7 +1219,9 @@ impl HeadlessOrchestrator {
 
         // Create PR
         info!("   Creating PR with title: {}", pr_title);
-        let pr = pr_creator.create_pr(branch_name.clone(), pr_title, &aggregated_result).await?;
+        let pr = pr_creator
+            .create_pr(branch_name.clone(), pr_title, &aggregated_result)
+            .await?;
 
         info!("   ✅ PR created: #{} at {}", pr.number, pr.url);
         state_machine.transition_to(Phase::PRCreation)?;
@@ -1189,7 +1259,10 @@ impl HeadlessOrchestrator {
         pr_number: u64,
         state_machine: &mut StateMachine,
     ) -> Result<f64> {
-        info!("🔍 Phase 8: Code Review自動化 for PR #{} (Issue #{})", pr_number, issue.number);
+        info!(
+            "🔍 Phase 8: Code Review自動化 for PR #{} (Issue #{})",
+            pr_number, issue.number
+        );
 
         if self.config.dry_run {
             info!("   [DRY-RUN] Skipping actual code review");
@@ -1363,7 +1436,10 @@ impl HeadlessOrchestrator {
         }
 
         // Execute auto-merge
-        info!("   ✅ Auto-merge criteria met! Merging PR #{}...", pr_number);
+        info!(
+            "   ✅ Auto-merge criteria met! Merging PR #{}...",
+            pr_number
+        );
         self.execute_auto_merge(pr_number).await?;
         info!("   ✅ PR #{} merged successfully", pr_number);
 
@@ -1448,7 +1524,10 @@ impl HeadlessOrchestrator {
         // Add metrics if available
         if let Some(ref metrics) = agent_result.metrics {
             if let Some(quality_score) = metrics.quality_score {
-                body.push_str(&format!("**Metrics Quality Score**: {:.1}/100\n", quality_score));
+                body.push_str(&format!(
+                    "**Metrics Quality Score**: {:.1}/100\n",
+                    quality_score
+                ));
             }
             body.push_str(&format!("**Duration**: {}ms\n", metrics.duration_ms));
         }
@@ -1571,10 +1650,9 @@ impl SkillExecutor for HeadlessOrchestrator {
         skill_name: &str,
         context: HashMap<String, String>,
     ) -> Result<SkillResult> {
-        let bridge = self
-            .skills_bridge
-            .as_ref()
-            .ok_or_else(|| anyhow!("Skills Bridge not initialized. Call with_skills_bridge() first"))?;
+        let bridge = self.skills_bridge.as_ref().ok_or_else(|| {
+            anyhow!("Skills Bridge not initialized. Call with_skills_bridge() first")
+        })?;
 
         let request = SkillRequest {
             skill_name: skill_name.to_string(),

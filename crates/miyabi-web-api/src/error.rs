@@ -85,15 +85,24 @@ impl IntoResponse for AppError {
                 "Authentication failed",
                 Some(msg.clone()),
             ),
-            AppError::Authorization(ref msg) => {
-                (StatusCode::FORBIDDEN, "authorization_error", "Access denied", Some(msg.clone()))
-            },
-            AppError::NotFound(ref msg) => {
-                (StatusCode::NOT_FOUND, "not_found", "Resource not found", Some(msg.clone()))
-            },
-            AppError::Validation(ref msg) => {
-                (StatusCode::BAD_REQUEST, "validation_error", "Invalid input", Some(msg.clone()))
-            },
+            AppError::Authorization(ref msg) => (
+                StatusCode::FORBIDDEN,
+                "authorization_error",
+                "Access denied",
+                Some(msg.clone()),
+            ),
+            AppError::NotFound(ref msg) => (
+                StatusCode::NOT_FOUND,
+                "not_found",
+                "Resource not found",
+                Some(msg.clone()),
+            ),
+            AppError::Validation(ref msg) => (
+                StatusCode::BAD_REQUEST,
+                "validation_error",
+                "Invalid input",
+                Some(msg.clone()),
+            ),
             AppError::Configuration(ref msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "configuration_error",
@@ -169,7 +178,7 @@ impl UnifiedError for AppError {
         match self {
             Self::Database(_) => {
                 "A database error occurred. Please try again later or contact support.".to_string()
-            },
+            }
             Self::Authentication(msg) => format!(
                 "Authentication failed: {}. Please check your credentials and try again.",
                 msg
@@ -183,11 +192,17 @@ impl UnifiedError for AppError {
                 msg
             ),
             Self::Validation(msg) => {
-                format!("Invalid input: {}. Please check your data and try again.", msg)
-            },
+                format!(
+                    "Invalid input: {}. Please check your data and try again.",
+                    msg
+                )
+            }
             Self::Configuration(msg) => {
-                format!("Server configuration error: {}. Please contact the administrator.", msg)
-            },
+                format!(
+                    "Server configuration error: {}. Please contact the administrator.",
+                    msg
+                )
+            }
             Self::Server(msg) => format!("Server error: {}. Please try again later.", msg),
             Self::ExternalApi(msg) => format!(
                 "External service error: {}. The external service may be temporarily unavailable.",
@@ -198,8 +213,11 @@ impl UnifiedError for AppError {
                 msg
             ),
             Self::Internal(msg) => {
-                format!("An internal error occurred: {}. Please try again or contact support.", msg)
-            },
+                format!(
+                    "An internal error occurred: {}. Please try again or contact support.",
+                    msg
+                )
+            }
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

@@ -79,7 +79,11 @@ impl A2ABridge {
             let card = handler.agent_card();
             for capability in &card.capabilities {
                 tools.push(A2AToolDefinition {
-                    name: format!("a2a.{}.{}", name.to_lowercase().replace(" ", "_"), capability.id),
+                    name: format!(
+                        "a2a.{}.{}",
+                        name.to_lowercase().replace(" ", "_"),
+                        capability.id
+                    ),
                     description: format!("{}: {}", card.name, capability.description),
                     input_schema: capability.input_schema.clone().unwrap_or(json!({
                         "type": "object",
@@ -182,12 +186,7 @@ impl A2ABridge {
 
     /// List all registered agents
     pub async fn list_agents(&self) -> Vec<String> {
-        self.agent_handlers
-            .read()
-            .await
-            .keys()
-            .cloned()
-            .collect()
+        self.agent_handlers.read().await.keys().cloned().collect()
     }
 }
 

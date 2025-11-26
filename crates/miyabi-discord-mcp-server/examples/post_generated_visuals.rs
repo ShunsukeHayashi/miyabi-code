@@ -89,7 +89,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         video: None,
     };
 
-    client.create_message(progress_channel).embeds(&[summary_embed]).await?;
+    client
+        .create_message(progress_channel)
+        .embeds(&[summary_embed])
+        .await?;
     println!("  ✅ Summary posted");
 
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -101,7 +104,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          📥 画像URL:\n{}",
         miyabi_url
     );
-    client.create_message(progress_channel).content(&miyabi_message).await?;
+    client
+        .create_message(progress_channel)
+        .content(&miyabi_message)
+        .await?;
     println!("  ✅ Miyabiちゃん URL posted");
 
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -113,7 +119,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          📥 画像URL:\n{}",
         agent_url
     );
-    client.create_message(progress_channel).content(&agent_message).await?;
+    client
+        .create_message(progress_channel)
+        .content(&agent_message)
+        .await?;
     println!("  ✅ Agent characters URL posted");
 
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
@@ -125,7 +134,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
          📥 画像URL:\n{}",
         banner_url
     );
-    client.create_message(progress_channel).content(&banner_message).await?;
+    client
+        .create_message(progress_channel)
+        .content(&banner_message)
+        .await?;
     println!("  ✅ Banner URL posted");
 
     println!("\n🎊 Miyabiちゃん: ビジュアルアセットの投稿が完了したよ！");

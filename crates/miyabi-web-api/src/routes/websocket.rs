@@ -50,16 +50,16 @@ pub async fn websocket_handler(
                             .status(401)
                             .body("Invalid user_id in token".into())
                             .unwrap();
-                    },
+                    }
                 }
-            },
+            }
             Err(e) => {
                 tracing::warn!("WebSocket authentication failed: {}", e);
                 return axum::response::Response::builder()
                     .status(401)
                     .body("Authentication failed".into())
                     .unwrap();
-            },
+            }
         }
     } else {
         // For development/testing, allow connections without auth
@@ -84,7 +84,10 @@ pub async fn websocket_handler(
             handle_execution_logs(socket, state, execution_id).await;
         } else {
             // General WebSocket connection
-            state.ws_manager.handle_connection(socket, user_id.to_string()).await;
+            state
+                .ws_manager
+                .handle_connection(socket, user_id.to_string())
+                .await;
         }
     })
 }
@@ -126,16 +129,16 @@ async fn handle_agent_events(socket: WebSocket, state: AppState) {
                 Message::Close(_) => {
                     tracing::info!("WebSocket close message received");
                     break;
-                },
+                }
                 Message::Ping(ping) => {
                     // Pongs are handled automatically by axum
                     tracing::debug!("Received ping: {:?}", ping);
-                },
+                }
                 Message::Text(text) => {
                     tracing::debug!("Received text message: {}", text);
                     // Could handle client commands here in the future
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     });
@@ -196,11 +199,11 @@ async fn handle_execution_logs(socket: WebSocket, state: AppState, execution_id:
                             last_timestamp = log.timestamp;
                         }
                     }
-                },
+                }
                 Err(e) => {
                     tracing::error!("Error fetching logs: {}", e);
-                },
-                _ => {},
+                }
+                _ => {}
             }
 
             // Check if execution is completed
@@ -219,8 +222,8 @@ async fn handle_execution_logs(socket: WebSocket, state: AppState, execution_id:
                     });
                     let _ = tx_clone.send(Message::Text(completion.to_string().into()));
                     break;
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     });
@@ -241,8 +244,8 @@ async fn handle_execution_logs(socket: WebSocket, state: AppState, execution_id:
                 Message::Close(_) => break,
                 Message::Ping(ping) => {
                     let _ = tx.send(Message::Pong(ping));
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     });

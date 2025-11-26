@@ -92,7 +92,9 @@ impl StatusCommand {
         println!("{}", "Git Repository:".bold());
 
         // Check if we're in a git repository
-        let output = Command::new("git").args(["rev-parse", "--git-dir"]).output()?;
+        let output = Command::new("git")
+            .args(["rev-parse", "--git-dir"])
+            .output()?;
 
         if !output.status.success() {
             println!("  {} Not a git repository", "❌".red());
@@ -103,7 +105,9 @@ impl StatusCommand {
         println!("  ✅ Git repository detected");
 
         // Get current branch
-        let output = Command::new("git").args(["branch", "--show-current"]).output()?;
+        let output = Command::new("git")
+            .args(["branch", "--show-current"])
+            .output()?;
 
         if output.status.success() {
             let branch = String::from_utf8_lossy(&output.stdout);
@@ -111,7 +115,9 @@ impl StatusCommand {
         }
 
         // Get remote URL
-        let output = Command::new("git").args(["remote", "get-url", "origin"]).output()?;
+        let output = Command::new("git")
+            .args(["remote", "get-url", "origin"])
+            .output()?;
 
         if output.status.success() {
             let remote = String::from_utf8_lossy(&output.stdout);
@@ -126,7 +132,11 @@ impl StatusCommand {
             let change_count = changes.lines().count();
 
             if change_count > 0 {
-                println!("    {} {} uncommitted change(s)", "⚠".yellow(), change_count);
+                println!(
+                    "    {} {} uncommitted change(s)",
+                    "⚠".yellow(),
+                    change_count
+                );
             } else {
                 println!("    ✓ Working directory clean");
             }

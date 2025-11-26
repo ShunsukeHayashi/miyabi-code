@@ -23,15 +23,19 @@ pub mod ui;
 pub mod views;
 
 // Premium UI modules
-pub mod shimmer;
-pub mod markdown_render;
 pub mod history_cell;
+pub mod markdown_render;
+pub mod shimmer;
 pub mod wrapping;
 
 pub use app::{App, Tab};
 pub use event::{Event, EventHandler};
-pub use views::{AgentDashboard, A2ABridgeView, ChatView, MonitorView};
-pub use shimmer::{shimmer_style, shimmer_text, spinner_frame, dots_frame, ShimmerConfig};
+pub use history_cell::{
+    AssistantMessageCell, HistoryCell, SystemMessageCell, ToolResultCell, UserMessageCell,
+};
 pub use markdown_render::{MarkdownRenderer, MarkdownStyles};
-pub use history_cell::{HistoryCell, UserMessageCell, AssistantMessageCell, ToolResultCell, SystemMessageCell};
-pub use wrapping::{word_wrap_line, word_wrap_lines, wrap_text, display_width, truncate_with_ellipsis, WrapOptions};
+pub use shimmer::{dots_frame, shimmer_style, shimmer_text, spinner_frame, ShimmerConfig};
+pub use views::{A2ABridgeView, AgentDashboard, ChatView, MonitorView};
+pub use wrapping::{
+    display_width, truncate_with_ellipsis, word_wrap_line, word_wrap_lines, wrap_text, WrapOptions,
+};

@@ -66,13 +66,13 @@ impl RulesError {
         match self {
             Self::FileNotFound(path) => {
                 format!("Could not find rules file: {}", path.display())
-            },
+            }
             Self::ParseError(msg) => {
                 format!("Rules file format is invalid: {}", msg)
-            },
+            }
             Self::ValidationError(msg) => {
                 format!("Rules configuration error: {}", msg)
-            },
+            }
             Self::IoError(_) => "Unable to read rules file. Check file permissions.".to_string(),
         }
     }
@@ -243,7 +243,9 @@ impl MiyabiRules {
         // Validate rules
         for rule in &self.rules {
             if rule.name.is_empty() {
-                return Err(RulesError::ValidationError("Rule name cannot be empty".to_string()));
+                return Err(RulesError::ValidationError(
+                    "Rule name cannot be empty".to_string(),
+                ));
             }
 
             if rule.suggestion.is_empty() {
@@ -255,13 +257,13 @@ impl MiyabiRules {
 
             // Validate severity
             match rule.severity.as_str() {
-                "info" | "warning" | "error" => {},
+                "info" | "warning" | "error" => {}
                 _ => {
                     return Err(RulesError::ValidationError(format!(
                         "Invalid severity '{}' for rule '{}'. Must be: info, warning, or error",
                         rule.severity, rule.name
                     )))
-                },
+                }
             }
         }
 

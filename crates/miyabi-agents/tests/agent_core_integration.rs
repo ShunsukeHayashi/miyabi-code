@@ -336,7 +336,10 @@ fn test_issue_to_tasks_conversion() {
     ];
 
     assert_eq!(tasks.len(), 2);
-    assert_eq!(tasks[1].dependencies[0], format!("task-{}-impl", issue.number));
+    assert_eq!(
+        tasks[1].dependencies[0],
+        format!("task-{}-impl", issue.number)
+    );
 }
 
 #[test]

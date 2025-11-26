@@ -78,8 +78,11 @@ impl WorkflowBuilder {
     /// Add a sequential step that depends on the previous step
     pub fn then(mut self, name: &str, agent: AgentType) -> Self {
         let step_id = format!("step-{}", self.steps.len());
-        let dependencies =
-            self.current_step.as_ref().map(|id| vec![id.clone()]).unwrap_or_default();
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
 
         let step = Step {
             id: step_id.clone(),
@@ -109,8 +112,11 @@ impl WorkflowBuilder {
     /// ```
     pub fn branch_on(mut self, name: &str, branches: Vec<(&str, Condition, &str)>) -> Self {
         let step_id = format!("step-{}", self.steps.len());
-        let dependencies =
-            self.current_step.as_ref().map(|id| vec![id.clone()]).unwrap_or_default();
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
 
         let conditional_branches: Vec<ConditionalBranch> = branches
             .into_iter()
@@ -153,8 +159,11 @@ impl WorkflowBuilder {
     /// ```
     pub fn branch(mut self, name: &str, pass_step: &str, fail_step: &str) -> Self {
         let step_id = format!("step-{}", self.steps.len());
-        let dependencies =
-            self.current_step.as_ref().map(|id| vec![id.clone()]).unwrap_or_default();
+        let dependencies = self
+            .current_step
+            .as_ref()
+            .map(|id| vec![id.clone()])
+            .unwrap_or_default();
 
         let conditional_branches = vec![
             ConditionalBranch {
@@ -190,7 +199,10 @@ impl WorkflowBuilder {
 
         for (name, agent) in steps {
             let step_id = format!("step-{}", self.steps.len());
-            let dependencies = parent_id.as_ref().map(|id| vec![id.clone()]).unwrap_or_default();
+            let dependencies = parent_id
+                .as_ref()
+                .map(|id| vec![id.clone()])
+                .unwrap_or_default();
 
             let step = Step {
                 id: step_id.clone(),
@@ -284,8 +296,9 @@ impl WorkflowBuilder {
             let mut current_level = Vec::new();
 
             for node_id in &remaining {
-                let has_unresolved_deps =
-                    edges.iter().any(|e| e.to == *node_id && remaining.contains(&e.from));
+                let has_unresolved_deps = edges
+                    .iter()
+                    .any(|e| e.to == *node_id && remaining.contains(&e.from));
 
                 if !has_unresolved_deps {
                     current_level.push(node_id.clone());

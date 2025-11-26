@@ -15,10 +15,16 @@ pub mod workflow_service;
 
 pub use agent_executor::AgentExecutor;
 pub use coordinator_service::CoordinatorService;
-pub use dashboard_service::{DashboardService, DashboardSummary, TaskStats, WorkerStats, SystemHealth};
-pub use log_streamer::{LogStreamer, LogStreamingManager, LogEntry};
+pub use dashboard_service::{
+    DashboardService, DashboardSummary, SystemHealth, TaskStats, WorkerStats,
+};
+pub use log_streamer::{LogEntry, LogStreamer, LogStreamingManager};
 pub use rbac_service::RbacService;
-pub use repository_service::{RepositoryService, Repository, CreateRepositoryRequest, RepositoryFilter};
+pub use repository_service::{
+    CreateRepositoryRequest, Repository, RepositoryFilter, RepositoryService,
+};
 pub use task_service::TaskService;
 pub use worker_service::WorkerService;
-pub use workflow_service::{WorkflowService, WorkflowExecution, StartWorkflowRequest, WorkflowFilter};
+pub use workflow_service::{
+    StartWorkflowRequest, WorkflowExecution, WorkflowFilter, WorkflowService,
+};

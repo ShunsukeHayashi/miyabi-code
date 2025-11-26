@@ -137,6 +137,6 @@ async fn main() -> Result<()> {
             info!("Evaluation complete!");
 
             Ok(())
-        },
+        }
     }
 }

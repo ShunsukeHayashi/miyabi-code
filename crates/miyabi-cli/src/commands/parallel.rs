@@ -43,7 +43,9 @@ impl ParallelCommand {
         }
 
         if self.concurrency == 0 {
-            return Err(CliError::InvalidInput("Concurrency must be at least 1".to_string()));
+            return Err(CliError::InvalidInput(
+                "Concurrency must be at least 1".to_string(),
+            ));
         }
 
         // Load configuration
@@ -155,20 +157,34 @@ impl ParallelCommand {
         println!();
         println!("  Summary:");
         println!("    Total tasks: {}", result.total_tasks);
-        println!("    {} Successful: {}", "✓".green().bold(), result.success_count);
+        println!(
+            "    {} Successful: {}",
+            "✓".green().bold(),
+            result.success_count
+        );
         if result.failed_count > 0 {
             println!("    {} Failed: {}", "✗".red().bold(), result.failed_count);
         }
         if result.timeout_count > 0 {
-            println!("    {} Timeout: {}", "⏱".yellow().bold(), result.timeout_count);
+            println!(
+                "    {} Timeout: {}",
+                "⏱".yellow().bold(),
+                result.timeout_count
+            );
         }
         println!();
 
         println!("  Performance:");
         println!("    Wall time: {:.2}s", elapsed.as_secs_f64());
-        println!("    Total duration: {:.2}s", result.total_duration_ms as f64 / 1000.0);
+        println!(
+            "    Total duration: {:.2}s",
+            result.total_duration_ms as f64 / 1000.0
+        );
         println!("    Success rate: {:.1}%", result.success_rate());
-        println!("    Average task duration: {:.2}s", result.average_duration_ms() / 1000.0);
+        println!(
+            "    Average task duration: {:.2}s",
+            result.average_duration_ms() / 1000.0
+        );
 
         // Calculate speedup
         let sequential_time = result.average_duration_ms() * result.total_tasks as f64;

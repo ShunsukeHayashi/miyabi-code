@@ -22,16 +22,19 @@ impl PotpieIntegration {
                 Ok(client) => {
                     info!("Potpie integration enabled");
                     (Some(client), true)
-                },
+                }
                 Err(e) => {
-                    warn!("Failed to create Potpie client: {}. Fallback mode activated.", e);
+                    warn!(
+                        "Failed to create Potpie client: {}. Fallback mode activated.",
+                        e
+                    );
                     (None, false)
-                },
+                }
             },
             None => {
                 debug!("Potpie integration disabled (no config provided)");
                 (None, false)
-            },
+            }
         };
 
         Self { client, enabled }
@@ -73,19 +76,19 @@ impl PotpieIntegration {
             Ok(results) => {
                 info!("Potpie semantic search returned {} results", results.len());
                 Ok(results)
-            },
+            }
             Err(PotpieError::ServiceUnavailable(msg)) => {
                 warn!("Potpie service unavailable: {}", msg);
                 Ok(vec![]) // Graceful fallback
-            },
+            }
             Err(PotpieError::Timeout(seconds)) => {
                 warn!("Potpie request timed out after {}s", seconds);
                 Ok(vec![]) // Graceful fallback
-            },
+            }
             Err(e) => {
                 warn!("Potpie semantic search failed: {}", e);
                 Ok(vec![]) // Graceful fallback for all errors
-            },
+            }
         }
     }
 
@@ -143,11 +146,11 @@ impl PotpieIntegration {
                 let dep_names: Vec<String> = deps.iter().map(|d| d.name.clone()).collect();
                 info!("Found {} dependencies for {}", dep_names.len(), module_name);
                 Ok(dep_names)
-            },
+            }
             Err(e) => {
                 warn!("Failed to track dependencies: {}", e);
                 Ok(vec![]) // Graceful fallback
-            },
+            }
         }
     }
 }
@@ -208,14 +211,20 @@ mod tests {
     #[tokio::test]
     async fn test_semantic_search_with_default_top_k() {
         let integration = PotpieIntegration::new(None);
-        let results = integration.semantic_search("test query", None).await.unwrap();
+        let results = integration
+            .semantic_search("test query", None)
+            .await
+            .unwrap();
         assert!(results.is_empty());
     }
 
     #[tokio::test]
     async fn test_find_existing_implementations_empty() {
         let integration = PotpieIntegration::new(None);
-        let context = integration.find_existing_implementations("test").await.unwrap();
+        let context = integration
+            .find_existing_implementations("test")
+            .await
+            .unwrap();
         assert_eq!(context, "");
     }
 
@@ -223,7 +232,10 @@ mod tests {
     async fn test_find_existing_implementations_with_long_description() {
         let integration = PotpieIntegration::new(None);
         let long_description = "a".repeat(1000);
-        let context = integration.find_existing_implementations(&long_description).await.unwrap();
+        let context = integration
+            .find_existing_implementations(&long_description)
+            .await
+            .unwrap();
         assert_eq!(context, "");
     }
 
@@ -244,7 +256,10 @@ mod tests {
     #[tokio::test]
     async fn test_get_dependencies_with_path() {
         let integration = PotpieIntegration::new(None);
-        let deps = integration.get_dependencies("crates/miyabi-core").await.unwrap();
+        let deps = integration
+            .get_dependencies("crates/miyabi-core")
+            .await
+            .unwrap();
         assert!(deps.is_empty());
     }
 
@@ -316,8 +331,14 @@ mod tests {
         let integration = PotpieIntegration::new(None);
 
         // Multiple searches should all return empty for disabled integration
-        let results1 = integration.semantic_search("query1", Some(5)).await.unwrap();
-        let results2 = integration.semantic_search("query2", Some(3)).await.unwrap();
+        let results1 = integration
+            .semantic_search("query1", Some(5))
+            .await
+            .unwrap();
+        let results2 = integration
+            .semantic_search("query2", Some(3))
+            .await
+            .unwrap();
         let results3 = integration.semantic_search("query3", None).await.unwrap();
 
         assert!(results1.is_empty());

@@ -13,10 +13,10 @@ pub struct PriorityScore(u8);
 impl PriorityScore {
     /// Maximum priority score
     pub const MAX: Self = Self(100);
-    
+
     /// Minimum priority score
     pub const MIN: Self = Self(0);
-    
+
     /// Create a new priority score
     pub fn new(value: u8) -> Result<Self> {
         if value > 100 {
@@ -24,7 +24,7 @@ impl PriorityScore {
         }
         Ok(Self(value))
     }
-    
+
     /// Get the inner value
     pub fn value(&self) -> u8 {
         self.0
@@ -55,7 +55,7 @@ impl PriorityLevel {
             _ => None,
         }
     }
-    
+
     /// Get base score for this priority level
     pub fn base_score(&self) -> u8 {
         match self {
@@ -86,7 +86,7 @@ impl PriorityCalculator {
     pub fn new() -> Self {
         Self
     }
-    
+
     /// Calculate priority score for an issue
     ///
     /// Priority is determined by:
@@ -100,17 +100,17 @@ impl PriorityCalculator {
             .iter()
             .find_map(|l| PriorityLevel::from_label(l))
             .unwrap_or(PriorityLevel::P2Medium); // Default to P2
-        
+
         let base_score = priority_level.base_score();
-        
+
         PriorityScore::new(base_score)
     }
-    
+
     /// Check if issue has unresolved dependencies
     pub fn has_dependencies(&self, issue: &Issue) -> bool {
         !issue.dependencies.is_empty()
     }
-    
+
     /// Estimate completion time based on issue type and complexity
     pub fn estimate_time(&self, issue: &Issue) -> Duration {
         // Parse labels for type and complexity
@@ -119,7 +119,7 @@ impl PriorityCalculator {
         let is_refactor = issue.labels.iter().any(|l| l.contains("refactor"));
         let is_docs = issue.labels.iter().any(|l| l.contains("docs"));
         let is_test = issue.labels.iter().any(|l| l.contains("test"));
-        
+
         // Base estimates (in minutes)
         let base_minutes = if is_feature {
             45 // Features take longer
@@ -134,7 +134,7 @@ impl PriorityCalculator {
         } else {
             30 // Default
         };
-        
+
         Duration::from_secs(base_minutes * 60)
     }
 }
@@ -142,7 +142,7 @@ impl PriorityCalculator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_priority_level_parsing() {
         assert_eq!(
@@ -153,10 +153,13 @@ mod tests {
             PriorityLevel::from_label("P1-High"),
             Some(PriorityLevel::P1High)
         );
-        assert_eq!(PriorityLevel::from_label("P2"), Some(PriorityLevel::P2Medium));
+        assert_eq!(
+            PriorityLevel::from_label("P2"),
+            Some(PriorityLevel::P2Medium)
+        );
         assert_eq!(PriorityLevel::from_label("invalid"), None);
     }
-    
+
     #[test]
     fn test_base_scores() {
         assert_eq!(PriorityLevel::P0Critical.base_score(), 100);
@@ -164,11 +167,11 @@ mod tests {
         assert_eq!(PriorityLevel::P2Medium.base_score(), 50);
         assert_eq!(PriorityLevel::P3Low.base_score(), 20);
     }
-    
+
     #[test]
     fn test_priority_calculation() {
         let calc = PriorityCalculator::new();
-        
+
         // P0 issue
         let issue_p0 = Issue {
             number: 123,
@@ -179,7 +182,7 @@ mod tests {
         };
         let score = calc.calculate(&issue_p0).unwrap();
         assert_eq!(score.value(), 100);
-        
+
         // P1 issue
         let issue_p1 = Issue {
             number: 456,
@@ -191,11 +194,11 @@ mod tests {
         let score = calc.calculate(&issue_p1).unwrap();
         assert_eq!(score.value(), 80);
     }
-    
+
     #[test]
     fn test_dependency_check() {
         let calc = PriorityCalculator::new();
-        
+
         let issue_no_deps = Issue {
             number: 1,
             title: "Independent task".to_string(),
@@ -204,7 +207,7 @@ mod tests {
             body: None,
         };
         assert!(!calc.has_dependencies(&issue_no_deps));
-        
+
         let issue_with_deps = Issue {
             number: 2,
             title: "Dependent task".to_string(),
@@ -214,11 +217,11 @@ mod tests {
         };
         assert!(calc.has_dependencies(&issue_with_deps));
     }
-    
+
     #[test]
     fn test_time_estimation() {
         let calc = PriorityCalculator::new();
-        
+
         // Feature
         let feature = Issue {
             number: 1,
@@ -228,7 +231,7 @@ mod tests {
             body: None,
         };
         assert_eq!(calc.estimate_time(&feature), Duration::from_secs(45 * 60));
-        
+
         // Bug
         let bug = Issue {
             number: 2,

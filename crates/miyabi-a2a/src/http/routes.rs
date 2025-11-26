@@ -177,7 +177,7 @@ pub async fn get_agents() -> Json<Vec<Agent>> {
             tracing::error!("Failed to fetch real agents: {}", e);
             // Return empty array on error
             Json(vec![])
-        },
+        }
     }
 }
 
@@ -198,7 +198,7 @@ pub async fn get_system_status() -> Json<SystemStatus> {
                 task_throughput: 0.0,
                 avg_completion_time: 0.0,
             })
-        },
+        }
     }
 }
 
@@ -211,7 +211,7 @@ pub async fn get_events() -> Json<Vec<TimelineEvent>> {
             tracing::error!("Failed to fetch real events: {}", e);
             // Return empty array on error
             Json(vec![])
-        },
+        }
     }
 }
 
@@ -262,7 +262,7 @@ pub async fn get_workflow_dag() -> Json<DagData> {
             // This should not happen since fetch_real_workflow_dag has internal fallback
             // But as a last resort, return sample DAG
             Json(crate::http::create_sample_dag_public())
-        },
+        }
     }
 }
 
@@ -324,8 +324,15 @@ pub async fn retry_task(
     // 1. Parse task_id as u64
     let id = task_id.parse::<u64>().map_err(|e| {
         tracing::error!("Invalid task ID format: {} - {}", task_id, e);
-        ErrorResponse::new(StatusCode::BAD_REQUEST, "INVALID_TASK_ID", "Invalid task ID format")
-            .with_details(format!("Task ID '{}' must be a valid integer: {}", task_id, e))
+        ErrorResponse::new(
+            StatusCode::BAD_REQUEST,
+            "INVALID_TASK_ID",
+            "Invalid task ID format",
+        )
+        .with_details(format!(
+            "Task ID '{}' must be a valid integer: {}",
+            task_id, e
+        ))
     })?;
 
     // 2. Get task from storage
@@ -351,7 +358,11 @@ pub async fn retry_task(
 
     // 4. Check if task is in failed state
     if task.status != TaskStatus::Failed {
-        tracing::warn!("Task {} is not in failed state (current: {:?})", id, task.status);
+        tracing::warn!(
+            "Task {} is not in failed state (current: {:?})",
+            id,
+            task.status
+        );
         return Err(ErrorResponse::new(
             StatusCode::CONFLICT,
             "INVALID_TASK_STATE",
@@ -371,9 +382,15 @@ pub async fn retry_task(
         return Err(ErrorResponse::new(
             StatusCode::TOO_MANY_REQUESTS,
             "MAX_RETRIES_EXCEEDED",
-            format!("Maximum retry limit of {} attempts reached", MAX_RETRY_COUNT),
+            format!(
+                "Maximum retry limit of {} attempts reached",
+                MAX_RETRY_COUNT
+            ),
         )
-        .with_details(format!("Current retry count: {}/{}", task.retry_count, MAX_RETRY_COUNT)));
+        .with_details(format!(
+            "Current retry count: {}/{}",
+            task.retry_count, MAX_RETRY_COUNT
+        )));
     }
 
     // 6. Increment retry_count
@@ -381,9 +398,10 @@ pub async fn retry_task(
 
     // 7. Prepare retry reason (clone for WebSocket event later)
     let retry_reason = payload.reason.clone();
-    let description = payload
-        .reason
-        .or(Some(format!("Retry attempt {} - Previous failure", task.retry_count)));
+    let description = payload.reason.or(Some(format!(
+        "Retry attempt {} - Previous failure",
+        task.retry_count
+    )));
 
     // 8. Update task status to Submitted for retry
     let update = TaskUpdate {
@@ -461,8 +479,15 @@ pub async fn cancel_task(
     // 1. Parse task_id as u64
     let id = task_id.parse::<u64>().map_err(|e| {
         tracing::error!("Invalid task ID format: {} - {}", task_id, e);
-        ErrorResponse::new(StatusCode::BAD_REQUEST, "INVALID_TASK_ID", "Invalid task ID format")
-            .with_details(format!("Task ID '{}' must be a valid integer: {}", task_id, e))
+        ErrorResponse::new(
+            StatusCode::BAD_REQUEST,
+            "INVALID_TASK_ID",
+            "Invalid task ID format",
+        )
+        .with_details(format!(
+            "Task ID '{}' must be a valid integer: {}",
+            task_id, e
+        ))
     })?;
 
     // 2. Get task from storage
@@ -488,7 +513,11 @@ pub async fn cancel_task(
 
     // 4. Check if task is cancellable (must be in Submitted or Working state)
     if task.status != TaskStatus::Submitted && task.status != TaskStatus::Working {
-        tracing::warn!("Task {} is not cancellable (current state: {:?})", id, task.status);
+        tracing::warn!(
+            "Task {} is not cancellable (current state: {:?})",
+            id,
+            task.status
+        );
         return Err(ErrorResponse::new(
             StatusCode::CONFLICT,
             "INVALID_TASK_STATE",

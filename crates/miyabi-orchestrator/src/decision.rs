@@ -84,14 +84,14 @@ impl fmt::Display for Decision {
             Decision::AutoApprove => write!(f, "Auto-Approve"),
             Decision::NotifyAndProceed { delay_seconds } => {
                 write!(f, "Notify & Proceed ({}s delay)", delay_seconds)
-            },
+            }
             Decision::EscalateToHuman { reason } => {
                 write!(f, "Escalate to Human: {}", reason)
-            },
+            }
             Decision::AutoMerge => write!(f, "Auto-Merge"),
             Decision::RequireReview { reason } => {
                 write!(f, "Require Review: {}", reason)
-            },
+            }
             Decision::Reject { reason } => write!(f, "Reject: {}", reason),
         }
     }
@@ -130,7 +130,10 @@ impl DecisionEngine {
     /// # Returns
     /// Decision on whether to auto-approve, notify, or escalate
     pub fn should_auto_approve(&self, complexity: f64, issue_number: u64) -> Decision {
-        debug!("Complexity decision for Issue #{}: score={}", issue_number, complexity);
+        debug!(
+            "Complexity decision for Issue #{}: score={}",
+            issue_number, complexity
+        );
 
         if complexity < self.thresholds.complexity_auto_approve {
             info!(
@@ -169,7 +172,10 @@ impl DecisionEngine {
     /// # Returns
     /// Decision on whether to auto-merge, review, or reject
     pub fn should_auto_merge(&self, quality_score: f64, pr_number: u64) -> Decision {
-        debug!("Quality decision for PR #{}: score={}", pr_number, quality_score);
+        debug!(
+            "Quality decision for PR #{}: score={}",
+            pr_number, quality_score
+        );
 
         if quality_score >= self.thresholds.quality_auto_merge {
             info!(
@@ -259,7 +265,7 @@ mod tests {
         match decision {
             Decision::NotifyAndProceed { delay_seconds } => {
                 assert_eq!(delay_seconds, 300); // 5 minutes
-            },
+            }
             _ => panic!("Expected NotifyAndProceed"),
         }
     }
@@ -272,7 +278,7 @@ mod tests {
         match decision {
             Decision::EscalateToHuman { reason } => {
                 assert!(reason.contains("High complexity"));
-            },
+            }
             _ => panic!("Expected EscalateToHuman"),
         }
     }
@@ -293,7 +299,7 @@ mod tests {
         match decision {
             Decision::RequireReview { reason } => {
                 assert!(reason.contains("Quality score below"));
-            },
+            }
             _ => panic!("Expected RequireReview"),
         }
     }
@@ -306,7 +312,7 @@ mod tests {
         match decision {
             Decision::Reject { reason } => {
                 assert!(reason.contains("Low quality score"));
-            },
+            }
             _ => panic!("Expected Reject"),
         }
     }

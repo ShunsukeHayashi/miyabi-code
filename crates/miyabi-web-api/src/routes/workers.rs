@@ -78,8 +78,9 @@ pub fn routes() -> Router<AppState> {
 )]
 async fn list_workers(State(state): State<AppState>) -> Result<impl IntoResponse> {
     // Query workers from database
-    let worker_rows = sqlx::query_as::<_, (Uuid, String, String, f64, f64, i64, i64, i64, DateTime<Utc>)>(
-        r#"
+    let worker_rows =
+        sqlx::query_as::<_, (Uuid, String, String, f64, f64, i64, i64, i64, DateTime<Utc>)>(
+            r#"
         SELECT
             id,
             name,
@@ -93,9 +94,9 @@ async fn list_workers(State(state): State<AppState>) -> Result<impl IntoResponse
         FROM workers
         ORDER BY name
         "#,
-    )
-    .fetch_all(&state.db)
-    .await;
+        )
+        .fetch_all(&state.db)
+        .await;
 
     let workers = match worker_rows {
         Ok(rows) => rows
@@ -207,7 +208,10 @@ async fn get_worker(
         Ok(None) | Err(_) => {
             // Try mock data
             let mock_workers = get_mock_workers();
-            if let Some(worker) = mock_workers.into_iter().find(|w| w.worker_id == worker_id || w.name == worker_id) {
+            if let Some(worker) = mock_workers
+                .into_iter()
+                .find(|w| w.worker_id == worker_id || w.name == worker_id)
+            {
                 Ok((StatusCode::OK, Json(worker)).into_response())
             } else {
                 Ok((

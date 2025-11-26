@@ -6,9 +6,9 @@
 //! - System metrics
 //! Issue: #983 Phase 2.1 - Service Layer Refactoring
 
-use sqlx::PgPool;
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 /// Dashboard summary data
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,8 +173,9 @@ impl DashboardService {
         limit: i32,
     ) -> Result<Vec<ActivityEntry>, sqlx::Error> {
         // Query from activity_log table if it exists
-        let activities = sqlx::query_as::<_, (String, String, String, DateTime<Utc>, Option<String>)>(
-            r#"
+        let activities =
+            sqlx::query_as::<_, (String, String, String, DateTime<Utc>, Option<String>)>(
+                r#"
             SELECT
                 id::text,
                 activity_type,
@@ -186,11 +187,11 @@ impl DashboardService {
             ORDER BY created_at DESC
             LIMIT $2
             "#,
-        )
-        .bind(user_id)
-        .bind(limit)
-        .fetch_all(&self.db)
-        .await;
+            )
+            .bind(user_id)
+            .bind(limit)
+            .fetch_all(&self.db)
+            .await;
 
         match activities {
             Ok(rows) => Ok(rows
@@ -212,9 +213,7 @@ impl DashboardService {
         let start = std::time::Instant::now();
 
         // Check database connectivity
-        let db_result = sqlx::query("SELECT 1")
-            .fetch_one(&self.db)
-            .await;
+        let db_result = sqlx::query("SELECT 1").fetch_one(&self.db).await;
 
         let latency = start.elapsed().as_secs_f64() * 1000.0;
 

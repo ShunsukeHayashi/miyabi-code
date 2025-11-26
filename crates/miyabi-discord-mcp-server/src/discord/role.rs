@@ -5,7 +5,11 @@ use crate::models::*;
 impl DiscordClient {
     /// ロールを作成
     pub async fn create_role(&self, request: CreateRoleRequest) -> Result<CreateRoleResponse> {
-        tracing::info!("Creating role: {} in guild {}", request.name, request.guild_id);
+        tracing::info!(
+            "Creating role: {} in guild {}",
+            request.name,
+            request.guild_id
+        );
 
         // TODO: 実装
         // self.http.create_role(guild_id)?

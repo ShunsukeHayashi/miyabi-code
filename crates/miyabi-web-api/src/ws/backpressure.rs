@@ -2,11 +2,11 @@
 // バックプレッシャー（背圧）対策 - メッセージキューイング & 優先度管理
 
 use super::message::WSMessage;
+use crate::error::ApiError;
 use dashmap::DashMap;
 use std::sync::Arc;
 use tokio::sync::mpsc;
-use tracing::{warn, debug, instrument};
-use crate::error::ApiError;
+use tracing::{debug, instrument, warn};
 
 /// メッセージキューイング & バックプレッシャー管理
 pub struct BackpressureManager {
@@ -75,11 +75,7 @@ impl BackpressureManager {
 
     /// メッセージをキューに追加
     #[instrument(skip(self), fields(execution_id = %execution_id, message_type = %message.message_type()))]
-    pub async fn enqueue(
-        &self,
-        execution_id: &str,
-        message: WSMessage,
-    ) -> Result<(), ApiError> {
+    pub async fn enqueue(&self, execution_id: &str, message: WSMessage) -> Result<(), ApiError> {
         // キューを取得または作成
         let queue = match self.queues.get(execution_id) {
             Some(q) => q.value().clone(),
@@ -101,10 +97,10 @@ impl BackpressureManager {
         match queue.try_send(message.clone()) {
             Ok(_) => {
                 // キューイング成功
-                self.config.stats.total_queued.fetch_add(
-                    1,
-                    std::sync::atomic::Ordering::Relaxed,
-                );
+                self.config
+                    .stats
+                    .total_queued
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 Ok(())
             }
             Err(mpsc::error::TrySendError::Full(_)) => {
@@ -130,10 +126,10 @@ impl BackpressureManager {
             OverflowStrategy::DropLowest => {
                 // 最も優先度の低いメッセージを破棄して、新規メッセージをキューイング
                 warn!("dropping_lowest_priority_message: {}", execution_id);
-                self.config.stats.total_dropped.fetch_add(
-                    1,
-                    std::sync::atomic::Ordering::Relaxed,
-                );
+                self.config
+                    .stats
+                    .total_dropped
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
                 // キューを再作成（最も古いメッセージが削除される）
                 if let Some((_, _queue)) = self.queues.remove(execution_id) {
@@ -151,10 +147,10 @@ impl BackpressureManager {
             OverflowStrategy::DropOldest => {
                 // 最も古いメッセージを破棄
                 warn!("dropping_oldest_message: {}", execution_id);
-                self.config.stats.total_dropped.fetch_add(
-                    1,
-                    std::sync::atomic::Ordering::Relaxed,
-                );
+                self.config
+                    .stats
+                    .total_dropped
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
                 // キュー再作成で効果的に FIFO 削除を実現
                 if let Some((_, _queue)) = self.queues.remove(execution_id) {
@@ -171,10 +167,10 @@ impl BackpressureManager {
             OverflowStrategy::RejectNewest => {
                 // 新規メッセージを拒否
                 warn!("rejecting_new_message: {}", execution_id);
-                self.config.stats.total_dropped.fetch_add(
-                    1,
-                    std::sync::atomic::Ordering::Relaxed,
-                );
+                self.config
+                    .stats
+                    .total_dropped
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 Err(ApiError::Server("Queue is full".to_string()))
             }
         }
@@ -190,16 +186,30 @@ impl BackpressureManager {
 
     /// 統計情報を取得
     pub fn get_stats(&self) -> (u64, u64) {
-        let dropped = self.config.stats.total_dropped.load(std::sync::atomic::Ordering::Relaxed);
-        let queued = self.config.stats.total_queued.load(std::sync::atomic::Ordering::Relaxed);
+        let dropped = self
+            .config
+            .stats
+            .total_dropped
+            .load(std::sync::atomic::Ordering::Relaxed);
+        let queued = self
+            .config
+            .stats
+            .total_queued
+            .load(std::sync::atomic::Ordering::Relaxed);
         (queued, dropped)
     }
 
     /// 全キューをリセット
     pub fn reset_all(&self) {
         self.queues.clear();
-        self.config.stats.total_dropped.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.config.stats.total_queued.store(0, std::sync::atomic::Ordering::Relaxed);
+        self.config
+            .stats
+            .total_dropped
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.config
+            .stats
+            .total_queued
+            .store(0, std::sync::atomic::Ordering::Relaxed);
         debug!("all_queues_reset");
     }
 

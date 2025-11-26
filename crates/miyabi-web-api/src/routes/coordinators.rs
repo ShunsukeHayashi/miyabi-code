@@ -101,7 +101,9 @@ async fn get_coordinator(
 
     if let Some(coordinator) = coordinators.into_iter().find(|c| {
         c.coordinator_id == coordinator_id
-            || c.name.to_lowercase().contains(&coordinator_id.to_lowercase())
+            || c.name
+                .to_lowercase()
+                .contains(&coordinator_id.to_lowercase())
     }) {
         Ok((StatusCode::OK, Json(coordinator)).into_response())
     } else {
@@ -182,15 +184,24 @@ mod tests {
         assert_eq!(configs.len(), 3);
 
         // Verify MUGEN config
-        let mugen = configs.iter().find(|c| c.coordinator_id == "mugen").unwrap();
+        let mugen = configs
+            .iter()
+            .find(|c| c.coordinator_id == "mugen")
+            .unwrap();
         assert_eq!(mugen.host, "44.250.27.197");
 
         // Verify MAJIN config
-        let majin = configs.iter().find(|c| c.coordinator_id == "majin").unwrap();
+        let majin = configs
+            .iter()
+            .find(|c| c.coordinator_id == "majin")
+            .unwrap();
         assert_eq!(majin.host, "54.92.67.11");
 
         // Verify Pixel config
-        let pixel = configs.iter().find(|c| c.coordinator_id == "pixel-termux").unwrap();
+        let pixel = configs
+            .iter()
+            .find(|c| c.coordinator_id == "pixel-termux")
+            .unwrap();
         assert_eq!(pixel.port, 8022);
     }
 }

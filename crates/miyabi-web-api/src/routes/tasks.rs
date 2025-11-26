@@ -59,7 +59,10 @@ pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(list_tasks).post(create_task))
         .route("/stats", get(get_task_stats))
-        .route("/:task_id", get(get_task).patch(update_task).delete(delete_task))
+        .route(
+            "/:task_id",
+            get(get_task).patch(update_task).delete(delete_task),
+        )
         .route("/:task_id/start", post(start_task))
         .route("/:task_id/complete", post(complete_task))
         .route("/:task_id/fail", post(fail_task))
@@ -200,11 +203,13 @@ async fn create_task(
     .map_err(AppError::Database)?;
 
     // Broadcast task creation event
-    state.event_broadcaster.broadcast(crate::events::Event::TaskCreated {
-        task_id: task.id.to_string(),
-        name: task.name.clone(),
-        priority: task.priority.clone(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskCreated {
+            task_id: task.id.to_string(),
+            name: task.name.clone(),
+            priority: task.priority.clone(),
+        });
 
     Ok((StatusCode::CREATED, Json(TaskResponse { task })))
 }
@@ -215,15 +220,13 @@ async fn get_task(
     Extension(auth_user): Extension<AuthenticatedUser>,
     Path(task_id): Path<Uuid>,
 ) -> Result<impl IntoResponse> {
-    let task = sqlx::query_as::<_, Task>(
-        "SELECT * FROM tasks WHERE id = $1 AND user_id = $2",
-    )
-    .bind(task_id)
-    .bind(auth_user.user_id)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(AppError::Database)?
-    .ok_or_else(|| AppError::NotFound("Task not found".to_string()))?;
+    let task = sqlx::query_as::<_, Task>("SELECT * FROM tasks WHERE id = $1 AND user_id = $2")
+        .bind(task_id)
+        .bind(auth_user.user_id)
+        .fetch_optional(&state.db)
+        .await
+        .map_err(AppError::Database)?
+        .ok_or_else(|| AppError::NotFound("Task not found".to_string()))?;
 
     Ok(Json(TaskResponse { task }))
 }
@@ -261,10 +264,12 @@ async fn update_task(
     .ok_or_else(|| AppError::NotFound("Task not found".to_string()))?;
 
     // Broadcast task update event
-    state.event_broadcaster.broadcast(crate::events::Event::TaskUpdated {
-        task_id: task.id.to_string(),
-        status: task.status.clone(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskUpdated {
+            task_id: task.id.to_string(),
+            status: task.status.clone(),
+        });
 
     Ok(Json(TaskResponse { task }))
 }
@@ -312,10 +317,12 @@ async fn start_task(
     .map_err(AppError::Database)?
     .ok_or_else(|| AppError::Validation("Task not found or not in pending status".to_string()))?;
 
-    state.event_broadcaster.broadcast(crate::events::Event::TaskUpdated {
-        task_id: task.id.to_string(),
-        status: "running".to_string(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskUpdated {
+            task_id: task.id.to_string(),
+            status: "running".to_string(),
+        });
 
     Ok(Json(TaskResponse { task }))
 }
@@ -341,10 +348,12 @@ async fn complete_task(
     .map_err(AppError::Database)?
     .ok_or_else(|| AppError::Validation("Task not found or not in running status".to_string()))?;
 
-    state.event_broadcaster.broadcast(crate::events::Event::TaskCompleted {
-        task_id: task.id.to_string(),
-        name: task.name.clone(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskCompleted {
+            task_id: task.id.to_string(),
+            name: task.name.clone(),
+        });
 
     Ok(Json(TaskResponse { task }))
 }
@@ -370,10 +379,12 @@ async fn fail_task(
     .map_err(AppError::Database)?
     .ok_or_else(|| AppError::Validation("Task not found or already completed".to_string()))?;
 
-    state.event_broadcaster.broadcast(crate::events::Event::TaskFailed {
-        task_id: task.id.to_string(),
-        error: "Task marked as failed".to_string(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskFailed {
+            task_id: task.id.to_string(),
+            error: "Task marked as failed".to_string(),
+        });
 
     Ok(Json(TaskResponse { task }))
 }
@@ -399,10 +410,12 @@ async fn cancel_task(
     .map_err(AppError::Database)?
     .ok_or_else(|| AppError::Validation("Task not found or already completed".to_string()))?;
 
-    state.event_broadcaster.broadcast(crate::events::Event::TaskUpdated {
-        task_id: task.id.to_string(),
-        status: "cancelled".to_string(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskUpdated {
+            task_id: task.id.to_string(),
+            status: "cancelled".to_string(),
+        });
 
     Ok(Json(TaskResponse { task }))
 }
@@ -434,10 +447,12 @@ async fn retry_task(
         AppError::Validation("Task not found, not failed, or max retries exceeded".to_string())
     })?;
 
-    state.event_broadcaster.broadcast(crate::events::Event::TaskUpdated {
-        task_id: task.id.to_string(),
-        status: "pending".to_string(),
-    });
+    state
+        .event_broadcaster
+        .broadcast(crate::events::Event::TaskUpdated {
+            task_id: task.id.to_string(),
+            status: "pending".to_string(),
+        });
 
     Ok(Json(TaskResponse { task }))
 }

@@ -5,36 +5,39 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, BorderType, Padding, Paragraph, Wrap, Scrollbar, ScrollbarOrientation, ScrollbarState},
+    widgets::{
+        Block, BorderType, Borders, Padding, Paragraph, Scrollbar, ScrollbarOrientation,
+        ScrollbarState, Wrap,
+    },
 };
 
 // Additional theme colors for premium look
-const MIYABI_BG: Color = Color::Rgb(26, 27, 38);          // Tokyo Night Background
-const MIYABI_CARD_BG: Color = Color::Rgb(36, 40, 59);     // Card Background
-const MIYABI_BORDER: Color = Color::Rgb(65, 72, 104);     // Subtle Blue-Gray
+const MIYABI_BG: Color = Color::Rgb(26, 27, 38); // Tokyo Night Background
+const MIYABI_CARD_BG: Color = Color::Rgb(36, 40, 59); // Card Background
+const MIYABI_BORDER: Color = Color::Rgb(65, 72, 104); // Subtle Blue-Gray
+use futures::StreamExt;
 use miyabi_llm::AnthropicClient;
 use miyabi_llm::LlmStreamingClient;
 use serde::Serialize;
 use serde_json::json;
 use std::time::Instant;
-use futures::StreamExt;
 
 // Import shimmer, markdown, and history_cell modules from crate root
-use crate::shimmer::{spinner_frame, shimmer_text, ShimmerConfig};
-use crate::markdown_render::MarkdownRenderer;
 use crate::history_cell::{
-    HistoryCell, UserMessageCell, AssistantMessageCell, ToolResultCell,
-    SystemMessageCell, SystemMessageType,
+    AssistantMessageCell, HistoryCell, SystemMessageCell, SystemMessageType, ToolResultCell,
+    UserMessageCell,
 };
+use crate::markdown_render::MarkdownRenderer;
+use crate::shimmer::{shimmer_text, spinner_frame, ShimmerConfig};
 
 // Miyabi Theme Colors
-const MIYABI_PURPLE: Color = Color::Rgb(187, 154, 247);   // #bb9af7
-const MIYABI_GOLD: Color = Color::Rgb(224, 175, 104);     // #e0af68
-const MIYABI_GREEN: Color = Color::Rgb(158, 206, 106);    // #9ece6a
-const MIYABI_CYAN: Color = Color::Rgb(125, 207, 255);     // #7dcfff
-const MIYABI_RED: Color = Color::Rgb(247, 118, 142);      // #f7768e
-const MIYABI_DIM: Color = Color::Rgb(86, 95, 137);        // #565f89
-const MIYABI_FG: Color = Color::Rgb(192, 202, 245);       // #c0caf5
+const MIYABI_PURPLE: Color = Color::Rgb(187, 154, 247); // #bb9af7
+const MIYABI_GOLD: Color = Color::Rgb(224, 175, 104); // #e0af68
+const MIYABI_GREEN: Color = Color::Rgb(158, 206, 106); // #9ece6a
+const MIYABI_CYAN: Color = Color::Rgb(125, 207, 255); // #7dcfff
+const MIYABI_RED: Color = Color::Rgb(247, 118, 142); // #f7768e
+const MIYABI_DIM: Color = Color::Rgb(86, 95, 137); // #565f89
+const MIYABI_FG: Color = Color::Rgb(192, 202, 245); // #c0caf5
 
 /// Chat message with tool use support
 #[derive(Clone)]
@@ -81,18 +84,17 @@ pub struct ChatView {
 impl ChatView {
     pub fn new() -> Self {
         let (client, init_message) = match std::env::var("ANTHROPIC_API_KEY") {
-            Ok(key) if !key.is_empty() => {
-                match AnthropicClient::from_env() {
-                    Ok(c) => (
-                        Some(c
-                            .with_model("claude-sonnet-4-5-20250929".to_string())
-                            .with_max_tokens(4096)),
-                        format!("✓ API Key ({}...)", &key[..8.min(key.len())])
+            Ok(key) if !key.is_empty() => match AnthropicClient::from_env() {
+                Ok(c) => (
+                    Some(
+                        c.with_model("claude-sonnet-4-5-20250929".to_string())
+                            .with_max_tokens(4096),
                     ),
-                    Err(e) => (None, format!("✗ {}", e))
-                }
-            }
-            _ => (None, "✗ Set ANTHROPIC_API_KEY".to_string())
+                    format!("✓ API Key ({}...)", &key[..8.min(key.len())]),
+                ),
+                Err(e) => (None, format!("✗ {}", e)),
+            },
+            _ => (None, "✗ Set ANTHROPIC_API_KEY".to_string()),
         };
 
         let tools = vec![
@@ -143,15 +145,13 @@ impl ChatView {
 
         Self {
             cells: vec![initial_cell],
-            messages: vec![
-                ChatMessage {
-                    role: "system".to_string(),
-                    content: system_content,
-                    timestamp,
-                    tool_use: None,
-                    is_streaming: false,
-                },
-            ],
+            messages: vec![ChatMessage {
+                role: "system".to_string(),
+                content: system_content,
+                timestamp,
+                tool_use: None,
+                is_streaming: false,
+            }],
             input: String::new(),
             scroll: 0,
             content_height: 0,
@@ -164,27 +164,46 @@ impl ChatView {
         }
     }
 
-    async fn execute_tool_streaming(&mut self, tool_name: &str, input: &serde_json::Value) -> Result<(), String> {
+    async fn execute_tool_streaming(
+        &mut self,
+        tool_name: &str,
+        input: &serde_json::Value,
+    ) -> Result<(), String> {
         let Some(client) = &self.client else {
             return Err("LLM client not initialized".to_string());
         };
 
         let (agent_role, task) = match tool_name {
             "analyze_issue" => {
-                let desc = input.get("issue_description").and_then(|v| v.as_str()).unwrap_or("");
-                ("IssueAgent", format!("Analyze: {}\nOutput JSON: labels, priority, effort", desc))
+                let desc = input
+                    .get("issue_description")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                (
+                    "IssueAgent",
+                    format!("Analyze: {}\nOutput JSON: labels, priority, effort", desc),
+                )
             }
             "decompose_task" => {
                 let task_desc = input.get("task").and_then(|v| v.as_str()).unwrap_or("");
-                ("CoordinatorAgent", format!("Decompose: {}\nOutput JSON: subtasks", task_desc))
+                (
+                    "CoordinatorAgent",
+                    format!("Decompose: {}\nOutput JSON: subtasks", task_desc),
+                )
             }
             "generate_code" => {
-                let req = input.get("requirement").and_then(|v| v.as_str()).unwrap_or("");
+                let req = input
+                    .get("requirement")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
                 ("CodeGenAgent", format!("Generate Rust code: {}", req))
             }
             "review_code" => {
                 let code = input.get("code").and_then(|v| v.as_str()).unwrap_or("");
-                ("ReviewAgent", format!("Review: {}\nOutput: issues, score", code))
+                (
+                    "ReviewAgent",
+                    format!("Review: {}\nOutput: issues, score", code),
+                )
             }
             "market_research" => {
                 let product = input.get("product").and_then(|v| v.as_str()).unwrap_or("");
@@ -197,12 +216,10 @@ impl ChatView {
             _ => return Err(format!("Unknown tool: {}", tool_name)),
         };
 
-        let messages = vec![
-            miyabi_llm::Message {
-                role: miyabi_llm::Role::User,
-                content: format!("You are {}. {}", agent_role, task),
-            },
-        ];
+        let messages = vec![miyabi_llm::Message {
+            role: miyabi_llm::Role::User,
+            content: format!("You are {}. {}", agent_role, task),
+        }];
 
         let msg_idx = self.messages.len();
         let timestamp = chrono::Local::now().format("%H:%M:%S").to_string();
@@ -309,11 +326,26 @@ impl ChatView {
         };
 
         let tool_keywords = [
-            ("analyze_issue", vec!["analyze issue", "issue analysis", "label", "github issue"]),
-            ("decompose_task", vec!["decompose", "break down", "subtasks", "分解"]),
-            ("generate_code", vec!["generate code", "implement", "write code", "コード生成"]),
-            ("review_code", vec!["review code", "code review", "レビュー"]),
-            ("market_research", vec!["market research", "competitive", "競合"]),
+            (
+                "analyze_issue",
+                vec!["analyze issue", "issue analysis", "label", "github issue"],
+            ),
+            (
+                "decompose_task",
+                vec!["decompose", "break down", "subtasks", "分解"],
+            ),
+            (
+                "generate_code",
+                vec!["generate code", "implement", "write code", "コード生成"],
+            ),
+            (
+                "review_code",
+                vec!["review code", "code review", "レビュー"],
+            ),
+            (
+                "market_research",
+                vec!["market research", "competitive", "競合"],
+            ),
             ("swot_analysis", vec!["swot", "strengths", "分析"]),
         ];
 
@@ -359,12 +391,10 @@ impl ChatView {
                 self.error = Some(e);
             }
         } else {
-            let messages = vec![
-                miyabi_llm::Message {
-                    role: miyabi_llm::Role::User,
-                    content: user_msg,
-                },
-            ];
+            let messages = vec![miyabi_llm::Message {
+                role: miyabi_llm::Role::User,
+                content: user_msg,
+            }];
 
             let msg_idx = self.messages.len();
             let timestamp = chrono::Local::now().format("%H:%M:%S").to_string();
@@ -481,10 +511,10 @@ impl ChatView {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(4),  // Premium Header
-                Constraint::Min(0),     // Messages
-                Constraint::Length(5),  // Rich Input
-                Constraint::Length(2),  // Status Bar
+                Constraint::Length(4), // Premium Header
+                Constraint::Min(0),    // Messages
+                Constraint::Length(5), // Rich Input
+                Constraint::Length(2), // Status Bar
             ])
             .split(area);
 
@@ -492,12 +522,16 @@ impl ChatView {
         // Premium Header - Gradient-like effect with double borders
         // ═══════════════════════════════════════════════════════════════════
         let status_icon = if self.loading {
-            spinner_frame()  // Use shimmer module's animated spinner
+            spinner_frame() // Use shimmer module's animated spinner
         } else {
             "●"
         };
 
-        let status_color = if self.loading { MIYABI_GOLD } else { MIYABI_GREEN };
+        let status_color = if self.loading {
+            MIYABI_GOLD
+        } else {
+            MIYABI_GREEN
+        };
 
         let header_content = vec![
             Line::from(vec![
@@ -541,52 +575,81 @@ impl ChatView {
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
                 Span::styled("  ┌", Style::default().fg(MIYABI_DIM)),
-                Span::styled("────────────────────────────────────────", Style::default().fg(MIYABI_DIM)),
+                Span::styled(
+                    "────────────────────────────────────────",
+                    Style::default().fg(MIYABI_DIM),
+                ),
                 Span::styled("┐", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
                 Span::styled("    ✧ Welcome to ", Style::default().fg(MIYABI_FG)),
-                Span::styled("Miyabi Chat", Style::default().fg(MIYABI_PURPLE).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "Miyabi Chat",
+                    Style::default()
+                        .fg(MIYABI_PURPLE)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled("                │", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
-                Span::styled("                                        ", Style::default().fg(MIYABI_DIM)),
+                Span::styled(
+                    "                                        ",
+                    Style::default().fg(MIYABI_DIM),
+                ),
                 Span::styled("│", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
-                Span::styled("    Powered by Claude Sonnet 4.5        ", Style::default().fg(MIYABI_DIM)),
+                Span::styled(
+                    "    Powered by Claude Sonnet 4.5        ",
+                    Style::default().fg(MIYABI_DIM),
+                ),
                 Span::styled("│", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
-                Span::styled("    with integrated A2A Agent tools     ", Style::default().fg(MIYABI_DIM)),
+                Span::styled(
+                    "    with integrated A2A Agent tools     ",
+                    Style::default().fg(MIYABI_DIM),
+                ),
                 Span::styled("│", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
-                Span::styled("                                        ", Style::default().fg(MIYABI_DIM)),
+                Span::styled(
+                    "                                        ",
+                    Style::default().fg(MIYABI_DIM),
+                ),
                 Span::styled("│", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
                 Span::styled("    💡 ", Style::default().fg(MIYABI_GOLD)),
                 Span::styled("Try: ", Style::default().fg(MIYABI_FG)),
-                Span::styled("\"analyze this issue\"       ", Style::default().fg(MIYABI_CYAN)),
+                Span::styled(
+                    "\"analyze this issue\"       ",
+                    Style::default().fg(MIYABI_CYAN),
+                ),
                 Span::styled("│", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  │", Style::default().fg(MIYABI_DIM)),
                 Span::styled("    💡 ", Style::default().fg(MIYABI_GOLD)),
                 Span::styled("Or:  ", Style::default().fg(MIYABI_FG)),
-                Span::styled("\"generate code for auth\"   ", Style::default().fg(MIYABI_CYAN)),
+                Span::styled(
+                    "\"generate code for auth\"   ",
+                    Style::default().fg(MIYABI_CYAN),
+                ),
                 Span::styled("│", Style::default().fg(MIYABI_DIM)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled("  └", Style::default().fg(MIYABI_DIM)),
-                Span::styled("────────────────────────────────────────", Style::default().fg(MIYABI_DIM)),
+                Span::styled(
+                    "────────────────────────────────────────",
+                    Style::default().fg(MIYABI_DIM),
+                ),
                 Span::styled("┘", Style::default().fg(MIYABI_DIM)),
             ]));
         }
@@ -624,7 +687,11 @@ impl ChatView {
                     .padding(Padding::new(1, 1, 0, 0))
                     .bg(MIYABI_BG)
                     .title(" 💬 Conversation ")
-                    .title_style(Style::default().fg(MIYABI_PURPLE).add_modifier(Modifier::BOLD)),
+                    .title_style(
+                        Style::default()
+                            .fg(MIYABI_PURPLE)
+                            .add_modifier(Modifier::BOLD),
+                    ),
             )
             .wrap(Wrap { trim: false })
             .scroll((self.scroll, 0));
@@ -638,11 +705,14 @@ impl ChatView {
                 .end_symbol(Some("↓"))
                 .track_symbol(Some("│"))
                 .thumb_symbol("█");
-            let mut scrollbar_state = ScrollbarState::new(self.content_height as usize)
-                .position(self.scroll as usize);
+            let mut scrollbar_state =
+                ScrollbarState::new(self.content_height as usize).position(self.scroll as usize);
             f.render_stateful_widget(
                 scrollbar,
-                msg_area.inner(Margin { vertical: 1, horizontal: 0 }),
+                msg_area.inner(Margin {
+                    vertical: 1,
+                    horizontal: 0,
+                }),
                 &mut scrollbar_state,
             );
         }
@@ -667,21 +737,35 @@ impl ChatView {
             vec![
                 Line::from(vec![
                     Span::styled("╭─", Style::default().fg(MIYABI_GOLD)),
-                    Span::styled("─────────────────────────────────────────────────────────────────────", Style::default().fg(MIYABI_GOLD)),
+                    Span::styled(
+                        "─────────────────────────────────────────────────────────────────────",
+                        Style::default().fg(MIYABI_GOLD),
+                    ),
                     Span::styled("─╮", Style::default().fg(MIYABI_GOLD)),
                 ]),
                 Line::from({
                     let mut spans = vec![
                         Span::styled("│ ", Style::default().fg(MIYABI_GOLD)),
-                        Span::styled(format!("{} ", spinner_frame()), Style::default().fg(MIYABI_GOLD).add_modifier(Modifier::BOLD)),
+                        Span::styled(
+                            format!("{} ", spinner_frame()),
+                            Style::default()
+                                .fg(MIYABI_GOLD)
+                                .add_modifier(Modifier::BOLD),
+                        ),
                     ];
                     spans.extend(shimmer_spans);
-                    spans.push(Span::styled(format!("{:>6}│", ""), Style::default().fg(MIYABI_GOLD)));
+                    spans.push(Span::styled(
+                        format!("{:>6}│", ""),
+                        Style::default().fg(MIYABI_GOLD),
+                    ));
                     spans
                 }),
                 Line::from(vec![
                     Span::styled("╰─", Style::default().fg(MIYABI_GOLD)),
-                    Span::styled("─────────────────────────────────────────────────────────────────────", Style::default().fg(MIYABI_GOLD)),
+                    Span::styled(
+                        "─────────────────────────────────────────────────────────────────────",
+                        Style::default().fg(MIYABI_GOLD),
+                    ),
                     Span::styled("─╯", Style::default().fg(MIYABI_GOLD)),
                 ]),
             ]
@@ -689,12 +773,20 @@ impl ChatView {
             vec![
                 Line::from(vec![
                     Span::styled("╭─", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled("─────────────────────────────────────────────────────────────────────", Style::default().fg(MIYABI_GREEN)),
+                    Span::styled(
+                        "─────────────────────────────────────────────────────────────────────",
+                        Style::default().fg(MIYABI_GREEN),
+                    ),
                     Span::styled("─╮", Style::default().fg(MIYABI_GREEN)),
                 ]),
                 Line::from(vec![
                     Span::styled("│ ", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled("❯ ", Style::default().fg(MIYABI_GREEN).add_modifier(Modifier::BOLD)),
+                    Span::styled(
+                        "❯ ",
+                        Style::default()
+                            .fg(MIYABI_GREEN)
+                            .add_modifier(Modifier::BOLD),
+                    ),
                     Span::styled("Type your message...", Style::default().fg(MIYABI_DIM)),
                     Span::styled(format!("{:>47}│", ""), Style::default().fg(MIYABI_GREEN)),
                 ]),
@@ -713,7 +805,10 @@ impl ChatView {
                 ]),
                 Line::from(vec![
                     Span::styled("╰─", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled("─────────────────────────────────────────────────────────────────────", Style::default().fg(MIYABI_GREEN)),
+                    Span::styled(
+                        "─────────────────────────────────────────────────────────────────────",
+                        Style::default().fg(MIYABI_GREEN),
+                    ),
                     Span::styled("─╯", Style::default().fg(MIYABI_GREEN)),
                 ]),
             ]
@@ -721,23 +816,40 @@ impl ChatView {
             vec![
                 Line::from(vec![
                     Span::styled("╭─", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled("─────────────────────────────────────────────────────────────────────", Style::default().fg(MIYABI_GREEN)),
+                    Span::styled(
+                        "─────────────────────────────────────────────────────────────────────",
+                        Style::default().fg(MIYABI_GREEN),
+                    ),
                     Span::styled("─╮", Style::default().fg(MIYABI_GREEN)),
                 ]),
                 Line::from(vec![
                     Span::styled("│ ", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled("❯ ", Style::default().fg(MIYABI_GREEN).add_modifier(Modifier::BOLD)),
-                    Span::styled(format!("{:<66}", &self.input), Style::default().fg(MIYABI_FG)),
+                    Span::styled(
+                        "❯ ",
+                        Style::default()
+                            .fg(MIYABI_GREEN)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        format!("{:<66}", &self.input),
+                        Style::default().fg(MIYABI_FG),
+                    ),
                     Span::styled("│", Style::default().fg(MIYABI_GREEN)),
                 ]),
                 Line::from(vec![
                     Span::styled("│ ", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled(format!("  {:>66}", "⏎ Enter to send"), Style::default().fg(MIYABI_DIM)),
+                    Span::styled(
+                        format!("  {:>66}", "⏎ Enter to send"),
+                        Style::default().fg(MIYABI_DIM),
+                    ),
                     Span::styled("│", Style::default().fg(MIYABI_GREEN)),
                 ]),
                 Line::from(vec![
                     Span::styled("╰─", Style::default().fg(MIYABI_GREEN)),
-                    Span::styled("─────────────────────────────────────────────────────────────────────", Style::default().fg(MIYABI_GREEN)),
+                    Span::styled(
+                        "─────────────────────────────────────────────────────────────────────",
+                        Style::default().fg(MIYABI_GREEN),
+                    ),
                     Span::styled("─╯", Style::default().fg(MIYABI_GREEN)),
                 ]),
             ]
@@ -750,26 +862,39 @@ impl ChatView {
         // Premium Status Bar with rich information
         // ═══════════════════════════════════════════════════════════════════
         let api_status = if self.client.is_some() { "✓" } else { "✗" };
-        let api_color = if self.client.is_some() { MIYABI_GREEN } else { MIYABI_RED };
+        let api_color = if self.client.is_some() {
+            MIYABI_GREEN
+        } else {
+            MIYABI_RED
+        };
 
-        let status_content = vec![
-            Line::from(vec![
-                Span::styled(" ◆ ", Style::default().fg(MIYABI_PURPLE).add_modifier(Modifier::BOLD)),
-                Span::styled("MIYABI TUI ", Style::default().fg(MIYABI_FG).add_modifier(Modifier::BOLD)),
-                Span::styled("v2.0", Style::default().fg(MIYABI_DIM)),
-                Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
-                Span::styled("API ", Style::default().fg(MIYABI_DIM)),
-                Span::styled(api_status, Style::default().fg(api_color)),
-                Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
-                Span::styled("Scroll ", Style::default().fg(MIYABI_DIM)),
-                Span::styled("↑↓ PgUp/PgDn", Style::default().fg(MIYABI_CYAN)),
-                Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
-                Span::styled("Quit ", Style::default().fg(MIYABI_DIM)),
-                Span::styled("Ctrl+C", Style::default().fg(MIYABI_CYAN)),
-                Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
-                Span::styled(format!("Messages: {}", self.messages.len()), Style::default().fg(MIYABI_DIM)),
-            ]),
-        ];
+        let status_content = vec![Line::from(vec![
+            Span::styled(
+                " ◆ ",
+                Style::default()
+                    .fg(MIYABI_PURPLE)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                "MIYABI TUI ",
+                Style::default().fg(MIYABI_FG).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("v2.0", Style::default().fg(MIYABI_DIM)),
+            Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
+            Span::styled("API ", Style::default().fg(MIYABI_DIM)),
+            Span::styled(api_status, Style::default().fg(api_color)),
+            Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
+            Span::styled("Scroll ", Style::default().fg(MIYABI_DIM)),
+            Span::styled("↑↓ PgUp/PgDn", Style::default().fg(MIYABI_CYAN)),
+            Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
+            Span::styled("Quit ", Style::default().fg(MIYABI_DIM)),
+            Span::styled("Ctrl+C", Style::default().fg(MIYABI_CYAN)),
+            Span::styled(" │ ", Style::default().fg(MIYABI_DIM)),
+            Span::styled(
+                format!("Messages: {}", self.messages.len()),
+                Style::default().fg(MIYABI_DIM),
+            ),
+        ])];
 
         let status_para = Paragraph::new(status_content);
         f.render_widget(status_para, chunks[3]);

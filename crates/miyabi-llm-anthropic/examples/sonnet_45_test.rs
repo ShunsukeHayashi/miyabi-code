@@ -20,12 +20,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test 1: Simple completion
     println!("📝 Test 1: Simple math");
-    let messages = vec![
-        Message {
-            role: Role::User,
-            content: "What is 2+2? Reply with just the number.".to_string(),
-        }
-    ];
+    let messages = vec![Message {
+        role: Role::User,
+        content: "What is 2+2? Reply with just the number.".to_string(),
+    }];
 
     let start = std::time::Instant::now();
     let response = client.chat(messages).await?;

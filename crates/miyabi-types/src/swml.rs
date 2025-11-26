@@ -98,7 +98,9 @@ impl Intent {
     /// Validate the Intent
     pub fn validate(&self) -> Result<(), MiyabiError> {
         if self.description.trim().is_empty() {
-            return Err(MiyabiError::Validation("Intent description cannot be empty".to_string()));
+            return Err(MiyabiError::Validation(
+                "Intent description cannot be empty".to_string(),
+            ));
         }
 
         // Validate constraints
@@ -149,20 +151,22 @@ impl Constraint {
                         "TimeLimit must be greater than 0".to_string(),
                     ));
                 }
-            },
+            }
             Constraint::MemoryLimit(mb) => {
                 if *mb == 0 {
                     return Err(MiyabiError::Validation(
                         "MemoryLimit must be greater than 0".to_string(),
                     ));
                 }
-            },
+            }
             Constraint::CostLimit(usd) => {
                 if *usd <= 0.0 {
-                    return Err(MiyabiError::Validation("CostLimit must be positive".to_string()));
+                    return Err(MiyabiError::Validation(
+                        "CostLimit must be positive".to_string(),
+                    ));
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
         Ok(())
     }
@@ -381,7 +385,9 @@ impl GitContext {
     /// Validate git context
     pub fn validate(&self) -> Result<(), MiyabiError> {
         if self.current_branch.is_empty() {
-            return Err(MiyabiError::Validation("Git branch name cannot be empty".to_string()));
+            return Err(MiyabiError::Validation(
+                "Git branch name cannot be empty".to_string(),
+            ));
         }
         Ok(())
     }
@@ -444,7 +450,9 @@ impl Resources {
     /// Validate resources
     pub fn validate(&self) -> Result<(), MiyabiError> {
         if self.cpu_cores == 0 {
-            return Err(MiyabiError::Validation("CPU cores cannot be zero".to_string()));
+            return Err(MiyabiError::Validation(
+                "CPU cores cannot be zero".to_string(),
+            ));
         }
 
         if self.memory_mb == 0 {
@@ -491,15 +499,15 @@ impl WorldConstraint {
                         "MaxWorktrees must be greater than 0".to_string(),
                     ));
                 }
-            },
+            }
             WorldConstraint::MaxFileSize(bytes) => {
                 if *bytes == 0 {
                     return Err(MiyabiError::Validation(
                         "MaxFileSize must be greater than 0".to_string(),
                     ));
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
         Ok(())
     }
@@ -612,7 +620,9 @@ pub struct FileChange {
 impl FileChange {
     pub fn validate(&self) -> Result<(), MiyabiError> {
         if self.path.to_str().is_none() {
-            return Err(MiyabiError::Validation("File path must be valid UTF-8".to_string()));
+            return Err(MiyabiError::Validation(
+                "File path must be valid UTF-8".to_string(),
+            ));
         }
         Ok(())
     }

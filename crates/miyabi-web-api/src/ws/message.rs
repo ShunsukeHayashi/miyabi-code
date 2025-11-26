@@ -27,7 +27,6 @@ use std::fmt;
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 pub enum WSMessage {
     // ハンドシェイク & 接続管理
-
     /// Ping: 接続確認 & キープアライブ
     #[serde(rename = "ping")]
     Ping {
@@ -59,7 +58,6 @@ pub enum WSMessage {
     },
 
     // 購読管理
-
     /// 実行イベントの購読開始
     #[serde(rename = "subscribe")]
     Subscribe {
@@ -75,7 +73,6 @@ pub enum WSMessage {
     },
 
     // Agent 実行イベント
-
     /// Agent 実行開始
     #[serde(rename = "agent.started")]
     AgentStarted {
@@ -150,7 +147,6 @@ pub enum WSMessage {
     },
 
     // ワークフロー実行
-
     /// ワークフロー実行開始
     #[serde(rename = "workflow.started")]
     WorkflowStarted {
@@ -174,7 +170,6 @@ pub enum WSMessage {
     },
 
     // エラーハンドリング
-
     /// エラーメッセージ
     #[serde(rename = "error")]
     Error {
@@ -196,7 +191,6 @@ pub enum WSMessage {
     },
 
     // ハートビート（接続確認）
-
     /// サーバーからクライアントへのハートビート
     #[serde(rename = "heartbeat")]
     Heartbeat {

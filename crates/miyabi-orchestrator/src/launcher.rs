@@ -39,7 +39,11 @@ pub async fn launch_claude_headless(
     cwd: PathBuf,
     output_file: PathBuf,
 ) -> Result<Child> {
-    info!("Launching Claude Code headless: command={}, cwd={}", command, cwd.display());
+    info!(
+        "Launching Claude Code headless: command={}, cwd={}",
+        command,
+        cwd.display()
+    );
 
     // Ensure output directory exists
     if let Some(parent) = output_file.parent() {
@@ -47,7 +51,9 @@ pub async fn launch_claude_headless(
     }
 
     // Open output file for writing
-    let output = tokio::fs::File::create(&output_file).await.map_err(SchedulerError::Io)?;
+    let output = tokio::fs::File::create(&output_file)
+        .await
+        .map_err(SchedulerError::Io)?;
     let output_std = output.into_std().await;
 
     debug!(
@@ -66,7 +72,9 @@ pub async fn launch_claude_headless(
         .arg(&cwd)
         .arg("--no-human-in-loop")
         .current_dir(&cwd)
-        .stdout(Stdio::from(output_std.try_clone().map_err(SchedulerError::Io)?))
+        .stdout(Stdio::from(
+            output_std.try_clone().map_err(SchedulerError::Io)?,
+        ))
         .stderr(Stdio::from(output_std))
         .kill_on_drop(true)
         .spawn()
@@ -91,19 +99,22 @@ mod tests {
 
         tokio::fs::create_dir(&worktree_path).await.unwrap();
 
-        let result =
-            launch_claude_headless("echo 'test'".to_string(), worktree_path, output_file.clone())
-                .await;
+        let result = launch_claude_headless(
+            "echo 'test'".to_string(),
+            worktree_path,
+            output_file.clone(),
+        )
+        .await;
 
         // Should spawn successfully (or fail with SpawnFailed if claude not installed)
         match result {
             Ok(mut child) => {
                 // Kill the process
                 let _ = child.kill().await;
-            },
+            }
             Err(SchedulerError::SpawnFailed(_)) => {
                 // Expected if Claude Code CLI not installed
-            },
+            }
             Err(e) => panic!("Unexpected error: {}", e),
         }
     }

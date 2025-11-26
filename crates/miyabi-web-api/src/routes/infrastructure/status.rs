@@ -137,10 +137,7 @@ async fn get_docker_containers() -> Vec<DockerContainer> {
                         };
 
                         let ports = if parts.len() > 2 {
-                            parts[2]
-                                .split(',')
-                                .map(|s| s.trim().to_string())
-                                .collect()
+                            parts[2].split(',').map(|s| s.trim().to_string()).collect()
                         } else {
                             vec![]
                         };
@@ -334,9 +331,7 @@ pub async fn get_infrastructure_topology() -> Json<TopologyResponse> {
 }
 
 fn get_tmux_status() -> String {
-    let output = Command::new("tmux")
-        .args(["list-sessions"])
-        .output();
+    let output = Command::new("tmux").args(["list-sessions"]).output();
 
     match output {
         Ok(out) if out.status.success() => "running".to_string(),

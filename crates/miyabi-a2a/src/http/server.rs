@@ -86,7 +86,10 @@ pub async fn start_http_server(
     // Bind to address
     let addr = format!("{}:{}", config.host, config.port).parse::<SocketAddr>()?;
 
-    tracing::info!("🚀 Miyabi Dashboard API server listening on http://{}", addr);
+    tracing::info!(
+        "🚀 Miyabi Dashboard API server listening on http://{}",
+        addr
+    );
     tracing::info!("📡 WebSocket endpoint available at ws://{}/ws", addr);
 
     // Start server

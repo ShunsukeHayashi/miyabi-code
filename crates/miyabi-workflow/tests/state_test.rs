@@ -156,9 +156,10 @@ fn test_execution_state_with_results() {
     let mut state = create_test_state("workflow-results", WorkflowStatus::Running);
 
     // Add step results
-    state
-        .step_results
-        .insert("step-0".to_string(), serde_json::json!({"output": "success"}));
+    state.step_results.insert(
+        "step-0".to_string(),
+        serde_json::json!({"output": "success"}),
+    );
 
     store.save_execution(&state).unwrap();
 
@@ -193,20 +194,33 @@ fn test_clear_workflow() {
 
     // Save state and steps
     store.save_execution(&state).unwrap();
-    store.save_step("workflow-clear", "step-1", &output).unwrap();
-    store.save_step("workflow-clear", "step-2", &output).unwrap();
+    store
+        .save_step("workflow-clear", "step-1", &output)
+        .unwrap();
+    store
+        .save_step("workflow-clear", "step-2", &output)
+        .unwrap();
 
     // Verify data exists
     assert!(store.load_execution("workflow-clear").unwrap().is_some());
-    assert!(store.load_step("workflow-clear", "step-1").unwrap().is_some());
+    assert!(store
+        .load_step("workflow-clear", "step-1")
+        .unwrap()
+        .is_some());
 
     // Clear workflow - Note: This clears step data but not execution state
     // (execution state has different prefix "execution:")
     store.clear_workflow("workflow-clear").unwrap();
 
     // Step data should be cleared
-    assert!(store.load_step("workflow-clear", "step-1").unwrap().is_none());
-    assert!(store.load_step("workflow-clear", "step-2").unwrap().is_none());
+    assert!(store
+        .load_step("workflow-clear", "step-1")
+        .unwrap()
+        .is_none());
+    assert!(store
+        .load_step("workflow-clear", "step-2")
+        .unwrap()
+        .is_none());
 }
 
 #[test]

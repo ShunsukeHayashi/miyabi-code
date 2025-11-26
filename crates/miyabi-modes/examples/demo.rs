@@ -14,11 +14,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(modes) => {
             println!("✅ Loaded {} modes", modes.len());
             registry.register_all(modes)?;
-        },
+        }
         Err(e) => {
             eprintln!("❌ Failed to load modes: {}", e);
             return Ok(());
-        },
+        }
     }
 
     println!("\n🎯 Registered Modes:\n");

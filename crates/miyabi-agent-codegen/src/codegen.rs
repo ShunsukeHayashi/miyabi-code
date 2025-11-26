@@ -104,7 +104,9 @@ impl CodeGenAgent {
 
             Ok(response.text)
         } else {
-            Err(MiyabiError::Validation("LLM provider not configured".to_string()))
+            Err(MiyabiError::Validation(
+                "LLM provider not configured".to_string(),
+            ))
         }
     }
 
@@ -181,8 +183,11 @@ impl CodeGenAgent {
             Ok(CodeGenerationResult {
                 files_created: response.files.iter().map(|f| f.path.clone()).collect(),
                 files_modified: vec![],
-                lines_added: response.files.iter().map(|f| f.content.lines().count()).sum::<usize>()
-                    as u32,
+                lines_added: response
+                    .files
+                    .iter()
+                    .map(|f| f.content.lines().count())
+                    .sum::<usize>() as u32,
                 lines_removed: 0,
                 tests_added: 0,
                 commit_sha: None,
@@ -201,11 +206,16 @@ impl CodeGenAgent {
         // NEW: Frontend task detection
         if frontend::is_frontend_task(task) && self.claudable_client.is_some() {
             tracing::info!("Frontend task detected, delegating to Claudable");
-            return self.generate_frontend_with_claudable(task, worktree_path).await;
+            return self
+                .generate_frontend_with_claudable(task, worktree_path)
+                .await;
         }
 
         // Validate task type
-        if !matches!(task.task_type, TaskType::Feature | TaskType::Bug | TaskType::Refactor) {
+        if !matches!(
+            task.task_type,
+            TaskType::Feature | TaskType::Bug | TaskType::Refactor
+        ) {
             return Err(MiyabiError::Validation(format!(
                 "CodeGenAgent cannot handle task type: {:?}",
                 task.task_type
@@ -214,7 +224,9 @@ impl CodeGenAgent {
 
         // If LLM provider is available, use it for code generation
         if self.llm_provider.is_some() {
-            return self.generate_code_with_llm_provider(task, worktree_path).await;
+            return self
+                .generate_code_with_llm_provider(task, worktree_path)
+                .await;
         }
 
         // If worktree is provided, execute Claude Code in it
@@ -234,7 +246,10 @@ impl CodeGenAgent {
         task: &Task,
         worktree_path: Option<&Path>,
     ) -> Result<CodeGenerationResult> {
-        tracing::info!("Generating code using LLM provider for task: {}", task.title);
+        tracing::info!(
+            "Generating code using LLM provider for task: {}",
+            task.title
+        );
 
         // Generate code using LLM
         let generated_code = self.generate_code_with_llm(task).await?;
@@ -280,7 +295,9 @@ impl CodeGenAgent {
         start_time: DateTime<Utc>,
         end_time: DateTime<Utc>,
     ) -> AgentMetrics {
-        let duration = end_time.signed_duration_since(start_time).num_milliseconds();
+        let duration = end_time
+            .signed_duration_since(start_time)
+            .num_milliseconds();
         let duration_ms = if duration < 0 { 0 } else { duration as u64 };
         let lines_changed = result.lines_added.saturating_add(result.lines_removed);
 
@@ -300,7 +317,9 @@ impl CodeGenAgent {
     /// Validate generated code
     fn validate_code(&self, result: &CodeGenerationResult) -> Result<()> {
         if result.files_created.is_empty() && result.files_modified.is_empty() {
-            return Err(MiyabiError::Validation("No files were created or modified".to_string()));
+            return Err(MiyabiError::Validation(
+                "No files were created or modified".to_string(),
+            ));
         }
 
         Ok(())
@@ -357,7 +376,7 @@ impl BaseAgent for CodeGenAgent {
                 } else {
                     (Ok(result), true)
                 }
-            },
+            }
             Err(e) => (Err(e), false),
         };
 
@@ -465,7 +484,10 @@ impl A2AEnabled for CodeGenAgent {
             .build()
     }
 
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
@@ -477,15 +499,12 @@ impl A2AEnabled for CodeGenAgent {
                     .to_string();
                 let title = task.input["title"]
                     .as_str()
-                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing title".to_string()))?
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing title".to_string())
+                    })?
                     .to_string();
-                let description = task.input["description"]
-                    .as_str()
-                    .unwrap_or("")
-                    .to_string();
-                let task_type_str = task.input["task_type"]
-                    .as_str()
-                    .unwrap_or("Feature");
+                let description = task.input["description"].as_str().unwrap_or("").to_string();
+                let task_type_str = task.input["task_type"].as_str().unwrap_or("Feature");
 
                 let task_type = match task_type_str {
                     "Bug" => TaskType::Bug,
@@ -529,13 +548,16 @@ impl A2AEnabled for CodeGenAgent {
                 })
             }
             "generate_documentation" => {
-                let project_path = task.input["project_path"]
-                    .as_str()
-                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing project_path".to_string()))?;
-                let code_result: CodeGenerationResult = serde_json::from_value(
-                    task.input["code_result"].clone()
-                )
-                .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid code_result: {}", e)))?;
+                let project_path = task.input["project_path"].as_str().ok_or_else(|| {
+                    A2AIntegrationError::TaskExecutionFailed("Missing project_path".to_string())
+                })?;
+                let code_result: CodeGenerationResult =
+                    serde_json::from_value(task.input["code_result"].clone()).map_err(|e| {
+                        A2AIntegrationError::TaskExecutionFailed(format!(
+                            "Invalid code_result: {}",
+                            e
+                        ))
+                    })?;
 
                 let doc_result = self
                     .generate_documentation(Path::new(project_path), &code_result)
@@ -735,8 +757,11 @@ mod tests {
         use miyabi_types::error::AgentError;
 
         // Test that AgentError includes proper context
-        let error =
-            AgentError::new("Test error", AgentType::CodeGenAgent, Some("task-123".to_string()));
+        let error = AgentError::new(
+            "Test error",
+            AgentType::CodeGenAgent,
+            Some("task-123".to_string()),
+        );
 
         assert_eq!(error.agent_type, AgentType::CodeGenAgent);
         assert_eq!(error.task_id, Some("task-123".to_string()));

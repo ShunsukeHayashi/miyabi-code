@@ -82,13 +82,13 @@ pub struct ServiceAgent {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum HistoricalAgent {
-    BillGates,      // EC2, Lambda (compute)
-    SteveJobs,      // CloudFront, S3 (frontend)
-    Napoleon,       // Auto Scaling, Load Balancer (strategy)
-    Hannibal,       // Lambda@Edge, CloudFront Functions (tactics)
-    Drucker,        // CloudWatch, X-Ray (management)
-    Kotler,         // API Gateway, SNS (marketing/communication)
-    Noguchi,        // RDS, DynamoDB (research data)
+    BillGates, // EC2, Lambda (compute)
+    SteveJobs, // CloudFront, S3 (frontend)
+    Napoleon,  // Auto Scaling, Load Balancer (strategy)
+    Hannibal,  // Lambda@Edge, CloudFront Functions (tactics)
+    Drucker,   // CloudWatch, X-Ray (management)
+    Kotler,    // API Gateway, SNS (marketing/communication)
+    Noguchi,   // RDS, DynamoDB (research data)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

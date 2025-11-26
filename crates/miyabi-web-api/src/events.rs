@@ -22,20 +22,11 @@ pub enum Event {
         priority: String,
     },
     /// Task updated
-    TaskUpdated {
-        task_id: String,
-        status: String,
-    },
+    TaskUpdated { task_id: String, status: String },
     /// Task completed
-    TaskCompleted {
-        task_id: String,
-        name: String,
-    },
+    TaskCompleted { task_id: String, name: String },
     /// Task failed
-    TaskFailed {
-        task_id: String,
-        error: String,
-    },
+    TaskFailed { task_id: String, error: String },
     /// Agent event wrapper
     Agent(AgentEvent),
 }
@@ -265,7 +256,7 @@ mod tests {
                 execution_id: id, ..
             } => {
                 assert_eq!(id, execution_id);
-            },
+            }
             _ => panic!("Expected ExecutionStarted event"),
         }
     }
@@ -291,7 +282,7 @@ mod tests {
             ) => {
                 assert_eq!(p1, 50);
                 assert_eq!(p2, 50);
-            },
+            }
             _ => panic!("Expected ExecutionProgress events"),
         }
     }
@@ -308,7 +299,7 @@ mod tests {
         match event {
             AgentEvent::ExecutionProgress { progress, .. } => {
                 assert_eq!(progress, 100);
-            },
+            }
             _ => panic!("Expected ExecutionProgress event"),
         }
     }

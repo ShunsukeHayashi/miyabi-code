@@ -23,8 +23,8 @@
 //! ```
 
 use anyhow::Result;
-use rmcp::{ServiceExt, transport::stdio};
-use tracing_subscriber::{EnvFilter, fmt};
+use rmcp::{transport::stdio, ServiceExt};
+use tracing_subscriber::{fmt, EnvFilter};
 
 mod server;
 use server::TemplateServer;
@@ -34,8 +34,7 @@ async fn main() -> Result<()> {
     // Initialize logging to stderr (MCP uses stdio for protocol)
     fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info"))
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
         .with_writer(std::io::stderr)
         .with_ansi(false)

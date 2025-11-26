@@ -105,13 +105,18 @@ async fn handle_github_webhook(
     info!("Received GitHub webhook");
 
     // Get event type
-    let event_type =
-        headers.get("x-github-event").and_then(|v| v.to_str().ok()).unwrap_or("unknown");
+    let event_type = headers
+        .get("x-github-event")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown");
 
     info!("Event type: {}", event_type);
 
     // Verify signature
-    if let Some(signature) = headers.get("x-hub-signature-256").and_then(|v| v.to_str().ok()) {
+    if let Some(signature) = headers
+        .get("x-hub-signature-256")
+        .and_then(|v| v.to_str().ok())
+    {
         if let Err(e) = verify_signature(&state.webhook_secret, signature, body.as_bytes()) {
             error!("Signature verification failed: {}", e);
             return (StatusCode::UNAUTHORIZED, "Invalid signature").into_response();
@@ -148,7 +153,7 @@ async fn handle_github_webhook(
                 error!("Failed to parse issue payload");
                 (StatusCode::BAD_REQUEST, "Invalid payload").into_response()
             }
-        },
+        }
         "pull_request" => {
             if let Ok(payload) = serde_json::from_str::<PullRequestPayload>(&body) {
                 let action = if payload.pull_request.merged == Some(true) {
@@ -181,15 +186,15 @@ async fn handle_github_webhook(
                 error!("Failed to parse PR payload");
                 (StatusCode::BAD_REQUEST, "Invalid payload").into_response()
             }
-        },
+        }
         "ping" => {
             info!("Ping event received");
             (StatusCode::OK, "pong").into_response()
-        },
+        }
         _ => {
             warn!("Unhandled event type: {}", event_type);
             (StatusCode::OK, "Event ignored").into_response()
-        },
+        }
     }
 }
 
@@ -249,7 +254,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start server
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("🚀 GitHub Webhook Server starting on {}", addr);
-    info!("📡 Webhook endpoint: http://{}:{}/webhook/github", addr.ip(), port);
+    info!(
+        "📡 Webhook endpoint: http://{}:{}/webhook/github",
+        addr.ip(),
+        port
+    );
     info!("❤️  Health check: http://{}:{}/health", addr.ip(), port);
 
     // Axum 0.7 API: use tokio::net::TcpListener instead of axum::Server

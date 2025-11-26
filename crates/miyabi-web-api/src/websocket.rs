@@ -4,10 +4,10 @@ use axum::{
 };
 use futures::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use std::process::Command;
+use std::sync::Arc;
 use tokio::sync::broadcast;
-use tracing::{info, error, debug};
+use tracing::{debug, error, info};
 
 /// WebSocket events that can be broadcasted to all connected clients
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -146,14 +146,14 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
                 Message::Ping(_data) => {
                     // Echo back pong
                     info!("Received ping");
-                },
+                }
                 Message::Pong(_) => {
                     info!("Received pong");
-                },
+                }
                 Message::Text(text) => {
                     info!("Received text message: {}", text);
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     });

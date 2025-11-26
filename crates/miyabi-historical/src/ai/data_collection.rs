@@ -65,8 +65,10 @@ impl WikipediaCollector {
             .await
             .context("Failed to fetch Wikipedia article")?;
 
-        let wiki_response: WikipediaResponse =
-            response.json().await.context("Failed to parse Wikipedia response")?;
+        let wiki_response: WikipediaResponse = response
+            .json()
+            .await
+            .context("Failed to parse Wikipedia response")?;
 
         // Extract the first (and should be only) page
         let page = wiki_response
@@ -189,11 +191,11 @@ mod tests {
             Ok(content) => {
                 assert!(!content.is_empty(), "Article content should not be empty");
                 println!("Fetched {} characters", content.len());
-            },
+            }
             Err(e) => {
                 // Network errors are acceptable in tests
                 println!("Warning: Wikipedia API call failed: {}", e);
-            },
+            }
         }
     }
 }

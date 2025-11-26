@@ -9,5 +9,7 @@ async fn main() {
     let config = AppConfig::from_env().expect("Failed to load configuration");
 
     // Run server
-    miyabi_web_api::run_server(config).await.expect("Server error");
+    miyabi_web_api::run_server(config)
+        .await
+        .expect("Server error");
 }

@@ -91,13 +91,15 @@ impl DiscordCommunityAgent {
             })?;
 
         if let Some(mut stdin) = child.stdin.take() {
-            stdin.write_all(request.to_string().as_bytes()).map_err(|e| {
-                MiyabiError::Agent(AgentError::new(
-                    format!("Failed to write to MCP Server: {}", e),
-                    AgentType::DiscordCommunity,
-                    None,
-                ))
-            })?;
+            stdin
+                .write_all(request.to_string().as_bytes())
+                .map_err(|e| {
+                    MiyabiError::Agent(AgentError::new(
+                        format!("Failed to write to MCP Server: {}", e),
+                        AgentType::DiscordCommunity,
+                        None,
+                    ))
+                })?;
         }
 
         let output = child.wait_with_output().map_err(|e| {
@@ -149,7 +151,8 @@ impl DiscordCommunityAgent {
 
         // 1. ヘルスチェック
         info!("Discord MCP Server に接続中...");
-        self.call_mcp_server("discord.health", serde_json::json!({})).await?;
+        self.call_mcp_server("discord.health", serde_json::json!({}))
+            .await?;
         info!("✅ 接続成功！");
 
         // 2. サーバー情報取得
@@ -163,7 +166,10 @@ impl DiscordCommunityAgent {
             )
             .await?;
 
-        let guild_name = guild_info.get("name").and_then(|v| v.as_str()).unwrap_or("Unknown");
+        let guild_name = guild_info
+            .get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown");
 
         info!("📌 サーバー名: {}", guild_name);
 
@@ -335,7 +341,7 @@ impl BaseAgent for DiscordCommunityAgent {
                     metrics: None,
                     escalation: None,
                 }
-            },
+            }
             "send_welcome" => {
                 let message = self.generate_welcome_message();
                 info!("ウェルカムメッセージ: {}", message);
@@ -352,14 +358,14 @@ impl BaseAgent for DiscordCommunityAgent {
                     metrics: None,
                     escalation: None,
                 }
-            },
+            }
             _ => {
                 return Err(MiyabiError::Agent(AgentError::new(
                     format!("Unknown task type: {}", task_type),
                     AgentType::DiscordCommunity,
                     Some(task.id.clone()),
                 )));
-            },
+            }
         };
 
         info!("Miyabiちゃん: タスク完了！🎉");
@@ -554,7 +560,7 @@ mod tests {
         match result {
             Err(MiyabiError::Config(msg)) => {
                 assert!(msg.contains("DISCORD_BOT_TOKEN"));
-            },
+            }
             _ => panic!("Expected Config error"),
         }
     }
@@ -594,7 +600,7 @@ mod tests {
         match result {
             Err(MiyabiError::Config(msg)) => {
                 assert!(msg.contains("Guild ID not provided"));
-            },
+            }
             _ => panic!("Expected Config error"),
         }
     }

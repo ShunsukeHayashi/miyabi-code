@@ -266,7 +266,10 @@ impl SkillsBridge {
                     "   ⏰ Skill execution timeout: {} ({}s)",
                     request.skill_name, request.timeout_secs
                 );
-                Err(anyhow!("Skill execution timeout after {}s", request.timeout_secs))
+                Err(anyhow!(
+                    "Skill execution timeout after {}s",
+                    request.timeout_secs
+                ))
             }
         }
     }
@@ -312,8 +315,7 @@ pub trait SkillExecutor {
 /// Trait for skills that can trigger orchestrator workflows
 pub trait OrchestratorTrigger {
     /// Notify orchestrator that a phase is complete
-    fn notify_phase_complete(&self, phase: &str, metadata: HashMap<String, String>)
-        -> Result<()>;
+    fn notify_phase_complete(&self, phase: &str, metadata: HashMap<String, String>) -> Result<()>;
 
     /// Notify orchestrator of an error that needs escalation
     fn notify_error(&self, error_message: &str, severity: ErrorSeverity) -> Result<()>;

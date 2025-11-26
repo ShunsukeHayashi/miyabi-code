@@ -144,13 +144,12 @@ async fn create_organization(
     });
 
     // Check slug uniqueness
-    let exists = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS(SELECT 1 FROM organizations WHERE slug = $1)",
-    )
-    .bind(&slug)
-    .fetch_one(&state.db)
-    .await
-    .map_err(AppError::Database)?;
+    let exists =
+        sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM organizations WHERE slug = $1)")
+            .bind(&slug)
+            .fetch_one(&state.db)
+            .await
+            .map_err(AppError::Database)?;
 
     if exists {
         return Err(AppError::Validation(format!(
@@ -193,7 +192,10 @@ async fn create_organization(
 
     tx.commit().await.map_err(AppError::Database)?;
 
-    Ok((StatusCode::CREATED, Json(OrganizationResponse { organization: org })))
+    Ok((
+        StatusCode::CREATED,
+        Json(OrganizationResponse { organization: org }),
+    ))
 }
 
 /// Get organization details
@@ -201,13 +203,11 @@ async fn get_organization(
     State(state): State<AppState>,
     Extension(org_ctx): Extension<OrganizationContext>,
 ) -> Result<impl IntoResponse> {
-    let org = sqlx::query_as::<_, Organization>(
-        "SELECT * FROM organizations WHERE id = $1",
-    )
-    .bind(org_ctx.organization_id)
-    .fetch_one(&state.db)
-    .await
-    .map_err(AppError::Database)?;
+    let org = sqlx::query_as::<_, Organization>("SELECT * FROM organizations WHERE id = $1")
+        .bind(org_ctx.organization_id)
+        .fetch_one(&state.db)
+        .await
+        .map_err(AppError::Database)?;
 
     Ok(Json(OrganizationResponse { organization: org }))
 }
@@ -314,13 +314,12 @@ async fn invite_member(
     }
 
     // Find user by email or github username
-    let user = sqlx::query_as::<_, (Uuid,)>(
-        "SELECT id FROM users WHERE email = $1 OR name = $1 LIMIT 1",
-    )
-    .bind(&req.identifier)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(AppError::Database)?;
+    let user =
+        sqlx::query_as::<_, (Uuid,)>("SELECT id FROM users WHERE email = $1 OR name = $1 LIMIT 1")
+            .bind(&req.identifier)
+            .fetch_optional(&state.db)
+            .await
+            .map_err(AppError::Database)?;
 
     let user_id = match user {
         Some((id,)) => id,
@@ -443,14 +442,12 @@ async fn remove_member(
         ));
     }
 
-    sqlx::query(
-        "DELETE FROM organization_members WHERE organization_id = $1 AND user_id = $2",
-    )
-    .bind(org_ctx.organization_id)
-    .bind(user_id)
-    .execute(&state.db)
-    .await
-    .map_err(AppError::Database)?;
+    sqlx::query("DELETE FROM organization_members WHERE organization_id = $1 AND user_id = $2")
+        .bind(org_ctx.organization_id)
+        .bind(user_id)
+        .execute(&state.db)
+        .await
+        .map_err(AppError::Database)?;
 
     Ok(Json(MessageResponse {
         message: "Member removed".to_string(),
@@ -547,15 +544,14 @@ async fn get_team(
     State(state): State<AppState>,
     Path((org_id, team_id)): Path<(Uuid, Uuid)>,
 ) -> Result<impl IntoResponse> {
-    let team = sqlx::query_as::<_, Team>(
-        "SELECT * FROM teams WHERE id = $1 AND organization_id = $2",
-    )
-    .bind(team_id)
-    .bind(org_id)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(AppError::Database)?
-    .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+    let team =
+        sqlx::query_as::<_, Team>("SELECT * FROM teams WHERE id = $1 AND organization_id = $2")
+            .bind(team_id)
+            .bind(org_id)
+            .fetch_optional(&state.db)
+            .await
+            .map_err(AppError::Database)?
+            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
 
     Ok(Json(TeamResponse { team }))
 }

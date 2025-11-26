@@ -787,7 +787,10 @@ mod tests {
         );
 
         assert_eq!(template.system_message, "System message");
-        assert_eq!(template.user_message_template, "User message with {variable}");
+        assert_eq!(
+            template.user_message_template,
+            "User message with {variable}"
+        );
         assert_eq!(template.response_format, ResponseFormat::PlainText);
     }
 
@@ -867,13 +870,19 @@ mod tests {
     #[test]
     fn test_response_format_plain_text() {
         let format = ResponseFormat::PlainText;
-        assert_eq!(serde_json::to_string(&format).unwrap(), r#"{"type":"plaintext"}"#);
+        assert_eq!(
+            serde_json::to_string(&format).unwrap(),
+            r#"{"type":"plaintext"}"#
+        );
     }
 
     #[test]
     fn test_response_format_json() {
         let format = ResponseFormat::Json { schema: None };
-        assert_eq!(serde_json::to_string(&format).unwrap(), r#"{"type":"json"}"#);
+        assert_eq!(
+            serde_json::to_string(&format).unwrap(),
+            r#"{"type":"json"}"#
+        );
     }
 
     #[test]
@@ -881,7 +890,10 @@ mod tests {
         let format = ResponseFormat::Code {
             language: "rust".to_string(),
         };
-        assert_eq!(serde_json::to_string(&format).unwrap(), r#"{"type":"code","language":"rust"}"#);
+        assert_eq!(
+            serde_json::to_string(&format).unwrap(),
+            r#"{"type":"code","language":"rust"}"#
+        );
     }
 
     #[test]
@@ -899,7 +911,10 @@ mod tests {
         assert!(rendered.contains("Calculate factorial"));
         assert!(rendered.contains("Write a function to calculate factorial"));
 
-        assert!(matches!(template.response_format, ResponseFormat::Code { .. }));
+        assert!(matches!(
+            template.response_format,
+            ResponseFormat::Code { .. }
+        ));
     }
 
     #[test]
@@ -913,7 +928,10 @@ mod tests {
 
         let rendered = template.render(&vars).unwrap();
         assert!(rendered.contains("fn main() {}"));
-        assert!(matches!(template.response_format, ResponseFormat::Json { .. }));
+        assert!(matches!(
+            template.response_format,
+            ResponseFormat::Json { .. }
+        ));
     }
 
     #[test]
@@ -935,7 +953,10 @@ mod tests {
 
         let mut vars = HashMap::new();
         vars.insert("issue_title".to_string(), "Build API".to_string());
-        vars.insert("issue_description".to_string(), "Create REST API".to_string());
+        vars.insert(
+            "issue_description".to_string(),
+            "Create REST API".to_string(),
+        );
         vars.insert("issue_labels".to_string(), "feature, P0".to_string());
 
         let rendered = template.render(&vars).unwrap();

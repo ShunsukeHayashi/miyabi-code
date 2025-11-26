@@ -91,7 +91,10 @@ impl CoordinatorService {
     }
 
     /// Get coordinator by ID
-    pub async fn get_coordinator(&self, coordinator_id: Uuid) -> Result<CoordinatorStatus, ApiError> {
+    pub async fn get_coordinator(
+        &self,
+        coordinator_id: Uuid,
+    ) -> Result<CoordinatorStatus, ApiError> {
         let coordinator = sqlx::query_as::<_, CoordinatorStatusRow>(
             r#"
             SELECT
@@ -150,11 +153,7 @@ impl CoordinatorService {
     }
 
     /// Update coordinator status
-    pub async fn update_status(
-        &self,
-        coordinator_id: Uuid,
-        status: &str,
-    ) -> Result<(), ApiError> {
+    pub async fn update_status(&self, coordinator_id: Uuid, status: &str) -> Result<(), ApiError> {
         sqlx::query(
             r#"
             UPDATE coordinators

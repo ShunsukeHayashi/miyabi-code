@@ -51,13 +51,16 @@ Generate detailed market research as JSON with market size analysis, competitive
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::MarketResearchAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::MarketResearchAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let market_research: MarketResearch = serde_json::from_str(&response).map_err(|e| {
@@ -244,7 +247,10 @@ impl BaseAgent for MarketResearchAgent {
             "opportunities_count": market_research.market_opportunities.primary.len() + market_research.market_opportunities.secondary.len()
         });
 
-        tracing::info!("MarketResearchAgent completed market research generation: {}", summary);
+        tracing::info!(
+            "MarketResearchAgent completed market research generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

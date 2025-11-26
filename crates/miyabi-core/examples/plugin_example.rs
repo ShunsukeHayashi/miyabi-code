@@ -41,10 +41,15 @@ impl Plugin for LoggerPlugin {
     }
 
     fn execute(&self, context: &PluginContext) -> Result<PluginResult> {
-        let count = self.log_count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let count = self
+            .log_count
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
-        let message =
-            context.params.get("message").and_then(|v| v.as_str()).unwrap_or("No message");
+        let message = context
+            .params
+            .get("message")
+            .and_then(|v| v.as_str())
+            .unwrap_or("No message");
 
         println!("📝 [Log #{}] {}", count + 1, message);
 
@@ -84,11 +89,23 @@ impl Plugin for CalculatorPlugin {
     }
 
     fn execute(&self, context: &PluginContext) -> Result<PluginResult> {
-        let a = context.params.get("a").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let a = context
+            .params
+            .get("a")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
 
-        let b = context.params.get("b").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let b = context
+            .params
+            .get("b")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
 
-        let operation = context.params.get("operation").and_then(|v| v.as_str()).unwrap_or("add");
+        let operation = context
+            .params
+            .get("operation")
+            .and_then(|v| v.as_str())
+            .unwrap_or("add");
 
         let result = match operation {
             "add" => a + b,
@@ -103,14 +120,14 @@ impl Plugin for CalculatorPlugin {
                     });
                 }
                 a / b
-            },
+            }
             _ => {
                 return Ok(PluginResult {
                     success: false,
                     message: Some(format!("Unknown operation: {}", operation)),
                     data: None,
                 })
-            },
+            }
         };
 
         println!("🧮 {} {} {} = {}", a, operation, b, result);

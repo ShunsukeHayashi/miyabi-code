@@ -90,8 +90,11 @@ impl PushNotificationConfig {
                     )));
                 }
                 Ok(())
-            },
-            Err(e) => Err(A2AError::InvalidRequest(format!("Invalid webhook URL: {}", e))),
+            }
+            Err(e) => Err(A2AError::InvalidRequest(format!(
+                "Invalid webhook URL: {}",
+                e
+            ))),
         }
     }
 }
@@ -318,7 +321,7 @@ mod tests {
         match result.unwrap_err() {
             A2AError::InvalidRequest(msg) => {
                 assert!(msg.contains("Webhook URL must start with"));
-            },
+            }
             _ => panic!("Expected InvalidRequest error"),
         }
     }

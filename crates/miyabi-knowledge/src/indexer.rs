@@ -78,13 +78,16 @@ impl QdrantIndexer {
         for (i, chunk) in chunks.iter().enumerate() {
             // チャンクごとにエントリを作成
             let mut chunk_metadata = entry.metadata.clone();
-            chunk_metadata.extra.insert("chunk_index".to_string(), serde_json::json!(i));
+            chunk_metadata
+                .extra
+                .insert("chunk_index".to_string(), serde_json::json!(i));
             chunk_metadata
                 .extra
                 .insert("total_chunks".to_string(), serde_json::json!(chunks.len()));
-            chunk_metadata
-                .extra
-                .insert("parent_id".to_string(), serde_json::json!(entry.id.as_str()));
+            chunk_metadata.extra.insert(
+                "parent_id".to_string(),
+                serde_json::json!(entry.id.as_str()),
+            );
 
             let chunk_entry = KnowledgeEntry::new(chunk.clone(), chunk_metadata);
 
@@ -154,11 +157,11 @@ impl KnowledgeIndexer for QdrantIndexer {
                 match vector_result {
                     Ok(vector) => {
                         batch_entries.push((chunk[i].clone(), vector));
-                    },
+                    }
                     Err(e) => {
                         warn!("Failed to vectorize entry {}: {}", chunk[i].id, e);
                         stats.failed += 1;
-                    },
+                    }
                 }
             }
 
@@ -167,11 +170,11 @@ impl KnowledgeIndexer for QdrantIndexer {
                 Ok(inserted_ids) => {
                     stats.success += inserted_ids.len();
                     debug!("Batch inserted {} entries", inserted_ids.len());
-                },
+                }
                 Err(e) => {
                     warn!("Batch insert failed: {}", e);
                     stats.failed += batch_entries.len();
-                },
+                }
             }
         }
 
@@ -221,7 +224,7 @@ impl KnowledgeIndexer for QdrantIndexer {
                     warn!("Failed to hash file {:?}: {}", file_path, e);
                     stats.failed += 1;
                     continue;
-                },
+                }
             };
 
             // キャッシュチェック
@@ -244,17 +247,17 @@ impl KnowledgeIndexer for QdrantIndexer {
 
                             // キャッシュを更新
                             cache.mark_indexed(file_path.clone(), hash);
-                        },
+                        }
                         Err(e) => {
                             warn!("Failed to index entries from {:?}: {}", file_path, e);
                             stats.failed += 1;
-                        },
+                        }
                     }
-                },
+                }
                 Err(e) => {
                     warn!("Failed to collect from {:?}: {}", file_path, e);
                     stats.failed += 1;
-                },
+                }
             }
         }
 
@@ -285,7 +288,11 @@ impl QdrantIndexer {
 
         let mut files = Vec::new();
 
-        for entry in WalkDir::new(log_dir).follow_links(true).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(log_dir)
+            .follow_links(true)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
             let path = entry.path();
 
             // Markdownファイルのみ

@@ -47,7 +47,10 @@ impl BaseAgent for TestAgent {
         tokio::time::sleep(tokio::time::Duration::from_millis(self.execution_delay_ms)).await;
 
         if self.should_fail {
-            return Err(MiyabiError::Unknown(format!("Intentional failure for task {}", task.id)));
+            return Err(MiyabiError::Unknown(format!(
+                "Intentional failure for task {}",
+                task.id
+            )));
         }
 
         Ok(AgentResult {
@@ -485,7 +488,10 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
     let completed_tasks = result.success_count + result.failed_count;
     if completed_tasks < result.total_tasks {
         // Ideal case: some tasks were cancelled
-        eprintln!("[Test] Fail-fast cancelled {} tasks", result.cancelled_count);
+        eprintln!(
+            "[Test] Fail-fast cancelled {} tasks",
+            result.cancelled_count
+        );
     } else {
         // Edge case: all tasks completed before cancellation propagated
         eprintln!("[Test] All tasks completed (fail-fast timing edge case)");
@@ -502,7 +508,10 @@ async fn test_scenario_2_fail_fast_with_error_hooks() {
 
     // Verify worktree_id was captured in error events
     for event in error_events {
-        assert!(event.worktree_id.is_some(), "Error event should have worktree_id");
+        assert!(
+            event.worktree_id.is_some(),
+            "Error event should have worktree_id"
+        );
     }
 }
 
@@ -659,7 +668,11 @@ async fn test_scenario_3_statistics_consistency() {
     assert_eq!(pre_count, 4, "All 4 tasks should have pre_execute hook");
 
     // Success + Error = Total
-    assert_eq!(post_count + error_count, 4, "post_execute + error should equal total tasks");
+    assert_eq!(
+        post_count + error_count,
+        4,
+        "post_execute + error should equal total tasks"
+    );
 
     // Consistency check: success count from pool == post_execute count
     assert_eq!(

@@ -4,7 +4,7 @@
 //! Supports real-time log streaming with buffering and filtering.
 
 use crate::error::ApiError;
-use crate::ws::message::{WSMessage, LogLevel};
+use crate::ws::message::{LogLevel, WSMessage};
 use std::process::Command;
 use std::sync::Arc;
 use tokio::sync::broadcast;
@@ -88,15 +88,14 @@ impl LogStreamer {
         let output = Command::new("tmux")
             .args([
                 "capture-pane",
-                "-p",           // Print to stdout
-                "-t",           // Target pane
+                "-p", // Print to stdout
+                "-t", // Target pane
                 &self.pane_id,
-                "-S", "-",      // Start from history beginning
+                "-S",
+                "-", // Start from history beginning
             ])
             .output()
-            .map_err(|e| {
-                ApiError::Server(format!("Failed to execute tmux capture-pane: {}", e))
-            })?;
+            .map_err(|e| ApiError::Server(format!("Failed to execute tmux capture-pane: {}", e)))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -174,11 +173,7 @@ impl LogStreamer {
                             break;
                         }
 
-                        debug!(
-                            "Streamed log from {}: {}",
-                            self.agent_name,
-                            log_preview
-                        );
+                        debug!("Streamed log from {}: {}", self.agent_name, log_preview);
                     }
                 }
                 Err(e) => {
@@ -286,10 +281,7 @@ mod tests {
 
     #[test]
     fn test_log_entry_creation() {
-        let entry = LogEntry::new(
-            "TestAgent".to_string(),
-            "ERROR: Test error".to_string(),
-        );
+        let entry = LogEntry::new("TestAgent".to_string(), "ERROR: Test error".to_string());
         assert_eq!(entry.agent, "TestAgent");
         assert!(matches!(entry.level, LogLevel::Error));
     }

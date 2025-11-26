@@ -388,7 +388,10 @@ async fn test_agent_get_authenticated_extended_card_success() {
 
     let request = GetAuthenticatedExtendedCardRequest { token };
 
-    let response = client.agent_get_authenticated_extended_card(request).await.unwrap();
+    let response = client
+        .agent_get_authenticated_extended_card(request)
+        .await
+        .unwrap();
     let result = response.into_inner();
 
     assert!(result.card.is_some());
@@ -557,7 +560,11 @@ async fn test_load_1000_concurrent_requests() {
     println!("========================================\n");
 
     // Assert at least 95% success rate
-    assert!(success_count >= 950, "Success rate too low: {}/1000", success_count);
+    assert!(
+        success_count >= 950,
+        "Success rate too low: {}/1000",
+        success_count
+    );
 }
 
 // ==============================================================================
@@ -665,12 +672,19 @@ async fn test_benchmark_grpc_throughput() {
     println!("========================================");
     println!("Requests: {}", request_count);
     println!("Total Duration: {:?}", duration);
-    println!("Requests/sec: {:.2}", request_count as f64 / duration.as_secs_f64());
+    println!(
+        "Requests/sec: {:.2}",
+        request_count as f64 / duration.as_secs_f64()
+    );
     println!("Avg latency: {:?}", duration / request_count);
     println!("========================================\n");
 
     // Ensure reasonable performance (at least 10 req/sec)
-    assert!(duration.as_secs_f64() < 10.0, "Performance too slow: {:?}", duration);
+    assert!(
+        duration.as_secs_f64() < 10.0,
+        "Performance too slow: {:?}",
+        duration
+    );
 }
 
 #[tokio::test]
@@ -716,12 +730,19 @@ async fn test_benchmark_grpc_parallel_throughput() {
     println!("Total Requests: {}", request_count);
     println!("Concurrency: {}", concurrency);
     println!("Total Duration: {:?}", duration);
-    println!("Requests/sec: {:.2}", request_count as f64 / duration.as_secs_f64());
+    println!(
+        "Requests/sec: {:.2}",
+        request_count as f64 / duration.as_secs_f64()
+    );
     println!("Avg latency: {:?}", duration / request_count);
     println!("========================================\n");
 
     // Parallel should be faster than 10 req/sec
-    assert!(duration.as_secs_f64() < 10.0, "Parallel performance too slow: {:?}", duration);
+    assert!(
+        duration.as_secs_f64() < 10.0,
+        "Parallel performance too slow: {:?}",
+        duration
+    );
 }
 
 // ==============================================================================

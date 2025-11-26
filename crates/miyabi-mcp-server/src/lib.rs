@@ -97,7 +97,7 @@ pub use registry::{
     DiscoveryStats, McpServerConnection, RegistryError, RegistryResult, ServerStatus,
     ToolDefinition, ToolRegistry,
 };
-pub use server::{McpServer, A2AExecuteParams, A2AListAgentsParams, A2AListToolsParams};
+pub use server::{A2AExecuteParams, A2AListAgentsParams, A2AListToolsParams, McpServer};
 pub use service::{ServiceConfig, ServiceStats, ToolRegistryService};
 pub use session_handler::SessionHandler;
 

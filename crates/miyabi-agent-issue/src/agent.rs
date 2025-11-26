@@ -61,7 +61,10 @@ impl IssueAgent {
         if self.config.verbose {
             info!("   Complexity: {:.1}/10.0", analysis.complexity);
             info!("   Level: {:?}", analysis.complexity_level);
-            info!("   Estimated duration: {} hours", analysis.estimated_duration_hours);
+            info!(
+                "   Estimated duration: {} hours",
+                analysis.estimated_duration_hours
+            );
             info!("   Suggested labels: {:?}", analysis.labels);
             info!("   Reasoning: {}", analysis.reasoning);
         }
@@ -107,7 +110,10 @@ impl IssueAgent {
             .save(&metadata)
             .map_err(|e| MiyabiError::Unknown(format!("Failed to save TaskMetadata: {}", e)))?;
 
-        info!("📝 Created TaskMetadata for Issue #{}: {}", issue.number, task_id);
+        info!(
+            "📝 Created TaskMetadata for Issue #{}: {}",
+            issue.number, task_id
+        );
 
         Ok(metadata)
     }
@@ -132,13 +138,17 @@ impl BaseAgent for IssueAgent {
         // For Phase 1, we'll expect the Issue to be passed via metadata
         // This is a simplified version - in production, you'd fetch from GitHub API
 
-        let issue_data = task.metadata.as_ref().and_then(|m| m.get("issue")).ok_or_else(|| {
-            MiyabiError::Agent(AgentError::new(
-                "No issue data found in task metadata",
-                AgentType::IssueAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let issue_data = task
+            .metadata
+            .as_ref()
+            .and_then(|m| m.get("issue"))
+            .ok_or_else(|| {
+                MiyabiError::Agent(AgentError::new(
+                    "No issue data found in task metadata",
+                    AgentType::IssueAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         let issue: Issue = serde_json::from_value(issue_data.clone()).map_err(|e| {
             warn!("Failed to parse Issue from task metadata: {}", e);
@@ -168,69 +178,81 @@ impl BaseAgent for IssueAgent {
 #[async_trait]
 impl A2AEnabled for IssueAgent {
     fn agent_card(&self) -> A2AAgentCard {
-        AgentCardBuilder::new("IssueAgent", "Issue analysis and task metadata creation agent")
-            .version("0.1.1")
-            .capability(AgentCapability {
-                id: "analyze_issue".to_string(),
-                name: "Analyze Issue".to_string(),
-                description: "Analyze GitHub Issue for complexity, labels, and implementation guidance".to_string(),
-                input_schema: Some(json!({
-                    "type": "object",
-                    "properties": {
-                        "issue": {
-                            "type": "object",
-                            "description": "GitHub Issue object to analyze"
-                        }
-                    },
-                    "required": ["issue"]
-                })),
-                output_schema: Some(json!({
-                    "type": "object",
-                    "properties": {
-                        "issue_number": { "type": "integer" },
-                        "complexity": { "type": "number" },
-                        "complexity_level": { "type": "string" },
-                        "estimated_duration_hours": { "type": "integer" },
-                        "labels": { "type": "array", "items": { "type": "string" } },
-                        "reasoning": { "type": "string" }
+        AgentCardBuilder::new(
+            "IssueAgent",
+            "Issue analysis and task metadata creation agent",
+        )
+        .version("0.1.1")
+        .capability(AgentCapability {
+            id: "analyze_issue".to_string(),
+            name: "Analyze Issue".to_string(),
+            description: "Analyze GitHub Issue for complexity, labels, and implementation guidance"
+                .to_string(),
+            input_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "issue": {
+                        "type": "object",
+                        "description": "GitHub Issue object to analyze"
                     }
-                })),
-            })
-            .capability(AgentCapability {
-                id: "create_task_metadata".to_string(),
-                name: "Create Task Metadata".to_string(),
-                description: "Create TaskMetadata for Issue assignment to worktree".to_string(),
-                input_schema: Some(json!({
-                    "type": "object",
-                    "properties": {
-                        "task_id": { "type": "string" },
-                        "issue": { "type": "object" },
-                        "worktree_path": { "type": "string" },
-                        "branch_name": { "type": "string" }
-                    },
-                    "required": ["task_id", "issue"]
-                })),
-                output_schema: Some(json!({
-                    "type": "object",
-                    "properties": {
-                        "task_id": { "type": "string" },
-                        "issue_number": { "type": "integer" },
-                        "worktree_path": { "type": "string" },
-                        "branch_name": { "type": "string" }
-                    }
-                })),
-            })
-            .build()
+                },
+                "required": ["issue"]
+            })),
+            output_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "issue_number": { "type": "integer" },
+                    "complexity": { "type": "number" },
+                    "complexity_level": { "type": "string" },
+                    "estimated_duration_hours": { "type": "integer" },
+                    "labels": { "type": "array", "items": { "type": "string" } },
+                    "reasoning": { "type": "string" }
+                }
+            })),
+        })
+        .capability(AgentCapability {
+            id: "create_task_metadata".to_string(),
+            name: "Create Task Metadata".to_string(),
+            description: "Create TaskMetadata for Issue assignment to worktree".to_string(),
+            input_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "task_id": { "type": "string" },
+                    "issue": { "type": "object" },
+                    "worktree_path": { "type": "string" },
+                    "branch_name": { "type": "string" }
+                },
+                "required": ["task_id", "issue"]
+            })),
+            output_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "task_id": { "type": "string" },
+                    "issue_number": { "type": "integer" },
+                    "worktree_path": { "type": "string" },
+                    "branch_name": { "type": "string" }
+                }
+            })),
+        })
+        .build()
     }
 
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
 
         match task.capability.as_str() {
             "analyze_issue" => {
-                let issue: Issue = serde_json::from_value(
-                    task.input.get("issue").cloned().unwrap_or_default()
-                ).map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid issue: {}", e)))?;
+                let issue: Issue =
+                    serde_json::from_value(task.input.get("issue").cloned().unwrap_or_default())
+                        .map_err(|e| {
+                            A2AIntegrationError::TaskExecutionFailed(format!(
+                                "Invalid issue: {}",
+                                e
+                            ))
+                        })?;
 
                 let analysis = self.analyze_issue(&issue).await.map_err(|e| {
                     A2AIntegrationError::TaskExecutionFailed(format!("Analysis failed: {}", e))
@@ -243,24 +265,43 @@ impl A2AEnabled for IssueAgent {
                 })
             }
             "create_task_metadata" => {
-                let task_id_str = task.input.get("task_id")
+                let task_id_str = task
+                    .input
+                    .get("task_id")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing task_id".to_string()))?;
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing task_id".to_string())
+                    })?;
 
-                let issue: Issue = serde_json::from_value(
-                    task.input.get("issue").cloned().unwrap_or_default()
-                ).map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Invalid issue: {}", e)))?;
+                let issue: Issue =
+                    serde_json::from_value(task.input.get("issue").cloned().unwrap_or_default())
+                        .map_err(|e| {
+                            A2AIntegrationError::TaskExecutionFailed(format!(
+                                "Invalid issue: {}",
+                                e
+                            ))
+                        })?;
 
-                let worktree_path = task.input.get("worktree_path")
+                let worktree_path = task
+                    .input
+                    .get("worktree_path")
                     .and_then(|v| v.as_str())
                     .map(PathBuf::from);
 
-                let branch_name = task.input.get("branch_name")
+                let branch_name = task
+                    .input
+                    .get("branch_name")
                     .and_then(|v| v.as_str())
                     .map(String::from);
 
-                let metadata = self.create_task_metadata(task_id_str, &issue, worktree_path, branch_name)
-                    .map_err(|e| A2AIntegrationError::TaskExecutionFailed(format!("Metadata creation failed: {}", e)))?;
+                let metadata = self
+                    .create_task_metadata(task_id_str, &issue, worktree_path, branch_name)
+                    .map_err(|e| {
+                        A2AIntegrationError::TaskExecutionFailed(format!(
+                            "Metadata creation failed: {}",
+                            e
+                        ))
+                    })?;
 
                 Ok(A2ATaskResult::Success {
                     output: json!({
@@ -273,9 +314,10 @@ impl A2AEnabled for IssueAgent {
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(
-                format!("Unknown capability: {}", task.capability)
-            ))
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
         }
     }
 

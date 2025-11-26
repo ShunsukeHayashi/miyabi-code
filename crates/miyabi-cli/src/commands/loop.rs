@@ -80,7 +80,7 @@ impl LoopCommand {
                     iteration_delay_ms: *iteration_delay_ms,
                 };
                 Self::execute_start(issues, config).await
-            },
+            }
             LoopCommand::Status { goal_id } => Self::execute_status(goal_id.as_deref()).await,
             LoopCommand::Cancel { goal_id } => Self::execute_cancel(goal_id).await,
         }
@@ -136,18 +136,24 @@ impl LoopCommand {
                     );
 
                     if !feedback_loop.convergence_metrics.is_empty() {
-                        let final_score =
-                            feedback_loop.convergence_metrics.last().copied().unwrap_or(0.0);
+                        let final_score = feedback_loop
+                            .convergence_metrics
+                            .last()
+                            .copied()
+                            .unwrap_or(0.0);
                         println!(
                             "{}",
                             format!("    Final quality score: {:.1}/100", final_score)
                                 .bright_cyan()
                         );
                     }
-                },
+                }
                 Err(e) => {
-                    println!("{}", format!("  ❌ Issue #{}: Failed - {}", issue_num, e).red());
-                },
+                    println!(
+                        "{}",
+                        format!("  ❌ Issue #{}: Failed - {}", issue_num, e).red()
+                    );
+                }
             }
         }
 
@@ -166,7 +172,7 @@ impl LoopCommand {
                     "{}",
                     "💡 Tip: Use 'miyabi loop start --issues N' to start a new loop".bright_blue()
                 );
-            },
+            }
             None => {
                 println!("{}", "📊 Active feedback loops:".bright_cyan());
                 println!("{}", "⚠️  Status listing not yet implemented".yellow());
@@ -174,13 +180,16 @@ impl LoopCommand {
                     "{}",
                     "💡 Tip: Specify a goal ID to check specific loop status".bright_blue()
                 );
-            },
+            }
         }
         Ok(())
     }
 
     async fn execute_cancel(goal_id: &str) -> Result<()> {
-        println!("{}", format!("🚫 Cancelling loop for goal: {}", goal_id).yellow());
+        println!(
+            "{}",
+            format!("🚫 Cancelling loop for goal: {}", goal_id).yellow()
+        );
         // Note: Cancellation requires orchestrator instance
         // For now, print placeholder message
         println!("{}", "⚠️  Loop cancellation not yet implemented".yellow());

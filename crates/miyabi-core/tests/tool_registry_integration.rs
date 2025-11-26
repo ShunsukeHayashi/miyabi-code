@@ -26,12 +26,15 @@ async fn test_read_file() {
     let file_path = temp_dir.path().join("test.txt");
     std::fs::write(&file_path, "Hello, World!").unwrap();
 
-    let registry = ToolRegistry::new(ExecutionMode::ReadOnly)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("read_file", json!({
-        "path": "test.txt"
-    }));
+    let call = make_call(
+        "read_file",
+        json!({
+            "path": "test.txt"
+        }),
+    );
 
     let result = registry.execute(&call).await.unwrap();
     assert!(result.success);
@@ -45,22 +48,22 @@ async fn test_list_files() {
     std::fs::write(temp_dir.path().join("file2.txt"), "").unwrap();
     std::fs::create_dir(temp_dir.path().join("subdir")).unwrap();
 
-    let registry = ToolRegistry::new(ExecutionMode::ReadOnly)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("list_files", json!({
-        "path": "."
-    }));
+    let call = make_call(
+        "list_files",
+        json!({
+            "path": "."
+        }),
+    );
 
     let result = registry.execute(&call).await.unwrap();
     assert!(result.success);
     assert_eq!(result.data["count"], 3);
 
     let files = result.data["files"].as_array().unwrap();
-    let names: Vec<&str> = files
-        .iter()
-        .map(|f| f["name"].as_str().unwrap())
-        .collect();
+    let names: Vec<&str> = files.iter().map(|f| f["name"].as_str().unwrap()).collect();
 
     assert!(names.contains(&"file1.txt"));
     assert!(names.contains(&"file2.txt"));
@@ -72,13 +75,16 @@ async fn test_write_file_requires_permission() {
     let temp_dir = TempDir::new().unwrap();
 
     // ReadOnly mode should reject writes
-    let registry = ToolRegistry::new(ExecutionMode::ReadOnly)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("write_file", json!({
-        "path": "new_file.txt",
-        "content": "test content"
-    }));
+    let call = make_call(
+        "write_file",
+        json!({
+            "path": "new_file.txt",
+            "content": "test content"
+        }),
+    );
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
@@ -90,13 +96,16 @@ async fn test_write_file_with_permission() {
     let temp_dir = TempDir::new().unwrap();
 
     // FileEdits mode should allow writes
-    let registry = ToolRegistry::new(ExecutionMode::FileEdits)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("write_file", json!({
-        "path": "new_file.txt",
-        "content": "test content"
-    }));
+    let call = make_call(
+        "write_file",
+        json!({
+            "path": "new_file.txt",
+            "content": "test content"
+        }),
+    );
 
     let result = registry.execute(&call).await.unwrap();
     assert!(result.success);
@@ -112,14 +121,17 @@ async fn test_edit_file() {
     let file_path = temp_dir.path().join("test.txt");
     std::fs::write(&file_path, "Hello, World!").unwrap();
 
-    let registry = ToolRegistry::new(ExecutionMode::FileEdits)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("edit_file", json!({
-        "path": "test.txt",
-        "old_text": "World",
-        "new_text": "Rust"
-    }));
+    let call = make_call(
+        "edit_file",
+        json!({
+            "path": "test.txt",
+            "old_text": "World",
+            "new_text": "Rust"
+        }),
+    );
 
     let result = registry.execute(&call).await.unwrap();
     assert!(result.success);
@@ -135,14 +147,17 @@ async fn test_edit_file_not_found() {
     let file_path = temp_dir.path().join("test.txt");
     std::fs::write(&file_path, "Hello, World!").unwrap();
 
-    let registry = ToolRegistry::new(ExecutionMode::FileEdits)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::FileEdits).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("edit_file", json!({
-        "path": "test.txt",
-        "old_text": "NotFound",
-        "new_text": "Replacement"
-    }));
+    let call = make_call(
+        "edit_file",
+        json!({
+            "path": "test.txt",
+            "old_text": "NotFound",
+            "new_text": "Replacement"
+        }),
+    );
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
@@ -153,10 +168,13 @@ async fn test_edit_file_not_found() {
 async fn test_run_command_requires_full_access() {
     let registry = ToolRegistry::new(ExecutionMode::FileEdits);
 
-    let call = make_call("run_command", json!({
-        "command": "echo",
-        "args": ["test"]
-    }));
+    let call = make_call(
+        "run_command",
+        json!({
+            "command": "echo",
+            "args": ["test"]
+        }),
+    );
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
@@ -167,10 +185,13 @@ async fn test_run_command_requires_full_access() {
 async fn test_run_command_with_full_access() {
     let registry = ToolRegistry::new(ExecutionMode::FullAccess);
 
-    let call = make_call("run_command", json!({
-        "command": "echo",
-        "args": ["hello"]
-    }));
+    let call = make_call(
+        "run_command",
+        json!({
+            "command": "echo",
+            "args": ["hello"]
+        }),
+    );
 
     let result = registry.execute(&call).await.unwrap();
     assert!(result.success);
@@ -217,16 +238,22 @@ async fn test_tool_definitions_full_access() {
 async fn test_path_traversal_protection() {
     let temp_dir = TempDir::new().unwrap();
 
-    let registry = ToolRegistry::new(ExecutionMode::ReadOnly)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("read_file", json!({
-        "path": "../../../etc/passwd"
-    }));
+    let call = make_call(
+        "read_file",
+        json!({
+            "path": "../../../etc/passwd"
+        }),
+    );
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("directory traversal"));
+    assert!(result
+        .unwrap_err()
+        .to_string()
+        .contains("directory traversal"));
 }
 
 #[tokio::test]
@@ -244,14 +271,20 @@ async fn test_unknown_tool() {
 async fn test_github_tools_require_client() {
     let registry = ToolRegistry::new(ExecutionMode::FullAccess);
 
-    let call = make_call("create_issue", json!({
-        "title": "Test Issue",
-        "body": "Test body"
-    }));
+    let call = make_call(
+        "create_issue",
+        json!({
+            "title": "Test Issue",
+            "body": "Test body"
+        }),
+    );
 
     let result = registry.execute(&call).await;
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("GitHub client not configured"));
+    assert!(result
+        .unwrap_err()
+        .to_string()
+        .contains("GitHub client not configured"));
 }
 
 #[tokio::test]
@@ -260,13 +293,16 @@ async fn test_search_code() {
     let file_path = temp_dir.path().join("test.rs");
     std::fs::write(&file_path, "fn main() {\n    println!(\"Hello\");\n}").unwrap();
 
-    let registry = ToolRegistry::new(ExecutionMode::ReadOnly)
-        .with_working_dir(temp_dir.path().to_path_buf());
+    let registry =
+        ToolRegistry::new(ExecutionMode::ReadOnly).with_working_dir(temp_dir.path().to_path_buf());
 
-    let call = make_call("search_code", json!({
-        "pattern": "println",
-        "path": "."
-    }));
+    let call = make_call(
+        "search_code",
+        json!({
+            "pattern": "println",
+            "path": "."
+        }),
+    );
 
     let result = registry.execute(&call).await.unwrap();
     assert!(result.success);

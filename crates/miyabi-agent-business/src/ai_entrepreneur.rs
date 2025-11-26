@@ -5,7 +5,10 @@
 
 use async_trait::async_trait;
 use miyabi_agent_core::{
-    a2a_integration::{A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder},
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
     BaseAgent,
 };
 use miyabi_core::ExecutionMode;
@@ -63,13 +66,16 @@ Generate a complete business plan as JSON with phases, market analysis, financia
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::AIEntrepreneurAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::AIEntrepreneurAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let business_plan: BusinessPlan = serde_json::from_str(&response).map_err(|e| {
@@ -241,7 +247,10 @@ impl BaseAgent for AIEntrepreneurAgent {
             "growth_projection": ((business_plan.financial_projections.year_3.revenue as f64 / business_plan.financial_projections.year_1.revenue as f64 - 1.0) * 100.0) as u32
         });
 
-        tracing::info!("AIEntrepreneurAgent completed business plan generation: {}", summary);
+        tracing::info!(
+            "AIEntrepreneurAgent completed business plan generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -267,21 +276,57 @@ impl A2AEnabled for AIEntrepreneurAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "generate_business_plan" => {
-                let idea = task.input.get("idea").and_then(|v| v.as_str()).ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string()))?;
-                let internal_task = Task { id: task.id.clone(), title: idea.to_string(), description: "Business plan generation".to_string(), task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None, assigned_agent: Some(AgentType::AIEntrepreneurAgent), dependencies: vec![], estimated_duration: Some(300), status: None, start_time: None, end_time: None, metadata: None };
+                let idea = task
+                    .input
+                    .get("idea")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string())
+                    })?;
+                let internal_task = Task {
+                    id: task.id.clone(),
+                    title: idea.to_string(),
+                    description: "Business plan generation".to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::AIEntrepreneurAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(300),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
                 match self.execute(&internal_task).await {
-                    Ok(result) => Ok(A2ATaskResult::Success { output: result.data.unwrap_or(json!({"status": "completed"})), artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64 }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Business plan generation failed: {}", e))),
+                    Ok(result) => Ok(A2ATaskResult::Success {
+                        output: result.data.unwrap_or(json!({"status": "completed"})),
+                        artifacts: vec![],
+                        execution_time_ms: start.elapsed().as_millis() as u64,
+                    }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                        "Business plan generation failed: {}",
+                        e
+                    ))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
         }
     }
-    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::ReadOnly
+    }
 }
 
 #[cfg(test)]

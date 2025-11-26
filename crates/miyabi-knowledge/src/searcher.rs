@@ -184,7 +184,10 @@ impl QdrantSearcher {
                         .get("worktree")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
-                    agent: payload.get("agent").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    agent: payload
+                        .get("agent")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                     issue_number: payload
                         .get("issue_number")
                         .and_then(|v| v.as_integer())
@@ -193,13 +196,23 @@ impl QdrantSearcher {
                         .get("task_type")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
-                    tools_used: payload.get("tools_used").and_then(|v| v.as_list()).map(|list| {
-                        list.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
-                    }),
-                    outcome: payload.get("outcome").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    tools_used: payload
+                        .get("tools_used")
+                        .and_then(|v| v.as_list())
+                        .map(|list| {
+                            list.iter()
+                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                .collect()
+                        }),
+                    outcome: payload
+                        .get("outcome")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                     files_changed: payload.get("files_changed").and_then(|v| v.as_list()).map(
                         |list| {
-                            list.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
+                            list.iter()
+                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                .collect()
                         },
                     ),
                     extra: serde_json::Map::new(),
@@ -211,7 +224,7 @@ impl QdrantSearcher {
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(uuid)) => uuid,
                         Some(qdrant_client::qdrant::point_id::PointIdOptions::Num(num)) => {
                             num.to_string()
-                        },
+                        }
                         None => "unknown".to_string(),
                     })
                     .unwrap_or_else(|| "unknown".to_string());
@@ -284,7 +297,9 @@ impl KnowledgeSearcher for QdrantSearcher {
         let vector = self.vectorize_query(query).await?;
 
         // Qdrantで検索
-        let results = self.search_qdrant(vector, None, self.config.search.default_limit).await?;
+        let results = self
+            .search_qdrant(vector, None, self.config.search.default_limit)
+            .await?;
 
         info!("Found {} results", results.len());
         Ok(results)

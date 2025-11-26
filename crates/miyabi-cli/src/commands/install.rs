@@ -18,7 +18,10 @@ impl InstallCommand {
     }
 
     pub async fn execute(&self) -> Result<()> {
-        println!("{}", "📦 Installing Miyabi to existing project...".cyan().bold());
+        println!(
+            "{}",
+            "📦 Installing Miyabi to existing project...".cyan().bold()
+        );
 
         if self.dry_run {
             println!("{}", "  (Dry run - no changes will be made)".yellow());
@@ -29,7 +32,10 @@ impl InstallCommand {
 
         // Check if Miyabi is already installed
         if self.is_miyabi_installed() {
-            println!("{}", "⚠️  Miyabi is already installed in this project".yellow());
+            println!(
+                "{}",
+                "⚠️  Miyabi is already installed in this project".yellow()
+            );
             return Ok(());
         }
 
@@ -55,7 +61,9 @@ impl InstallCommand {
     fn verify_git_repository(&self) -> Result<()> {
         use std::process::Command;
 
-        let output = Command::new("git").args(["rev-parse", "--git-dir"]).output()?;
+        let output = Command::new("git")
+            .args(["rev-parse", "--git-dir"])
+            .output()?;
 
         if !output.status.success() {
             return Err(CliError::NotGitRepository);
@@ -91,7 +99,10 @@ impl InstallCommand {
         }
 
         if self.dry_run {
-            println!("  [DRY RUN] Would create worktree base: {}", worktree_base.to_string_lossy());
+            println!(
+                "  [DRY RUN] Would create worktree base: {}",
+                worktree_base.to_string_lossy()
+            );
         } else {
             fs::create_dir_all(&worktree_base)?;
             println!("  Created: {}", worktree_base.to_string_lossy());
@@ -174,7 +185,9 @@ reporting:
         use std::process::Command;
 
         // Try to get from git remote
-        let output = Command::new("git").args(["remote", "get-url", "origin"]).output();
+        let output = Command::new("git")
+            .args(["remote", "get-url", "origin"])
+            .output();
 
         if let Ok(output) = output {
             if output.status.success() {
@@ -187,7 +200,10 @@ reporting:
 
         // Fallback to directory name
         let current_dir = std::env::current_dir()?;
-        let name = current_dir.file_name().and_then(|n| n.to_str()).unwrap_or("miyabi-project");
+        let name = current_dir
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("miyabi-project");
 
         Ok(name.to_string())
     }

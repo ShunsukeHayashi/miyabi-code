@@ -65,7 +65,11 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
 
         // Convert proto request to internal types
         let role = proto_role_to_role(req.role)?;
-        let parts = req.parts.into_iter().map(proto_part_to_part).collect::<Result<Vec<_>, _>>()?;
+        let parts = req
+            .parts
+            .into_iter()
+            .map(proto_part_to_part)
+            .collect::<Result<Vec<_>, _>>()?;
 
         let params = crate::rpc::MessageSendParams {
             role,
@@ -74,7 +78,11 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
         };
 
         // Execute RPC method
-        let result = self.rpc_handler.message_send(params).await.map_err(a2a_error_to_status)?;
+        let result = self
+            .rpc_handler
+            .message_send(params)
+            .await
+            .map_err(a2a_error_to_status)?;
 
         // Convert result to proto response
         let response = MessageSendResponse {
@@ -96,7 +104,11 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             task_id: req.task_id,
         };
 
-        let result = self.rpc_handler.tasks_get(params).await.map_err(a2a_error_to_status)?;
+        let result = self
+            .rpc_handler
+            .tasks_get(params)
+            .await
+            .map_err(a2a_error_to_status)?;
 
         let response = TasksGetResponse {
             task: Some(task_to_proto(result.task)?),
@@ -116,7 +128,11 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             task_id: req.task_id,
         };
 
-        let result = self.rpc_handler.tasks_cancel(params).await.map_err(a2a_error_to_status)?;
+        let result = self
+            .rpc_handler
+            .tasks_cancel(params)
+            .await
+            .map_err(a2a_error_to_status)?;
 
         let response = TasksCancelResponse {
             status: task_status_to_proto(result.status) as i32,
@@ -149,9 +165,17 @@ impl<S: TaskStorage + 'static> A2aService for A2AServiceImpl<S> {
             context_id: req.context_id,
         };
 
-        let result = self.rpc_handler.tasks_list(params).await.map_err(a2a_error_to_status)?;
+        let result = self
+            .rpc_handler
+            .tasks_list(params)
+            .await
+            .map_err(a2a_error_to_status)?;
 
-        let tasks = result.tasks.into_iter().map(task_to_proto).collect::<Result<Vec<_>, _>>()?;
+        let tasks = result
+            .tasks
+            .into_iter()
+            .map(task_to_proto)
+            .collect::<Result<Vec<_>, _>>()?;
 
         let response = TasksListResponse {
             tasks,

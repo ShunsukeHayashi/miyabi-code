@@ -215,7 +215,11 @@ impl WorktreeManager {
 
         let start_time = Instant::now();
 
-        tracing::info!("Creating worktree for issue #{} at {:?}", issue_number, worktree_path);
+        tracing::info!(
+            "Creating worktree for issue #{} at {:?}",
+            issue_number,
+            worktree_path
+        );
 
         // Perform all git2 operations in a scope to ensure repo is dropped before await
         {
@@ -248,7 +252,10 @@ impl WorktreeManager {
             let branch_exists = repo.find_branch(&branch_name, BranchType::Local).is_ok();
 
             if branch_exists {
-                tracing::warn!("Branch {} already exists, using existing branch", branch_name);
+                tracing::warn!(
+                    "Branch {} already exists, using existing branch",
+                    branch_name
+                );
             } else {
                 repo.branch(&branch_name, &head_commit, false)
                     .map_err(|e| MiyabiError::Git(format!("Failed to create branch: {}", e)))?;
@@ -268,7 +275,10 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!("Failed to create worktree: {}", stderr)));
+            return Err(MiyabiError::Git(format!(
+                "Failed to create worktree: {}",
+                stderr
+            )));
         }
 
         let worktree_info = WorktreeInfo {
@@ -480,7 +490,11 @@ impl WorktreeManager {
             self.get_main_branch(&repo)?
         };
 
-        tracing::info!("Merging branch {} into {}", worktree_info.branch_name, main_branch);
+        tracing::info!(
+            "Merging branch {} into {}",
+            worktree_info.branch_name,
+            main_branch
+        );
 
         // Checkout main branch
         let output = tokio::process::Command::new("git")
@@ -493,7 +507,10 @@ impl WorktreeManager {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(MiyabiError::Git(format!("Failed to checkout main: {}", stderr)));
+            return Err(MiyabiError::Git(format!(
+                "Failed to checkout main: {}",
+                stderr
+            )));
         }
 
         // Merge feature branch
@@ -523,7 +540,10 @@ impl WorktreeManager {
             info.status = status;
             Ok(())
         } else {
-            Err(MiyabiError::Unknown(format!("Worktree {} not found", worktree_id)))
+            Err(MiyabiError::Unknown(format!(
+                "Worktree {} not found",
+                worktree_id
+            )))
         }
     }
 
@@ -546,11 +566,22 @@ impl WorktreeManager {
     pub async fn stats(&self) -> WorktreeStats {
         let worktrees = self.worktrees.lock().await;
         let total = worktrees.len();
-        let active = worktrees.values().filter(|w| w.status == WorktreeStatus::Active).count();
-        let idle = worktrees.values().filter(|w| w.status == WorktreeStatus::Idle).count();
-        let completed =
-            worktrees.values().filter(|w| w.status == WorktreeStatus::Completed).count();
-        let failed = worktrees.values().filter(|w| w.status == WorktreeStatus::Failed).count();
+        let active = worktrees
+            .values()
+            .filter(|w| w.status == WorktreeStatus::Active)
+            .count();
+        let idle = worktrees
+            .values()
+            .filter(|w| w.status == WorktreeStatus::Idle)
+            .count();
+        let completed = worktrees
+            .values()
+            .filter(|w| w.status == WorktreeStatus::Completed)
+            .count();
+        let failed = worktrees
+            .values()
+            .filter(|w| w.status == WorktreeStatus::Failed)
+            .count();
 
         WorktreeStats {
             total,

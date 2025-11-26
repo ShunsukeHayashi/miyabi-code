@@ -20,7 +20,10 @@ async fn main() -> anyhow::Result<()> {
     // Create server configuration
     let config = ServerConfig::from_args(args)?;
 
-    tracing::info!("Miyabi MCP Server v{} starting...", env!("CARGO_PKG_VERSION"));
+    tracing::info!(
+        "Miyabi MCP Server v{} starting...",
+        env!("CARGO_PKG_VERSION")
+    );
     tracing::info!("Transport: {:?}", config.transport);
     tracing::info!("Repository: {}/{}", config.repo_owner, config.repo_name);
     tracing::info!("Working Directory: {}", config.working_dir.display());

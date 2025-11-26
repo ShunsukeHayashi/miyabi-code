@@ -102,11 +102,14 @@ impl TaskQueue {
     /// Enqueue a new task
     pub fn enqueue(&mut self, issue: Issue) -> Result<()> {
         // Check queue size limit
-        let total_tasks = self.ready_queue.len() + self.blocked_tasks.len() + self.in_progress.len();
+        let total_tasks =
+            self.ready_queue.len() + self.blocked_tasks.len() + self.in_progress.len();
         if total_tasks >= self.config.max_queue_size {
-            return Err(SchedulerError::InvalidConfig(
-                format!("Queue full (max: {})", self.config.max_queue_size)
-            ).into());
+            return Err(SchedulerError::InvalidConfig(format!(
+                "Queue full (max: {})",
+                self.config.max_queue_size
+            ))
+            .into());
         }
 
         // Calculate priority
@@ -152,10 +155,9 @@ impl TaskQueue {
     /// Mark task as completed
     pub fn complete(&mut self, issue_number: u64) -> Result<()> {
         // Remove from in-progress
-        let _task = self.in_progress.remove(&issue_number)
-            .ok_or_else(|| SchedulerError::SessionNotFound(
-                format!("Task #{} not in progress", issue_number)
-            ))?;
+        let _task = self.in_progress.remove(&issue_number).ok_or_else(|| {
+            SchedulerError::SessionNotFound(format!("Task #{} not in progress", issue_number))
+        })?;
 
         // Check if any blocked tasks can now be unblocked
         self.unblock_dependent_tasks(issue_number);
@@ -167,7 +169,10 @@ impl TaskQueue {
     fn has_unresolved_dependencies(&self, issue: &Issue) -> bool {
         for dep_number in &issue.dependencies {
             // Check if dependency is still in any queue
-            if self.ready_queue.iter().any(|t| t.issue.number == *dep_number)
+            if self
+                .ready_queue
+                .iter()
+                .any(|t| t.issue.number == *dep_number)
                 || self.blocked_tasks.contains_key(dep_number)
                 || self.in_progress.contains_key(dep_number)
             {
@@ -276,9 +281,15 @@ mod tests {
         let mut queue = TaskQueue::new(TaskQueueConfig::default());
 
         // Enqueue tasks in reverse priority order
-        queue.enqueue(create_test_issue(1, "P3-Low", vec![])).unwrap();
-        queue.enqueue(create_test_issue(2, "P0-Critical", vec![])).unwrap();
-        queue.enqueue(create_test_issue(3, "P1-High", vec![])).unwrap();
+        queue
+            .enqueue(create_test_issue(1, "P3-Low", vec![]))
+            .unwrap();
+        queue
+            .enqueue(create_test_issue(2, "P0-Critical", vec![]))
+            .unwrap();
+        queue
+            .enqueue(create_test_issue(3, "P1-High", vec![]))
+            .unwrap();
 
         // Dequeue should return highest priority first
         assert_eq!(queue.dequeue().unwrap().issue.number, 2); // P0
@@ -291,8 +302,12 @@ mod tests {
         let mut queue = TaskQueue::new(TaskQueueConfig::default());
 
         // Enqueue task with dependency
-        queue.enqueue(create_test_issue(1, "P0-Critical", vec![])).unwrap();
-        queue.enqueue(create_test_issue(2, "P0-Critical", vec![1])).unwrap();
+        queue
+            .enqueue(create_test_issue(1, "P0-Critical", vec![]))
+            .unwrap();
+        queue
+            .enqueue(create_test_issue(2, "P0-Critical", vec![1]))
+            .unwrap();
 
         // Task 2 should be blocked
         let stats = queue.stats();
@@ -322,7 +337,9 @@ mod tests {
 
         // Enqueue 3 tasks
         for i in 1..=3 {
-            queue.enqueue(create_test_issue(i, "P0-Critical", vec![])).unwrap();
+            queue
+                .enqueue(create_test_issue(i, "P0-Critical", vec![]))
+                .unwrap();
         }
 
         // Dequeue 2 tasks (limit)
@@ -345,8 +362,12 @@ mod tests {
         });
 
         // Enqueue 2 tasks (limit)
-        queue.enqueue(create_test_issue(1, "P0-Critical", vec![])).unwrap();
-        queue.enqueue(create_test_issue(2, "P0-Critical", vec![])).unwrap();
+        queue
+            .enqueue(create_test_issue(1, "P0-Critical", vec![]))
+            .unwrap();
+        queue
+            .enqueue(create_test_issue(2, "P0-Critical", vec![]))
+            .unwrap();
 
         // Third enqueue should fail
         let result = queue.enqueue(create_test_issue(3, "P0-Critical", vec![]));
@@ -358,9 +379,15 @@ mod tests {
         let mut queue = TaskQueue::new(TaskQueueConfig::default());
 
         // Task 3 depends on both 1 and 2
-        queue.enqueue(create_test_issue(1, "P0-Critical", vec![])).unwrap();
-        queue.enqueue(create_test_issue(2, "P0-Critical", vec![])).unwrap();
-        queue.enqueue(create_test_issue(3, "P0-Critical", vec![1, 2])).unwrap();
+        queue
+            .enqueue(create_test_issue(1, "P0-Critical", vec![]))
+            .unwrap();
+        queue
+            .enqueue(create_test_issue(2, "P0-Critical", vec![]))
+            .unwrap();
+        queue
+            .enqueue(create_test_issue(3, "P0-Critical", vec![1, 2]))
+            .unwrap();
 
         assert_eq!(queue.stats().blocked, 1);
 

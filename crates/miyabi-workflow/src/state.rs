@@ -294,7 +294,10 @@ impl StateStore {
             let (_, value) = item?;
             let state: ExecutionState = serde_json::from_slice(&value)?;
 
-            if matches!(state.status, WorkflowStatus::Running | WorkflowStatus::Paused) {
+            if matches!(
+                state.status,
+                WorkflowStatus::Running | WorkflowStatus::Paused
+            ) {
                 states.push(state);
             }
         }

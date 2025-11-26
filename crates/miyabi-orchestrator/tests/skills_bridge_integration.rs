@@ -209,10 +209,7 @@ async fn test_multiple_events_in_sequence() {
 
     // Receive all events in order
     let event1 = rx.recv().await.unwrap();
-    assert!(matches!(
-        event1,
-        OrchestratorEvent::SkillCompleted { .. }
-    ));
+    assert!(matches!(event1, OrchestratorEvent::SkillCompleted { .. }));
 
     let event2 = rx.recv().await.unwrap();
     assert!(matches!(event2, OrchestratorEvent::ErrorDetected { .. }));

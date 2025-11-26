@@ -20,15 +20,15 @@ use std::time::{Duration, Instant};
 async fn test_iv01_empty_input() {
     let bridge = setup_bridge().await;
     let result = bridge
-        .execute_tool(
-            "a2a.code_generation_agent.generate_code",
-            json!({}),
-        )
+        .execute_tool("a2a.code_generation_agent.generate_code", json!({}))
         .await
         .expect("Should return result");
 
     // Empty input should be handled gracefully
-    assert!(!result.success || result.error.is_some(), "Empty input should fail or return error");
+    assert!(
+        !result.success || result.error.is_some(),
+        "Empty input should fail or return error"
+    );
     println!("IV-01 ✅ Empty input handled: {:?}", result.error);
 }
 
@@ -36,10 +36,7 @@ async fn test_iv01_empty_input() {
 async fn test_iv02_null_input() {
     let bridge = setup_bridge().await;
     let result = bridge
-        .execute_tool(
-            "a2a.code_generation_agent.generate_code",
-            Value::Null,
-        )
+        .execute_tool("a2a.code_generation_agent.generate_code", Value::Null)
         .await
         .expect("Should return result");
 
@@ -72,10 +69,16 @@ async fn test_iv03_large_json_input() {
         .expect("Should return result");
 
     let elapsed = start.elapsed();
-    println!("IV-03 ✅ Large JSON processed in {:?}, success: {}", elapsed, result.success);
+    println!(
+        "IV-03 ✅ Large JSON processed in {:?}, success: {}",
+        elapsed, result.success
+    );
 
     // Should complete within reasonable time (< 1 second)
-    assert!(elapsed < Duration::from_secs(1), "Large JSON should process quickly");
+    assert!(
+        elapsed < Duration::from_secs(1),
+        "Large JSON should process quickly"
+    );
 }
 
 #[tokio::test]
@@ -89,14 +92,14 @@ async fn test_iv04_deeply_nested_json() {
     }
 
     let result = bridge
-        .execute_tool(
-            "a2a.code_generation_agent.generate_code",
-            nested,
-        )
+        .execute_tool("a2a.code_generation_agent.generate_code", nested)
         .await
         .expect("Should return result");
 
-    println!("IV-04 ✅ Deeply nested JSON handled: success={}", result.success);
+    println!(
+        "IV-04 ✅ Deeply nested JSON handled: success={}",
+        result.success
+    );
 }
 
 #[tokio::test]
@@ -119,7 +122,10 @@ async fn test_iv05_special_characters_input() {
         .await
         .expect("Should return result");
 
-    println!("IV-05 ✅ Special characters handled: success={}", result.success);
+    println!(
+        "IV-05 ✅ Special characters handled: success={}",
+        result.success
+    );
     // Should not crash
 }
 
@@ -146,7 +152,10 @@ async fn test_iv06_numeric_edge_values() {
         .await
         .expect("Should return result");
 
-    println!("IV-06 ✅ Numeric edge values handled: success={}", result.success);
+    println!(
+        "IV-06 ✅ Numeric edge values handled: success={}",
+        result.success
+    );
 }
 
 #[tokio::test]
@@ -171,7 +180,10 @@ async fn test_iv07_array_edge_cases() {
         )
         .await
         .expect("Should return result");
-    println!("IV-07b ✅ Single element array: success={}", result2.success);
+    println!(
+        "IV-07b ✅ Single element array: success={}",
+        result2.success
+    );
 
     // Mixed type array
     let result3 = bridge
@@ -196,14 +208,14 @@ async fn test_iv08_boolean_and_null_values() {
     });
 
     let result = bridge
-        .execute_tool(
-            "a2a.code_generation_agent.generate_code",
-            input,
-        )
+        .execute_tool("a2a.code_generation_agent.generate_code", input)
         .await
         .expect("Should return result");
 
-    println!("IV-08 ✅ Boolean/null values handled: success={}", result.success);
+    println!(
+        "IV-08 ✅ Boolean/null values handled: success={}",
+        result.success
+    );
 }
 
 #[tokio::test]
@@ -227,7 +239,10 @@ async fn test_iv09_string_edge_cases() {
         .await
         .expect("Should return result");
 
-    println!("IV-09 ✅ String edge cases handled: success={}", result.success);
+    println!(
+        "IV-09 ✅ String edge cases handled: success={}",
+        result.success
+    );
 }
 
 // =============================================================================
@@ -280,14 +295,20 @@ async fn test_tn04_case_sensitivity() {
         .execute_tool("A2A.CODE_GENERATION_AGENT.GENERATE_CODE", json!({}))
         .await
         .expect("Should return result");
-    println!("TN-04a Case sensitivity (upper): success={}, error={:?}", result1.success, result1.error);
+    println!(
+        "TN-04a Case sensitivity (upper): success={}, error={:?}",
+        result1.success, result1.error
+    );
 
     // Test mixed case
     let result2 = bridge
         .execute_tool("a2a.Code_Generation_Agent.Generate_Code", json!({}))
         .await
         .expect("Should return result");
-    println!("TN-04b Case sensitivity (mixed): success={}, error={:?}", result2.success, result2.error);
+    println!(
+        "TN-04b Case sensitivity (mixed): success={}, error={:?}",
+        result2.success, result2.error
+    );
 }
 
 #[tokio::test]
@@ -349,12 +370,18 @@ async fn test_tn08_nonexistent_capability() {
     let bridge = setup_bridge().await;
 
     let result = bridge
-        .execute_tool("a2a.code_generation_agent.nonexistent_capability", json!({}))
+        .execute_tool(
+            "a2a.code_generation_agent.nonexistent_capability",
+            json!({}),
+        )
         .await
         .expect("Should return result");
 
     // Agent exists but capability doesn't
-    println!("TN-08 ✅ Nonexistent capability: success={}, error={:?}", result.success, result.error);
+    println!(
+        "TN-08 ✅ Nonexistent capability: success={}, error={:?}",
+        result.success, result.error
+    );
 }
 
 // =============================================================================
@@ -374,10 +401,7 @@ async fn test_cc01_high_concurrency() {
         let bridge = bridge.clone();
         let handle = tokio::spawn(async move {
             bridge
-                .execute_tool(
-                    "a2a.code_generation_agent.generate_code",
-                    json!({"id": i}),
-                )
+                .execute_tool("a2a.code_generation_agent.generate_code", json!({"id": i}))
                 .await
         });
         handles.push(handle);
@@ -391,7 +415,10 @@ async fn test_cc01_high_concurrency() {
     }
 
     let elapsed = start.elapsed();
-    println!("CC-01 ✅ High concurrency: {}/{} completed in {:?}", completed, num_requests, elapsed);
+    println!(
+        "CC-01 ✅ High concurrency: {}/{} completed in {:?}",
+        completed, num_requests, elapsed
+    );
     assert_eq!(completed, num_requests, "All requests should complete");
 }
 
@@ -423,7 +450,10 @@ async fn test_cc02_same_agent_concurrent() {
         }
     }
 
-    println!("CC-02 ✅ Same agent concurrent: {}/{} completed", completed, num_requests);
+    println!(
+        "CC-02 ✅ Same agent concurrent: {}/{} completed",
+        completed, num_requests
+    );
     assert_eq!(completed, num_requests);
 }
 
@@ -446,8 +476,12 @@ async fn test_cc03_mixed_operations() {
         }
     );
 
-    println!("CC-03 ✅ Mixed operations: tools={}, agents={}, exec={:?}",
-        r1.len(), r2.len(), r3.is_ok());
+    println!(
+        "CC-03 ✅ Mixed operations: tools={}, agents={}, exec={:?}",
+        r1.len(),
+        r2.len(),
+        r3.is_ok()
+    );
 }
 
 #[tokio::test]
@@ -459,10 +493,17 @@ async fn test_cc04_multiple_bridge_instances() {
     let agents1 = bridge1.list_agents().await;
     let agents2 = bridge2.list_agents().await;
 
-    println!("CC-04 ✅ Multiple bridges: bridge1={} agents, bridge2={} agents",
-        agents1.len(), agents2.len());
+    println!(
+        "CC-04 ✅ Multiple bridges: bridge1={} agents, bridge2={} agents",
+        agents1.len(),
+        agents2.len()
+    );
 
-    assert_eq!(agents1.len(), agents2.len(), "Both bridges should have same agents");
+    assert_eq!(
+        agents1.len(),
+        agents2.len(),
+        "Both bridges should have same agents"
+    );
 }
 
 #[tokio::test]
@@ -483,8 +524,12 @@ async fn test_cc05_rapid_sequential() {
     }
 
     let elapsed = start.elapsed();
-    println!("CC-05 ✅ Rapid sequential: {}/100 in {:?} ({:?}/call)",
-        successes, elapsed, elapsed / 100);
+    println!(
+        "CC-05 ✅ Rapid sequential: {}/100 in {:?} ({:?}/call)",
+        successes,
+        elapsed,
+        elapsed / 100
+    );
 }
 
 // =============================================================================
@@ -508,7 +553,10 @@ async fn test_eh01_graceful_error_recovery() {
         .await
         .expect("Should return result");
 
-    println!("EH-01 ✅ Recovery after error: second call success={}", result2.success);
+    println!(
+        "EH-01 ✅ Recovery after error: second call success={}",
+        result2.success
+    );
 }
 
 #[tokio::test]
@@ -526,7 +574,10 @@ async fn test_eh02_consecutive_errors() {
 
     // System should still be stable
     let agents = bridge.list_agents().await;
-    println!("EH-02 ✅ After 10 errors, agents still available: {}", agents.len());
+    println!(
+        "EH-02 ✅ After 10 errors, agents still available: {}",
+        agents.len()
+    );
     assert_eq!(agents.len(), 21);
 }
 
@@ -549,9 +600,16 @@ async fn test_eh03_error_message_quality() {
         let has_error = result.error.is_some();
         let error_msg = result.error.unwrap_or_default();
 
-        println!("EH-03 {} - has_error={}, msg={}", case, has_error, error_msg);
+        println!(
+            "EH-03 {} - has_error={}, msg={}",
+            case, has_error, error_msg
+        );
         assert!(has_error, "Should have error for {}", case);
-        assert!(!error_msg.is_empty(), "Error message should not be empty for {}", case);
+        assert!(
+            !error_msg.is_empty(),
+            "Error message should not be empty for {}",
+            case
+        );
     }
 }
 
@@ -564,11 +622,11 @@ async fn test_eh04_error_does_not_leak_state() {
     let bridge2 = bridge.clone();
 
     let (r1, r2) = tokio::join!(
+        async move { bridge1.execute_tool("invalid", json!({})).await },
         async move {
-            bridge1.execute_tool("invalid", json!({})).await
-        },
-        async move {
-            bridge2.execute_tool("a2a.code_generation_agent.generate_code", json!({})).await
+            bridge2
+                .execute_tool("a2a.code_generation_agent.generate_code", json!({}))
+                .await
         }
     );
 
@@ -614,7 +672,11 @@ async fn test_sm01_empty_bridge_operations() {
     let agents = bridge.list_agents().await;
     let tools = bridge.get_tool_definitions().await;
 
-    println!("SM-01 ✅ Empty bridge: agents={}, tools={}", agents.len(), tools.len());
+    println!(
+        "SM-01 ✅ Empty bridge: agents={}, tools={}",
+        agents.len(),
+        tools.len()
+    );
     assert_eq!(agents.len(), 0, "Empty bridge should have no agents");
     assert_eq!(tools.len(), 0, "Empty bridge should have no tools");
 }
@@ -655,14 +717,21 @@ async fn test_sm04_tool_definitions_consistency() {
     let tools1 = bridge.get_tool_definitions().await;
     let tools2 = bridge.get_tool_definitions().await;
 
-    assert_eq!(tools1.len(), tools2.len(), "Tool count should be consistent");
+    assert_eq!(
+        tools1.len(),
+        tools2.len(),
+        "Tool count should be consistent"
+    );
 
     // Check names match
     let names1: Vec<_> = tools1.iter().map(|t| &t.name).collect();
     let names2: Vec<_> = tools2.iter().map(|t| &t.name).collect();
     assert_eq!(names1, names2, "Tool names should be consistent");
 
-    println!("SM-04 ✅ Tool definitions consistent: {} tools", tools1.len());
+    println!(
+        "SM-04 ✅ Tool definitions consistent: {} tools",
+        tools1.len()
+    );
 }
 
 // =============================================================================

@@ -225,9 +225,13 @@ impl<A: crate::BaseAgent> crate::BaseAgent for ObservableAgent<A> {
     async fn execute(&self, task: &Task) -> Result<AgentResult, miyabi_types::error::MiyabiError> {
         // Notify start
         self.notify_start(task).await;
-        self.notify_log(LogEntry::info(format!("Starting execution of task: {}", task.title)))
+        self.notify_log(LogEntry::info(format!(
+            "Starting execution of task: {}",
+            task.title
+        )))
+        .await;
+        self.notify_progress(ProgressUpdate::new(0, "Starting..."))
             .await;
-        self.notify_progress(ProgressUpdate::new(0, "Starting...")).await;
 
         // Execute the wrapped agent
         let result = self.agent.execute(task).await;
@@ -235,13 +239,16 @@ impl<A: crate::BaseAgent> crate::BaseAgent for ObservableAgent<A> {
         // Notify completion
         match &result {
             Ok(agent_result) => {
-                self.notify_progress(ProgressUpdate::new(100, "Completed")).await;
-                self.notify_log(LogEntry::info("Task completed successfully")).await;
+                self.notify_progress(ProgressUpdate::new(100, "Completed"))
+                    .await;
+                self.notify_log(LogEntry::info("Task completed successfully"))
+                    .await;
                 self.notify_complete(agent_result).await;
-            },
+            }
             Err(error) => {
-                self.notify_log(LogEntry::error(format!("Task failed: {}", error))).await;
-            },
+                self.notify_log(LogEntry::error(format!("Task failed: {}", error)))
+                    .await;
+            }
         }
 
         result

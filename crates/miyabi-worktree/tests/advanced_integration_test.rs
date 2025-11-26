@@ -187,9 +187,11 @@ async fn test_pool_execution_with_mixed_results() {
                     // Timeout
                     tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
                     Ok(())
-                },
+                }
                 12 => Ok(()), // Success
-                13 => Err(miyabi_types::error::MiyabiError::Unknown("Test error".to_string())), // Failure
+                13 => Err(miyabi_types::error::MiyabiError::Unknown(
+                    "Test error".to_string(),
+                )), // Failure
                 14 => Ok(()), // Success
                 _ => Ok(()),
             }
@@ -271,7 +273,11 @@ async fn test_pool_with_high_concurrency() {
     // With high concurrency, effective concurrency should be high
     // (all tasks run nearly in parallel)
     let effective = result.effective_concurrency();
-    assert!(effective >= 3.0, "Expected high effective concurrency, got {}", effective);
+    assert!(
+        effective >= 3.0,
+        "Expected high effective concurrency, got {}",
+        effective
+    );
 }
 
 #[tokio::test]
@@ -366,7 +372,9 @@ async fn test_pool_empty_task_list() {
 
     let issue_numbers: Vec<u64> = vec![];
 
-    let result = pool.execute_simple(issue_numbers, |_path, _issue| async move { Ok(()) }).await;
+    let result = pool
+        .execute_simple(issue_numbers, |_path, _issue| async move { Ok(()) })
+        .await;
 
     assert_eq!(result.total_tasks, 0);
     assert_eq!(result.success_count, 0);

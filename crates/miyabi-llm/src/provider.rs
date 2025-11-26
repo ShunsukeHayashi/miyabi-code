@@ -303,7 +303,11 @@ impl GPTOSSProvider {
             .get("message")
             .ok_or_else(|| LLMError::ParseError("Missing 'message' in choice".to_string()))?;
 
-        let content = message.get("content").and_then(|c| c.as_str()).unwrap_or("").to_string();
+        let content = message
+            .get("content")
+            .and_then(|c| c.as_str())
+            .unwrap_or("")
+            .to_string();
 
         let finish_reason = first_choice
             .get("finish_reason")
@@ -312,8 +316,10 @@ impl GPTOSSProvider {
             .to_string();
 
         let usage = response_json.get("usage");
-        let tokens_used =
-            usage.and_then(|u| u.get("total_tokens")).and_then(|t| t.as_u64()).unwrap_or(0) as u32;
+        let tokens_used = usage
+            .and_then(|u| u.get("total_tokens"))
+            .and_then(|t| t.as_u64())
+            .unwrap_or(0) as u32;
 
         Ok(LLMResponse {
             text: content,
@@ -326,8 +332,11 @@ impl GPTOSSProvider {
 
     /// Parse Ollama-specific response
     fn parse_ollama_response(&self, response_json: &serde_json::Value) -> Result<LLMResponse> {
-        let response_text =
-            response_json.get("response").and_then(|r| r.as_str()).unwrap_or("").to_string();
+        let response_text = response_json
+            .get("response")
+            .and_then(|r| r.as_str())
+            .unwrap_or("")
+            .to_string();
 
         let done_reason = response_json
             .get("done_reason")
@@ -336,8 +345,10 @@ impl GPTOSSProvider {
             .to_string();
 
         // Calculate tokens from context if available
-        let tokens_used =
-            response_json.get("eval_count").and_then(|e| e.as_u64()).unwrap_or(0) as u32;
+        let tokens_used = response_json
+            .get("eval_count")
+            .and_then(|e| e.as_u64())
+            .unwrap_or(0) as u32;
 
         Ok(LLMResponse {
             text: response_text,
@@ -364,9 +375,15 @@ impl LLMProvider for GPTOSSProvider {
         );
 
         let (request_body, endpoint_path) = if self.is_ollama() {
-            (self.build_ollama_request_body(request), "/api/generate".to_string())
+            (
+                self.build_ollama_request_body(request),
+                "/api/generate".to_string(),
+            )
         } else {
-            (self.build_request_body(request), "/chat/completions".to_string())
+            (
+                self.build_request_body(request),
+                "/chat/completions".to_string(),
+            )
         };
 
         // Build HTTP request
@@ -618,14 +635,17 @@ mod tests {
 
     #[test]
     fn test_custom_model() {
-        let provider = GPTOSSProvider::new_groq("test").unwrap().with_model("custom-model");
+        let provider = GPTOSSProvider::new_groq("test")
+            .unwrap()
+            .with_model("custom-model");
         assert_eq!(provider.model_name(), "custom-model");
     }
 
     #[test]
     fn test_custom_timeout() {
-        let provider =
-            GPTOSSProvider::new_groq("test").unwrap().with_timeout(Duration::from_secs(60));
+        let provider = GPTOSSProvider::new_groq("test")
+            .unwrap()
+            .with_timeout(Duration::from_secs(60));
         assert_eq!(provider.timeout, Duration::from_secs(60));
     }
 
@@ -641,7 +661,9 @@ mod tests {
     #[test]
     fn test_build_ollama_request_body() {
         let provider = GPTOSSProvider::new_mac_mini_tailscale().unwrap();
-        let request = LLMRequest::new("test prompt").with_temperature(0.5).with_max_tokens(1024);
+        let request = LLMRequest::new("test prompt")
+            .with_temperature(0.5)
+            .with_max_tokens(1024);
 
         let body = provider.build_ollama_request_body(&request);
 
@@ -666,7 +688,9 @@ mod tests {
         });
 
         let result = provider.parse_ollama_response(&response_json).unwrap();
-        assert!(result.text.contains("Hello! I'm just a bunch of algorithms"));
+        assert!(result
+            .text
+            .contains("Hello! I'm just a bunch of algorithms"));
         assert_eq!(result.tokens_used, 71);
         assert_eq!(result.finish_reason, "stop");
     }

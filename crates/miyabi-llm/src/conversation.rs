@@ -132,7 +132,8 @@ impl LLMConversation {
         let response = self.provider.generate(&request).await?;
 
         // Add assistant message to history
-        self.messages.push(ChatMessage::assistant(response.text.clone()));
+        self.messages
+            .push(ChatMessage::assistant(response.text.clone()));
 
         Ok(response.text)
     }
@@ -229,16 +230,16 @@ impl LLMConversation {
             match msg.role {
                 ChatRole::System => {
                     prompt.push_str(&format!("System: {}\n\n", msg.content));
-                },
+                }
                 ChatRole::User => {
                     prompt.push_str(&format!("User: {}\n\n", msg.content));
-                },
+                }
                 ChatRole::Assistant => {
                     prompt.push_str(&format!("Assistant: {}\n\n", msg.content));
-                },
+                }
                 ChatRole::Function => {
                     prompt.push_str(&format!("Function: {}\n\n", msg.content));
-                },
+                }
             }
 
             // Add separator between messages (except last)
@@ -260,7 +261,9 @@ fn extract_json_from_markdown(text: &str) -> Result<String> {
         }
     }
 
-    Err(LLMError::ParseError("No JSON code block found in response".to_string()))
+    Err(LLMError::ParseError(
+        "No JSON code block found in response".to_string(),
+    ))
 }
 
 /// Extract code from markdown code block (any language)
@@ -276,7 +279,9 @@ fn extract_code_from_markdown(text: &str) -> Result<String> {
         }
     }
 
-    Err(LLMError::ParseError("No code block found in response".to_string()))
+    Err(LLMError::ParseError(
+        "No code block found in response".to_string(),
+    ))
 }
 
 /// Extract code block of specific language
@@ -292,7 +297,10 @@ fn extract_code_block(text: &str, language: &str) -> Result<String> {
         }
     }
 
-    Err(LLMError::ParseError(format!("No {} code block found in response", language)))
+    Err(LLMError::ParseError(format!(
+        "No {} code block found in response",
+        language
+    )))
 }
 
 #[cfg(test)]
@@ -513,7 +521,10 @@ fn main() {
 
         let mut conversation = LLMConversation::new(Box::new(provider), context);
 
-        let code = conversation.ask_for_code("Generate code", "rust").await.unwrap();
+        let code = conversation
+            .ask_for_code("Generate code", "rust")
+            .await
+            .unwrap();
 
         assert!(code.contains("fn main()"));
         assert!(code.contains("println!"));

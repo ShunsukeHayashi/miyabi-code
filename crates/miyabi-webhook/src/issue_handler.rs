@@ -125,7 +125,10 @@ pub async fn handle_issue_opened(
     // Convert to Miyabi Issue type
     let issue = event.to_miyabi_issue()?;
 
-    info!("🚀 Starting Phase 1 for Issue #{}: {}", issue.number, issue.title);
+    info!(
+        "🚀 Starting Phase 1 for Issue #{}: {}",
+        issue.number, issue.title
+    );
 
     // Create Headless Orchestrator
     let mut orchestrator = HeadlessOrchestrator::new(config);
@@ -139,7 +142,10 @@ pub async fn handle_issue_opened(
             result.issue_number, result.execution_id
         );
     } else {
-        error!("❌ Phase 1 failed for Issue #{}: {:?}", result.issue_number, result.error);
+        error!(
+            "❌ Phase 1 failed for Issue #{}: {:?}",
+            result.issue_number, result.error
+        );
     }
 
     Ok(result)

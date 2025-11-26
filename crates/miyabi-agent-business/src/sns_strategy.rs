@@ -7,7 +7,10 @@
 
 use async_trait::async_trait;
 use miyabi_agent_core::{
-    a2a_integration::{A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder},
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
     BaseAgent,
 };
 use miyabi_core::ExecutionMode;
@@ -63,13 +66,16 @@ Generate detailed SNS strategy as JSON with platform strategies, community manag
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::SNSStrategyAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::SNSStrategyAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let sns_strategy: SNSStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -226,7 +232,10 @@ impl BaseAgent for SNSStrategyAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!("SNSStrategyAgent starting SNS strategy generation for task: {}", task.id);
+        tracing::info!(
+            "SNSStrategyAgent starting SNS strategy generation for task: {}",
+            task.id
+        );
 
         // Generate SNS strategy using LLM
         let sns_strategy = self.generate_sns_strategy(task).await?;
@@ -265,7 +274,10 @@ impl BaseAgent for SNSStrategyAgent {
             "total_campaigns_count": total_campaigns
         });
 
-        tracing::info!("SNSStrategyAgent completed SNS strategy generation: {}", summary);
+        tracing::info!(
+            "SNSStrategyAgent completed SNS strategy generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -291,21 +303,57 @@ impl A2AEnabled for SNSStrategyAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "plan_sns" => {
-                let brand = task.input.get("brand").and_then(|v| v.as_str()).ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing brand".to_string()))?;
-                let internal_task = Task { id: task.id.clone(), title: brand.to_string(), description: "SNS strategy".to_string(), task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None, assigned_agent: Some(AgentType::SNSStrategyAgent), dependencies: vec![], estimated_duration: Some(180), status: None, start_time: None, end_time: None, metadata: None };
+                let brand = task
+                    .input
+                    .get("brand")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing brand".to_string())
+                    })?;
+                let internal_task = Task {
+                    id: task.id.clone(),
+                    title: brand.to_string(),
+                    description: "SNS strategy".to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::SNSStrategyAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(180),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
                 match self.execute(&internal_task).await {
-                    Ok(result) => Ok(A2ATaskResult::Success { output: result.data.unwrap_or(json!({"status": "completed"})), artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64 }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("SNS strategy failed: {}", e))),
+                    Ok(result) => Ok(A2ATaskResult::Success {
+                        output: result.data.unwrap_or(json!({"status": "completed"})),
+                        artifacts: vec![],
+                        execution_time_ms: start.elapsed().as_millis() as u64,
+                    }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                        "SNS strategy failed: {}",
+                        e
+                    ))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
         }
     }
-    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::ReadOnly
+    }
 }
 
 #[cfg(test)]

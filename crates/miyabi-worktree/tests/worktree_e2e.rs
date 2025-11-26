@@ -67,7 +67,10 @@ async fn test_single_worktree_lifecycle() {
 
     // Test 1: Create worktree
     println!("📝 Test 1: Creating worktree for issue #999");
-    let worktree = manager.create_worktree(999).await.expect("Failed to create worktree");
+    let worktree = manager
+        .create_worktree(999)
+        .await
+        .expect("Failed to create worktree");
 
     assert_eq!(worktree.issue_number, 999);
     assert_eq!(worktree.status, WorktreeStatus::Active);
@@ -92,7 +95,10 @@ async fn test_single_worktree_lifecycle() {
         .await
         .expect("Failed to update status");
 
-    let updated = manager.get_worktree(&worktree.id).await.expect("Failed to get worktree");
+    let updated = manager
+        .get_worktree(&worktree.id)
+        .await
+        .expect("Failed to get worktree");
     assert_eq!(updated.status, WorktreeStatus::Completed);
     println!("✅ Status updated to Completed");
 
@@ -115,9 +121,15 @@ async fn test_single_worktree_lifecycle() {
 
     // Test 6: Cleanup
     println!("\n📝 Test 6: Cleaning up worktree");
-    manager.remove_worktree(&worktree.id).await.expect("Failed to remove worktree");
+    manager
+        .remove_worktree(&worktree.id)
+        .await
+        .expect("Failed to remove worktree");
 
-    assert!(!worktree.path.exists(), "Worktree directory should be removed");
+    assert!(
+        !worktree.path.exists(),
+        "Worktree directory should be removed"
+    );
 
     let worktrees_after = manager.list_worktrees().await;
     assert_eq!(worktrees_after.len(), 0);
@@ -163,9 +175,12 @@ async fn test_parallel_worktree_execution() {
         .await
         .expect("Failed to create file");
 
-        commit_changes(&worktree.path, &format!("feat: add file for issue #{}", issue))
-            .await
-            .expect("Failed to commit");
+        commit_changes(
+            &worktree.path,
+            &format!("feat: add file for issue #{}", issue),
+        )
+        .await
+        .expect("Failed to commit");
 
         manager
             .update_status(&worktree.id, WorktreeStatus::Completed)
@@ -183,7 +198,10 @@ async fn test_parallel_worktree_execution() {
     let stats = manager.stats().await;
     assert_eq!(stats.total, 3);
     assert_eq!(stats.completed, 3);
-    println!("✅ Stats verified: {} total, {} completed", stats.total, stats.completed);
+    println!(
+        "✅ Stats verified: {} total, {} completed",
+        stats.total, stats.completed
+    );
 
     // Cleanup all
     println!("\n📝 Cleaning up all worktrees");
@@ -207,8 +225,14 @@ async fn test_worktree_conflict_detection() {
     println!("📝 Testing conflict detection between worktrees");
 
     // Create two worktrees that will modify the same file
-    let worktree1 = manager.create_worktree(2001).await.expect("Failed to create worktree 1");
-    let worktree2 = manager.create_worktree(2002).await.expect("Failed to create worktree 2");
+    let worktree1 = manager
+        .create_worktree(2001)
+        .await
+        .expect("Failed to create worktree 1");
+    let worktree2 = manager
+        .create_worktree(2002)
+        .await
+        .expect("Failed to create worktree 2");
 
     println!("✅ Created worktree 1: {:?}", worktree1.path);
     println!("✅ Created worktree 2: {:?}", worktree2.path);
@@ -270,7 +294,10 @@ async fn test_worktree_error_handling() {
         PathBuf::from(".worktrees-test"),
         3,
     );
-    assert!(invalid_result.is_err(), "Should fail with invalid repo path");
+    assert!(
+        invalid_result.is_err(),
+        "Should fail with invalid repo path"
+    );
     println!("✅ Correctly rejected invalid repository path");
 
     // Test 2: Manager with valid repository
@@ -285,7 +312,9 @@ async fn test_worktree_error_handling() {
 
     // Test 4: Update non-existent worktree status
     println!("\n📝 Test 3: Update non-existent worktree status");
-    let result = manager.update_status("nonexistent-id", WorktreeStatus::Failed).await;
+    let result = manager
+        .update_status("nonexistent-id", WorktreeStatus::Failed)
+        .await;
     assert!(result.is_err(), "Should fail for non-existent worktree");
     println!("✅ Correctly returned error when updating non-existent worktree");
 

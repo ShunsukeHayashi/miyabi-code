@@ -32,11 +32,15 @@ impl TmuxSession {
         info!("Creating new tmux session: {}", session_name);
 
         // Check if session already exists
-        let check = Command::new("tmux").args(["has-session", "-t", &session_name]).status()?;
+        let check = Command::new("tmux")
+            .args(["has-session", "-t", &session_name])
+            .status()?;
 
         if check.success() {
             warn!("Session {} already exists, killing it", session_name);
-            Command::new("tmux").args(["kill-session", "-t", &session_name]).status()?;
+            Command::new("tmux")
+                .args(["kill-session", "-t", &session_name])
+                .status()?;
         }
 
         // Create new session (detached)
@@ -111,7 +115,9 @@ impl TmuxSession {
             .output()?;
 
         if !output.status.success() {
-            return Err(TmuxError::PaneCreationFailed("Failed to get initial pane ID".to_string()));
+            return Err(TmuxError::PaneCreationFailed(
+                "Failed to get initial pane ID".to_string(),
+            ));
         }
 
         let pane_id = String::from_utf8_lossy(&output.stdout)
@@ -162,7 +168,10 @@ impl TmuxSession {
             .ok_or_else(|| TmuxError::PaneNotFound(pane_id.to_string()))?
             .segment_id;
 
-        info!("Starting agent in pane {} for segment {}", pane_id, segment_id);
+        info!(
+            "Starting agent in pane {} for segment {}",
+            pane_id, segment_id
+        );
 
         // Update status to Starting
         if let Some(pane) = self.panes.get_mut(pane_id) {
@@ -197,7 +206,9 @@ impl TmuxSession {
     pub async fn send_keys(&self, pane_id: &str, keys: &str) -> Result<()> {
         debug!("Sending keys to pane {}: {}", pane_id, keys);
 
-        let status = Command::new("tmux").args(["send-keys", "-t", pane_id, keys]).status()?;
+        let status = Command::new("tmux")
+            .args(["send-keys", "-t", pane_id, keys])
+            .status()?;
 
         if !status.success() {
             return Err(TmuxError::CommandExecutionFailed(format!(
@@ -209,7 +220,9 @@ impl TmuxSession {
         // Send Enter key
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
-        let status = Command::new("tmux").args(["send-keys", "-t", pane_id, "Enter"]).status()?;
+        let status = Command::new("tmux")
+            .args(["send-keys", "-t", pane_id, "Enter"])
+            .status()?;
 
         if !status.success() {
             return Err(TmuxError::CommandExecutionFailed(format!(
@@ -240,8 +253,9 @@ impl TmuxSession {
     pub fn cleanup(&self) -> Result<()> {
         info!("Cleaning up tmux session: {}", self.session_name);
 
-        let status =
-            Command::new("tmux").args(["kill-session", "-t", &self.session_name]).status()?;
+        let status = Command::new("tmux")
+            .args(["kill-session", "-t", &self.session_name])
+            .status()?;
 
         if !status.success() {
             warn!("Failed to kill session {}", self.session_name);

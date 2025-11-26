@@ -137,15 +137,15 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
     match send_result {
         Ok(Ok(())) => {
             debug!("Initial data sent successfully");
-        },
+        }
         Ok(Err(e)) => {
             error!("Failed to send initial data: {}", e);
             // Don't return - continue with broadcast updates
-        },
+        }
         Err(_) => {
             error!("Timeout while sending initial data");
             // Don't return - continue with broadcast updates
-        },
+        }
     }
 
     // Spawn task to listen for broadcasts
@@ -156,7 +156,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
                 Err(e) => {
                     error!("Failed to serialize message: {}", e);
                     continue;
-                },
+                }
             };
 
             if sender.send(Message::Text(json.into())).await.is_err() {
@@ -171,12 +171,12 @@ async fn handle_socket(socket: WebSocket, state: Arc<WsState>) {
             match msg {
                 Message::Text(text) => {
                     debug!("Received text message: {}", text);
-                },
+                }
                 Message::Close(_) => {
                     info!("WebSocket client disconnected");
                     break;
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     });
@@ -208,28 +208,36 @@ where
             info!("📊 Sending {} agents data", agents.len());
             if !agents.is_empty() {
                 info!("📊 First agent: {:?}", agents[0]);
-                let task_counts: Vec<_> =
-                    agents.iter().map(|a| format!("{}:{}", a.name, a.tasks)).collect();
+                let task_counts: Vec<_> = agents
+                    .iter()
+                    .map(|a| format!("{}:{}", a.name, a.tasks))
+                    .collect();
                 info!("📊 Agent task counts: {}", task_counts.join(", "));
             }
             let msg = DashboardUpdate::Agents { agents };
             let json = serde_json::to_string(&msg).unwrap();
             // Safely truncate at character boundary
             let truncated = json.chars().take(200).collect::<String>();
-            info!("📤 WebSocket sending JSON (first 200 chars): {}...", truncated);
+            info!(
+                "📤 WebSocket sending JSON (first 200 chars): {}...",
+                truncated
+            );
             if let Err(e) = sender.send(Message::Text(json.into())).await {
-                debug!("Failed to send agents data (client may have disconnected): {}", e);
+                debug!(
+                    "Failed to send agents data (client may have disconnected): {}",
+                    e
+                );
                 return Err(axum::Error::new(e));
             }
-        },
+        }
         Ok(Err(e)) => {
             error!("Failed to fetch agents: {}", e);
             // Continue to send other data
-        },
+        }
         Err(_) => {
             error!("Timeout fetching agents");
             // Continue to send other data
-        },
+        }
     }
 
     // Send system status with timeout
@@ -240,18 +248,21 @@ where
             let msg = DashboardUpdate::SystemStatus { status };
             let json = serde_json::to_string(&msg).unwrap();
             if let Err(e) = sender.send(Message::Text(json.into())).await {
-                debug!("Failed to send system status (client may have disconnected): {}", e);
+                debug!(
+                    "Failed to send system status (client may have disconnected): {}",
+                    e
+                );
                 return Err(axum::Error::new(e));
             }
-        },
+        }
         Ok(Err(e)) => {
             error!("Failed to fetch system status: {}", e);
             // Continue anyway
-        },
+        }
         Err(_) => {
             error!("Timeout fetching system status");
             // Continue anyway
-        },
+        }
     }
 
     Ok(())
@@ -269,10 +280,10 @@ pub async fn broadcast_updates(state: Arc<WsState>) {
             Ok(agents) => {
                 let msg = DashboardUpdate::Agents { agents };
                 let _ = state.tx.send(msg);
-            },
+            }
             Err(e) => {
                 error!("Failed to fetch agents for broadcast: {}", e);
-            },
+            }
         }
 
         // Fetch and broadcast system status
@@ -280,10 +291,10 @@ pub async fn broadcast_updates(state: Arc<WsState>) {
             Ok(status) => {
                 let msg = DashboardUpdate::SystemStatus { status };
                 let _ = state.tx.send(msg);
-            },
+            }
             Err(e) => {
                 error!("Failed to fetch system status for broadcast: {}", e);
-            },
+            }
         }
     }
 }

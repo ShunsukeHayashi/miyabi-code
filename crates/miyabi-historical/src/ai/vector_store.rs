@@ -148,7 +148,9 @@ impl VectorStore {
         let filtered_docs: Vec<&Document> = if let Some(filter) = &filter {
             docs.iter()
                 .filter(|doc| {
-                    filter.iter().all(|(key, value)| doc.metadata.get(key) == Some(value))
+                    filter
+                        .iter()
+                        .all(|(key, value)| doc.metadata.get(key) == Some(value))
                 })
                 .collect()
         } else {
@@ -228,10 +230,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_document_creation() {
-        let doc =
-            Document::new("doc1".to_string(), "Test content".to_string(), vec![0.1, 0.2, 0.3])
-                .with_metadata("figure".to_string(), "織田信長".to_string())
-                .with_score(0.95);
+        let doc = Document::new(
+            "doc1".to_string(),
+            "Test content".to_string(),
+            vec![0.1, 0.2, 0.3],
+        )
+        .with_metadata("figure".to_string(), "織田信長".to_string())
+        .with_score(0.95);
 
         assert_eq!(doc.id, "doc1");
         assert_eq!(doc.text, "Test content");
@@ -242,7 +247,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_vector_store_insert() {
-        let store = VectorStore::new("test_collection".to_string(), 3).await.unwrap();
+        let store = VectorStore::new("test_collection".to_string(), 3)
+            .await
+            .unwrap();
 
         let doc = Document::new("doc1".to_string(), "Test".to_string(), vec![0.1, 0.2, 0.3]);
 
@@ -252,17 +259,31 @@ mod tests {
 
     #[tokio::test]
     async fn test_vector_store_search() {
-        let store = VectorStore::new("test_collection".to_string(), 3).await.unwrap();
+        let store = VectorStore::new("test_collection".to_string(), 3)
+            .await
+            .unwrap();
 
         // Insert some documents
-        let doc1 = Document::new("doc1".to_string(), "Text 1".to_string(), vec![1.0, 0.0, 0.0])
-            .with_metadata("figure".to_string(), "織田信長".to_string());
+        let doc1 = Document::new(
+            "doc1".to_string(),
+            "Text 1".to_string(),
+            vec![1.0, 0.0, 0.0],
+        )
+        .with_metadata("figure".to_string(), "織田信長".to_string());
 
-        let doc2 = Document::new("doc2".to_string(), "Text 2".to_string(), vec![0.0, 1.0, 0.0])
-            .with_metadata("figure".to_string(), "豊臣秀吉".to_string());
+        let doc2 = Document::new(
+            "doc2".to_string(),
+            "Text 2".to_string(),
+            vec![0.0, 1.0, 0.0],
+        )
+        .with_metadata("figure".to_string(), "豊臣秀吉".to_string());
 
-        let doc3 = Document::new("doc3".to_string(), "Text 3".to_string(), vec![0.9, 0.1, 0.0])
-            .with_metadata("figure".to_string(), "織田信長".to_string());
+        let doc3 = Document::new(
+            "doc3".to_string(),
+            "Text 3".to_string(),
+            vec![0.9, 0.1, 0.0],
+        )
+        .with_metadata("figure".to_string(), "織田信長".to_string());
 
         store.insert(doc1).await.unwrap();
         store.insert(doc2).await.unwrap();
@@ -289,7 +310,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_dimension_validation() {
-        let store = VectorStore::new("test_collection".to_string(), 3).await.unwrap();
+        let store = VectorStore::new("test_collection".to_string(), 3)
+            .await
+            .unwrap();
 
         // Wrong dimension should fail
         let doc = Document::new(

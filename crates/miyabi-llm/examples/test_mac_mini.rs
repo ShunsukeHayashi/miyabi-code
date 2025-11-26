@@ -19,7 +19,9 @@ use std::time::Instant;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
-    tracing_subscriber::fmt().with_max_level(tracing::Level::INFO).init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
 
     println!("=== Mac mini LLM Server Integration Test ===\n");
 
@@ -56,11 +58,11 @@ async fn main() -> anyhow::Result<()> {
             println!("   Tokens used: {}", response.tokens_used);
             println!("   Finish reason: {}", response.finish_reason);
             println!("   Elapsed: {:.2}s\n", elapsed.as_secs_f64());
-        },
+        }
         Err(e) => {
             println!("❌ Failed: {}\n", e);
             return Err(e.into());
-        },
+        }
     }
 
     // Test 2: Code generation
@@ -84,11 +86,11 @@ async fn main() -> anyhow::Result<()> {
             println!("   {}", "-".repeat(60));
             println!("   Tokens used: {}", response.tokens_used);
             println!("   Elapsed: {:.2}s\n", elapsed.as_secs_f64());
-        },
+        }
         Err(e) => {
             println!("❌ Failed: {}\n", e);
             return Err(e.into());
-        },
+        }
     }
 
     // Test 3: Complex reasoning
@@ -107,11 +109,11 @@ async fn main() -> anyhow::Result<()> {
             println!("   Response: {}", response.text.trim());
             println!("   Tokens used: {}", response.tokens_used);
             println!("   Elapsed: {:.2}s\n", elapsed.as_secs_f64());
-        },
+        }
         Err(e) => {
             println!("❌ Failed: {}\n", e);
             return Err(e.into());
-        },
+        }
     }
 
     println!("=== All tests passed! ===");

@@ -52,7 +52,9 @@ impl BaseAgent for MockCoordinatorAgent {
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
         if !self.should_succeed {
-            return Err(MiyabiError::Unknown("Coordinator execution failed".to_string()));
+            return Err(MiyabiError::Unknown(
+                "Coordinator execution failed".to_string(),
+            ));
         }
 
         // Return mock task decomposition
@@ -347,7 +349,10 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     assert_eq!(coordinator_result.status, ResultStatus::Success);
 
     // Verify coordinator hooks were called
-    assert_eq!(recording_hook.count_by_agent(AgentType::CoordinatorAgent), 2); // pre + post
+    assert_eq!(
+        recording_hook.count_by_agent(AgentType::CoordinatorAgent),
+        2
+    ); // pre + post
 
     // ========================================================================
     // Step 3: Execute WorktreePool with Specialist Agents
@@ -458,7 +463,11 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     }
 
     // Should have logs from coordinator + worktrees
-    assert!(!log_files.is_empty(), "Expected at least 1 log file, got {}", log_files.len());
+    assert!(
+        !log_files.is_empty(),
+        "Expected at least 1 log file, got {}",
+        log_files.len()
+    );
 
     // Read and verify coordinator log content
     let coordinator_log_found = log_files.iter().any(|entry| {
@@ -466,14 +475,21 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
         file_name.to_str().unwrap().starts_with(&date)
             && !file_name.to_str().unwrap().contains("-worktree-")
     });
-    assert!(coordinator_log_found, "Coordinator log file should exist without worktree ID");
+    assert!(
+        coordinator_log_found,
+        "Coordinator log file should exist without worktree ID"
+    );
 
     // Verify worktree-specific logs
     let worktree_logs = log_files
         .iter()
         .filter(|e| e.file_name().to_str().unwrap().contains("-worktree-"))
         .count();
-    assert!(worktree_logs >= 1, "Expected at least 1 worktree log, got {}", worktree_logs);
+    assert!(
+        worktree_logs >= 1,
+        "Expected at least 1 worktree log, got {}",
+        worktree_logs
+    );
 
     // ========================================================================
     // Step 5: Verify Statistics
@@ -512,7 +528,11 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     );
 
     // Should have at least one error event
-    assert!(error_count >= 1, "Expected at least 1 error event, got {}", error_count);
+    assert!(
+        error_count >= 1,
+        "Expected at least 1 error event, got {}",
+        error_count
+    );
 
     // Verify statistics methods
     assert!(result.success_rate() < 100.0);
@@ -541,7 +561,10 @@ async fn test_e2e_coordinator_with_hooks_and_worktree_pool() {
     println!("  Total events: {}", events.len());
     println!("\nLog Files:");
     println!("  Total: {}", log_files.len());
-    println!("  Coordinator logs: {}", if coordinator_log_found { 1 } else { 0 });
+    println!(
+        "  Coordinator logs: {}",
+        if coordinator_log_found { 1 } else { 0 }
+    );
     println!("  Worktree logs: {}", worktree_logs);
     println!("========================\n");
 }

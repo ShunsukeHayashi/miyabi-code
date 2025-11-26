@@ -16,9 +16,7 @@ pub use error::{CompositeStateError, Result};
 pub use manager::CompositeStateManager;
 
 // Re-export composite state types from miyabi-types
-pub use miyabi_types::{
-    AgentState, AwsState, BusinessState, CompositeServiceState, UserState,
-};
+pub use miyabi_types::{AgentState, AwsState, BusinessState, CompositeServiceState, UserState};
 
 #[cfg(test)]
 mod tests {

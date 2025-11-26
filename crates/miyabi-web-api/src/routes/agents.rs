@@ -330,7 +330,9 @@ fn get_agents() -> Vec<Agent> {
 /// Get status for a specific agent by name
 async fn get_agent_status(Path(agent_name): Path<String>) -> Json<Option<Agent>> {
     let agents = get_agents();
-    let agent = agents.into_iter().find(|a| a.name == agent_name || a.id == agent_name);
+    let agent = agents
+        .into_iter()
+        .find(|a| a.name == agent_name || a.id == agent_name);
     Json(agent)
 }
 
@@ -419,7 +421,10 @@ pub async fn list_workers() -> Json<WorkerStatusResponse> {
     let workers: Vec<Agent> = agents.into_iter().filter(|a| a.layer == 4).collect();
 
     let total_count = workers.len();
-    let active_count = workers.iter().filter(|w| w.status == "running" || w.status == "busy").count();
+    let active_count = workers
+        .iter()
+        .filter(|w| w.status == "running" || w.status == "busy")
+        .count();
     let idle_count = total_count - active_count;
 
     Json(WorkerStatusResponse {
@@ -436,7 +441,10 @@ pub async fn list_coordinators() -> Json<CoordinatorStatusResponse> {
     let coordinators: Vec<Agent> = agents.into_iter().filter(|a| a.layer == 3).collect();
 
     let total_count = coordinators.len();
-    let active_count = coordinators.iter().filter(|c| c.status == "running" || c.status == "busy").count();
+    let active_count = coordinators
+        .iter()
+        .filter(|c| c.status == "running" || c.status == "busy")
+        .count();
 
     Json(CoordinatorStatusResponse {
         coordinators,
@@ -454,22 +462,41 @@ pub async fn get_system_overview() -> Json<SystemOverviewResponse> {
 
     // Coding agents (7): Coordinator, CodeGen, Review, Issue, PR, Deployment, Refresher
     let coding_names = vec![
-        "CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "IssueAgent",
-        "PRAgent", "DeploymentAgent", "RefresherAgent"
+        "CoordinatorAgent",
+        "CodeGenAgent",
+        "ReviewAgent",
+        "IssueAgent",
+        "PRAgent",
+        "DeploymentAgent",
+        "RefresherAgent",
     ];
-    let coding_agents: Vec<&Agent> = agents.iter()
+    let coding_agents: Vec<&Agent> = agents
+        .iter()
         .filter(|a| coding_names.contains(&a.name.as_str()))
         .collect();
 
     // Business agents (14): Everything else
-    let business_agents: Vec<&Agent> = agents.iter()
+    let business_agents: Vec<&Agent> = agents
+        .iter()
         .filter(|a| !coding_names.contains(&a.name.as_str()))
         .collect();
 
-    let workers_active = workers.iter().filter(|w| w.status == "running" || w.status == "busy").count();
-    let coordinators_active = coordinators.iter().filter(|c| c.status == "running" || c.status == "busy").count();
-    let coding_active = coding_agents.iter().filter(|a| a.status == "running" || a.status == "busy").count();
-    let business_active = business_agents.iter().filter(|a| a.status == "running" || a.status == "busy").count();
+    let workers_active = workers
+        .iter()
+        .filter(|w| w.status == "running" || w.status == "busy")
+        .count();
+    let coordinators_active = coordinators
+        .iter()
+        .filter(|c| c.status == "running" || c.status == "busy")
+        .count();
+    let coding_active = coding_agents
+        .iter()
+        .filter(|a| a.status == "running" || a.status == "busy")
+        .count();
+    let business_active = business_agents
+        .iter()
+        .filter(|a| a.status == "running" || a.status == "busy")
+        .count();
 
     Json(SystemOverviewResponse {
         total_agents: agents.len(),

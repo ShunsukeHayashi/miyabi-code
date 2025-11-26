@@ -85,7 +85,13 @@ impl CommunicationMonitor {
     }
 
     /// Log task completed
-    pub async fn log_complete(&self, from: &AgentId, to: &AgentId, task_id: &TaskId, success: bool) {
+    pub async fn log_complete(
+        &self,
+        from: &AgentId,
+        to: &AgentId,
+        task_id: &TaskId,
+        success: bool,
+    ) {
         let event = if success {
             CommunicationEvent::TaskCompleted
         } else {

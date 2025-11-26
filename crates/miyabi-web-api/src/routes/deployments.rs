@@ -77,13 +77,14 @@ fn get_git_tag_deployments() -> Result<Vec<Deployment>, String> {
             };
 
             // Determine environment based on version pattern
-            let environment = if tag.contains("infinity") || tag.contains("beta") || tag.contains("alpha") {
-                "staging".to_string()
-            } else if tag.starts_with("v0.") && !tag.contains('.', ) {
-                "development".to_string()
-            } else {
-                "production".to_string()
-            };
+            let environment =
+                if tag.contains("infinity") || tag.contains("beta") || tag.contains("alpha") {
+                    "staging".to_string()
+                } else if tag.starts_with("v0.") && !tag.contains('.') {
+                    "development".to_string()
+                } else {
+                    "production".to_string()
+                };
 
             // Determine deployment type
             let deployment_type = if tag.contains("infinity") {
@@ -105,7 +106,11 @@ fn get_git_tag_deployments() -> Result<Vec<Deployment>, String> {
                 deployment_type,
                 pr_number: None, // Could extract from tag message
                 commit_sha,
-                deployed_by: if tagger.is_empty() { "DeploymentAgent".to_string() } else { tagger },
+                deployed_by: if tagger.is_empty() {
+                    "DeploymentAgent".to_string()
+                } else {
+                    tagger
+                },
                 started_at: date.clone(),
                 completed_at: Some(date),
                 duration_seconds: Some(120 + (i as u32 * 30)), // Simulated duration

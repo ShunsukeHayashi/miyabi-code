@@ -1,12 +1,12 @@
 //! A2A Bridge Interactive View with Agent Tool Execution
 
 use crossterm::event::{KeyCode, KeyEvent};
+use miyabi_llm::AnthropicClient;
+use miyabi_llm::LlmClient;
 use ratatui::{
     prelude::*,
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
 };
-use miyabi_llm::AnthropicClient;
-use miyabi_llm::LlmClient;
 use std::time::Instant;
 
 /// Tool execution result
@@ -50,56 +50,63 @@ impl A2ABridgeView {
     pub fn new() -> Self {
         // Initialize Claude Sonnet 4.5 client from ANTHROPIC_API_KEY env var
         let client = match std::env::var("ANTHROPIC_API_KEY") {
-            Ok(key) if !key.is_empty() => {
-                match AnthropicClient::from_env() {
-                    Ok(c) => Some(c
-                        .with_model("claude-sonnet-4-5-20250929".to_string())
-                        .with_max_tokens(2048)),
-                    Err(e) => {
-                        tracing::error!("Failed to initialize Anthropic client: {}", e);
-                        None
-                    }
+            Ok(key) if !key.is_empty() => match AnthropicClient::from_env() {
+                Ok(c) => Some(
+                    c.with_model("claude-sonnet-4-5-20250929".to_string())
+                        .with_max_tokens(2048),
+                ),
+                Err(e) => {
+                    tracing::error!("Failed to initialize Anthropic client: {}", e);
+                    None
                 }
-            }
-            _ => None
+            },
+            _ => None,
         };
 
         let tools = vec![
             A2ATool {
                 name: "a2a.coordinator_agent.decompose_issue".to_string(),
                 description: "Decompose issue into subtasks".to_string(),
-                agent_prompt: r#"You are the CoordinatorAgent. Decompose the given task into subtasks.
-Output JSON: {"subtasks": [{"id": 1, "title": "...", "priority": "high|medium|low"}]}"#.to_string(),
+                agent_prompt:
+                    r#"You are the CoordinatorAgent. Decompose the given task into subtasks.
+Output JSON: {"subtasks": [{"id": 1, "title": "...", "priority": "high|medium|low"}]}"#
+                        .to_string(),
             },
             A2ATool {
                 name: "a2a.code_generation_agent.generate_code".to_string(),
                 description: "Generate code implementation".to_string(),
                 agent_prompt: r#"You are the CodeGenAgent. Generate Rust code for the given task.
-Output the code with explanation."#.to_string(),
+Output the code with explanation."#
+                    .to_string(),
             },
             A2ATool {
                 name: "a2a.code_review_agent.review_code".to_string(),
                 description: "Review code for issues".to_string(),
                 agent_prompt: r#"You are the ReviewAgent. Review the given code.
-Output JSON: {"issues": [{"severity": "error|warning|info", "message": "..."}], "score": 0-100}"#.to_string(),
+Output JSON: {"issues": [{"severity": "error|warning|info", "message": "..."}], "score": 0-100}"#
+                    .to_string(),
             },
             A2ATool {
                 name: "a2a.issue_analysis_agent.analyze_issue".to_string(),
                 description: "Analyze GitHub issue".to_string(),
                 agent_prompt: r#"You are the IssueAgent. Analyze the issue and suggest labels.
-Output JSON: {"labels": ["label1", "label2"], "priority": "P0|P1|P2", "effort": "S|M|L"}"#.to_string(),
+Output JSON: {"labels": ["label1", "label2"], "priority": "P0|P1|P2", "effort": "S|M|L"}"#
+                    .to_string(),
             },
             A2ATool {
                 name: "a2a.self_analysis_agent.analyze_self".to_string(),
                 description: "Personal SWOT analysis".to_string(),
                 agent_prompt: r#"You are the SelfAnalysisAgent. Perform SWOT analysis.
-Output JSON: {"strengths": [...], "weaknesses": [...], "opportunities": [...], "threats": [...]}"#.to_string(),
+Output JSON: {"strengths": [...], "weaknesses": [...], "opportunities": [...], "threats": [...]}"#
+                    .to_string(),
             },
             A2ATool {
                 name: "a2a.market_research_agent.research_market".to_string(),
                 description: "Market research analysis".to_string(),
-                agent_prompt: r#"You are the MarketResearchAgent. Analyze market for the given product.
-Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}"#.to_string(),
+                agent_prompt:
+                    r#"You are the MarketResearchAgent. Analyze market for the given product.
+Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}"#
+                        .to_string(),
             },
         ];
 
@@ -147,12 +154,10 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
         let system_prompt = tool.agent_prompt.clone();
         let user_input = self.input.clone();
 
-        let messages = vec![
-            miyabi_llm::Message {
-                role: miyabi_llm::Role::User,
-                content: format!("{}\n\nTask: {}", system_prompt, user_input),
-            },
-        ];
+        let messages = vec![miyabi_llm::Message {
+            role: miyabi_llm::Role::User,
+            content: format!("{}\n\nTask: {}", system_prompt, user_input),
+        }];
 
         // Execute agent via LLM
         match client.chat(messages).await {
@@ -283,8 +288,8 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
         let right_chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(5),  // Input
-                Constraint::Min(0),     // Output
+                Constraint::Length(5), // Input
+                Constraint::Min(0),    // Output
             ])
             .split(chunks[1]);
 
@@ -303,18 +308,16 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
             " Input (Press Enter to edit) "
         };
 
-        let input = Paragraph::new(self.input.clone())
-            .style(input_style)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(input_title)
-                    .border_style(if self.input_mode || self.loading {
-                        Style::default().fg(Color::Yellow)
-                    } else {
-                        Style::default()
-                    }),
-            );
+        let input = Paragraph::new(self.input.clone()).style(input_style).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(input_title)
+                .border_style(if self.input_mode || self.loading {
+                    Style::default().fg(Color::Yellow)
+                } else {
+                    Style::default()
+                }),
+        );
         f.render_widget(input, right_chunks[0]);
 
         // Output/History
@@ -332,7 +335,11 @@ Output JSON: {"tam": "...", "sam": "...", "competitors": [...], "trends": [...]}
         // Show execution history
         for result in self.history.iter().rev().take(5) {
             let status = if result.success { "✓" } else { "✗" };
-            let color = if result.success { Color::Green } else { Color::Red };
+            let color = if result.success {
+                Color::Green
+            } else {
+                Color::Red
+            };
 
             history_lines.push(Line::from(vec![
                 Span::styled(status, Style::default().fg(color)),

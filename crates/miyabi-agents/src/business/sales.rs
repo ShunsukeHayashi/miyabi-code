@@ -51,13 +51,16 @@ Generate detailed sales strategy as JSON with sales process, lead generation, cl
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::SalesAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::SalesAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let sales_strategy: SalesStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -212,7 +215,10 @@ impl BaseAgent for SalesAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!("SalesAgent starting sales strategy generation for task: {}", task.id);
+        tracing::info!(
+            "SalesAgent starting sales strategy generation for task: {}",
+            task.id
+        );
 
         // Generate sales strategy using LLM
         let sales_strategy = self.generate_sales_strategy(task).await?;
@@ -251,7 +257,10 @@ impl BaseAgent for SalesAgent {
             "total_techniques_count": total_techniques
         });
 
-        tracing::info!("SalesAgent completed sales strategy generation: {}", summary);
+        tracing::info!(
+            "SalesAgent completed sales strategy generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

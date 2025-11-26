@@ -85,8 +85,12 @@ mod tests {
 
     #[test]
     fn test_pane_creation() {
-        let pane =
-            Pane::new("%1".to_string(), 0, "/tmp/work".to_string(), "video-generator".to_string());
+        let pane = Pane::new(
+            "%1".to_string(),
+            0,
+            "/tmp/work".to_string(),
+            "video-generator".to_string(),
+        );
         assert_eq!(pane.tmux_pane_id, "%1");
         assert_eq!(pane.segment_id, 0);
         assert_eq!(pane.status, PaneStatus::Idle);

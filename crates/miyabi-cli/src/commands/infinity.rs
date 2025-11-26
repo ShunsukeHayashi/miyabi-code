@@ -271,15 +271,22 @@ impl InfinityMode {
             }
 
             // Get next sprint batch
-            let sprint_issues: Vec<Issue> =
-                issues.iter().take(self.config.sprint_size).cloned().collect();
+            let sprint_issues: Vec<Issue> = issues
+                .iter()
+                .take(self.config.sprint_size)
+                .cloned()
+                .collect();
 
             if sprint_issues.is_empty() {
                 break StopReason::AllCompleted;
             }
 
             println!();
-            println!("🏃 Sprint {} - Processing {} Issues", sprint_id, sprint_issues.len());
+            println!(
+                "🏃 Sprint {} - Processing {} Issues",
+                sprint_id,
+                sprint_issues.len()
+            );
 
             // Execute sprint
             let sprint_result = self.execute_sprint(sprint_id, sprint_issues).await?;
@@ -422,7 +429,7 @@ impl InfinityMode {
                         pr_number,
                         quality_score: None, // TODO: Extract from execution result
                     }
-                },
+                }
                 Err(e) => {
                     let duration = issue_start.elapsed().as_secs();
                     eprintln!("     ❌ Failed in {}s: {}", duration, e);
@@ -435,7 +442,7 @@ impl InfinityMode {
                         pr_number: None,
                         quality_score: None,
                     }
-                },
+                }
             };
 
             results.push(result);
@@ -531,7 +538,9 @@ impl InfinityMode {
         let _ = github_client.remove_label(issue_number, remove_label).await;
 
         // Add new state label
-        github_client.add_labels(issue_number, &[add_label.to_string()]).await?;
+        github_client
+            .add_labels(issue_number, &[add_label.to_string()])
+            .await?;
 
         // Close the issue
         github_client.close_issue(issue_number).await?;
@@ -570,8 +579,12 @@ impl InfinityMode {
     /// Generate final report
     fn generate_report(&self, stop_reason: StopReason) -> InfinityReport {
         let total_issues: usize = self.sprints.iter().map(|s| s.results.len()).sum();
-        let successful_issues: usize =
-            self.sprints.iter().flat_map(|s| &s.results).filter(|r| r.success).count();
+        let successful_issues: usize = self
+            .sprints
+            .iter()
+            .flat_map(|s| &s.results)
+            .filter(|r| r.success)
+            .count();
         let failed_issues = total_issues - successful_issues;
         let success_rate = if total_issues > 0 {
             successful_issues as f64 / total_issues as f64
@@ -620,17 +633,26 @@ impl InfinityMode {
 
         // Header
         md.push_str("# 🏁 Miyabi Infinity Mode - 完了報告\n\n");
-        md.push_str(&format!("**実行日時**: {}\n\n", Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        md.push_str(&format!(
+            "**実行日時**: {}\n\n",
+            Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        ));
 
         // Summary
         md.push_str("## 📊 実行サマリー\n\n");
         let hours = report.total_duration_secs / 3600;
         let minutes = (report.total_duration_secs % 3600) / 60;
         let seconds = report.total_duration_secs % 60;
-        md.push_str(&format!("- **総実行時間**: {}時間{}分{}秒\n", hours, minutes, seconds));
+        md.push_str(&format!(
+            "- **総実行時間**: {}時間{}分{}秒\n",
+            hours, minutes, seconds
+        ));
         md.push_str(&format!("- **総スプリント数**: {}\n", report.total_sprints));
         md.push_str(&format!("- **総Issue処理数**: {}\n", report.total_issues));
-        md.push_str(&format!("- **成功率**: {:.1}%\n", report.success_rate * 100.0));
+        md.push_str(&format!(
+            "- **成功率**: {:.1}%\n",
+            report.success_rate * 100.0
+        ));
         md.push_str(&format!("- **成功**: {} ✅\n", report.successful_issues));
         md.push_str(&format!("- **失敗**: {} ❌\n\n", report.failed_issues));
 
@@ -639,25 +661,25 @@ impl InfinityMode {
         match &report.stop_reason {
             StopReason::AllCompleted => {
                 md.push_str("✅ **全Issue処理完了**\n\n");
-            },
+            }
             StopReason::MaxIssuesReached => {
                 md.push_str("⏹️  **最大Issue数に到達**\n\n");
-            },
+            }
             StopReason::Timeout => {
                 md.push_str(&format!(
                     "⏱️  **タイムアウト** ({}時間経過)\n\n",
                     self.config.timeout_hours
                 ));
-            },
+            }
             StopReason::ConsecutiveFailures => {
                 md.push_str("❌ **3スプリント連続失敗**\n\n");
-            },
+            }
             StopReason::CriticalError(err) => {
                 md.push_str(&format!("🔴 **重大エラー**: {}\n\n", err));
-            },
+            }
             StopReason::UserInterrupted => {
                 md.push_str("🛑 **ユーザー中断** (Ctrl+C)\n\n");
-            },
+            }
         }
 
         // Sprint details
@@ -671,7 +693,10 @@ impl InfinityMode {
                 .map(|e| e.format("%H:%M:%S").to_string())
                 .unwrap_or_else(|| "進行中".to_string());
 
-            md.push_str(&format!("### Sprint {} ({} - {})\n\n", sprint.id, start_str, end_str));
+            md.push_str(&format!(
+                "### Sprint {} ({} - {})\n\n",
+                sprint.id, start_str, end_str
+            ));
 
             for result in &sprint.results {
                 let status_icon = if result.success { "✅" } else { "❌" };
@@ -691,14 +716,20 @@ impl InfinityMode {
                     md.push_str(&format!("  - エラー: {}\n", error));
                 }
             }
-            md.push_str(&format!("\n**結果**: {}/{} 成功\n\n", success_count, total_count));
+            md.push_str(&format!(
+                "\n**結果**: {}/{} 成功\n\n",
+                success_count, total_count
+            ));
         }
 
         // Performance metrics
         md.push_str("## ⚡ パフォーマンス\n\n");
         if report.total_issues > 0 {
             let avg_duration = report.total_duration_secs as f64 / report.total_issues as f64;
-            md.push_str(&format!("- **平均処理時間**: {:.1}秒/Issue\n", avg_duration));
+            md.push_str(&format!(
+                "- **平均処理時間**: {:.1}秒/Issue\n",
+                avg_duration
+            ));
         }
 
         // Generated artifacts
@@ -718,40 +749,60 @@ impl InfinityMode {
     /// Display summary
     fn display_summary(&self, report: &InfinityReport) {
         println!();
-        println!("{}", "========================================".bright_cyan());
-        println!("{}", "🏁 Miyabi Infinity Mode - Final Report".bright_cyan().bold());
-        println!("{}", "========================================".bright_cyan());
+        println!(
+            "{}",
+            "========================================".bright_cyan()
+        );
+        println!(
+            "{}",
+            "🏁 Miyabi Infinity Mode - Final Report"
+                .bright_cyan()
+                .bold()
+        );
+        println!(
+            "{}",
+            "========================================".bright_cyan()
+        );
         println!();
 
         println!("{}", "📊 Execution Summary".bright_yellow().bold());
         println!("   Total Duration: {} seconds", report.total_duration_secs);
         println!("   Total Sprints: {}", report.total_sprints);
         println!("   Total Issues: {}", report.total_issues);
-        println!("   Successful: {} ✅", report.successful_issues.to_string().bright_green());
-        println!("   Failed: {} ❌", report.failed_issues.to_string().bright_red());
+        println!(
+            "   Successful: {} ✅",
+            report.successful_issues.to_string().bright_green()
+        );
+        println!(
+            "   Failed: {} ❌",
+            report.failed_issues.to_string().bright_red()
+        );
         println!("   Success Rate: {:.1}%", report.success_rate * 100.0);
         println!();
 
         println!("{}", "🛑 Stop Reason".bright_yellow().bold());
         match &report.stop_reason {
             StopReason::AllCompleted => {
-                println!("   {} All Issues completed successfully", "✅".bright_green());
-            },
+                println!(
+                    "   {} All Issues completed successfully",
+                    "✅".bright_green()
+                );
+            }
             StopReason::MaxIssuesReached => {
                 println!("   ⏹️  Maximum Issues limit reached");
-            },
+            }
             StopReason::Timeout => {
                 println!("   ⏱️ Timeout reached ({}h)", self.config.timeout_hours);
-            },
+            }
             StopReason::ConsecutiveFailures => {
                 println!("   {} 3 sprints failed consecutively", "❌".bright_red());
-            },
+            }
             StopReason::CriticalError(err) => {
                 println!("   {} Critical error: {}", "🔴".bright_red(), err);
-            },
+            }
             StopReason::UserInterrupted => {
                 println!("   🛑 User interrupted (Ctrl+C)");
-            },
+            }
         }
         println!();
 
@@ -768,7 +819,10 @@ impl InfinityMode {
             );
         }
         println!();
-        println!("{}", "========================================".bright_cyan());
+        println!(
+            "{}",
+            "========================================".bright_cyan()
+        );
     }
 }
 
@@ -821,7 +875,10 @@ impl InfinityCommand {
         if self.resume {
             println!("🔄 Resume mode: Loading previous execution state...");
             if let Some(processed_issues) = Self::load_previous_state(&config.log_dir)? {
-                println!("   Found {} completed Issues from previous run", processed_issues.len());
+                println!(
+                    "   Found {} completed Issues from previous run",
+                    processed_issues.len()
+                );
                 println!("   Will skip these Issues and continue from remaining ones");
             } else {
                 println!("   No previous state found, starting fresh");
@@ -942,18 +999,24 @@ fn detect_repository_simple() -> Result<(String, String)> {
     } else if url.contains("github.com/") {
         url.split("github.com/").collect()
     } else {
-        return Err(CliError::ExecutionError("Not a GitHub repository".to_string()));
+        return Err(CliError::ExecutionError(
+            "Not a GitHub repository".to_string(),
+        ));
     };
 
     if parts.len() != 2 {
-        return Err(CliError::ExecutionError("Invalid GitHub URL format".to_string()));
+        return Err(CliError::ExecutionError(
+            "Invalid GitHub URL format".to_string(),
+        ));
     }
 
     let repo_part = parts[1].trim_end_matches(".git");
     let repo_parts: Vec<&str> = repo_part.split('/').collect();
 
     if repo_parts.len() != 2 {
-        return Err(CliError::ExecutionError("Invalid GitHub repository path".to_string()));
+        return Err(CliError::ExecutionError(
+            "Invalid GitHub repository path".to_string(),
+        ));
     }
 
     Ok((repo_parts[0].to_string(), repo_parts[1].to_string()))

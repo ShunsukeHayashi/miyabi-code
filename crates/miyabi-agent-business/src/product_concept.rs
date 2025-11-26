@@ -65,13 +65,16 @@ Create a comprehensive product concept as JSON with value proposition, target cu
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::ProductConceptAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::ProductConceptAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let product_concept: ProductConcept = serde_json::from_str(&response).map_err(|e| {
@@ -231,7 +234,10 @@ impl BaseAgent for ProductConceptAgent {
             "target_segments_count": if product_concept.target_customers.secondary.is_some() { 2 } else { 1 }
         });
 
-        tracing::info!("ProductConceptAgent completed product concept generation: {}", summary);
+        tracing::info!(
+            "ProductConceptAgent completed product concept generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -246,58 +252,92 @@ impl BaseAgent for ProductConceptAgent {
 #[async_trait]
 impl A2AEnabled for ProductConceptAgent {
     fn agent_card(&self) -> A2AAgentCard {
-        AgentCardBuilder::new("ProductConceptAgent", "Product concept and MVP design agent")
-            .version("0.1.1")
-            .capability(AgentCapability {
-                id: "design_concept".to_string(),
-                name: "Design Product Concept".to_string(),
-                description: "Define MVP, business model canvas, and product-market fit".to_string(),
-                input_schema: Some(json!({
-                    "type": "object",
-                    "properties": {
-                        "idea": { "type": "string", "description": "Business idea" },
-                        "market": { "type": "string", "description": "Target market" }
-                    },
-                    "required": ["idea"]
-                })),
-                output_schema: Some(json!({
-                    "type": "object",
-                    "properties": {
-                        "value_proposition": { "type": "object" },
-                        "mvp_features": { "type": "array" },
-                        "business_model": { "type": "object" }
-                    }
-                })),
-            })
-            .build()
+        AgentCardBuilder::new(
+            "ProductConceptAgent",
+            "Product concept and MVP design agent",
+        )
+        .version("0.1.1")
+        .capability(AgentCapability {
+            id: "design_concept".to_string(),
+            name: "Design Product Concept".to_string(),
+            description: "Define MVP, business model canvas, and product-market fit".to_string(),
+            input_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "idea": { "type": "string", "description": "Business idea" },
+                    "market": { "type": "string", "description": "Target market" }
+                },
+                "required": ["idea"]
+            })),
+            output_schema: Some(json!({
+                "type": "object",
+                "properties": {
+                    "value_proposition": { "type": "object" },
+                    "mvp_features": { "type": "array" },
+                    "business_model": { "type": "object" }
+                }
+            })),
+        })
+        .build()
     }
 
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "design_concept" => {
-                let idea = task.input.get("idea").and_then(|v| v.as_str())
-                    .ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string()))?;
-                let market = task.input.get("market").and_then(|v| v.as_str()).unwrap_or("SaaS");
+                let idea = task
+                    .input
+                    .get("idea")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing idea".to_string())
+                    })?;
+                let market = task
+                    .input
+                    .get("market")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("SaaS");
                 let internal_task = Task {
-                    id: task.id.clone(), title: idea.to_string(), description: market.to_string(),
-                    task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None,
-                    assigned_agent: Some(AgentType::ProductConceptAgent), dependencies: vec![], estimated_duration: Some(180),
-                    status: None, start_time: None, end_time: None, metadata: None,
+                    id: task.id.clone(),
+                    title: idea.to_string(),
+                    description: market.to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::ProductConceptAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(180),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
                 };
                 match self.execute(&internal_task).await {
                     Ok(result) => Ok(A2ATaskResult::Success {
                         output: result.data.unwrap_or(json!({"status": "completed"})),
-                        artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64,
+                        artifacts: vec![],
+                        execution_time_ms: start.elapsed().as_millis() as u64,
                     }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Product concept failed: {}", e))),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                        "Product concept failed: {}",
+                        e
+                    ))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
         }
     }
 
-    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::ReadOnly
+    }
 }
 
 #[cfg(test)]

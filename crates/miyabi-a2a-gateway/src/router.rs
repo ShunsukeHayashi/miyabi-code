@@ -45,7 +45,10 @@ impl MessageRouter {
                         .write()
                         .await
                         .insert(task_id.clone(), DeliveryStatus::Delivered);
-                    info!("Delivered task {} to {:?} (attempt {})", task_id.0, target.0, attempt);
+                    info!(
+                        "Delivered task {} to {:?} (attempt {})",
+                        task_id.0, target.0, attempt
+                    );
                     return Ok(());
                 }
                 Err(e) if attempt < 3 => {
@@ -57,10 +60,10 @@ impl MessageRouter {
                     continue;
                 }
                 Err(e) => {
-                    self.delivery_status.write().await.insert(
-                        task_id.clone(),
-                        DeliveryStatus::Failed(e.to_string()),
-                    );
+                    self.delivery_status
+                        .write()
+                        .await
+                        .insert(task_id.clone(), DeliveryStatus::Failed(e.to_string()));
                     return Err(e);
                 }
             }
@@ -90,9 +93,7 @@ impl MessageRouter {
             if let Some(status) = self.delivery_status.read().await.get(task_id) {
                 match status {
                     DeliveryStatus::Acknowledged => return Ok(()),
-                    DeliveryStatus::Failed(e) => {
-                        return Err(Error::DeliveryFailed(e.clone()))
-                    }
+                    DeliveryStatus::Failed(e) => return Err(Error::DeliveryFailed(e.clone())),
                     _ => {}
                 }
             }

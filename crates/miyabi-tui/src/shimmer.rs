@@ -34,7 +34,7 @@ impl Default for ShimmerConfig {
         Self {
             sweep_seconds: 2.0,
             band_half_width: 5.0,
-            base_color: Color::Rgb(86, 95, 137),      // MIYABI_DIM
+            base_color: Color::Rgb(86, 95, 137), // MIYABI_DIM
             highlight_color: Color::Rgb(187, 154, 247), // MIYABI_PURPLE
         }
     }
@@ -118,7 +118,11 @@ fn blend_colors(color1: Color, color2: Color, intensity: f64) -> Color {
         }
         _ => {
             // Fallback for non-RGB colors
-            if intensity > 0.5 { color2 } else { color1 }
+            if intensity > 0.5 {
+                color2
+            } else {
+                color1
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Gauge},
+    widgets::{Block, Borders, Gauge, List, ListItem, ListState, Paragraph},
 };
 
 /// Agent status

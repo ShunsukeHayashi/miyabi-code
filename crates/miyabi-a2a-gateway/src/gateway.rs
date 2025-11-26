@@ -1,13 +1,8 @@
 //! A2A Gateway - Central hub for all agent communication
 
 use crate::{
-    error::Error,
-    monitor::CommunicationMonitor,
-    queue::TaskQueue,
-    registry::AgentRegistry,
-    router::MessageRouter,
-    types::*,
-    Result,
+    error::Error, monitor::CommunicationMonitor, queue::TaskQueue, registry::AgentRegistry,
+    router::MessageRouter, types::*, Result,
 };
 use miyabi_core::tools::{ToolRegistry, ToolResult};
 use miyabi_core::ExecutionMode;
@@ -77,13 +72,17 @@ impl A2AGateway {
 
         // Execute tool
         let registry = self.tool_registry.read().await;
-        registry.execute(&call).await.map_err(|e| {
-            Error::ToolExecutionFailed(format!("{}: {}", tool_name, e))
-        })
+        registry
+            .execute(&call)
+            .await
+            .map_err(|e| Error::ToolExecutionFailed(format!("{}: {}", tool_name, e)))
     }
 
     /// Get available tools for an agent based on its permissions
-    pub async fn get_available_tools(&self, _agent_id: &AgentId) -> Vec<miyabi_llm::ToolDefinition> {
+    pub async fn get_available_tools(
+        &self,
+        _agent_id: &AgentId,
+    ) -> Vec<miyabi_llm::ToolDefinition> {
         let registry = self.tool_registry.read().await;
         registry.get_tool_definitions()
     }
@@ -131,9 +130,7 @@ impl A2AGateway {
         guarantee: DeliveryGuarantee,
     ) -> Result<TaskId> {
         match guarantee {
-            DeliveryGuarantee::AtMostOnce => {
-                self.send_task(from, to, task).await
-            }
+            DeliveryGuarantee::AtMostOnce => self.send_task(from, to, task).await,
             DeliveryGuarantee::AtLeastOnce => {
                 let task_id = self.send_task(from, to, task).await?;
                 self.router
@@ -185,7 +182,9 @@ impl A2AGateway {
         task: Task,
     ) -> Result<TaskResult> {
         let timeout = task.timeout_secs.unwrap_or(300);
-        let task_id = self.send_with_guarantee(from, to, task, DeliveryGuarantee::AtLeastOnce).await?;
+        let task_id = self
+            .send_with_guarantee(from, to, task, DeliveryGuarantee::AtLeastOnce)
+            .await?;
 
         // Wait for task completion
         let start = std::time::Instant::now();

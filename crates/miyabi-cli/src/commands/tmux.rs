@@ -126,7 +126,8 @@ async fn optimize_layout(task_type: TaskType, session: Option<String>) -> Result
         return Ok(());
     }
 
-    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name =
+        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
     let layout = get_layout_for_task(task_type);
 
     println!(
@@ -145,7 +146,12 @@ async fn optimize_layout(task_type: TaskType, session: Option<String>) -> Result
     println!();
     println!("{}", "💡 Windows created:".cyan());
     for (i, window) in layout.windows.iter().enumerate() {
-        println!("  {}. {} - {}", i + 1, window.name.bold(), window.description);
+        println!(
+            "  {}. {} - {}",
+            i + 1,
+            window.name.bold(),
+            window.description
+        );
     }
 
     Ok(())
@@ -583,11 +589,27 @@ async fn list_layouts() -> Result<()> {
     println!();
 
     let layouts = vec![
-        ("coding", "Editor + Test + Log (3-pane vertical)", "Development workflow"),
-        ("monitoring", "Multi-coordinator status display", "System monitoring"),
+        (
+            "coding",
+            "Editor + Test + Log (3-pane vertical)",
+            "Development workflow",
+        ),
+        (
+            "monitoring",
+            "Multi-coordinator status display",
+            "System monitoring",
+        ),
         ("debugging", "Log-focused 3-way split", "Bug investigation"),
-        ("coordination", "All coordinators parallel view", "Multi-agent orchestration"),
-        ("review", "Code diff + PR comments view", "Code review workflow"),
+        (
+            "coordination",
+            "All coordinators parallel view",
+            "Multi-agent orchestration",
+        ),
+        (
+            "review",
+            "Code diff + PR comments view",
+            "Code review workflow",
+        ),
         ("agent", "Multi-agent dashboard", "Agent management"),
     ];
 
@@ -618,7 +640,11 @@ async fn show_status() -> Result<()> {
 
     // List sessions
     let output = Command::new("tmux")
-        .args(["list-sessions", "-F", "#{session_name}: #{session_windows} windows, #{session_attached} attached"])
+        .args([
+            "list-sessions",
+            "-F",
+            "#{session_name}: #{session_windows} windows, #{session_attached} attached",
+        ])
         .output()
         .map_err(|e| CliError::ExecutionError(format!("Failed to list sessions: {}", e)))?;
 
@@ -633,7 +659,11 @@ async fn show_status() -> Result<()> {
 
     // List windows in current session
     let output = Command::new("tmux")
-        .args(["list-windows", "-F", "#{window_index}: #{window_name} (#{window_panes} panes)"])
+        .args([
+            "list-windows",
+            "-F",
+            "#{window_index}: #{window_name} (#{window_panes} panes)",
+        ])
         .output()
         .map_err(|e| CliError::ExecutionError(format!("Failed to list windows: {}", e)))?;
 
@@ -661,7 +691,8 @@ async fn apply_layout(layout_path: PathBuf, session: Option<String>) -> Result<(
         )));
     }
 
-    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name =
+        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
 
     // Source the layout file (tmux conf format)
     let output = Command::new("tmux")
@@ -670,7 +701,11 @@ async fn apply_layout(layout_path: PathBuf, session: Option<String>) -> Result<(
         .map_err(|e| CliError::ExecutionError(format!("Failed to apply layout: {}", e)))?;
 
     if output.status.success() {
-        println!("  {} Layout applied from: {}", "✅".green(), layout_path.display());
+        println!(
+            "  {} Layout applied from: {}",
+            "✅".green(),
+            layout_path.display()
+        );
         println!("  {} Session: {}", "📺".blue(), session_name);
     } else {
         println!("  {} Failed to apply layout", "❌".red());
@@ -687,7 +722,8 @@ async fn save_layout(output_path: PathBuf, session: Option<String>) -> Result<()
     println!("{}", "💾 Saving Layout".cyan().bold());
     println!();
 
-    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name =
+        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
 
     // Get window list
     let windows = Command::new("tmux")
@@ -740,7 +776,8 @@ async fn reset_layout(session: Option<String>) -> Result<()> {
     println!("{}", "🔄 Resetting Layout".cyan().bold());
     println!();
 
-    let session_name = session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
+    let session_name =
+        session.unwrap_or_else(|| get_current_session().unwrap_or("miyabi".to_string()));
 
     // Apply even-horizontal layout to all windows
     let output = Command::new("tmux")

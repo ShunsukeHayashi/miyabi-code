@@ -71,9 +71,10 @@ fn get_git_worktrees() -> Result<Vec<Worktree>, String> {
             }
         } else if line.starts_with("branch ") {
             if let Some(ref mut builder) = current_worktree {
-                let branch = line.strip_prefix("branch refs/heads/").unwrap_or(
-                    line.strip_prefix("branch ").unwrap_or("")
-                ).to_string();
+                let branch = line
+                    .strip_prefix("branch refs/heads/")
+                    .unwrap_or(line.strip_prefix("branch ").unwrap_or(""))
+                    .to_string();
                 builder.branch = Some(branch);
             }
         } else if line == "bare" {
@@ -123,11 +124,7 @@ impl WorktreeBuilder {
         }
 
         // Generate ID from path
-        let id = self.path
-            .split('/')
-            .last()
-            .unwrap_or("unknown")
-            .to_string();
+        let id = self.path.split('/').last().unwrap_or("unknown").to_string();
 
         // Determine branch name
         let branch = if self.is_detached {
@@ -144,7 +141,8 @@ impl WorktreeBuilder {
             "Active"
         } else {
             "Main"
-        }.to_string();
+        }
+        .to_string();
 
         // Get file modification time for timestamps
         let (created_at, updated_at) = get_worktree_timestamps(&self.path);
@@ -208,10 +206,12 @@ fn get_worktree_timestamps(path: &str) -> (String, String) {
     let now = chrono::Utc::now().to_rfc3339();
 
     if let Ok(metadata) = std::fs::metadata(path) {
-        let created = metadata.created()
+        let created = metadata
+            .created()
             .map(|t| chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339())
             .unwrap_or_else(|_| now.clone());
-        let modified = metadata.modified()
+        let modified = metadata
+            .modified()
             .map(|t| chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339())
             .unwrap_or_else(|_| now.clone());
         (created, modified)

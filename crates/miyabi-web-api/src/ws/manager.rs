@@ -2,12 +2,12 @@
 // WebSocket マネージャー - Redis Pub/Sub 統合版
 
 use super::message::WSMessage;
+use crate::error::ApiError;
 use dashmap::DashMap;
 use redis::aio::ConnectionManager;
 use std::sync::Arc;
 use tokio::sync::broadcast;
-use tracing::{debug, info, warn, instrument};
-use crate::error::ApiError;
+use tracing::{debug, info, instrument, warn};
 
 /// WebSocket コネクション管理
 pub struct WebSocketManager {
@@ -63,7 +63,8 @@ impl WebSocketManager {
         }
 
         // 2. Redis 経由で他のサーバーのクライアントに送信
-        let json = message.to_text()
+        let json = message
+            .to_text()
             .map_err(|e| ApiError::Server(format!("Serialization error: {}", e)))?;
 
         let key = format!("execution:{}:events", execution_id);
@@ -154,10 +155,7 @@ pub struct WebSocketConnection {
 
 impl WebSocketConnection {
     /// 新しいコネクションを作成
-    pub fn new(
-        execution_id: String,
-        receiver: broadcast::Receiver<WSMessage>,
-    ) -> Self {
+    pub fn new(execution_id: String, receiver: broadcast::Receiver<WSMessage>) -> Self {
         Self {
             execution_id,
             receiver,

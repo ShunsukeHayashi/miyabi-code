@@ -107,14 +107,20 @@ impl DiscordNotifier {
 
     /// Send payload to Discord webhook
     async fn send_payload(&self, payload: &DiscordPayload) -> Result<()> {
-        let response =
-            self.client.post(&self.webhook_url).json(payload).send().await.map_err(|e| {
-                ApprovalError::Other(format!("Discord webhook request failed: {}", e))
-            })?;
+        let response = self
+            .client
+            .post(&self.webhook_url)
+            .json(payload)
+            .send()
+            .await
+            .map_err(|e| ApprovalError::Other(format!("Discord webhook request failed: {}", e)))?;
 
         if !response.status().is_success() {
             let status = response.status();
-            let body = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             return Err(ApprovalError::Other(format!(
                 "Discord webhook failed with status {}: {}",
                 status, body

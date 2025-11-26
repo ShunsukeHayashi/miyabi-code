@@ -5,7 +5,7 @@ use ratatui::{
     prelude::*,
     widgets::{Block, Borders, Gauge, Paragraph, Sparkline},
 };
-use sysinfo::{System, Pid};
+use sysinfo::{Pid, System};
 
 /// System Monitor view state
 pub struct MonitorView {
@@ -45,7 +45,8 @@ impl MonitorView {
             }
 
             // Update memory history
-            let mem_usage = ((self.sys.used_memory() as f64 / self.sys.total_memory() as f64) * 100.0) as u64;
+            let mem_usage =
+                ((self.sys.used_memory() as f64 / self.sys.total_memory() as f64) * 100.0) as u64;
             self.mem_history.push(mem_usage);
             if self.mem_history.len() > 60 {
                 self.mem_history.remove(0);
@@ -66,10 +67,10 @@ impl MonitorView {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(6),  // CPU
-                Constraint::Length(6),  // Memory
-                Constraint::Length(6),  // Disk
-                Constraint::Min(0),     // Processes
+                Constraint::Length(6), // CPU
+                Constraint::Length(6), // Memory
+                Constraint::Length(6), // Disk
+                Constraint::Min(0),    // Processes
             ])
             .split(area);
 
@@ -94,7 +95,11 @@ impl MonitorView {
         f.render_widget(cpu_gauge, cpu_chunk[0]);
 
         let cpu_spark = Sparkline::default()
-            .block(Block::default().borders(Borders::ALL).title(" CPU History "))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" CPU History "),
+            )
             .data(&self.cpu_history)
             .style(Style::default().fg(Color::Cyan));
         f.render_widget(cpu_spark, cpu_chunk[1]);
@@ -132,7 +137,11 @@ impl MonitorView {
         f.render_widget(mem_gauge, mem_chunk[0]);
 
         let mem_spark = Sparkline::default()
-            .block(Block::default().borders(Borders::ALL).title(" Memory History "))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Memory History "),
+            )
             .data(&self.mem_history)
             .style(Style::default().fg(Color::Magenta));
         f.render_widget(mem_spark, mem_chunk[1]);

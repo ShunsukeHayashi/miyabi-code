@@ -37,9 +37,9 @@ impl Condition {
         match self {
             Condition::Always => true,
 
-            Condition::FieldEquals { field, value } => {
-                Self::get_field(context, field).map(|v| v == value).unwrap_or(false)
-            },
+            Condition::FieldEquals { field, value } => Self::get_field(context, field)
+                .map(|v| v == value)
+                .unwrap_or(false),
 
             Condition::FieldGreaterThan { field, value } => Self::get_field(context, field)
                 .and_then(|v| v.as_f64())

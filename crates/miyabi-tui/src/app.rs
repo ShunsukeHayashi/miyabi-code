@@ -2,7 +2,7 @@
 
 use crate::event::{Event, EventHandler};
 use crate::ui;
-use crate::views::{AgentDashboard, A2ABridgeView, ChatView, MonitorView};
+use crate::views::{A2ABridgeView, AgentDashboard, ChatView, MonitorView};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::prelude::*;
 use std::time::Duration;
@@ -81,7 +81,10 @@ impl App {
     }
 
     /// Main application loop
-    pub async fn run<B: Backend>(&mut self, terminal: &mut Terminal<B>) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run<B: Backend>(
+        &mut self,
+        terminal: &mut Terminal<B>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut event_handler = EventHandler::new(Duration::from_millis(100));
 
         loop {

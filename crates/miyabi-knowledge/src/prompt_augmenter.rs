@@ -122,7 +122,11 @@ impl<S: KnowledgeSearcher> StandardPromptAugmenter<S> {
         let mut lines = vec!["## Relevant Context from Knowledge Base".to_string()];
 
         for (i, result) in pieces.iter().enumerate() {
-            lines.push(format!("\n### Context {} (Score: {:.2})", i + 1, result.score));
+            lines.push(format!(
+                "\n### Context {} (Score: {:.2})",
+                i + 1,
+                result.score
+            ));
 
             // Add metadata if available
             if let Some(agent) = &result.metadata.agent {
@@ -148,7 +152,10 @@ impl<S: KnowledgeSearcher> StandardPromptAugmenter<S> {
         results: Vec<KnowledgeResult>,
         threshold: f32,
     ) -> Vec<KnowledgeResult> {
-        results.into_iter().filter(|r| r.score >= threshold).collect()
+        results
+            .into_iter()
+            .filter(|r| r.score >= threshold)
+            .collect()
     }
 }
 
@@ -207,13 +214,13 @@ impl<S: KnowledgeSearcher> PromptAugmenter for StandardPromptAugmenter<S> {
         let augmented = match strategy {
             AugmentationStrategy::Prepend => {
                 format!("{}\n{}", context, base_prompt)
-            },
+            }
             AugmentationStrategy::Append => {
                 format!("{}\n{}", base_prompt, context)
-            },
+            }
             AugmentationStrategy::Template => {
                 base_prompt.replace(&self.template_placeholder, &context)
-            },
+            }
         };
 
         Ok(augmented)
@@ -314,7 +321,10 @@ mod tests {
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Generate error handling code";
-        let augmented = augmenter.augment(base_prompt, None, None, None).await.unwrap();
+        let augmented = augmenter
+            .augment(base_prompt, None, None, None)
+            .await
+            .unwrap();
 
         assert!(augmented.contains("Relevant Context"));
         assert!(augmented.contains("thiserror"));
@@ -349,7 +359,10 @@ mod tests {
         let augmenter = StandardPromptAugmenter::new(searcher);
 
         let base_prompt = "Generate code";
-        let augmented = augmenter.augment(base_prompt, None, None, None).await.unwrap();
+        let augmented = augmenter
+            .augment(base_prompt, None, None, None)
+            .await
+            .unwrap();
 
         // Should return original prompt (no relevant context)
         assert_eq!(augmented, base_prompt);

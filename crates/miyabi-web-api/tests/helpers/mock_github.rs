@@ -51,18 +51,14 @@ pub async fn setup_mock_github_server() -> MockServer {
 }
 
 /// Mount successful OAuth token exchange
-pub async fn mount_successful_token_exchange(
-    server: &MockServer,
-    access_token: &str,
-) {
+pub async fn mount_successful_token_exchange(server: &MockServer, access_token: &str) {
     Mock::given(method("POST"))
         .and(path("/login/oauth/access_token"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(mock_github_token_response(
-                    access_token,
-                    "read:user user:email repo",
-                )),
+            ResponseTemplate::new(200).set_body_json(mock_github_token_response(
+                access_token,
+                "read:user user:email repo",
+            )),
         )
         .mount(server)
         .await;
@@ -78,30 +74,26 @@ pub async fn mount_successful_user_fetch(
     Mock::given(method("GET"))
         .and(path("/user"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(mock_github_user_response(
-                    user_id,
-                    login,
-                    Some(email),
-                    Some(login),
-                    Some(&format!("https://avatars.githubusercontent.com/u/{}", user_id)),
+            ResponseTemplate::new(200).set_body_json(mock_github_user_response(
+                user_id,
+                login,
+                Some(email),
+                Some(login),
+                Some(&format!(
+                    "https://avatars.githubusercontent.com/u/{}",
+                    user_id
                 )),
+            )),
         )
         .mount(server)
         .await;
 }
 
 /// Mount successful emails fetch
-pub async fn mount_successful_emails_fetch(
-    server: &MockServer,
-    email: &str,
-) {
+pub async fn mount_successful_emails_fetch(server: &MockServer, email: &str) {
     Mock::given(method("GET"))
         .and(path("/user/emails"))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(mock_github_emails_response(email)),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(mock_github_emails_response(email)))
         .mount(server)
         .await;
 }

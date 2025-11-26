@@ -93,7 +93,10 @@ impl InitCommand {
         if connect_github {
             println!("  {} Will set up GitHub integration", "🔗".green());
         } else {
-            println!("  {} Skipping GitHub (you can set it up later)", "⏭️".yellow());
+            println!(
+                "  {} Skipping GitHub (you can set it up later)",
+                "⏭️".yellow()
+            );
         }
         println!();
 
@@ -122,7 +125,10 @@ impl InitCommand {
         println!("{}", "🎉 You're all set!".green().bold());
         println!();
         println!("Your first AI-powered task:");
-        println!("  {}", "miyabi work-on \"Setup project structure\"".yellow());
+        println!(
+            "  {}",
+            "miyabi work-on \"Setup project structure\"".yellow()
+        );
         println!();
         println!("Or try the traditional way:");
         println!("  {}", "miyabi agent run coordinator --issue 1".cyan());
@@ -162,12 +168,11 @@ impl InitCommand {
             ));
         }
 
-        let add_status =
-            Command::new("git")
-                .args(["add", "."])
-                .current_dir(project_dir)
-                .status()
-                .map_err(|e| CliError::GitConfig(format!("Failed to stage files: {}", e)))?;
+        let add_status = Command::new("git")
+            .args(["add", "."])
+            .current_dir(project_dir)
+            .status()
+            .map_err(|e| CliError::GitConfig(format!("Failed to stage files: {}", e)))?;
 
         if !add_status.success() {
             return Err(CliError::GitConfig(
@@ -205,7 +210,10 @@ impl InitCommand {
 
         if !gh_create.status.success() {
             let stderr = String::from_utf8_lossy(&gh_create.stderr);
-            return Err(CliError::GitConfig(format!("gh repo create failed: {}", stderr.trim())));
+            return Err(CliError::GitConfig(format!(
+                "gh repo create failed: {}",
+                stderr.trim()
+            )));
         }
 
         Ok(())
@@ -239,7 +247,11 @@ impl InitCommand {
                     if private_repo { "private" } else { "public" }
                 ),
                 Err(err) => {
-                    eprintln!("  {} Failed to create GitHub repository: {}", "⚠️".yellow(), err);
+                    eprintln!(
+                        "  {} Failed to create GitHub repository: {}",
+                        "⚠️".yellow(),
+                        err
+                    );
                     eprintln!(
                         "     Run `gh repo create {} {} --source=. --remote=origin --push` later.",
                         self.name,
@@ -249,7 +261,7 @@ impl InitCommand {
                             "--public"
                         }
                     );
-                },
+                }
             }
         }
 
@@ -269,7 +281,10 @@ impl InitCommand {
         println!("  {} Check installation:", "3.".yellow().bold());
         println!("     miyabi status");
         println!();
-        println!("  {} Create your first issue on GitHub, then:", "4.".yellow().bold());
+        println!(
+            "  {} Create your first issue on GitHub, then:",
+            "4.".yellow().bold()
+        );
         println!("     miyabi agent run coordinator --issue 1");
         println!();
         println!("{}", "📖 Documentation:".cyan().bold());
@@ -288,11 +303,17 @@ impl InitCommand {
     fn validate_project_name(&self) -> Result<()> {
         // Check if name is valid
         if self.name.is_empty() {
-            return Err(CliError::InvalidProjectName("Project name cannot be empty".to_string()));
+            return Err(CliError::InvalidProjectName(
+                "Project name cannot be empty".to_string(),
+            ));
         }
 
         // Check if name contains invalid characters
-        if !self.name.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+        if !self
+            .name
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+        {
             return Err(CliError::InvalidProjectName(
                 "Project name can only contain alphanumeric characters, hyphens, and underscores"
                     .to_string(),
@@ -321,10 +342,15 @@ impl InitCommand {
         use std::process::Command;
 
         // Initialize git repository
-        let output = Command::new("git").args(["init"]).current_dir(project_dir).output()?;
+        let output = Command::new("git")
+            .args(["init"])
+            .current_dir(project_dir)
+            .output()?;
 
         if !output.status.success() {
-            return Err(CliError::Io(std::io::Error::other("Failed to initialize git repository")));
+            return Err(CliError::Io(std::io::Error::other(
+                "Failed to initialize git repository",
+            )));
         }
 
         println!("  Initialized git repository");
@@ -629,7 +655,10 @@ cp example-agent-spec.md my-custom-agent.md
 - Miyabiプロジェクトの `.claude/agents/specs/coding/` ディレクトリ
 - [Agent Operations Manual](https://github.com/ShunsukeHayashi/Miyabi/blob/main/docs/AGENT_OPERATIONS_MANUAL.md)
 "#;
-        fs::write(project_dir.join(".claude/agents/specs/coding/README.md"), coding_specs_readme)?;
+        fs::write(
+            project_dir.join(".claude/agents/specs/coding/README.md"),
+            coding_specs_readme,
+        )?;
 
         // Create .claude/agents/specs/business/README.md
         let business_specs_readme = r#"# Business Agent 仕様
@@ -1674,7 +1703,11 @@ mod tests {
 
         for name in valid_names {
             let cmd = InitCommand::with_interactive(name.to_string(), false, false);
-            assert!(cmd.validate_project_name().is_ok(), "Should be valid: {}", name);
+            assert!(
+                cmd.validate_project_name().is_ok(),
+                "Should be valid: {}",
+                name
+            );
         }
     }
 
@@ -1694,7 +1727,11 @@ mod tests {
 
         for name in invalid_names {
             let cmd = InitCommand::with_interactive(name.to_string(), false, false);
-            assert!(cmd.validate_project_name().is_err(), "Should be invalid: {}", name);
+            assert!(
+                cmd.validate_project_name().is_err(),
+                "Should be invalid: {}",
+                name
+            );
         }
     }
 
@@ -1713,9 +1750,18 @@ mod tests {
 
     #[test]
     fn test_project_type_as_str() {
-        assert_eq!(ProjectType::WebApp.as_str(), "Web App (React/Next.js/SvelteKit)");
-        assert_eq!(ProjectType::ApiBackend.as_str(), "API Backend (Rust/Node.js/Python)");
+        assert_eq!(
+            ProjectType::WebApp.as_str(),
+            "Web App (React/Next.js/SvelteKit)"
+        );
+        assert_eq!(
+            ProjectType::ApiBackend.as_str(),
+            "API Backend (Rust/Node.js/Python)"
+        );
         assert_eq!(ProjectType::CliTool.as_str(), "CLI Tool (Rust/Go)");
-        assert_eq!(ProjectType::Library.as_str(), "Library/SDK (Rust/TypeScript)");
+        assert_eq!(
+            ProjectType::Library.as_str(),
+            "Library/SDK (Rust/TypeScript)"
+        );
     }
 }

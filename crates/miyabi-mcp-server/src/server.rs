@@ -12,11 +12,11 @@ use crate::rpc::{
     AgentExecuteParams, IssueFetchParams, IssueListParams, KnowledgeSearchParams, RpcContext,
 };
 use crate::session_handler::SessionHandler;
-use serde::{Deserialize, Serialize};
 use crate::session_rpc::{
     SessionGetParams, SessionHandoffParams, SessionLineageParams, SessionListParams,
     SessionMonitorParams, SessionSpawnParams, SessionTerminateParams,
 };
+use serde::{Deserialize, Serialize};
 
 /// A2A tool execution parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -412,7 +412,7 @@ impl McpServer {
             TransportMode::Stdio => {
                 tracing::info!("Starting MCP server in stdio mode");
                 self.run_stdio(io).await
-            },
+            }
             TransportMode::Http => {
                 #[cfg(feature = "http")]
                 {
@@ -429,7 +429,7 @@ impl McpServer {
                         "HTTP transport requires 'http' feature to be enabled".to_string(),
                     ))
                 }
-            },
+            }
         }
     }
 

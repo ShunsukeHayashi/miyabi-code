@@ -259,7 +259,10 @@ mod tests {
 
         let limits = result.unwrap();
         assert!(limits.total_memory_gb > 0, "Should detect non-zero memory");
-        assert!(limits.total_cpu_cores > 0, "Should detect non-zero CPU cores");
+        assert!(
+            limits.total_cpu_cores > 0,
+            "Should detect non-zero CPU cores"
+        );
         // Note: disk_gb might be 0 on some systems, so we don't assert it
     }
 

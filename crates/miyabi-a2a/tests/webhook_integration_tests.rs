@@ -62,7 +62,10 @@ async fn test_webhook_delivery_full_features() {
     };
 
     let result = send_push_notification(&client, &config, &payload).await;
-    assert!(result.is_ok(), "Full-featured webhook delivery should succeed");
+    assert!(
+        result.is_ok(),
+        "Full-featured webhook delivery should succeed"
+    );
 }
 
 /// Test webhook signature generation and verification
@@ -135,7 +138,10 @@ async fn test_concurrent_webhook_sends_100() {
         }
     }
 
-    assert_eq!(success_count, 100, "All 100 concurrent requests should succeed");
+    assert_eq!(
+        success_count, 100,
+        "All 100 concurrent requests should succeed"
+    );
 }
 
 /// Test load: 1000 concurrent webhook sends
@@ -234,7 +240,10 @@ async fn test_webhook_retry_mixed_responses() {
     };
 
     let result = send_push_notification(&client, &config, &payload).await;
-    assert!(result.is_ok(), "Webhook should eventually succeed after retries");
+    assert!(
+        result.is_ok(),
+        "Webhook should eventually succeed after retries"
+    );
 }
 
 /// Test timeout handling
@@ -341,7 +350,10 @@ async fn test_ssrf_prevention_metadata_endpoint() {
     };
 
     let result = send_push_notification(&client, &config, &payload).await;
-    assert!(result.is_err(), "SSRF: Should block AWS/GCP metadata endpoint");
+    assert!(
+        result.is_err(),
+        "SSRF: Should block AWS/GCP metadata endpoint"
+    );
 }
 
 /// Test SSRF prevention: IPv6 localhost (::1)

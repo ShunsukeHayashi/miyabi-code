@@ -44,16 +44,19 @@ impl ProgressObserver for CLIProgressObserver {
             LogLevel::Warn => "⚠️",
             LogLevel::Error => "❌",
         };
-        self.progress_bar.println(format!("{} {}", level_icon, entry.message));
+        self.progress_bar
+            .println(format!("{} {}", level_icon, entry.message));
     }
 
     async fn on_start(&self, task: &Task) {
-        self.progress_bar.println(format!("🚀 Starting: {}", task.title));
+        self.progress_bar
+            .println(format!("🚀 Starting: {}", task.title));
         self.progress_bar.reset();
     }
 
     async fn on_complete(&self, result: &AgentResult) {
-        self.progress_bar.finish_with_message(format!("✅ Status: {:?}", result.status));
+        self.progress_bar
+            .finish_with_message(format!("✅ Status: {:?}", result.status));
     }
 }
 

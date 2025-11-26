@@ -65,8 +65,11 @@ async fn test_phase1_low_complexity_auto_approve() {
     let mut orchestrator = HeadlessOrchestrator::new(config);
 
     // Create a simple issue
-    let issue =
-        create_test_issue(200, "Fix typo in documentation", "There is a typo in the README file");
+    let issue = create_test_issue(
+        200,
+        "Fix typo in documentation",
+        "There is a typo in the README file",
+    );
 
     let result = orchestrator.handle_issue_created(&issue).await.unwrap();
 

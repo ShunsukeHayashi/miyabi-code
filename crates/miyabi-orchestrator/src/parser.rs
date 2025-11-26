@@ -67,7 +67,10 @@ pub async fn parse_agent_result(json_path: PathBuf) -> Result<AgentResult> {
         }
     })?;
 
-    debug!("Parsed result: success={}, status={}", result.success, result.status);
+    debug!(
+        "Parsed result: success={}, status={}",
+        result.success, result.status
+    );
 
     Ok(result)
 }

@@ -131,7 +131,10 @@ pub async fn generate_rustdoc(config: &DocumentationConfig) -> Result<Documentat
     let success = output.status.success();
 
     if !success {
-        return Err(MiyabiError::Unknown(format!("cargo doc failed: {}", stderr)));
+        return Err(MiyabiError::Unknown(format!(
+            "cargo doc failed: {}",
+            stderr
+        )));
     }
 
     tracing::info!("Documentation generated successfully at {:?}", doc_path);
@@ -377,7 +380,10 @@ fn extract_item_name(line: &str) -> String {
     if parts.len() >= 3 {
         // Extract name and remove trailing characters like ( or <
         let name = parts[2];
-        name.split(['(', '<', '{']).next().unwrap_or(name).to_string()
+        name.split(['(', '<', '{'])
+            .next()
+            .unwrap_or(name)
+            .to_string()
     } else {
         line.to_string()
     }

@@ -104,7 +104,10 @@ fn test_coordinator_task_decomposition() {
     let decomposition = result.unwrap();
 
     // Verify tasks were created
-    assert!(!decomposition.tasks.is_empty(), "Should create at least one task");
+    assert!(
+        !decomposition.tasks.is_empty(),
+        "Should create at least one task"
+    );
 
     // Verify DAG was built
     assert!(!decomposition.has_cycles, "DAG should not have cycles");
@@ -122,9 +125,15 @@ fn test_coordinator_task_decomposition() {
         .tasks
         .iter()
         .any(|t| t.assigned_agent == Some(AgentType::CodeGenAgent));
-    assert!(has_impl_task, "Should have at least one CodeGenAgent implementation task");
+    assert!(
+        has_impl_task,
+        "Should have at least one CodeGenAgent implementation task"
+    );
 
-    println!("✅ Task decomposition test passed: {} tasks created", decomposition.tasks.len());
+    println!(
+        "✅ Task decomposition test passed: {} tasks created",
+        decomposition.tasks.len()
+    );
 }
 
 #[test]
@@ -134,9 +143,17 @@ fn test_pr_agent_title_generation() {
     let _pr_agent = PRAgent::new(config);
 
     let test_cases = vec![
-        (TaskType::Feature, "Add user authentication", "feat: Add user authentication"),
+        (
+            TaskType::Feature,
+            "Add user authentication",
+            "feat: Add user authentication",
+        ),
         (TaskType::Bug, "Fix login error", "fix: Fix login error"),
-        (TaskType::Refactor, "Refactor auth module", "refactor: Refactor auth module"),
+        (
+            TaskType::Refactor,
+            "Refactor auth module",
+            "refactor: Refactor auth module",
+        ),
         (TaskType::Docs, "Update README", "docs: Update README"),
         (TaskType::Test, "Add unit tests", "test: Add unit tests"),
     ];
@@ -186,7 +203,10 @@ fn test_task_dependency_chain() {
     // Verify dependency chain
     // First task (analysis) should have no dependencies
     let first_task = &decomposition.tasks[0];
-    assert!(first_task.dependencies.is_empty(), "Analysis task should have no dependencies");
+    assert!(
+        first_task.dependencies.is_empty(),
+        "Analysis task should have no dependencies"
+    );
 
     // Subsequent tasks should depend on previous tasks
     if decomposition.tasks.len() > 1 {
@@ -310,11 +330,18 @@ fn test_dag_validation_no_cycles() {
     let decomposition = result.unwrap();
 
     // Verify DAG validation
-    assert!(!decomposition.has_cycles, "Generated DAG should never have cycles");
+    assert!(
+        !decomposition.has_cycles,
+        "Generated DAG should never have cycles"
+    );
 
     // Verify DAG structure
     let dag = &decomposition.dag;
-    assert_eq!(dag.nodes.len(), decomposition.tasks.len(), "DAG should have one node per task");
+    assert_eq!(
+        dag.nodes.len(),
+        decomposition.tasks.len(),
+        "DAG should have one node per task"
+    );
 
     println!("✅ DAG validation test passed: No cycles detected");
 }
@@ -384,8 +411,14 @@ fn test_estimated_duration_calculation() {
 
     // Verify individual tasks have estimates
     for task in &decomposition.tasks {
-        assert!(task.estimated_duration.is_some(), "Each task should have estimated duration");
-        assert!(task.estimated_duration.unwrap() > 0, "Estimated duration should be positive");
+        assert!(
+            task.estimated_duration.is_some(),
+            "Each task should have estimated duration"
+        );
+        assert!(
+            task.estimated_duration.unwrap() > 0,
+            "Estimated duration should be positive"
+        );
     }
 
     println!(
@@ -424,7 +457,10 @@ fn test_workflow_recommendations() {
     if !decomposition.recommendations.is_empty() {
         // If recommendations exist, verify they have content
         for recommendation in &decomposition.recommendations {
-            assert!(!recommendation.is_empty(), "Recommendations should not be empty");
+            assert!(
+                !recommendation.is_empty(),
+                "Recommendations should not be empty"
+            );
         }
         println!(
             "✅ Workflow recommendations test passed: {} recommendations generated",

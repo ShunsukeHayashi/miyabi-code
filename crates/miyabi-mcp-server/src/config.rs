@@ -108,13 +108,13 @@ impl ServerConfig {
                         "HTTP transport requires 'http' feature to be enabled".to_string(),
                     ));
                 }
-            },
+            }
             _ => {
                 return Err(ServerError::Config(format!(
                     "Invalid transport mode: {}. Must be 'stdio' or 'http'",
                     args.transport
                 )))
-            },
+            }
         };
 
         let github_token = args.github_token.ok_or_else(|| {

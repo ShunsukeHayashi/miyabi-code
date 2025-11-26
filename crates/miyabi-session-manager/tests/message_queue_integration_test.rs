@@ -212,11 +212,15 @@ async fn test_filter_by_priority() {
     }
 
     // Filter high priority and above
-    let high_priority = manager.filter_messages_by_priority(session_id, Priority::High).await;
+    let high_priority = manager
+        .filter_messages_by_priority(session_id, Priority::High)
+        .await;
     assert_eq!(high_priority.len(), 2); // High + Urgent
 
     // Filter normal priority and above
-    let normal_and_above = manager.filter_messages_by_priority(session_id, Priority::Normal).await;
+    let normal_and_above = manager
+        .filter_messages_by_priority(session_id, Priority::Normal)
+        .await;
     assert_eq!(normal_and_above.len(), 3); // Normal + High + Urgent
 }
 
@@ -397,7 +401,7 @@ async fn test_integration_with_session_lifecycle() {
     match msg1.message_type {
         MessageType::Command(cmd) => {
             assert_eq!(cmd.command, "run_tests");
-        },
+        }
         _ => panic!("Expected command message"),
     }
 
@@ -405,7 +409,7 @@ async fn test_integration_with_session_lifecycle() {
     match msg2.message_type {
         MessageType::Command(cmd) => {
             assert_eq!(cmd.command, "build");
-        },
+        }
         _ => panic!("Expected command message"),
     }
 

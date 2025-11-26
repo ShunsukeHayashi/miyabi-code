@@ -165,9 +165,14 @@ Design requirements:\n\
 - Professional digital art style\n\
 - Suitable for Discord server icon";
 
-    let miyabi_urls =
-        generate_image(&client, &api_key, miyabi_prompt, "Premium Mascot: Miyabiちゃん", None)
-            .await?;
+    let miyabi_urls = generate_image(
+        &client,
+        &api_key,
+        miyabi_prompt,
+        "Premium Mascot: Miyabiちゃん",
+        None,
+    )
+    .await?;
 
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
@@ -201,9 +206,14 @@ Include the following in a clean, organized layout:\n\
 Design handoff document, suitable for developers and designers.\n\
 Wide format (16:9), high contrast, print-ready quality.";
 
-    let design_urls =
-        generate_image(&client, &api_key, design_system_prompt, "Design System Guide", None)
-            .await?;
+    let design_urls = generate_image(
+        &client,
+        &api_key,
+        design_system_prompt,
+        "Design System Guide",
+        None,
+    )
+    .await?;
 
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
@@ -241,8 +251,14 @@ Design a premium Discord server banner for 'Miyabi Community' with exceptional U
 **Mood**: \n\
 Professional, innovative, trustworthy, cutting-edge.";
 
-    let banner_urls =
-        generate_image(&client, &api_key, banner_prompt, "Premium Community Banner", None).await?;
+    let banner_urls = generate_image(
+        &client,
+        &api_key,
+        banner_prompt,
+        "Premium Community Banner",
+        None,
+    )
+    .await?;
 
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
@@ -293,9 +309,18 @@ Equal spacing, centered, clean presentation.";
     println!("{}", "▓".repeat(70));
 
     println!("\n✅ Generated Assets:");
-    println!("   1. 🌸 Miyabiちゃん Premium Mascot: {} image(s)", miyabi_urls.len());
-    println!("   2. 📐 Design System Guide: {} image(s)", design_urls.len());
-    println!("   3. 🎨 Premium Community Banner: {} image(s)", banner_urls.len());
+    println!(
+        "   1. 🌸 Miyabiちゃん Premium Mascot: {} image(s)",
+        miyabi_urls.len()
+    );
+    println!(
+        "   2. 📐 Design System Guide: {} image(s)",
+        design_urls.len()
+    );
+    println!(
+        "   3. 🎨 Premium Community Banner: {} image(s)",
+        banner_urls.len()
+    );
     println!("   4. 🤖 Agent Icon Set: {} image(s)", agent_urls.len());
     println!(
         "   Total: {} images\n",

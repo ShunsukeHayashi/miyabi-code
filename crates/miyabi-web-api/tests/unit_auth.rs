@@ -3,15 +3,15 @@
 //! Tests for GitHub OAuth flow, JWT token management, user sessions, and permissions.
 //! Target: 90% coverage of routes/auth.rs
 
-mod helpers;
 mod fixtures;
+mod helpers;
 
 #[allow(unused_imports)]
-use helpers::{setup_test_database, cleanup_test_database, create_test_jwt, make_request};
+use axum::http::StatusCode;
 #[allow(unused_imports)]
 use fixtures::UserFixture;
 #[allow(unused_imports)]
-use axum::http::StatusCode;
+use helpers::{cleanup_test_database, create_test_jwt, make_request, setup_test_database};
 
 // ========================================
 // Module 1: GitHub OAuth Flow Tests (5 tests)
@@ -20,9 +20,7 @@ use axum::http::StatusCode;
 #[tokio::test]
 #[ignore] // Requires database
 async fn test_oauth_callback_success() {
-    use helpers::{
-        setup_mock_github_server, setup_successful_oauth_flow, create_test_config,
-    };
+    use helpers::{create_test_config, setup_mock_github_server, setup_successful_oauth_flow};
     #[allow(unused_imports)]
     use std::sync::Arc;
 
@@ -63,8 +61,11 @@ async fn test_oauth_callback_success() {
 #[ignore] // Requires database
 async fn test_oauth_callback_invalid_code() {
     #[allow(unused_imports)]
-    use helpers::{setup_mock_github_server, create_test_config};
-    use wiremock::{Mock, ResponseTemplate, matchers::{method, path}};
+    use helpers::{create_test_config, setup_mock_github_server};
+    use wiremock::{
+        matchers::{method, path},
+        Mock, ResponseTemplate,
+    };
 
     let db = setup_test_database().await;
     let mock_server = setup_mock_github_server().await;
@@ -110,13 +111,12 @@ async fn test_oauth_callback_duplicate_user() {
     //    would update the existing user, not create a duplicate
 
     // 4. Verify user can be fetched by github_id
-    let fetched_user: Option<(i64, String)> = sqlx::query_as(
-        "SELECT github_id, username FROM users WHERE github_id = $1"
-    )
-    .bind(12345i64)
-    .fetch_optional(&db.pool)
-    .await
-    .unwrap();
+    let fetched_user: Option<(i64, String)> =
+        sqlx::query_as("SELECT github_id, username FROM users WHERE github_id = $1")
+            .bind(12345i64)
+            .fetch_optional(&db.pool)
+            .await
+            .unwrap();
 
     assert!(fetched_user.is_some());
     let (github_id, username) = fetched_user.unwrap();
@@ -220,7 +220,10 @@ async fn test_jwt_validation_expired() {
 
     // 4. Attempt to validate - should fail due to expiration
     let result = jwt_manager.validate_token(&token);
-    assert!(result.is_err(), "Expected token to be expired but it was still valid");
+    assert!(
+        result.is_err(),
+        "Expected token to be expired but it was still valid"
+    );
 }
 
 #[tokio::test]
@@ -256,14 +259,18 @@ async fn test_jwt_refresh_token() {
     let jwt_manager = JwtManager::new(&config.jwt_secret, 10); // 10 seconds
 
     // 3. Create initial token
-    let token1 = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token1 = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
     let claims1 = jwt_manager.validate_token(&token1).unwrap();
 
     // 4. Wait briefly
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // 5. Create refresh token (new token for same user)
-    let token2 = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token2 = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
     let claims2 = jwt_manager.validate_token(&token2).unwrap();
 
     // 6. Verify new token has later iat (issued at) time
@@ -314,7 +321,9 @@ async fn test_session_creation() {
 
     // 2. Create JWT token (current session mechanism)
     let jwt_manager = JwtManager::new("test_secret", 3600);
-    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
 
     // 3. Verify token can be validated (session is "active")
     let claims = jwt_manager.validate_token(&token).unwrap();
@@ -336,7 +345,9 @@ async fn test_session_retrieval() {
     // 1. Create user and session token
     let user = UserFixture::default(&db.pool).await;
     let jwt_manager = JwtManager::new("test_secret", 3600);
-    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
 
     // 2. Retrieve session by validating token
     let claims = jwt_manager.validate_token(&token).unwrap();
@@ -366,7 +377,9 @@ async fn test_session_expiration() {
     // 1. Create user and expired session token
     let user = UserFixture::default(&db.pool).await;
     let jwt_manager = JwtManager::new("test_secret", -1); // Expired
-    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
 
     // 2. Wait to ensure expiration
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
@@ -390,7 +403,9 @@ async fn test_session_logout() {
     // 1. Create active session
     let user = UserFixture::default(&db.pool).await;
     let jwt_manager = JwtManager::new("test_secret", 3600);
-    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
 
     // Verify token is valid before logout
     assert!(jwt_manager.validate_token(&token).is_ok());
@@ -432,13 +447,11 @@ async fn test_repository_access_granted() {
     // assert!(has_access);
 
     // For now, verify user exists
-    let user_exists: Option<(i64,)> = sqlx::query_as(
-        "SELECT id FROM users WHERE id = $1"
-    )
-    .bind(user.id)
-    .fetch_optional(&db.pool)
-    .await
-    .unwrap();
+    let user_exists: Option<(i64,)> = sqlx::query_as("SELECT id FROM users WHERE id = $1")
+        .bind(user.id)
+        .fetch_optional(&db.pool)
+        .await
+        .unwrap();
 
     assert!(user_exists.is_some());
 
@@ -577,7 +590,9 @@ async fn test_full_auth_flow() {
     // 3. Generate JWT token (as OAuth callback would)
     let config = create_test_config();
     let jwt_manager = JwtManager::new(&config.jwt_secret, config.jwt_expiration);
-    let token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let token = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
 
     // 4. Verify token is valid (simulates authenticated API call)
     let claims = jwt_manager.validate_token(&token).unwrap();
@@ -586,7 +601,9 @@ async fn test_full_auth_flow() {
 
     // 5. Simulate token refresh
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-    let refreshed_token = jwt_manager.create_token(&user.id.to_string(), user.github_id).unwrap();
+    let refreshed_token = jwt_manager
+        .create_token(&user.id.to_string(), user.github_id)
+        .unwrap();
     let refreshed_claims = jwt_manager.validate_token(&refreshed_token).unwrap();
 
     // Verify refreshed token has later iat

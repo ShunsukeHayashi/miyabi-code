@@ -94,7 +94,10 @@ async fn test_cache_disabled_flow() {
 
     // Execute twice with same args
     let args = json!({"param": "value1"});
-    service.execute_tool("test.nocache", args.clone()).await.unwrap();
+    service
+        .execute_tool("test.nocache", args.clone())
+        .await
+        .unwrap();
     service.execute_tool("test.nocache", args).await.unwrap();
 
     // Cache should be empty (disabled)
@@ -117,7 +120,10 @@ async fn test_multiple_tools() {
     // Execute each tool
     for i in 1..=5 {
         let result = service
-            .execute_tool(&format!("test.tool{}", i), json!({"param": format!("value{}", i)}))
+            .execute_tool(
+                &format!("test.tool{}", i),
+                json!({"param": format!("value{}", i)}),
+            )
             .await;
         assert!(result.is_ok());
     }
@@ -155,8 +161,12 @@ async fn test_cache_key_differentiation() {
     service.register_tool(tool);
 
     // Execute with different parameters
-    let result1 = service.execute_tool("test.params", json!({"param": "value1"})).await;
-    let result2 = service.execute_tool("test.params", json!({"param": "value2"})).await;
+    let result1 = service
+        .execute_tool("test.params", json!({"param": "value1"}))
+        .await;
+    let result2 = service
+        .execute_tool("test.params", json!({"param": "value2"}))
+        .await;
 
     assert!(result1.is_ok());
     assert!(result2.is_ok());
@@ -193,7 +203,10 @@ async fn test_clear_cache_functionality() {
     let tool = create_test_tool("test.clear");
     service.register_tool(tool);
 
-    service.execute_tool("test.clear", json!({"param": "value"})).await.unwrap();
+    service
+        .execute_tool("test.clear", json!({"param": "value"}))
+        .await
+        .unwrap();
 
     // Cache should have 1 entry
     assert_eq!(service.stats().cache_size, 1);

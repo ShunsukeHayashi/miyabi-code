@@ -88,12 +88,16 @@ impl GoalManager {
 
     /// Get a goal by ID
     pub fn get_goal(&self, id: &str) -> LoopResult<&Goal> {
-        self.goals.get(id).ok_or_else(|| LoopError::GoalNotFound(id.to_string()))
+        self.goals
+            .get(id)
+            .ok_or_else(|| LoopError::GoalNotFound(id.to_string()))
     }
 
     /// Get a mutable reference to a goal
     pub fn get_goal_mut(&mut self, id: &str) -> LoopResult<&mut Goal> {
-        self.goals.get_mut(id).ok_or_else(|| LoopError::GoalNotFound(id.to_string()))
+        self.goals
+            .get_mut(id)
+            .ok_or_else(|| LoopError::GoalNotFound(id.to_string()))
     }
 
     /// Update goal status
@@ -151,12 +155,17 @@ impl GoalManager {
 
     /// Remove a goal
     pub fn remove_goal(&mut self, id: &str) -> LoopResult<Goal> {
-        self.goals.remove(id).ok_or_else(|| LoopError::GoalNotFound(id.to_string()))
+        self.goals
+            .remove(id)
+            .ok_or_else(|| LoopError::GoalNotFound(id.to_string()))
     }
 
     /// Get all active goals
     pub fn active_goals(&self) -> Vec<&Goal> {
-        self.goals.values().filter(|g| g.status == GoalStatus::Active).collect()
+        self.goals
+            .values()
+            .filter(|g| g.status == GoalStatus::Active)
+            .collect()
     }
 
     /// Get goal count by status

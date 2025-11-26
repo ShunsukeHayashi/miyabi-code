@@ -59,7 +59,11 @@ pub fn call_hook(hook_name: &str, event_type: &str, params: &HashMap<String, Str
 
     // Check if hook exists
     if !std::path::Path::new(&hook_path).exists() {
-        debug!(hook = hook_name, event = event_type, "Hook script not found, skipping");
+        debug!(
+            hook = hook_name,
+            event = event_type,
+            "Hook script not found, skipping"
+        );
         return;
     }
 
@@ -70,20 +74,20 @@ pub fn call_hook(hook_name: &str, event_type: &str, params: &HashMap<String, Str
     match hook_name {
         "orchestrator-event" => {
             cmd.env("ORCHESTRATOR_EVENT_TYPE", event_type);
-        },
+        }
         "circuit-breaker-event" => {
             cmd.env("CB_EVENT_TYPE", event_type);
-        },
+        }
         "dynamic-scaling-event" => {
             cmd.env("SCALING_EVENT_TYPE", event_type);
-        },
+        }
         "feedback-loop-event" => {
             cmd.env("LOOP_EVENT_TYPE", event_type);
-        },
+        }
         _ => {
             warn!(hook = hook_name, "Unknown hook type");
             return;
-        },
+        }
     }
 
     // Add all parameters as environment variables
@@ -94,8 +98,12 @@ pub fn call_hook(hook_name: &str, event_type: &str, params: &HashMap<String, Str
     // Execute hook in background (non-blocking)
     match cmd.spawn() {
         Ok(_) => {
-            debug!(hook = hook_name, event = event_type, "Hook called successfully");
-        },
+            debug!(
+                hook = hook_name,
+                event = event_type,
+                "Hook called successfully"
+            );
+        }
         Err(e) => {
             warn!(
                 hook = hook_name,
@@ -103,7 +111,7 @@ pub fn call_hook(hook_name: &str, event_type: &str, params: &HashMap<String, Str
                 error = %e,
                 "Failed to call hook"
             );
-        },
+        }
     }
 }
 

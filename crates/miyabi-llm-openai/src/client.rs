@@ -326,14 +326,20 @@ impl LlmClient for OpenAIClient {
                     .collect();
 
                 Ok(ToolCallResponse::ToolCalls(tool_calls))
-            },
+            }
             "stop" | "length" => {
                 // Task completed or reached limit
-                let text =
-                    choice.message.content.clone().unwrap_or_else(|| "Task completed".to_string());
+                let text = choice
+                    .message
+                    .content
+                    .clone()
+                    .unwrap_or_else(|| "Task completed".to_string());
                 Ok(ToolCallResponse::Conclusion { text })
-            },
-            other => Err(LlmError::InvalidResponse(format!("Unexpected finish_reason: {}", other))),
+            }
+            other => Err(LlmError::InvalidResponse(format!(
+                "Unexpected finish_reason: {}",
+                other
+            ))),
         }
     }
 

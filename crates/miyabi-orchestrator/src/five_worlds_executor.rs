@@ -247,7 +247,8 @@ impl FiveWorldsExecutor {
                 params.insert("PARALLEL_MODE".to_string(), "true".to_string());
                 crate::hooks::notify_orchestrator_event("parallel_execution", params);
             }
-            self.execute_worlds_parallel(issue_number, &task, world_configs).await?
+            self.execute_worlds_parallel(issue_number, &task, world_configs)
+                .await?
         } else {
             // Hook: Sequential execution mode
             {
@@ -255,7 +256,8 @@ impl FiveWorldsExecutor {
                 params.insert("PARALLEL_MODE".to_string(), "false".to_string());
                 crate::hooks::notify_orchestrator_event("sequential_execution", params);
             }
-            self.execute_worlds_sequential(issue_number, &task, world_configs).await?
+            self.execute_worlds_sequential(issue_number, &task, world_configs)
+                .await?
         };
 
         // Step 4: Create aggregated result
@@ -308,7 +310,11 @@ impl FiveWorldsExecutor {
                 crate::hooks::notify_orchestrator_event("cleanup_all", params);
             }
 
-            if let Err(e) = self.worktree_manager.cleanup_all_worlds_for_issue(issue_number).await {
+            if let Err(e) = self
+                .worktree_manager
+                .cleanup_all_worlds_for_issue(issue_number)
+                .await
+            {
                 warn!(error = %e, "Failed to cleanup all worlds");
             }
         }
@@ -330,10 +336,15 @@ impl FiveWorldsExecutor {
                 "SUCCESSFUL_COUNT".to_string(),
                 five_worlds_result.successful_count().to_string(),
             );
-            params
-                .insert("FAILED_COUNT".to_string(), five_worlds_result.failed_count().to_string());
+            params.insert(
+                "FAILED_COUNT".to_string(),
+                five_worlds_result.failed_count().to_string(),
+            );
             if let Some(winner_result) = five_worlds_result.winner_result() {
-                params.insert("COST_USD".to_string(), format!("{:.2}", winner_result.cost_usd));
+                params.insert(
+                    "COST_USD".to_string(),
+                    format!("{:.2}", winner_result.cost_usd),
+                );
             }
             crate::hooks::notify_orchestrator_event("execution_summary", params);
         }
@@ -556,12 +567,18 @@ impl FiveWorldsExecutor {
                     Ok(Ok(exec_result)) => (world_id, exec_result),
                     Ok(Err(e)) => {
                         warn!(world_id = ?world_id, error = %e, "World execution failed");
-                        (world_id, WorldExecutionResult::failed(world_id, e.to_string()))
-                    },
+                        (
+                            world_id,
+                            WorldExecutionResult::failed(world_id, e.to_string()),
+                        )
+                    }
                     Err(e) => {
                         warn!(world_id = ?world_id, error = %e, "World execution error");
-                        (world_id, WorldExecutionResult::failed(world_id, e.to_string()))
-                    },
+                        (
+                            world_id,
+                            WorldExecutionResult::failed(world_id, e.to_string()),
+                        )
+                    }
                 }
             });
 
@@ -650,11 +667,14 @@ impl FiveWorldsExecutor {
             match result {
                 Ok(exec_result) => {
                     results.insert(world_id, exec_result);
-                },
+                }
                 Err(e) => {
                     warn!(world_id = ?world_id, error = %e, "World execution failed");
-                    results.insert(world_id, WorldExecutionResult::failed(world_id, e.to_string()));
-                },
+                    results.insert(
+                        world_id,
+                        WorldExecutionResult::failed(world_id, e.to_string()),
+                    );
+                }
             }
         }
 
@@ -761,9 +781,12 @@ impl FiveWorldsExecutor {
         );
 
         // Step 1: Get worktree handle (assumes worktree already created by caller)
-        let handle = worktree_manager.get_world_handle(world_id).await.ok_or_else(|| {
-            MiyabiError::Unknown(format!("Worktree not found for world {:?}", world_id))
-        })?;
+        let handle = worktree_manager
+            .get_world_handle(world_id)
+            .await
+            .ok_or_else(|| {
+                MiyabiError::Unknown(format!("Worktree not found for world {:?}", world_id))
+            })?;
 
         // Step 2: Build agent config
         let agent_config = Self::build_agent_config(&config);
@@ -855,8 +878,10 @@ impl FiveWorldsExecutor {
     pub async fn get_statistics(&self) -> ExecutorStatistics {
         let executions = self.active_executions.lock().await;
 
-        let total_active =
-            executions.values().filter(|s| s.status == ExecutionStatus::Running).count();
+        let total_active = executions
+            .values()
+            .filter(|s| s.status == ExecutionStatus::Running)
+            .count();
 
         ExecutorStatistics { total_active }
     }
@@ -892,7 +917,9 @@ mod tests {
         // Delete any existing test worktree branches
         for world in ["alpha", "beta", "gamma", "delta", "epsilon"] {
             let branch_name = format!("world-{}-issue-{}-{}", world, issue_number, task_id);
-            let _ = Command::new("git").args(["branch", "-D", &branch_name]).output();
+            let _ = Command::new("git")
+                .args(["branch", "-D", &branch_name])
+                .output();
         }
     }
 

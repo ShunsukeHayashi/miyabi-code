@@ -52,7 +52,11 @@ fn test_tool_definition_with_parameters() {
 
 #[test]
 fn test_tool_call() {
-    let call = ToolCall::new("call-123", "test_tool", serde_json::json!({"arg1": "value1"}));
+    let call = ToolCall::new(
+        "call-123",
+        "test_tool",
+        serde_json::json!({"arg1": "value1"}),
+    );
 
     assert_eq!(call.id, "call-123");
     assert_eq!(call.name, "test_tool");

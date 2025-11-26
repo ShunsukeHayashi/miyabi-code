@@ -5,9 +5,9 @@
 pub mod database;
 pub mod mock_github;
 
-pub use database::{setup_test_database, cleanup_test_database};
 #[allow(unused_imports)]
 pub use database::TestDatabase;
+pub use database::{cleanup_test_database, setup_test_database};
 pub use mock_github::*;
 
 use axum::{
@@ -24,9 +24,7 @@ pub async fn make_request(
     uri: &str,
     body: Option<String>,
 ) -> (StatusCode, String) {
-    let request = Request::builder()
-        .uri(uri)
-        .method(method);
+    let request = Request::builder().uri(uri).method(method);
 
     let request = if let Some(body_content) = body {
         request

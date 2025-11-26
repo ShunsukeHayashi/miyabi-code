@@ -101,7 +101,10 @@ impl ClaudableClient {
         let status = response.status();
 
         if !status.is_success() {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             warn!("API error {}: {}", status.as_u16(), error_text);
             return Err(ClaudableError::ApiError(status.as_u16(), error_text));
         }
@@ -111,7 +114,10 @@ impl ClaudableClient {
             ClaudableError::ParseError(e.to_string())
         })?;
 
-        info!("Successfully generated project: {}", generate_response.project_id);
+        info!(
+            "Successfully generated project: {}",
+            generate_response.project_id
+        );
         debug!("Generated {} files", generate_response.files.len());
 
         Ok(generate_response)
@@ -134,7 +140,12 @@ impl ClaudableClient {
         let url = format!("{}/health", self.api_url);
         debug!("Health check: {}", url);
 
-        let response = self.http_client.get(&url).send().await.map_err(ClaudableError::from)?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await
+            .map_err(ClaudableError::from)?;
 
         Ok(response.status().is_success())
     }

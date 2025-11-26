@@ -82,7 +82,9 @@ fn get_token_from_gh_cli() -> Result<String> {
         }
     }
 
-    Err(MiyabiError::Auth("gh CLI is available but not authenticated".to_string()))
+    Err(MiyabiError::Auth(
+        "gh CLI is available but not authenticated".to_string(),
+    ))
 }
 
 /// Get token from gh config file (~/.config/gh/hosts.yml)
@@ -115,7 +117,9 @@ fn get_token_from_gh_config() -> Result<String> {
         }
     }
 
-    Err(MiyabiError::Auth("No oauth_token found in gh config file".to_string()))
+    Err(MiyabiError::Auth(
+        "No oauth_token found in gh config file".to_string(),
+    ))
 }
 
 /// Validate that a token looks correct (starts with ghp_)

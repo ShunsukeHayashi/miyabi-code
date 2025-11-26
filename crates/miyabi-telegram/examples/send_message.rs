@@ -34,7 +34,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Send a simple message
     println!("\n📤 Sending message to chat_id={}...", chat_id);
-    let message = client.send_message(chat_id, "Hello from Miyabi! 🤖").await?;
+    let message = client
+        .send_message(chat_id, "Hello from Miyabi! 🤖")
+        .await?;
 
     println!("✅ Message sent successfully!");
     println!("   Message ID: {}", message.message_id);

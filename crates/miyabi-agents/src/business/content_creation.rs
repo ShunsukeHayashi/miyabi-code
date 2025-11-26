@@ -52,13 +52,16 @@ Generate detailed content strategy as JSON with content calendar, blog articles,
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::ContentCreationAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::ContentCreationAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let content_strategy: ContentStrategy = serde_json::from_str(&response).map_err(|e| {
@@ -267,7 +270,10 @@ impl BaseAgent for ContentCreationAgent {
             "email_campaigns_count": content_strategy.email_campaigns.campaigns.len()
         });
 
-        tracing::info!("ContentCreationAgent completed content strategy generation: {}", summary);
+        tracing::info!(
+            "ContentCreationAgent completed content strategy generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

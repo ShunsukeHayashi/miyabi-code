@@ -27,22 +27,22 @@ impl Default for MarkdownStyles {
     fn default() -> Self {
         Self {
             h1: Style::default()
-                .fg(Color::Rgb(224, 175, 104))  // MIYABI_GOLD
+                .fg(Color::Rgb(224, 175, 104)) // MIYABI_GOLD
                 .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
             h2: Style::default()
                 .fg(Color::Rgb(224, 175, 104))
                 .add_modifier(Modifier::BOLD),
             h3: Style::default()
-                .fg(Color::Rgb(192, 202, 245))  // MIYABI_FG
+                .fg(Color::Rgb(192, 202, 245)) // MIYABI_FG
                 .add_modifier(Modifier::ITALIC),
             bold: Style::default().add_modifier(Modifier::BOLD),
             italic: Style::default().add_modifier(Modifier::ITALIC),
-            code: Style::default().fg(Color::Rgb(125, 207, 255)),  // MIYABI_CYAN
+            code: Style::default().fg(Color::Rgb(125, 207, 255)), // MIYABI_CYAN
             code_block: Style::default().fg(Color::Rgb(125, 207, 255)),
             link: Style::default()
                 .fg(Color::Rgb(125, 207, 255))
                 .add_modifier(Modifier::UNDERLINED),
-            list_marker: Style::default().fg(Color::Rgb(158, 206, 106)),  // MIYABI_GREEN
+            list_marker: Style::default().fg(Color::Rgb(158, 206, 106)), // MIYABI_GREEN
             blockquote: Style::default().fg(Color::Rgb(158, 206, 106)),
             strikethrough: Style::default().add_modifier(Modifier::CROSSED_OUT),
         }
@@ -140,7 +140,10 @@ impl MarkdownRenderer {
         if trimmed.starts_with("> ") {
             return Line::from(vec![
                 Span::styled("  > ", self.styles.blockquote),
-                Span::styled(trimmed[2..].to_string(), Style::default().fg(Color::Rgb(192, 202, 245))),
+                Span::styled(
+                    trimmed[2..].to_string(),
+                    Style::default().fg(Color::Rgb(192, 202, 245)),
+                ),
             ]);
         }
 
@@ -222,7 +225,11 @@ impl MarkdownRenderer {
                     if !current.is_empty() {
                         spans.push(Span::styled(
                             current.clone(),
-                            if in_code { self.styles.code } else { Style::default().fg(Color::Rgb(192, 202, 245)) },
+                            if in_code {
+                                self.styles.code
+                            } else {
+                                Style::default().fg(Color::Rgb(192, 202, 245))
+                            },
                         ));
                         current.clear();
                     }

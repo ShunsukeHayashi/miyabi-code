@@ -61,7 +61,10 @@ impl Task {
     }
 
     pub fn is_terminal(&self) -> bool {
-        matches!(self.status, TaskStatus::Completed | TaskStatus::Failed | TaskStatus::Cancelled)
+        matches!(
+            self.status,
+            TaskStatus::Completed | TaskStatus::Failed | TaskStatus::Cancelled
+        )
     }
 }
 

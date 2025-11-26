@@ -7,7 +7,10 @@
 
 use async_trait::async_trait;
 use miyabi_agent_core::{
-    a2a_integration::{A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability, AgentCardBuilder},
+    a2a_integration::{
+        A2AAgentCard, A2AEnabled, A2AIntegrationError, A2ATask, A2ATaskResult, AgentCapability,
+        AgentCardBuilder,
+    },
     BaseAgent,
 };
 use miyabi_core::ExecutionMode;
@@ -63,13 +66,16 @@ Create a detailed funnel design as JSON with AARRR metrics, customer journey sta
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::FunnelDesignAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::FunnelDesignAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let funnel_design: FunnelDesign = serde_json::from_str(&response).map_err(|e| {
@@ -215,7 +221,10 @@ impl BaseAgent for FunnelDesignAgent {
     async fn execute(&self, task: &Task) -> Result<AgentResult> {
         let start_time = chrono::Utc::now();
 
-        tracing::info!("FunnelDesignAgent starting funnel design generation for task: {}", task.id);
+        tracing::info!(
+            "FunnelDesignAgent starting funnel design generation for task: {}",
+            task.id
+        );
 
         // Generate funnel design using LLM
         let funnel_design = self.generate_funnel_design(task).await?;
@@ -251,7 +260,10 @@ impl BaseAgent for FunnelDesignAgent {
             "total_channels_count": funnel_design.aarrr_metrics.acquisition.channels.len() + funnel_design.aarrr_metrics.activation.channels.len() + funnel_design.aarrr_metrics.retention.channels.len() + funnel_design.aarrr_metrics.referral.channels.len() + funnel_design.aarrr_metrics.revenue.channels.len()
         });
 
-        tracing::info!("FunnelDesignAgent completed funnel design generation: {}", summary);
+        tracing::info!(
+            "FunnelDesignAgent completed funnel design generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,
@@ -277,21 +289,57 @@ impl A2AEnabled for FunnelDesignAgent {
             })
             .build()
     }
-    async fn handle_a2a_task(&self, task: A2ATask) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
+    async fn handle_a2a_task(
+        &self,
+        task: A2ATask,
+    ) -> std::result::Result<A2ATaskResult, A2AIntegrationError> {
         let start = std::time::Instant::now();
         match task.capability.as_str() {
             "design_funnel" => {
-                let product = task.input.get("product").and_then(|v| v.as_str()).ok_or_else(|| A2AIntegrationError::TaskExecutionFailed("Missing product".to_string()))?;
-                let internal_task = Task { id: task.id.clone(), title: product.to_string(), description: "Funnel design".to_string(), task_type: miyabi_types::task::TaskType::Feature, priority: 1, severity: None, impact: None, assigned_agent: Some(AgentType::FunnelDesignAgent), dependencies: vec![], estimated_duration: Some(180), status: None, start_time: None, end_time: None, metadata: None };
+                let product = task
+                    .input
+                    .get("product")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        A2AIntegrationError::TaskExecutionFailed("Missing product".to_string())
+                    })?;
+                let internal_task = Task {
+                    id: task.id.clone(),
+                    title: product.to_string(),
+                    description: "Funnel design".to_string(),
+                    task_type: miyabi_types::task::TaskType::Feature,
+                    priority: 1,
+                    severity: None,
+                    impact: None,
+                    assigned_agent: Some(AgentType::FunnelDesignAgent),
+                    dependencies: vec![],
+                    estimated_duration: Some(180),
+                    status: None,
+                    start_time: None,
+                    end_time: None,
+                    metadata: None,
+                };
                 match self.execute(&internal_task).await {
-                    Ok(result) => Ok(A2ATaskResult::Success { output: result.data.unwrap_or(json!({"status": "completed"})), artifacts: vec![], execution_time_ms: start.elapsed().as_millis() as u64 }),
-                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!("Funnel design failed: {}", e))),
+                    Ok(result) => Ok(A2ATaskResult::Success {
+                        output: result.data.unwrap_or(json!({"status": "completed"})),
+                        artifacts: vec![],
+                        execution_time_ms: start.elapsed().as_millis() as u64,
+                    }),
+                    Err(e) => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                        "Funnel design failed: {}",
+                        e
+                    ))),
                 }
             }
-            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!("Unknown capability: {}", task.capability))),
+            _ => Err(A2AIntegrationError::TaskExecutionFailed(format!(
+                "Unknown capability: {}",
+                task.capability
+            ))),
         }
     }
-    fn execution_mode(&self) -> ExecutionMode { ExecutionMode::ReadOnly }
+    fn execution_mode(&self) -> ExecutionMode {
+        ExecutionMode::ReadOnly
+    }
 }
 
 #[cfg(test)]

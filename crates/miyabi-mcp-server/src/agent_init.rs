@@ -26,8 +26,7 @@ fn create_default_config() -> AgentConfig {
         worktree_base_path: std::env::var("MIYABI_WORKTREE_BASE")
             .ok()
             .map(std::path::PathBuf::from),
-        log_directory: std::env::var("MIYABI_LOG_DIR")
-            .unwrap_or_else(|_| ".ai/logs".to_string()),
+        log_directory: std::env::var("MIYABI_LOG_DIR").unwrap_or_else(|_| ".ai/logs".to_string()),
         report_directory: std::env::var("MIYABI_REPORT_DIR")
             .unwrap_or_else(|_| ".ai/reports".to_string()),
         tech_lead_github_username: std::env::var("MIYABI_TECH_LEAD").ok(),
@@ -280,7 +279,12 @@ mod tests {
 
         // Verify agents are listed
         let agents = bridge.list_agents().await;
-        assert_eq!(agents.len(), 21, "Expected 21 agents listed, got {}", agents.len());
+        assert_eq!(
+            agents.len(),
+            21,
+            "Expected 21 agents listed, got {}",
+            agents.len()
+        );
 
         // Verify tools are available
         let tools = bridge.get_tool_definitions().await;

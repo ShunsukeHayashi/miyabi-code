@@ -3,9 +3,9 @@
 //! Manages agent workflow executions and orchestration
 //! Issue: #983 Phase 2.1 - Service Layer Refactoring
 
-use sqlx::PgPool;
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 /// Workflow execution model
@@ -118,7 +118,9 @@ impl WorkflowService {
         .await?;
 
         // Log the start event
-        let _ = self.log_event(user_id, &execution, "workflow_started").await;
+        let _ = self
+            .log_event(user_id, &execution, "workflow_started")
+            .await;
 
         Ok(execution)
     }
@@ -136,7 +138,10 @@ impl WorkflowService {
     }
 
     /// List workflow executions with filtering
-    pub async fn list(&self, filter: WorkflowFilter) -> Result<Vec<WorkflowExecution>, sqlx::Error> {
+    pub async fn list(
+        &self,
+        filter: WorkflowFilter,
+    ) -> Result<Vec<WorkflowExecution>, sqlx::Error> {
         let page = filter.page.unwrap_or(1).max(1);
         let limit = filter.limit.unwrap_or(20).min(100);
         let offset = (page - 1) * limit;
@@ -215,7 +220,10 @@ impl WorkflowService {
     }
 
     /// Cancel a workflow execution
-    pub async fn cancel(&self, execution_id: Uuid) -> Result<Option<WorkflowExecution>, sqlx::Error> {
+    pub async fn cancel(
+        &self,
+        execution_id: Uuid,
+    ) -> Result<Option<WorkflowExecution>, sqlx::Error> {
         let execution = sqlx::query_as::<_, WorkflowExecution>(
             r#"
             UPDATE workflow_executions
@@ -264,9 +272,7 @@ impl WorkflowService {
     ) -> Result<(), sqlx::Error> {
         let description = format!(
             "Workflow '{}' {}: {}",
-            execution.name,
-            event_type,
-            execution.agent_type
+            execution.name, event_type, execution.agent_type
         );
 
         let _ = sqlx::query(

@@ -50,11 +50,7 @@ pub async fn list_logs() -> Json<LogsListResponse> {
 /// Get recent git commits as log entries
 fn get_git_commit_logs() -> Result<Vec<LDDLog>, String> {
     let output = Command::new("git")
-        .args([
-            "log",
-            "--pretty=format:%H|%aI|%an|%s",
-            "-30",
-        ])
+        .args(["log", "--pretty=format:%H|%aI|%an|%s", "-30"])
         .current_dir("/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private")
         .output()
         .map_err(|e| format!("Failed to execute git log: {}", e))?;
@@ -79,7 +75,10 @@ fn get_git_commit_logs() -> Result<Vec<LDDLog>, String> {
                 Some("ClaudeAgent".to_string())
             } else if message.contains("DeploymentAgent") || message.contains("deploy") {
                 Some("DeploymentAgent".to_string())
-            } else if message.contains("CodeGen") || message.contains("fix:") || message.contains("feat:") {
+            } else if message.contains("CodeGen")
+                || message.contains("fix:")
+                || message.contains("feat:")
+            {
                 Some("CodeGenAgent".to_string())
             } else if message.contains("refactor:") || message.contains("chore:") {
                 Some("RefresherAgent".to_string())
@@ -153,12 +152,19 @@ fn get_infinity_sprint_logs() -> Result<Vec<LDDLog>, String> {
             let level = if result.success { "INFO" } else { "ERROR" };
             let message = if result.success {
                 if let Some(pr) = result.pr_number {
-                    format!("Issue #{} completed successfully (PR #{})", result.issue_number, pr)
+                    format!(
+                        "Issue #{} completed successfully (PR #{})",
+                        result.issue_number, pr
+                    )
                 } else {
                     format!("Issue #{} completed successfully", result.issue_number)
                 }
             } else {
-                format!("Issue #{} failed: {}", result.issue_number, result.error.as_deref().unwrap_or("Unknown error"))
+                format!(
+                    "Issue #{} failed: {}",
+                    result.issue_number,
+                    result.error.as_deref().unwrap_or("Unknown error")
+                )
             };
 
             logs.push(LDDLog {
@@ -167,7 +173,10 @@ fn get_infinity_sprint_logs() -> Result<Vec<LDDLog>, String> {
                 level: level.to_string(),
                 agent_type: Some("CoordinatorAgent".to_string()),
                 message,
-                context: Some(format!("Sprint #{}, Duration: {}s", sprint.id, result.duration_secs)),
+                context: Some(format!(
+                    "Sprint #{}, Duration: {}s",
+                    sprint.id, result.duration_secs
+                )),
                 issue_number: Some(result.issue_number),
                 session_id: format!("infinity-sprint-{}", sprint.id),
                 file: Some(".ai/logs/infinity-sprint.json".to_string()),

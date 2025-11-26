@@ -108,7 +108,10 @@ impl OmegaFunction {
         let (_updated_world, quality) = self.theta_6.execute(pr, world).await?;
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
-        info!("Ω function completed in {}ms with quality Q={:.4}", execution_time_ms, quality);
+        info!(
+            "Ω function completed in {}ms with quality Q={:.4}",
+            execution_time_ms, quality
+        );
 
         // Construct result
         let result = SWMLResult::new(

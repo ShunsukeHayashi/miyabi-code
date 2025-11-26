@@ -99,17 +99,17 @@ impl TaskExecutor {
                         return Ok(Box::new(client));
                     }
                     warn!("Failed to create Anthropic client, trying fallback");
-                },
+                }
                 "openai" | "gpt" => {
                     if let Ok(client) = OpenAIClient::from_env() {
                         info!("Using OpenAI (GPT) LLM provider");
                         return Ok(Box::new(client));
                     }
                     warn!("Failed to create OpenAI client, trying fallback");
-                },
+                }
                 unknown => {
                     warn!("Unknown LLM provider: {}, trying default chain", unknown);
-                },
+                }
             }
         }
 
@@ -185,7 +185,10 @@ impl TaskExecutor {
 
     /// Run the autonomous execution loop
     pub async fn run(&mut self) -> Result<()> {
-        info!("Starting autonomous execution for task: {}", self.session.task);
+        info!(
+            "Starting autonomous execution for task: {}",
+            self.session.task
+        );
 
         // Record start time
         self.start_time = Some(Instant::now());
@@ -208,15 +211,24 @@ impl TaskExecutor {
         loop {
             // Check turn limit
             if turn_count >= self.max_turns {
-                warn!("Reached maximum turn limit ({}), forcing conclusion", self.max_turns);
+                warn!(
+                    "Reached maximum turn limit ({}), forcing conclusion",
+                    self.max_turns
+                );
                 let error_msg = format!("Reached maximum turn limit of {}", self.max_turns);
 
                 // Emit failure event
-                let _ = self.jsonl_writer.failure(error_msg.clone(), false, turn_count);
+                let _ = self
+                    .jsonl_writer
+                    .failure(error_msg.clone(), false, turn_count);
 
+                self.session.fail(
+                    "Reached maximum turn limit without completing task".to_string(),
+                    false,
+                );
                 self.session
-                    .fail("Reached maximum turn limit without completing task".to_string(), false);
-                self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    .save()
+                    .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
                 return Err(MiyabiError::Unknown(error_msg));
             }
 
@@ -278,7 +290,7 @@ impl TaskExecutor {
                                 )));
 
                                 consecutive_failures = 0;
-                            },
+                            }
                             Err(e) => {
                                 warn!("Tool execution failed: {}", e);
                                 consecutive_failures += 1;
@@ -320,15 +332,17 @@ impl TaskExecutor {
                                         MAX_CONSECUTIVE_FAILURES
                                     )));
                                 }
-                            },
+                            }
                         }
                     }
 
                     // Save session after each iteration
-                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    self.session
+                        .save()
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     // Continue loop - LLM will decide next action
-                },
+                }
 
                 ToolCallResponse::Conclusion { text: summary } => {
                     info!("Task completed with conclusion: {}", summary);
@@ -341,29 +355,40 @@ impl TaskExecutor {
 
                     // Emit conclusion event
                     let _ =
-                        self.jsonl_writer.conclusion(summary.clone(), turn_count, total_duration);
+                        self.jsonl_writer
+                            .conclusion(summary.clone(), turn_count, total_duration);
 
                     // Add final turn with conclusion
                     self.session.add_turn(summary);
                     self.session.complete();
-                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    self.session
+                        .save()
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     return Ok(());
-                },
+                }
 
                 ToolCallResponse::NeedApproval { action, reason } => {
                     // For now, treat this as an error - interactive mode not implemented yet
-                    warn!("LLM requested approval for: {} (reason: {})", action, reason);
+                    warn!(
+                        "LLM requested approval for: {} (reason: {})",
+                        action, reason
+                    );
                     self.session.fail(
-                        format!("Interactive approval requested but not supported: {}", action),
+                        format!(
+                            "Interactive approval requested but not supported: {}",
+                            action
+                        ),
                         false,
                     );
-                    self.session.save().map_err(|e| MiyabiError::Unknown(e.to_string()))?;
+                    self.session
+                        .save()
+                        .map_err(|e| MiyabiError::Unknown(e.to_string()))?;
 
                     return Err(MiyabiError::Unknown(
                         "Interactive mode not yet implemented".to_string(),
                     ));
-                },
+                }
             }
         }
     }
@@ -403,7 +428,10 @@ mod tests {
             return;
         }
 
-        let session = Session::new("count lines of Rust code".to_string(), ExecutionMode::ReadOnly);
+        let session = Session::new(
+            "count lines of Rust code".to_string(),
+            ExecutionMode::ReadOnly,
+        );
         let executor = TaskExecutor::new(session).unwrap();
 
         let prompt = executor.build_system_prompt();

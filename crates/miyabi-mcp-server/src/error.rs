@@ -102,18 +102,27 @@ impl UnifiedError for ServerError {
                 msg
             ),
             Self::Rpc(msg) => {
-                format!("JSON-RPC protocol error: {}. The request format may be invalid.", msg)
-            },
+                format!(
+                    "JSON-RPC protocol error: {}. The request format may be invalid.",
+                    msg
+                )
+            }
             Self::InvalidRequest(msg) => {
-                format!("Invalid request: {}. Please check your request parameters.", msg)
-            },
+                format!(
+                    "Invalid request: {}. Please check your request parameters.",
+                    msg
+                )
+            }
             Self::MethodNotFound(method) => format!(
                 "MCP method '{}' not found. Please check the method name and server capabilities.",
                 method
             ),
             Self::Internal(msg) => {
-                format!("Internal MCP server error: {}. Please try again or contact support.", msg)
-            },
+                format!(
+                    "Internal MCP server error: {}. Please try again or contact support.",
+                    msg
+                )
+            }
             // Reuse existing thiserror messages for other variants
             _ => self.to_string(),
         }

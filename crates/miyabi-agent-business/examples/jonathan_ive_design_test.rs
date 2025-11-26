@@ -107,11 +107,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("  Design Issues Found: {}", errors);
                 }
             }
-        },
+        }
         Err(e) => {
             eprintln!("❌ Design Review Failed: {}", e);
             return Err(e.into());
-        },
+        }
     }
 
     // Test Case 2: Minimalist Landing Page Review
@@ -157,11 +157,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("  Overall Score: {}/100", score);
                 }
             }
-        },
+        }
         Err(e) => {
             eprintln!("❌ Design Review Failed: {}", e);
             return Err(e.into());
-        },
+        }
     }
 
     println!("\n\n🎉 Integration Test Completed Successfully!");

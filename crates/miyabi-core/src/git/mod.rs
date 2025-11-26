@@ -57,7 +57,7 @@ pub fn find_git_root(start_path: Option<&Path>) -> Result<PathBuf> {
                         "Repository is bare (no working directory). Miyabi requires a non-bare repository.".to_string()
                     )
                 })
-        },
+        }
         Err(e) => {
             // Provide helpful error message
             Err(MiyabiError::Git(format!(
@@ -67,7 +67,7 @@ pub fn find_git_root(start_path: Option<&Path>) -> Result<PathBuf> {
                  To initialize a new repository, run: git init",
                 search_path, e
             )))
-        },
+        }
     }
 }
 
@@ -225,7 +225,10 @@ mod tests {
         // Should fail - not in a git repository
         let result = find_git_root(Some(&non_repo_path));
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Not in a Git repository"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Not in a Git repository"));
     }
 
     #[test]
@@ -260,7 +263,8 @@ mod tests {
             index.write_tree().unwrap()
         };
         let tree = repo.find_tree(tree_id).unwrap();
-        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[]).unwrap();
+        repo.commit(Some("HEAD"), &sig, &sig, "Initial commit", &tree, &[])
+            .unwrap();
 
         // Should find 'main' or 'master' depending on git config
         let main_branch = get_main_branch(&repo_path);

@@ -5,7 +5,7 @@
 
 use ratatui::text::{Line, Span};
 use std::borrow::Cow;
-use textwrap::{Options, WordSeparator, WordSplitter, WrapAlgorithm, wrap_algorithms::Penalties};
+use textwrap::{wrap_algorithms::Penalties, Options, WordSeparator, WordSplitter, WrapAlgorithm};
 use unicode_width::UnicodeWidthStr;
 
 /// Wrapping options configuration

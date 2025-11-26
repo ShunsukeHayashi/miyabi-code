@@ -67,7 +67,9 @@ impl From<SessionContext> for SessionContextParams {
         Self {
             issue_number: context.issue_number,
             current_phase: format!("{:?}", context.current_phase),
-            worktree_path: context.worktree_path.map(|p| p.to_string_lossy().to_string()),
+            worktree_path: context
+                .worktree_path
+                .map(|p| p.to_string_lossy().to_string()),
         }
     }
 }

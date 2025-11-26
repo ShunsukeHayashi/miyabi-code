@@ -75,7 +75,7 @@ impl MiyabiMode {
             Some(pattern) => {
                 let re = regex::Regex::new(pattern)?;
                 Ok(re.is_match(path))
-            },
+            }
             None => Ok(true), // No restriction means all files allowed
         }
     }
@@ -242,7 +242,9 @@ mod tests {
         assert!(rendered_mode
             .role_definition
             .contains(&env::current_dir().unwrap().display().to_string()));
-        assert!(rendered_mode.custom_instructions.contains("Current time: 2"));
+        assert!(rendered_mode
+            .custom_instructions
+            .contains("Current time: 2"));
     }
 
     #[test]

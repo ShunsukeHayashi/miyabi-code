@@ -2,15 +2,15 @@
 //!
 //! Provides HTTP endpoints for interacting with MCP servers (miyabi-rules, miyabi-tmux)
 
+use crate::AppState;
 use axum::{
     extract::{Path, State},
     routing::{get, post},
     Json, Router,
 };
-use crate::AppState;
 use serde::{Deserialize, Serialize};
-use std::process::{Command, Stdio};
 use std::io::Write;
+use std::process::{Command, Stdio};
 
 #[derive(Serialize, Clone)]
 pub struct McpTool {
@@ -354,14 +354,17 @@ fn execute_mcp_request(
         let request_str = serde_json::to_string(request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
 
-        stdin.write_all(request_str.as_bytes())
+        stdin
+            .write_all(request_str.as_bytes())
             .map_err(|e| format!("Failed to write to stdin: {}", e))?;
-        stdin.write_all(b"\n")
+        stdin
+            .write_all(b"\n")
             .map_err(|e| format!("Failed to write newline: {}", e))?;
     }
 
     // Read response from stdout
-    let output = child.wait_with_output()
+    let output = child
+        .wait_with_output()
         .map_err(|e| format!("Failed to read MCP response: {}", e))?;
 
     if !output.status.success() {
@@ -370,8 +373,7 @@ fn execute_mcp_request(
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    serde_json::from_str(&stdout)
-        .map_err(|e| format!("Failed to parse MCP response: {}", e))
+    serde_json::from_str(&stdout).map_err(|e| format!("Failed to parse MCP response: {}", e))
 }
 
 pub fn routes() -> Router<AppState> {

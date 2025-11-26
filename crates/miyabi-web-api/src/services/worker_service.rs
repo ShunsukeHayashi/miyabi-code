@@ -78,7 +78,9 @@ impl WorkerService {
                 WorkerStatus {
                     worker_id: row.name,
                     status: row.status,
-                    coordinator: row.coordinator_name.unwrap_or_else(|| "unknown".to_string()),
+                    coordinator: row
+                        .coordinator_name
+                        .unwrap_or_else(|| "unknown".to_string()),
                     active_tasks: row.active_tasks,
                     completed_tasks: row.completed_tasks,
                     failed_tasks: row.failed_tasks,
@@ -120,7 +122,9 @@ impl WorkerService {
         Ok(WorkerStatus {
             worker_id: worker.name,
             status: worker.status,
-            coordinator: worker.coordinator_name.unwrap_or_else(|| "unknown".to_string()),
+            coordinator: worker
+                .coordinator_name
+                .unwrap_or_else(|| "unknown".to_string()),
             active_tasks: worker.active_tasks,
             completed_tasks: worker.completed_tasks,
             failed_tasks: worker.failed_tasks,
@@ -203,20 +207,29 @@ mod tests {
             failed_tasks: 0,
             last_heartbeat: Some(now - chrono::Duration::seconds(30)),
         };
-        assert!(matches!(WorkerService::calculate_health(&row), WorkerHealth::Healthy));
+        assert!(matches!(
+            WorkerService::calculate_health(&row),
+            WorkerHealth::Healthy
+        ));
 
         // Degraded: heartbeat within 300 seconds
         let row = WorkerStatusRow {
             last_heartbeat: Some(now - chrono::Duration::seconds(120)),
             ..row
         };
-        assert!(matches!(WorkerService::calculate_health(&row), WorkerHealth::Degraded));
+        assert!(matches!(
+            WorkerService::calculate_health(&row),
+            WorkerHealth::Degraded
+        ));
 
         // Unhealthy: heartbeat over 300 seconds
         let row = WorkerStatusRow {
             last_heartbeat: Some(now - chrono::Duration::seconds(400)),
             ..row
         };
-        assert!(matches!(WorkerService::calculate_health(&row), WorkerHealth::Unhealthy));
+        assert!(matches!(
+            WorkerService::calculate_health(&row),
+            WorkerHealth::Unhealthy
+        ));
     }
 }

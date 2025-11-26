@@ -14,17 +14,17 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
         match component {
             Component::CurDir => {
                 // Skip current directory references
-            },
+            }
             Component::ParentDir => {
                 // Pop the last component if possible (resolve ..)
                 if !components.is_empty() {
                     components.pop();
                 }
-            },
+            }
             comp => {
                 // Keep normal components, prefix, and root dir
                 components.push(comp);
-            },
+            }
         }
     }
 

@@ -222,8 +222,14 @@ impl LLMContext {
         // Task information
         vars.insert("task_id".to_string(), self.task.id.clone());
         vars.insert("task_title".to_string(), self.task.title.clone());
-        vars.insert("task_description".to_string(), self.task.description.clone());
-        vars.insert("task_type".to_string(), format!("{:?}", self.task.task_type));
+        vars.insert(
+            "task_description".to_string(),
+            self.task.description.clone(),
+        );
+        vars.insert(
+            "task_type".to_string(),
+            format!("{:?}", self.task.task_type),
+        );
         vars.insert("task_priority".to_string(), self.task.priority.to_string());
 
         // Optional task fields
@@ -241,7 +247,10 @@ impl LLMContext {
 
         // Dependencies
         if !self.task.dependencies.is_empty() {
-            vars.insert("task_dependencies".to_string(), self.task.dependencies.join(", "));
+            vars.insert(
+                "task_dependencies".to_string(),
+                self.task.dependencies.join(", "),
+            );
         }
 
         // File contents
@@ -261,7 +270,10 @@ impl LLMContext {
                 .join("\n\n");
 
             vars.insert("file_contents".to_string(), files_summary);
-            vars.insert("file_count".to_string(), self.file_contents.len().to_string());
+            vars.insert(
+                "file_count".to_string(),
+                self.file_contents.len().to_string(),
+            );
         }
 
         // Git diff
@@ -308,7 +320,10 @@ impl LLMContext {
 
     /// Get total lines of code in loaded files
     pub fn total_lines(&self) -> usize {
-        self.file_contents.values().map(|content| content.lines().count()).sum()
+        self.file_contents
+            .values()
+            .map(|content| content.lines().count())
+            .sum()
     }
 
     /// Check if context has git diff
@@ -371,10 +386,16 @@ mod tests {
         tokio::fs::write(&test_file, "test content").await.unwrap();
 
         // Load file
-        context.load_files(std::slice::from_ref(&test_file)).await.unwrap();
+        context
+            .load_files(std::slice::from_ref(&test_file))
+            .await
+            .unwrap();
 
         assert_eq!(context.file_contents.len(), 1);
-        assert_eq!(context.get_file_content(&test_file), Some(&"test content".to_string()));
+        assert_eq!(
+            context.get_file_content(&test_file),
+            Some(&"test content".to_string())
+        );
 
         // Cleanup
         tokio::fs::remove_file(&test_file).await.ok();
@@ -392,11 +413,20 @@ mod tests {
         tokio::fs::write(&file1, "content 1").await.unwrap();
         tokio::fs::write(&file2, "content 2").await.unwrap();
 
-        context.load_files(&[file1.clone(), file2.clone()]).await.unwrap();
+        context
+            .load_files(&[file1.clone(), file2.clone()])
+            .await
+            .unwrap();
 
         assert_eq!(context.file_contents.len(), 2);
-        assert_eq!(context.get_file_content(&file1), Some(&"content 1".to_string()));
-        assert_eq!(context.get_file_content(&file2), Some(&"content 2".to_string()));
+        assert_eq!(
+            context.get_file_content(&file1),
+            Some(&"content 1".to_string())
+        );
+        assert_eq!(
+            context.get_file_content(&file2),
+            Some(&"content 2".to_string())
+        );
 
         // Cleanup
         tokio::fs::remove_file(&file1).await.ok();
@@ -411,8 +441,14 @@ mod tests {
         context.add_metric("complexity", serde_json::json!(42));
         context.add_metric("author", serde_json::json!("Alice"));
 
-        assert_eq!(context.get_metric("complexity"), Some(&serde_json::json!(42)));
-        assert_eq!(context.get_metric("author"), Some(&serde_json::json!("Alice")));
+        assert_eq!(
+            context.get_metric("complexity"),
+            Some(&serde_json::json!(42))
+        );
+        assert_eq!(
+            context.get_metric("author"),
+            Some(&serde_json::json!("Alice"))
+        );
     }
 
     #[test]
@@ -424,7 +460,10 @@ mod tests {
 
         assert_eq!(vars.get("task_id"), Some(&"task-1".to_string()));
         assert_eq!(vars.get("task_title"), Some(&"Test Task".to_string()));
-        assert_eq!(vars.get("task_description"), Some(&"Test description".to_string()));
+        assert_eq!(
+            vars.get("task_description"),
+            Some(&"Test description".to_string())
+        );
         assert_eq!(vars.get("task_type"), Some(&"Feature".to_string()));
         assert_eq!(vars.get("task_priority"), Some(&"1".to_string()));
         assert_eq!(vars.get("task_duration"), Some(&"30".to_string()));
@@ -460,7 +499,10 @@ mod tests {
 
         let vars = context.to_prompt_variables();
 
-        assert_eq!(vars.get("git_diff"), Some(&"+added line\n-removed line".to_string()));
+        assert_eq!(
+            vars.get("git_diff"),
+            Some(&"+added line\n-removed line".to_string())
+        );
         assert_eq!(vars.get("has_diff"), Some(&"true".to_string()));
     }
 
@@ -524,8 +566,12 @@ mod tests {
         let task = create_test_task();
         let mut context = LLMContext::from_task(&task);
 
-        context.file_contents.insert(PathBuf::from("test1.rs"), "content1".to_string());
-        context.file_contents.insert(PathBuf::from("test2.rs"), "content2".to_string());
+        context
+            .file_contents
+            .insert(PathBuf::from("test1.rs"), "content1".to_string());
+        context
+            .file_contents
+            .insert(PathBuf::from("test2.rs"), "content2".to_string());
 
         let files = context.loaded_files();
         assert_eq!(files.len(), 2);

@@ -100,7 +100,9 @@ pub fn extract_bearer_token(auth_header: &str) -> Result<&str> {
     let parts: Vec<&str> = auth_header.split_whitespace().collect();
 
     if parts.len() != 2 || parts[0] != "Bearer" {
-        return Err(AppError::Authentication("Invalid Authorization header format".to_string()));
+        return Err(AppError::Authentication(
+            "Invalid Authorization header format".to_string(),
+        ));
     }
 
     Ok(parts[1])

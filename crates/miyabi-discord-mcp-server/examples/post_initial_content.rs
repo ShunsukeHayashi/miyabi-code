@@ -65,8 +65,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::new(token);
 
-    post_progress(&client, progress_channel, "\n📝 **フェーズ 4/4**: 初期コンテンツ投稿中...")
-        .await?;
+    post_progress(
+        &client,
+        progress_channel,
+        "\n📝 **フェーズ 4/4**: 初期コンテンツ投稿中...",
+    )
+    .await?;
 
     // Get all channels
     let channels = client.guild_channels(guild_id).await?.model().await?;
@@ -207,7 +211,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     // 4. Post to each Coding Agent channel
-    post_progress(&client, progress_channel, "\n📝 各Agentチャンネルへの説明投稿中...").await?;
+    post_progress(
+        &client,
+        progress_channel,
+        "\n📝 各Agentチャンネルへの説明投稿中...",
+    )
+    .await?;
 
     let agent_channels = vec![
         ("しきるん-coordinator", "🎯 CoordinatorAgent", "タスクを自動分解・並列実行するよ！\n\nIssueを受け取って、複数のタスクに分解してWorktreeで並列実行できるんだ。\n\n**使い方**: Issue番号を指定するだけ！"),

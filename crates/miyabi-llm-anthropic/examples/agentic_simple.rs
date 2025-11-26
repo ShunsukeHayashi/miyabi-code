@@ -73,7 +73,8 @@ Always respond in valid JSON format:
   "key_competitors": [{"name": "...", "strengths": ["..."], "weaknesses": ["..."]}],
   "market_opportunities": ["..."],
   "entry_barriers": ["..."]
-}"#.to_string(),
+}"#
+            .to_string(),
         },
         Message {
             role: Role::User,
@@ -83,8 +84,9 @@ Always respond in valid JSON format:
 - Target: Software developers and engineering teams
 - Features: GitHub integration, automated code generation, multi-agent orchestration
 
-Identify top 3 competitors and market opportunities."#.to_string(),
-        }
+Identify top 3 competitors and market opportunities."#
+                .to_string(),
+        },
     ];
 
     let start = Instant::now();
@@ -100,7 +102,8 @@ Identify top 3 competitors and market opportunities."#.to_string(),
     let messages = vec![
         Message {
             role: Role::System,
-            content: r#"You are a code generation AI agent. Generate high-quality, production-ready code.
+            content:
+                r#"You are a code generation AI agent. Generate high-quality, production-ready code.
 
 Always respond in this JSON format:
 {
@@ -108,7 +111,8 @@ Always respond in this JSON format:
   "language": "rust",
   "explanation": "brief explanation",
   "tests_included": true/false
-}"#.to_string(),
+}"#
+                .to_string(),
         },
         Message {
             role: Role::User,
@@ -117,8 +121,9 @@ Always respond in this JSON format:
 - Configurable max retries (default 3)
 - Exponential backoff with jitter
 - Returns Result with operation output
-Include a simple test."#.to_string(),
-        }
+Include a simple test."#
+                .to_string(),
+        },
     ];
 
     let start = Instant::now();

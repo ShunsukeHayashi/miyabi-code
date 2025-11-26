@@ -45,8 +45,12 @@ impl GitHubClient {
 
     /// Get a single label by name
     pub async fn get_label(&self, name: &str) -> Result<Label> {
-        let label =
-            self.client.issues(&self.owner, &self.repo).get_label(name).await.map_err(|e| {
+        let label = self
+            .client
+            .issues(&self.owner, &self.repo)
+            .get_label(name)
+            .await
+            .map_err(|e| {
                 MiyabiError::GitHub(format!(
                     "Failed to get label '{}' from {}/{}: {}",
                     name, self.owner, self.repo, e
@@ -147,12 +151,15 @@ impl GitHubClient {
         let mut created = Vec::new();
 
         for label in labels {
-            match self.create_label(&label.name, &label.color, label.description.as_deref()).await {
+            match self
+                .create_label(&label.name, &label.color, label.description.as_deref())
+                .await
+            {
                 Ok(l) => created.push(l),
                 Err(e) => {
                     eprintln!("Warning: Failed to create label '{}': {}", label.name, e);
                     // Continue with next label instead of aborting
-                },
+                }
             }
         }
 
@@ -191,13 +198,13 @@ impl GitHubClient {
                     )
                     .await?;
                     synced += 1;
-                },
+                }
                 false => {
                     // Create new label
                     self.create_label(&label.name, &label.color, label.description.as_deref())
                         .await?;
                     synced += 1;
-                },
+                }
             }
         }
 

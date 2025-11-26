@@ -82,7 +82,8 @@ impl TaskDispatcher {
         self.dispatch_count += 1;
 
         // Store in history
-        self.dispatch_history.insert(task.issue.number, result.clone());
+        self.dispatch_history
+            .insert(task.issue.number, result.clone());
 
         Ok(Some(result))
     }
@@ -92,7 +93,10 @@ impl TaskDispatcher {
         let issue_number = task.issue.number;
 
         // Extract priority label
-        let priority = task.issue.labels.iter()
+        let priority = task
+            .issue
+            .labels
+            .iter()
             .find(|l| l.starts_with("P") || l.contains("priority"))
             .map(|l| l.as_str())
             .unwrap_or("P2-Medium");
@@ -105,7 +109,7 @@ impl TaskDispatcher {
             s if s.contains("P0") => 180, // 3 hours for critical
             s if s.contains("P1") => 120, // 2 hours for high
             s if s.contains("P2") => 90,  // 1.5 hours for medium
-            _ => 60,                       // 1 hour for low
+            _ => 60,                      // 1 hour for low
         };
 
         // Build workflow dispatch payload
@@ -144,15 +148,17 @@ impl TaskDispatcher {
     async fn dispatch_workflow(&self, payload: &WorkflowDispatchPayload) -> Result<u64> {
         let url = format!(
             "https://api.github.com/repos/{}/actions/workflows/{}/dispatches",
-            self.config.repository,
-            self.config.workflow_file
+            self.config.repository, self.config.workflow_file
         );
 
         let client = reqwest::Client::new();
         let response = client
             .post(&url)
             .header("Accept", "application/vnd.github+json")
-            .header("Authorization", format!("Bearer {}", self.config.github_token))
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.config.github_token),
+            )
             .header("User-Agent", "Miyabi-Water-Spider-Orchestrator")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .json(&payload)
@@ -169,7 +175,8 @@ impl TaskDispatcher {
             return Err(SchedulerError::CommandFailed {
                 command: "workflow_dispatch".to_string(),
                 stderr: format!("HTTP {}: {}", status, error_text),
-            }.into());
+            }
+            .into());
         }
 
         // GitHub Actions doesn't return the run ID immediately in the dispatch response
@@ -181,7 +188,11 @@ impl TaskDispatcher {
     /// Get dispatch statistics
     pub fn stats(&self) -> DispatcherStats {
         let successful = self.dispatch_history.values().filter(|r| r.success).count();
-        let failed = self.dispatch_history.values().filter(|r| !r.success).count();
+        let failed = self
+            .dispatch_history
+            .values()
+            .filter(|r| !r.success)
+            .count();
 
         DispatcherStats {
             total_dispatched: self.dispatch_count,
@@ -235,7 +246,6 @@ mod tests {
     use super::*;
     use crate::priority::Issue;
 
-
     #[test]
     fn test_dispatcher_creation() {
         let config = DispatcherConfig::default();
@@ -271,22 +281,28 @@ mod tests {
         let mut dispatcher = TaskDispatcher::new(DispatcherConfig::default());
 
         // Simulate successful dispatch
-        dispatcher.dispatch_history.insert(1, DispatchResult {
-            issue_number: 1,
-            workflow_run_id: Some(123),
-            dispatched_at: chrono::Utc::now(),
-            success: true,
-            error_message: None,
-        });
+        dispatcher.dispatch_history.insert(
+            1,
+            DispatchResult {
+                issue_number: 1,
+                workflow_run_id: Some(123),
+                dispatched_at: chrono::Utc::now(),
+                success: true,
+                error_message: None,
+            },
+        );
 
         // Simulate failed dispatch
-        dispatcher.dispatch_history.insert(2, DispatchResult {
-            issue_number: 2,
-            workflow_run_id: None,
-            dispatched_at: chrono::Utc::now(),
-            success: false,
-            error_message: Some("Rate limit exceeded".to_string()),
-        });
+        dispatcher.dispatch_history.insert(
+            2,
+            DispatchResult {
+                issue_number: 2,
+                workflow_run_id: None,
+                dispatched_at: chrono::Utc::now(),
+                success: false,
+                error_message: Some("Rate limit exceeded".to_string()),
+            },
+        );
 
         dispatcher.dispatch_count = 2;
 

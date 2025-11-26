@@ -3,17 +3,11 @@
 //! This module contains the actual MCP server implementation with tools.
 
 use rmcp::{
-    ErrorData as McpError,
-    RoleServer,
-    ServerHandler,
-    handler::server::{
-        router::tool::ToolRouter,
-        wrapper::Parameters,
-    },
+    handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::*,
     schemars,
     service::RequestContext,
-    tool, tool_router, tool_handler,
+    tool, tool_handler, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 use serde::Deserialize;
 
@@ -104,9 +98,7 @@ impl TemplateServer {
         let response = greetings.join("\n");
 
         // Return success with text content
-        Ok(CallToolResult::success(vec![
-            Content::text(response)
-        ]))
+        Ok(CallToolResult::success(vec![Content::text(response)]))
     }
 
     /// Example tool: Get server info
@@ -127,9 +119,9 @@ impl TemplateServer {
             "features": ["stdio"],
         });
 
-        Ok(CallToolResult::success(vec![
-            Content::text(serde_json::to_string_pretty(&info).unwrap())
-        ]))
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string_pretty(&info).unwrap(),
+        )]))
     }
 
     /// Example tool: Echo input (useful for testing)
@@ -140,9 +132,7 @@ impl TemplateServer {
     ) -> Result<CallToolResult, McpError> {
         tracing::info!("echo called: {:?}", args);
 
-        Ok(CallToolResult::success(vec![
-            Content::text(args.message)
-        ]))
+        Ok(CallToolResult::success(vec![Content::text(args.message)]))
     }
 
     /// Example tool: Error demonstration

@@ -14,7 +14,7 @@ use std::sync::Arc;
 use tracing::{error, info};
 
 use crate::services::log_streamer::LogStreamingManager;
-use crate::ws::{WebSocketManager, WSMessage, LogLevel};
+use crate::ws::{LogLevel, WSMessage, WebSocketManager};
 
 /// Combined WebSocket state
 #[derive(Clone)]
@@ -80,10 +80,7 @@ pub async fn start_log_streaming(
         let ws_manager = state.ws_manager.clone();
 
         async move {
-            info!(
-                "Starting log stream for {} (pane: {})",
-                agent_name, pane_id
-            );
+            info!("Starting log stream for {} (pane: {})", agent_name, pane_id);
 
             let mut interval = tokio::time::interval(tokio::time::Duration::from_millis(500));
             let mut last_line_count = 0;
@@ -110,7 +107,9 @@ pub async fn start_log_streaming(
                                     timestamp: chrono::Utc::now().to_rfc3339(),
                                 };
 
-                                if let Err(e) = ws_manager.broadcast_message(&execution_id, &message).await {
+                                if let Err(e) =
+                                    ws_manager.broadcast_message(&execution_id, &message).await
+                                {
                                     error!("Failed to broadcast log: {}", e);
                                 }
                             }
@@ -140,10 +139,11 @@ fn capture_pane_logs(pane_id: &str) -> Result<Vec<String>, String> {
     let output = Command::new("tmux")
         .args([
             "capture-pane",
-            "-p",      // Print to stdout
-            "-t",      // Target pane
+            "-p", // Print to stdout
+            "-t", // Target pane
             pane_id,
-            "-S", "-", // Start from history beginning
+            "-S",
+            "-", // Start from history beginning
         ])
         .output()
         .map_err(|e| format!("Failed to execute tmux capture-pane: {}", e))?;
@@ -196,10 +196,7 @@ pub async fn stop_all_streaming(
 }
 
 /// Create router for log streaming endpoints
-pub fn routes(
-    ws_manager: Arc<WebSocketManager>,
-    log_manager: Arc<LogStreamingManager>,
-) -> Router {
+pub fn routes(ws_manager: Arc<WebSocketManager>, log_manager: Arc<LogStreamingManager>) -> Router {
     let state = Arc::new(WsState {
         ws_manager,
         log_manager,
@@ -218,7 +215,10 @@ mod tests {
 
     #[test]
     fn test_log_level_parsing() {
-        assert_eq!(parse_log_level("ERROR: Something went wrong"), LogLevel::Error);
+        assert_eq!(
+            parse_log_level("ERROR: Something went wrong"),
+            LogLevel::Error
+        );
         assert_eq!(parse_log_level("WARN: Be careful"), LogLevel::Warn);
         assert_eq!(parse_log_level("DEBUG: Detailed info"), LogLevel::Debug);
         assert_eq!(parse_log_level("INFO: All good"), LogLevel::Info);

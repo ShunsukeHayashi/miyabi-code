@@ -233,8 +233,10 @@ impl Session {
 
     /// Mark session as failed
     pub fn fail(&mut self, error: String, resumable: bool) {
-        let last_successful_turn =
-            self.turns.iter().rposition(|t| t.status == TurnStatus::Completed);
+        let last_successful_turn = self
+            .turns
+            .iter()
+            .rposition(|t| t.status == TurnStatus::Completed);
 
         self.status = SessionStatus::Failed {
             error,
@@ -478,7 +480,7 @@ mod tests {
                 assert_eq!(error, "test error");
                 assert!(resumable);
                 assert_eq!(last_successful_turn, Some(0));
-            },
+            }
             _ => panic!("Expected Failed status"),
         }
     }

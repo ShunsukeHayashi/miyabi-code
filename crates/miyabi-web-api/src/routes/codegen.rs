@@ -227,7 +227,9 @@ fn detect_frontend_task(description: &str) -> bool {
     ];
 
     let desc_lower = description.to_lowercase();
-    FRONTEND_KEYWORDS.iter().any(|keyword| desc_lower.contains(keyword))
+    FRONTEND_KEYWORDS
+        .iter()
+        .any(|keyword| desc_lower.contains(keyword))
 }
 
 #[cfg(test)]

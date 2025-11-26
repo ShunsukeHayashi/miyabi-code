@@ -58,7 +58,11 @@ pub async fn chat_handler(
     let sources: Vec<String> = search_results
         .iter()
         .map(|doc| {
-            let source_type = doc.metadata.get("source").map(|s| s.as_str()).unwrap_or("unknown");
+            let source_type = doc
+                .metadata
+                .get("source")
+                .map(|s| s.as_str())
+                .unwrap_or("unknown");
             format!("{}: {}", source_type, &doc.text[..doc.text.len().min(100)])
         })
         .collect();
@@ -121,9 +125,10 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_response) = match self {
             ApiError::BadRequest(msg) => (StatusCode::BAD_REQUEST, ErrorResponse::bad_request(msg)),
-            ApiError::InternalError(msg) => {
-                (StatusCode::INTERNAL_SERVER_ERROR, ErrorResponse::internal_error(msg))
-            },
+            ApiError::InternalError(msg) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ErrorResponse::internal_error(msg),
+            ),
             ApiError::Timeout => (StatusCode::GATEWAY_TIMEOUT, ErrorResponse::timeout()),
         };
 

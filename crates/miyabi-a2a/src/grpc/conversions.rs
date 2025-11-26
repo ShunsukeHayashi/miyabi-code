@@ -19,7 +19,7 @@ pub fn part_to_proto(part: types::Part) -> Result<proto::Part, Status> {
     let part_type = match part {
         types::Part::Text { content } => {
             Some(proto::part::PartType::Text(proto::TextPart { content }))
-        },
+        }
         types::Part::Image { url } => {
             // Internal Part::Image only has URL, map to proto Image
             Some(proto::part::PartType::Image(proto::ImagePart {
@@ -27,7 +27,7 @@ pub fn part_to_proto(part: types::Part) -> Result<proto::Part, Status> {
                 mime_type: None,
                 data: None,
             }))
-        },
+        }
         types::Part::Data { content, mime_type } => {
             // Internal Part::Data is binary data, map to proto File
             Some(proto::part::PartType::File(proto::FilePart {
@@ -36,7 +36,7 @@ pub fn part_to_proto(part: types::Part) -> Result<proto::Part, Status> {
                 url: None,
                 data: Some(content),
             }))
-        },
+        }
     };
 
     Ok(proto::Part { part_type })
@@ -55,30 +55,32 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
         proto::part::PartType::Image(image) => {
             // Proto Image has url (required), internal Part::Image only has url
             Ok(types::Part::Image { url: image.url })
-        },
+        }
         proto::part::PartType::Audio(audio) => {
             // Map Audio to Data (binary)
-            let data =
-                audio.data.ok_or_else(|| Status::invalid_argument("Audio part requires data"))?;
+            let data = audio
+                .data
+                .ok_or_else(|| Status::invalid_argument("Audio part requires data"))?;
             let mime_type = audio.mime_type.unwrap_or_else(|| "audio/mpeg".to_string());
             Ok(types::Part::Data {
                 content: data,
                 mime_type,
             })
-        },
+        }
         proto::part::PartType::Video(video) => {
             // Map Video URL to Image (closest match)
             Ok(types::Part::Image { url: video.url })
-        },
+        }
         proto::part::PartType::File(file) => {
             // Map File to Data (binary)
-            let data =
-                file.data.ok_or_else(|| Status::invalid_argument("File part requires data"))?;
+            let data = file
+                .data
+                .ok_or_else(|| Status::invalid_argument("File part requires data"))?;
             Ok(types::Part::Data {
                 content: data,
                 mime_type: file.mime_type,
             })
-        },
+        }
     }
 }
 
@@ -89,7 +91,10 @@ pub fn proto_to_part(part: proto::Part) -> Result<types::Part, Status> {
 /// Convert internal Task to proto Task
 pub fn task_to_proto(task: types::Task) -> Result<proto::Task, Status> {
     let (output, error) = match task.output {
-        Some(task_output) => (Some(task_output_to_proto(task_output.result)?), task_output.error),
+        Some(task_output) => (
+            Some(task_output_to_proto(task_output.result)?),
+            task_output.error,
+        ),
         None => (None, None),
     };
 
@@ -111,14 +116,14 @@ pub fn proto_to_task(task: proto::Task) -> Result<types::Task, Status> {
         (Some(proto_output), error) => {
             let result = proto_to_task_output_result(proto_output)?;
             Some(types::TaskOutput { result, error })
-        },
+        }
         (None, Some(error)) => {
             // Error without output
             Some(types::TaskOutput {
                 result: serde_json::Value::Null,
                 error: Some(error),
             })
-        },
+        }
         (None, None) => None,
     };
 
@@ -126,7 +131,8 @@ pub fn proto_to_task(task: proto::Task) -> Result<types::Task, Status> {
         id: task.id,
         status: proto_to_task_status(task.status)?,
         input: proto_to_task_input(
-            task.input.ok_or_else(|| Status::invalid_argument("Task input is required"))?,
+            task.input
+                .ok_or_else(|| Status::invalid_argument("Task input is required"))?,
         )?,
         output,
         context_id: task.context_id,
@@ -201,8 +207,11 @@ fn proto_to_task_input(input: proto::TaskInput) -> Result<types::TaskInput, Stat
     // Proto TaskInput has prompt, parts, and artifacts
     // Internal TaskInput has prompt and params (JSON)
     // Store parts and artifacts in params JSON
-    let parts: Vec<types::Part> =
-        input.parts.into_iter().map(proto_to_part).collect::<Result<Vec<_>, _>>()?;
+    let parts: Vec<types::Part> = input
+        .parts
+        .into_iter()
+        .map(proto_to_part)
+        .collect::<Result<Vec<_>, _>>()?;
 
     let artifacts: Vec<types::Artifact> = input
         .artifacts
@@ -302,7 +311,11 @@ fn proto_to_task_output_result(output: proto::TaskOutput) -> Result<serde_json::
 
 /// Convert internal Message to proto Message
 pub fn message_to_proto(message: types::Message) -> Result<proto::Message, Status> {
-    let parts = message.parts.into_iter().map(part_to_proto).collect::<Result<Vec<_>, _>>()?;
+    let parts = message
+        .parts
+        .into_iter()
+        .map(part_to_proto)
+        .collect::<Result<Vec<_>, _>>()?;
 
     Ok(proto::Message {
         id: uuid::Uuid::new_v4().to_string(), // Generate new ID for proto message
@@ -314,7 +327,11 @@ pub fn message_to_proto(message: types::Message) -> Result<proto::Message, Statu
 
 /// Convert proto Message to internal Message
 pub fn proto_to_message(message: proto::Message) -> Result<types::Message, Status> {
-    let parts = message.parts.into_iter().map(proto_to_part).collect::<Result<Vec<_>, _>>()?;
+    let parts = message
+        .parts
+        .into_iter()
+        .map(proto_to_part)
+        .collect::<Result<Vec<_>, _>>()?;
 
     // Internal Message only has role and parts (no ID or metadata)
     Ok(types::Message {
@@ -407,7 +424,10 @@ pub fn proto_to_artifact(artifact: proto::Artifact) -> Result<types::Artifact, S
     let mut metadata = serde_json::Map::new();
     metadata.insert("name".to_string(), serde_json::Value::String(artifact.name));
     if let Some(mime_type) = artifact.mime_type {
-        metadata.insert("mime_type".to_string(), serde_json::Value::String(mime_type));
+        metadata.insert(
+            "mime_type".to_string(),
+            serde_json::Value::String(mime_type),
+        );
     }
     if let Some(url) = artifact.url {
         metadata.insert("url".to_string(), serde_json::Value::String(url));
@@ -416,7 +436,10 @@ pub fn proto_to_artifact(artifact: proto::Artifact) -> Result<types::Artifact, S
         metadata.insert("size".to_string(), serde_json::Value::Number(size.into()));
     }
     if let Some(created_at) = artifact.created_at {
-        metadata.insert("created_at".to_string(), serde_json::Value::String(created_at));
+        metadata.insert(
+            "created_at".to_string(),
+            serde_json::Value::String(created_at),
+        );
     }
 
     Ok(types::Artifact {

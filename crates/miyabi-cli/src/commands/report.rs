@@ -551,17 +551,11 @@ _🤖 Generated with [Claude Code](https://claude.com/claude-code)_
         match target.to_lowercase().as_str() {
             "lark" => {
                 // TODO: Implement Lark webhook integration
-                println!(
-                    "  {} Lark integration not yet implemented",
-                    "⚠".yellow()
-                );
+                println!("  {} Lark integration not yet implemented", "⚠".yellow());
             }
             "slack" => {
                 // TODO: Implement Slack webhook integration
-                println!(
-                    "  {} Slack integration not yet implemented",
-                    "⚠".yellow()
-                );
+                println!("  {} Slack integration not yet implemented", "⚠".yellow());
             }
             "github" => {
                 self.send_to_github_issue(report).await?;
@@ -647,9 +641,6 @@ mod tests {
             cmd.extract_agent_from_commit("feat: implement X via CodeGenAgent"),
             Some("CodeGenAgent".to_string())
         );
-        assert_eq!(
-            cmd.extract_agent_from_commit("fix: bug fix"),
-            None
-        );
+        assert_eq!(cmd.extract_agent_from_commit("fix: bug fix"), None);
     }
 }

@@ -145,7 +145,10 @@ impl Scheduler {
 
         // Spawn headless session
         let command = format!("/agent-run --task {}", task.id);
-        let session_id = self.session_manager.spawn_headless(command, worktree_path).await?;
+        let session_id = self
+            .session_manager
+            .spawn_headless(command, worktree_path)
+            .await?;
 
         // Track running session
         self.running.insert(task.id.clone(), session_id.clone());
@@ -174,12 +177,12 @@ impl Scheduler {
                                 "Task {} result: status={}, success={}",
                                 task_id, result.status, result.success
                             );
-                        },
+                        }
                         Err(e) => {
                             warn!("Failed to collect result for task {}: {}", task_id, e);
-                        },
+                        }
                     }
-                },
+                }
                 SessionStatus::Failed => {
                     warn!("Task {} failed", task_id);
                     // Try to collect error details
@@ -189,22 +192,22 @@ impl Scheduler {
                                 code: result.status,
                                 stderr: result.error.unwrap_or_else(|| "Unknown error".to_string()),
                             });
-                        },
+                        }
                         Err(e) => {
                             return Err(SchedulerError::InvalidConfig(format!(
                                 "Task {} failed and could not collect error: {}",
                                 task_id, e
                             )));
-                        },
+                        }
                     }
-                },
+                }
                 SessionStatus::TimedOut => {
                     warn!("Task {} timed out", task_id);
                     return Err(SchedulerError::Timeout(1800)); // Use session config timeout
-                },
+                }
                 SessionStatus::Running | SessionStatus::Pending => {
                     // Still running, continue
-                },
+                }
             }
         }
 

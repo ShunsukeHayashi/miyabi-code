@@ -142,7 +142,10 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // Phase 1.1: PostgreSQL Connection Enablement
     // Configure connection pool for Lambda + RDS with proper tuning
     tracing::info!("Initializing PostgreSQL connection pool");
-    tracing::info!("Database URL: {}", config.database_url.split('@').last().unwrap_or("unknown"));
+    tracing::info!(
+        "Database URL: {}",
+        config.database_url.split('@').last().unwrap_or("unknown")
+    );
 
     // Connection pool configuration optimized for Lambda + RDS
     // - max_connections: 100 to handle concurrent requests
@@ -160,7 +163,10 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .await
         .map_err(|e| {
             tracing::error!("Failed to connect to PostgreSQL: {}", e);
-            tracing::error!("Connection URL host: {}", config.database_url.split('@').last().unwrap_or("unknown"));
+            tracing::error!(
+                "Connection URL host: {}",
+                config.database_url.split('@').last().unwrap_or("unknown")
+            );
             tracing::error!("Ensure PostgreSQL is running and DATABASE_URL is correct");
             AppError::Database(e)
         })?;
@@ -199,7 +205,10 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     };
 
     // Configure CORS
-    let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any).allow_headers(Any);
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
 
     // Build API routes - TEMPORARY: Only Telegram and Health for scratch implementation
     // TODO: Re-enable database routes after implementing Firebase/Firestore from scratch
@@ -211,10 +220,22 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // WebSocket endpoint for real-time updates
         .route("/ws", get(routes::websocket::websocket_handler))
         // Infrastructure monitoring routes - Does NOT require database
-        .route("/infrastructure/status", get(routes::infrastructure::status::get_infrastructure_status))
-        .route("/infrastructure/database", get(routes::infrastructure::status::get_database_status))
-        .route("/infrastructure/deployment", get(routes::infrastructure::status::get_deployment_status))
-        .route("/infrastructure/topology", get(routes::infrastructure::status::get_infrastructure_topology))
+        .route(
+            "/infrastructure/status",
+            get(routes::infrastructure::status::get_infrastructure_status),
+        )
+        .route(
+            "/infrastructure/database",
+            get(routes::infrastructure::status::get_database_status),
+        )
+        .route(
+            "/infrastructure/deployment",
+            get(routes::infrastructure::status::get_deployment_status),
+        )
+        .route(
+            "/infrastructure/topology",
+            get(routes::infrastructure::status::get_infrastructure_topology),
+        )
         // Logs and Worktrees routes - Does NOT require database (mock data)
         .route("/logs", get(routes::logs::list_logs))
         .route("/worktrees", get(routes::worktrees::list_worktrees))
@@ -222,38 +243,71 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/agents", get(routes::agents::list_agents))
         // Deployments routes - Does NOT require database (git tags)
         .route("/deployments", get(routes::deployments::list_deployments))
-        .route("/deployments/status", get(routes::deployments::get_deployment_status))
+        .route(
+            "/deployments/status",
+            get(routes::deployments::get_deployment_status),
+        )
         // Activity routes - Does NOT require database (git history)
         .route("/activity/stats", get(routes::activity::get_activity_stats))
-        .route("/activity/events", get(routes::activity::get_activity_events))
+        .route(
+            "/activity/events",
+            get(routes::activity::get_activity_events),
+        )
         // System metrics - Does NOT require database (shell commands)
         .route("/system/metrics", get(routes::system::get_system_metrics))
         // Database info - Does NOT require database (reads migrations)
-        .route("/database/schema", get(routes::database::get_database_schema))
-        .route("/database/status/detailed", get(routes::database::get_database_status_detailed))
+        .route(
+            "/database/schema",
+            get(routes::database::get_database_schema),
+        )
+        .route(
+            "/database/status/detailed",
+            get(routes::database::get_database_status_detailed),
+        )
         // Timeline routes - Does NOT require database (reads from JSONL logs)
         .route("/timeline", get(routes::timeline::get_timeline))
         .route("/timeline", post(routes::timeline::post_timeline_event))
         // Tmux routes - Does NOT require database (shell commands)
         .route("/tmux/sessions", get(routes::tmux::list_sessions))
         .route("/tmux/sessions/:name", get(routes::tmux::get_session))
-        .route("/tmux/sessions/:name/command", post(routes::tmux::send_command))
-        .route("/tmux/sessions/:name/kill", post(routes::tmux::kill_session))
+        .route(
+            "/tmux/sessions/:name/command",
+            post(routes::tmux::send_command),
+        )
+        .route(
+            "/tmux/sessions/:name/kill",
+            post(routes::tmux::kill_session),
+        )
         // CodeGen routes - Does NOT require database (in-memory + stub data)
         .nest("/codegen", routes::codegen::routes().with_state(()))
         // MCP routes - Does NOT require database (hardcoded tools + shell commands)
         .nest("/mcp", routes::mcp::routes())
         // Authentication routes - Phase 2.4: Re-enabled with database
         .route("/auth/github", get(routes::auth::github_oauth_initiate))
-        .route("/auth/github/callback", get(routes::auth::github_oauth_callback))
+        .route(
+            "/auth/github/callback",
+            get(routes::auth::github_oauth_callback),
+        )
         .route("/auth/refresh", post(routes::auth::refresh_token))
         .route("/auth/logout", post(routes::auth::logout))
-        .route("/auth/switch-organization", post(routes::auth::switch_organization))
+        .route(
+            "/auth/switch-organization",
+            post(routes::auth::switch_organization),
+        )
         .route("/auth/mock", post(routes::auth::mock_login))
         // Repository routes - Phase 2.4: Re-enabled with database
-        .route("/repositories", get(routes::repositories::list_repositories))
-        .route("/repositories/:id", get(routes::repositories::get_repository))
-        .route("/repositories", post(routes::repositories::create_repository))
+        .route(
+            "/repositories",
+            get(routes::repositories::list_repositories),
+        )
+        .route(
+            "/repositories/:id",
+            get(routes::repositories::get_repository),
+        )
+        .route(
+            "/repositories",
+            post(routes::repositories::create_repository),
+        )
         // Agent execution routes - Phase 2.4: Re-enabled with database
         .route("/agents/execute", post(routes::agents::execute_agent))
         // Workflow routes - Phase 2.4: Re-enabled with database
@@ -261,8 +315,14 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/workflows", get(routes::workflows::list_workflows))
         .route("/workflows/:id", get(routes::workflows::get_workflow))
         // Dashboard routes - Phase 2.4: Re-enabled with database
-        .route("/dashboard/summary", get(routes::dashboard::get_dashboard_summary))
-        .route("/dashboard/recent", get(routes::dashboard::get_recent_executions))
+        .route(
+            "/dashboard/summary",
+            get(routes::dashboard::get_dashboard_summary),
+        )
+        .route(
+            "/dashboard/recent",
+            get(routes::dashboard::get_recent_executions),
+        )
         // Organization routes - Phase 1.4: RBAC Implementation (#970)
         .nest("/organizations", routes::organizations::routes())
         // Task Management routes - Phase 2.1: Task Management API (#970)
@@ -275,7 +335,11 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     let app = Router::new()
         // .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi())) // Temporarily disabled
         .nest("/api/v1", api_routes)
-        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()).layer(cors))
+        .layer(
+            ServiceBuilder::new()
+                .layer(TraceLayer::new_for_http())
+                .layer(cors),
+        )
         .with_state(state);
 
     Ok(app)

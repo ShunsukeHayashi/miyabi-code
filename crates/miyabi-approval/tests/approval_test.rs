@@ -37,7 +37,10 @@ async fn test_single_approver() {
     let approval_id = gate.create_approval("workflow-123").await.unwrap();
 
     // Approve
-    let state = gate.approve(&approval_id, "alice", Some("LGTM".to_string())).await.unwrap();
+    let state = gate
+        .approve(&approval_id, "alice", Some("LGTM".to_string()))
+        .await
+        .unwrap();
 
     assert_eq!(state.status, ApprovalStatus::Approved);
     assert_eq!(state.approval_count(), 1);
@@ -58,12 +61,18 @@ async fn test_multiple_approvers() {
     let approval_id = gate.create_approval("workflow-123").await.unwrap();
 
     // First approval (still pending)
-    let state1 = gate.approve(&approval_id, "alice", Some("LGTM".to_string())).await.unwrap();
+    let state1 = gate
+        .approve(&approval_id, "alice", Some("LGTM".to_string()))
+        .await
+        .unwrap();
     assert_eq!(state1.status, ApprovalStatus::Pending);
     assert_eq!(state1.approval_count(), 1);
 
     // Second approval (approved)
-    let state2 = gate.approve(&approval_id, "bob", Some("LGTM".to_string())).await.unwrap();
+    let state2 = gate
+        .approve(&approval_id, "bob", Some("LGTM".to_string()))
+        .await
+        .unwrap();
     assert_eq!(state2.status, ApprovalStatus::Approved);
     assert_eq!(state2.approval_count(), 2);
     assert!(state2.is_completed());
@@ -107,7 +116,9 @@ async fn test_unauthorized_approver() {
     let approval_id = gate.create_approval("workflow-123").await.unwrap();
 
     // Try to approve as unauthorized user
-    let result = gate.approve(&approval_id, "charlie", Some("LGTM".to_string())).await;
+    let result = gate
+        .approve(&approval_id, "charlie", Some("LGTM".to_string()))
+        .await;
 
     assert!(result.is_err());
 }
@@ -126,10 +137,14 @@ async fn test_already_responded() {
     let approval_id = gate.create_approval("workflow-123").await.unwrap();
 
     // First approval
-    gate.approve(&approval_id, "alice", Some("LGTM".to_string())).await.unwrap();
+    gate.approve(&approval_id, "alice", Some("LGTM".to_string()))
+        .await
+        .unwrap();
 
     // Try to approve again
-    let result = gate.approve(&approval_id, "alice", Some("Still LGTM".to_string())).await;
+    let result = gate
+        .approve(&approval_id, "alice", Some("Still LGTM".to_string()))
+        .await;
 
     assert!(result.is_err());
 }
@@ -218,11 +233,21 @@ async fn test_approval_store_queries() {
     // Create test approvals
     use miyabi_approval::ApprovalState;
 
-    let state1 =
-        ApprovalState::new("approval-1", "workflow-1", "gate-1", vec!["alice".to_string()], 3600);
+    let state1 = ApprovalState::new(
+        "approval-1",
+        "workflow-1",
+        "gate-1",
+        vec!["alice".to_string()],
+        3600,
+    );
 
-    let mut state2 =
-        ApprovalState::new("approval-2", "workflow-2", "gate-1", vec!["bob".to_string()], 3600);
+    let mut state2 = ApprovalState::new(
+        "approval-2",
+        "workflow-2",
+        "gate-1",
+        vec!["bob".to_string()],
+        3600,
+    );
 
     // Approve state2
     use chrono::Utc;

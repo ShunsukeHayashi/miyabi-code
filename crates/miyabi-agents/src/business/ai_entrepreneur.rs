@@ -52,13 +52,16 @@ Generate a complete business plan as JSON with phases, market analysis, financia
         );
 
         // Execute LLM conversation
-        let response = conversation.ask_with_template(&template).await.map_err(|e| {
-            MiyabiError::Agent(AgentError::new(
-                format!("LLM execution failed: {}", e),
-                AgentType::AIEntrepreneurAgent,
-                Some(task.id.clone()),
-            ))
-        })?;
+        let response = conversation
+            .ask_with_template(&template)
+            .await
+            .map_err(|e| {
+                MiyabiError::Agent(AgentError::new(
+                    format!("LLM execution failed: {}", e),
+                    AgentType::AIEntrepreneurAgent,
+                    Some(task.id.clone()),
+                ))
+            })?;
 
         // Parse JSON response
         let business_plan: BusinessPlan = serde_json::from_str(&response).map_err(|e| {
@@ -230,7 +233,10 @@ impl BaseAgent for AIEntrepreneurAgent {
             "growth_projection": ((business_plan.financial_projections.year_3.revenue as f64 / business_plan.financial_projections.year_1.revenue as f64 - 1.0) * 100.0) as u32
         });
 
-        tracing::info!("AIEntrepreneurAgent completed business plan generation: {}", summary);
+        tracing::info!(
+            "AIEntrepreneurAgent completed business plan generation: {}",
+            summary
+        );
 
         Ok(AgentResult {
             status: miyabi_types::agent::ResultStatus::Success,

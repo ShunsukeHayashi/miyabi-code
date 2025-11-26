@@ -108,7 +108,7 @@ fn check_gh_auth() -> Check {
                     message: format!("gh CLI authentication failed: {}", stderr.trim()),
                 }
             }
-        },
+        }
         Err(e) => Check {
             name: "gh_auth".to_string(),
             status: CheckStatus::Fail,
@@ -161,7 +161,7 @@ fn check_log_directory_env() -> Check {
                     message: format!("LOG_DIRECTORY is set but path doesn't exist: {}", dir),
                 }
             }
-        },
+        }
         Ok(_) => Check {
             name: "log_directory_env".to_string(),
             status: CheckStatus::Fail,
@@ -177,7 +177,10 @@ fn check_log_directory_env() -> Check {
 
 /// Determine overall system status based on check results
 fn determine_system_status(checks: &[Check]) -> SystemStatus {
-    let failed_count = checks.iter().filter(|c| c.status == CheckStatus::Fail).count();
+    let failed_count = checks
+        .iter()
+        .filter(|c| c.status == CheckStatus::Fail)
+        .count();
     let total_count = checks.len();
 
     // Critical checks (must pass for healthy status)

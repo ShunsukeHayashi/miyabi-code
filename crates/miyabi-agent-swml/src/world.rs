@@ -184,7 +184,10 @@ impl WorldManager {
         let last_modified = metadata.modified().map_err(MiyabiError::Io)?.into();
 
         // Compute content hash for change detection
-        let content_hash = if path.extension().is_some_and(|ext| ext == "rs" || ext == "toml") {
+        let content_hash = if path
+            .extension()
+            .is_some_and(|ext| ext == "rs" || ext == "toml")
+        {
             Some(self.compute_file_hash(path)?)
         } else {
             None
@@ -232,9 +235,11 @@ impl WorldManager {
             for (name, value) in deps {
                 let version = match value {
                     toml::Value::String(v) => v.clone(),
-                    toml::Value::Table(t) => {
-                        t.get("version").and_then(|v| v.as_str()).unwrap_or("*").to_string()
-                    },
+                    toml::Value::Table(t) => t
+                        .get("version")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("*")
+                        .to_string(),
                     _ => "*".to_string(),
                 };
 
@@ -349,8 +354,12 @@ impl WorldManager {
         let mut counts = HashMap::new();
 
         for file in &self.world.state.files {
-            let ext =
-                file.path.extension().and_then(|e| e.to_str()).unwrap_or("unknown").to_string();
+            let ext = file
+                .path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("unknown")
+                .to_string();
 
             *counts.entry(ext).or_insert(0) += 1;
         }

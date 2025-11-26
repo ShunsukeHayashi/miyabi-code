@@ -27,10 +27,10 @@ impl ModeLoader {
             Ok(system_modes) => {
                 info!("Loaded {} system modes", system_modes.len());
                 modes.extend(system_modes);
-            },
+            }
             Err(e) => {
                 warn!("Failed to load system modes: {}", e);
-            },
+            }
         }
 
         // Load custom modes
@@ -38,10 +38,10 @@ impl ModeLoader {
             Ok(custom_modes) => {
                 info!("Loaded {} custom modes", custom_modes.len());
                 modes.extend(custom_modes);
-            },
+            }
             Err(e) => {
                 debug!("No custom modes loaded: {}", e);
-            },
+            }
         }
 
         if modes.is_empty() {
@@ -87,10 +87,10 @@ impl ModeLoader {
                     Ok(mode) => {
                         debug!("Loaded mode '{}' from {:?}", mode.slug, path);
                         modes.push(mode);
-                    },
+                    }
                     Err(e) => {
                         warn!("Failed to load mode from {:?}: {}", path, e);
-                    },
+                    }
                 }
             }
         }

@@ -42,10 +42,7 @@ pub async fn register_agent<A: A2AEnabled>(gateway: &A2AGateway, agent: &A) -> R
     let a2a_card = agent.agent_card();
     let gateway_card = convert_agent_card(&a2a_card);
     let agent_id = gateway.register_agent(gateway_card).await?;
-    info!(
-        "Registered agent: {} (ID: {})",
-        a2a_card.name, agent_id.0
-    );
+    info!("Registered agent: {} (ID: {})", a2a_card.name, agent_id.0);
     Ok(())
 }
 
@@ -77,10 +74,7 @@ impl AgentRegistry {
             let a2a_card = agent.agent_card();
             let gateway_card = convert_agent_card(&a2a_card);
             let agent_id = gateway.register_agent(gateway_card).await?;
-            info!(
-                "Registered agent: {} (ID: {})",
-                a2a_card.name, agent_id.0
-            );
+            info!("Registered agent: {} (ID: {})", a2a_card.name, agent_id.0);
         }
         Ok(())
     }

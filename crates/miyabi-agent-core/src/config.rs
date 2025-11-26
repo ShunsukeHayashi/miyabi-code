@@ -397,8 +397,7 @@ pub struct ConfigLoader {
 impl ConfigLoader {
     /// Create a new config loader with the default config directory
     pub fn new() -> Result<Self> {
-        let home = std::env::var("HOME")
-            .context("HOME environment variable not set")?;
+        let home = std::env::var("HOME").context("HOME environment variable not set")?;
         let config_dir = PathBuf::from(home).join(".miyabi/config");
         Ok(Self { config_dir })
     }
@@ -436,7 +435,10 @@ impl ConfigLoader {
 
     /// Load an integration configuration
     pub fn load_integration(&self, name: &str) -> Result<toml::Value> {
-        let path = self.config_dir.join("integrations").join(format!("{}.toml", name));
+        let path = self
+            .config_dir
+            .join("integrations")
+            .join(format!("{}.toml", name));
         self.load_toml(&path)
     }
 

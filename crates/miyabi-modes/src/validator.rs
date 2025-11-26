@@ -27,14 +27,19 @@ impl ModeValidator {
         }
 
         // Slug must be URL-safe: lowercase alphanumeric with hyphens
-        if !slug.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+        if !slug
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        {
             return Err(ModeError::ValidationFailed(
                 "Slug must contain only lowercase letters, numbers, and hyphens".into(),
             ));
         }
 
         if slug.len() > 50 {
-            return Err(ModeError::ValidationFailed("Slug must be 50 characters or less".into()));
+            return Err(ModeError::ValidationFailed(
+                "Slug must be 50 characters or less".into(),
+            ));
         }
 
         Ok(())
@@ -46,7 +51,9 @@ impl ModeValidator {
         }
 
         if name.len() > 100 {
-            return Err(ModeError::ValidationFailed("Name must be 100 characters or less".into()));
+            return Err(ModeError::ValidationFailed(
+                "Name must be 100 characters or less".into(),
+            ));
         }
 
         Ok(())
@@ -82,7 +89,9 @@ impl ModeValidator {
 
     fn validate_groups(groups: &[crate::mode::ToolGroup]) -> ModeResult<()> {
         if groups.is_empty() {
-            return Err(ModeError::ValidationFailed("At least one tool group is required".into()));
+            return Err(ModeError::ValidationFailed(
+                "At least one tool group is required".into(),
+            ));
         }
 
         Ok(())

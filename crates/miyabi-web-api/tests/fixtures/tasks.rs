@@ -12,12 +12,7 @@ pub struct TaskFixture {
 
 impl TaskFixture {
     /// Create a test task in the database
-    pub async fn create(
-        pool: &PgPool,
-        name: &str,
-        status: &str,
-        repository_id: i64,
-    ) -> Self {
+    pub async fn create(pool: &PgPool, name: &str, status: &str, repository_id: i64) -> Self {
         // Using dynamic query to avoid compile-time schema verification
         let row = sqlx::query(
             r#"

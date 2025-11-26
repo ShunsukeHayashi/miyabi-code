@@ -33,7 +33,11 @@ pub async fn create_test_commit(path: &Path, message: &str) -> E2EResult<()> {
         .await?;
 
     if !output.status.success() {
-        return Err(format!("git add failed: {}", String::from_utf8_lossy(&output.stderr)).into());
+        return Err(format!(
+            "git add failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        )
+        .into());
     }
 
     // Commit
@@ -58,7 +62,11 @@ pub async fn create_test_commit(path: &Path, message: &str) -> E2EResult<()> {
 
 /// Assert that a file exists
 pub fn assert_file_exists<P: AsRef<Path>>(path: P) {
-    assert!(path.as_ref().exists(), "File does not exist: {:?}", path.as_ref());
+    assert!(
+        path.as_ref().exists(),
+        "File does not exist: {:?}",
+        path.as_ref()
+    );
 }
 
 /// Assert that a file contains specific content
@@ -134,9 +142,11 @@ pub async fn run_git_command(path: &Path, args: &[&str]) -> E2EResult<String> {
         .await?;
 
     if !output.status.success() {
-        return Err(
-            format!("git command failed: {}", String::from_utf8_lossy(&output.stderr)).into()
-        );
+        return Err(format!(
+            "git command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        )
+        .into());
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
@@ -168,8 +178,9 @@ mod tests {
     #[tokio::test]
     async fn test_create_test_file() {
         let temp_dir = TempDir::new().unwrap();
-        let file_path =
-            create_test_file(temp_dir.path(), "test.txt", "Hello, World!").await.unwrap();
+        let file_path = create_test_file(temp_dir.path(), "test.txt", "Hello, World!")
+            .await
+            .unwrap();
 
         assert!(file_path.exists());
         let content = tokio::fs::read_to_string(file_path).await.unwrap();
@@ -202,8 +213,12 @@ mod tests {
             counter >= 3
         };
 
-        wait_for_condition(condition, Duration::from_secs(5), Duration::from_millis(100))
-            .await
-            .unwrap();
+        wait_for_condition(
+            condition,
+            Duration::from_secs(5),
+            Duration::from_millis(100),
+        )
+        .await
+        .unwrap();
     }
 }

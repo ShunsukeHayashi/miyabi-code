@@ -100,7 +100,7 @@ async fn test_e2e_parallel_worktree_creation() {
         Err(e) => {
             eprintln!("❌ Failed to create pool: {}", e);
             return;
-        },
+        }
     };
 
     // Create 5 tasks that will execute in parallel (max 3 concurrent)
@@ -196,19 +196,22 @@ async fn test_e2e_parallel_worktree_creation() {
                     );
 
                     // Create file
-                    create_test_file(&worktree_info.path, filename, &content).await.map_err(
-                        |e| {
+                    create_test_file(&worktree_info.path, filename, &content)
+                        .await
+                        .map_err(|e| {
                             miyabi_types::error::MiyabiError::Unknown(format!(
                                 "Failed to create file: {}",
                                 e
                             ))
-                        },
-                    )?;
+                        })?;
 
                     // Commit changes
                     commit_changes(
                         &worktree_info.path,
-                        &format!("feat(e2e): add {} for issue #{}", filename, task.issue_number),
+                        &format!(
+                            "feat(e2e): add {} for issue #{}",
+                            filename, task.issue_number
+                        ),
                     )
                     .await
                     .map_err(|e| {
@@ -244,7 +247,10 @@ async fn test_e2e_parallel_worktree_creation() {
     println!("   Timeout: {}", result.timeout_count);
     println!("   Duration: {}ms", result.total_duration_ms);
     println!("   Success rate: {:.1}%", result.success_rate());
-    println!("   Max concurrent: {}", max_concurrent.load(Ordering::SeqCst));
+    println!(
+        "   Max concurrent: {}",
+        max_concurrent.load(Ordering::SeqCst)
+    );
 
     // Assertions
     assert_eq!(result.total_tasks, 5, "Should have 5 tasks");
@@ -262,7 +268,11 @@ async fn test_e2e_parallel_worktree_creation() {
 
     // Verify unique worktree paths
     let paths = worktree_paths.lock().unwrap();
-    assert_eq!(paths.len(), 5, "Should have created 5 unique worktree paths");
+    assert_eq!(
+        paths.len(),
+        5,
+        "Should have created 5 unique worktree paths"
+    );
 
     println!("\n✅ E2E test passed: Parallel worktree creation");
 }
@@ -291,7 +301,7 @@ async fn test_e2e_worktree_isolation() {
         Err(e) => {
             eprintln!("❌ Failed to create pool: {}", e);
             return;
-        },
+        }
     };
 
     // Create tasks that modify the same file name (simulating potential conflicts)
@@ -346,14 +356,14 @@ async fn test_e2e_worktree_isolation() {
                         version, task.issue_number
                     );
 
-                    create_test_file(&worktree_info.path, "SHARED.md", &content).await.map_err(
-                        |e| {
+                    create_test_file(&worktree_info.path, "SHARED.md", &content)
+                        .await
+                        .map_err(|e| {
                             miyabi_types::error::MiyabiError::Unknown(format!(
                                 "Failed to create file: {}",
                                 e
                             ))
-                        },
-                    )?;
+                        })?;
 
                     // Verify file content
                     let file_path = worktree_info.path.join("SHARED.md");
@@ -388,7 +398,10 @@ async fn test_e2e_worktree_isolation() {
 
                     tokio::time::sleep(Duration::from_millis(300)).await;
 
-                    println!("   ✅ Task #{}: Version {} committed", task.issue_number, version);
+                    println!(
+                        "   ✅ Task #{}: Version {} committed",
+                        task.issue_number, version
+                    );
 
                     Ok(serde_json::json!({
                         "issue": task.issue_number,
@@ -448,7 +461,7 @@ async fn test_e2e_failure_handling() {
         Err(e) => {
             eprintln!("❌ Failed to create pool: {}", e);
             return;
-        },
+        }
     };
 
     // Mix of successful and failing tasks
@@ -473,7 +486,10 @@ async fn test_e2e_failure_handling() {
         },
     ];
 
-    println!("📋 Created {} tasks (1 will fail intentionally)", tasks.len());
+    println!(
+        "📋 Created {} tasks (1 will fail intentionally)",
+        tasks.len()
+    );
 
     let result = pool
         .execute_parallel(tasks, move |worktree_info, task| async move {
@@ -566,7 +582,7 @@ async fn test_e2e_completion_tracking() {
         Err(e) => {
             eprintln!("❌ Failed to create pool: {}", e);
             return;
-        },
+        }
     };
 
     // Initial stats
@@ -609,7 +625,10 @@ async fn test_e2e_completion_tracking() {
                         times.push((task.issue_number, std::time::Instant::now()));
                     }
 
-                    println!("   ✅ Task #{}: Completed ({}ms)", task.issue_number, duration_ms);
+                    println!(
+                        "   ✅ Task #{}: Completed ({}ms)",
+                        task.issue_number, duration_ms
+                    );
 
                     Ok(serde_json::json!({
                         "issue": task.issue_number,
@@ -624,11 +643,17 @@ async fn test_e2e_completion_tracking() {
     println!("   Total tasks: {}", result.total_tasks);
     println!("   Successful: {}", result.success_count);
     println!("   Total duration: {}ms", result.total_duration_ms);
-    println!("   Avg task duration: {:.1}ms", result.average_duration_ms());
+    println!(
+        "   Avg task duration: {:.1}ms",
+        result.average_duration_ms()
+    );
     println!("   Min duration: {}ms", result.min_duration_ms());
     println!("   Max duration: {}ms", result.max_duration_ms());
     println!("   Throughput: {:.2} tasks/sec", result.throughput());
-    println!("   Effective concurrency: {:.2}x", result.effective_concurrency());
+    println!(
+        "   Effective concurrency: {:.2}x",
+        result.effective_concurrency()
+    );
 
     assert_eq!(result.success_count, 5);
 
@@ -640,7 +665,10 @@ async fn test_e2e_completion_tracking() {
 
     // Manual cleanup
     println!("\n🧹 Cleaning up worktrees");
-    pool.manager().cleanup_all().await.expect("Cleanup should succeed");
+    pool.manager()
+        .cleanup_all()
+        .await
+        .expect("Cleanup should succeed");
 
     let final_stats = pool.stats().await;
     println!("📊 Final Stats:");
@@ -674,7 +702,7 @@ async fn test_e2e_fail_fast_mode() {
         Err(e) => {
             eprintln!("❌ Failed to create pool: {}", e);
             return;
-        },
+        }
     };
 
     let tasks = vec![

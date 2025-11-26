@@ -79,7 +79,10 @@ fn get_git_commit_count(since: Option<&str>) -> Result<u32, String> {
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    stdout.trim().parse().map_err(|e| format!("Failed to parse count: {}", e))
+    stdout
+        .trim()
+        .parse()
+        .map_err(|e| format!("Failed to parse count: {}", e))
 }
 
 fn get_open_issues_count() -> Result<u32, String> {

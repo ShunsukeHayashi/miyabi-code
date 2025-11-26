@@ -96,8 +96,9 @@ pub async fn get_mission_control_status(
     // Gather data from all subsystems
     let agents_data = agents::list_agents().await.0;
     let tmux_data = tmux::list_sessions().await.0;
-    let timeline_data =
-        timeline::get_timeline(Query(timeline::TimelineQuery { window: 100 })).await.0;
+    let timeline_data = timeline::get_timeline(Query(timeline::TimelineQuery { window: 100 }))
+        .await
+        .0;
     let preflight_data = preflight::preflight_checks().await.0;
     let worktrees_data = worktrees::list_worktrees().await.0;
 
@@ -125,14 +126,26 @@ pub async fn get_mission_control_status(
             .iter()
             .filter(|a| !coding_agent_names.contains(&a.name.as_str()))
             .count(),
-        idle_agents: agents_data.agents.iter().filter(|a| a.status == "idle").count(),
-        running_agents: agents_data.agents.iter().filter(|a| a.status == "running").count(),
+        idle_agents: agents_data
+            .agents
+            .iter()
+            .filter(|a| a.status == "idle")
+            .count(),
+        running_agents: agents_data
+            .agents
+            .iter()
+            .filter(|a| a.status == "running")
+            .count(),
     };
 
     // Calculate TMUX summary
     let total_windows: usize = tmux_data.sessions.iter().map(|s| s.windows.len()).sum();
-    let total_panes: usize =
-        tmux_data.sessions.iter().flat_map(|s| &s.windows).map(|w| w.panes.len()).sum();
+    let total_panes: usize = tmux_data
+        .sessions
+        .iter()
+        .flat_map(|s| &s.windows)
+        .map(|w| w.panes.len())
+        .sum();
     let assigned_panes: usize = tmux_data
         .sessions
         .iter()
@@ -240,8 +253,9 @@ pub async fn get_mission_control_detailed() -> Json<MissionControlDetailedRespon
 
     let agents_detail = agents::list_agents().await.0;
     let tmux_detail = tmux::list_sessions().await.0;
-    let timeline_detail =
-        timeline::get_timeline(Query(timeline::TimelineQuery { window: 100 })).await.0;
+    let timeline_detail = timeline::get_timeline(Query(timeline::TimelineQuery { window: 100 }))
+        .await
+        .0;
     let preflight_detail = preflight::preflight_checks().await.0;
     let worktrees_detail = worktrees::list_worktrees().await.0;
 

@@ -86,11 +86,19 @@ async fn test_full_flow_index_search_cleanup() {
             "CodeGenAgent",
             421,
         ),
-        create_test_entry("entry3", "Fixed cargo build error in miyabi-cli", "ReviewAgent", 500),
+        create_test_entry(
+            "entry3",
+            "Fixed cargo build error in miyabi-cli",
+            "ReviewAgent",
+            500,
+        ),
     ];
 
     // Index entries
-    let stats = manager.index_batch(&entries).await.expect("Failed to index entries");
+    let stats = manager
+        .index_batch(&entries)
+        .await
+        .expect("Failed to index entries");
 
     println!(
         "✅ Step 2: Indexed {} entries ({} success, {} failed)",
@@ -103,15 +111,24 @@ async fn test_full_flow_index_search_cleanup() {
     sleep(Duration::from_millis(500)).await;
 
     // Search for entries
-    let results = manager.search("auto-indexing").await.expect("Failed to search");
+    let results = manager
+        .search("auto-indexing")
+        .await
+        .expect("Failed to search");
 
     println!("✅ Step 3: Search returned {} results", results.len());
-    assert!(!results.is_empty(), "Search should return at least one result");
+    assert!(
+        !results.is_empty(),
+        "Search should return at least one result"
+    );
     assert!(results[0].content.contains("auto-indexing"));
 
     // Test filtered search
     let results_filtered = manager
-        .search_filtered("indexing", miyabi_knowledge::SearchFilter::new().with_issue_number(421))
+        .search_filtered(
+            "indexing",
+            miyabi_knowledge::SearchFilter::new().with_issue_number(421),
+        )
         .await
         .expect("Failed to filtered search");
 
@@ -186,7 +203,10 @@ async fn test_parallel_execution_10_agents() {
                 })
                 .collect();
 
-            let stats = manager.index_batch(&entries).await.expect("Failed to index entries");
+            let stats = manager
+                .index_batch(&entries)
+                .await
+                .expect("Failed to index entries");
 
             println!(
                 "  ✅ {} indexed {} entries ({} success)",
@@ -222,10 +242,16 @@ async fn test_parallel_execution_10_agents() {
 
     sleep(Duration::from_millis(500)).await;
 
-    let results = manager.search("processed task").await.expect("Failed to search");
+    let results = manager
+        .search("processed task")
+        .await
+        .expect("Failed to search");
 
     println!("✅ Search found {} results from all agents", results.len());
-    assert!(results.len() >= 10, "Should find results from multiple agents");
+    assert!(
+        results.len() >= 10,
+        "Should find results from multiple agents"
+    );
 
     println!("\n🎉 Parallel execution test passed!");
 }
@@ -255,7 +281,10 @@ async fn test_incremental_indexing_with_cache() {
     ];
 
     // First indexing
-    let stats1 = manager.index_batch(&entries).await.expect("Failed to index entries");
+    let stats1 = manager
+        .index_batch(&entries)
+        .await
+        .expect("Failed to index entries");
 
     println!("✅ First indexing: {} success", stats1.success);
     assert_eq!(stats1.success, 2);
@@ -294,7 +323,10 @@ async fn test_retention_policy_cleanup() {
         200,
     )];
 
-    manager.index_batch(&entries).await.expect("Failed to index");
+    manager
+        .index_batch(&entries)
+        .await
+        .expect("Failed to index");
 
     println!("✅ Indexed test entries");
 

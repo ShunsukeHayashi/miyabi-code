@@ -3,9 +3,9 @@
 //! Manages GitHub repository connections and operations
 //! Issue: #983 Phase 2.1 - Service Layer Refactoring
 
-use sqlx::PgPool;
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 /// Repository model
@@ -103,7 +103,11 @@ impl RepositoryService {
     }
 
     /// Get a repository by ID
-    pub async fn get(&self, user_id: Uuid, repo_id: Uuid) -> Result<Option<Repository>, sqlx::Error> {
+    pub async fn get(
+        &self,
+        user_id: Uuid,
+        repo_id: Uuid,
+    ) -> Result<Option<Repository>, sqlx::Error> {
         let repo = sqlx::query_as::<_, Repository>(
             "SELECT * FROM repositories WHERE id = $1 AND user_id = $2",
         )
@@ -221,13 +225,11 @@ impl RepositoryService {
 
     /// Delete a repository
     pub async fn delete(&self, user_id: Uuid, repo_id: Uuid) -> Result<bool, sqlx::Error> {
-        let result = sqlx::query(
-            "DELETE FROM repositories WHERE id = $1 AND user_id = $2",
-        )
-        .bind(repo_id)
-        .bind(user_id)
-        .execute(&self.db)
-        .await?;
+        let result = sqlx::query("DELETE FROM repositories WHERE id = $1 AND user_id = $2")
+            .bind(repo_id)
+            .bind(user_id)
+            .execute(&self.db)
+            .await?;
 
         Ok(result.rows_affected() > 0)
     }
@@ -235,13 +237,12 @@ impl RepositoryService {
     /// Get repository statistics
     pub async fn get_stats(&self, repo_id: Uuid) -> Result<RepositoryStats, sqlx::Error> {
         // Query task count for this repository
-        let task_count = sqlx::query_scalar::<_, i64>(
-            "SELECT COUNT(*) FROM tasks WHERE repository_id = $1",
-        )
-        .bind(repo_id)
-        .fetch_one(&self.db)
-        .await
-        .unwrap_or(0);
+        let task_count =
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM tasks WHERE repository_id = $1")
+                .bind(repo_id)
+                .fetch_one(&self.db)
+                .await
+                .unwrap_or(0);
 
         // Get last activity
         let last_activity = sqlx::query_scalar::<_, DateTime<Utc>>(
@@ -253,8 +254,8 @@ impl RepositoryService {
 
         Ok(RepositoryStats {
             total_tasks: task_count,
-            open_issues: 0,  // TODO: Query from GitHub or cache
-            open_prs: 0,     // TODO: Query from GitHub or cache
+            open_issues: 0, // TODO: Query from GitHub or cache
+            open_prs: 0,    // TODO: Query from GitHub or cache
             last_activity,
         })
     }

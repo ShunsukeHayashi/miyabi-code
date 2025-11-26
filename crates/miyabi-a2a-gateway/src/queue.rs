@@ -145,7 +145,11 @@ impl TaskQueue {
 
     /// Get task result
     pub async fn get_result(&self, id: &TaskId) -> Option<TaskResult> {
-        self.tasks.read().await.get(id).and_then(|t| t.result.clone())
+        self.tasks
+            .read()
+            .await
+            .get(id)
+            .and_then(|t| t.result.clone())
     }
 
     /// Get task

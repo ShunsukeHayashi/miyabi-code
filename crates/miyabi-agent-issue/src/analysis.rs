@@ -218,9 +218,16 @@ impl IssueAnalysis {
         }
 
         if reasons.is_empty() {
-            format!("Complexity score: {:.1}/10.0 based on keyword analysis", complexity)
+            format!(
+                "Complexity score: {:.1}/10.0 based on keyword analysis",
+                complexity
+            )
         } else {
-            format!("Complexity score: {:.1}/10.0. {}", complexity, reasons.join(". "))
+            format!(
+                "Complexity score: {:.1}/10.0. {}",
+                complexity,
+                reasons.join(". ")
+            )
         }
     }
 }
@@ -279,7 +286,9 @@ mod tests {
         let issue = create_test_issue(123, "Urgent fix needed", "Critical production issue");
         let analysis = IssueAnalysis::analyze(&issue);
 
-        assert!(analysis.labels.contains(&"priority:P0-Critical".to_string()));
+        assert!(analysis
+            .labels
+            .contains(&"priority:P0-Critical".to_string()));
     }
 
     #[test]

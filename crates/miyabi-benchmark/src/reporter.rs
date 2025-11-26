@@ -61,14 +61,20 @@ impl EvaluationReporter {
 
         // Header
         md.push_str("# SWE-bench Pro Evaluation Report\n\n");
-        md.push_str(&format!("**Date**: {}\n\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S")));
+        md.push_str(&format!(
+            "**Date**: {}\n\n",
+            chrono::Local::now().format("%Y-%m-%d %H:%M:%S")
+        ));
         md.push_str(&format!("**Model**: {}\n", summary.model));
         md.push_str(&format!("**Dataset**: {}\n", summary.dataset));
         md.push_str(&format!("**Split**: {}\n\n", summary.split));
 
         // Summary statistics
         md.push_str("## Summary\n\n");
-        md.push_str(&format!("- **Total Instances**: {}\n", summary.total_instances));
+        md.push_str(&format!(
+            "- **Total Instances**: {}\n",
+            summary.total_instances
+        ));
         md.push_str(&format!(
             "- **Resolved**: {} ({:.2}%)\n",
             summary.resolved_count,
@@ -86,7 +92,10 @@ impl EvaluationReporter {
 
         // Test statistics
         md.push_str("## Test Results\n\n");
-        md.push_str(&format!("- **fail_to_pass**: {} tests passed\n", summary.fail_to_pass_total));
+        md.push_str(&format!(
+            "- **fail_to_pass**: {} tests passed\n",
+            summary.fail_to_pass_total
+        ));
         md.push_str(&format!(
             "- **pass_to_pass**: {} tests passed\n\n",
             summary.pass_to_pass_total
