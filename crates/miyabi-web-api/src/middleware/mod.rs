@@ -20,15 +20,8 @@ use axum::{
 use sqlx::PgPool;
 use uuid::Uuid;
 
-// Re-export RBAC middleware for convenience
-pub use rbac::{
-    require_agent_execute, require_agent_manage, require_agent_read,
-    require_all_permissions, require_any_permission, require_organization_admin,
-    require_organization_member, require_permission, require_repository_delete,
-    require_repository_manage, require_repository_read, require_repository_write,
-    require_workflow_create, require_workflow_execute, require_workflow_read,
-    RbacContext, PermissionRequirement,
-};
+// Re-export RBAC types for convenience
+pub use rbac::{RbacContext, PermissionRequirement, rbac_check_permission};
 
 // ============================================================================
 // Extension Types
