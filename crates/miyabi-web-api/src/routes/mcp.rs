@@ -380,5 +380,5 @@ pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/tools", get(list_mcp_tools))
         .route("/status", get(get_mcp_status))
-        .route("/tools/:tool_name/invoke", post(invoke_mcp_tool))
+        .route("/tools/{tool_name}/invoke", post(invoke_mcp_tool))
 }
