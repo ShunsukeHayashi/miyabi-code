@@ -56,9 +56,15 @@ type ConnectionHandler = (state: ConnectionState) => void;
 // Default Configuration
 // =============================================================================
 
+// WebSocket is disabled in production Lambda (Lambda Function URLs don't support WebSocket)
+// Use polling fallback instead. To enable WebSocket, set NEXT_PUBLIC_WS_URL env variable.
+const WS_DISABLED = !process.env.NEXT_PUBLIC_WS_URL ||
+  process.env.NEXT_PUBLIC_WS_URL === '' ||
+  process.env.NEXT_PUBLIC_WS_URL.includes('lambda-url');
+
 const DEFAULT_CONFIG: Required<WebSocketClientConfig> = {
-  url: process.env.NEXT_PUBLIC_WS_URL || 'wss://api.miyabi.example.com/ws',
-  reconnectMaxRetries: 10,
+  url: process.env.NEXT_PUBLIC_WS_URL || '',
+  reconnectMaxRetries: WS_DISABLED ? 0 : 10,
   reconnectBaseDelay: 1000,
   reconnectMaxDelay: 30000,
   heartbeatInterval: 30000,
@@ -91,6 +97,13 @@ export class WebSocketClient {
   // ---------------------------------------------------------------------------
 
   connect(token?: string): void {
+    // Skip connection if WebSocket is disabled (Lambda production)
+    if (WS_DISABLED || !this.config.url) {
+      console.log('[WebSocket] Disabled in production - using polling fallback');
+      this.setConnectionState('disconnected');
+      return;
+    }
+
     if (this.ws?.readyState === WebSocket.OPEN) {
       return;
     }
@@ -104,6 +117,7 @@ export class WebSocketClient {
         url.searchParams.set('token', this.authToken);
       }
 
+      console.log('[WebSocket] Connecting to', url.toString());
       this.ws = new WebSocket(url.toString());
       this.setupEventListeners();
     } catch (error) {
