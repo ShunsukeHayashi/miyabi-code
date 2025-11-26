@@ -638,7 +638,7 @@ impl A2AEnabled for ReviewAgent {
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(result)
-                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                        .map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
@@ -655,7 +655,7 @@ impl A2AEnabled for ReviewAgent {
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(result)
-                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                        .map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
