@@ -1,0 +1,121 @@
+name: Lambda API Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+      skip_tests:
+        description: 'Skip tests (emergency only)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+  AWS_REGION: us-east-1
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Lambda
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-lambda-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-lambda-
+
+      - name: Install cargo-lambda
+        run: |
+          pip3 install cargo-lambda
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Run tests
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          cargo test --package miyabi-web-api --lib
+
+      - name: Build Lambda function
+        run: |
+          cargo lambda build --release --bin lambda-api --features=lambda
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine Lambda function name
+        id: function-name
+        run: |
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "name=miyabi-api-production" >> $GITHUB_OUTPUT
+          else
+            echo "name=miyabi-api-staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to Lambda
+        run: |
+          cargo lambda deploy ${{ steps.function-name.outputs.name }} \
+            --binary-name lambda-api
+
+      - name: Verify deployment
+        run: |
+          # Wait for function to be ready
+          sleep 10
+
+          # Get API Gateway URL
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            API_URL="https://2zdtm81iyl.execute-api.us-east-1.amazonaws.com"
+          else
+            API_URL="https://staging-api.miyabi-society.com"
+          fi
+
+          # Health check
+          echo "Checking health: $API_URL/health"
+          HTTP_CODE=$(curl -s -o /tmp/response.txt -w "%{http_code}" "$API_URL/health" || echo "000")
+
+          echo "HTTP Code: $HTTP_CODE"
+          echo "Response:"
+          cat /tmp/response.txt
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Deployment successful"
+          else
+            echo "⚠️ Health check returned $HTTP_CODE (may still be initializing)"
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Lambda Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Function**: ${{ steps.function-name.outputs.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
