@@ -269,13 +269,13 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .route("/timeline", post(routes::timeline::post_timeline_event))
         // Tmux routes - Does NOT require database (shell commands)
         .route("/tmux/sessions", get(routes::tmux::list_sessions))
-        .route("/tmux/sessions/:name", get(routes::tmux::get_session))
+        .route("/tmux/sessions/{name}", get(routes::tmux::get_session))
         .route(
-            "/tmux/sessions/:name/command",
+            "/tmux/sessions/{name}/command",
             post(routes::tmux::send_command),
         )
         .route(
-            "/tmux/sessions/:name/kill",
+            "/tmux/sessions/{name}/kill",
             post(routes::tmux::kill_session),
         )
         // CodeGen routes - Does NOT require database (in-memory + stub data)
@@ -301,7 +301,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
             get(routes::repositories::list_repositories),
         )
         .route(
-            "/repositories/:id",
+            "/repositories/{id}",
             get(routes::repositories::get_repository),
         )
         .route(
@@ -313,7 +313,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         // Workflow routes - Phase 2.4: Re-enabled with database
         .route("/workflows", post(routes::workflows::create_workflow))
         .route("/workflows", get(routes::workflows::list_workflows))
-        .route("/workflows/:id", get(routes::workflows::get_workflow))
+        .route("/workflows/{id}", get(routes::workflows::get_workflow))
         // Dashboard routes - Phase 2.4: Re-enabled with database
         .route(
             "/dashboard/summary",

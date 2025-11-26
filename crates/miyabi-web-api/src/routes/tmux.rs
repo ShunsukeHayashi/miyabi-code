@@ -305,8 +305,8 @@ fn get_tmux_panes(session_name: &str, window_id: &str) -> Vec<TmuxPane> {
 pub fn routes() -> Router {
     Router::new()
         .route("/sessions", get(list_sessions))
-        .route("/sessions/:session_name", get(get_session))
-        .route("/sessions/:session_name/kill", post(kill_session))
+        .route("/sessions/{session_name}", get(get_session))
+        .route("/sessions/{session_name}/kill", post(kill_session))
         .route("/send-command", post(send_command))
 }
 

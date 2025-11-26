@@ -1,0 +1,215 @@
+<mxfile host="app.diagrams.net" modified="2025-11-26T04:35:00.000Z" agent="Claude Code" version="24.0.0">
+  <diagram name="Miyabi AWS Infrastructure" id="miyabi-aws">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- AWS Cloud Background -->
+        <mxCell id="aws-cloud" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF9900;fillOpacity=10;strokeColor=#FF9900;strokeWidth=3;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="1520" height="680" as="geometry" />
+        </mxCell>
+
+        <!-- AWS Logo/Label -->
+        <mxCell id="aws-label" value="AWS us-east-1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#FF9900" vertex="1" parent="1">
+          <mxGeometry x="60" y="190" width="200" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Main Title -->
+        <mxCell id="main-title" value="Miyabi Society Backend - AWS Production Infrastructure" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=32;fontStyle=1;fontColor=#000000" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="800" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Date/Version -->
+        <mxCell id="metadata" value="Date: 2025-11-26 | Account: 211234825975 | Status: 85% Complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=2;fontColor=#666666" vertex="1" parent="1">
+          <mxGeometry x="500" y="70" width="600" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Internet Layer -->
+        <mxCell id="internet-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="300" y="120" width="1000" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="internet-label" value="Internet / Public Access" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#1976D2" vertex="1" parent="1">
+          <mxGeometry x="320" y="130" width="250" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Users/Clients -->
+        <mxCell id="users" value="👥 Users / Clients&lt;br&gt;Web Browsers | Mobile Apps | API Clients" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1976D2;fontSize=14;fontStyle=1;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="600" y="140" width="400" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway Container -->
+        <mxCell id="apigw-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;strokeWidth=2;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="280" y="250" width="1040" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="apigw-label" value="API Gateway Layer" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#388E3C" vertex="1" parent="1">
+          <mxGeometry x="300" y="260" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway -->
+        <mxCell id="api-gateway" value="🌐 Amazon API Gateway&lt;br&gt;&lt;b&gt;HTTP API (v2)&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;API ID: 2zdtm81iyl&lt;br&gt;Type: HTTP API&lt;br&gt;Protocol: HTTPS only&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Endpoint:&lt;br&gt;https://2zdtm81iyl.execute-api.&lt;br&gt;us-east-1.amazonaws.com" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontSize=11;fontStyle=0;strokeWidth=2;align=left;spacingLeft=10" vertex="1" parent="1">
+          <mxGeometry x="500" y="290" width="320" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway Features -->
+        <mxCell id="apigw-features" value="✅ Status: Operational&lt;br&gt;✅ Lambda Integration&lt;br&gt;⚡ Auto-scaling&lt;br&gt;🔒 TLS 1.2/1.3&lt;br&gt;💰 $1/month (1M requests)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#388E3C;fontSize=10;align=left;spacingLeft=5" vertex="1" parent="1">
+          <mxGeometry x="860" y="290" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda Layer -->
+        <mxCell id="lambda-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="280" y="430" width="1040" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lambda-label" value="Compute Layer (AWS Lambda)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#F57C00" vertex="1" parent="1">
+          <mxGeometry x="300" y="440" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda Function -->
+        <mxCell id="lambda-func" value="⚡ AWS Lambda Function&lt;br&gt;&lt;b&gt;miyabi-api-production&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Runtime: provided.al2&lt;br&gt;Language: Rust (Custom Runtime)&lt;br&gt;Handler: bootstrap&lt;br&gt;Package: 4.8MB (zip)&lt;br&gt;Memory: 512 MB&lt;br&gt;Timeout: 30 seconds&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;⚠️ Status: HTTP 500 (Debug)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#F57C00;fontSize=11;align=left;spacingLeft=10;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="320" y="475" width="280" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda Env Vars -->
+        <mxCell id="lambda-env" value="🔐 Environment Variables&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;DATABASE_URL=postgresql://...&lt;br&gt;JWT_SECRET=***&lt;br&gt;RUST_LOG=info&lt;br&gt;SERVER_ADDRESS=0.0.0.0:8080" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCC80;strokeColor=#F57C00;fontSize=10;align=left;spacingLeft=5" vertex="1" parent="1">
+          <mxGeometry x="640" y="475" width="240" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda Cold Start Info -->
+        <mxCell id="lambda-perf" value="⏱️ Performance&lt;br&gt;━━━━━━━━━━━━━&lt;br&gt;Cold Start: ~5s&lt;br&gt;Warm: ~100ms&lt;br&gt;Build Time: 3m 41s&lt;br&gt;Cost: $0.40/mo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCC80;strokeColor=#F57C00;fontSize=10;align=left;spacingLeft=5" vertex="1" parent="1">
+          <mxGeometry x="640" y="565" width="140" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- IAM Role -->
+        <mxCell id="iam-role" value="🔑 IAM Execution Role&lt;br&gt;&lt;b&gt;miyabi-lambda-execution-role&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Policy:&lt;br&gt;• AWSLambdaBasicExecutionRole&lt;br&gt;• CloudWatch Logs: WRITE&lt;br&gt;• VPC: None (public access)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="920" y="475" width="240" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- CloudWatch Logs -->
+        <mxCell id="cloudwatch" value="📊 CloudWatch Logs&lt;br&gt;&lt;b&gt;/aws/lambda/miyabi-api-production&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;⚠️ Status: No logs (investigating)&lt;br&gt;Retention: 7 days&lt;br&gt;Cost: $0.50/month" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;fontSize=10;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="1180" y="475" width="240" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Database Layer -->
+        <mxCell id="db-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="280" y="650" width="1040" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-label" value="Database Layer (Amazon RDS)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#2E7D32" vertex="1" parent="1">
+          <mxGeometry x="300" y="660" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- RDS PostgreSQL -->
+        <mxCell id="rds-main" value="🗄️ Amazon RDS PostgreSQL 15.15&lt;br&gt;&lt;b&gt;miyabi-postgres-prod&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Endpoint: miyabi-postgres-prod.cileaca4iesh.&lt;br&gt;us-east-1.rds.amazonaws.com:5432&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Instance: db.t3.small (2 vCPU, 2 GB RAM)&lt;br&gt;Storage: 20 GB GP3 (3000 IOPS)&lt;br&gt;Database: miyabi&lt;br&gt;Username: miyabi_admin&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Multi-AZ: No (Single-AZ)&lt;br&gt;Public: Yes&lt;br&gt;SSL/TLS: Required (sslmode=require)&lt;br&gt;Backup: 7 days retention&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;✅ Status: Available&lt;br&gt;✅ Migrations: 7/7 applied" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;align=left;spacingLeft=10;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="320" y="695" width="380" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- Security Group -->
+        <mxCell id="security-group" value="🛡️ Security Group&lt;br&gt;&lt;b&gt;sg-065ba77c858a02964&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Inbound Rules:&lt;br&gt;• PostgreSQL (5432)&lt;br&gt;  Source: 0.0.0.0/0 (All)&lt;br&gt;  Protocol: TCP&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;VPC: default&lt;br&gt;Subnets: 6 AZs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="740" y="695" width="200" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- DB Metrics -->
+        <mxCell id="db-metrics" value="📈 Database Metrics&lt;br&gt;━━━━━━━━━━━━━━━━&lt;br&gt;Tables: 12&lt;br&gt;Migrations: 7/7 ✅&lt;br&gt;Schema Version: 20251125&lt;br&gt;━━━━━━━━━━━━━━━━&lt;br&gt;Tables:&lt;br&gt;• users, organizations&lt;br&gt;• teams, permissions&lt;br&gt;• tasks, workers&lt;br&gt;• execution_logs&lt;br&gt;• github_installations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=9;align=left;spacingLeft=5" vertex="1" parent="1">
+          <mxGeometry x="980" y="695" width="160" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- Cost Breakdown -->
+        <mxCell id="cost-breakdown" value="💰 Monthly Cost Breakdown&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;RDS db.t3.small: $24.82&lt;br&gt;RDS Storage 20GB: $2.30&lt;br&gt;Lambda (1M req): $0.40&lt;br&gt;API Gateway: $1.00&lt;br&gt;CloudWatch Logs: $0.50&lt;br&gt;Data Transfer: $0.90&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;&lt;b&gt;Total: ~$29.92/month&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;fontSize=10;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="1180" y="695" width="200" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- Build Server (MUGEN) -->
+        <mxCell id="build-server" value="🖥️ Build Server (MUGEN)&lt;br&gt;&lt;b&gt;MacBook @ 44.250.27.197&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Build: Cargo 1.80+&lt;br&gt;Target: x86_64-unknown-linux-gnu&lt;br&gt;Build Time: 3m 41s&lt;br&gt;Binary: 11MB → 4.8MB (zip)&lt;br&gt;Compression: 58%&lt;br&gt;━━━━━━━━━━━━━━━━━━━━━━━━&lt;br&gt;✅ Status: Build complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=10;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="200" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Status Legend -->
+        <mxCell id="status-legend" value="📊 Status Legend&lt;br&gt;━━━━━━━━━━━━━━&lt;br&gt;✅ Operational&lt;br&gt;⚠️ Investigating&lt;br&gt;🔄 In Progress&lt;br&gt;❌ Failed&lt;br&gt;⏸️ Paused" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="440" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Current Issues -->
+        <mxCell id="issues-box" value="⚠️ Current Issues&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;1. Lambda HTTP 500 errors&lt;br&gt;   Root cause unknown&lt;br&gt;2. No CloudWatch logs&lt;br&gt;   Preventing debugging&lt;br&gt;3. App initialization?&lt;br&gt;   Cold start timeout&lt;br&gt;4. DB connectivity?&lt;br&gt;   Need to verify&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;Next: Check Lambda logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=9;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="560" width="180" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Progress Indicator -->
+        <mxCell id="progress-box" value="📈 Deployment Progress&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;&lt;b&gt;86% Complete (12/14)&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;✅ RDS Provisioned&lt;br&gt;✅ Migrations Applied&lt;br&gt;✅ Lambda Built&lt;br&gt;✅ Lambda Deployed&lt;br&gt;✅ API Gateway Config&lt;br&gt;✅ IAM Roles&lt;br&gt;✅ Diagrams Created&lt;br&gt;━━━━━━━━━━━━━━━━━━━━&lt;br&gt;🔄 Lambda Debugging&lt;br&gt;⏳ CloudFront Update" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontSize=9;align=left;spacingLeft=5;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="730" width="180" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows and Connections -->
+
+        <!-- Users to API Gateway -->
+        <mxCell id="arrow-users-apigw" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#1976D2;endArrow=classic;endFill=1" edge="1" parent="1" source="users" target="api-gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-https" value="HTTPS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#1976D2" vertex="1" parent="1">
+          <mxGeometry x="730" y="210" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway to Lambda -->
+        <mxCell id="arrow-apigw-lambda" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#F57C00;endArrow=classic;endFill=1" edge="1" parent="1" source="api-gateway" target="lambda-func">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-proxy" value="Lambda Proxy&lt;br&gt;Integration" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#F57C00" vertex="1" parent="1">
+          <mxGeometry x="540" y="405" width="100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda to RDS -->
+        <mxCell id="arrow-lambda-rds" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=4;strokeColor=#2E7D32;endArrow=classic;endFill=1" edge="1" parent="1" source="lambda-func" target="rds-main">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-postgres" value="PostgreSQL&lt;br&gt;SSL/TLS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#2E7D32" vertex="1" parent="1">
+          <mxGeometry x="420" y="620" width="80" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda to IAM -->
+        <mxCell id="arrow-lambda-iam" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C62828;endArrow=classic;endFill=1;dashed=1" edge="1" parent="1" source="lambda-func" target="iam-role">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-assume" value="Assume Role" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#C62828" vertex="1" parent="1">
+          <mxGeometry x="720" y="505" width="80" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Lambda to CloudWatch -->
+        <mxCell id="arrow-lambda-cw" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#7B1FA2;endArrow=classic;endFill=1;dashed=1" edge="1" parent="1" source="lambda-func" target="cloudwatch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="515" />
+              <mxPoint x="1300" y="515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-logs" value="Write Logs" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#7B1FA2" vertex="1" parent="1">
+          <mxGeometry x="920" y="495" width="80" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- MUGEN to Lambda -->
+        <mxCell id="arrow-mugen-lambda" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57F17;endArrow=classic;endFill=1;dashed=1" edge="1" parent="1" source="build-server" target="lambda-func">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-deploy" value="Deploy&lt;br&gt;bootstrap.zip" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#F57F17" vertex="1" parent="1">
+          <mxGeometry x="265" y="405" width="80" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Security Group to RDS -->
+        <mxCell id="arrow-sg-rds" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C62828;endArrow=classic;endFill=1;dashed=1" edge="1" parent="1" source="security-group" target="rds-main">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-protects" value="Protects" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#C62828" vertex="1" parent="1">
+          <mxGeometry x="705" y="755" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Footer -->
+        <mxCell id="footer-text" value="Miyabi Society Backend - Phase 0 Production Infrastructure | AWS us-east-1 | Account: 211234825975 | Generated: 2025-11-26 13:35 UTC" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#666666" vertex="1" parent="1">
+          <mxGeometry x="400" y="870" width="800" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
