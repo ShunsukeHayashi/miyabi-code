@@ -1,0 +1,116 @@
+From c8d5a4e09b02e808f8b040ae0a4b2c0b64ee1c77 Mon Sep 17 00:00:00 2001
+From: Shunsuke Hayashi <supernovasyun@gmail.com>
+Date: Fri, 21 Nov 2025 01:24:24 +0000
+Subject: [PATCH 2/2] feat: Integrate Gemini CLI with Miyabi project
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Add GEMINI.md context file for Gemini CLI integration:
+- Project overview and architecture
+- 38+ AI Agents roster and responsibilities
+- Current active issues and priorities
+- Development guidelines and best practices
+- MCP server integration information
+- How to assist guidelines for Gemini CLI
+
+This enables Gemini CLI to understand Miyabi project context
+and provide intelligent assistance for development tasks.
+
+Configuration added to MUGEN environment:
+- Gemini CLI v0.17.0 (npx)
+- API key authentication
+- Convenient aliases (gemini, gemini3, miyabi-gemini)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ GEMINI.md | 75 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
+ create mode 100644 GEMINI.md
+
+diff --git a/GEMINI.md b/GEMINI.md
+new file mode 100644
+index 000000000..e2f9e0456
+--- /dev/null
++++ b/GEMINI.md
+@@ -0,0 +1,75 @@
++# Miyabi Project - Gemini CLI Context
++
++**Project**: Miyabi - Autonomous AI Development Framework
++**Repository**: https://github.com/customer-cloud/miyabi-private
++**Language**: Rust 2021 Edition + TypeScript
++**Purpose**: Complete autonomous AI-driven development operations platform
++
++## Project Overview
++
++Miyabi is a GitHub-as-OS architecture that automates:
++- Issue creation → Code implementation → PR creation → Deployment
++
++**Components**:
++- 59 Rust crates
++- 38+ AI Agents (14 Business + 24 Coding/Infrastructure)
++- 24 MCP servers
++- Git Worktree parallel execution infrastructure
++- VOICEVOX integration (voice notifications)
++- 3D visualization system
++
++## Key Technologies
++
++- **Backend**: Rust (actix-web, tokio, sqlx)
++- **Frontend**: TypeScript, React, Vite, shadcn/ui
++- **Infrastructure**: AWS, Docker, GitHub Actions
++- **AI Integration**: MCP (Model Context Protocol)
++
++## Current Work
++
++**Branch**: feature/ai-factory-hero-fixes
++**Active Issues**: 
++- #1049 [P1] Authentication & Authorization (in progress)
++- #1045 [P1] Rust Backend API Integration
++- #1026-1028 [P1] Testing Suite (Backend, Frontend, E2E)
++
++## Agent Roster
++
++### Coding Agents
++- **みつけるん** (IssueAgent) - Issue triage
++- **しきるん** (CoordinatorAgent) - Task decomposition
++- **カエデ** (CodeGenAgent) - Implementation
++- **サクラ** (ReviewAgent) - Code review
++- **ツバキ** (PRAgent) - PR management
++- **ボタン** (DeploymentAgent) - Deployment
++
++### Business Agents
++23 agents covering strategy, marketing, sales, CRM, content creation
++
++## Development Guidelines
++
++- Follow Rust best practices (rustfmt, clippy)
++- Jonathan Ive minimalist design principles for UI
++- P0-P3 priority system (57-label GitHub system)
++- Test coverage targets: Backend 85%, Frontend 70%
++
++## How to Help
++
++When assisting with Miyabi:
++1. Check current branch and Issue status
++2. Review .claude/context/ for detailed specifications
++3. Follow Agent character guidelines in .claude/agents/
++4. Use appropriate labels and priorities
++5. Integrate with existing MCP servers when possible
++
++## MCP Servers Available
++
++24 servers including:
++- miyabi-github (GitHub operations)
++- miyabi-obsidian (Documentation)
++- gemini3-uiux-designer (UI/UX review)
++- lark-openapi-enhanced (Team communication)
++
++---
++
++For detailed context, see: .claude/CLAUDE.md
+-- 
+2.34.1
+

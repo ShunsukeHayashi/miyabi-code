@@ -77,6 +77,7 @@ pub enum AgentEvent {
 pub struct EventBroadcaster {
     agent_sender: Arc<broadcast::Sender<AgentEvent>>,
     event_sender: Arc<broadcast::Sender<Event>>,
+    ws_manager: Option<Arc<crate::websocket::WsState>>,
 }
 
 impl EventBroadcaster {
@@ -87,6 +88,18 @@ impl EventBroadcaster {
         Self {
             agent_sender: Arc::new(agent_sender),
             event_sender: Arc::new(event_sender),
+            ws_manager: None,
+        }
+    }
+
+    /// Creates a new event broadcaster with WebSocket integration (Issue #1175)
+    pub fn with_websocket(ws_manager: Arc<crate::websocket::WsState>) -> Self {
+        let (agent_sender, _) = broadcast::channel(EVENT_BUFFER_SIZE);
+        let (event_sender, _) = broadcast::channel(EVENT_BUFFER_SIZE);
+        Self {
+            agent_sender: Arc::new(agent_sender),
+            event_sender: Arc::new(event_sender),
+            ws_manager: Some(ws_manager),
         }
     }
 
@@ -174,9 +187,18 @@ impl EventBroadcaster {
             execution_id,
             repository_id,
             issue_number,
-            agent_type,
+            agent_type: agent_type.clone(),
             timestamp: Utc::now(),
         });
+
+        // Issue #1175: Also broadcast to WebSocket clients
+        if let Some(ref ws) = self.ws_manager {
+            ws.broadcast_agent_started(
+                agent_type,
+                issue_number,
+                execution_id.to_string(),
+            );
+        }
     }
 
     /// Broadcasts execution progress event
@@ -184,9 +206,19 @@ impl EventBroadcaster {
         self.broadcast_agent(AgentEvent::ExecutionProgress {
             execution_id,
             progress: progress.min(100),
-            message,
+            message: message.clone(),
             timestamp: Utc::now(),
         });
+
+        // Issue #1175: Also broadcast to WebSocket clients
+        if let Some(ref ws) = self.ws_manager {
+            ws.broadcast_agent_progress(
+                "agent", // We don't have agent_type in this signature
+                progress,
+                message,
+                execution_id.to_string(),
+            );
+        }
     }
 
     /// Broadcasts execution completed event
@@ -202,15 +234,45 @@ impl EventBroadcaster {
             pr_number,
             timestamp: Utc::now(),
         });
+
+        // Issue #1175: Also broadcast to WebSocket clients
+        if let Some(ref ws) = self.ws_manager {
+            use crate::websocket::AgentResult;
+            ws.broadcast_agent_completed(
+                "agent", // We don't have agent_type in this signature
+                execution_id.to_string(),
+                AgentResult {
+                    success: true,
+                    quality_score,
+                    pr_number,
+                    error: None,
+                },
+            );
+        }
     }
 
     /// Broadcasts execution failed event
     pub fn execution_failed(&self, execution_id: Uuid, error: String) {
         self.broadcast_agent(AgentEvent::ExecutionFailed {
             execution_id,
-            error,
+            error: error.clone(),
             timestamp: Utc::now(),
         });
+
+        // Issue #1175: Also broadcast to WebSocket clients
+        if let Some(ref ws) = self.ws_manager {
+            use crate::websocket::AgentResult;
+            ws.broadcast_agent_completed(
+                "agent", // We don't have agent_type in this signature
+                execution_id.to_string(),
+                AgentResult {
+                    success: false,
+                    quality_score: None,
+                    pr_number: None,
+                    error: Some(error),
+                },
+            );
+        }
     }
 
     /// Broadcasts execution log event

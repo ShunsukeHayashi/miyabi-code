@@ -809,3 +809,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Content Management System");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(ContentCreationAgent, "ContentCreationAgent");

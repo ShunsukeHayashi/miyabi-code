@@ -634,3 +634,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Task Management Platform");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(ProductConceptAgent, "ProductConceptAgent");

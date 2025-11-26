@@ -635,3 +635,6 @@ mod tests {
         assert_eq!(task.title, "Tech Entrepreneur with 5 years experience");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(SelfAnalysisAgent, "SelfAnalysisAgent");

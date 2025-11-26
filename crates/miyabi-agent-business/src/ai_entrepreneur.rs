@@ -722,3 +722,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Project Management Tool");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(AIEntrepreneurAgent, "AIEntrepreneurAgent");

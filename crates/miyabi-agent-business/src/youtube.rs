@@ -849,3 +849,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Video Analytics Platform");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(YouTubeAgent, "YouTubeAgent");

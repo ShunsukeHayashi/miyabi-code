@@ -54,6 +54,7 @@ pub mod jonathan_ive_design;
 pub mod market_research;
 pub mod marketing;
 pub mod persona;
+pub mod persistence;
 pub mod product_concept;
 pub mod product_design;
 pub mod sales;
@@ -70,6 +71,9 @@ pub use jonathan_ive_design::JonathanIveDesignAgent;
 pub use market_research::MarketResearchAgent;
 pub use marketing::MarketingAgent;
 pub use persona::PersonaAgent;
+pub use persistence::{
+    AgentExecutionResult, ExecutionResultBuilder, ExecutionStatus, PersistableAgent,
+};
 pub use product_concept::ProductConceptAgent;
 pub use product_design::ProductDesignAgent;
 pub use sales::SalesAgent;

@@ -481,3 +481,6 @@ mod tests {
         assert_eq!(task.title, "Dashboard UI Design");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(JonathanIveDesignAgent, "JonathanIveDesignAgent");

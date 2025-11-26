@@ -1,0 +1,346 @@
+From 07220e9e6fea4b085e5caa59b1499084974715c4 Mon Sep 17 00:00:00 2001
+From: Shunsuke Hayashi <supernovasyun@gmail.com>
+Date: Thu, 20 Nov 2025 07:05:55 +0000
+Subject: [PATCH 1/2] feat(testing): Add test scripts and configurations
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Add GitHub Actions test workflow
+- Add test scripts to miyabi-console package.json
+- Add Playwright and Vitest configurations
+- Add test setup files
+- Add run-all-tests.sh script
+- Add tarpaulin.toml for Rust code coverage
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .github/workflows/test.yml          | 119 ++++++++++++++++++++++++++++
+ miyabi-console/package.json         |   7 +-
+ miyabi-console/playwright.config.ts |  25 ++++++
+ miyabi-console/src/test/setup.ts    |   8 ++
+ miyabi-console/vitest.config.ts     |  35 ++++++++
+ scripts/run-all-tests.sh            |  30 +++++++
+ tarpaulin.toml                      |  38 +++++++++
+ 7 files changed, 261 insertions(+), 1 deletion(-)
+ create mode 100644 .github/workflows/test.yml
+ create mode 100644 miyabi-console/playwright.config.ts
+ create mode 100644 miyabi-console/src/test/setup.ts
+ create mode 100644 miyabi-console/vitest.config.ts
+ create mode 100755 scripts/run-all-tests.sh
+ create mode 100644 tarpaulin.toml
+
+diff --git a/.github/workflows/test.yml b/.github/workflows/test.yml
+new file mode 100644
+index 000000000..ff042fe99
+--- /dev/null
++++ b/.github/workflows/test.yml
+@@ -0,0 +1,119 @@
++name: Tests
++
++on:
++  push:
++    branches: [ main, develop, feature/** ]
++  pull_request:
++    branches: [ main, develop ]
++
++env:
++  CARGO_TERM_COLOR: always
++
++jobs:
++  backend-tests:
++    name: Backend Tests (Rust)
++    runs-on: ubuntu-latest
++
++    steps:
++      - uses: actions/checkout@v4
++
++      - name: Install Rust toolchain
++        uses: dtolnay/rust-toolchain@stable
++
++      - name: Cache cargo registry
++        uses: actions/cache@v4
++        with:
++          path: ~/.cargo/registry
++          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
++
++      - name: Cache cargo index
++        uses: actions/cache@v4
++        with:
++          path: ~/.cargo/git
++          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
++
++      - name: Cache cargo build
++        uses: actions/cache@v4
++        with:
++          path: target
++          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
++
++      - name: Install cargo-nextest
++        uses: taiki-e/install-action@cargo-nextest
++
++      - name: Run tests
++        run: cargo nextest run --workspace --all-features
++
++      - name: Install tarpaulin
++        run: cargo install cargo-tarpaulin
++
++      - name: Generate coverage
++        run: cargo tarpaulin --workspace --out Xml --output-dir coverage
++
++      - name: Upload coverage to Codecov
++        uses: codecov/codecov-action@v4
++        with:
++          files: ./coverage/cobertura.xml
++          flags: backend
++
++  frontend-tests:
++    name: Frontend Tests (React)
++    runs-on: ubuntu-latest
++
++    steps:
++      - uses: actions/checkout@v4
++
++      - name: Setup Node.js
++        uses: actions/setup-node@v4
++        with:
++          node-version: '20'
++          cache: 'npm'
++          cache-dependency-path: miyabi-console/package-lock.json
++
++      - name: Install dependencies
++        working-directory: ./miyabi-console
++        run: npm ci
++
++      - name: Run tests
++        working-directory: ./miyabi-console
++        run: npm run test:coverage
++
++      - name: Upload coverage to Codecov
++        uses: codecov/codecov-action@v4
++        with:
++          files: ./miyabi-console/coverage/lcov.info
++          flags: frontend
++
++  e2e-tests:
++    name: E2E Tests (Playwright)
++    runs-on: ubuntu-latest
++
++    steps:
++      - uses: actions/checkout@v4
++
++      - name: Setup Node.js
++        uses: actions/setup-node@v4
++        with:
++          node-version: '20'
++          cache: 'npm'
++          cache-dependency-path: miyabi-console/package-lock.json
++
++      - name: Install dependencies
++        working-directory: ./miyabi-console
++        run: npm ci
++
++      - name: Install Playwright browsers
++        working-directory: ./miyabi-console
++        run: npx playwright install --with-deps
++
++      - name: Run E2E tests
++        working-directory: ./miyabi-console
++        run: npx playwright test
++
++      - name: Upload Playwright report
++        uses: actions/upload-artifact@v4
++        if: always()
++        with:
++          name: playwright-report
++          path: miyabi-console/playwright-report/
++          retention-days: 30
+diff --git a/miyabi-console/package.json b/miyabi-console/package.json
+index 5954e0b53..3ece60f60 100644
+--- a/miyabi-console/package.json
++++ b/miyabi-console/package.json
+@@ -7,7 +7,12 @@
+     "dev": "vite",
+     "build": "tsc && vite build",
+     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+-    "preview": "vite preview"
++    "preview": "vite preview",
++    "test": "vitest",
++    "test:ui": "vitest --ui",
++    "test:coverage": "vitest run --coverage",
++    "test:e2e": "playwright test",
++    "test:e2e:ui": "playwright test --ui"
+   },
+   "dependencies": {
+     "@google/generative-ai": "^0.24.1",
+diff --git a/miyabi-console/playwright.config.ts b/miyabi-console/playwright.config.ts
+new file mode 100644
+index 000000000..f60378303
+--- /dev/null
++++ b/miyabi-console/playwright.config.ts
+@@ -0,0 +1,25 @@
++import { defineConfig, devices } from '@playwright/test'
++
++export default defineConfig({
++  testDir: './e2e',
++  fullyParallel: true,
++  forbidOnly: !!process.env.CI,
++  retries: process.env.CI ? 2 : 0,
++  workers: process.env.CI ? 1 : undefined,
++  reporter: 'html',
++  use: {
++    baseURL: 'http://localhost:5173',
++    trace: 'on-first-retry',
++  },
++  projects: [
++    {
++      name: 'chromium',
++      use: { ...devices['Desktop Chrome'] },
++    },
++  ],
++  webServer: {
++    command: 'npm run dev',
++    url: 'http://localhost:5173',
++    reuseExistingServer: !process.env.CI,
++  },
++})
+diff --git a/miyabi-console/src/test/setup.ts b/miyabi-console/src/test/setup.ts
+new file mode 100644
+index 000000000..524f27742
+--- /dev/null
++++ b/miyabi-console/src/test/setup.ts
+@@ -0,0 +1,8 @@
++import { expect, afterEach } from 'vitest'
++import { cleanup } from '@testing-library/react'
++import '@testing-library/jest-dom'
++
++// Cleanup after each test
++afterEach(() => {
++  cleanup()
++})
+diff --git a/miyabi-console/vitest.config.ts b/miyabi-console/vitest.config.ts
+new file mode 100644
+index 000000000..7d8d622a6
+--- /dev/null
++++ b/miyabi-console/vitest.config.ts
+@@ -0,0 +1,35 @@
++import { defineConfig } from 'vitest/config'
++import react from '@vitejs/plugin-react'
++import path from 'path'
++
++export default defineConfig({
++  plugins: [react()],
++  test: {
++    globals: true,
++    environment: 'jsdom',
++    setupFiles: './src/test/setup.ts',
++    coverage: {
++      provider: 'v8',
++      reporter: ['text', 'json', 'html', 'lcov'],
++      exclude: [
++        'node_modules/',
++        'src/test/',
++        '**/*.spec.ts',
++        '**/*.test.ts',
++        '**/*.spec.tsx',
++        '**/*.test.tsx',
++      ],
++      thresholds: {
++        lines: 70,
++        functions: 70,
++        branches: 70,
++        statements: 70,
++      },
++    },
++  },
++  resolve: {
++    alias: {
++      '@': path.resolve(__dirname, './src'),
++    },
++  },
++})
+diff --git a/scripts/run-all-tests.sh b/scripts/run-all-tests.sh
+new file mode 100755
+index 000000000..85bb71dbe
+--- /dev/null
++++ b/scripts/run-all-tests.sh
+@@ -0,0 +1,30 @@
++#!/usr/bin/env bash
++# Run all tests (backend + frontend)
++set -euo pipefail
++
++echo "🧪 Running Miyabi Test Suite..."
++echo ""
++
++# Backend tests
++echo "📦 Backend Tests (Rust)"
++cargo nextest run --workspace --all-features
++
++echo ""
++echo "📊 Backend Coverage"
++cargo tarpaulin --workspace --out Html --output-dir coverage/backend
++
++# Frontend tests (if exists)
++if [[ -d "miyabi-console" ]]; then
++    echo ""
++    echo "🎨 Frontend Tests (React)"
++    cd miyabi-console
++    npm run test
++    npm run test:coverage
++    cd ..
++fi
++
++echo ""
++echo "✅ All tests complete!"
++echo "📊 Coverage reports:"
++echo "  - Backend: coverage/backend/index.html"
++echo "  - Frontend: miyabi-console/coverage/index.html"
+diff --git a/tarpaulin.toml b/tarpaulin.toml
+new file mode 100644
+index 000000000..eba52cc75
+--- /dev/null
++++ b/tarpaulin.toml
+@@ -0,0 +1,38 @@
++[workspace]
++# Miyabi Project Coverage Configuration
++# Target: 85% backend coverage
++
++[config.default]
++# Output formats
++out = ["Html", "Lcov", "Json"]
++
++# Coverage engine
++engine = "llvm"
++
++# Exclude patterns
++exclude-files = [
++    "*/tests/*",
++    "*/examples/*",
++    "*/benches/*",
++    "**/target/**",
++]
++
++# Follow branches
++follow-exec = true
++post-test-delay = 1
++
++# Coverage threshold (fail if below)
++fail-under = 80.0
++
++# Verbose output
++verbose = true
++
++# Features to enable
++features = []
++
++# All targets
++all-targets = false
++workspace = true
++
++# Timeout
++timeout = "300s"
+-- 
+2.34.1
+

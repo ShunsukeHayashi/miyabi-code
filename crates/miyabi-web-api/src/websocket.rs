@@ -13,7 +13,39 @@ use tracing::{debug, error, info};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum WsEvent {
-    /// Agent status update
+    /// Agent execution started (Issue #1175)
+    #[serde(rename = "agent_started")]
+    AgentStarted {
+        agent_type: String,
+        issue_number: i32,
+        execution_id: String,
+        timestamp: String,
+    },
+    /// Agent execution progress update (Issue #1175)
+    #[serde(rename = "agent_progress")]
+    AgentProgress {
+        agent_type: String,
+        progress: u8, // 0-100
+        message: String,
+        execution_id: String,
+        timestamp: String,
+    },
+    /// Agent execution completed (Issue #1175)
+    #[serde(rename = "agent_completed")]
+    AgentCompleted {
+        agent_type: String,
+        execution_id: String,
+        result: AgentResult,
+        timestamp: String,
+    },
+    /// Task status updated (Issue #1175)
+    #[serde(rename = "task_updated")]
+    TaskUpdated {
+        task_id: String,
+        status: String,
+        timestamp: String,
+    },
+    /// Agent status update (legacy)
     AgentStatus {
         agent_type: String,
         status: String,
@@ -73,6 +105,15 @@ pub enum WsEvent {
     },
 }
 
+/// Agent execution result (Issue #1175)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentResult {
+    pub success: bool,
+    pub quality_score: Option<i32>,
+    pub pr_number: Option<i32>,
+    pub error: Option<String>,
+}
+
 /// WebSocket connection state
 pub struct WsState {
     pub tx: broadcast::Sender<WsEvent>,
@@ -96,6 +137,66 @@ impl WsState {
     /// Broadcast an event to all connected clients
     pub fn broadcast(&self, event: WsEvent) {
         let _ = self.tx.send(event);
+    }
+
+    /// Broadcast agent started event (Issue #1175)
+    pub fn broadcast_agent_started(
+        &self,
+        agent_type: impl Into<String>,
+        issue_number: i32,
+        execution_id: impl Into<String>,
+    ) {
+        self.broadcast(WsEvent::AgentStarted {
+            agent_type: agent_type.into(),
+            issue_number,
+            execution_id: execution_id.into(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        });
+    }
+
+    /// Broadcast agent progress event (Issue #1175)
+    pub fn broadcast_agent_progress(
+        &self,
+        agent_type: impl Into<String>,
+        progress: u8,
+        message: impl Into<String>,
+        execution_id: impl Into<String>,
+    ) {
+        self.broadcast(WsEvent::AgentProgress {
+            agent_type: agent_type.into(),
+            progress: progress.min(100), // Clamp to 100
+            message: message.into(),
+            execution_id: execution_id.into(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        });
+    }
+
+    /// Broadcast agent completed event (Issue #1175)
+    pub fn broadcast_agent_completed(
+        &self,
+        agent_type: impl Into<String>,
+        execution_id: impl Into<String>,
+        result: AgentResult,
+    ) {
+        self.broadcast(WsEvent::AgentCompleted {
+            agent_type: agent_type.into(),
+            execution_id: execution_id.into(),
+            result,
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        });
+    }
+
+    /// Broadcast task updated event (Issue #1175)
+    pub fn broadcast_task_updated(
+        &self,
+        task_id: impl Into<String>,
+        status: impl Into<String>,
+    ) {
+        self.broadcast(WsEvent::TaskUpdated {
+            task_id: task_id.into(),
+            status: status.into(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        });
     }
 
     /// Handle a WebSocket connection

@@ -37,7 +37,13 @@ pub async fn websocket_handler(
     Query(query): Query<WebSocketQuery>,
     State(state): State<AppState>,
 ) -> Response {
-    // Validate JWT token if provided
+    // Validate JWT token
+    // Issue #1175: Authentication can be made mandatory via env var
+    let require_auth = std::env::var("WS_REQUIRE_AUTH")
+        .unwrap_or_else(|_| "false".to_string())
+        .parse::<bool>()
+        .unwrap_or(false);
+
     let user_id = if let Some(token) = &query.token {
         match state.jwt_manager.validate_token(token) {
             Ok(claims) => {
@@ -61,9 +67,15 @@ pub async fn websocket_handler(
                     .unwrap();
             }
         }
+    } else if require_auth {
+        // Authentication is required but no token provided
+        tracing::warn!("WebSocket connection rejected: authentication required");
+        return axum::response::Response::builder()
+            .status(401)
+            .body("Authentication required".into())
+            .unwrap();
     } else {
         // For development/testing, allow connections without auth
-        // In production, you might want to make authentication mandatory
         tracing::debug!("WebSocket connection without authentication (dev mode)");
         Uuid::new_v4()
     };

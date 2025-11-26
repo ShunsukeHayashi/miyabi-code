@@ -767,3 +767,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Email Marketing Platform");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(MarketingAgent, "MarketingAgent");

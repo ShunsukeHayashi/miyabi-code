@@ -768,3 +768,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Social Media Analytics Platform");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(SNSStrategyAgent, "SNSStrategyAgent");

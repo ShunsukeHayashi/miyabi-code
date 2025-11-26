@@ -796,3 +796,6 @@ mod tests {
         assert_eq!(task.title, "AI-Powered Customer Analytics Platform");
     }
 }
+
+// Database persistence implementation
+crate::impl_persistable_agent!(FunnelDesignAgent, "FunnelDesignAgent");

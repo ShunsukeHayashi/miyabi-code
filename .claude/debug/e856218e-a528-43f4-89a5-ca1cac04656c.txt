@@ -1,0 +1,28 @@
+[DEBUG] Watching for changes in setting files /home/ubuntu/miyabi-private/.claude/settings.json, /home/ubuntu/miyabi-private/.claude/settings.json, /home/ubuntu/miyabi-private/.claude/settings.local.json...
+[ERROR] Failed to save config with lock: Error: ENOENT: no such file or directory, lstat '/home/ubuntu/miyabi-private/.claude.json'
+[DEBUG] Writing to temp file: /home/ubuntu/miyabi-private/.claude.json.tmp.1398625.1763774704581
+[DEBUG] Setting permissions for new file: 600
+[DEBUG] Temp file written successfully, size: 103 bytes
+[DEBUG] Renaming /home/ubuntu/miyabi-private/.claude.json.tmp.1398625.1763774704581 to /home/ubuntu/miyabi-private/.claude.json
+[DEBUG] File /home/ubuntu/miyabi-private/.claude.json written atomically
+[DEBUG] [LSP MANAGER] initializeLspServerManager() called
+[DEBUG] [LSP MANAGER] Created manager instance, state=pending
+[DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+[DEBUG] [LSP SERVER MANAGER] initialize() called
+[DEBUG] [LSP SERVER MANAGER] Calling getAllLspServers()
+[DEBUG] Writing to temp file: /home/ubuntu/miyabi-private/.claude.json.tmp.1398625.1763774704590
+[DEBUG] Preserving file permissions: 100600
+[DEBUG] Temp file written successfully, size: 183 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /home/ubuntu/miyabi-private/.claude.json.tmp.1398625.1763774704590 to /home/ubuntu/miyabi-private/.claude.json
+[DEBUG] File /home/ubuntu/miyabi-private/.claude.json written atomically
+[DEBUG] Writing to temp file: /home/ubuntu/miyabi-private/.claude.json.tmp.1398625.1763774704601
+[DEBUG] Preserving file permissions: 100600
+[DEBUG] Temp file written successfully, size: 220 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /home/ubuntu/miyabi-private/.claude.json.tmp.1398625.1763774704601 to /home/ubuntu/miyabi-private/.claude.json
+[DEBUG] File /home/ubuntu/miyabi-private/.claude.json written atomically
+[DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+[DEBUG] Total LSP servers loaded: 0
+[DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+[DEBUG] LSP manager initialized with 0 servers
