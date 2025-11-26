@@ -11,8 +11,6 @@ character:
   emoji: 🎙️
   archetype: "The Story Weaver"
   personality: ナレーティブ・アルケミスト / 物語紡ぎ師
-version: 3.0.0
-last_updated: 2025-11-26
 ---
 
 # 🎙️ NarrationAgent - ゆっくり解説音声ガイド生成Agent
@@ -47,23 +45,6 @@ last_updated: 2025-11-26
 
 ================================================================================
 ```
-
-## 目次
-
-1. [キャラクター設定](#キャラクター設定---語katari)
-2. [役割](#役割)
-3. [システムアーキテクチャ](#システムアーキテクチャ)
-4. [YouTube戦略](#youtube戦略)
-5. [ゆっくり解説フレームワーク](#ゆっくり解説フレームワーク)
-6. [コンテンツ制作ワークフロー](#コンテンツ制作ワークフロー)
-7. [KPI・メトリクス体系](#kpiメトリクス体系)
-8. [Agent連携](#agent連携)
-9. [技術仕様](#技術仕様)
-10. [実践テクニック](#実践テクニック)
-11. [運用スケジュール](#運用スケジュール)
-12. [トラブルシューティング](#トラブルシューティング)
-
----
 
 ## キャラクター設定 - 語（Katari）
 
@@ -218,30 +199,9 @@ Phase 6: ContentCreation
    └─────────────────┘     └─────────────────┘
 ```
 
-### 主要タスク
-
-1. **Git Commits解析**
-   - Conventional Commits形式のパース
-   - Issue番号・Phase情報の抽出
-   - コミット種別の分類（feat, fix, docs等）
-
-2. **台本生成**
-   - ゆっくり解説風の会話形式に変換
-   - 霊夢（説明役）と魔理沙（反応役）の掛け合い
-   - Markdown形式（`script.md`）とJSON形式（`voicevox_requests.json`）で出力
-
-3. **VOICEVOX音声合成**
-   - VOICEVOX Engine APIで音声合成
-   - 話者: 霊夢（speaker_id=0）、魔理沙（speaker_id=1）
-   - WAVファイル形式で出力
-
-4. **成果物の整理**
-   - `output/` ディレクトリに全ファイルを保存
-   - サマリーレポート（SUMMARY.md）を生成
-
 ---
 
-## システムアーキテクチャ
+## アーキテクチャ図
 
 ### ナレーション生成フロー
 
@@ -375,822 +335,27 @@ quadrantChart
     "四国めたん": [0.45, 0.55]
 ```
 
----
-
-## YouTube戦略
-
-### ゆっくり解説YouTube市場分析
+### 音声合成シーケンス
 
 ```mermaid
-flowchart TB
-    subgraph Research["📊 市場調査"]
-        YT[YouTube<br/>トレンド分析]
-        Tool[リサーチツール<br/>Looker Studio]
-        SNS[他SNS<br/>トレンド確認]
-        Book[書店リサーチ<br/>需要確認]
+sequenceDiagram
+    participant N as NarrationAgent
+    participant V as voicevox_requests.json
+    participant E as VOICEVOX Engine
+    participant F as WAV Files
+
+    N->>V: 台本データ読み込み
+
+    loop 各セリフ
+        V->>E: POST /audio_query<br/>text, speaker_id
+        E-->>N: AudioQuery JSON
+        N->>E: POST /synthesis<br/>AudioQuery
+        E-->>F: WAV バイナリ
+        N->>F: 保存<br/>speaker{id}_{index}.wav
     end
 
-    subgraph Analysis["🔍 競合分析"]
-        View[視聴回数分析]
-        Ratio[拡散率計算<br/>登録者:再生回数]
-        Thumb[サムネ分析]
-        Script[台本構成分析]
-    end
-
-    subgraph Strategy["🎯 戦略立案"]
-        Genre[ジャンル選定]
-        Format[フォーマット決定]
-        Sched[投稿スケジュール]
-        KPI[KPI設定]
-    end
-
-    Research --> Analysis
-    Analysis --> Strategy
-
-    style Research fill:#FF6B6B
-    style Analysis fill:#4ECDC4
-    style Strategy fill:#45B7D1
+    N->>N: SUMMARY.md 生成
 ```
-
-### 拡散率基準マトリクス
-
-| チャンネル登録者数 | 目標拡散率 (再生回数/登録者) | 評価 |
-|-------------------|------------------------------|------|
-| **〜1,000人** | 10倍以上 | バイラル成功 |
-| **1,000〜5万人** | 3〜5倍 | 高い拡散力 |
-| **5万〜10万人** | 1〜3倍 | 良好な拡散 |
-| **10万人〜** | 1倍以上 | 安定運用 |
-
-### ジャンル選定フローチャート
-
-```mermaid
-flowchart TD
-    Start([ジャンル選定開始]) --> Q1{技術系<br/>コンテンツ?}
-
-    Q1 -->|Yes| Tech[技術解説系]
-    Q1 -->|No| Q2{エンタメ系<br/>コンテンツ?}
-
-    Tech --> T1[プログラミング解説]
-    Tech --> T2[開発ツール紹介]
-    Tech --> T3[バグ修正ストーリー]
-
-    Q2 -->|Yes| Ent[エンタメ系]
-    Q2 -->|No| Edu[教育系]
-
-    Ent --> E1[ゆっくり茶番劇]
-    Ent --> E2[ゲーム実況]
-    Ent --> E3[怖い話・オカルト]
-
-    Edu --> Ed1[歴史解説]
-    Edu --> Ed2[科学解説]
-    Edu --> Ed3[雑学]
-
-    T1 --> Exec([コンテンツ制作])
-    T2 --> Exec
-    T3 --> Exec
-    E1 --> Exec
-    E2 --> Exec
-    E3 --> Exec
-    Ed1 --> Exec
-    Ed2 --> Exec
-    Ed3 --> Exec
-
-    style Start fill:#2ECC71
-    style Exec fill:#3498DB
-```
-
-### サムネイル最適化戦略
-
-```yaml
-thumbnail_optimization:
-  core_principles:
-    - "3秒でテーマが伝わる"
-    - "文字は最小限・インパクト重視"
-    - "顔（キャラクター）を大きく"
-    - "コントラスト強調"
-
-  layout_patterns:
-    pattern_1_center_focus:
-      description: "中央に大きくキャラ+テーマ文字"
-      use_case: "王道ゆっくり解説"
-      example: "[キャラ顔] + [衝撃のタイトル]"
-
-    pattern_2_split_screen:
-      description: "左右分割で対比表現"
-      use_case: "比較・対決系"
-      example: "[Before] vs [After]"
-
-    pattern_3_mystery:
-      description: "謎・伏せ字で興味喚起"
-      use_case: "オカルト・陰謀論系"
-      example: "この〇〇の正体とは...?"
-
-  color_psychology:
-    red: "危険・緊急・注意喚起"
-    yellow: "警告・驚き"
-    blue: "信頼・冷静・知的"
-    green: "安心・自然・成長"
-
-  text_design:
-    font_size: "大きく（最小40pt）"
-    font_weight: "太字（Bold以上）"
-    stroke: "白縁取り3-5px"
-    shadow: "黒影でコントラスト"
-    max_characters: 13-15文字以内
-```
-
-### YouTube成長曲線
-
-```mermaid
-xychart-beta
-    title "YouTube登録者数成長推移"
-    x-axis [1ヶ月, 3ヶ月, 6ヶ月, 12ヶ月, 24ヶ月]
-    y-axis "登録者数" 0 --> 100000
-    line [100, 500, 2000, 10000, 50000]
-```
-
-### 視聴維持率向上テクニック
-
-```yaml
-retention_techniques:
-  intro_hook:
-    duration: "0-15秒"
-    objective: "興味を引く"
-    techniques:
-      - "結論先出し: '今日は衝撃の事実をお伝えします'"
-      - "問いかけ: 'あなたは〇〇を知っていますか？'"
-      - "数字インパクト: '99%の人が知らない...'"
-
-  main_content:
-    duration: "15秒-終盤"
-    objective: "飽きさせない"
-    techniques:
-      - "セクション明示: '3つのポイント'"
-      - "適度な間: 5-10秒ごとに場面転換"
-      - "ビジュアル変化: 画像・図解を挿入"
-      - "リアクション: 魔理沙の驚き・ツッコミ"
-
-  outro_cta:
-    duration: "最後30秒"
-    objective: "エンゲージメント促進"
-    techniques:
-      - "次回予告: '次回は〇〇を解説します'"
-      - "チャンネル登録誘導"
-      - "高評価ボタン誘導"
-      - "コメント促進: '皆さんはどう思いますか？'"
-```
-
----
-
-## ゆっくり解説フレームワーク
-
-### 13ジャンル別台本テンプレート
-
-#### 1. 宇宙系解説
-
-```yaml
-genre: "宇宙・天文"
-template:
-  structure:
-    - intro: "今日は宇宙の〇〇について解説するわ！"
-    - phenomenon_intro: "〇〇という現象を知っているか？"
-    - explanation: "実は、〇〇は△△という仕組みなんだぜ"
-    - deep_dive: "さらに詳しく見ていくと..."
-    - hypothesis: "科学者たちは〇〇という仮説を立てている"
-    - speculation: "もしかしたら、〇〇かもしれない"
-    - outro: "宇宙の神秘、また一つ明らかになったな！"
-
-  dialogue_example:
-    reimu: "今日は太陽が燃えているという話について解説するわ"
-    marisa: "太陽って火事みたいに燃えてるのか？"
-    reimu: "実は違うの。太陽は核融合反応で光ってるのよ"
-    marisa: "核融合！？ すごいエネルギーだぜ！"
-
-  visual_assets:
-    - "宇宙の画像（NASAパブリックドメイン）"
-    - "図解イラスト"
-    - "数値データグラフ"
-```
-
-#### 2. 闇・ダーク系
-
-```yaml
-genre: "闇・陰謀論・都市伝説"
-template:
-  structure:
-    - hook: "今日は闇の深い話をするわ..."
-    - warning: "心臓の弱い方は注意してくれよな"
-    - backstory: "事の発端は〇〇年前..."
-    - revelation: "実は、〇〇には裏があったんだ"
-    - evidence: "証拠として、△△が残っている"
-    - conspiracy: "真実は隠蔽されてきた..."
-    - outro: "真実はいつも闇の中...信じるか信じないかは、あなた次第"
-
-  tone:
-    reimu: "落ち着いた、やや不安を煽るトーン"
-    marisa: "驚き・恐怖のリアクション"
-
-  visual_assets:
-    - "暗めの背景"
-    - "不気味なBGM"
-    - "白黒写真・資料画像"
-```
-
-#### 3. 怖い話
-
-```yaml
-genre: "ホラー・怪談"
-template:
-  structure:
-    - setting: "これは〇〇で起きた実話です"
-    - character_intro: "主人公は△△という人物"
-    - incident: "ある日、異変が起きた..."
-    - escalation: "そして、恐ろしいことに..."
-    - climax: "その瞬間、〇〇が...！"
-    - resolution: "結局、真相は分からないまま..."
-    - outro: "あなたの周りでも、起きるかもしれません"
-
-  pacing:
-    intro: "ゆっくり、落ち着いて"
-    middle: "徐々にテンポアップ"
-    climax: "間を活かして緊張感"
-    outro: "静かに締める"
-
-  sound_design:
-    bgm: "不気味なアンビエント"
-    se:
-      - "ドアの軋み音"
-      - "足音"
-      - "心臓の鼓動音"
-```
-
-#### 4. スピリチュアル
-
-```yaml
-genre: "スピリチュアル・精神世界"
-template:
-  structure:
-    - greeting: "今日は魂のお話をするわ"
-    - concept_intro: "〇〇という概念を聞いたことある？"
-    - explanation: "これは△△を意味しているんだ"
-    - practice: "実践方法として、〇〇がある"
-    - benefits: "これを行うことで、□□の効果が"
-    - caution: "ただし、無理は禁物よ"
-    - outro: "あなたの内なる光を信じて"
-
-  tone:
-    reimu: "優しく、包み込むような語り口"
-    marisa: "興味津々、前向きなリアクション"
-
-  visual_assets:
-    - "幻想的な背景"
-    - "ヒーリング系BGM"
-    - "キラキラエフェクト"
-```
-
-#### 5. 雑学
-
-```yaml
-genre: "雑学・トリビア"
-template:
-  structure:
-    - question: "〇〇って知ってる？"
-    - answer_tease: "実は、意外な真実があるんだぜ"
-    - explanation: "〇〇の由来は△△なの"
-    - trivia_1: "さらに、こんな雑学も"
-    - trivia_2: "そして、もう一つ"
-    - practical: "日常で使える豆知識"
-    - outro: "明日から使えるネタだな！"
-
-  format:
-    style: "リズミカル・テンポ良く"
-    segments: "3-5個の雑学を連続"
-
-  visual_assets:
-    - "カラフルな図解"
-    - "アニメーション"
-    - "クイズ形式の演出"
-```
-
-#### 6. ニュース解説
-
-```yaml
-genre: "時事・ニュース解説"
-template:
-  structure:
-    - headline: "今日のニュースは〇〇よ"
-    - summary: "簡単に説明すると△△だぜ"
-    - background: "この背景には□□がある"
-    - impact: "これが与える影響は..."
-    - opinions: "専門家の見解によると"
-    - future: "今後の展開は？"
-    - outro: "引き続き注目していこう"
-
-  tone:
-    reimu: "客観的・中立的"
-    marisa: "一般視聴者目線の疑問"
-
-  visual_assets:
-    - "ニュース画像・映像"
-    - "データグラフ"
-    - "タイムライン図"
-```
-
-#### 7. 地理・地政学
-
-```yaml
-genre: "地理・地政学"
-template:
-  structure:
-    - location_intro: "今日は〇〇という国について"
-    - geography: "地理的特徴は△△だぜ"
-    - history: "歴史を遡ると..."
-    - current_situation: "現在の状況は"
-    - geopolitics: "地政学的に見ると"
-    - future: "今後の見通しは"
-    - outro: "世界は複雑に繋がっているわね"
-
-  visual_assets:
-    - "地図・地球儀"
-    - "国旗・象徴"
-    - "統計データ"
-```
-
-#### 8. 2ch系・スレッド形式
-
-```yaml
-genre: "2chまとめ・スレッド"
-template:
-  structure:
-    - op_post: "【スレタイ】1: イッチ ○○"
-    - reaction_1: "2: 名無し それすごいな"
-    - story_dev: "3: イッチ 実はさ..."
-    - reaction_2: "5: 名無し マジかよ"
-    - climax: "10: イッチ そして..."
-    - resolution: "20: イッチ 結局..."
-    - outro: "100: 名無し いい話だった"
-
-  character_mapping:
-    op: "霊夢（イッチ役）"
-    anon: "魔理沙（名無し役）"
-
-  visual_assets:
-    - "2chスレッド風デザイン"
-    - "レス番号表示"
-    - "AAアスキーアート（適宜）"
-```
-
-#### 9. ナレーション解説系
-
-```yaml
-genre: "ナレーション単独解説"
-template:
-  structure:
-    - intro: "本日は〇〇について解説します"
-    - part_1: "まず第一に..."
-    - part_2: "次に..."
-    - part_3: "そして..."
-    - conclusion: "以上のことから..."
-    - outro: "ご視聴ありがとうございました"
-
-  tone:
-    narrator: "落ち着いた、プロフェッショナルな語り"
-
-  use_cases:
-    - "科学解説"
-    - "歴史ドキュメンタリー"
-    - "ミステリー調査"
-```
-
-#### 10. ずんだもん解説
-
-```yaml
-genre: "ずんだもん主役コント"
-template:
-  structure:
-    - scenario_intro: "今日はずんだもんが〇〇に挑戦"
-    - action: "ずんだもん、△△をやってみる"
-    - trouble: "あれ？ うまくいかないのだ"
-    - help: "誰か助けて〜！"
-    - resolution: "なんとか解決"
-    - outro: "勉強になったのだ！"
-
-  tone:
-    zundamon: "元気・明るい・語尾に『なのだ』"
-
-  visual_assets:
-    - "ずんだもんキャラ立ち絵"
-    - "ポップなエフェクト"
-    - "コメディ調SE"
-```
-
-#### 11. 属人解説（専門家系）
-
-```yaml
-genre: "専門家解説"
-template:
-  structure:
-    - credentials: "〇〇の専門家が解説します"
-    - problem: "多くの人が誤解していること"
-    - correct_info: "正しくはこうです"
-    - evidence: "研究データによると..."
-    - practical: "実践的なアドバイス"
-    - qa: "よくある質問"
-    - outro: "健康・知識は一生の宝です"
-
-  tone:
-    expert: "権威的だが親しみやすく"
-
-  use_cases:
-    - "健康・医療"
-    - "ダイエット・フィットネス"
-    - "本要約・ビジネス書解説"
-```
-
-#### 12. 歴史解説
-
-```yaml
-genre: "歴史・人物伝"
-template:
-  structure:
-    - era_intro: "時は〇〇時代"
-    - character_intro: "△△という人物がいた"
-    - achievement: "彼が成し遂げたこと"
-    - challenge: "しかし困難も..."
-    - legacy: "その功績は今も"
-    - lesson: "私たちが学ぶべきこと"
-    - outro: "歴史から学ぶことは多いわね"
-
-  visual_assets:
-    - "時代背景画像"
-    - "人物肖像画"
-    - "年表・地図"
-```
-
-#### 13. 科学解説
-
-```yaml
-genre: "科学・テクノロジー"
-template:
-  structure:
-    - phenomenon: "〇〇という現象"
-    - question: "なぜこうなるのか？"
-    - hypothesis: "科学者たちの仮説"
-    - experiment: "実験で検証すると"
-    - mechanism: "仕組みはこうなっている"
-    - application: "これが応用されて△△に"
-    - outro: "科学は面白いぜ！"
-
-  visual_assets:
-    - "実験映像・図解"
-    - "分子構造・化学式"
-    - "グラフ・データ可視化"
-```
-
-### 共通台本構成原則
-
-```yaml
-script_principles:
-  length:
-    short: "3-5分（〜1,500字）"
-    medium: "7-10分（2,000-3,000字）"
-    long: "15-20分（4,000-6,000字）"
-
-  pacing:
-    intro: "15秒以内に本題へ"
-    body: "セクションごとに2-3分"
-    outro: "30秒で締める"
-
-  dialogue_balance:
-    reimu_ratio: "60%（説明役）"
-    marisa_ratio: "40%（反応役）"
-
-  engagement_hooks:
-    frequency: "1-2分ごと"
-    techniques:
-      - "問いかけ"
-      - "驚きの事実"
-      - "ユーモア"
-      - "視覚的変化"
-```
-
----
-
-## コンテンツ制作ワークフロー
-
-### 企画フェーズ
-
-```mermaid
-flowchart LR
-    subgraph Research["リサーチ"]
-        Trend[トレンド調査]
-        Comp[競合分析]
-        Demand[需要確認]
-    end
-
-    subgraph Planning["企画"]
-        Theme[テーマ決定]
-        Angle[切り口検討]
-        Script[台本構成]
-    end
-
-    subgraph Asset["素材準備"]
-        Image[画像収集]
-        BGM[BGM選定]
-        Voice[音声準備]
-    end
-
-    Research --> Planning
-    Planning --> Asset
-
-    style Research fill:#FF9F43
-    style Planning fill:#54A0FF
-    style Asset fill:#48C9B0
-```
-
-### サムネイル制作ワークフロー
-
-```yaml
-thumbnail_workflow:
-  step_1_research:
-    - "競合チャンネルのサムネ分析"
-    - "クリック率の高いフォーマット特定"
-    - "トレンドデザイン確認"
-
-  step_2_design:
-    tool: "Adobe Photoshop"
-    elements:
-      - "キャッチコピー決定（13-15文字）"
-      - "背景画像選定"
-      - "キャラクター配置"
-      - "装飾・エフェクト"
-
-  step_3_optimization:
-    - "複数パターン作成（A/Bテスト用）"
-    - "モバイル表示確認"
-    - "文字可読性チェック"
-
-  step_4_iteration:
-    - "CTR分析"
-    - "改善点洗い出し"
-    - "次回デザインへ反映"
-```
-
-### 台本制作ワークフロー
-
-```yaml
-script_workflow:
-  step_1_structure:
-    - "OP・本編・EDの構成決定"
-    - "セクション分割（3-5パート）"
-    - "各セクションの目的明確化"
-
-  step_2_dialogue:
-    - "霊夢（説明役）のセリフ作成"
-    - "魔理沙（反応役）のセリフ作成"
-    - "掛け合いのリズム調整"
-    - "ユーモア・驚きの挿入"
-
-  step_3_review:
-    - "読み上げて不自然さチェック"
-    - "専門用語の分かりやすさ"
-    - "冗長な部分の削除"
-
-  step_4_finalize:
-    - "Markdown形式で出力"
-    - "JSON形式で音声リクエスト生成"
-```
-
-### 音声合成ワークフロー
-
-```yaml
-voice_synthesis_workflow:
-  step_1_voicevox_setup:
-    - "VOICEVOX Engine起動確認"
-    - "話者ID設定（霊夢=0, 魔理沙=1）"
-    - "音声パラメータ調整"
-
-  step_2_synthesis:
-    - "台本JSON読み込み"
-    - "セリフごとにaudio_query取得"
-    - "synthesis APIで音声生成"
-    - "WAVファイル保存"
-
-  step_3_quality_check:
-    - "音声明瞭度確認"
-    - "話速適正チェック"
-    - "イントネーション確認"
-
-  step_4_export:
-    - "audio/ディレクトリに整理"
-    - "ファイル名規則に従って命名"
-    - "SUMMARY.mdに統計記録"
-```
-
-### 動画編集ワークフロー
-
-```yaml
-video_editing_workflow:
-  tool: "ゆっくりムービーメーカー4（YMM4）"
-
-  step_1_import:
-    - "台本データ読み込み"
-    - "音声ファイル配置"
-    - "タイムライン自動生成"
-
-  step_2_visual:
-    - "立ち絵配置（霊夢・魔理沙）"
-    - "字幕自動生成"
-    - "画像・図解挿入"
-    - "背景設定"
-
-  step_3_effects:
-    - "表情変化設定"
-    - "エフェクト追加"
-    - "トランジション設定"
-
-  step_4_audio:
-    - "BGM挿入"
-    - "SE（効果音）配置"
-    - "音量バランス調整"
-
-  step_5_export:
-    - "1080p60fps出力"
-    - "H.264コーデック"
-    - "ビットレート設定（10Mbps）"
-```
-
-### BGM・SE選定ガイドライン
-
-```yaml
-audio_assets:
-  bgm_selection:
-    intro:
-      mood: "明るい・期待感"
-      volume: "-20dB"
-      examples: ["オープニングジングル", "アップテンポBGM"]
-
-    main_content:
-      mood: "落ち着き・集中"
-      volume: "-25dB"
-      examples: ["アンビエント", "ループBGM"]
-
-    outro:
-      mood: "爽やか・締め"
-      volume: "-20dB"
-      examples: ["エンディングテーマ"]
-
-  se_library:
-    reactions:
-      - "ピコーン（気づき）"
-      - "ドーン（衝撃）"
-      - "シーン（静寂）"
-      - "ワイプ音（場面転換）"
-
-    emphasis:
-      - "チャリーン（重要ポイント）"
-      - "キラキラ（ポジティブ）"
-      - "ブブー（間違い）"
-
-  copyright:
-    use: "フリー素材のみ"
-    sources:
-      - "魔王魂"
-      - "効果音ラボ"
-      - "DOVA-SYNDROME"
-      - "YouTubeオーディオライブラリ"
-```
-
----
-
-## KPI・メトリクス体系
-
-### YouTubパフォーマンスKPI
-
-```yaml
-youtube_kpis:
-  primary_metrics:
-    views:
-      target: "1,000再生/動画（初月）"
-      growth: "月次20%成長"
-      benchmark: "10,000再生/動画（6ヶ月目）"
-
-    ctr:
-      name: "クリック率（Click-Through Rate）"
-      target: "5%以上"
-      excellent: "8%以上"
-      calculation: "クリック数 / インプレッション数 × 100"
-
-    avg_view_duration:
-      target: "50%以上"
-      excellent: "60%以上"
-      importance: "YouTube推奨アルゴリズム重視"
-
-    subscriber_growth:
-      target: "+100人/月（初期）"
-      growth: "+500人/月（3ヶ月目）"
-      milestone: "1,000人（収益化条件）"
-
-  engagement_metrics:
-    likes:
-      target: "視聴回数の3%"
-      calculation: "いいね数 / 視聴回数 × 100"
-
-    comments:
-      target: "視聴回数の0.5%"
-      engagement_score: "高コメント率 = 高エンゲージメント"
-
-    shares:
-      target: "視聴回数の1%"
-      viral_threshold: "3%以上でバイラル可能性"
-
-  watch_time:
-    total_watch_time:
-      target: "4,000時間/年（収益化条件）"
-      monthly: "333時間/月"
-
-    session_time:
-      target: "5分以上/セッション"
-      excellent: "10分以上/セッション"
-```
-
-### ナレーション品質メトリクス
-
-```yaml
-narration_quality_metrics:
-  audio_quality:
-    clarity:
-      measurement: "音声明瞭度スコア"
-      target: "90/100以上"
-      tools: ["PESQ測定", "MOS評価"]
-
-    naturalness:
-      measurement: "自然さスコア"
-      target: "85/100以上"
-      evaluation: "聴取者アンケート"
-
-    consistency:
-      measurement: "話速・音量の一貫性"
-      target: "SD < 10%"
-
-  script_quality:
-    readability:
-      measurement: "読みやすさスコア"
-      target: "中学生レベル（読解レベル7-8）"
-      tools: ["textstat", "ReadabilityFormulas"]
-
-    engagement:
-      measurement: "エンゲージメント要素数"
-      target: "1-2分ごとに1回以上"
-      elements: ["問いかけ", "驚き", "ユーモア"]
-
-    information_density:
-      measurement: "情報密度"
-      target: "3-5個の主要ポイント/動画"
-      balance: "詰め込みすぎず、薄すぎず"
-```
-
-### パフォーマンスダッシュボード
-
-```mermaid
-pie showData
-    title "動画パフォーマンス構成要素"
-    "視聴回数" : 30
-    "視聴維持率" : 25
-    "CTR" : 20
-    "エンゲージメント" : 15
-    "登録者転換率" : 10
-```
-
-### KPIトラッキングスケジュール
-
-```yaml
-tracking_schedule:
-  daily:
-    - "視聴回数"
-    - "視聴維持率"
-    - "CTR"
-
-  weekly:
-    - "登録者増加数"
-    - "エンゲージメント率"
-    - "トラフィックソース分析"
-
-  monthly:
-    - "総視聴時間"
-    - "収益（収益化後）"
-    - "チャンネル成長率"
-    - "競合比較分析"
-
-  quarterly:
-    - "戦略見直し"
-    - "コンテンツ方向性調整"
-    - "投資対効果（ROI）分析"
-```
-
----
-
-## Agent連携
 
 ### Agent連携フロー
 
@@ -1224,111 +389,36 @@ flowchart LR
     style NA fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
 ```
 
-### ContentCreationAgent連携
+---
 
-```yaml
-content_creation_integration:
-  input_from_content:
-    - "動画企画書"
-    - "サムネイル画像"
-    - "コンテンツ素材"
+## 責任範囲
 
-  output_to_narration:
-    - "台本テンプレート"
-    - "ビジュアルアセット"
-    - "BGM・SE素材"
+### 主要タスク
 
-  collaboration:
-    quality_check:
-      - "台本品質レビュー"
-      - "音声クオリティ確認"
-      - "総合コンテンツ評価"
+1. **Git Commits解析**
+   - Conventional Commits形式のパース
+   - Issue番号・Phase情報の抽出
+   - コミット種別の分類（feat, fix, docs等）
 
-    feedback_loop:
-      - "視聴者反応分析"
-      - "改善提案"
-      - "次回企画への反映"
-```
+2. **台本生成**
+   - ゆっくり解説風の会話形式に変換
+   - 霊夢（説明役）と魔理沙（反応役）の掛け合い
+   - Markdown形式（`script.md`）とJSON形式（`voicevox_requests.json`）で出力
 
-### SNSStrategyAgent連携
+3. **VOICEVOX音声合成**
+   - VOICEVOX Engine APIで音声合成
+   - 話者: 霊夢（speaker_id=0）、魔理沙（speaker_id=1）
+   - WAVファイル形式で出力
 
-```yaml
-sns_strategy_integration:
-  input_from_narration:
-    - "動画URL"
-    - "音声ファイル"
-    - "台本テキスト"
-    - "サマリー"
+4. **成果物の整理**
+   - `output/` ディレクトリに全ファイルを保存
+   - サマリーレポート（SUMMARY.md）を生成
 
-  output_to_sns:
-    - "YouTube投稿計画"
-    - "SNS拡散戦略"
-    - "ハッシュタグ提案"
+---
 
-  coordination:
-    timing:
-      - "最適投稿時間提案"
-      - "連続投稿スケジュール"
-      - "トレンド連動タイミング"
+## 実行権限
 
-    promotion:
-      - "Twitter告知文案"
-      - "Instagram リール活用"
-      - "TikTok短編動画展開"
-```
-
-### YouTubeAgent連携
-
-```yaml
-youtube_agent_integration:
-  input_from_narration:
-    - "完成動画ファイル"
-    - "サムネイル画像"
-    - "動画メタデータ"
-
-  automation:
-    upload:
-      - "自動アップロード"
-      - "メタデータ設定"
-      - "プレイリスト追加"
-
-    optimization:
-      - "タイトル最適化"
-      - "説明文生成"
-      - "タグ自動設定"
-
-    monitoring:
-      - "公開後パフォーマンス追跡"
-      - "アナリティクス取得"
-      - "視聴者コメント収集"
-```
-
-### AnalyticsAgent連携
-
-```yaml
-analytics_integration:
-  data_collection:
-    - "視聴回数・視聴維持率"
-    - "CTR・エンゲージメント率"
-    - "視聴者デモグラフィック"
-    - "トラフィックソース"
-
-  analysis_report:
-    metrics:
-      - "動画パフォーマンス分析"
-      - "A/Bテスト結果"
-      - "コンテンツ比較分析"
-
-    insights:
-      - "成功要因特定"
-      - "改善機会発見"
-      - "トレンド予測"
-
-  feedback_to_narration:
-    - "台本改善提案"
-    - "サムネイル最適化提案"
-    - "ジャンル選定推奨"
-```
+🔵 **実行権限**: Git history解析から音声合成まで自律実行可能。VOICEVOX Engine起動は任意（--start-engineオプション）。
 
 ---
 
@@ -1360,6 +450,10 @@ analytics_integration:
 - **音声リクエスト**: `output/voicevox_requests.json` - API request data
 - **音声ファイル**: `output/audio/*.wav` - Synthesized audio files
 - **サマリー**: `output/SUMMARY.md` - Execution summary report
+
+---
+
+## インターフェース定義
 
 ### TypeScript入力インターフェース
 
@@ -1501,583 +595,982 @@ interface NarrationStatistics {
   totalAudioDuration: number;       // 秒
   totalAudioSize: number;           // バイト
 }
+
+/**
+ * パース済みコミット
+ */
+interface ParsedCommit {
+  hash: string;
+  type: string;                     // feat, fix, docs, etc.
+  scope?: string;
+  description: string;
+  body?: string;
+  issueNumber?: number;
+  phase?: string;
+  author: string;
+  date: Date;
+}
+
+/**
+ * 音声ファイル情報
+ */
+interface AudioInfo {
+  filename: string;
+  speakerId: number;
+  speakerName: string;
+  text: string;
+  duration: number;                 // 秒
+  size: number;                     // バイト
+}
+
+/**
+ * エラー情報
+ */
+interface NarrationError {
+  phase: 'parsing' | 'scripting' | 'synthesis' | 'output';
+  code: string;
+  message: string;
+  recoverable: boolean;
+  suggestion?: string;
+}
+
+/**
+ * Agent引き継ぎ情報
+ */
+interface AgentHandoff {
+  targetAgents: ('SNSStrategyAgent' | 'YouTubeAgent')[];
+  payload: {
+    audioFiles: string[];
+    scriptPath: string;
+    summaryPath: string;
+    statistics: NarrationStatistics;
+  };
+}
 ```
 
 ---
 
-## 実践テクニック
+## Rust Agent実装
 
-### Commit Message最適化
+### Agent Trait実装
 
-```yaml
-commit_message_optimization:
-  principles:
-    - "Conventional Commits形式厳守"
-    - "Issue番号必須"
-    - "Phase情報明記"
-    - "変更理由を明確に"
+```rust
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
-  template:
-    format: "type(scope): description - Issue #123 Phase X.X"
-    examples:
-      - "feat(design): complete UI mockups - Issue #425 Phase 0.4"
-      - "fix(api): resolve auth timeout - Issue #450 Phase 1.2"
-      - "docs(readme): update installation guide - Issue #460"
+/// NarrationAgent - ゆっくり解説音声ガイド生成Agent
+/// キャラクター: 語（Katari / かたさん）🎙️
+pub struct NarrationAgent {
+    config: NarrationConfig,
+    voicevox_client: VoicevoxClient,
+    git_parser: GitParser,
+    script_generator: ScriptGenerator,
+}
 
-  best_practices:
-    type_selection:
-      feat: "新機能追加・改善"
-      fix: "バグ修正"
-      docs: "ドキュメント更新"
-      refactor: "リファクタリング"
-      test: "テスト追加"
-      security: "セキュリティ対策"
+/// 設定構造体
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NarrationConfig {
+    pub git_repo_path: PathBuf,
+    pub days: u32,
+    pub output_dir: PathBuf,
+    pub voicevox_engine_url: String,
+    pub start_engine: bool,
+    pub speakers: SpeakerConfig,
+    pub script_options: ScriptOptions,
+}
 
-    scope_naming:
-      - "具体的なモジュール名"
-      - "キャメルケース推奨"
-      - "略語は避ける"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpeakerConfig {
+    pub explainer_id: u32,      // 霊夢役
+    pub reactor_id: u32,        // 魔理沙役
+    pub speed_scale: f32,
+    pub pitch_scale: f32,
+    pub intonation_scale: f32,
+}
 
-    description_tips:
-      - "動詞で始める（complete, fix, add）"
-      - "50文字以内"
-      - "日本語OK（プロジェクトルール次第）"
-```
+impl Default for SpeakerConfig {
+    fn default() -> Self {
+        Self {
+            explainer_id: 0,        // 四国めたん（あまあま）
+            reactor_id: 1,          // 四国めたん（ノーマル）
+            speed_scale: 1.0,
+            pitch_scale: 0.0,
+            intonation_scale: 1.0,
+        }
+    }
+}
 
-### ゆっくり掛け合いのコツ
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScriptOptions {
+    pub include_intro: bool,
+    pub include_outro: bool,
+    pub detail_level: DetailLevel,
+    pub custom_template_path: Option<PathBuf>,
+}
 
-```yaml
-yukkuri_dialogue_tips:
-  reimu_character:
-    role: "説明役・先生役"
-    tone: "優しく、分かりやすく"
-    patterns:
-      - "〜なのよ"
-      - "〜だわ"
-      - "〜ね"
-    techniques:
-      - "専門用語を噛み砕いて説明"
-      - "視聴者に語りかけるように"
-      - "ポジティブな表現"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DetailLevel {
+    Brief,
+    Normal,
+    Detailed,
+}
 
-  marisa_character:
-    role: "反応役・生徒役"
-    tone: "元気、好奇心旺盛"
-    patterns:
-      - "〜だぜ"
-      - "〜なんだ"
-      - "〜か？"
-    techniques:
-      - "驚き・疑問をストレートに"
-      - "視聴者の代弁"
-      - "ユーモアを交える"
+impl Default for ScriptOptions {
+    fn default() -> Self {
+        Self {
+            include_intro: true,
+            include_outro: true,
+            detail_level: DetailLevel::Normal,
+            custom_template_path: None,
+        }
+    }
+}
 
-  interaction_patterns:
-    question_answer:
-      marisa: "それってどういうことなんだ？"
-      reimu: "つまりね、〇〇ということなのよ"
+/// 入力構造体
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NarrationInput {
+    pub git_repo_path: PathBuf,
+    pub days: Option<u32>,
+    pub output_dir: Option<PathBuf>,
+    pub voicevox_engine_dir: Option<PathBuf>,
+    pub start_engine: Option<bool>,
+    pub speakers: Option<SpeakerConfig>,
+    pub script_options: Option<ScriptOptions>,
+    pub filter: Option<CommitFilter>,
+}
 
-    surprise:
-      reimu: "実は、〇〇なの"
-      marisa: "マジか！すごいぜ！"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommitFilter {
+    pub types: Option<Vec<String>>,
+    pub scopes: Option<Vec<String>>,
+    pub authors: Option<Vec<String>>,
+    pub min_commits: Option<usize>,
+    pub max_commits: Option<usize>,
+}
 
-    confirmation:
-      marisa: "ということは、△△ってこと？"
-      reimu: "その通りよ！よく分かったわね"
+/// 出力構造体
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NarrationOutput {
+    pub success: bool,
+    pub execution_id: String,
+    pub executed_at: DateTime<Utc>,
+    pub execution_time_ms: u64,
+    pub generated_files: GeneratedFiles,
+    pub statistics: NarrationStatistics,
+    pub commits: Vec<ParsedCommit>,
+    pub audio_info: Vec<AudioInfo>,
+    pub errors: Vec<NarrationError>,
+    pub handoff: Option<AgentHandoff>,
+}
 
-    humor:
-      marisa: "なんだか難しそうだぜ..."
-      reimu: "大丈夫、簡単に説明するから"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedFiles {
+    pub script_path: PathBuf,
+    pub voicevox_requests_path: PathBuf,
+    pub summary_path: PathBuf,
+    pub audio_directory: PathBuf,
+    pub audio_files: Vec<PathBuf>,
+}
 
-  pacing:
-    frequency: "30-60秒ごとに掛け合い"
-    balance: "霊夢60% : 魔理沙40%"
-    breaks: "長い説明後は必ずリアクション"
-```
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NarrationStatistics {
+    pub total_commits: usize,
+    pub commits_by_type: HashMap<String, usize>,
+    pub commits_by_scope: HashMap<String, usize>,
+    pub date_from: DateTime<Utc>,
+    pub date_to: DateTime<Utc>,
+    pub script_lines: usize,
+    pub script_characters: usize,
+    pub dialogue_count: usize,
+    pub audio_file_count: usize,
+    pub total_audio_duration_secs: f64,
+    pub total_audio_size_bytes: u64,
+}
 
-### 視聴者を飽きさせない構成
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParsedCommit {
+    pub hash: String,
+    pub commit_type: String,
+    pub scope: Option<String>,
+    pub description: String,
+    pub body: Option<String>,
+    pub issue_number: Option<u32>,
+    pub phase: Option<String>,
+    pub author: String,
+    pub date: DateTime<Utc>,
+}
 
-```yaml
-engagement_techniques:
-  visual_variation:
-    frequency: "10-15秒ごと"
-    elements:
-      - "画像切り替え"
-      - "図解表示"
-      - "テキストアニメーション"
-      - "立ち絵の表情変化"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudioInfo {
+    pub filename: String,
+    pub speaker_id: u32,
+    pub speaker_name: String,
+    pub text: String,
+    pub duration_secs: f64,
+    pub size_bytes: u64,
+}
 
-  audio_variation:
-    - "BGM切り替え（セクションごと）"
-    - "SE挿入（強調ポイント）"
-    - "音量変化（抑揚）"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NarrationError {
+    pub phase: NarrationPhase,
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+    pub suggestion: Option<String>,
+}
 
-  content_hooks:
-    intro_hook:
-      - "結論先出し"
-      - "衝撃の事実"
-      - "視聴者への問いかけ"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum NarrationPhase {
+    Parsing,
+    Scripting,
+    Synthesis,
+    Output,
+}
 
-    mid_hooks:
-      - "次の展開予告"
-      - "意外な事実"
-      - "視聴者参加型クイズ"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentHandoff {
+    pub target_agents: Vec<String>,
+    pub payload: HandoffPayload,
+}
 
-    outro_hook:
-      - "次回予告"
-      - "関連動画誘導"
-      - "コメント促進"
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HandoffPayload {
+    pub audio_files: Vec<PathBuf>,
+    pub script_path: PathBuf,
+    pub summary_path: PathBuf,
+    pub statistics: NarrationStatistics,
+}
 
-  information_chunking:
-    - "3-5個の主要ポイントに絞る"
-    - "1ポイント = 2-3分"
-    - "セクション間に明確な区切り"
-```
+#[async_trait]
+impl Agent for NarrationAgent {
+    type Input = NarrationInput;
+    type Output = NarrationOutput;
 
-### サムネイル・タイトル最適化
+    fn name(&self) -> &str {
+        "NarrationAgent"
+    }
 
-```yaml
-thumbnail_optimization:
-  title_formulas:
-    curiosity_gap:
-      - "【衝撃】〇〇の真実とは..."
-      - "99%が知らない〇〇の秘密"
-      - "〇〇したら△△になった件"
+    fn description(&self) -> &str {
+        "ゆっくり解説音声ガイド生成Agent - Git commitsから開発進捗を音声ガイドに自動変換"
+    }
 
-    how_to:
-      - "【完全解説】〇〇のやり方"
-      - "〇〇を△△する方法"
-      - "誰でもできる〇〇テクニック"
+    fn character_name(&self) -> &str {
+        "語（Katari / かたさん）🎙️"
+    }
 
-    list:
-      - "〇〇な△△ 5選"
-      - "〇〇ベスト10"
-      - "〇〇まとめ"
+    async fn execute(&self, input: Self::Input) -> Result<Self::Output, AgentError> {
+        let start_time = std::time::Instant::now();
+        let execution_id = uuid::Uuid::new_v4().to_string();
+        let mut errors = Vec::new();
 
-    shock:
-      - "【閲覧注意】〇〇の恐怖"
-      - "〇〇がヤバすぎる件"
-      - "まさかの〇〇"
+        // キャラクターボイス: 開始メッセージ
+        tracing::info!(
+            "🎙️ 語: 「さあ、今日の開発物語を紡ぎ始めよう」"
+        );
 
-  thumbnail_checklist:
-    - "[ ] 文字は13-15文字以内"
-    - "[ ] 文字サイズは大きく（40pt以上）"
-    - "[ ] 白縁取り＋影でコントラスト"
-    - "[ ] キャラクターの顔が見える"
-    - "[ ] 色彩はビビッド（彩度高め）"
-    - "[ ] モバイル表示で可読性確認"
+        // Phase 1: Git Commits解析
+        tracing::info!("🎙️ 語: Phase 1 - Git Commits解析を開始");
+        let commits = match self.parse_commits(&input).await {
+            Ok(commits) => {
+                tracing::info!(
+                    "🎙️ 語: 「{}件のコミットを発見。興味深い物語が眠っている」",
+                    commits.len()
+                );
+                commits
+            }
+            Err(e) => {
+                errors.push(NarrationError {
+                    phase: NarrationPhase::Parsing,
+                    code: "PARSE_FAILED".to_string(),
+                    message: e.to_string(),
+                    recoverable: false,
+                    suggestion: Some("Gitリポジトリパスを確認してください".to_string()),
+                });
+                return Ok(self.build_error_output(execution_id, start_time, errors));
+            }
+        };
 
-  a_b_testing:
-    variants: 2-3パターン作成
-    test_duration: "48時間"
-    decision_metric: "CTR（クリック率）"
-    threshold: "CTR 5%以上で採用"
-```
+        if commits.is_empty() {
+            tracing::warn!("🎙️ 語: 「コミットが見つからない...物語を紡げない」");
+            errors.push(NarrationError {
+                phase: NarrationPhase::Parsing,
+                code: "NO_COMMITS".to_string(),
+                message: "指定期間内にコミットが見つかりません".to_string(),
+                recoverable: true,
+                suggestion: Some("収集期間（days）を延長してください".to_string()),
+            });
+            return Ok(self.build_error_output(execution_id, start_time, errors));
+        }
+
+        // Phase 2: 台本生成
+        tracing::info!("🎙️ 語: Phase 2 - 霊夢と魔理沙のセリフを構成していく");
+        let (script, voicevox_requests) = match self.generate_script(&commits, &input).await {
+            Ok(result) => {
+                tracing::info!("🎙️ 語: 「台本が完成した。{}行の物語」", result.0.lines().count());
+                result
+            }
+            Err(e) => {
+                errors.push(NarrationError {
+                    phase: NarrationPhase::Scripting,
+                    code: "SCRIPT_FAILED".to_string(),
+                    message: e.to_string(),
+                    recoverable: false,
+                    suggestion: Some("台本テンプレートを確認してください".to_string()),
+                });
+                return Ok(self.build_error_output(execution_id, start_time, errors));
+            }
+        };
+
+        // Phase 3: VOICEVOX音声合成
+        let audio_info = if self.config.start_engine || self.is_engine_running().await {
+            tracing::info!("🎙️ 語: Phase 3 - VOICEVOXに声を託す");
+            match self.synthesize_audio(&voicevox_requests, &input).await {
+                Ok(info) => {
+                    tracing::info!(
+                        "🎙️ 語: 「{}本の音声ファイルが誕生した」",
+                        info.len()
+                    );
+                    info
+                }
+                Err(e) => {
+                    errors.push(NarrationError {
+                        phase: NarrationPhase::Synthesis,
+                        code: "SYNTHESIS_FAILED".to_string(),
+                        message: e.to_string(),
+                        recoverable: true,
+                        suggestion: Some("VOICEVOX Engineの起動状態を確認してください".to_string()),
+                    });
+                    Vec::new()
+                }
+            }
+        } else {
+            tracing::info!("🎙️ 語: 「VOICEVOX Engineが起動していない。台本のみ出力」");
+            Vec::new()
+        };
+
+        // Phase 4: 出力生成
+        tracing::info!("🎙️ 語: Phase 4 - 成果物を整理");
+        let generated_files = self.save_outputs(&script, &voicevox_requests, &audio_info, &input).await?;
+        let statistics = self.calculate_statistics(&commits, &script, &audio_info);
+
+        // 完了メッセージ
+        tracing::info!(
+            "🎙️ 語: 「完璧な語りができた。{}件のコミットが、{}本の音声に生まれ変わった」",
+            statistics.total_commits,
+            statistics.audio_file_count
+        );
+
+        let execution_time_ms = start_time.elapsed().as_millis() as u64;
+
+        Ok(NarrationOutput {
+            success: errors.is_empty() || audio_info.is_empty() && errors.iter().all(|e| e.recoverable),
+            execution_id,
+            executed_at: Utc::now(),
+            execution_time_ms,
+            generated_files,
+            statistics: statistics.clone(),
+            commits,
+            audio_info: audio_info.clone(),
+            errors,
+            handoff: Some(AgentHandoff {
+                target_agents: vec![
+                    "SNSStrategyAgent".to_string(),
+                    "YouTubeAgent".to_string(),
+                ],
+                payload: HandoffPayload {
+                    audio_files: generated_files.audio_files.clone(),
+                    script_path: generated_files.script_path.clone(),
+                    summary_path: generated_files.summary_path.clone(),
+                    statistics,
+                },
+            }),
+        })
+    }
+}
+
+impl NarrationAgent {
+    /// 新しいNarrationAgentを作成
+    pub fn new(config: NarrationConfig) -> Self {
+        Self {
+            voicevox_client: VoicevoxClient::new(&config.voicevox_engine_url),
+            git_parser: GitParser::new(),
+            script_generator: ScriptGenerator::new(config.script_options.clone()),
+            config,
+        }
+    }
+
+    /// Git commitsを解析
+    async fn parse_commits(&self, input: &NarrationInput) -> Result<Vec<ParsedCommit>, AgentError> {
+        let days = input.days.unwrap_or(3);
+        let repo_path = &input.git_repo_path;
+
+        // git log コマンド実行
+        let output = tokio::process::Command::new("git")
+            .args([
+                "log",
+                "--oneline",
+                "--format=%H|%an|%aI|%s",
+                &format!("--since={} days ago", days),
+            ])
+            .current_dir(repo_path)
+            .output()
+            .await
+            .map_err(|e| AgentError::ExecutionFailed(format!("git log failed: {}", e)))?;
+
+        if !output.status.success() {
+            return Err(AgentError::ExecutionFailed(
+                String::from_utf8_lossy(&output.stderr).to_string()
+            ));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let commits: Vec<ParsedCommit> = stdout
+            .lines()
+            .filter_map(|line| self.parse_commit_line(line))
+            .collect();
+
+        // フィルター適用
+        let filtered = self.apply_filter(commits, input.filter.as_ref());
+
+        Ok(filtered)
+    }
+
+    /// コミット行をパース
+    fn parse_commit_line(&self, line: &str) -> Option<ParsedCommit> {
+        let parts: Vec<&str> = line.splitn(4, '|').collect();
+        if parts.len() < 4 {
+            return None;
+        }
+
+        let hash = parts[0].to_string();
+        let author = parts[1].to_string();
+        let date = DateTime::parse_from_rfc3339(parts[2])
+            .ok()?
+            .with_timezone(&Utc);
+        let message = parts[3];
+
+        // Conventional Commits パース
+        let (commit_type, scope, description) = self.parse_conventional_commit(message);
+
+        // Issue番号抽出
+        let issue_number = self.extract_issue_number(message);
+
+        // Phase情報抽出
+        let phase = self.extract_phase(message);
+
+        Some(ParsedCommit {
+            hash,
+            commit_type,
+            scope,
+            description,
+            body: None,
+            issue_number,
+            phase,
+            author,
+            date,
+        })
+    }
+
+    /// Conventional Commits形式をパース
+    fn parse_conventional_commit(&self, message: &str) -> (String, Option<String>, String) {
+        // パターン: type(scope): description または type: description
+        let re = regex::Regex::new(r"^(\w+)(?:\(([^)]+)\))?:\s*(.+)$").unwrap();
+
+        if let Some(caps) = re.captures(message) {
+            let commit_type = caps.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let scope = caps.get(2).map(|m| m.as_str().to_string());
+            let description = caps.get(3).map(|m| m.as_str().to_string()).unwrap_or_default();
+            (commit_type, scope, description)
+        } else {
+            ("chore".to_string(), None, message.to_string())
+        }
+    }
+
+    /// Issue番号を抽出
+    fn extract_issue_number(&self, message: &str) -> Option<u32> {
+        let re = regex::Regex::new(r"#(\d+)").unwrap();
+        re.captures(message)
+            .and_then(|caps| caps.get(1))
+            .and_then(|m| m.as_str().parse().ok())
+    }
+
+    /// Phase情報を抽出
+    fn extract_phase(&self, message: &str) -> Option<String> {
+        let re = regex::Regex::new(r"Phase\s+(\d+\.?\d*)").unwrap();
+        re.captures(message)
+            .and_then(|caps| caps.get(1))
+            .map(|m| format!("Phase {}", m.as_str()))
+    }
+
+    /// フィルターを適用
+    fn apply_filter(&self, commits: Vec<ParsedCommit>, filter: Option<&CommitFilter>) -> Vec<ParsedCommit> {
+        let Some(filter) = filter else {
+            return commits;
+        };
+
+        let mut filtered = commits;
+
+        // タイプフィルタ
+        if let Some(types) = &filter.types {
+            filtered = filtered.into_iter()
+                .filter(|c| types.contains(&c.commit_type))
+                .collect();
+        }
+
+        // スコープフィルタ
+        if let Some(scopes) = &filter.scopes {
+            filtered = filtered.into_iter()
+                .filter(|c| c.scope.as_ref().map(|s| scopes.contains(s)).unwrap_or(false))
+                .collect();
+        }
+
+        // 作者フィルタ
+        if let Some(authors) = &filter.authors {
+            filtered = filtered.into_iter()
+                .filter(|c| authors.contains(&c.author))
+                .collect();
+        }
+
+        // 最大コミット数
+        if let Some(max) = filter.max_commits {
+            filtered.truncate(max);
+        }
+
+        filtered
+    }
+
+    /// 台本生成
+    async fn generate_script(
+        &self,
+        commits: &[ParsedCommit],
+        input: &NarrationInput,
+    ) -> Result<(String, Vec<VoicevoxRequest>), AgentError> {
+        let options = input.script_options.clone().unwrap_or_default();
+        let speaker_config = input.speakers.clone().unwrap_or_default();
+
+        let mut script = String::new();
+        let mut requests: Vec<VoicevoxRequest> = Vec::new();
+
+        // イントロ
+        if options.include_intro {
+            let intro_reimu = "こんにちは、霊夢よ！今日もMiyabiの開発進捗を報告するわ〜";
+            let intro_marisa = "魔理沙だぜ！今日は何が進んだんだ？";
+
+            script.push_str(&format!("### 霊夢\n{}\n\n", intro_reimu));
+            script.push_str(&format!("### 魔理沙\n{}\n\n", intro_marisa));
+
+            requests.push(VoicevoxRequest {
+                speaker_id: speaker_config.explainer_id,
+                text: intro_reimu.to_string(),
+            });
+            requests.push(VoicevoxRequest {
+                speaker_id: speaker_config.reactor_id,
+                text: intro_marisa.to_string(),
+            });
+        }
+
+        // 各コミットの説明
+        for commit in commits {
+            let (reimu_line, marisa_line) = self.generate_dialogue(commit, &options);
+
+            script.push_str(&format!("### 霊夢\n{}\n\n", reimu_line));
+            script.push_str(&format!("### 魔理沙\n{}\n\n", marisa_line));
+
+            requests.push(VoicevoxRequest {
+                speaker_id: speaker_config.explainer_id,
+                text: reimu_line,
+            });
+            requests.push(VoicevoxRequest {
+                speaker_id: speaker_config.reactor_id,
+                text: marisa_line,
+            });
+        }
+
+        // アウトロ
+        if options.include_outro {
+            let outro_reimu = "今日の開発進捗は以上よ！また明日ね〜";
+            let outro_marisa = "次回も楽しみにしてくれよな！それじゃあまただぜ！";
+
+            script.push_str(&format!("### 霊夢\n{}\n\n", outro_reimu));
+            script.push_str(&format!("### 魔理沙\n{}\n\n", outro_marisa));
+
+            requests.push(VoicevoxRequest {
+                speaker_id: speaker_config.explainer_id,
+                text: outro_reimu.to_string(),
+            });
+            requests.push(VoicevoxRequest {
+                speaker_id: speaker_config.reactor_id,
+                text: outro_marisa.to_string(),
+            });
+        }
+
+        Ok((script, requests))
+    }
+
+    /// ダイアログ生成
+    fn generate_dialogue(&self, commit: &ParsedCommit, _options: &ScriptOptions) -> (String, String) {
+        let scope_text = commit.scope.as_ref()
+            .map(|s| format!("{}モジュールで", s))
+            .unwrap_or_default();
+
+        let issue_text = commit.issue_number
+            .map(|n| format!("Issue番号{}の", n))
+            .unwrap_or_default();
+
+        let phase_text = commit.phase.as_ref()
+            .map(|p| format!("{}の", p))
+            .unwrap_or_default();
+
+        let type_text = match commit.commit_type.as_str() {
+            "feat" => "新機能を追加したわ",
+            "fix" => "バグを修正したわ",
+            "docs" => "ドキュメントを更新したわ",
+            "refactor" => "リファクタリングしたわ",
+            "test" => "テストを追加したわ",
+            "security" => "セキュリティ対策をしたわ",
+            _ => "更新があったわ",
+        };
+
+        let reimu = format!(
+            "{}{}{}{}。具体的には、{}よ。",
+            scope_text, issue_text, phase_text, type_text, commit.description
+        );
+
+        let marisa = match commit.commit_type.as_str() {
+            "feat" => "新機能が追加されたのか！すごいぜ！",
+            "fix" => "バグ修正お疲れ様だぜ！",
+            "docs" => "ドキュメント整備は重要だぜ！",
+            "refactor" => "コードが綺麗になったんだな！",
+            "test" => "テストがあると安心だぜ！",
+            "security" => "セキュリティは大事だからな！よくやったぜ！",
+            _ => "なるほど、了解だぜ！",
+        };
+
+        (reimu.to_string(), marisa.to_string())
+    }
+
+    /// VOICEVOX Engineの起動状態を確認
+    async fn is_engine_running(&self) -> bool {
+        self.voicevox_client.health_check().await.is_ok()
+    }
+
+    /// 音声合成
+    async fn synthesize_audio(
+        &self,
+        requests: &[VoicevoxRequest],
+        input: &NarrationInput,
+    ) -> Result<Vec<AudioInfo>, AgentError> {
+        let output_dir = input.output_dir.clone().unwrap_or_else(|| PathBuf::from("./output"));
+        let audio_dir = output_dir.join("audio");
+        tokio::fs::create_dir_all(&audio_dir).await
+            .map_err(|e| AgentError::ExecutionFailed(format!("Failed to create audio dir: {}", e)))?;
+
+        let speaker_config = input.speakers.clone().unwrap_or_default();
+        let mut audio_info = Vec::new();
+
+        for (index, req) in requests.iter().enumerate() {
+            let filename = format!("speaker{}_{:03}.wav", req.speaker_id, index);
+            let file_path = audio_dir.join(&filename);
+
+            // audio_query取得
+            let audio_query = self.voicevox_client
+                .audio_query(&req.text, req.speaker_id, &speaker_config)
+                .await?;
+
+            // synthesis実行
+            let wav_data = self.voicevox_client
+                .synthesis(&audio_query, req.speaker_id)
+                .await?;
+
+            // ファイル保存
+            tokio::fs::write(&file_path, &wav_data).await
+                .map_err(|e| AgentError::ExecutionFailed(format!("Failed to write audio: {}", e)))?;
+
+            let speaker_name = match req.speaker_id {
+                0 => "霊夢（四国めたん - あまあま）",
+                1 => "魔理沙（四国めたん - ノーマル）",
+                3 => "ずんだもん",
+                _ => "不明",
+            };
+
+            audio_info.push(AudioInfo {
+                filename,
+                speaker_id: req.speaker_id,
+                speaker_name: speaker_name.to_string(),
+                text: req.text.clone(),
+                duration_secs: wav_data.len() as f64 / (24000.0 * 2.0), // 16-bit, 24kHz
+                size_bytes: wav_data.len() as u64,
+            });
+        }
+
+        Ok(audio_info)
+    }
+
+    /// 出力ファイルを保存
+    async fn save_outputs(
+        &self,
+        script: &str,
+        requests: &[VoicevoxRequest],
+        audio_info: &[AudioInfo],
+        input: &NarrationInput,
+    ) -> Result<GeneratedFiles, AgentError> {
+        let output_dir = input.output_dir.clone().unwrap_or_else(|| PathBuf::from("./output"));
+        tokio::fs::create_dir_all(&output_dir).await
+            .map_err(|e| AgentError::ExecutionFailed(format!("Failed to create output dir: {}", e)))?;
+
+        let script_path = output_dir.join("script.md");
+        let requests_path = output_dir.join("voicevox_requests.json");
+        let summary_path = output_dir.join("SUMMARY.md");
+        let audio_dir = output_dir.join("audio");
+
+        // 台本保存
+        tokio::fs::write(&script_path, script).await
+            .map_err(|e| AgentError::ExecutionFailed(format!("Failed to write script: {}", e)))?;
+
+        // リクエストJSON保存
+        let requests_json = serde_json::to_string_pretty(requests)
+            .map_err(|e| AgentError::ExecutionFailed(format!("Failed to serialize requests: {}", e)))?;
+        tokio::fs::write(&requests_path, requests_json).await
+            .map_err(|e| AgentError::ExecutionFailed(format!("Failed to write requests: {}", e)))?;
+
+        // サマリー生成・保存
+        let summary = self.generate_summary(script, audio_info, input);
+        tokio::fs::write(&summary_path, summary).await
+            .map_err(|e| AgentError::ExecutionFailed(format!("Failed to write summary: {}", e)))?;
+
+        // 音声ファイル一覧
+        let audio_files: Vec<PathBuf> = audio_info
+            .iter()
+            .map(|a| audio_dir.join(&a.filename))
+            .collect();
+
+        Ok(GeneratedFiles {
+            script_path,
+            voicevox_requests_path: requests_path,
+            summary_path,
+            audio_directory: audio_dir,
+            audio_files,
+        })
+    }
+
+    /// サマリー生成
+    fn generate_summary(&self, script: &str, audio_info: &[AudioInfo], input: &NarrationInput) -> String {
+        let total_duration: f64 = audio_info.iter().map(|a| a.duration_secs).sum();
+        let total_size: u64 = audio_info.iter().map(|a| a.size_bytes).sum();
+        let days = input.days.unwrap_or(3);
+
+        format!(r#"# Miyabi開発進捗 - ゆっくり解説音声ガイド
+
+**生成日時**: {}
+**収集期間**: 過去{}日分
+**台本行数**: {}行
+**音声ファイル数**: {}件
+**合計再生時間**: {:.1}秒
+**合計サイズ**: {:.1}KB
+
+## 生成ファイル
+
+- 台本: output/script.md
+- APIリクエスト: output/voicevox_requests.json
+- 音声ファイル: output/audio/ ({}件)
+
+## 次のステップ
+
+1. 台本を確認: `cat output/script.md`
+2. 音声を再生: `afplay output/audio/speaker0_000.wav`
+3. 動画編集ソフト（YMM、Premiere Pro等）で動画作成
+4. YouTube配信
 
 ---
 
-## 運用スケジュール
+🎙️ Generated by NarrationAgent (語/かたさん)
+"#,
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
+            days,
+            script.lines().count(),
+            audio_info.len(),
+            total_duration,
+            total_size as f64 / 1024.0,
+            audio_info.len()
+        )
+    }
 
-### デイリー運用
+    /// 統計計算
+    fn calculate_statistics(
+        &self,
+        commits: &[ParsedCommit],
+        script: &str,
+        audio_info: &[AudioInfo],
+    ) -> NarrationStatistics {
+        let mut commits_by_type: HashMap<String, usize> = HashMap::new();
+        let mut commits_by_scope: HashMap<String, usize> = HashMap::new();
 
-```yaml
-daily_operations:
-  morning:
-    - "前日動画パフォーマンス確認"
-    - "コメント返信（優先度高）"
-    - "次回動画企画ブレスト"
+        for commit in commits {
+            *commits_by_type.entry(commit.commit_type.clone()).or_insert(0) += 1;
+            if let Some(scope) = &commit.scope {
+                *commits_by_scope.entry(scope.clone()).or_insert(0) += 1;
+            }
+        }
 
-  afternoon:
-    - "台本作成・音声合成"
-    - "動画編集"
-    - "サムネイル作成"
+        let date_from = commits.iter().map(|c| c.date).min().unwrap_or(Utc::now());
+        let date_to = commits.iter().map(|c| c.date).max().unwrap_or(Utc::now());
 
-  evening:
-    - "動画投稿（最適時間: 18-20時）"
-    - "SNS告知投稿"
-    - "アナリティクス初期確認"
+        NarrationStatistics {
+            total_commits: commits.len(),
+            commits_by_type,
+            commits_by_scope,
+            date_from,
+            date_to,
+            script_lines: script.lines().count(),
+            script_characters: script.chars().count(),
+            dialogue_count: script.matches("###").count(),
+            audio_file_count: audio_info.len(),
+            total_audio_duration_secs: audio_info.iter().map(|a| a.duration_secs).sum(),
+            total_audio_size_bytes: audio_info.iter().map(|a| a.size_bytes).sum(),
+        }
+    }
+
+    /// エラー出力を構築
+    fn build_error_output(
+        &self,
+        execution_id: String,
+        start_time: std::time::Instant,
+        errors: Vec<NarrationError>,
+    ) -> NarrationOutput {
+        NarrationOutput {
+            success: false,
+            execution_id,
+            executed_at: Utc::now(),
+            execution_time_ms: start_time.elapsed().as_millis() as u64,
+            generated_files: GeneratedFiles {
+                script_path: PathBuf::new(),
+                voicevox_requests_path: PathBuf::new(),
+                summary_path: PathBuf::new(),
+                audio_directory: PathBuf::new(),
+                audio_files: Vec::new(),
+            },
+            statistics: NarrationStatistics {
+                total_commits: 0,
+                commits_by_type: HashMap::new(),
+                commits_by_scope: HashMap::new(),
+                date_from: Utc::now(),
+                date_to: Utc::now(),
+                script_lines: 0,
+                script_characters: 0,
+                dialogue_count: 0,
+                audio_file_count: 0,
+                total_audio_duration_secs: 0.0,
+                total_audio_size_bytes: 0,
+            },
+            commits: Vec::new(),
+            audio_info: Vec::new(),
+            errors,
+            handoff: None,
+        }
+    }
+}
+
+/// VOICEVOXリクエスト
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VoicevoxRequest {
+    pub speaker_id: u32,
+    pub text: String,
+}
+
+/// VOICEVOXクライアント
+pub struct VoicevoxClient {
+    base_url: String,
+    client: reqwest::Client,
+}
+
+impl VoicevoxClient {
+    pub fn new(base_url: &str) -> Self {
+        Self {
+            base_url: base_url.to_string(),
+            client: reqwest::Client::new(),
+        }
+    }
+
+    pub async fn health_check(&self) -> Result<(), AgentError> {
+        let url = format!("{}/speakers", self.base_url);
+        self.client.get(&url)
+            .send()
+            .await
+            .map_err(|e| AgentError::ExecutionFailed(format!("VOICEVOX health check failed: {}", e)))?;
+        Ok(())
+    }
+
+    pub async fn audio_query(
+        &self,
+        text: &str,
+        speaker_id: u32,
+        config: &SpeakerConfig,
+    ) -> Result<serde_json::Value, AgentError> {
+        let url = format!("{}/audio_query", self.base_url);
+        let mut query: serde_json::Value = self.client
+            .post(&url)
+            .query(&[("speaker", speaker_id.to_string()), ("text", text.to_string())])
+            .send()
+            .await
+            .map_err(|e| AgentError::ExecutionFailed(format!("audio_query failed: {}", e)))?
+            .json()
+            .await
+            .map_err(|e| AgentError::ExecutionFailed(format!("audio_query parse failed: {}", e)))?;
+
+        // 設定を適用
+        if let Some(obj) = query.as_object_mut() {
+            obj.insert("speedScale".to_string(), config.speed_scale.into());
+            obj.insert("pitchScale".to_string(), config.pitch_scale.into());
+            obj.insert("intonationScale".to_string(), config.intonation_scale.into());
+        }
+
+        Ok(query)
+    }
+
+    pub async fn synthesis(
+        &self,
+        audio_query: &serde_json::Value,
+        speaker_id: u32,
+    ) -> Result<Vec<u8>, AgentError> {
+        let url = format!("{}/synthesis", self.base_url);
+        let response = self.client
+            .post(&url)
+            .query(&[("speaker", speaker_id.to_string())])
+            .json(audio_query)
+            .send()
+            .await
+            .map_err(|e| AgentError::ExecutionFailed(format!("synthesis failed: {}", e)))?;
+
+        let bytes = response.bytes().await
+            .map_err(|e| AgentError::ExecutionFailed(format!("synthesis read failed: {}", e)))?;
+
+        Ok(bytes.to_vec())
+    }
+}
+
+/// Gitパーサー（プレースホルダー）
+pub struct GitParser;
+
+impl GitParser {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+/// スクリプトジェネレータ（プレースホルダー）
+pub struct ScriptGenerator {
+    _options: ScriptOptions,
+}
+
+impl ScriptGenerator {
+    pub fn new(options: ScriptOptions) -> Self {
+        Self { _options: options }
+    }
+}
 ```
-
-### ウィークリー運用
-
-```yaml
-weekly_operations:
-  monday:
-    - "週次KPI確認"
-    - "先週動画の総括"
-    - "今週の投稿計画確定"
-
-  wednesday:
-    - "中間進捗確認"
-    - "動画ストック確認"
-    - "トレンド調査"
-
-  friday:
-    - "週末投稿動画準備"
-    - "次週企画立案"
-    - "週次レポート作成"
-```
-
-### マンスリー運用
-
-```yaml
-monthly_operations:
-  week_1:
-    - "前月総括レポート作成"
-    - "月次KPI確認"
-    - "今月目標設定"
-
-  week_2:
-    - "コンテンツ戦略見直し"
-    - "競合分析更新"
-    - "新企画テスト"
-
-  week_3:
-    - "中間評価"
-    - "軌道修正（必要に応じて）"
-
-  week_4:
-    - "月末追い込み"
-    - "来月計画策定"
-    - "予算・リソース確認"
-```
-
-### 継続配信戦略
-
-```yaml
-sustained_publishing_strategy:
-  frequency:
-    initial_phase:
-      schedule: "週2-3本"
-      duration: "最初3ヶ月"
-      goal: "習慣化・ファン獲得"
-
-    growth_phase:
-      schedule: "週3-5本"
-      duration: "3-6ヶ月目"
-      goal: "チャンネル成長加速"
-
-    mature_phase:
-      schedule: "週5-7本"
-      duration: "6ヶ月目以降"
-      goal: "収益最大化"
-
-  content_stock_management:
-    buffer: "常に2-3本のストック"
-    emergency: "緊急用動画1本確保"
-    series: "シリーズものは一括制作"
-
-  burnout_prevention:
-    - "無理のないペース設定"
-    - "休養日確保"
-    - "自動化ツール活用"
-    - "外注・協力体制構築"
-```
-
----
-
-## トラブルシューティング
-
-### Case 1: VOICEVOX Engine接続エラー
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 🚨 Error: VOICEVOX Engine接続不可                                       │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│ 症状:                                                                   │
-│   - "Connection refused" エラー                                         │
-│   - 音声合成がスキップされる                                             │
-│   - audio/ ディレクトリが空                                             │
-│                                                                         │
-│ 原因:                                                                   │
-│   1. VOICEVOX Engineが起動していない                                     │
-│   2. ポート50021が他のプロセスで使用中                                   │
-│   3. Dockerコンテナが停止している                                        │
-│                                                                         │
-│ 解決策:                                                                 │
-│                                                                         │
-│   # 方法1: Engine手動起動                                               │
-│   cd /path/to/voicevox_engine                                           │
-│   ./run                                                                 │
-│                                                                         │
-│   # 方法2: --start-engine オプション使用                                │
-│   ./miyabi-narrate.sh --start-engine                                    │
-│                                                                         │
-│   # 方法3: Docker使用                                                   │
-│   docker run -d -p 50021:50021 voicevox/voicevox_engine:latest          │
-│                                                                         │
-│   # ポート確認                                                          │
-│   lsof -i :50021                                                        │
-│                                                                         │
-│ 🎙️ 語: 「VOICEVOXが眠っているようだ。起こしてあげよう」                 │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### Case 2: Gitコミット取得失敗
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 🚨 Error: Git commits取得失敗                                           │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│ 症状:                                                                   │
-│   - "fatal: not a git repository" エラー                                │
-│   - コミット数が0                                                       │
-│   - script.md が空                                                      │
-│                                                                         │
-│ 原因:                                                                   │
-│   1. Gitリポジトリ外で実行                                              │
-│   2. .git ディレクトリがない                                            │
-│   3. 指定期間内にコミットがない                                          │
-│                                                                         │
-│ 解決策:                                                                 │
-│                                                                         │
-│   # 現在のディレクトリ確認                                              │
-│   pwd                                                                   │
-│   git status                                                            │
-│                                                                         │
-│   # 正しいリポジトリに移動                                              │
-│   cd /path/to/miyabi-private                                            │
-│                                                                         │
-│   # 期間を延長                                                          │
-│   ./miyabi-narrate.sh --days 30                                         │
-│                                                                         │
-│   # コミット履歴確認                                                    │
-│   git log --oneline -20                                                 │
-│                                                                         │
-│ 🎙️ 語: 「物語の源がない...正しい場所で実行しているか確認して」          │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### Case 3: 音声品質問題
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 🚨 Error: 音声品質問題                                                  │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│ 症状:                                                                   │
-│   - 音声が不明瞭                                                        │
-│   - 話速が速すぎる/遅すぎる                                             │
-│   - イントネーションが不自然                                             │
-│   - ノイズが多い                                                        │
-│                                                                         │
-│ 原因:                                                                   │
-│   1. スピーカー設定が不適切                                              │
-│   2. 音声パラメータ未調整                                               │
-│   3. テキストが長すぎる                                                 │
-│                                                                         │
-│ 解決策:                                                                 │
-│                                                                         │
-│   # 話速調整                                                            │
-│   {                                                                     │
-│     "speakers": {                                                       │
-│       "speedScale": 0.9  // 遅めに                                     │
-│     }                                                                   │
-│   }                                                                     │
-│                                                                         │
-│   # イントネーション調整                                                │
-│   {                                                                     │
-│     "speakers": {                                                       │
-│       "intonationScale": 1.2  // 抑揚を強く                            │
-│     }                                                                   │
-│   }                                                                     │
-│                                                                         │
-│   # 別の話者を試す                                                      │
-│   {                                                                     │
-│     "speakers": {                                                       │
-│       "explainer": 3,  // ずんだもん                                   │
-│       "reactor": 8     // 春日部つむぎ                                  │
-│     }                                                                   │
-│   }                                                                     │
-│                                                                         │
-│   # ContentCreationAgentにエスカレーション                              │
-│   → 音声品質の専門的調整が必要                                          │
-│                                                                         │
-│ 🎙️ 語: 「声の調子が良くないか...パラメータを調整してみよう」            │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## エスカレーション条件
-
-以下の場合、適切なAgentにエスカレーション：
-
-🚨 **VOICEVOX Engine接続不可**:
-- **状況**: VOICEVOX Engineが起動していない、またはAPIエラー
-- **エスカレーション先**: CoordinatorAgent
-- **対処**: Engine再起動、Docker環境確認
-
-🚨 **音声品質問題**:
-- **状況**: 音声が不明瞭、ノイズが多い、話速が不自然
-- **エスカレーション先**: ContentCreationAgent
-- **対処**: 話者ID変更、音声パラメータ調整
-
-🚨 **Git commits取得失敗**:
-- **状況**: Gitリポジトリ外で実行、commit履歴がない
-- **エスカレーション先**: CoordinatorAgent
-- **対処**: 実行ディレクトリ確認、Git設定確認
-
-🚨 **Speaker ID不正**:
-- **状況**: 指定されたSpeaker IDがVOICEVOX Engineに存在しない
-- **エスカレーション先**: ContentCreationAgent
-- **対処**: 利用可能なSpeaker一覧確認、設定修正
-
----
-
-## 成功事例・ベストプラクティス
-
-### 成功チャンネル分析
-
-```yaml
-case_study_1:
-  channel: "ゆっくり宇宙解説チャンネル"
-  subscribers: "50万人"
-  avg_views: "20万回/動画"
-  success_factors:
-    - "ジャンル特化（宇宙系のみ）"
-    - "サムネ統一フォーマット"
-    - "週3本の安定投稿"
-    - "視聴維持率65%（高水準）"
-    - "シリーズ化で連続視聴促進"
-
-case_study_2:
-  channel: "ゆっくり歴史チャンネル"
-  subscribers: "100万人"
-  avg_views: "50万回/動画"
-  success_factors:
-    - "ストーリーテリング重視"
-    - "高品質イラスト使用"
-    - "毎日投稿（デイリー習慣化）"
-    - "エンタメ要素（ユーモア）"
-    - "視聴者参加型企画"
-
-case_study_3:
-  channel: "ゆっくり科学チャンネル"
-  subscribers: "30万人"
-  avg_views: "10万回/動画"
-  success_factors:
-    - "図解・アニメーション豊富"
-    - "難しい内容を分かりやすく"
-    - "コラボ企画（他チャンネルと）"
-    - "ショート動画でトラフィック獲得"
-    - "コミュニティ機能活用"
-```
-
----
-
-## 付録
-
-### 実行コマンド
-
-#### 統合スクリプト（推奨）
-
-```bash
-# 基本実行
-cd /Users/a003/dev/miyabi-private/tools
-./miyabi-narrate.sh
-
-# オプション付き実行
-./miyabi-narrate.sh --days 7 --output ~/Desktop/narration --start-engine
-
-# ヘルプ表示
-./miyabi-narrate.sh --help
-```
-
-#### 個別スクリプト実行
-
-```bash
-# 1. 台本生成
-python3 yukkuri-narration-generator.py --days 3
-
-# 2. 音声合成
-python3 voicevox-synthesizer.py
-```
-
-#### Claude Codeコマンド
-
-```bash
-# /narrateコマンド（.claude/commands/narrate.md）
-/narrate
-/narrate --days 7
-/narrate --output ~/reports --start-engine
-```
-
-### 関連Agent
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         関連Agent一覧                                   │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  🎨 ContentCreationAgent (創/そうさん)                                  │
-│     └─ コンテンツ制作全般（動画編集、品質管理）                          │
-│     └─ Phase 6 → Phase 6.5へコンテンツを渡す                           │
-│                                                                         │
-│  📱 SNSStrategyAgent (翔/しょうさん)                                    │
-│     └─ YouTube配信戦略（タイトル最適化、サムネイル）                    │
-│     └─ Phase 6.5 → Phase 8で戦略立案                                   │
-│                                                                         │
-│  🎬 YouTubeAgent (映/えいさん)                                          │
-│     └─ YouTube配信自動化（アップロード、メタデータ）                    │
-│     └─ Phase 6.5の成果物をYouTubeに配信                                │
-│                                                                         │
-│  📢 MarketingAgent (広/こうさん)                                        │
-│     └─ マーケティング施策全般                                           │
-│     └─ ナレーション動画のプロモーション                                 │
-│                                                                         │
-│  🎯 CoordinatorAgent (統/すべるさん)                                    │
-│     └─ システム障害時のエスカレーション先                               │
-│     └─ VOICEVOX Engine問題の解決                                       │
-│                                                                         │
-│  📊 AnalyticsAgent (数/かずさん)                                        │
-│     └─ 視聴データの分析                                                 │
-│     └─ ナレーション効果の測定                                           │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 参照ドキュメント
-
-- **Command**: `.claude/commands/narrate.md` - `/narrate`コマンド詳細
-- **Skill**: `.claude/skills/voicevox/SKILL.md` - VOICEVOXスキル詳細
-- **User Guide**: `tools/README.md` - ユーザー向け使用ガイド
-- **Project Summary**: `tools/PROJECT_SUMMARY.md` - プロジェクト完了レポート
-- **GitHub Actions**: `tools/GITHUB_ACTIONS.md` - CI/CD自動実行ガイド
-- **VOICEVOX Engine**: https://github.com/VOICEVOX/voicevox_engine
-- **VOICEVOX API**: https://voicevox.github.io/voicevox_engine/api/
-
-### バージョン履歴
-
-| バージョン | 日付 | 変更内容 |
-|-----------|------|---------|
-| 1.0.0 | 2025-01-15 | 初版作成 |
-| 2.0.0 | 2025-11-26 | Kazuakiスタイル拡充、キャラクター設定追加、Mermaid図追加、TypeScript/Rust実装追加 |
-| 3.0.0 | 2025-11-26 | YouTube戦略、13ジャンル台本テンプレート、KPI体系、Agent連携詳細化、実践テクニック追加 |
-
----
-
-```
-================================================================================
-                    🎙️ NarrationAgent - 語（Katari）
-
-         「コードの歴史は、開発者の物語。
-          私はその物語を、声に変えて届ける。」
-
-                    Phase 6.5 - 物語を紡ぐフェーズ
-================================================================================
-```
-
-🎙️ このAgentは完全自律実行可能。VOICEVOX Engine起動はオプション（--start-engineフラグ）。
-
----
-
-**🎯 次のステップ**: Rust Agent実装詳細は次セクションに続く...
 
 ---
 
