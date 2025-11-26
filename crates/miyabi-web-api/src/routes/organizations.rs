@@ -73,30 +73,30 @@ pub fn routes() -> Router<AppState> {
         // Organization CRUD
         .route("/", get(list_organizations).post(create_organization))
         .route(
-            "/:org_id",
+            "/{org_id}",
             get(get_organization)
                 .patch(update_organization)
                 .delete(delete_organization),
         )
         // Member management
-        .route("/:org_id/members", get(list_members).post(invite_member))
+        .route("/{org_id}/members", get(list_members).post(invite_member))
         .route(
-            "/:org_id/members/:user_id",
+            "/{org_id}/members/{user_id}",
             patch(update_member_role).delete(remove_member),
         )
         // Team management
-        .route("/:org_id/teams", get(list_teams).post(create_team))
+        .route("/{org_id}/teams", get(list_teams).post(create_team))
         .route(
-            "/:org_id/teams/:team_id",
+            "/{org_id}/teams/{team_id}",
             get(get_team).patch(update_team).delete(delete_team),
         )
         // Team member management
         .route(
-            "/:org_id/teams/:team_id/members",
+            "/{org_id}/teams/{team_id}/members",
             get(list_team_members).post(add_team_member),
         )
         .route(
-            "/:org_id/teams/:team_id/members/:user_id",
+            "/{org_id}/teams/{team_id}/members/{user_id}",
             delete(remove_team_member),
         )
 }

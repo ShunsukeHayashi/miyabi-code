@@ -16,7 +16,7 @@ pub fn routes() -> Router {
     Router::new()
         .route("/generate", post(generate_code))
         .route("/history", get(get_history))
-        .route("/history/:id", get(get_generation_detail))
+        .route("/history/{id}", get(get_generation_detail))
 }
 
 /// LLM Provider selection
