@@ -108,8 +108,7 @@ impl TaskQueue {
             return Err(SchedulerError::InvalidConfig(format!(
                 "Queue full (max: {})",
                 self.config.max_queue_size
-            ))
-            .into());
+            )));
         }
 
         // Calculate priority

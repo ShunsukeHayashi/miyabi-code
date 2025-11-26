@@ -175,8 +175,7 @@ impl TaskDispatcher {
             return Err(SchedulerError::CommandFailed {
                 command: "workflow_dispatch".to_string(),
                 stderr: format!("HTTP {}: {}", status, error_text),
-            }
-            .into());
+            });
         }
 
         // GitHub Actions doesn't return the run ID immediately in the dispatch response

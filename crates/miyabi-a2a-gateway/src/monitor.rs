@@ -123,9 +123,9 @@ impl CommunicationMonitor {
             .await
             .iter()
             .filter(|r| {
-                from.map_or(true, |f| &r.from == f)
-                    && to.map_or(true, |t| &r.to == t)
-                    && since.map_or(true, |s| r.timestamp >= s)
+                from.is_none_or(|f| &r.from == f)
+                    && to.is_none_or(|t| &r.to == t)
+                    && since.is_none_or(|s| r.timestamp >= s)
             })
             .cloned()
             .collect()

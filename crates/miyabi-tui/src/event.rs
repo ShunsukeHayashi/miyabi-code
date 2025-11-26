@@ -49,10 +49,8 @@ impl EventHandler {
                         }
                         _ => {}
                     }
-                } else {
-                    if tx.send(Event::Tick).is_err() {
-                        break;
-                    }
+                } else if tx.send(Event::Tick).is_err() {
+                    break;
                 }
             }
         });

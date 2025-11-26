@@ -27,7 +27,6 @@ use crate::history_cell::{
     AssistantMessageCell, HistoryCell, SystemMessageCell, SystemMessageType, ToolResultCell,
     UserMessageCell,
 };
-use crate::markdown_render::MarkdownRenderer;
 use crate::shimmer::{shimmer_text, spinner_frame, ShimmerConfig};
 
 // Miyabi Theme Colors
@@ -79,6 +78,12 @@ pub struct ChatView {
     pub error: Option<String>,
     pub auto_scroll: bool,
     pub token_count: usize,
+}
+
+impl Default for ChatView {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ChatView {
@@ -563,7 +568,7 @@ impl ChatView {
         f.render_widget(header, chunks[0]);
 
         let msg_area = chunks[1];
-        let inner_height = msg_area.height.saturating_sub(2) as u16;
+        let inner_height = msg_area.height.saturating_sub(2);
 
         // ═══════════════════════════════════════════════════════════════════
         // Premium Message Cards with sophisticated styling

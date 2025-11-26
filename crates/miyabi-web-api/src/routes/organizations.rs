@@ -8,9 +8,9 @@ use crate::{
     middleware::{AuthenticatedUser, OrganizationContext},
     models::{
         AddTeamMemberRequest, CreateOrganizationRequest, CreateTeamRequest, InviteMemberRequest,
-        OrgMemberRole, Organization, OrganizationMember, OrganizationMemberWithUser,
-        OrganizationSummary, Team, TeamMember, TeamMemberRole, UpdateMemberRoleRequest,
-        UpdateOrganizationRequest, UpdateTeamRequest, UserOrganization,
+        OrgMemberRole, Organization, OrganizationMember, OrganizationMemberWithUser, Team,
+        TeamMember, TeamMemberRole, UpdateMemberRoleRequest, UpdateOrganizationRequest,
+        UpdateTeamRequest, UserOrganization,
     },
     AppState,
 };
@@ -18,7 +18,7 @@ use axum::{
     extract::{Extension, Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{delete, get, patch, post},
+    routing::{get, post},
     Json, Router,
 };
 use serde::Serialize;
