@@ -528,6 +528,6 @@ pub fn routes() -> Router {
         .route("/overview", get(get_system_overview))
         .route("/workers", get(list_workers))
         .route("/coordinators", get(list_coordinators))
-        .route("/:agent_type", get(get_agent_status))
-        .route("/:agent_type/execute", post(execute_agent))
+        .route("/{agent_type}", get(get_agent_status))
+        .route("/{agent_type}/execute", post(execute_agent))
 }

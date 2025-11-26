@@ -60,14 +60,14 @@ pub fn routes() -> Router<AppState> {
         .route("/", get(list_tasks).post(create_task))
         .route("/stats", get(get_task_stats))
         .route(
-            "/:task_id",
+            "/{task_id}",
             get(get_task).patch(update_task).delete(delete_task),
         )
-        .route("/:task_id/start", post(start_task))
-        .route("/:task_id/complete", post(complete_task))
-        .route("/:task_id/fail", post(fail_task))
-        .route("/:task_id/cancel", post(cancel_task))
-        .route("/:task_id/retry", post(retry_task))
+        .route("/{task_id}/start", post(start_task))
+        .route("/{task_id}/complete", post(complete_task))
+        .route("/{task_id}/fail", post(fail_task))
+        .route("/{task_id}/cancel", post(cancel_task))
+        .route("/{task_id}/retry", post(retry_task))
 }
 
 // ============================================================================

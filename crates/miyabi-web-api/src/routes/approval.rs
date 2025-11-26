@@ -329,8 +329,8 @@ pub fn routes() -> axum::Router<AppState> {
 
     axum::Router::new()
         .route("/", get(list_approvals))
-        .route("/:id", get(get_approval))
-        .route("/:id/approve", post(approve_workflow))
-        .route("/:id/reject", post(reject_workflow))
-        .route("/:id/stream", get(approval_stream))
+        .route("/{id}", get(get_approval))
+        .route("/{id}/approve", post(approve_workflow))
+        .route("/{id}/reject", post(reject_workflow))
+        .route("/{id}/stream", get(approval_stream))
 }
