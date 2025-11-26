@@ -33,6 +33,7 @@ pub mod websocket;
 pub mod ws;
 
 use axum::{
+    middleware::from_fn_with_state,
     routing::{get, post},
     Router,
 };
@@ -282,7 +283,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .nest("/codegen", routes::codegen::routes().with_state(()))
         // MCP routes - Does NOT require database (hardcoded tools + shell commands)
         .nest("/mcp", routes::mcp::routes())
-        // Authentication routes - Phase 2.4: Re-enabled with database
+        // Authentication routes - Phase 2.4: Re-enabled with database (PUBLIC)
         .route("/auth/github", get(routes::auth::github_oauth_initiate))
         .route(
             "/auth/github/callback",
@@ -295,6 +296,12 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
             post(routes::auth::switch_organization),
         )
         .route("/auth/mock", post(routes::auth::mock_login))
+        // Worker & Coordinator Status routes - Phase 2.3 (#985) (PUBLIC - status only)
+        .nest("/workers", routes::workers::routes())
+        .nest("/coordinators", routes::coordinators::routes());
+
+    // Protected routes requiring authentication
+    let protected_routes = Router::new()
         // Repository routes - Phase 2.4: Re-enabled with database
         .route(
             "/repositories",
@@ -327,9 +334,15 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .nest("/organizations", routes::organizations::routes())
         // Task Management routes - Phase 2.1: Task Management API (#970)
         .nest("/tasks", routes::tasks::routes())
-        // Worker & Coordinator Status routes - Phase 2.3 (#985)
-        .nest("/workers", routes::workers::routes())
-        .nest("/coordinators", routes::coordinators::routes());
+        // Apply auth middleware to all protected routes
+        .route_layer(from_fn_with_state(
+            state.jwt_secret.clone(),
+            middleware::auth_middleware,
+        ))
+        .with_state(state.clone());
+
+    // Merge public and protected routes
+    let api_routes = api_routes.merge(protected_routes);
 
     // Build main router
     let app = Router::new()
