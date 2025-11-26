@@ -11,7 +11,6 @@ use crate::error::Result;
 use chrono::{DateTime, Duration, Local, Utc};
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 /// Report generation command

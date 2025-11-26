@@ -532,7 +532,7 @@ impl A2AEnabled for CodeGenAgent {
                 // Get worktree path if provided
                 let worktree_path = task.input["worktree_path"]
                     .as_str()
-                    .map(|s| std::path::PathBuf::from(s));
+                    .map(std::path::PathBuf::from);
 
                 // Generate code
                 let result = self
@@ -542,7 +542,7 @@ impl A2AEnabled for CodeGenAgent {
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(result)
-                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                        .map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })
@@ -566,7 +566,7 @@ impl A2AEnabled for CodeGenAgent {
 
                 Ok(A2ATaskResult::Success {
                     output: serde_json::to_value(doc_result)
-                        .map_err(|e| A2AIntegrationError::SerializationError(e))?,
+                        .map_err(A2AIntegrationError::SerializationError)?,
                     artifacts: vec![],
                     execution_time_ms: start.elapsed().as_millis() as u64,
                 })

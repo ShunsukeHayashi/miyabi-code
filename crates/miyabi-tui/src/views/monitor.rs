@@ -19,6 +19,12 @@ pub struct MonitorView {
     tick: usize,
 }
 
+impl Default for MonitorView {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MonitorView {
     pub fn new() -> Self {
         let mut sys = System::new_all();
@@ -55,11 +61,8 @@ impl MonitorView {
     }
 
     pub fn on_key(&mut self, key: KeyEvent) {
-        match key.code {
-            KeyCode::Char('r') => {
-                self.sys.refresh_all();
-            }
-            _ => {}
+        if let KeyCode::Char('r') = key.code {
+            self.sys.refresh_all();
         }
     }
 

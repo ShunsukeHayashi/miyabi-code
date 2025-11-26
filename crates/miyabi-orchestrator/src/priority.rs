@@ -20,7 +20,7 @@ impl PriorityScore {
     /// Create a new priority score
     pub fn new(value: u8) -> Result<Self> {
         if value > 100 {
-            return Err(SchedulerError::InvalidPriority(value).into());
+            return Err(SchedulerError::InvalidPriority(value));
         }
         Ok(Self(value))
     }

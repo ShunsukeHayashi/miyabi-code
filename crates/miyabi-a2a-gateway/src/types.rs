@@ -131,18 +131,13 @@ pub enum TaskStatus {
 }
 
 /// Task priority
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub enum Priority {
     Low = 1,
+    #[default]
     Medium = 2,
     High = 3,
     Critical = 4,
-}
-
-impl Default for Priority {
-    fn default() -> Self {
-        Self::Medium
-    }
 }
 
 /// Message in A2A communication
@@ -265,20 +260,15 @@ pub enum TaskResult {
 }
 
 /// Delivery guarantee level
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum DeliveryGuarantee {
     /// Fire and forget
     AtMostOnce,
     /// Retry until acknowledged
+    #[default]
     AtLeastOnce,
     /// Deduplicate
     ExactlyOnce,
-}
-
-impl Default for DeliveryGuarantee {
-    fn default() -> Self {
-        Self::AtLeastOnce
-    }
 }
 
 /// Agent status

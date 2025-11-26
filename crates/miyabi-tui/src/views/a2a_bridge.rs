@@ -46,6 +46,12 @@ pub struct A2ABridgeView {
     pub error: Option<String>,
 }
 
+impl Default for A2ABridgeView {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl A2ABridgeView {
     pub fn new() -> Self {
         // Initialize Claude Sonnet 4.5 client from ANTHROPIC_API_KEY env var

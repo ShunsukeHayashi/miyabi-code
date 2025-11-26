@@ -25,6 +25,12 @@ pub struct AgentDashboard {
     pub logs: Vec<String>,
 }
 
+impl Default for AgentDashboard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AgentDashboard {
     pub fn new() -> Self {
         let agents = vec![

@@ -165,7 +165,7 @@ impl MarkdownRenderer {
             return Line::from(vec![
                 Span::raw(prefix),
                 Span::styled(rest.0, self.styles.list_marker),
-                Span::styled(self.render_inline(&rest.1), Style::default()),
+                Span::styled(self.render_inline(rest.1), Style::default()),
             ]);
         }
 

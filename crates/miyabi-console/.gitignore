@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Environment files (keep .env.example)
+.env
+.env.local
+!.env.example
+!.env.production
+!.env.staging
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
