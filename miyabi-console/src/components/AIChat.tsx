@@ -25,7 +25,7 @@ export function AIChat() {
         parts: [
           {
             type: 'text',
-            text: '👋 Hello! I\'m Miyabi AI Assistant. I can help you with:\n\n- UI/UX design suggestions\n- Code generation and review\n- Agent orchestration strategies\n- System architecture planning\n\nWhat would you like to create today?',
+            text: 'Hello. I\'m Miyabi AI Assistant.\n\nI can help you with:\n\n• UI/UX design suggestions\n• Code generation and review\n• Agent orchestration strategies\n• System architecture planning\n\nWhat would you like to create today?',
           },
         ],
       },
@@ -43,27 +43,24 @@ export function AIChat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="flex flex-col h-screen bg-slate-950">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/20 backdrop-blur-sm">
+      <div className="flex items-center justify-between px-8 py-6 border-b border-white/10">
         <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
-            <div className="absolute inset-0 blur-xl bg-purple-400/30" />
-          </div>
+          <Sparkles className="w-5 h-5 text-slate-400" />
           <div>
-            <h1 className="text-xl font-bold text-white">Miyabi AI Assistant</h1>
-            <p className="text-sm text-gray-400">Powered by Google Gemini 3</p>
+            <h1 className="text-lg font-light tracking-tight text-slate-50">Miyabi AI Assistant</h1>
+            <p className="text-xs font-extralight text-slate-400">Powered by Google Gemini 3</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-sm text-gray-400">Online</span>
+          <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+          <span className="text-xs font-light text-slate-400">Online</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-8 py-16 space-y-8">
         {messages.map((message) => {
           const textContent = message.parts
             .filter((part) => part.type === 'text')
@@ -76,37 +73,37 @@ export function AIChat() {
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-3xl ${
+                className={`max-w-2xl ${
                   message.role === 'user'
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600'
-                    : 'bg-white/10 backdrop-blur-sm border border-white/10'
-                } rounded-2xl px-6 py-4 shadow-lg`}
+                    ? 'bg-blue-600'
+                    : 'bg-white/5 backdrop-blur-md border border-white/10'
+                } rounded-2xl px-6 py-6 shadow-sm`}
               >
                 {/* Message Header */}
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     {message.role === 'assistant' && (
-                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <Sparkles className="w-3.5 h-3.5 text-slate-400" />
                     )}
-                    <span className="text-xs font-semibold text-white/70">
+                    <span className="text-xs font-light text-slate-400">
                       {message.role === 'user' ? 'You' : 'Miyabi AI'}
                     </span>
                   </div>
                   <button
                     onClick={() => copyToClipboard(textContent, message.id)}
-                    className="p-1 hover:bg-white/10 rounded transition-colors"
+                    className="p-1 hover:bg-white/5 rounded transition-colors"
                     title="Copy to clipboard"
                   >
                     {copiedId === message.id ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-3.5 h-3.5 text-green-500" />
                     ) : (
-                      <Copy className="w-4 h-4 text-white/50" />
+                      <Copy className="w-3.5 h-3.5 text-slate-400" />
                     )}
                   </button>
                 </div>
 
                 {/* Message Content */}
-                <div className="text-white whitespace-pre-wrap">
+                <div className={`${message.role === 'user' ? 'text-white font-light' : 'text-slate-50 font-extralight'} whitespace-pre-wrap tracking-tight leading-relaxed`}>
                   {textContent.includes('```') ? (
                     <CodeBlock content={textContent} />
                   ) : (
@@ -120,14 +117,14 @@ export function AIChat() {
 
         {status !== 'ready' && (
           <div className="flex justify-start">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-4">
-              <div className="flex items-center space-x-2">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-6">
+              <div className="flex items-center space-x-3">
+                <div className="flex gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" />
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
                 </div>
-                <span className="text-sm text-white/50">Thinking...</span>
+                <span className="text-xs font-light text-slate-400">Thinking</span>
               </div>
             </div>
           </div>
@@ -135,7 +132,7 @@ export function AIChat() {
       </div>
 
       {/* Input */}
-      <div className="px-6 py-4 border-t border-white/10 bg-black/20 backdrop-blur-sm">
+      <div className="px-8 py-6 border-t border-white/10">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -144,30 +141,29 @@ export function AIChat() {
               setInput('');
             }
           }}
-          className="flex space-x-3"
+          className="flex gap-3"
         >
           <div className="flex-1 relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything about UI/UX, code, or agents..."
-              className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              placeholder="Ask me anything..."
+              className="w-full px-6 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-slate-50 placeholder-slate-500 font-light tracking-tight focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
               disabled={status !== 'ready'}
             />
-            <Code className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
           </div>
           <button
             type="submit"
             disabled={status !== 'ready' || !input.trim()}
-            className="px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-purple-500/50 flex items-center space-x-2"
+            className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-light tracking-tight hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
             <span>Send</span>
           </button>
         </form>
-        <p className="text-xs text-white/30 mt-3 text-center">
-          Powered by Google Gemini 3 Pro Preview • Context-aware AI assistant
+        <p className="text-xs font-extralight text-slate-500 mt-4 text-center tracking-tight">
+          Powered by Google Gemini 3 Pro Preview
         </p>
       </div>
     </div>
