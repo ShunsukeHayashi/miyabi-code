@@ -11,7 +11,10 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Send, Sparkles, Code, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSmartScroll } from '../hooks/useSmartScroll';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 export function AIChat() {
   const { messages, sendMessage, status } = useChat({
@@ -33,8 +36,25 @@ export function AIChat() {
   });
 
   const [input, setInput] = useState('');
-
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Smart scroll behavior
+  const { scrollRef, handleScroll } = useSmartScroll(messages);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    focusInput: () => inputRef.current?.focus(),
+    clearChat: () => {
+      // Note: AI SDK 6 doesn't expose a clear method yet
+      // This would need to be implemented with state management
+      console.log('Clear chat - to be implemented');
+    },
+    stopGeneration: () => {
+      // Note: AI SDK 6 doesn't expose a stop method yet
+      inputRef.current?.blur();
+    },
+  });
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -43,67 +63,72 @@ export function AIChat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-950">
+    <div className="flex flex-col h-screen bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-6 border-b border-white/10">
+      <div className="flex items-center justify-between px-8 py-6 border-b border-black/5 backdrop-blur-xl bg-white/70">
         <div className="flex items-center space-x-3">
-          <Sparkles className="w-5 h-5 text-slate-400" />
+          <Sparkles className="w-5 h-5 text-[#0066CC]" />
           <div>
-            <h1 className="text-lg font-light tracking-tight text-slate-50">Miyabi AI Assistant</h1>
-            <p className="text-xs font-extralight text-slate-400">Powered by Google Gemini 3</p>
+            <h1 className="text-lg font-light tracking-tight text-[#1D1D1F]">Miyabi AI Assistant</h1>
+            <p className="text-xs font-light text-[#86868B]">Powered by Google Gemini 3</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-          <span className="text-xs font-light text-slate-400">Online</span>
+          <span className="text-xs font-light text-[#86868B]">Online</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-8 py-16 space-y-8">
-        {messages.map((message) => {
+      <div className="flex-1 overflow-y-auto px-8 py-16 space-y-8" onScroll={handleScroll}>
+        <AnimatePresence mode="popLayout">
+          {messages.map((message) => {
           const textContent = message.parts
             .filter((part) => part.type === 'text')
             .map((part) => part.text)
             .join('');
 
           return (
-            <div
+            <motion.div
               key={message.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-2xl ${
                   message.role === 'user'
-                    ? 'bg-blue-600'
-                    : 'bg-white/5 backdrop-blur-md border border-white/10'
+                    ? 'bg-[#0066CC]'
+                    : 'bg-[#F5F5F7] border border-black/5'
                 } rounded-2xl px-6 py-6 shadow-sm`}
               >
                 {/* Message Header */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     {message.role === 'assistant' && (
-                      <Sparkles className="w-3.5 h-3.5 text-slate-400" />
+                      <Sparkles className="w-3.5 h-3.5 text-[#0066CC]" />
                     )}
-                    <span className="text-xs font-light text-slate-400">
+                    <span className="text-xs font-light text-[#86868B]">
                       {message.role === 'user' ? 'You' : 'Miyabi AI'}
                     </span>
                   </div>
                   <button
                     onClick={() => copyToClipboard(textContent, message.id)}
-                    className="p-1 hover:bg-white/5 rounded transition-colors"
+                    className="p-1 hover:bg-black/5 rounded transition-colors"
                     title="Copy to clipboard"
                   >
                     {copiedId === message.id ? (
                       <Check className="w-3.5 h-3.5 text-green-500" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5 text-slate-400" />
+                      <Copy className="w-3.5 h-3.5 text-[#86868B]" />
                     )}
                   </button>
                 </div>
 
                 {/* Message Content */}
-                <div className={`${message.role === 'user' ? 'text-white font-light' : 'text-slate-50 font-extralight'} whitespace-pre-wrap tracking-tight leading-relaxed`}>
+                <div className={`${message.role === 'user' ? 'text-white font-light' : 'text-[#1D1D1F] font-light'} whitespace-pre-wrap tracking-tight leading-relaxed`}>
                   {textContent.includes('```') ? (
                     <CodeBlock content={textContent} />
                   ) : (
@@ -111,20 +136,22 @@ export function AIChat() {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
+        <div ref={scrollRef} />
 
         {status !== 'ready' && (
           <div className="flex justify-start">
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-6">
+            <div className="bg-[#F5F5F7] border border-black/5 rounded-2xl px-6 py-6">
               <div className="flex items-center space-x-3">
                 <div className="flex gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" />
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+                  <div className="w-1.5 h-1.5 bg-[#0066CC] rounded-full animate-pulse" />
+                  <div className="w-1.5 h-1.5 bg-[#0066CC] rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+                  <div className="w-1.5 h-1.5 bg-[#0066CC] rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
                 </div>
-                <span className="text-xs font-light text-slate-400">Thinking</span>
+                <span className="text-xs font-light text-[#86868B]">Thinking</span>
               </div>
             </div>
           </div>
@@ -132,7 +159,7 @@ export function AIChat() {
       </div>
 
       {/* Input */}
-      <div className="px-8 py-6 border-t border-white/10">
+      <div className="px-8 py-6 border-t border-black/5 bg-white">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -145,24 +172,28 @@ export function AIChat() {
         >
           <div className="flex-1 relative">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything..."
-              className="w-full px-6 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-slate-50 placeholder-slate-500 font-light tracking-tight focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
+              aria-label="Chat input"
+              className="w-full px-6 py-4 bg-[#F5F5F7] border border-black/5 rounded-2xl text-[#1D1D1F] placeholder-[#86868B] font-light tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC] focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:border-transparent transition-all"
               disabled={status !== 'ready'}
             />
           </div>
-          <button
+          <motion.button
             type="submit"
             disabled={status !== 'ready' || !input.trim()}
-            className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-light tracking-tight hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-8 py-4 bg-[#0066CC] text-white rounded-2xl font-light tracking-tight hover:bg-[#0077ED] disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             <Send className="w-4 h-4" />
             <span>Send</span>
-          </button>
+          </motion.button>
         </form>
-        <p className="text-xs font-extralight text-slate-500 mt-4 text-center tracking-tight">
+        <p className="text-xs font-light text-[#86868B] mt-4 text-center tracking-tight">
           Powered by Google Gemini 3 Pro Preview
         </p>
       </div>

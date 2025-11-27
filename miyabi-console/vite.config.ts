@@ -47,6 +47,8 @@ export default defineConfig({
           'vendor-icons': ['lucide-react'],
           // AI SDK
           'vendor-ai': ['ai', '@ai-sdk/google'],
+          // Animations
+          'vendor-animation': ['framer-motion'],
         },
       },
     },

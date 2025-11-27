@@ -15,11 +15,12 @@
 
     "miyabi": {
       "command": "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/target/release/miyabi-mcp-server",
-      "args": [],
+      "args": [
+        "--repo-owner", "customer-cloud",
+        "--repo-name", "miyabi-private",
+        "--github-token", "${GITHUB_TOKEN}"
+      ],
       "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
-        "REPO_OWNER": "customer-cloud",
-        "REPO_NAME": "miyabi-private",
         "RUST_LOG": "miyabi_mcp_server=info,miyabi_agents=debug"
       },
       "disabled": false,
@@ -140,6 +141,16 @@
       ],
       "disabled": false,
       "description": "Miyabi tmux MCP Server - Multithread communication aggregation & CommHub"
+    },
+
+    "gemini3-image-gen": {
+      "command": "node",
+      "args": ["mcp-servers/gemini3-image-gen/dist/simple-server.js"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "Gemini 3 Pro Preview (Nano Banana Pro) image generation"
     }
   }
 }

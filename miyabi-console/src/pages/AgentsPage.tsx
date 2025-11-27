@@ -4,6 +4,7 @@ import type { Agent, AgentsPageState } from '@/types/agent'
 import { Button, Spinner } from '@heroui/react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 // Lazy load modal component
 const AgentDetailModal = lazy(() => import('@/components/agents/AgentDetailModal'))
@@ -17,6 +18,7 @@ const LAYER_NAMES: Record<number, string> = {
 }
 
 export default function AgentsPage() {
+  const { tokens, isDark } = useTheme()
   const [state, setState] = useState<AgentsPageState>({
     agents: [],
     selectedAgent: null,
@@ -85,15 +87,30 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className="min-h-screen transition-colors duration-200"
+      style={{ background: tokens.colors.background.primary }}
+    >
       <div className="max-w-[1600px] mx-auto px-5 py-12 space-y-12">
         {/* Header - Ive Style */}
-        <div className="text-center py-16 border-b border-gray-100">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extralight tracking-tighter text-gray-900 leading-none mb-4">
+        <div
+          className="text-center py-16"
+          style={{ borderBottom: `1px solid ${tokens.colors.surface.cardBorder}` }}
+        >
+          <h1
+            className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tighter leading-none mb-4"
+            style={{ color: tokens.colors.text.primary }}
+          >
             Agents
           </h1>
-          <div className="h-px w-16 bg-gray-300 mx-auto mb-8"></div>
-          <p className="text-lg md:text-xl text-gray-500 font-light max-w-2xl mx-auto">
+          <div
+            className="h-px w-16 mx-auto mb-8"
+            style={{ backgroundColor: tokens.colors.text.tertiary }}
+          ></div>
+          <p
+            className="text-lg md:text-xl font-light max-w-2xl mx-auto"
+            style={{ color: tokens.colors.text.secondary }}
+          >
             Manage and monitor your autonomous agents
           </p>
         </div>
@@ -112,10 +129,16 @@ export default function AgentsPage() {
 
         {/* Error Banner */}
         {error && (
-          <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+          <div
+            className="border rounded-xl p-4"
+            style={{
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2',
+              borderColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FECACA'
+            }}
+          >
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-              <p className="text-red-700 text-sm flex-1">{error}</p>
+              <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: tokens.colors.accent.error }} />
+              <p className="text-sm flex-1" style={{ color: tokens.colors.accent.error }}>{error}</p>
               <Button
                 size="sm"
                 variant="flat"
@@ -130,41 +153,41 @@ export default function AgentsPage() {
         {/* Stats Overview - Ive Style */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+            <p className={`${tokens.typography.caption} mb-3`} style={{ color: tokens.colors.text.tertiary }}>
               Total Agents
             </p>
-            <p className="text-5xl md:text-6xl font-extralight text-gray-900 leading-none">
+            <p className={tokens.typography.stat} style={{ color: tokens.colors.text.primary }}>
               {state.agents.length}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+            <p className={`${tokens.typography.caption} mb-3`} style={{ color: tokens.colors.text.tertiary }}>
               Active
             </p>
-            <p className="text-5xl md:text-6xl font-extralight text-green-600 leading-none">
+            <p className={tokens.typography.stat} style={{ color: tokens.colors.accent.success }}>
               {state.agents.filter((a) => a.status === 'active').length}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+            <p className={`${tokens.typography.caption} mb-3`} style={{ color: tokens.colors.text.tertiary }}>
               Idle
             </p>
-            <p className="text-5xl md:text-6xl font-extralight text-yellow-600 leading-none">
+            <p className={tokens.typography.stat} style={{ color: tokens.colors.accent.warning }}>
               {state.agents.filter((a) => a.status === 'idle').length}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">
+            <p className={`${tokens.typography.caption} mb-3`} style={{ color: tokens.colors.text.tertiary }}>
               Error/Offline
             </p>
-            <p className="text-5xl md:text-6xl font-extralight text-red-600 leading-none">
+            <p className={tokens.typography.stat} style={{ color: tokens.colors.accent.error }}>
               {state.agents.filter((a) => a.status === 'error' || a.status === 'offline').length}
             </p>
           </div>
         </div>
 
         {/* Section Divider */}
-        <div className="h-px bg-gray-200"></div>
+        <div className="h-px" style={{ backgroundColor: tokens.colors.surface.cardBorder }}></div>
 
         {/* Agents by Layer */}
         <div className="space-y-12">
@@ -180,7 +203,7 @@ export default function AgentsPage() {
 
           {state.agents.length === 0 && (
             <div className="text-center py-24">
-              <p className="text-gray-500 text-lg font-light">
+              <p className="text-lg font-light" style={{ color: tokens.colors.text.secondary }}>
                 No agents found. Please check your API connection.
               </p>
             </div>

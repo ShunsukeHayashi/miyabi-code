@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 
 import ProtectedRoute from './components/ProtectedRoute'
 import SessionTimeoutWarning from './components/SessionTimeoutWarning'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 // Lazy load pages for code splitting
 const AgentsPage = lazy(() => import('./pages/AgentsPage'))
@@ -22,6 +23,8 @@ const IssuesPage = lazy(() => import('./pages/IssuesPage'))
 const TaskDAGPage = lazy(() => import('./pages/TaskDAGPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
 const AIAssistantPage = lazy(() => import('./pages/AIAssistantPage'))
+const AgentGalleryPage = lazy(() => import('./pages/AgentGalleryPage'))
+const TCGGalleryPage = lazy(() => import('./pages/TCGGalleryPage'))
 
 // Loading fallback component
 function PageLoader() {
@@ -34,7 +37,7 @@ function PageLoader() {
 
 function App() {
   return (
-    <>
+    <ThemeProvider>
       {/* Session timeout warning modal - monitors inactivity */}
       <SessionTimeoutWarning
         sessionTimeout={30 * 60 * 1000}  // 30 minutes
@@ -132,10 +135,16 @@ function App() {
 
           {/* AI Assistant - all roles */}
           <Route path="/ai-assistant" element={<AIAssistantPage />} />
+
+          {/* Agent Gallery - all roles (TCG Card View) */}
+          <Route path="/agent-gallery" element={<AgentGalleryPage />} />
+          
+          {/* TCG Gallery - all roles (Trading Card Game View) */}
+          <Route path="/tcg-gallery" element={<TCGGalleryPage />} />
         </Route>
         </Routes>
       </Suspense>
-    </>
+    </ThemeProvider>
   )
 }
 

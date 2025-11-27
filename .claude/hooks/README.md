@@ -1,25 +1,155 @@
 # Claude Code Hooks - Miyabi Project
 
 **Status**: ✅ Active
-**Version**: v3.0.0 (Orchestrator Pattern)
-**Last Updated**: 2025-10-31
+**Version**: v4.0.0 (Miyabi Ops Integration)
+**Last Updated**: 2025-11-27
 
 ---
 
 ## 📋 Overview
 
 This directory contains Claude Code hooks for:
-1. **Orchestrator Pattern** - Automated worktree creation for Sub-Agent execution (NEW)
-2. **VOICEVOX Real-time Narration** - Audio feedback for operations
-3. **Worktree Automation** - Manual worktree lifecycle management
-4. **Session Management** - Keep-alive and session tracking
-5. **Code Quality** - Auto-formatting and validation
+1. **Miyabi Ops Sequences** - P0/P1 automated operational best practices (NEW v4.0.0)
+2. **Orchestrator Pattern** - Automated worktree creation for Sub-Agent execution
+3. **VOICEVOX Real-time Narration** - Audio feedback for operations
+4. **Worktree Automation** - Manual worktree lifecycle management
+5. **Session Management** - Keep-alive and session tracking
+6. **Code Quality** - Auto-formatting and validation
 
 ---
 
 ## 🎯 Available Hooks
 
-### 1. Orchestrator Pattern (NEW - v3.0.0)
+### 0. Miyabi Ops Sequences (NEW - v4.0.0)
+
+**Philosophy**: Automated operational best practices aligned with Claude Code event lifecycle
+
+**Priority Levels**:
+- **P0 (Critical)**: Safety and validation - must execute successfully
+- **P1 (Recommended)**: Quality and automation - enhance development experience
+- **P2 (Extensions)**: Optional enhancements - project-specific features
+
+#### P0 Hooks (Critical - Always Enabled)
+
+##### **init-mcp-environment.sh** (SessionStart)
+- **Event**: SessionStart
+- **Purpose**: Initialize and validate Miyabi development environment
+- **Checks**: Project root, Git status, MCP servers, environment variables, configuration
+- **Exit Code**: 0 (success), 1 (warning)
+- **Timeout**: 30 seconds
+- **Location**: `.claude/hooks/session-hooks/init-mcp-environment.sh`
+
+**Output Example**:
+```
+🪝 HOOK START: init-mcp-environment
+✅ SUCCESS: Miyabi project verified
+✅ SUCCESS: Git repository detected
+ℹ️  INFO: Current branch: main
+✅ SUCCESS: Found 1 MCP servers
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌸 Miyabi Development Environment Ready
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+##### **permission-check.sh** (PreToolUse - Bash)
+- **Event**: PreToolUse (Bash tools only)
+- **Purpose**: Block dangerous operations before execution
+- **Blocks**: `git push --force`, `git reset --hard`, `rm -rf /`, etc.
+- **Exit Code**: 0 (allow), 2 (block)
+- **Timeout**: 10 seconds
+- **Location**: `.claude/hooks/pre-hooks/permission-check.sh`
+
+**Output Example (Blocked)**:
+```
+🪝 HOOK START: permission-check
+❌ ERROR: Dangerous rm -rf operation blocked
+🚫 Execution blocked for safety
+❌ HOOK END: permission-check (exit: 2)
+```
+
+##### **git-status-check.sh** (PreToolUse - Git Commit)
+- **Event**: PreToolUse (git commit operations)
+- **Purpose**: Ensure proper git workflow before commits
+- **Validates**: Staged changes exist, no large files (>10MB), no sensitive files (.env, credentials.json)
+- **Exit Code**: 0 (allow), 2 (block)
+- **Timeout**: 15 seconds
+- **Location**: `.claude/hooks/pre-hooks/git-status-check.sh`
+
+**Output Example**:
+```
+🪝 HOOK START: git-status-check
+✅ SUCCESS: Changes staged for commit
+ℹ️  INFO: Commit summary:
+  Files changed: 5
+  Lines added: 234
+  Lines deleted: 12
+✅ SUCCESS: Git status check passed
+```
+
+#### P1 Hooks (Recommended - Enabled by Default)
+
+##### **auto-format.sh** (PostToolUse - Write/Edit)
+- **Event**: PostToolUse (Write/Edit tools)
+- **Purpose**: Automatically format code after modifications
+- **Formatters**: `.rs` → rustfmt, `.ts/.tsx/.js/.jsx` → prettier, `.json` → jq
+- **Behavior**: Non-blocking - warns if formatter fails
+- **Exit Code**: Always 0 (never blocks)
+- **Timeout**: 30 seconds
+- **Location**: `.claude/hooks/post-hooks/auto-format.sh`
+
+**Output Example**:
+```
+🪝 HOOK START: auto-format
+🔄 Formatting Rust file with rustfmt...
+✅ SUCCESS: Rust file formatted: src/lib.rs
+```
+
+##### **run-tests.sh** (PostToolUse - Write/Edit)
+- **Event**: PostToolUse (Write/Edit tools)
+- **Purpose**: Automatically run tests after code changes
+- **Test Runners**: `.rs` → `cargo test -p <crate>`, `.ts/.tsx` → `npm test`
+- **Behavior**: Non-blocking - warns if tests fail
+- **Timeout**: 60 seconds
+- **Location**: `.claude/hooks/post-hooks/run-tests.sh`
+
+**Output Example**:
+```
+🪝 HOOK START: run-tests
+🔄 Running Rust tests...
+✅ Tests passed for miyabi-cli (3 test suites)
+```
+
+#### Hook Library (Shared Utilities)
+
+##### **logging.sh**
+- **Purpose**: Logging functions with color-coded output
+- **Functions**: `log_info`, `log_warning`, `log_error`, `log_success`, `log_hook_start`, `log_hook_end`, `log_progress`
+- **Location**: `.claude/hooks/lib/logging.sh`
+
+##### **validation.sh**
+- **Purpose**: Common validation functions
+- **Functions**: `is_git_repo`, `has_uncommitted_changes`, `is_miyabi_project`, `validate_tool_permission`, `check_file_readable`, `check_required_env`
+- **Location**: `.claude/hooks/lib/validation.sh`
+
+**Directory Structure** (v4.0.0):
+```
+.claude/hooks/
+├── lib/
+│   ├── logging.sh                    # Logging utilities
+│   └── validation.sh                 # Validation utilities
+├── session-hooks/
+│   └── init-mcp-environment.sh       # P0: Session initialization
+├── pre-hooks/
+│   ├── permission-check.sh           # P0: Permission validation
+│   └── git-status-check.sh           # P0: Git commit validation
+└── post-hooks/
+    ├── auto-format.sh                # P1: Auto-format code
+    └── run-tests.sh                  # P1: Run tests
+```
+
+---
+
+### 1. Orchestrator Pattern (v3.0.0)
 
 **Architecture**:
 ```
