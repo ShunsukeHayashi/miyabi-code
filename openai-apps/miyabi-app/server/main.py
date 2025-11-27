@@ -41,10 +41,15 @@ REPO_NAME = os.getenv("MIYABI_REPO_NAME", "miyabi-private")
 # MCP spec: OAuth 2.1 Bearer tokens (set MIYABI_ACCESS_TOKEN in .env)
 ACCESS_TOKEN = os.getenv("MIYABI_ACCESS_TOKEN", "")
 
-# OAuth 2.1 Configuration
+# OAuth 2.1 Configuration (supports GitHub OAuth App)
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID", "miyabi-mcp-client")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET", secrets.token_urlsafe(32))
 OAUTH_ISSUER = os.getenv("OAUTH_ISSUER", "https://miyabi-mcp.local")
+
+# GitHub OAuth App Configuration
+GITHUB_OAUTH_CLIENT_ID = os.getenv("GITHUB_OAUTH_CLIENT_ID", "")
+GITHUB_OAUTH_CLIENT_SECRET = os.getenv("GITHUB_OAUTH_CLIENT_SECRET", "")
+GITHUB_OAUTH_CALLBACK_URL = os.getenv("GITHUB_OAUTH_CALLBACK_URL", "")
 
 # In-memory storage for OAuth (in production, use Redis/DB)
 oauth_authorization_codes: Dict[str, Dict[str, Any]] = {}
@@ -1893,6 +1898,164 @@ async def oauth_token(
 
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported grant_type: {grant_type}")
+
+
+# ==========================================
+# GitHub OAuth App Authentication
+# ==========================================
+
+# Store GitHub OAuth states and tokens
+github_oauth_states: Dict[str, Dict[str, Any]] = {}
+github_user_tokens: Dict[str, Dict[str, Any]] = {}
+
+
+@app.get("/auth/github")
+async def github_auth_start(
+    redirect_uri: Optional[str] = Query(None),
+    scope: str = Query("repo,read:user"),
+):
+    """
+    Start GitHub OAuth flow
+    Redirects user to GitHub for authentication
+    """
+    if not GITHUB_OAUTH_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
+
+    # Generate state for CSRF protection
+    state = secrets.token_urlsafe(32)
+
+    # Store state with metadata
+    github_oauth_states[state] = {
+        "redirect_uri": redirect_uri or GITHUB_OAUTH_CALLBACK_URL,
+        "created_at": time.time(),
+        "expires_at": time.time() + 600,  # 10 minutes
+    }
+
+    # Build GitHub authorization URL
+    github_auth_url = (
+        f"https://github.com/login/oauth/authorize"
+        f"?client_id={GITHUB_OAUTH_CLIENT_ID}"
+        f"&redirect_uri={GITHUB_OAUTH_CALLBACK_URL}"
+        f"&scope={scope}"
+        f"&state={state}"
+    )
+
+    return RedirectResponse(url=github_auth_url)
+
+
+@app.get("/auth/github/callback")
+async def github_auth_callback(
+    code: str = Query(...),
+    state: str = Query(...),
+):
+    """
+    GitHub OAuth callback
+    Exchanges code for access token
+    """
+    # Validate state
+    state_data = github_oauth_states.get(state)
+    if not state_data:
+        raise HTTPException(status_code=400, detail="Invalid state parameter")
+
+    if time.time() > state_data["expires_at"]:
+        del github_oauth_states[state]
+        raise HTTPException(status_code=400, detail="State expired")
+
+    # Exchange code for access token
+    import httpx
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://github.com/login/oauth/access_token",
+            data={
+                "client_id": GITHUB_OAUTH_CLIENT_ID,
+                "client_secret": GITHUB_OAUTH_CLIENT_SECRET,
+                "code": code,
+                "redirect_uri": GITHUB_OAUTH_CALLBACK_URL,
+            },
+            headers={"Accept": "application/json"},
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to exchange code for token")
+
+        token_data = response.json()
+
+        if "error" in token_data:
+            raise HTTPException(status_code=400, detail=token_data.get("error_description", token_data["error"]))
+
+        github_access_token = token_data["access_token"]
+        token_type = token_data.get("token_type", "bearer")
+        scope = token_data.get("scope", "")
+
+        # Get user info
+        user_response = await client.get(
+            "https://api.github.com/user",
+            headers={
+                "Authorization": f"Bearer {github_access_token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+
+        if user_response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to get user info")
+
+        user_info = user_response.json()
+
+    # Generate our own access token
+    our_access_token = secrets.token_urlsafe(32)
+    our_refresh_token = secrets.token_urlsafe(32)
+
+    # Store token mapping
+    token_info = {
+        "github_token": github_access_token,
+        "github_user": user_info["login"],
+        "github_id": user_info["id"],
+        "scope": scope,
+        "created_at": time.time(),
+        "expires_at": time.time() + 3600 * 8,  # 8 hours
+    }
+
+    oauth_access_tokens[our_access_token] = token_info
+    oauth_refresh_tokens[our_refresh_token] = {
+        **token_info,
+        "expires_at": time.time() + 86400 * 30,
+    }
+    github_user_tokens[user_info["login"]] = our_access_token
+
+    # Clean up state
+    del github_oauth_states[state]
+
+    # Redirect to original destination or return token
+    redirect_uri = state_data.get("redirect_uri")
+    if redirect_uri:
+        separator = "&" if "?" in redirect_uri else "?"
+        return RedirectResponse(
+            url=f"{redirect_uri}{separator}access_token={our_access_token}&token_type=Bearer&github_user={user_info['login']}"
+        )
+
+    return {
+        "access_token": our_access_token,
+        "token_type": "Bearer",
+        "expires_in": 3600 * 8,
+        "refresh_token": our_refresh_token,
+        "scope": scope,
+        "github_user": user_info["login"],
+    }
+
+
+@app.get("/auth/github/user")
+async def get_github_user(token: str = Depends(verify_bearer_token)):
+    """Get current authenticated GitHub user info"""
+    token_data = oauth_access_tokens.get(token)
+    if not token_data or "github_user" not in token_data:
+        raise HTTPException(status_code=401, detail="Not authenticated with GitHub")
+
+    return {
+        "github_user": token_data["github_user"],
+        "github_id": token_data.get("github_id"),
+        "scope": token_data.get("scope"),
+    }
 
 
 # MCP Endpoints
