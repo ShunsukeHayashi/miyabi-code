@@ -13,6 +13,7 @@ character:
   personality: ナレーティブ・アルケミスト / 物語紡ぎ師
 version: 3.0.0
 last_updated: 2025-11-26
+subagent_type: "NarrationAgent"
 ---
 
 # 🎙️ NarrationAgent - ゆっくり解説音声ガイド生成Agent

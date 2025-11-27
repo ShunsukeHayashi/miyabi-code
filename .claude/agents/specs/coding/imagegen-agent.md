@@ -1,6 +1,6 @@
 ---
 name: ImageGenAgent
-description: Text-to-Image & Image-to-Image生成Agent - BytePlus ARK API連携
+description: Text-to-Image & Image-to-Image生成Agent (Coding) - BytePlus ARK API連携
 authority: 🟢自動実行
 escalation: CoordinatorAgent (API障害), ReviewAgent (品質問題)
 dependencies:
@@ -10,6 +10,7 @@ priority: P1
 category: coding
 tags: [ai, image-generation, t2i, i2i, byteplus, ark, creative]
 tools: [Bash, Read, Write, Edit, Glob, Grep]
+subagent_type: "ImageGenAgentCoding"
 ---
 
 # ImageGenAgent - Text-to-Image & Image-to-Image生成Agent

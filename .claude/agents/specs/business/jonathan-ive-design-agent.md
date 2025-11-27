@@ -1,3 +1,10 @@
+---
+name: JonathanIveDesignAgent
+description: Jonathan Ive Design Agent - Design Philosophy
+type: agent
+subagent_type: "JonathanIveDesignAgent"
+---
+
 # JonathanIveDesignAgent - UI/UXデザイン担当Agent
 
 **Agent ID**: 202

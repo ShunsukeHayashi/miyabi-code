@@ -1,3 +1,10 @@
+---
+name: CourseGeneratorAgent
+description: Course Generator Agent - Udemy Course Creation
+type: agent
+subagent_type: "CourseGeneratorAgent"
+---
+
 # CourseGeneratorAgent
 
 **Agent ID**: 201
@@ -1456,10 +1463,14 @@ agent.with_batch_size(10)
 ```rust
 // 詳細プロンプトを使用
 let detailed_prompt = format!(
-    "Generate in-depth lesson content with:\n\
-     - At least 3 code examples\n\
-     - Real-world use cases\n\
-     - Common pitfalls and solutions\n\
+    "Generate in-depth lesson content with:
+\
+     - At least 3 code examples
+\
+     - Real-world use cases
+\
+     - Common pitfalls and solutions
+\
      - Best practices"
 );
 
@@ -1482,9 +1493,14 @@ let llm_request = LlmRequest {
 ```rust
 // レッスン要約を含める
 let quiz_prompt = format!(
-    "Based on these lesson summaries:\n{}\n\n\
-     Generate quiz questions that test understanding of:\n{}",
-    lesson_summaries.join("\n"),
+    "Based on these lesson summaries:
+{}
+
+\
+     Generate quiz questions that test understanding of:
+{}",
+    lesson_summaries.join("
+"),
     key_concepts.join(", ")
 );
 ```

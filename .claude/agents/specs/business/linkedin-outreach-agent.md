@@ -1,3 +1,10 @@
+---
+name: LinkedInOutreachAgent
+description: LinkedIn Outreach Agent
+type: agent
+subagent_type: "LinkedInOutreachAgent"
+---
+
 # LinkedInOutreachAgent Specification
 
 **Agent Name**: LinkedInOutreachAgent

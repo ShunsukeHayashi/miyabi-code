@@ -1,3 +1,10 @@
+---
+name: WaterSpiderAgent
+description: Water Spider Agent - System Monitoring
+type: agent
+subagent_type: "WaterSpiderAgent"
+---
+
 # 🕷️ Water Spider Agent - システム監視・自動復旧Agent
 
 **役割**: Miyabi Orchestra全体を監視し、Agentの健全性を保証する

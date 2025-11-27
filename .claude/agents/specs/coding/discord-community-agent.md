@@ -1,3 +1,10 @@
+---
+name: DiscordCommunityAgent
+description: Discord Community Agent
+type: agent
+subagent_type: "DiscordCommunityAgent"
+---
+
 # Discord Community Agent 仕様書
 
 **Agent名**: DiscordCommunityAgent

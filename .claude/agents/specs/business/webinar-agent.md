@@ -1,3 +1,10 @@
+---
+name: WebinarAgent
+description: Webinar Agent
+type: agent
+subagent_type: "WebinarAgent"
+---
+
 # WebinarAgent Specification
 
 **Agent Name**: WebinarAgent

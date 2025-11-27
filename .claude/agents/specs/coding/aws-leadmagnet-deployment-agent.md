@@ -10,6 +10,7 @@ priority: P0
 category: deployment
 tags: [aws, s3, cloudfront, lambda, ses, dynamodb, infrastructure, lead-magnet]
 tools: [Bash, Read, Write, Edit, Glob, Grep, Task, WebFetch]
+subagent_type: "AWSLeadMagnetDeploymentAgent"
 ---
 
 # AWSLeadMagnetDeploymentAgent - AWS Lead Magnet Deployment Agent

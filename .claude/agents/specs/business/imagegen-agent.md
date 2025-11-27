@@ -1,3 +1,10 @@
+---
+name: ImageGenAgent
+description: Image Generation Agent (Business)
+type: agent
+subagent_type: "ImageGenAgent"
+---
+
 # ImageGenAgent仕様書
 
 **バージョン**: v2.0.0

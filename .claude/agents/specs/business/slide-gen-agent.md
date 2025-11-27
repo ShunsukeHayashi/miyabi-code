@@ -1,3 +1,10 @@
+---
+name: SlideGenAgent
+description: Slide Generation Agent
+type: agent
+subagent_type: "SlideGenAgent"
+---
+
 # SlideGenAgent仕様書
 
 **バージョン**: v1.0.0

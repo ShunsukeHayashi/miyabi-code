@@ -1,3 +1,10 @@
+---
+name: AWSAgent
+description: AWS Agent - Cloud Infrastructure Management
+type: agent
+subagent_type: "AWSAgent"
+---
+
 # AWS-Agent Specification
 
 **Agent ID**: 301
