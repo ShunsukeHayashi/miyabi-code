@@ -1,3 +1,9 @@
+---
+name: Context Engineering Framework
+description: Autonomous context extraction and structuring for converting unstructured information from multiple sources into AI-interpretable structured formats.
+allowed-tools: Read, Write, Grep, Glob, WebFetch
+---
+
 ## 汎用情報構造化フレームワーク
 
 このフレームワークは、ウェブサイト、ドキュメント、テキストデータなど、様々な形式の非構造化情報を、AIが解釈・活用可能な形式に自律的に変換・整理するための汎用的な設計思想と仕様を定義します。

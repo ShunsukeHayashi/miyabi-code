@@ -1,3 +1,9 @@
+---
+name: Claude Code X - Autonomous Execution Subagent
+description: Execute Claude Code autonomously in the background for well-defined tasks, enabling parallel execution of up to 5 concurrent sessions while the user continues other work.
+allowed-tools: Bash, Task, Edit, Read, Write, Grep, Glob
+---
+
 # Claude Code X - Autonomous Execution Subagent
 
 **Type**: Task Execution Agent
