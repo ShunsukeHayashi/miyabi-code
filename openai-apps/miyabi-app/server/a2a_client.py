@@ -95,10 +95,17 @@ class A2ABridgeClient:
             JSON-RPC response
         """
         if not self.binary_path.exists():
-            raise FileNotFoundError(
-                f"MCP server binary not found at {self.binary_path}. "
-                "Run 'cargo build --release' first."
-            )
+            # Return a helpful error instead of crashing
+            return {
+                "output": f"⚠️ A2A Bridge unavailable: Rust binary not found at {self.binary_path}\n\n"
+                         f"To enable agent execution:\n"
+                         f"1. Build the Rust project: cargo build --release\n"
+                         f"2. The binary will be available at: {self.binary_path}\n\n"
+                         f"For now, you can still use GitHub tools (create_issue, list_issues) "
+                         f"and get_project_status.",
+                "status": "unavailable",
+                "agent_execution": "disabled"
+            }
 
         # Prepare environment
         env = os.environ.copy()
