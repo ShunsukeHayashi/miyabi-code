@@ -1,0 +1,402 @@
+{
+  "generated_at": "2025-11-28T06:50:00.000Z",
+  "card_type": "TCG_COMPLETE",
+  "total_cards": 24,
+  "successfully_generated": 24,
+  "cards": [
+    {
+      "id": "shikiroon",
+      "name": { "jp": "しきるん", "en": "Shikiroon" },
+      "title": { "jp": "タスク調整と並列実行の指揮者", "en": "Task Coordinator" },
+      "rarity": "SSR",
+      "level": 45,
+      "type": ["Coding", "Coordinator"],
+      "attribute": "⚡Lightning",
+      "stats": { "hp": 1800, "atk": 850, "def": 950, "spd": 720, "int": 900, "luk": 75 },
+      "skill": {
+        "name": "パラレル・オーケストラ",
+        "desc": "複数のエージェントを同時に指揮し、タスク効率を300%向上させる。"
+      },
+      "agent_path": ".claude/agents/specs/coding/coordinator-agent.md",
+      "execution_command": "/coordinator"
+    },
+    {
+      "id": "tsukuroon",
+      "name": { "jp": "つくるん", "en": "Tsukuroon" },
+      "title": { "jp": "コード生成の天才プログラマー", "en": "Code Generator" },
+      "rarity": "SR",
+      "level": 38,
+      "type": ["Coding", "Generator"],
+      "attribute": "🌙Dark",
+      "stats": { "hp": 1500, "atk": 1200, "def": 600, "spd": 850, "int": 1100, "luk": 60 },
+      "skill": {
+        "name": "コードバースト",
+        "desc": "瞬間的に1000行のコードを生成。バグ発生率わずか0.1%。"
+      },
+      "agent_path": ".claude/agents/specs/coding/codegen-agent.md",
+      "execution_command": "/codegen"
+    },
+    {
+      "id": "medaman",
+      "name": { "jp": "めだまん", "en": "Medaman" },
+      "title": { "jp": "完璧主義のコードレビュアー", "en": "Code Reviewer" },
+      "rarity": "UR",
+      "level": 72,
+      "type": ["Coding", "Analyzer"],
+      "attribute": "💧Water",
+      "stats": { "hp": 2200, "atk": 700, "def": 1300, "spd": 600, "int": 1400, "luk": 85 },
+      "skill": {
+        "name": "絶対評価の瞳",
+        "desc": "すべてのバグを見逃さない。コード品質を100点満点で即座に評価。"
+      },
+      "agent_path": ".claude/agents/specs/coding/review-agent.md",
+      "execution_command": "/review"
+    },
+    {
+      "id": "mitsukeroon",
+      "name": { "jp": "みつけるん", "en": "Mitsukeroon" },
+      "title": { "jp": "Issue発見のスペシャリスト", "en": "Issue Analyzer" },
+      "rarity": "R",
+      "level": 25,
+      "type": ["Coding", "Detective"],
+      "attribute": "🔥Fire",
+      "stats": { "hp": 1200, "atk": 900, "def": 700, "spd": 950, "int": 850, "luk": 95 },
+      "skill": {
+        "name": "バグハンター",
+        "desc": "隠れたバグを瞬時に発見。Issue作成速度が200%向上。"
+      },
+      "agent_path": ".claude/agents/specs/coding/issue-agent.md",
+      "execution_command": "/create-issue"
+    },
+    {
+      "id": "matomeroon",
+      "name": { "jp": "まとめるん", "en": "Matomeroon" },
+      "title": { "jp": "PR作成のマエストロ", "en": "PR Agent" },
+      "rarity": "SR",
+      "level": 40,
+      "type": ["Coding", "Merger"],
+      "attribute": "✨Light",
+      "stats": { "hp": 1600, "atk": 800, "def": 900, "spd": 750, "int": 950, "luk": 70 },
+      "skill": {
+        "name": "マージ・シンフォニー",
+        "desc": "コンフリクトを優雅に解決。完璧なPRを作成する。"
+      },
+      "agent_path": ".claude/agents/specs/coding/pr-agent.md",
+      "execution_command": "/pr"
+    },
+    {
+      "id": "hakoboon",
+      "name": { "jp": "はこぶん", "en": "Hakoboon" },
+      "title": { "jp": "デプロイの配達人", "en": "Deployment Agent" },
+      "rarity": "SR",
+      "level": 42,
+      "type": ["Coding", "Deployer"],
+      "attribute": "🌤️Sky",
+      "stats": { "hp": 1700, "atk": 750, "def": 800, "spd": 1000, "int": 800, "luk": 65 },
+      "skill": {
+        "name": "スカイデリバリー",
+        "desc": "安全かつ高速にプロダクションへデプロイ。ロールバック機能付き。"
+      },
+      "agent_path": ".claude/agents/specs/coding/deployment-agent.md",
+      "execution_command": "/deploy"
+    },
+    {
+      "id": "tsunagun",
+      "name": { "jp": "つなぐん", "en": "Tsunagun" },
+      "title": { "jp": "コードベース更新の番人", "en": "Refresher Agent" },
+      "rarity": "R",
+      "level": 30,
+      "type": ["Coding", "Sync"],
+      "attribute": "⚡Lightning",
+      "stats": { "hp": 1400, "atk": 700, "def": 850, "spd": 900, "int": 750, "luk": 55 },
+      "skill": {
+        "name": "シンクロナイズ",
+        "desc": "コードベースを常に最新状態に保つ。自動更新と同期。"
+      },
+      "agent_path": ".claude/agents/specs/coding/refresher-agent.md",
+      "execution_command": "/refresh"
+    },
+    {
+      "id": "kikakuron",
+      "name": { "jp": "きかくろん", "en": "Kikakuron" },
+      "title": { "jp": "AI起業家・ビジネス戦略立案", "en": "AI Entrepreneur" },
+      "rarity": "UR",
+      "level": 68,
+      "type": ["Business", "Strategy"],
+      "attribute": "💰Gold",
+      "stats": { "hp": 2000, "atk": 900, "def": 1100, "spd": 700, "int": 1500, "luk": 90 },
+      "skill": {
+        "name": "ビジネスビジョン",
+        "desc": "完全なビジネスプランを策定。市場分析から収益化まで一貫設計。"
+      },
+      "agent_path": ".claude/agents/specs/business/ai-entrepreneur-agent.md",
+      "execution_command": "/business-plan"
+    },
+    {
+      "id": "jibunkun",
+      "name": { "jp": "じぶんくん", "en": "Jibunkun" },
+      "title": { "jp": "自己分析とスキル開発", "en": "Self Analysis Agent" },
+      "rarity": "SR",
+      "level": 35,
+      "type": ["Business", "Analysis"],
+      "attribute": "🔮Crystal",
+      "stats": { "hp": 1500, "atk": 650, "def": 950, "spd": 650, "int": 1200, "luk": 75 },
+      "skill": {
+        "name": "セルフリフレクション",
+        "desc": "強みと弱みを深く分析。キャリアパスを最適化する。"
+      },
+      "agent_path": ".claude/agents/specs/business/self-analysis-agent.md",
+      "execution_command": "/self-analysis"
+    },
+    {
+      "id": "shiraberu",
+      "name": { "jp": "しらべるん", "en": "Shiraberu" },
+      "title": { "jp": "市場調査と競合分析", "en": "Market Research Agent" },
+      "rarity": "SR",
+      "level": 40,
+      "type": ["Business", "Research"],
+      "attribute": "🌿Green",
+      "stats": { "hp": 1600, "atk": 750, "def": 850, "spd": 800, "int": 1300, "luk": 70 },
+      "skill": {
+        "name": "マーケットスキャン",
+        "desc": "20社以上の競合を分析。TAM/SAM/SOMを算出する。"
+      },
+      "agent_path": ".claude/agents/specs/business/market-research-agent.md",
+      "execution_command": "/market-research"
+    },
+    {
+      "id": "perusona",
+      "name": { "jp": "ぺるそな", "en": "Perusona" },
+      "title": { "jp": "ペルソナ設計とユーザー理解", "en": "Persona Agent" },
+      "rarity": "R",
+      "level": 32,
+      "type": ["Business", "UX"],
+      "attribute": "💙Blue",
+      "stats": { "hp": 1400, "atk": 700, "def": 800, "spd": 750, "int": 1100, "luk": 65 },
+      "skill": {
+        "name": "エンパシーマップ",
+        "desc": "3-5人の詳細なペルソナを作成。カスタマージャーニーを設計。"
+      },
+      "agent_path": ".claude/agents/specs/business/persona-agent.md",
+      "execution_command": "/persona"
+    },
+    {
+      "id": "konseputan",
+      "name": { "jp": "こんせぷたん", "en": "Konseputan" },
+      "title": { "jp": "商品企画とコンセプト開発", "en": "Product Concept Agent" },
+      "rarity": "SR",
+      "level": 43,
+      "type": ["Business", "Planning"],
+      "attribute": "💜Purple",
+      "stats": { "hp": 1650, "atk": 800, "def": 900, "spd": 700, "int": 1250, "luk": 68 },
+      "skill": {
+        "name": "コンセプトクリエイト",
+        "desc": "USP・収益モデル・ビジネスモデルキャンバスを設計する。"
+      },
+      "agent_path": ".claude/agents/specs/business/product-concept-agent.md",
+      "execution_command": "/product-concept"
+    },
+    {
+      "id": "dezainyan",
+      "name": { "jp": "でざいにゃん", "en": "Dezainyan" },
+      "title": { "jp": "プロダクトデザインとUX", "en": "Product Design Agent" },
+      "rarity": "SSR",
+      "level": 50,
+      "type": ["Business", "Design"],
+      "attribute": "💜Purple",
+      "stats": { "hp": 1850, "atk": 850, "def": 950, "spd": 820, "int": 1350, "luk": 80 },
+      "skill": {
+        "name": "デザインシンキング",
+        "desc": "UI/UXを完璧に設計。ユーザー体験を最大化する。"
+      },
+      "agent_path": ".claude/agents/specs/business/product-design-agent.md",
+      "execution_command": "/product-design"
+    },
+    {
+      "id": "kakuchan",
+      "name": { "jp": "かくちゃん", "en": "Kakuchan" },
+      "title": { "jp": "コンテンツ作成と記事執筆", "en": "Content Creation Agent" },
+      "rarity": "R",
+      "level": 28,
+      "type": ["Business", "Content"],
+      "attribute": "🌸Pink",
+      "stats": { "hp": 1300, "atk": 750, "def": 700, "spd": 850, "int": 1050, "luk": 72 },
+      "skill": {
+        "name": "コンテンツマジック",
+        "desc": "6ヶ月分のコンテンツカレンダーを作成。SEO最適化済み。"
+      },
+      "agent_path": ".claude/agents/specs/business/content-creation-agent.md",
+      "execution_command": "/content-create"
+    },
+    {
+      "id": "notesan",
+      "name": { "jp": "のーとさん", "en": "Notesan" },
+      "title": { "jp": "Note記事作成と発信", "en": "Note Article Agent" },
+      "rarity": "R",
+      "level": 26,
+      "type": ["Business", "Publishing"],
+      "attribute": "📝Orange",
+      "stats": { "hp": 1250, "atk": 700, "def": 650, "spd": 880, "int": 1000, "luk": 78 },
+      "skill": {
+        "name": "エモーショナルライティング",
+        "desc": "感情に響く記事を執筆。バズ率300%アップ。"
+      },
+      "agent_path": ".claude/agents/specs/business/note-agent.md",
+      "execution_command": "/note-article"
+    },
+    {
+      "id": "janelkun",
+      "name": { "jp": "じゃねるくん", "en": "Janelkun" },
+      "title": { "jp": "ファネル設計と導線最適化", "en": "Funnel Design Agent" },
+      "rarity": "SR",
+      "level": 41,
+      "type": ["Business", "Optimization"],
+      "attribute": "🧡Orange",
+      "stats": { "hp": 1600, "atk": 780, "def": 880, "spd": 750, "int": 1200, "luk": 66 },
+      "skill": {
+        "name": "ファネルオプティマイズ",
+        "desc": "認知→購入→LTVまでの顧客導線を最適化する。"
+      },
+      "agent_path": ".claude/agents/specs/business/funnel-design-agent.md",
+      "execution_command": "/funnel-design"
+    },
+    {
+      "id": "snssun",
+      "name": { "jp": "すんすさん", "en": "Snssun" },
+      "title": { "jp": "SNS戦略と運用", "en": "SNS Strategy Agent" },
+      "rarity": "R",
+      "level": 33,
+      "type": ["Business", "Social"],
+      "attribute": "💙Cyan",
+      "stats": { "hp": 1400, "atk": 820, "def": 750, "spd": 920, "int": 1050, "luk": 85 },
+      "skill": {
+        "name": "バイラルブースト",
+        "desc": "Twitter/Instagram/TikTok戦略立案。エンゲージメント500%向上。"
+      },
+      "agent_path": ".claude/agents/specs/business/sns-strategy-agent.md",
+      "execution_command": "/sns-strategy"
+    },
+    {
+      "id": "makettosama",
+      "name": { "jp": "まけっとさま", "en": "Makettosama" },
+      "title": { "jp": "マーケティング戦略全般", "en": "Marketing Agent" },
+      "rarity": "SSR",
+      "level": 55,
+      "type": ["Business", "Marketing"],
+      "attribute": "💛Yellow",
+      "stats": { "hp": 1900, "atk": 950, "def": 1000, "spd": 800, "int": 1400, "luk": 75 },
+      "skill": {
+        "name": "グロースハック",
+        "desc": "広告・SEO・SNSを統合したマーケティング戦略を実行。"
+      },
+      "agent_path": ".claude/agents/specs/business/marketing-agent.md",
+      "execution_command": "/marketing"
+    },
+    {
+      "id": "saerusu",
+      "name": { "jp": "せーるすせんせい", "en": "Saerusu" },
+      "title": { "jp": "セールス戦略と営業支援", "en": "Sales Agent" },
+      "rarity": "SR",
+      "level": 44,
+      "type": ["Business", "Sales"],
+      "attribute": "💰Gold",
+      "stats": { "hp": 1700, "atk": 900, "def": 900, "spd": 750, "int": 1150, "luk": 70 },
+      "skill": {
+        "name": "クロージングマスター",
+        "desc": "リード→顧客の転換率を最大化。セールスプロセスを最適化。"
+      },
+      "agent_path": ".claude/agents/specs/business/sales-agent.md",
+      "execution_command": "/sales"
+    },
+    {
+      "id": "cusrelo",
+      "name": { "jp": "かすれろちゃん", "en": "Cusrelo" },
+      "title": { "jp": "CRM構築と顧客関係管理", "en": "CRM Agent" },
+      "rarity": "R",
+      "level": 36,
+      "type": ["Business", "CRM"],
+      "attribute": "💚Green",
+      "stats": { "hp": 1500, "atk": 720, "def": 950, "spd": 680, "int": 1100, "luk": 74 },
+      "skill": {
+        "name": "カスタマーケア",
+        "desc": "顧客満足度向上とLTV最大化。チャーン率を50%削減。"
+      },
+      "agent_path": ".claude/agents/specs/business/crm-agent.md",
+      "execution_command": "/crm"
+    },
+    {
+      "id": "bunsekyking",
+      "name": { "jp": "ぶんせききんぐ", "en": "Bunsekyking" },
+      "title": { "jp": "分析とインサイト抽出", "en": "Analytics Agent" },
+      "rarity": "SSR",
+      "level": 60,
+      "type": ["Business", "Analytics"],
+      "attribute": "🔵DarkBlue",
+      "stats": { "hp": 1950, "atk": 850, "def": 1150, "spd": 720, "int": 1600, "luk": 80 },
+      "skill": {
+        "name": "データドリブン",
+        "desc": "全データを分析しPDCAサイクルを実行。継続的改善を実現。"
+      },
+      "agent_path": ".claude/agents/specs/business/analytics-agent.md",
+      "execution_command": "/analytics"
+    },
+    {
+      "id": "yuchubeler",
+      "name": { "jp": "ゆーちゅーべらー", "en": "Yuchubeler" },
+      "title": { "jp": "YouTube戦略と動画コンテンツ", "en": "YouTube Agent" },
+      "rarity": "R",
+      "level": 34,
+      "type": ["Business", "Video"],
+      "attribute": "❤️Red",
+      "stats": { "hp": 1450, "atk": 850, "def": 700, "spd": 900, "int": 1050, "luk": 88 },
+      "skill": {
+        "name": "バイラル動画",
+        "desc": "チャンネル最適化から投稿計画まで。登録者数10倍増加。"
+      },
+      "agent_path": ".claude/agents/specs/business/youtube-agent.md",
+      "execution_command": "/youtube"
+    },
+    {
+      "id": "imargesan",
+      "name": { "jp": "いまーじゅさん", "en": "Imargesan" },
+      "title": { "jp": "画像生成とビジュアル戦略", "en": "Image Generation Agent" },
+      "rarity": "UR",
+      "level": 65,
+      "type": ["Business", "Visual"],
+      "attribute": "🌈Rainbow",
+      "stats": { "hp": 2100, "atk": 1000, "def": 1050, "spd": 850, "int": 1450, "luk": 92 },
+      "skill": {
+        "name": "ビジュアルマジック",
+        "desc": "AI画像生成でビジュアル戦略を構築。ブランド認知度向上。"
+      },
+      "agent_path": ".claude/agents/specs/business/imagegen-agent.md",
+      "execution_command": "/imagegen"
+    },
+    {
+      "id": "gasladen",
+      "name": { "jp": "すらいどん", "en": "Gasladen" },
+      "title": { "jp": "スライド作成とプレゼン", "en": "Slide Generation Agent" },
+      "rarity": "SR",
+      "level": 39,
+      "type": ["Business", "Presentation"],
+      "attribute": "🌿MintGreen",
+      "stats": { "hp": 1550, "atk": 780, "def": 850, "spd": 760, "int": 1250, "luk": 67 },
+      "skill": {
+        "name": "プレゼンパーフェクト",
+        "desc": "データビジュアライゼーションとストーリーテリングで魅了する。"
+      },
+      "agent_path": ".claude/agents/specs/business/slide-gen-agent.md",
+      "execution_command": "/generate-slide"
+    }
+  ],
+  "rarity_distribution": {
+    "UR": 4,
+    "SSR": 5,
+    "SR": 10,
+    "R": 5
+  },
+  "type_distribution": {
+    "Coding": 7,
+    "Business": 17
+  }
+}
