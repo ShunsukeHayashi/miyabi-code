@@ -12,7 +12,7 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from github import Github
@@ -472,8 +472,9 @@ async def mcp_handler(request: Request):
             ).dict()
 
         elif mcp_request.method == "initialized":
-            # Client acknowledges initialization - no response needed
-            return MCPResponse(id=mcp_request.id, result={}).dict()
+            # Client acknowledges initialization - no response needed for notifications
+            # Return 204 No Content
+            return Response(status_code=204)
 
         elif mcp_request.method == "tools/list":
             return MCPResponse(id=mcp_request.id, result={"tools": TOOLS}).dict()
