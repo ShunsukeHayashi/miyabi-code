@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "hediet.vscode-drawio",
+    "rust-lang.rust-analyzer",
+    "tamasfe.even-better-toml",
+    "vadimcn.vscode-lldb",
+    "serayuzgur.crates",
+    "usernamehw.errorlens",
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github"
+  ],
+  "unwantedRecommendations": []
+}

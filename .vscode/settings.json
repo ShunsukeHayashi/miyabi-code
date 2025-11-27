@@ -339,5 +339,37 @@
   "debug.internalConsoleOptions": "openOnSessionStart",
   "debug.openDebug": "openOnDebugBreak",
   "debug.showBreakpointsInOverviewRuler": true,
-  "debug.toolBarLocation": "docked"
+  "debug.toolBarLocation": "docked",
+
+  // ==========================================
+  // 📊 Draw.io Integration
+  // ==========================================
+
+  "hediet.vscode-drawio.theme": "dark",
+  "hediet.vscode-drawio.customFonts": [
+    "SF Mono",
+    "JetBrains Mono"
+  ],
+  "hediet.vscode-drawio.offline": false,
+  "hediet.vscode-drawio.enableProposedApi": true,
+  "hediet.vscode-drawio.local-storage": "${workspaceFolder}/.vscode/drawio-storage",
+
+  // Draw.io file associations
+  "[drawio]": {
+    "editor.formatOnSave": false
+  },
+
+  // File associations for diagram files
+  "files.associations": {
+    "*.rs": "rust",
+    "*.toml": "toml",
+    "CLAUDE.md": "markdown",
+    "*.claude.md": "markdown",
+    ".env.*": "properties",
+    "Cargo.lock": "toml",
+    ".cargo/config.toml": "toml",
+    "*.drawio": "xml",
+    "*.drawio.svg": "xml",
+    "*.drawio.png": "png"
+  }
 }

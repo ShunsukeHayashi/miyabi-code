@@ -77,3 +77,6 @@ archive/
 lead-magnet/
 mcp-servers/gemini3-image-gen/
 miyabi-console/app/
+
+# VS Code workspace-specific files
+.vscode/drawio-storage/
