@@ -144,3 +144,24 @@ output "service_discovery_dns_name" {
   description = "Service discovery DNS name (if enabled)"
   value       = module.ecs_service.service_discovery_dns_name
 }
+
+# Lambda API Outputs (Issue #1169)
+output "lambda_function_name" {
+  description = "Lambda function name"
+  value       = module.lambda_api.function_name
+}
+
+output "lambda_function_arn" {
+  description = "Lambda function ARN"
+  value       = module.lambda_api.function_arn
+}
+
+output "api_gateway_endpoint" {
+  description = "API Gateway endpoint URL"
+  value       = module.lambda_api.api_gateway_endpoint
+}
+
+output "lambda_cloudwatch_log_group" {
+  description = "Lambda CloudWatch Log Group"
+  value       = module.lambda_api.cloudwatch_log_group
+}

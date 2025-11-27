@@ -137,3 +137,42 @@ module "ecs_service" {
   target_group_arn_suffix   = module.alb.target_group_arn_suffix
   enable_service_discovery  = var.enable_service_discovery
 }
+
+# Lambda API (Issue #1169)
+module "lambda_api" {
+  source = "../../modules/lambda-api"
+
+  function_name   = "${var.project_name}-api-${var.environment}"
+  lambda_zip_path = var.lambda_zip_path
+  architecture    = "arm64"
+  memory_size     = 512
+  timeout         = 30
+  log_level       = var.environment == "dev" ? "debug" : "info"
+
+  # VPC configuration for RDS access
+  vpc_config = {
+    subnet_ids         = module.networking.private_subnet_ids
+    security_group_ids = [module.security_groups.ecs_security_group_id]
+  }
+
+  # Environment variables
+  environment_variables = {
+    DATABASE_URL    = var.database_url
+    REDIS_URL       = "redis://${module.elasticache.redis_endpoint}:6379"
+    JWT_SECRET      = var.jwt_secret
+    ENVIRONMENT     = var.environment
+  }
+
+  # Secrets access
+  secrets_arns = var.secrets_arns
+
+  # API Gateway
+  enable_api_gateway = true
+  cors_origins       = var.cors_origins
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Issue       = "#1169"
+  }
+}

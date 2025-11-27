@@ -169,3 +169,36 @@ variable "enable_service_discovery" {
   type        = bool
   default     = false
 }
+
+# Lambda Configuration (Issue #1169)
+variable "lambda_zip_path" {
+  description = "Path to Lambda deployment ZIP file"
+  type        = string
+  default     = "../../../dist/lambda/miyabi-api-arm64.zip"
+}
+
+variable "database_url" {
+  description = "PostgreSQL connection string"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "jwt_secret" {
+  description = "JWT signing secret"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "secrets_arns" {
+  description = "ARNs of secrets Lambda can access"
+  type        = list(string)
+  default     = []
+}
+
+variable "cors_origins" {
+  description = "Allowed CORS origins"
+  type        = list(string)
+  default     = ["http://localhost:3000", "http://localhost:5173"]
+}
