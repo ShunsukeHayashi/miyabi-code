@@ -7,6 +7,9 @@ Exposes Miyabi agents and project management as ChatGPT tools
 import os
 import json
 import subprocess
+import asyncio
+import psutil
+import socket
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
@@ -152,6 +155,88 @@ class ExecuteAgentsParallelParams(BaseModel):
             ]
         ],
     )
+
+
+# ==========================================
+# Git Operation Parameter Models
+# ==========================================
+
+class GitStatusParams(BaseModel):
+    """Git status parameters"""
+    path: Optional[str] = Field(None, description="Specific path to check status for")
+
+
+class GitDiffParams(BaseModel):
+    """Git diff parameters"""
+    staged: bool = Field(False, description="Show staged changes only")
+    file_path: Optional[str] = Field(None, description="Specific file to diff")
+
+
+class GitLogParams(BaseModel):
+    """Git log parameters"""
+    limit: int = Field(10, description="Number of commits to show")
+    oneline: bool = Field(True, description="One line per commit")
+
+
+class GitBranchParams(BaseModel):
+    """Git branch parameters"""
+    all: bool = Field(False, description="Show all branches including remotes")
+
+
+# ==========================================
+# System Monitoring Parameter Models
+# ==========================================
+
+class ProcessListParams(BaseModel):
+    """Process list parameters"""
+    limit: int = Field(20, description="Number of processes to show")
+    sort_by: str = Field("cpu", description="Sort by: cpu, memory, name")
+
+
+class NetworkStatusParams(BaseModel):
+    """Network status parameters"""
+    include_connections: bool = Field(False, description="Include active connections")
+
+
+# ==========================================
+# Obsidian Parameter Models
+# ==========================================
+
+class ObsidianCreateNoteParams(BaseModel):
+    """Create Obsidian note parameters"""
+    title: str = Field(..., description="Note title")
+    content: str = Field(..., description="Note content (markdown)")
+    folder: Optional[str] = Field(None, description="Folder path within vault")
+    tags: Optional[List[str]] = Field(None, description="Tags for the note")
+
+
+class ObsidianSearchParams(BaseModel):
+    """Search Obsidian notes parameters"""
+    query: str = Field(..., description="Search query")
+    limit: int = Field(10, description="Maximum results")
+
+
+class ObsidianUpdateNoteParams(BaseModel):
+    """Update Obsidian note parameters"""
+    title: str = Field(..., description="Note title to update")
+    content: str = Field(..., description="New content to append")
+    replace: bool = Field(False, description="Replace entire content instead of append")
+
+
+# ==========================================
+# Tmux Parameter Models
+# ==========================================
+
+class TmuxListParams(BaseModel):
+    """Tmux list parameters"""
+    include_windows: bool = Field(True, description="Include window information")
+
+
+class TmuxSendKeysParams(BaseModel):
+    """Tmux send keys parameters"""
+    session: str = Field(..., description="Session name")
+    keys: str = Field(..., description="Keys/command to send")
+    window: Optional[int] = Field(None, description="Window index")
 
 
 # Helper Functions
@@ -336,6 +421,228 @@ TOOLS = [
                 }
             },
             "required": ["agents"],
+        },
+    },
+    # ==========================================
+    # Git Operation Tools
+    # ==========================================
+    {
+        "name": "git_status",
+        "description": "Get current git status showing modified, staged, and untracked files",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Specific path to check status for (optional)",
+                },
+            },
+        },
+    },
+    {
+        "name": "git_diff",
+        "description": "Show git diff of changes in the repository",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "staged": {
+                    "type": "boolean",
+                    "description": "Show staged changes only",
+                    "default": False,
+                },
+                "file_path": {
+                    "type": "string",
+                    "description": "Specific file to diff (optional)",
+                },
+            },
+        },
+    },
+    {
+        "name": "git_log",
+        "description": "Show git commit history",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Number of commits to show",
+                    "default": 10,
+                },
+                "oneline": {
+                    "type": "boolean",
+                    "description": "One line per commit",
+                    "default": True,
+                },
+            },
+        },
+    },
+    {
+        "name": "git_branch",
+        "description": "List git branches",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "type": "boolean",
+                    "description": "Show all branches including remotes",
+                    "default": False,
+                },
+            },
+        },
+    },
+    # ==========================================
+    # System Monitoring Tools
+    # ==========================================
+    {
+        "name": "system_resources",
+        "description": "Get system resource usage (CPU, memory, disk)",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "process_list",
+        "description": "List running processes sorted by resource usage",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Number of processes to show",
+                    "default": 20,
+                },
+                "sort_by": {
+                    "type": "string",
+                    "description": "Sort by: cpu, memory, name",
+                    "enum": ["cpu", "memory", "name"],
+                    "default": "cpu",
+                },
+            },
+        },
+    },
+    {
+        "name": "network_status",
+        "description": "Get network interface status and statistics",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "include_connections": {
+                    "type": "boolean",
+                    "description": "Include active connections",
+                    "default": False,
+                },
+            },
+        },
+    },
+    # ==========================================
+    # Obsidian Tools
+    # ==========================================
+    {
+        "name": "obsidian_create_note",
+        "description": "Create a new note in the Obsidian vault",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "Note title"},
+                "content": {"type": "string", "description": "Note content (markdown)"},
+                "folder": {"type": "string", "description": "Folder path within vault (optional)"},
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Tags for the note (optional)",
+                },
+            },
+            "required": ["title", "content"],
+        },
+    },
+    {
+        "name": "obsidian_search",
+        "description": "Search notes in the Obsidian vault",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query"},
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum results",
+                    "default": 10,
+                },
+            },
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "obsidian_update_note",
+        "description": "Update an existing note in the Obsidian vault",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "Note title to update"},
+                "content": {"type": "string", "description": "New content to append or replace"},
+                "replace": {
+                    "type": "boolean",
+                    "description": "Replace entire content instead of append",
+                    "default": False,
+                },
+            },
+            "required": ["title", "content"],
+        },
+    },
+    # ==========================================
+    # Tmux Tools
+    # ==========================================
+    {
+        "name": "tmux_list_sessions",
+        "description": "List all tmux sessions and their windows",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "include_windows": {
+                    "type": "boolean",
+                    "description": "Include window information",
+                    "default": True,
+                },
+            },
+        },
+    },
+    {
+        "name": "tmux_send_keys",
+        "description": "Send keys/command to a tmux session",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session": {"type": "string", "description": "Session name"},
+                "keys": {"type": "string", "description": "Keys/command to send"},
+                "window": {"type": "integer", "description": "Window index (optional)"},
+            },
+            "required": ["session", "keys"],
+        },
+    },
+    # ==========================================
+    # Log Aggregation Tools
+    # ==========================================
+    {
+        "name": "get_logs",
+        "description": "Get aggregated logs from the Miyabi project",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string",
+                    "description": "Log source: all, agent, build, deploy",
+                    "enum": ["all", "agent", "build", "deploy"],
+                    "default": "all",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Number of log entries",
+                    "default": 50,
+                },
+                "level": {
+                    "type": "string",
+                    "description": "Minimum log level: debug, info, warn, error",
+                    "enum": ["debug", "info", "warn", "error"],
+                    "default": "info",
+                },
+            },
         },
     },
 ]
@@ -691,6 +998,622 @@ async def execute_agents_parallel_tool(params: ExecuteAgentsParallelParams) -> D
         }
 
 
+# ==========================================
+# Git Operation Tool Implementations
+# ==========================================
+
+async def git_status_tool(params: GitStatusParams) -> Dict[str, Any]:
+    """Get git status"""
+    try:
+        cmd = ["git", "status", "--porcelain"]
+        if params.path:
+            cmd.append(params.path)
+
+        stdout, stderr, returncode = run_command(cmd)
+
+        if returncode != 0:
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        # Parse status
+        files = []
+        for line in stdout.strip().split("\n"):
+            if line:
+                status = line[:2]
+                filepath = line[3:]
+                files.append({"status": status, "path": filepath})
+
+        # Get branch
+        branch_out, _, _ = run_command(["git", "branch", "--show-current"])
+        branch = branch_out.strip()
+
+        result = {
+            "branch": branch,
+            "files": files,
+            "total_changes": len(files),
+        }
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"📁 Git Status on branch '{branch}'\n{len(files)} file(s) changed",
+                }
+            ],
+            "isError": False,
+            **result,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting git status: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def git_diff_tool(params: GitDiffParams) -> Dict[str, Any]:
+    """Get git diff"""
+    try:
+        cmd = ["git", "diff"]
+        if params.staged:
+            cmd.append("--staged")
+        if params.file_path:
+            cmd.append(params.file_path)
+
+        stdout, stderr, returncode = run_command(cmd)
+
+        if returncode != 0:
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        # Truncate if too long
+        diff_text = stdout[:10000] if len(stdout) > 10000 else stdout
+        if len(stdout) > 10000:
+            diff_text += "\n... (truncated)"
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"📝 Git Diff {'(staged)' if params.staged else ''}\n```diff\n{diff_text}\n```",
+                }
+            ],
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting git diff: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def git_log_tool(params: GitLogParams) -> Dict[str, Any]:
+    """Get git log"""
+    try:
+        if params.oneline:
+            cmd = ["git", "log", f"-{params.limit}", "--oneline"]
+        else:
+            cmd = ["git", "log", f"-{params.limit}", "--format=%H|%s|%an|%aI"]
+
+        stdout, stderr, returncode = run_command(cmd)
+
+        if returncode != 0:
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        commits = []
+        for line in stdout.strip().split("\n"):
+            if line:
+                if params.oneline:
+                    parts = line.split(" ", 1)
+                    commits.append({"hash": parts[0], "message": parts[1] if len(parts) > 1 else ""})
+                else:
+                    parts = line.split("|")
+                    commits.append({
+                        "hash": parts[0],
+                        "message": parts[1] if len(parts) > 1 else "",
+                        "author": parts[2] if len(parts) > 2 else "",
+                        "date": parts[3] if len(parts) > 3 else "",
+                    })
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"📜 Git Log ({len(commits)} commits)\n" + "\n".join([f"• {c['hash'][:7]} {c['message']}" for c in commits]),
+                }
+            ],
+            "isError": False,
+            "commits": commits,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting git log: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def git_branch_tool(params: GitBranchParams) -> Dict[str, Any]:
+    """List git branches"""
+    try:
+        cmd = ["git", "branch"]
+        if params.all:
+            cmd.append("-a")
+
+        stdout, stderr, returncode = run_command(cmd)
+
+        if returncode != 0:
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        branches = []
+        current = None
+        for line in stdout.strip().split("\n"):
+            if line:
+                is_current = line.startswith("*")
+                branch_name = line.replace("*", "").strip()
+                branches.append({"name": branch_name, "current": is_current})
+                if is_current:
+                    current = branch_name
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"🌿 Git Branches ({len(branches)} total)\nCurrent: {current}\n" + "\n".join([f"{'→ ' if b['current'] else '  '}{b['name']}" for b in branches]),
+                }
+            ],
+            "isError": False,
+            "branches": branches,
+            "current": current,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error listing branches: {str(e)}"}],
+            "isError": True,
+        }
+
+
+# ==========================================
+# System Monitoring Tool Implementations
+# ==========================================
+
+async def system_resources_tool() -> Dict[str, Any]:
+    """Get system resource usage"""
+    try:
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage("/")
+
+        result = {
+            "cpu": {
+                "percent": cpu_percent,
+                "cores": psutil.cpu_count(),
+            },
+            "memory": {
+                "total_gb": round(memory.total / (1024**3), 2),
+                "used_gb": round(memory.used / (1024**3), 2),
+                "percent": memory.percent,
+            },
+            "disk": {
+                "total_gb": round(disk.total / (1024**3), 2),
+                "used_gb": round(disk.used / (1024**3), 2),
+                "percent": disk.percent,
+            },
+        }
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"💻 System Resources\n"
+                           f"CPU: {cpu_percent}% ({psutil.cpu_count()} cores)\n"
+                           f"Memory: {memory.percent}% ({result['memory']['used_gb']}/{result['memory']['total_gb']} GB)\n"
+                           f"Disk: {disk.percent}% ({result['disk']['used_gb']}/{result['disk']['total_gb']} GB)",
+                }
+            ],
+            "isError": False,
+            **result,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting resources: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def process_list_tool(params: ProcessListParams) -> Dict[str, Any]:
+    """List running processes"""
+    try:
+        processes = []
+        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
+            try:
+                pinfo = proc.info
+                processes.append({
+                    "pid": pinfo['pid'],
+                    "name": pinfo['name'],
+                    "cpu": pinfo['cpu_percent'] or 0,
+                    "memory": pinfo['memory_percent'] or 0,
+                })
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+
+        # Sort
+        if params.sort_by == "cpu":
+            processes.sort(key=lambda x: x['cpu'], reverse=True)
+        elif params.sort_by == "memory":
+            processes.sort(key=lambda x: x['memory'], reverse=True)
+        else:
+            processes.sort(key=lambda x: x['name'].lower())
+
+        processes = processes[:params.limit]
+
+        text_lines = [f"🔄 Top {len(processes)} Processes (by {params.sort_by})"]
+        for p in processes[:10]:
+            text_lines.append(f"  {p['pid']:6} | {p['name'][:20]:20} | CPU: {p['cpu']:5.1f}% | Mem: {p['memory']:5.1f}%")
+
+        return {
+            "content": [{"type": "text", "text": "\n".join(text_lines)}],
+            "isError": False,
+            "processes": processes,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error listing processes: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def network_status_tool(params: NetworkStatusParams) -> Dict[str, Any]:
+    """Get network status"""
+    try:
+        interfaces = {}
+        for name, addrs in psutil.net_if_addrs().items():
+            interfaces[name] = []
+            for addr in addrs:
+                if addr.family == socket.AF_INET:
+                    interfaces[name].append({
+                        "type": "ipv4",
+                        "address": addr.address,
+                    })
+
+        stats = psutil.net_io_counters()
+
+        result = {
+            "interfaces": interfaces,
+            "io": {
+                "bytes_sent": stats.bytes_sent,
+                "bytes_recv": stats.bytes_recv,
+                "packets_sent": stats.packets_sent,
+                "packets_recv": stats.packets_recv,
+            },
+        }
+
+        if params.include_connections:
+            connections = []
+            for conn in psutil.net_connections(kind='inet')[:20]:
+                connections.append({
+                    "local": f"{conn.laddr.ip}:{conn.laddr.port}" if conn.laddr else None,
+                    "remote": f"{conn.raddr.ip}:{conn.raddr.port}" if conn.raddr else None,
+                    "status": conn.status,
+                })
+            result["connections"] = connections
+
+        text_lines = ["🌐 Network Status"]
+        for name, addrs in interfaces.items():
+            for a in addrs:
+                text_lines.append(f"  {name}: {a['address']}")
+        text_lines.append(f"  I/O: ↑{stats.bytes_sent/1024/1024:.1f}MB ↓{stats.bytes_recv/1024/1024:.1f}MB")
+
+        return {
+            "content": [{"type": "text", "text": "\n".join(text_lines)}],
+            "isError": False,
+            **result,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting network status: {str(e)}"}],
+            "isError": True,
+        }
+
+
+# ==========================================
+# Obsidian Tool Implementations
+# ==========================================
+
+# Obsidian vault path configuration
+OBSIDIAN_VAULT = Path(os.getenv("OBSIDIAN_VAULT", Path.home() / "Obsidian" / "MIYABI"))
+
+
+async def obsidian_create_note_tool(params: ObsidianCreateNoteParams) -> Dict[str, Any]:
+    """Create a new Obsidian note"""
+    try:
+        # Build file path
+        folder = OBSIDIAN_VAULT / params.folder if params.folder else OBSIDIAN_VAULT
+        folder.mkdir(parents=True, exist_ok=True)
+
+        # Sanitize title for filename
+        safe_title = "".join(c for c in params.title if c.isalnum() or c in " -_").strip()
+        file_path = folder / f"{safe_title}.md"
+
+        # Build content with frontmatter
+        frontmatter = ["---", f"title: {params.title}", f"created: {datetime.now().isoformat()}"]
+        if params.tags:
+            frontmatter.append(f"tags: [{', '.join(params.tags)}]")
+        frontmatter.append("---\n")
+
+        content = "\n".join(frontmatter) + params.content
+
+        file_path.write_text(content, encoding="utf-8")
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"📝 Created note: {params.title}\nPath: {file_path}",
+                }
+            ],
+            "isError": False,
+            "path": str(file_path),
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error creating note: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def obsidian_search_tool(params: ObsidianSearchParams) -> Dict[str, Any]:
+    """Search Obsidian notes"""
+    try:
+        results = []
+        query_lower = params.query.lower()
+
+        for md_file in OBSIDIAN_VAULT.rglob("*.md"):
+            try:
+                content = md_file.read_text(encoding="utf-8")
+                if query_lower in content.lower() or query_lower in md_file.stem.lower():
+                    # Find matching line
+                    lines = content.split("\n")
+                    match_line = None
+                    for i, line in enumerate(lines):
+                        if query_lower in line.lower():
+                            match_line = {"line": i + 1, "text": line[:100]}
+                            break
+
+                    results.append({
+                        "title": md_file.stem,
+                        "path": str(md_file.relative_to(OBSIDIAN_VAULT)),
+                        "match": match_line,
+                    })
+
+                    if len(results) >= params.limit:
+                        break
+            except Exception:
+                pass
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"🔍 Search results for '{params.query}': {len(results)} found\n" +
+                           "\n".join([f"  • {r['title']} ({r['path']})" for r in results]),
+                }
+            ],
+            "isError": False,
+            "results": results,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error searching notes: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def obsidian_update_note_tool(params: ObsidianUpdateNoteParams) -> Dict[str, Any]:
+    """Update an Obsidian note"""
+    try:
+        # Find note by title
+        target_file = None
+        for md_file in OBSIDIAN_VAULT.rglob("*.md"):
+            if md_file.stem.lower() == params.title.lower():
+                target_file = md_file
+                break
+
+        if not target_file:
+            return {
+                "content": [{"type": "text", "text": f"Note not found: {params.title}"}],
+                "isError": True,
+            }
+
+        if params.replace:
+            target_file.write_text(params.content, encoding="utf-8")
+        else:
+            existing = target_file.read_text(encoding="utf-8")
+            target_file.write_text(existing + "\n\n" + params.content, encoding="utf-8")
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"📝 Updated note: {params.title}\n{'Replaced' if params.replace else 'Appended'} content",
+                }
+            ],
+            "isError": False,
+            "path": str(target_file),
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error updating note: {str(e)}"}],
+            "isError": True,
+        }
+
+
+# ==========================================
+# Tmux Tool Implementations
+# ==========================================
+
+async def tmux_list_sessions_tool(params: TmuxListParams) -> Dict[str, Any]:
+    """List tmux sessions"""
+    try:
+        stdout, stderr, returncode = run_command(["tmux", "list-sessions", "-F", "#{session_name}|#{session_windows}|#{session_attached}"])
+
+        if returncode != 0:
+            if "no server running" in stderr.lower():
+                return {
+                    "content": [{"type": "text", "text": "📺 No tmux server running"}],
+                    "isError": False,
+                    "sessions": [],
+                }
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        sessions = []
+        for line in stdout.strip().split("\n"):
+            if line:
+                parts = line.split("|")
+                session = {
+                    "name": parts[0],
+                    "windows": int(parts[1]) if len(parts) > 1 else 0,
+                    "attached": parts[2] == "1" if len(parts) > 2 else False,
+                }
+
+                if params.include_windows:
+                    win_out, _, _ = run_command(["tmux", "list-windows", "-t", parts[0], "-F", "#{window_index}|#{window_name}|#{window_active}"])
+                    windows = []
+                    for win_line in win_out.strip().split("\n"):
+                        if win_line:
+                            win_parts = win_line.split("|")
+                            windows.append({
+                                "index": int(win_parts[0]),
+                                "name": win_parts[1] if len(win_parts) > 1 else "",
+                                "active": win_parts[2] == "1" if len(win_parts) > 2 else False,
+                            })
+                    session["windows_list"] = windows
+
+                sessions.append(session)
+
+        text_lines = [f"📺 Tmux Sessions ({len(sessions)})"]
+        for s in sessions:
+            status = "🟢" if s["attached"] else "⚪"
+            text_lines.append(f"  {status} {s['name']} ({s['windows']} windows)")
+
+        return {
+            "content": [{"type": "text", "text": "\n".join(text_lines)}],
+            "isError": False,
+            "sessions": sessions,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error listing sessions: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def tmux_send_keys_tool(params: TmuxSendKeysParams) -> Dict[str, Any]:
+    """Send keys to tmux session"""
+    try:
+        target = params.session
+        if params.window is not None:
+            target = f"{params.session}:{params.window}"
+
+        stdout, stderr, returncode = run_command(["tmux", "send-keys", "-t", target, params.keys, "Enter"])
+
+        if returncode != 0:
+            return {
+                "content": [{"type": "text", "text": f"Error: {stderr}"}],
+                "isError": True,
+            }
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"⌨️ Sent to {target}: {params.keys}",
+                }
+            ],
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error sending keys: {str(e)}"}],
+            "isError": True,
+        }
+
+
+# ==========================================
+# Log Aggregation Tool Implementation
+# ==========================================
+
+async def get_logs_tool(source: str = "all", limit: int = 50, level: str = "info") -> Dict[str, Any]:
+    """Get aggregated logs"""
+    try:
+        log_dir = MIYABI_ROOT / ".ai" / "logs"
+        logs = []
+
+        level_priority = {"debug": 0, "info": 1, "warn": 2, "error": 3}
+        min_level = level_priority.get(level, 1)
+
+        # Read log files
+        for log_file in sorted(log_dir.glob("*.md"), reverse=True)[:5]:
+            try:
+                content = log_file.read_text(encoding="utf-8")
+                for line in content.split("\n"):
+                    if line.strip():
+                        # Simple log parsing
+                        log_entry = {
+                            "source": log_file.stem,
+                            "message": line[:200],
+                            "level": "info",
+                        }
+
+                        # Detect level
+                        line_lower = line.lower()
+                        if "error" in line_lower:
+                            log_entry["level"] = "error"
+                        elif "warn" in line_lower:
+                            log_entry["level"] = "warn"
+                        elif "debug" in line_lower:
+                            log_entry["level"] = "debug"
+
+                        if level_priority.get(log_entry["level"], 1) >= min_level:
+                            logs.append(log_entry)
+
+                        if len(logs) >= limit:
+                            break
+            except Exception:
+                pass
+
+            if len(logs) >= limit:
+                break
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"📋 Logs ({len(logs)} entries, level >= {level})\n" +
+                           "\n".join([f"[{l['level'].upper()}] {l['message'][:80]}" for l in logs[:20]]),
+                }
+            ],
+            "isError": False,
+            "logs": logs,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error getting logs: {str(e)}"}],
+            "isError": True,
+        }
+
+
 # MCP Endpoints
 @app.post("/mcp")
 async def mcp_handler(
@@ -752,6 +1675,37 @@ async def mcp_handler(
                 result = await show_agent_cards_tool()
             elif tool_name == "execute_agents_parallel":
                 result = await execute_agents_parallel_tool(ExecuteAgentsParallelParams(**arguments))
+            # Git tools
+            elif tool_name == "git_status":
+                result = await git_status_tool(GitStatusParams(**arguments))
+            elif tool_name == "git_diff":
+                result = await git_diff_tool(GitDiffParams(**arguments))
+            elif tool_name == "git_log":
+                result = await git_log_tool(GitLogParams(**arguments))
+            elif tool_name == "git_branch":
+                result = await git_branch_tool(GitBranchParams(**arguments))
+            # System monitoring tools
+            elif tool_name == "system_resources":
+                result = await system_resources_tool()
+            elif tool_name == "process_list":
+                result = await process_list_tool(ProcessListParams(**arguments))
+            elif tool_name == "network_status":
+                result = await network_status_tool(NetworkStatusParams(**arguments))
+            # Obsidian tools
+            elif tool_name == "obsidian_create_note":
+                result = await obsidian_create_note_tool(ObsidianCreateNoteParams(**arguments))
+            elif tool_name == "obsidian_search":
+                result = await obsidian_search_tool(ObsidianSearchParams(**arguments))
+            elif tool_name == "obsidian_update_note":
+                result = await obsidian_update_note_tool(ObsidianUpdateNoteParams(**arguments))
+            # Tmux tools
+            elif tool_name == "tmux_list_sessions":
+                result = await tmux_list_sessions_tool(TmuxListParams(**arguments))
+            elif tool_name == "tmux_send_keys":
+                result = await tmux_send_keys_tool(TmuxSendKeysParams(**arguments))
+            # Log tools
+            elif tool_name == "get_logs":
+                result = await get_logs_tool(**arguments)
             else:
                 return MCPResponse(
                     id=mcp_request.id,
