@@ -64,6 +64,17 @@ infrastructure/terraform/**/.terraform/
 
 # Build artifacts and caches
 .claude/hooks/lib/
+.claude/hooks/post-hooks/
+.claude/hooks/pre-hooks/
+.claude/hooks/session-hooks/
 .npm-cache/
 .claude/settings.json.bak
 .claude/agents/character-images/package-lock.json
+
+# Experimental/Archive projects
+agent-os-quest-app/
+archive/
+lead-magnet/
+openai-apps/
+mcp-servers/gemini3-image-gen/
+miyabi-console/app/
