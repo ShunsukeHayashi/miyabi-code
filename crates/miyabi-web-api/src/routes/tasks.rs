@@ -59,39 +59,45 @@ pub struct MessageResponse {
 /// Create task management routes with RBAC middleware
 ///
 /// Permission mapping (Issue #1176):
-/// - GET /tasks, GET /tasks/stats, GET /tasks/{id} -> tasks:read
-/// - POST /tasks -> tasks:write
-/// - PATCH /tasks/{id} -> tasks:write
-/// - DELETE /tasks/{id} -> tasks:delete
-/// - POST /tasks/{id}/start, complete, fail, cancel, retry -> tasks:write
+/// Uses existing permission format: {resource}.{action}
+/// - GET /tasks, GET /tasks/stats, GET /tasks/{id} -> tasks.read
+/// - POST /tasks -> tasks.create
+/// - PATCH /tasks/{id} -> tasks.update
+/// - DELETE /tasks/{id} -> tasks.delete
+/// - POST /tasks/{id}/start, complete, fail, cancel, retry -> tasks.update
 pub fn routes() -> Router<AppState> {
     // Read-only routes
     let read_routes = Router::new()
         .route("/", get(list_tasks))
         .route("/stats", get(get_task_stats))
         .route("/{task_id}", get(get_task))
-        .route_layer(from_fn(require_permission("tasks:read")));
+        .route_layer(from_fn(require_permission("tasks.read")));
 
-    // Write routes (create, update, status changes)
-    let write_routes = Router::new()
+    // Create routes
+    let create_routes = Router::new()
         .route("/", post(create_task))
+        .route_layer(from_fn(require_permission("tasks.create")));
+
+    // Update routes (update, status changes)
+    let update_routes = Router::new()
         .route("/{task_id}", patch(update_task))
         .route("/{task_id}/start", post(start_task))
         .route("/{task_id}/complete", post(complete_task))
         .route("/{task_id}/fail", post(fail_task))
         .route("/{task_id}/cancel", post(cancel_task))
         .route("/{task_id}/retry", post(retry_task))
-        .route_layer(from_fn(require_permission("tasks:write")));
+        .route_layer(from_fn(require_permission("tasks.update")));
 
     // Delete routes
     let delete_routes = Router::new()
         .route("/{task_id}", delete(delete_task))
-        .route_layer(from_fn(require_permission("tasks:delete")));
+        .route_layer(from_fn(require_permission("tasks.delete")));
 
     // Merge all routes
     Router::new()
         .merge(read_routes)
-        .merge(write_routes)
+        .merge(create_routes)
+        .merge(update_routes)
         .merge(delete_routes)
 }
 

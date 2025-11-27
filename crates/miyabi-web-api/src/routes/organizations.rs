@@ -2,10 +2,11 @@
 //!
 //! CRUD operations for organizations, members, and teams
 //! Issue: #970 Phase 1.4 - RBAC Implementation
+//! Issue: #1176 - RBAC Middleware Integration
 
 use crate::{
     error::{AppError, Result},
-    middleware::{AuthenticatedUser, OrganizationContext},
+    middleware::{require_permission, AuthenticatedUser, OrganizationContext},
     models::{
         AddTeamMemberRequest, CreateOrganizationRequest, CreateTeamRequest, InviteMemberRequest,
         OrgMemberRole, Organization, OrganizationMember, OrganizationMemberWithUser, Team,
@@ -17,6 +18,7 @@ use crate::{
 use axum::{
     extract::{Extension, Path, State},
     http::StatusCode,
+    middleware::from_fn,
     response::IntoResponse,
     routing::{delete, get, patch, post},
     Json, Router,
@@ -67,38 +69,113 @@ pub struct MessageResponse {
 // Organization Routes
 // ============================================================================
 
-/// Create organization routes
+/// Create organization routes with RBAC middleware
+///
+/// Permission mapping (Issue #1176):
+/// Uses existing permission format: {resource}.{action}
+///
+/// Organization endpoints:
+/// - GET /organizations -> authenticated only (list user's orgs)
+/// - POST /organizations -> authenticated only (any user can create)
+/// - GET /organizations/{org_id} -> organization.read
+/// - PATCH /organizations/{org_id} -> organization.update
+/// - DELETE /organizations/{org_id} -> organization.delete
+///
+/// Member endpoints:
+/// - GET /organizations/{org_id}/members -> organization.members.read
+/// - POST /organizations/{org_id}/members -> organization.members.manage
+/// - PATCH /organizations/{org_id}/members/{user_id} -> organization.members.manage
+/// - DELETE /organizations/{org_id}/members/{user_id} -> organization.members.manage
+///
+/// Team endpoints:
+/// - GET /organizations/{org_id}/teams -> teams.read
+/// - POST /organizations/{org_id}/teams -> teams.create
+/// - GET /organizations/{org_id}/teams/{team_id} -> teams.read
+/// - PATCH /organizations/{org_id}/teams/{team_id} -> teams.update
+/// - DELETE /organizations/{org_id}/teams/{team_id} -> teams.delete
+///
+/// Team member endpoints:
+/// - GET /organizations/{org_id}/teams/{team_id}/members -> teams.read
+/// - POST /organizations/{org_id}/teams/{team_id}/members -> organization.members.manage
+/// - DELETE /organizations/{org_id}/teams/{team_id}/members/{user_id} -> organization.members.manage
 pub fn routes() -> Router<AppState> {
-    Router::new()
-        // Organization CRUD
-        .route("/", get(list_organizations).post(create_organization))
-        .route(
-            "/{org_id}",
-            get(get_organization)
-                .patch(update_organization)
-                .delete(delete_organization),
-        )
-        // Member management
-        .route("/{org_id}/members", get(list_members).post(invite_member))
+    // User's organizations list (authenticated only, no org context needed)
+    let user_orgs_routes = Router::new()
+        .route("/", get(list_organizations).post(create_organization));
+
+    // Organization read routes
+    let org_read_routes = Router::new()
+        .route("/{org_id}", get(get_organization))
+        .route_layer(from_fn(require_permission("organization.read")));
+
+    // Organization update routes
+    let org_update_routes = Router::new()
+        .route("/{org_id}", patch(update_organization))
+        .route_layer(from_fn(require_permission("organization.update")));
+
+    // Organization delete routes
+    let org_delete_routes = Router::new()
+        .route("/{org_id}", delete(delete_organization))
+        .route_layer(from_fn(require_permission("organization.delete")));
+
+    // Member read routes
+    let member_read_routes = Router::new()
+        .route("/{org_id}/members", get(list_members))
+        .route_layer(from_fn(require_permission("organization.members.read")));
+
+    // Member manage routes
+    let member_manage_routes = Router::new()
+        .route("/{org_id}/members", post(invite_member))
         .route(
             "/{org_id}/members/{user_id}",
             patch(update_member_role).delete(remove_member),
         )
-        // Team management
-        .route("/{org_id}/teams", get(list_teams).post(create_team))
-        .route(
-            "/{org_id}/teams/{team_id}",
-            get(get_team).patch(update_team).delete(delete_team),
-        )
-        // Team member management
-        .route(
-            "/{org_id}/teams/{team_id}/members",
-            get(list_team_members).post(add_team_member),
-        )
+        .route_layer(from_fn(require_permission("organization.members.manage")));
+
+    // Team read routes
+    let team_read_routes = Router::new()
+        .route("/{org_id}/teams", get(list_teams))
+        .route("/{org_id}/teams/{team_id}", get(get_team))
+        .route("/{org_id}/teams/{team_id}/members", get(list_team_members))
+        .route_layer(from_fn(require_permission("teams.read")));
+
+    // Team create routes
+    let team_create_routes = Router::new()
+        .route("/{org_id}/teams", post(create_team))
+        .route_layer(from_fn(require_permission("teams.create")));
+
+    // Team update routes
+    let team_update_routes = Router::new()
+        .route("/{org_id}/teams/{team_id}", patch(update_team))
+        .route_layer(from_fn(require_permission("teams.update")));
+
+    // Team delete routes
+    let team_delete_routes = Router::new()
+        .route("/{org_id}/teams/{team_id}", delete(delete_team))
+        .route_layer(from_fn(require_permission("teams.delete")));
+
+    // Team member manage routes (uses organization.members.manage)
+    let team_member_manage_routes = Router::new()
+        .route("/{org_id}/teams/{team_id}/members", post(add_team_member))
         .route(
             "/{org_id}/teams/{team_id}/members/{user_id}",
             delete(remove_team_member),
         )
+        .route_layer(from_fn(require_permission("organization.members.manage")));
+
+    // Merge all routes
+    Router::new()
+        .merge(user_orgs_routes)
+        .merge(org_read_routes)
+        .merge(org_update_routes)
+        .merge(org_delete_routes)
+        .merge(member_read_routes)
+        .merge(member_manage_routes)
+        .merge(team_read_routes)
+        .merge(team_create_routes)
+        .merge(team_update_routes)
+        .merge(team_delete_routes)
+        .merge(team_member_manage_routes)
 }
 
 // ============================================================================
