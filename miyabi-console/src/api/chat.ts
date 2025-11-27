@@ -1,11 +1,11 @@
 /**
- * AI Chat API Route - Vercel AI SDK with Google Gemini
+ * AI Chat API Route - Vercel AI SDK 6 with Google Gemini
  *
  * This endpoint handles streaming chat responses using Google's Gemini model.
  */
 
 import { google } from '@ai-sdk/google';
-import { StreamingTextResponse, streamText } from 'ai';
+import { convertToModelMessages, streamText, UIMessage } from 'ai';
 
 // System prompt for Miyabi AI Assistant
 const SYSTEM_PROMPT = `You are Miyabi AI Assistant, an expert in:
@@ -31,7 +31,7 @@ When generating code:
 
 export async function chatAPI(request: Request): Promise<Response> {
   try {
-    const { messages } = await request.json();
+    const { messages }: { messages: UIMessage[] } = await request.json();
 
     // Get API key from environment
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -41,18 +41,18 @@ export async function chatAPI(request: Request): Promise<Response> {
     }
 
     // Stream the response using Gemini 3 Pro Preview
-    const result = await streamText({
+    const result = streamText({
       model: google('gemini-3.0-pro-preview', {
         apiKey,
       }),
       system: SYSTEM_PROMPT,
-      messages,
+      messages: convertToModelMessages(messages),
       temperature: 0.7,
       maxTokens: 2048,
     });
 
-    // Return streaming response
-    return new StreamingTextResponse(result.toDataStream());
+    // Return streaming response using toUIMessageStreamResponse
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error('Chat API error:', error);
     return new Response(

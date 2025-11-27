@@ -1,5 +1,5 @@
 /**
- * AI Chat Component - Powered by Vercel AI SDK + Google Gemini
+ * AI Chat Component - Powered by Vercel AI SDK 6 + Google Gemini
  *
  * Features:
  * - Real-time streaming responses
@@ -8,21 +8,31 @@
  * - Message history
  */
 
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { Send, Sparkles, Code, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 
 export function AIChat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/chat',
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
     initialMessages: [
       {
         id: '1',
         role: 'assistant',
-        content: '👋 Hello! I\'m Miyabi AI Assistant. I can help you with:\n\n- UI/UX design suggestions\n- Code generation and review\n- Agent orchestration strategies\n- System architecture planning\n\nWhat would you like to create today?',
+        parts: [
+          {
+            type: 'text',
+            text: '👋 Hello! I\'m Miyabi AI Assistant. I can help you with:\n\n- UI/UX design suggestions\n- Code generation and review\n- Agent orchestration strategies\n- System architecture planning\n\nWhat would you like to create today?',
+          },
+        ],
       },
     ],
   });
+
+  const [input, setInput] = useState('');
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -54,54 +64,61 @@ export function AIChat() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-3xl ${
-                message.role === 'user'
-                  ? 'bg-gradient-to-r from-purple-600 to-blue-600'
-                  : 'bg-white/10 backdrop-blur-sm border border-white/10'
-              } rounded-2xl px-6 py-4 shadow-lg`}
-            >
-              {/* Message Header */}
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  {message.role === 'assistant' && (
-                    <Sparkles className="w-4 h-4 text-purple-400" />
-                  )}
-                  <span className="text-xs font-semibold text-white/70">
-                    {message.role === 'user' ? 'You' : 'Miyabi AI'}
-                  </span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(message.content, message.id)}
-                  className="p-1 hover:bg-white/10 rounded transition-colors"
-                  title="Copy to clipboard"
-                >
-                  {copiedId === message.id ? (
-                    <Check className="w-4 h-4 text-green-400" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-white/50" />
-                  )}
-                </button>
-              </div>
+        {messages.map((message) => {
+          const textContent = message.parts
+            .filter((part) => part.type === 'text')
+            .map((part) => part.text)
+            .join('');
 
-              {/* Message Content */}
-              <div className="text-white whitespace-pre-wrap">
-                {message.content.includes('```') ? (
-                  <CodeBlock content={message.content} />
-                ) : (
-                  message.content
-                )}
+          return (
+            <div
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-3xl ${
+                  message.role === 'user'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600'
+                    : 'bg-white/10 backdrop-blur-sm border border-white/10'
+                } rounded-2xl px-6 py-4 shadow-lg`}
+              >
+                {/* Message Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    {message.role === 'assistant' && (
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                    )}
+                    <span className="text-xs font-semibold text-white/70">
+                      {message.role === 'user' ? 'You' : 'Miyabi AI'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(textContent, message.id)}
+                    className="p-1 hover:bg-white/10 rounded transition-colors"
+                    title="Copy to clipboard"
+                  >
+                    {copiedId === message.id ? (
+                      <Check className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-white/50" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Message Content */}
+                <div className="text-white whitespace-pre-wrap">
+                  {textContent.includes('```') ? (
+                    <CodeBlock content={textContent} />
+                  ) : (
+                    textContent
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
-        {isLoading && (
+        {status !== 'ready' && (
           <div className="flex justify-start">
             <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-4">
               <div className="flex items-center space-x-2">
@@ -119,21 +136,30 @@ export function AIChat() {
 
       {/* Input */}
       <div className="px-6 py-4 border-t border-white/10 bg-black/20 backdrop-blur-sm">
-        <form onSubmit={handleSubmit} className="flex space-x-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (input.trim()) {
+              sendMessage({ text: input });
+              setInput('');
+            }
+          }}
+          className="flex space-x-3"
+        >
           <div className="flex-1 relative">
             <input
               type="text"
               value={input}
-              onChange={handleInputChange}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything about UI/UX, code, or agents..."
               className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-              disabled={isLoading}
+              disabled={status !== 'ready'}
             />
             <Code className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
           </div>
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={status !== 'ready' || !input.trim()}
             className="px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-purple-500/50 flex items-center space-x-2"
           >
             <Send className="w-5 h-5" />
