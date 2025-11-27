@@ -156,10 +156,13 @@ export class LicenseValidator {
             // STARTER: 基本機能のみ
             'basic_sns_strategy': ['STARTER', 'PRO', 'ENTERPRISE'],
             'basic_content_creation': ['STARTER', 'PRO', 'ENTERPRISE'],
+            'x_post_generation': ['STARTER', 'PRO', 'ENTERPRISE'],
+            'x_account_analysis': ['STARTER', 'PRO', 'ENTERPRISE'],
             // PRO: 高度な機能
             'advanced_analytics': ['PRO', 'ENTERPRISE'],
             'youtube_optimization': ['PRO', 'ENTERPRISE'],
             'marketing_automation': ['PRO', 'ENTERPRISE'],
+            'x_posting': ['PRO', 'ENTERPRISE'], // 実際の投稿はPRO以上
             // ENTERPRISE: 全機能
             'crm_integration': ['ENTERPRISE'],
             'custom_algorithms': ['ENTERPRISE'],

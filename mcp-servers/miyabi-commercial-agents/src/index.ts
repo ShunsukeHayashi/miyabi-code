@@ -131,6 +131,99 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
 
+      // つぶやくん - X投稿生成 (All tiers)
+      {
+        name: 'tsubuyakun_generate_x_post',
+        description: `[${tier}] Generate optimized X (Twitter) post with engagement prediction`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: {
+              type: 'string',
+              description: 'Custom post content (optional - will be enhanced)',
+            },
+            topic: {
+              type: 'string',
+              description: 'Topic to generate post about',
+            },
+            style: {
+              type: 'string',
+              enum: ['informative', 'engaging', 'promotional', 'thread', 'question'],
+              description: 'Post style (default: engaging)',
+            },
+            include_hashtags: {
+              type: 'boolean',
+              description: 'Include optimized hashtags (default: true)',
+            },
+            max_length: {
+              type: 'number',
+              description: 'Maximum character length (default: 280)',
+            },
+            language: {
+              type: 'string',
+              enum: ['ja', 'en'],
+              description: 'Post language (default: ja)',
+            },
+          },
+          required: [],
+        },
+      },
+
+      // つぶやくん - X投稿実行 (PRO+)
+      {
+        name: 'tsubuyakun_post_to_x',
+        description: `[${tier}] ${tier === 'STARTER' ? '[PRO+ ONLY] ' : ''}Post directly to X (Twitter) - requires API credentials`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: {
+              type: 'string',
+              description: 'Custom post content (optional)',
+            },
+            topic: {
+              type: 'string',
+              description: 'Topic to generate post about',
+            },
+            style: {
+              type: 'string',
+              enum: ['informative', 'engaging', 'promotional', 'thread', 'question'],
+              description: 'Post style',
+            },
+            include_hashtags: {
+              type: 'boolean',
+              description: 'Include optimized hashtags',
+            },
+            language: {
+              type: 'string',
+              enum: ['ja', 'en'],
+              description: 'Post language',
+            },
+          },
+          required: [],
+        },
+      },
+
+      // つぶやくん - Xアカウント分析 (All tiers)
+      {
+        name: 'tsubuyakun_analyze_x_account',
+        description: `[${tier}] Analyze X account and predict what posts will perform well`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            account_url: {
+              type: 'string',
+              description: 'X account URL (e.g., https://x.com/username) or username',
+            },
+            analysis_depth: {
+              type: 'string',
+              enum: ['basic', 'detailed', 'comprehensive'],
+              description: 'Analysis depth (default: detailed)',
+            },
+          },
+          required: ['account_url'],
+        },
+      },
+
       // 書くちゃん - Content Creation (All tiers)
       {
         name: 'kakuchan_generate_content',
@@ -315,6 +408,50 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: 'text',
             text: JSON.stringify(strategy, null, 2),
+          },
+        ],
+      };
+    }
+
+    // つぶやくん - X投稿生成
+    if (name === 'tsubuyakun_generate_x_post') {
+      const post = await tsubuyakun.generateXPost(args as any);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(post, null, 2),
+          },
+        ],
+      };
+    }
+
+    // つぶやくん - X投稿実行 (PRO+)
+    if (name === 'tsubuyakun_post_to_x') {
+      requireFeature('x_posting');
+
+      const result = await tsubuyakun.postToX(args as any);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    }
+
+    // つぶやくん - Xアカウント分析
+    if (name === 'tsubuyakun_analyze_x_account') {
+      const analysis = await tsubuyakun.analyzeXAccount(args as any);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(analysis, null, 2),
           },
         ],
       };
