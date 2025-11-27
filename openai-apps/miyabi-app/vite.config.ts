@@ -12,6 +12,8 @@ export default defineConfig({
         'issue-list': resolve(__dirname, 'src/components/IssueListWidget.tsx'),
         'project-status': resolve(__dirname, 'src/components/ProjectStatusWidget.tsx'),
         'agent-status': resolve(__dirname, 'src/components/AgentStatusWidget.tsx'),
+        'agent-selector': resolve(__dirname, 'src/components/AgentSelectorWidget.tsx'),
+        'agent-tcg-card': resolve(__dirname, 'src/components/AgentTCGCard.tsx'),
       },
       output: {
         entryFileNames: '[name].[hash].js',
