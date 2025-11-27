@@ -114,7 +114,7 @@ pub trait PersistableAgent: Send + Sync {
         pool: &PgPool,
         result: &AgentExecutionResult,
     ) -> Result<Uuid, MiyabiError> {
-        let record = sqlx::query!(
+        let row: (Uuid,) = sqlx::query_as(
             r#"
             INSERT INTO agent_executions (
                 repository_id,
@@ -130,22 +130,22 @@ pub trait PersistableAgent: Send + Sync {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id
             "#,
-            result.repository_id,
-            result.issue_number,
-            result.agent_type,
-            result.status.as_str(),
-            result.started_at,
-            result.completed_at,
-            result.error_message,
-            result.result,
-            result.quality_score,
-            result.pr_number
         )
+        .bind(result.repository_id)
+        .bind(result.issue_number)
+        .bind(&result.agent_type)
+        .bind(result.status.as_str())
+        .bind(result.started_at)
+        .bind(result.completed_at)
+        .bind(&result.error_message)
+        .bind(&result.result)
+        .bind(result.quality_score)
+        .bind(result.pr_number)
         .fetch_one(pool)
         .await
         .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to create execution: {}", e)))?;
 
-        Ok(record.id)
+        Ok(row.0)
     }
 
     /// Update an existing execution record
@@ -155,7 +155,7 @@ pub trait PersistableAgent: Send + Sync {
         execution_id: Uuid,
         result: &AgentExecutionResult,
     ) -> Result<Uuid, MiyabiError> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE agent_executions
             SET status = $2,
@@ -167,14 +167,14 @@ pub trait PersistableAgent: Send + Sync {
                 updated_at = NOW()
             WHERE id = $1
             "#,
-            execution_id,
-            result.status.as_str(),
-            result.completed_at,
-            result.error_message,
-            result.result,
-            result.quality_score,
-            result.pr_number
         )
+        .bind(execution_id)
+        .bind(result.status.as_str())
+        .bind(result.completed_at)
+        .bind(&result.error_message)
+        .bind(&result.result)
+        .bind(result.quality_score)
+        .bind(result.pr_number)
         .execute(pool)
         .await
         .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to update execution: {}", e)))?;
@@ -199,7 +199,9 @@ pub trait PersistableAgent: Send + Sync {
         repository_id: Uuid,
         limit: i64,
     ) -> Result<Vec<AgentExecutionResult>, MiyabiError> {
-        let records = sqlx::query!(
+        use sqlx::Row;
+
+        let records = sqlx::query(
             r#"
             SELECT
                 id,
@@ -218,10 +220,10 @@ pub trait PersistableAgent: Send + Sync {
             ORDER BY created_at DESC
             LIMIT $3
             "#,
-            self.agent_type(),
-            repository_id,
-            limit
         )
+        .bind(self.agent_type())
+        .bind(repository_id)
+        .bind(limit)
         .fetch_all(pool)
         .await
         .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to load history: {}", e)))?;
@@ -229,7 +231,8 @@ pub trait PersistableAgent: Send + Sync {
         let results = records
             .into_iter()
             .map(|r| {
-                let status = match r.status.as_str() {
+                let status_str: String = r.get("status");
+                let status = match status_str.as_str() {
                     "pending" => ExecutionStatus::Pending,
                     "running" => ExecutionStatus::Running,
                     "completed" => ExecutionStatus::Completed,
@@ -238,17 +241,17 @@ pub trait PersistableAgent: Send + Sync {
                 };
 
                 AgentExecutionResult {
-                    execution_id: Some(r.id),
-                    repository_id: r.repository_id,
-                    issue_number: r.issue_number,
-                    agent_type: r.agent_type,
+                    execution_id: Some(r.get("id")),
+                    repository_id: r.get("repository_id"),
+                    issue_number: r.get("issue_number"),
+                    agent_type: r.get("agent_type"),
                     status,
-                    started_at: r.started_at,
-                    completed_at: r.completed_at,
-                    error_message: r.error_message,
-                    result: r.result,
-                    quality_score: r.quality_score,
-                    pr_number: r.pr_number,
+                    started_at: r.get("started_at"),
+                    completed_at: r.get("completed_at"),
+                    error_message: r.get("error_message"),
+                    result: r.get("result"),
+                    quality_score: r.get("quality_score"),
+                    pr_number: r.get("pr_number"),
                     analysis_metrics: None,
                 }
             })
@@ -274,7 +277,7 @@ pub trait PersistableAgent: Send + Sync {
         execution_id: Uuid,
         metrics: serde_json::Value,
     ) -> Result<(), MiyabiError> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE agent_executions
             SET result = jsonb_set(
@@ -284,9 +287,9 @@ pub trait PersistableAgent: Send + Sync {
             )
             WHERE id = $1
             "#,
-            execution_id,
-            metrics
         )
+        .bind(execution_id)
+        .bind(&metrics)
         .execute(pool)
         .await
         .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to save metrics: {}", e)))?;
