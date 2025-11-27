@@ -4,6 +4,6 @@
 
 import { AIChat } from '../components/AIChat';
 
-export function AIAssistantPage() {
+export default function AIAssistantPage() {
   return <AIChat />;
 }
