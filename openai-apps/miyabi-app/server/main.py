@@ -16,8 +16,12 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from github import Github
+from dotenv import load_dotenv
 
 from a2a_client import get_client as get_a2a_client
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
 MIYABI_ROOT = Path(os.getenv("MIYABI_ROOT", Path.home() / "Dev" / "miyabi-private"))
