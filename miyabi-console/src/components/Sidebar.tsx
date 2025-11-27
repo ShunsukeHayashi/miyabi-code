@@ -14,6 +14,7 @@ import {
   Network,
   Rocket,
   Server,
+  Sparkles,
   Terminal,
   Users,
   Wifi,
@@ -51,6 +52,7 @@ export default function Sidebar() {
     { name: 'Issues', path: '/issues', icon: GitPullRequest },
     { name: 'Task DAG', path: '/task-dag', icon: Network },
     { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+    { name: 'AI Assistant', path: '/ai-assistant', icon: Sparkles },
     { name: 'Notifications', path: '/notifications', icon: Bell },
   ];
 

@@ -21,6 +21,7 @@ const WorktreeManagerPage = lazy(() => import('./pages/WorktreeManagerPage'))
 const IssuesPage = lazy(() => import('./pages/IssuesPage'))
 const TaskDAGPage = lazy(() => import('./pages/TaskDAGPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
+const AIAssistantPage = lazy(() => import('./pages/AIAssistantPage'))
 
 // Loading fallback component
 function PageLoader() {
@@ -128,6 +129,9 @@ function App() {
               <AnalyticsPage />
             </ProtectedRoute>
           } />
+
+          {/* AI Assistant - all roles */}
+          <Route path="/ai-assistant" element={<AIAssistantPage />} />
         </Route>
         </Routes>
       </Suspense>
