@@ -70,7 +70,7 @@ AGENT_MAPPING = {
 # MCP Protocol Models
 class MCPRequest(BaseModel):
     jsonrpc: str = "2.0"
-    id: int | str
+    id: Optional[int | str] = None  # Optional for notifications
     method: str
     params: Optional[Dict[str, Any]] = None
 
