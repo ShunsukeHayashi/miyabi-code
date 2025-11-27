@@ -119,20 +119,117 @@ impl PermissionRequirement {
 }
 
 // ============================================================================
-// Simple Pass-Through Middleware (Phase 1)
+// Permission Check Middleware Factory
 // ============================================================================
-//
-// These middleware functions currently pass through all requests without
-// permission checking. Full RBAC enforcement will be added in a future phase.
 
-/// Middleware function that checks a specific permission
-/// Currently a no-op pass-through for Phase 1 deployment
+/// Create a middleware that checks for a specific permission
+///
+/// Usage in routes:
+/// ```rust
+/// .route_layer(from_fn(require_permission("tasks:write")))
+/// ```
+pub fn require_permission(
+    permission: &'static str,
+) -> impl Fn(Request, Next) -> std::pin::Pin<Box<dyn std::future::Future<Output = Response> + Send>> + Clone + Send + 'static {
+    move |request: Request, next: Next| {
+        let perm = permission;
+        Box::pin(async move {
+            check_permission_impl(request, next, perm).await
+        })
+    }
+}
+
+/// Internal implementation for permission check
+async fn check_permission_impl(
+    mut request: Request,
+    next: Next,
+    permission: &str,
+) -> Response {
+    // 1. Get authenticated user from extensions
+    let auth_user = match request.extensions().get::<AuthenticatedUser>().cloned() {
+        Some(user) => user,
+        None => {
+            return AppError::Authentication("Not authenticated".to_string()).into_response();
+        }
+    };
+
+    // 2. Extract organization_id from path parameters
+    let organization_id = match extract_organization_id(&request) {
+        Ok(id) => id,
+        Err(e) => {
+            // If no organization_id in request, check for default org in extensions
+            if let Some(ctx) = request.extensions().get::<super::OrganizationContext>() {
+                ctx.organization_id
+            } else {
+                tracing::warn!("RBAC check failed: {}", e);
+                return e.into_response();
+            }
+        }
+    };
+
+    // 3. Get database pool from request extensions
+    let db = match request.extensions().get::<PgPool>().cloned() {
+        Some(pool) => pool,
+        None => {
+            tracing::error!("Database pool not available for RBAC check");
+            return AppError::Internal("Database pool not available".to_string()).into_response();
+        }
+    };
+
+    // 4. Check permission using has_permission database function
+    let has_permission: bool = match sqlx::query_scalar(
+        "SELECT COALESCE(has_permission($1, $2, $3), false)"
+    )
+    .bind(auth_user.user_id)
+    .bind(organization_id)
+    .bind(permission)
+    .fetch_one(&db)
+    .await
+    {
+        Ok(result) => result,
+        Err(e) => {
+            tracing::error!("RBAC permission check failed: {}", e);
+            return AppError::Database(e).into_response();
+        }
+    };
+
+    if !has_permission {
+        tracing::warn!(
+            "Permission denied: user={}, org={}, permission={}",
+            auth_user.user_id, organization_id, permission
+        );
+        return AppError::Authorization(format!(
+            "Insufficient permissions: {} required",
+            permission
+        ))
+        .into_response();
+    }
+
+    // 5. Add RBAC context to request extensions
+    let rbac_context = RbacContext {
+        user_id: auth_user.user_id,
+        organization_id,
+        permissions_checked: true,
+    };
+    request.extensions_mut().insert(rbac_context);
+
+    tracing::debug!(
+        "Permission granted: user={}, org={}, permission={}",
+        auth_user.user_id, organization_id, permission
+    );
+
+    // 6. Continue to next middleware/handler
+    next.run(request).await
+}
+
+/// Middleware function that checks a specific permission (legacy, pass-through)
+/// Deprecated: Use require_permission() instead for actual enforcement
+#[deprecated(note = "Use require_permission() for actual RBAC enforcement")]
 pub async fn rbac_check_permission(
     request: Request,
     next: Next,
 ) -> Response {
-    // Phase 1: Pass through without permission checks
-    // Full RBAC will be implemented after auth middleware is stable
+    // Legacy pass-through - use require_permission() for actual checks
     next.run(request).await
 }
 

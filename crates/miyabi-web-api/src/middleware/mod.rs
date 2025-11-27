@@ -21,7 +21,11 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 // Re-export RBAC types for convenience
-pub use rbac::{RbacContext, PermissionRequirement, rbac_check_permission};
+pub use rbac::{RbacContext, PermissionRequirement, require_permission};
+
+// Keep legacy export but mark as deprecated
+#[allow(deprecated)]
+pub use rbac::rbac_check_permission;
 
 // ============================================================================
 // Extension Types

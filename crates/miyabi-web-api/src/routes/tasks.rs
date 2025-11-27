@@ -2,16 +2,18 @@
 //!
 //! CRUD operations for tasks with filtering and pagination
 //! Issue: #970 Phase 2.1 - Task Management API
+//! Issue: #1176 - RBAC Middleware Integration
 
 use crate::{
     error::{AppError, Result},
-    middleware::AuthenticatedUser,
+    middleware::{AuthenticatedUser, require_permission},
     models::{CreateTaskRequest, Task, TaskQueryFilters, UpdateTaskRequest},
     AppState,
 };
 use axum::{
     extract::{Extension, Path, Query, State},
     http::StatusCode,
+    middleware::from_fn,
     response::IntoResponse,
     routing::{delete, get, patch, post},
     Json, Router,
@@ -54,20 +56,43 @@ pub struct MessageResponse {
 // Routes
 // ============================================================================
 
-/// Create task management routes
+/// Create task management routes with RBAC middleware
+///
+/// Permission mapping (Issue #1176):
+/// - GET /tasks, GET /tasks/stats, GET /tasks/{id} -> tasks:read
+/// - POST /tasks -> tasks:write
+/// - PATCH /tasks/{id} -> tasks:write
+/// - DELETE /tasks/{id} -> tasks:delete
+/// - POST /tasks/{id}/start, complete, fail, cancel, retry -> tasks:write
 pub fn routes() -> Router<AppState> {
-    Router::new()
-        .route("/", get(list_tasks).post(create_task))
+    // Read-only routes
+    let read_routes = Router::new()
+        .route("/", get(list_tasks))
         .route("/stats", get(get_task_stats))
-        .route(
-            "/{task_id}",
-            get(get_task).patch(update_task).delete(delete_task),
-        )
+        .route("/{task_id}", get(get_task))
+        .route_layer(from_fn(require_permission("tasks:read")));
+
+    // Write routes (create, update, status changes)
+    let write_routes = Router::new()
+        .route("/", post(create_task))
+        .route("/{task_id}", patch(update_task))
         .route("/{task_id}/start", post(start_task))
         .route("/{task_id}/complete", post(complete_task))
         .route("/{task_id}/fail", post(fail_task))
         .route("/{task_id}/cancel", post(cancel_task))
         .route("/{task_id}/retry", post(retry_task))
+        .route_layer(from_fn(require_permission("tasks:write")));
+
+    // Delete routes
+    let delete_routes = Router::new()
+        .route("/{task_id}", delete(delete_task))
+        .route_layer(from_fn(require_permission("tasks:delete")));
+
+    // Merge all routes
+    Router::new()
+        .merge(read_routes)
+        .merge(write_routes)
+        .merge(delete_routes)
 }
 
 // ============================================================================
