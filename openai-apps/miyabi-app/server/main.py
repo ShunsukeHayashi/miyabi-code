@@ -8,15 +8,17 @@ import os
 import json
 import subprocess
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Security, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from github import Github
 from dotenv import load_dotenv
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from a2a_client import get_client as get_a2a_client
 
@@ -29,8 +31,45 @@ BASE_URL = os.getenv("BASE_URL", "http://localhost:4444")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 REPO_OWNER = os.getenv("MIYABI_REPO_OWNER", "customer-cloud")
 REPO_NAME = os.getenv("MIYABI_REPO_NAME", "miyabi-private")
+# MCP spec: OAuth 2.1 Bearer tokens (set MIYABI_ACCESS_TOKEN in .env)
+ACCESS_TOKEN = os.getenv("MIYABI_ACCESS_TOKEN", "")
 
 app = FastAPI(title="Miyabi MCP Server", version="1.0.0")
+
+# MCP-compliant Bearer token authentication (OAuth 2.1 subset)
+security = HTTPBearer(auto_error=False)
+
+
+async def verify_bearer_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
+    """
+    Verify Bearer token per MCP specification (OAuth 2.1 subset)
+
+    MCP spec requires:
+    - Authorization: Bearer <token>
+    - HTTPS in production
+    - Tokens must be in headers, not query strings
+    """
+    # Development mode: skip auth if no token configured
+    if not ACCESS_TOKEN:
+        return "dev-mode"
+
+    if not credentials:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Bearer token required. Include Authorization header.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if credentials.credentials != ACCESS_TOKEN:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired access token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return credentials.credentials
 
 # Enable CORS
 app.add_middleware(
@@ -70,14 +109,14 @@ AGENT_MAPPING = {
 # MCP Protocol Models
 class MCPRequest(BaseModel):
     jsonrpc: str = "2.0"
-    id: Optional[int | str] = None  # Optional for notifications
+    id: Optional[Union[int, str]] = None  # Optional for notifications
     method: str
     params: Optional[Dict[str, Any]] = None
 
 
 class MCPResponse(BaseModel):
     jsonrpc: str = "2.0"
-    id: int | str
+    id: Union[int, str]
     result: Optional[Dict[str, Any]] = None
     error: Optional[Dict[str, Any]] = None
 
@@ -99,6 +138,20 @@ class CreateIssueParams(BaseModel):
 class ListIssuesParams(BaseModel):
     state: str = Field("open", description="Issue state: 'open', 'closed', or 'all'")
     limit: int = Field(10, description="Maximum number of issues to return")
+
+
+class ExecuteAgentsParallelParams(BaseModel):
+    """Execute multiple agents in parallel"""
+    agents: List[Dict[str, Any]] = Field(
+        ...,
+        description="List of agents to execute with their parameters",
+        examples=[
+            [
+                {"agent": "codegen", "issue_number": 123},
+                {"agent": "review", "task": "Review changes"},
+            ]
+        ],
+    )
 
 
 # Helper Functions
@@ -246,6 +299,44 @@ TOOLS = [
         "name": "get_project_status",
         "description": "Get current Miyabi project status (branch, crates, agents, commits)",
         "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "list_agents",
+        "description": "Show interactive agent selector with all 21 Miyabi agents",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "show_agent_cards",
+        "description": "Display Miyabi agents as collectible TCG trading cards with stats, skills, and achievements",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "execute_agents_parallel",
+        "description": "Execute multiple Miyabi agents in parallel for faster processing",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "agents": {
+                    "type": "array",
+                    "description": "List of agents to execute with their parameters",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "agent": {
+                                "type": "string",
+                                "description": "Agent name",
+                                "enum": list(AGENT_MAPPING.keys()),
+                            },
+                            "issue_number": {"type": "integer"},
+                            "task": {"type": "string"},
+                            "context": {"type": "string"},
+                        },
+                        "required": ["agent"],
+                    },
+                }
+            },
+            "required": ["agents"],
+        },
     },
 ]
 
@@ -444,10 +535,173 @@ async def get_project_status_tool() -> Dict[str, Any]:
         }
 
 
+async def list_agents_tool() -> Dict[str, Any]:
+    """Show interactive agent selector widget with all 21 Miyabi agents"""
+    try:
+        # Get agent list from A2A Bridge
+        client = get_a2a_client()
+        agents = await client.list_agents()
+
+        data = {
+            "agents": agents,
+            "count": len(agents),
+        }
+
+        return {
+            "content": [
+                {"type": "text", "text": f"🎯 Miyabi Agent Selector - Choose from {len(agents)} AI agents"},
+                {
+                    "type": "resource",
+                    "resource": {
+                        "uri": f"data:text/html;base64,{create_widget_html('agent-selector', data)}",
+                        "mimeType": "text/html",
+                    },
+                },
+            ],
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error loading agents: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def show_agent_cards_tool() -> Dict[str, Any]:
+    """Display Miyabi agents as collectible TCG trading cards"""
+    try:
+        # Load agent card data from JSON
+        card_data_path = MIYABI_ROOT / ".claude" / "agents" / "AGENT_CARD_DATA.json"
+
+        if not card_data_path.exists():
+            return {
+                "content": [{"type": "text", "text": f"❌ Agent card data not found at {card_data_path}"}],
+                "isError": True,
+            }
+
+        with open(card_data_path, "r", encoding="utf-8") as f:
+            card_data = json.load(f)
+
+        agents = card_data.get("agents", [])
+
+        return {
+            "content": [
+                {"type": "text", "text": f"⭐ MIYABI AGENTS TCG - {len(agents)} Collectible Agent Cards"},
+                {
+                    "type": "resource",
+                    "resource": {
+                        "uri": f"data:text/html;base64,{create_widget_html('agent-tcg-card', {'agents': agents})}",
+                        "mimeType": "text/html",
+                    },
+                },
+            ],
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error loading TCG cards: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def execute_agents_parallel_tool(params: ExecuteAgentsParallelParams) -> Dict[str, Any]:
+    """
+    Execute multiple Miyabi agents in parallel
+
+    This enables concurrent agent execution for faster processing
+    """
+    start_time = datetime.now()
+
+    try:
+        # Create tasks for parallel execution
+        tasks = []
+        for agent_config in params.agents:
+            agent_params = ExecuteAgentParams(**agent_config)
+            task = execute_agent_tool(agent_params)
+            tasks.append(task)
+
+        # Execute all agents in parallel
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Collect results
+        success_count = 0
+        error_count = 0
+        agent_results = []
+
+        for i, (config, result) in enumerate(zip(params.agents, results)):
+            agent_name = AGENT_MAPPING.get(config["agent"])
+
+            if isinstance(result, Exception):
+                error_count += 1
+                agent_results.append({
+                    "agent": agent_name,
+                    "status": "error",
+                    "error": str(result),
+                })
+            else:
+                if result.get("isError"):
+                    error_count += 1
+                else:
+                    success_count += 1
+
+                agent_results.append({
+                    "agent": agent_name,
+                    "status": "success" if not result.get("isError") else "error",
+                    "result": result,
+                })
+
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+
+        summary_data = {
+            "total": len(params.agents),
+            "success": success_count,
+            "errors": error_count,
+            "duration_ms": duration_ms,
+            "results": agent_results,
+        }
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"🚀 Parallel Execution: {success_count}/{len(params.agents)} succeeded in {duration_ms}ms",
+                },
+                {
+                    "type": "resource",
+                    "resource": {
+                        "uri": f"data:text/html;base64,{create_widget_html('parallel-results', summary_data)}",
+                        "mimeType": "text/html",
+                    },
+                },
+            ],
+            "isError": error_count > 0,
+        }
+
+    except Exception as e:
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Error in parallel execution: {str(e)}",
+                }
+            ],
+            "isError": True,
+        }
+
+
 # MCP Endpoints
 @app.post("/mcp")
-async def mcp_handler(request: Request):
-    """Main MCP protocol handler"""
+async def mcp_handler(
+    request: Request,
+    token: str = Depends(verify_bearer_token)
+):
+    """
+    Main MCP protocol handler (MCP-compliant OAuth 2.1 authentication)
+
+    Requires: Authorization: Bearer <token>
+    """
     try:
         body = await request.json()
         mcp_request = MCPRequest(**body)
@@ -492,6 +746,12 @@ async def mcp_handler(request: Request):
                 result = await list_issues_tool(ListIssuesParams(**arguments))
             elif tool_name == "get_project_status":
                 result = await get_project_status_tool()
+            elif tool_name == "list_agents":
+                result = await list_agents_tool()
+            elif tool_name == "show_agent_cards":
+                result = await show_agent_cards_tool()
+            elif tool_name == "execute_agents_parallel":
+                result = await execute_agents_parallel_tool(ExecuteAgentsParallelParams(**arguments))
             else:
                 return MCPResponse(
                     id=mcp_request.id,
