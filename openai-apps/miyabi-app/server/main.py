@@ -453,7 +453,29 @@ async def mcp_handler(request: Request):
         mcp_request = MCPRequest(**body)
 
         # Handle different MCP methods
-        if mcp_request.method == "tools/list":
+        if mcp_request.method == "initialize":
+            # MCP protocol initialization handshake
+            return MCPResponse(
+                id=mcp_request.id,
+                result={
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {
+                        "tools": {"listChanged": False},
+                        "prompts": {},
+                        "resources": {}
+                    },
+                    "serverInfo": {
+                        "name": "Miyabi MCP Server",
+                        "version": "1.0.0"
+                    }
+                }
+            ).dict()
+
+        elif mcp_request.method == "initialized":
+            # Client acknowledges initialization - no response needed
+            return MCPResponse(id=mcp_request.id, result={}).dict()
+
+        elif mcp_request.method == "tools/list":
             return MCPResponse(id=mcp_request.id, result={"tools": TOOLS}).dict()
 
         elif mcp_request.method == "tools/call":
