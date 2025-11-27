@@ -471,7 +471,7 @@ async def mcp_handler(request: Request):
                 }
             ).dict()
 
-        elif mcp_request.method == "initialized":
+        elif mcp_request.method in ("initialized", "notifications/initialized"):
             # Client acknowledges initialization - no response needed for notifications
             # Return 204 No Content
             return Response(status_code=204)
