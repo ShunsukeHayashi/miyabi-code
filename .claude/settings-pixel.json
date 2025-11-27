@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "Miyabi Pixel/Termux Optimized Settings - Mobile-First Development Hub",
+
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+
+  "environment": {
+    "device": "Pixel 9 Pro XL",
+    "platform": "Android 15 / Termux",
+    "role": "MAESTRO",
+    "description": "Mobile-first development hub with 24 MCP servers and remote coordination"
+  },
+
+  "paths": {
+    "projectRoot": "/data/data/com.termux/files/home/Dev/miyabi-private",
+    "obsidianVault": "/data/data/com.termux/files/home/storage/shared/Obsidian/MiyabiVault",
+    "mcpServers": "/data/data/com.termux/files/home/Dev/miyabi-private/mcp-servers",
+    "binaries": "/data/data/com.termux/files/home/Dev/miyabi-private/target/release"
+  },
+
+  "termux": {
+    "enabled": true,
+    "voiceInput": {
+      "enabled": true,
+      "commands": ["voice", "v", "vc", "vn", "mvn"],
+      "outputPath": "~/voice-notes.txt"
+    },
+    "initScript": "~/.miyabi_init.sh",
+    "aliases": {
+      "m": "cd ~/Dev/miyabi-private",
+      "mstatus": "~/Dev/miyabi-private/.scripts/status.sh",
+      "mcp-tools": "ls ~/Dev/miyabi-private/mcp-servers/"
+    }
+  },
+
+  "remote": {
+    "enabled": true,
+    "connections": {
+      "macbook": {
+        "enabled": true,
+        "ssh": "mac",
+        "tailscale": "100.112.127.63",
+        "role": "ORCHESTRATOR",
+        "description": "Main development environment with Claude Desktop"
+      },
+      "mugen": {
+        "enabled": true,
+        "ssh": "mugen",
+        "ip": "44.250.27.197",
+        "role": "COORDINATOR",
+        "description": "EC2 無限 - High-load builds, tests, and continuous server"
+      },
+      "majin": {
+        "enabled": true,
+        "ssh": "majin",
+        "ip": "54.92.67.11",
+        "role": "EXECUTOR",
+        "description": "EC2 魔人 - GPU processing and parallel execution"
+      }
+    },
+    "syncCommands": {
+      "pull": "msync",
+      "push": "mpush",
+      "status": "allstatus"
+    }
+  },
+
+  "monitoring": {
+    "enabled": true,
+    "dashboard": {
+      "url": "http://localhost:5174",
+      "networkUrl": "http://100.112.127.63:5174",
+      "autoRefresh": 30000
+    },
+    "api": {
+      "url": "http://localhost:8080/api/v1",
+      "networkUrl": "http://100.112.127.63:8080/api/v1"
+    },
+    "metrics": {
+      "enabled": true,
+      "endpoints": {
+        "system": "/system/metrics",
+        "activity": "/activity/stats",
+        "agents": "/agents"
+      }
+    }
+  },
+
+  "mcpServers": {
+    "enabled": true,
+    "autoStart": true,
+    "timeout": 10000,
+    "configFile": ".claude/mcp-pixel.json",
+    "categories": {
+      "core": ["filesystem", "miyabi", "github-enhanced", "project-context"],
+      "miyabi_tools": [
+        "miyabi-obsidian",
+        "miyabi-file-watcher",
+        "miyabi-git-inspector",
+        "miyabi-log-aggregator",
+        "miyabi-network-inspector",
+        "miyabi-process-inspector",
+        "miyabi-resource-monitor",
+        "miyabi-tmux"
+      ],
+      "gemini": ["gemini3-uiux-designer", "gemini3-image-gen", "gemini-image-generation"],
+      "lark": ["lark-openapi"],
+      "development": ["ide-integration", "context-engineering", "discord-community"]
+    },
+    "totalServers": 19
+  },
+
+  "agents": {
+    "totalAgents": 24,
+    "categories": {
+      "coding": {
+        "count": 7,
+        "agents": ["CoordinatorAgent", "CodeGenAgent", "ReviewAgent", "IssueAgent", "PRAgent", "DeploymentAgent", "RefresherAgent"]
+      },
+      "business": {
+        "count": 14,
+        "agents": [
+          "AIEntrepreneurAgent",
+          "SelfAnalysisAgent",
+          "MarketResearchAgent",
+          "PersonaAgent",
+          "ProductConceptAgent",
+          "ProductDesignAgent",
+          "ContentCreationAgent",
+          "FunnelDesignAgent",
+          "SNSStrategyAgent",
+          "MarketingAgent",
+          "SalesAgent",
+          "CRMAgent",
+          "AnalyticsAgent",
+          "YouTubeAgent"
+        ]
+      },
+      "infrastructure": {
+        "count": 3,
+        "agents": ["WaterSpiderAgent", "TmuxControlAgent", "GuardianAgent"]
+      }
+    }
+  },
+
+  "features": {
+    "voiceInput": true,
+    "obsidianIntegration": true,
+    "remoteExecution": true,
+    "monitoring": true,
+    "mcpServers": true,
+    "worktreeIsolation": true,
+    "a2aBridge": true
+  },
+
+  "workflow": {
+    "issueBasedDevelopment": true,
+    "conventionalCommits": true,
+    "autoRefresh": true,
+    "parallelExecution": true
+  }
+}
