@@ -14,10 +14,14 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
 
-from fastapi import FastAPI, Request, HTTPException, Security, Depends
+from fastapi import FastAPI, Request, HTTPException, Security, Depends, Form, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, RedirectResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+import secrets
+import hashlib
+import base64
+import time
 from pydantic import BaseModel, Field
 from github import Github
 from dotenv import load_dotenv
@@ -37,6 +41,17 @@ REPO_NAME = os.getenv("MIYABI_REPO_NAME", "miyabi-private")
 # MCP spec: OAuth 2.1 Bearer tokens (set MIYABI_ACCESS_TOKEN in .env)
 ACCESS_TOKEN = os.getenv("MIYABI_ACCESS_TOKEN", "")
 
+# OAuth 2.1 Configuration
+OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID", "miyabi-mcp-client")
+OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET", secrets.token_urlsafe(32))
+OAUTH_ISSUER = os.getenv("OAUTH_ISSUER", "https://miyabi-mcp.local")
+
+# In-memory storage for OAuth (in production, use Redis/DB)
+oauth_authorization_codes: Dict[str, Dict[str, Any]] = {}
+oauth_access_tokens: Dict[str, Dict[str, Any]] = {}
+oauth_refresh_tokens: Dict[str, Dict[str, Any]] = {}
+oauth_pkce_challenges: Dict[str, str] = {}  # code -> code_challenge
+
 app = FastAPI(title="Miyabi MCP Server", version="1.0.0")
 
 # MCP-compliant Bearer token authentication (OAuth 2.1 subset)
@@ -53,9 +68,13 @@ async def verify_bearer_token(
     - Authorization: Bearer <token>
     - HTTPS in production
     - Tokens must be in headers, not query strings
+
+    Accepts:
+    1. Static ACCESS_TOKEN (for simple integrations)
+    2. OAuth 2.1 issued tokens (for MCP clients)
     """
     # Development mode: skip auth if no token configured
-    if not ACCESS_TOKEN:
+    if not ACCESS_TOKEN and not oauth_access_tokens:
         return "dev-mode"
 
     if not credentials:
@@ -65,14 +84,29 @@ async def verify_bearer_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if credentials.credentials != ACCESS_TOKEN:
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired access token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    token = credentials.credentials
 
-    return credentials.credentials
+    # Check static token first
+    if ACCESS_TOKEN and token == ACCESS_TOKEN:
+        return token
+
+    # Check OAuth issued tokens
+    if token in oauth_access_tokens:
+        token_data = oauth_access_tokens[token]
+        if time.time() > token_data["expires_at"]:
+            del oauth_access_tokens[token]
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Access token expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return token
+
+    raise HTTPException(
+        status_code=HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired access token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 # Enable CORS
 app.add_middleware(
@@ -1612,6 +1646,253 @@ async def get_logs_tool(source: str = "all", limit: int = 50, level: str = "info
             "content": [{"type": "text", "text": f"Error getting logs: {str(e)}"}],
             "isError": True,
         }
+
+
+# ==========================================
+# OAuth 2.1 Endpoints (MCP Spec Compliant)
+# ==========================================
+
+def verify_pkce(code_verifier: str, code_challenge: str, method: str = "S256") -> bool:
+    """Verify PKCE code challenge"""
+    if method == "S256":
+        computed = base64.urlsafe_b64encode(
+            hashlib.sha256(code_verifier.encode()).digest()
+        ).rstrip(b"=").decode()
+        return computed == code_challenge
+    elif method == "plain":
+        return code_verifier == code_challenge
+    return False
+
+
+@app.get("/.well-known/oauth-authorization-server")
+async def oauth_server_metadata():
+    """
+    OAuth 2.1 Authorization Server Metadata (RFC 8414)
+    Required by MCP spec for dynamic client registration
+    """
+    # Get the base URL from environment or request
+    server_url = os.getenv("SERVER_URL", "http://localhost:8000")
+
+    return {
+        "issuer": server_url,
+        "authorization_endpoint": f"{server_url}/oauth/authorize",
+        "token_endpoint": f"{server_url}/oauth/token",
+        "registration_endpoint": f"{server_url}/oauth/register",
+        "scopes_supported": ["mcp:read", "mcp:write", "mcp:admin"],
+        "response_types_supported": ["code"],
+        "response_modes_supported": ["query"],
+        "grant_types_supported": ["authorization_code", "refresh_token"],
+        "token_endpoint_auth_methods_supported": ["client_secret_post", "client_secret_basic", "none"],
+        "code_challenge_methods_supported": ["S256", "plain"],
+        "service_documentation": "https://github.com/customer-cloud/miyabi-private",
+    }
+
+
+@app.get("/.well-known/mcp-configuration")
+async def mcp_configuration():
+    """
+    MCP Server Configuration (MCP 2025-03-26 spec)
+    Allows clients to discover MCP server capabilities
+    """
+    server_url = os.getenv("SERVER_URL", "http://localhost:8000")
+
+    return {
+        "mcp_version": "2025-03-26",
+        "server_name": "Miyabi MCP Server",
+        "server_version": "1.0.0",
+        "mcp_endpoint": f"{server_url}/mcp",
+        "capabilities": {
+            "tools": True,
+            "prompts": False,
+            "resources": False,
+        },
+        "authentication": {
+            "type": "oauth2",
+            "authorization_server": f"{server_url}/.well-known/oauth-authorization-server",
+        },
+    }
+
+
+@app.post("/oauth/register")
+async def oauth_register(request: Request):
+    """
+    Dynamic Client Registration (RFC 7591)
+    Allows MCP clients to register dynamically
+    """
+    try:
+        body = await request.json()
+
+        # Generate client credentials
+        client_id = f"mcp-client-{secrets.token_hex(8)}"
+        client_secret = secrets.token_urlsafe(32)
+
+        # Store client (in production, persist to DB)
+        # For now, we accept any registration
+
+        return {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "client_id_issued_at": int(time.time()),
+            "client_secret_expires_at": 0,  # Never expires
+            "redirect_uris": body.get("redirect_uris", []),
+            "grant_types": ["authorization_code", "refresh_token"],
+            "response_types": ["code"],
+            "token_endpoint_auth_method": body.get("token_endpoint_auth_method", "client_secret_post"),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/oauth/authorize")
+async def oauth_authorize(
+    response_type: str = Query(...),
+    client_id: str = Query(...),
+    redirect_uri: str = Query(...),
+    scope: str = Query("mcp:read mcp:write"),
+    state: Optional[str] = Query(None),
+    code_challenge: Optional[str] = Query(None),
+    code_challenge_method: Optional[str] = Query("S256"),
+):
+    """
+    OAuth 2.1 Authorization Endpoint
+    Handles user authentication and consent
+    """
+    if response_type != "code":
+        raise HTTPException(status_code=400, detail="Only 'code' response_type is supported")
+
+    # For MCP, we auto-approve since it's a trusted integration
+    # In production, you might show a consent screen
+
+    # Generate authorization code
+    auth_code = secrets.token_urlsafe(32)
+
+    # Store authorization code with metadata
+    oauth_authorization_codes[auth_code] = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "scope": scope,
+        "created_at": time.time(),
+        "expires_at": time.time() + 600,  # 10 minutes
+    }
+
+    # Store PKCE challenge if provided
+    if code_challenge:
+        oauth_pkce_challenges[auth_code] = code_challenge
+
+    # Build redirect URL with code
+    redirect_params = f"code={auth_code}"
+    if state:
+        redirect_params += f"&state={state}"
+
+    separator = "&" if "?" in redirect_uri else "?"
+    return RedirectResponse(url=f"{redirect_uri}{separator}{redirect_params}")
+
+
+@app.post("/oauth/token")
+async def oauth_token(
+    grant_type: str = Form(...),
+    code: Optional[str] = Form(None),
+    redirect_uri: Optional[str] = Form(None),
+    client_id: Optional[str] = Form(None),
+    client_secret: Optional[str] = Form(None),
+    code_verifier: Optional[str] = Form(None),
+    refresh_token: Optional[str] = Form(None),
+):
+    """
+    OAuth 2.1 Token Endpoint
+    Exchanges authorization code for access token
+    """
+    if grant_type == "authorization_code":
+        if not code:
+            raise HTTPException(status_code=400, detail="Authorization code required")
+
+        # Validate authorization code
+        auth_data = oauth_authorization_codes.get(code)
+        if not auth_data:
+            raise HTTPException(status_code=400, detail="Invalid authorization code")
+
+        if time.time() > auth_data["expires_at"]:
+            del oauth_authorization_codes[code]
+            raise HTTPException(status_code=400, detail="Authorization code expired")
+
+        # Verify PKCE if challenge was provided
+        if code in oauth_pkce_challenges:
+            if not code_verifier:
+                raise HTTPException(status_code=400, detail="Code verifier required for PKCE")
+            if not verify_pkce(code_verifier, oauth_pkce_challenges[code]):
+                raise HTTPException(status_code=400, detail="Invalid code verifier")
+            del oauth_pkce_challenges[code]
+
+        # Generate tokens
+        access_token = secrets.token_urlsafe(32)
+        new_refresh_token = secrets.token_urlsafe(32)
+
+        # Store tokens
+        token_data = {
+            "client_id": auth_data["client_id"],
+            "scope": auth_data["scope"],
+            "created_at": time.time(),
+            "expires_at": time.time() + 3600,  # 1 hour
+        }
+        oauth_access_tokens[access_token] = token_data
+        oauth_refresh_tokens[new_refresh_token] = {
+            **token_data,
+            "expires_at": time.time() + 86400 * 30,  # 30 days
+        }
+
+        # Remove used authorization code
+        del oauth_authorization_codes[code]
+
+        return {
+            "access_token": access_token,
+            "token_type": "Bearer",
+            "expires_in": 3600,
+            "refresh_token": new_refresh_token,
+            "scope": auth_data["scope"],
+        }
+
+    elif grant_type == "refresh_token":
+        if not refresh_token:
+            raise HTTPException(status_code=400, detail="Refresh token required")
+
+        # Validate refresh token
+        refresh_data = oauth_refresh_tokens.get(refresh_token)
+        if not refresh_data:
+            raise HTTPException(status_code=400, detail="Invalid refresh token")
+
+        if time.time() > refresh_data["expires_at"]:
+            del oauth_refresh_tokens[refresh_token]
+            raise HTTPException(status_code=400, detail="Refresh token expired")
+
+        # Generate new access token
+        new_access_token = secrets.token_urlsafe(32)
+        new_refresh_token = secrets.token_urlsafe(32)
+
+        token_data = {
+            "client_id": refresh_data["client_id"],
+            "scope": refresh_data["scope"],
+            "created_at": time.time(),
+            "expires_at": time.time() + 3600,
+        }
+        oauth_access_tokens[new_access_token] = token_data
+        oauth_refresh_tokens[new_refresh_token] = {
+            **token_data,
+            "expires_at": time.time() + 86400 * 30,
+        }
+
+        # Remove old refresh token
+        del oauth_refresh_tokens[refresh_token]
+
+        return {
+            "access_token": new_access_token,
+            "token_type": "Bearer",
+            "expires_in": 3600,
+            "refresh_token": new_refresh_token,
+            "scope": refresh_data["scope"],
+        }
+
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported grant_type: {grant_type}")
 
 
 # MCP Endpoints
