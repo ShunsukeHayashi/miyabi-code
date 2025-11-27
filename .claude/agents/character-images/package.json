@@ -1,0 +1,13 @@
+{
+  "name": "miyabi-character-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Generate Miyabi Sub-agent character images using Gemini API",
+  "scripts": {
+    "generate": "node generate-with-gemini-api.js",
+    "generate-hq": "MODEL=gemini-3-pro-image-preview node generate-with-gemini-api.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0"
+  }
+}

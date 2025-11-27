@@ -1,0 +1,19 @@
+node_modules/
+
+# Generated images and cards
+generated/
+tcg-cards/
+unified-tcg-cards/
+variations/
+claude-code-tcg/
+
+# Gallery HTML files (generated)
+gallery.html
+tcg-gallery.html
+unified-tcg-gallery.html
+variation-gallery.html
+
+# Generation status files
+generation-results.json
+generation-status.json
+batch-*.json
