@@ -143,7 +143,7 @@ pub trait PersistableAgent: Send + Sync {
         )
         .fetch_one(pool)
         .await
-        .map_err(|e| MiyabiError::Database(format!("Failed to create execution: {}", e)))?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to create execution: {}", e)))?;
 
         Ok(record.id)
     }
@@ -177,7 +177,7 @@ pub trait PersistableAgent: Send + Sync {
         )
         .execute(pool)
         .await
-        .map_err(|e| MiyabiError::Database(format!("Failed to update execution: {}", e)))?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to update execution: {}", e)))?;
 
         Ok(execution_id)
     }
@@ -224,7 +224,7 @@ pub trait PersistableAgent: Send + Sync {
         )
         .fetch_all(pool)
         .await
-        .map_err(|e| MiyabiError::Database(format!("Failed to load history: {}", e)))?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to load history: {}", e)))?;
 
         let results = records
             .into_iter()
@@ -289,7 +289,7 @@ pub trait PersistableAgent: Send + Sync {
         )
         .execute(pool)
         .await
-        .map_err(|e| MiyabiError::Database(format!("Failed to save metrics: {}", e)))?;
+        .map_err(|e| MiyabiError::Unknown(format!("Database error: Failed to save metrics: {}", e)))?;
 
         Ok(())
     }

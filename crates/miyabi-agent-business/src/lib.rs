@@ -94,21 +94,9 @@ pub(crate) fn llm_error_to_miyabi(error: miyabi_llm::LLMError) -> miyabi_types::
 // PersistableAgent implementations for all Business Agents (Issue #1173)
 // ============================================================================
 //
-// Each agent implements PersistableAgent to enable database persistence of
+// Each agent implements PersistableAgent via impl_persistable_agent! macro
+// in their respective module files to enable database persistence of
 // execution results, analysis data, and execution history.
-
-impl_persistable_agent!(AIEntrepreneurAgent, "AIEntrepreneurAgent");
-impl_persistable_agent!(AnalyticsAgent, "AnalyticsAgent");
-impl_persistable_agent!(ContentCreationAgent, "ContentCreationAgent");
-impl_persistable_agent!(CRMAgent, "CRMAgent");
-impl_persistable_agent!(FunnelDesignAgent, "FunnelDesignAgent");
-impl_persistable_agent!(JonathanIveDesignAgent, "JonathanIveDesignAgent");
-impl_persistable_agent!(MarketResearchAgent, "MarketResearchAgent");
-impl_persistable_agent!(MarketingAgent, "MarketingAgent");
-impl_persistable_agent!(PersonaAgent, "PersonaAgent");
-impl_persistable_agent!(ProductConceptAgent, "ProductConceptAgent");
-impl_persistable_agent!(ProductDesignAgent, "ProductDesignAgent");
-impl_persistable_agent!(SalesAgent, "SalesAgent");
-impl_persistable_agent!(SelfAnalysisAgent, "SelfAnalysisAgent");
-impl_persistable_agent!(SNSStrategyAgent, "SNSStrategyAgent");
-impl_persistable_agent!(YouTubeAgent, "YouTubeAgent");
+//
+// See individual agent modules (e.g., youtube.rs, analytics.rs) for the
+// macro invocations that implement the PersistableAgent trait.
