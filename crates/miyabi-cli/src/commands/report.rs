@@ -624,6 +624,7 @@ _🤖 Generated with [Claude Code](https://claude.com/claude-code)_
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_report_type_from_str() {
