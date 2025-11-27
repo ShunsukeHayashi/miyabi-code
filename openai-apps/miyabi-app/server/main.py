@@ -505,6 +505,31 @@ async def root():
     }
 
 
+@app.get("/mcp")
+async def mcp_info():
+    """MCP endpoint information (use POST for actual MCP requests)"""
+    return {
+        "name": "Miyabi MCP Server",
+        "version": "1.0.0",
+        "protocol": "Model Context Protocol (MCP)",
+        "description": "MCP server for Miyabi autonomous agent framework",
+        "methods": ["tools/list", "tools/call"],
+        "tools": len(TOOLS),
+        "usage": {
+            "method": "POST",
+            "content_type": "application/json",
+            "body_format": {
+                "jsonrpc": "2.0",
+                "id": "<number>",
+                "method": "<tools/list | tools/call>",
+                "params": {}
+            }
+        },
+        "available_tools": [tool["name"] for tool in TOOLS],
+        "endpoint": "/mcp"
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
 
