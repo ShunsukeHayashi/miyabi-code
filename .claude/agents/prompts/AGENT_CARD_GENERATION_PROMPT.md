@@ -1,0 +1,304 @@
+# 🎴 Agent Card Generation Prompt Template
+
+**Version**: 1.0.0
+**Purpose**: Miyabi AgentをTCGスタイルのキャラクターカードとして動的生成するためのテンプレート
+
+---
+
+## 📋 使用方法
+
+このプロンプトを使用して、新しいAgentまたは既存Agentの進化版カードデータを生成します。
+
+---
+
+## 🎯 プロンプトテンプレート
+
+```markdown
+# Agent Card Generation Request
+
+以下の情報を基に、Miyabi TCG Agent Cardのデータを生成してください。
+
+## Agent情報
+
+- **Agent Type**: [CoordinatorAgent / CodeGenAgent / ReviewAgent 等]
+- **日本語名（必須）**: [しきるん / つくるん 等]
+- **英語名（必須）**: [Shikiroon / Tsukuroon 等]
+- **役割（日本語）**: [タスク統括Agent / コード生成Agent 等]
+- **役割（英語）**: [Task Coordination Agent / Code Generation Agent 等]
+- **属性**: [Light / Dark / Fire / Water / Wind / Earth / Thunder]
+- **現在のレベル**: [1-100]
+- **レア度**: [C / UC / R / SR / SSR / UR]
+
+## 実績データ（分かる範囲で）
+
+- **完了タスク数**: [数値]
+- **成功率**: [0-100%]
+- **連続成功記録**: [数値]
+- **最大連続成功**: [数値]
+- **エラーリカバリー数**: [数値]
+- **並列実行数**: [数値]
+
+## パラメーター（任意）
+
+- **ATK (攻撃力)**: [0-1000] - タスク実行速度
+- **DEF (守備力)**: [0-1000] - エラー耐性
+- **SPD (素早さ)**: [0-1000] - レスポンス速度
+- **INT (知性)**: [0-1000] - 複雑タスク処理能力
+
+## スキル（任意）
+
+保有スキルや獲得したい特殊能力：
+- [スキル名]: [説明]
+
+---
+
+## ✨ 生成時の注意事項
+
+1. **レア度の自動判定**:
+   - Level 1-10: C
+   - Level 11-25: UC
+   - Level 26-50: R
+   - Level 51-75: SR
+   - Level 76-90: SSR
+   - Level 91-100: UR
+
+2. **パラメーターの自動計算**:
+   - 基本値 + 実績ボーナスで算出
+   - 最大値は1000
+   - バランスを考慮（全ステータス900以上は避ける）
+
+3. **スキルの自動提案**:
+   - Agent Typeに応じた適切なスキルを提案
+   - レア度に応じたスキル数（C: 0-1, UC: 1-2, R: 2-3, SR: 3-4, SSR/UR: 4-5）
+
+4. **ホログラフィック効果**:
+   - C: none
+   - UC: foil
+   - R: standard
+   - SR: diamond
+   - SSR: platinum
+   - UR: rainbow
+
+5. **進化履歴**:
+   - 進化段階に応じて命名（基本形 → 改 → Z → Ω → GOD）
+
+---
+
+## 📊 出力フォーマット
+
+以下のJSON形式で出力してください：
+
+```json
+{
+  "id": "agent-type-XXX",
+  "name_jp": "キャラクター名",
+  "name_en": "Character Name",
+  "agent_type": "AgentType",
+  "role_jp": "役割（日本語）",
+  "role_en": "Role (English)",
+  "rarity": "R",
+  "attribute": "Fire",
+  "level": 30,
+  "experience": 15000,
+  "required_exp": 32000,
+  "stats": {
+    "ATK": 700,
+    "DEF": 650,
+    "SPD": 720,
+    "INT": 680
+  },
+  "base_stats": {
+    "ATK": 550,
+    "DEF": 500,
+    "SPD": 600,
+    "INT": 550
+  },
+  "achievements": {
+    "tasks_completed": 500,
+    "success_rate": 92.5,
+    "consecutive_successes": 25,
+    "max_consecutive_successes": 50,
+    "errors_recovered": 45,
+    "parallel_executions": 120
+  },
+  "evolution_stage": 1,
+  "evolution_history": ["キャラ名", "キャラ名改"],
+  "skills": [
+    {
+      "id": "skill-id",
+      "name": "スキル名",
+      "description": "スキルの説明",
+      "rarity": "R",
+      "effect": {
+        "type": "speed_boost",
+        "value": 30
+      }
+    }
+  ],
+  "holographic_effect": "standard",
+  "description": "Agentの説明文（1-2文）"
+}
+```
+
+---
+
+## 🎮 使用例
+
+### 例1: 新規Agent作成
+
+```
+# Agent Card Generation Request
+
+以下の情報を基に、Miyabi TCG Agent Cardのデータを生成してください。
+
+## Agent情報
+
+- **Agent Type**: MarketResearchAgent
+- **日本語名（必須）**: しらべるん
+- **英語名（必須）**: Shiraberoon
+- **役割（日本語）**: 市場調査Agent
+- **役割（英語）**: Market Research Agent
+- **属性**: Water
+- **現在のレベル**: 15
+- **レア度**: UC
+
+## 実績データ（分かる範囲で）
+
+- **完了タスク数**: 124
+- **成功率**: 89.3%
+- **連続成功記録**: 12
+- **最大連続成功**: 28
+- **エラーリカバリー数**: 8
+- **並列実行数**: 34
+
+## スキル（任意）
+
+- TAM/SAM/SOM自動計算: 市場規模を自動算出
+- 競合分析: 20社の競合を自動リサーチ
+```
+
+**期待される出力**:
+- レア度: UCに自動設定（Level 15）
+- ステータス: Waterは INT重視、ATK低めに自動調整
+- スキル: 2個提案（UC相当）
+- ホログラフィック: foil効果
+
+### 例2: 既存Agent進化
+
+```
+# Agent Card Generation Request - Evolution
+
+既存のCoordinatorAgent「しきるん」(Level 42, SR)を進化させてください。
+
+## 進化情報
+
+- **現在のレベル**: 42 → 50
+- **現在のレア度**: SR → SR維持（次はSSR）
+- **進化段階**: 2 → 3
+- **進化名**: しきるんZ
+
+## 新規獲得スキル
+
+- **ハイパーパラレル**: 同時に10タスクを処理可能
+```
+
+**期待される出力**:
+- 全ステータス +15%
+- 新規スキル追加
+- evolution_history に「しきるんZ」追加
+- evolution_stage = 3
+
+---
+
+## 🌟 属性別ステータス傾向
+
+### Light（光）
+- **特徴**: バランス型、高INT
+- **推奨**: ATK: 中, DEF: 中-高, SPD: 中, INT: 高
+- **用途**: コード生成、品質管理
+
+### Dark（闇）
+- **特徴**: 攻撃型、高ATK & DEF
+- **推奨**: ATK: 高, DEF: 高, SPD: 中, INT: 中
+- **用途**: Issue検出、デプロイ
+
+### Fire（炎）
+- **特徴**: 速攻型、高ATK & SPD
+- **推奨**: ATK: 高, DEF: 中, SPD: 高, INT: 中-高
+- **用途**: 統括、プッシュ、実行
+
+### Water（水）
+- **特徴**: 知性型、高INT & DEF
+- **推奨**: ATK: 低-中, DEF: 中-高, SPD: 中, INT: 高
+- **用途**: 分析、調査、戦略
+
+### Wind（風）
+- **特徴**: 機動型、高SPD
+- **推奨**: ATK: 中-高, DEF: 低-中, SPD: 高, INT: 中
+- **用途**: 拡散、営業、SNS
+
+### Earth（地）
+- **特徴**: 耐久型、高DEF
+- **推奨**: ATK: 中, DEF: 高, SPD: 低-中, INT: 中
+- **用途**: 基盤、安定、CRM
+
+### Thunder（雷）
+- **特徴**: 超速型、超高SPD
+- **推奨**: ATK: 中, DEF: 低, SPD: 超高, INT: 中
+- **用途**: 監視、高速処理
+
+---
+
+## 🔄 進化パターン
+
+### 通常進化
+
+```
+基本形 (C) → 改 (UC) → Z (R) → Ω (SR) → GOD (SSR/UR)
+例: しきるん → しきるん改 → しきるんZ → しきるんΩ → しきるんGOD
+```
+
+### 分岐進化（将来実装）
+
+```
+基本形 (C)
+  ├→ スピード特化形 (UC)
+  └→ パワー特化形 (UC)
+```
+
+### メガ進化（将来実装）
+
+```
+GOD (UR) + メガストーン → メガGOD (限定UR)
+```
+
+---
+
+## 💡 プロンプト拡張
+
+### カスタムスキル追加
+
+```
+## カスタムスキル
+
+- **スキル名**: [任意]
+- **効果**: [詳細説明]
+- **レア度**: [C-UR]
+- **発動条件**: [条件]
+- **持続時間**: [秒数 or 永続]
+```
+
+### 特殊カード生成
+
+```
+## 特殊カード指定
+
+- **タイプ**: [限定版 / イベント限定 / コラボ]
+- **特別効果**: [説明]
+- **排出率**: [%]
+```
+
+---
+
+**Generated by**: Miyabi Agent TCG System v1.0.0
+**Last Updated**: 2025-11-27

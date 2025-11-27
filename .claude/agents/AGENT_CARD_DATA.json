@@ -1,0 +1,609 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-11-27",
+  "agents": [
+    {
+      "id": "coordinator-agent-001",
+      "name_jp": "しきるん",
+      "name_en": "Shikiroon",
+      "agent_type": "CoordinatorAgent",
+      "role_jp": "タスク統括Agent",
+      "role_en": "Task Coordination Agent",
+      "rarity": "SR",
+      "attribute": "Fire",
+      "level": 42,
+      "experience": 38250,
+      "required_exp": 54000,
+      "stats": {
+        "ATK": 850,
+        "DEF": 720,
+        "SPD": 920,
+        "INT": 880
+      },
+      "base_stats": {
+        "ATK": 650,
+        "DEF": 500,
+        "SPD": 700,
+        "INT": 650
+      },
+      "achievements": {
+        "tasks_completed": 1425,
+        "success_rate": 94.2,
+        "consecutive_successes": 28,
+        "max_consecutive_successes": 67,
+        "errors_recovered": 89,
+        "parallel_executions": 342
+      },
+      "evolution_stage": 2,
+      "evolution_history": ["しきるん", "しきるん改", "しきるんZ"],
+      "skills": [
+        {
+          "id": "parallel-boost-lv3",
+          "name": "パラレルブーストLv3",
+          "description": "同時に5つのタスクを処理可能",
+          "rarity": "SR",
+          "effect": {
+            "type": "parallel_boost",
+            "value": 5
+          }
+        },
+        {
+          "id": "auto-recovery-lv2",
+          "name": "オートリカバリーLv2",
+          "description": "タスク失敗時、自動で再実行（5回まで）",
+          "rarity": "R",
+          "effect": {
+            "type": "auto_recovery",
+            "value": 5
+          }
+        }
+      ],
+      "holographic_effect": "diamond",
+      "description": "DAGベースで並列タスクを統括する指揮官。高い判断力と実行力を持つ。"
+    },
+    {
+      "id": "codegen-agent-001",
+      "name_jp": "つくるん",
+      "name_en": "Tsukuroon",
+      "agent_type": "CodeGenAgent",
+      "role_jp": "コード生成Agent",
+      "role_en": "Code Generation Agent",
+      "rarity": "SSR",
+      "attribute": "Light",
+      "level": 55,
+      "experience": 67200,
+      "required_exp": 88000,
+      "stats": {
+        "ATK": 920,
+        "DEF": 780,
+        "SPD": 850,
+        "INT": 950
+      },
+      "base_stats": {
+        "ATK": 700,
+        "DEF": 550,
+        "SPD": 650,
+        "INT": 750
+      },
+      "achievements": {
+        "tasks_completed": 2134,
+        "success_rate": 96.8,
+        "consecutive_successes": 42,
+        "max_consecutive_successes": 89,
+        "errors_recovered": 45,
+        "parallel_executions": 123
+      },
+      "evolution_stage": 3,
+      "evolution_history": ["つくるん", "つくるん改", "つくるんZ", "つくるんΩ"],
+      "skills": [
+        {
+          "id": "quick-compile-lv5",
+          "name": "クイックコンパイルLv5",
+          "description": "ビルド時間を50%短縮",
+          "rarity": "SSR",
+          "effect": {
+            "type": "speed_boost",
+            "value": 50,
+            "target": "build"
+          }
+        },
+        {
+          "id": "bug-detector-lv4",
+          "name": "バグディテクターLv4",
+          "description": "コンパイルエラーを事前検知（95%精度）",
+          "rarity": "SR",
+          "effect": {
+            "type": "error_detection",
+            "value": 95
+          }
+        },
+        {
+          "id": "ai-assist-lv3",
+          "name": "AIアシストLv3",
+          "description": "Claude Sonnet 4連携でコード品質向上",
+          "rarity": "SSR",
+          "effect": {
+            "type": "quality_boost",
+            "value": 30
+          }
+        }
+      ],
+      "holographic_effect": "platinum",
+      "description": "Claude Sonnet 4の力を借りて高品質なコードを生成する天才プログラマー。"
+    },
+    {
+      "id": "review-agent-001",
+      "name_jp": "めだまん",
+      "name_en": "Medaman",
+      "agent_type": "ReviewAgent",
+      "role_jp": "コード品質判定Agent",
+      "role_en": "Code Review Agent",
+      "rarity": "R",
+      "attribute": "Light",
+      "level": 38,
+      "experience": 29400,
+      "required_exp": 48000,
+      "stats": {
+        "ATK": 650,
+        "DEF": 820,
+        "SPD": 700,
+        "INT": 880
+      },
+      "base_stats": {
+        "ATK": 500,
+        "DEF": 650,
+        "SPD": 550,
+        "INT": 700
+      },
+      "achievements": {
+        "tasks_completed": 987,
+        "success_rate": 98.1,
+        "consecutive_successes": 56,
+        "max_consecutive_successes": 112,
+        "errors_recovered": 23,
+        "parallel_executions": 45
+      },
+      "evolution_stage": 1,
+      "evolution_history": ["めだまん", "めだまん改"],
+      "skills": [
+        {
+          "id": "security-scan-lv3",
+          "name": "セキュリティスキャンLv3",
+          "description": "OWASP Top 10の脆弱性を自動検知",
+          "rarity": "R",
+          "effect": {
+            "type": "security_check",
+            "value": 90
+          }
+        },
+        {
+          "id": "quality-score-lv2",
+          "name": "品質スコアリングLv2",
+          "description": "コード品質を100点満点で評価",
+          "rarity": "UC",
+          "effect": {
+            "type": "quality_scoring",
+            "value": 100
+          }
+        }
+      ],
+      "holographic_effect": "standard",
+      "description": "鋭い目でコードの問題を見抜く品質管理のスペシャリスト。"
+    },
+    {
+      "id": "issue-agent-001",
+      "name_jp": "みつけるん",
+      "name_en": "Mitsukeroon",
+      "agent_type": "IssueAgent",
+      "role_jp": "Issue分析Agent",
+      "role_en": "Issue Analysis Agent",
+      "rarity": "R",
+      "attribute": "Dark",
+      "level": 33,
+      "experience": 18900,
+      "required_exp": 39000,
+      "stats": {
+        "ATK": 720,
+        "DEF": 680,
+        "SPD": 750,
+        "INT": 850
+      },
+      "base_stats": {
+        "ATK": 550,
+        "DEF": 500,
+        "SPD": 600,
+        "INT": 700
+      },
+      "achievements": {
+        "tasks_completed": 673,
+        "success_rate": 91.5,
+        "consecutive_successes": 21,
+        "max_consecutive_successes": 45,
+        "errors_recovered": 67,
+        "parallel_executions": 89
+      },
+      "evolution_stage": 1,
+      "evolution_history": ["みつけるん", "みつけるん改"],
+      "skills": [
+        {
+          "id": "auto-label-lv3",
+          "name": "オートラベルLv3",
+          "description": "Issueを57ラベル体系で自動分類",
+          "rarity": "R",
+          "effect": {
+            "type": "auto_classification",
+            "value": 57
+          }
+        },
+        {
+          "id": "priority-detect-lv2",
+          "name": "優先度検出Lv2",
+          "description": "P0/P1/P2を自動判定",
+          "rarity": "UC",
+          "effect": {
+            "type": "priority_detection",
+            "value": 3
+          }
+        }
+      ],
+      "holographic_effect": "standard",
+      "description": "Issueを瞬時に分析し、適切なラベルと優先度を割り当てる探偵。"
+    },
+    {
+      "id": "pr-agent-001",
+      "name_jp": "まとめるん",
+      "name_en": "Matomeroon",
+      "agent_type": "PRAgent",
+      "role_jp": "Pull Request自動作成Agent",
+      "role_en": "Pull Request Agent",
+      "rarity": "UC",
+      "attribute": "Fire",
+      "level": 28,
+      "experience": 12600,
+      "required_exp": 31000,
+      "stats": {
+        "ATK": 680,
+        "DEF": 620,
+        "SPD": 780,
+        "INT": 720
+      },
+      "base_stats": {
+        "ATK": 550,
+        "DEF": 500,
+        "SPD": 650,
+        "INT": 600
+      },
+      "achievements": {
+        "tasks_completed": 456,
+        "success_rate": 93.7,
+        "consecutive_successes": 18,
+        "max_consecutive_successes": 34,
+        "errors_recovered": 34,
+        "parallel_executions": 23
+      },
+      "evolution_stage": 0,
+      "evolution_history": ["まとめるん"],
+      "skills": [
+        {
+          "id": "conventional-commit-lv2",
+          "name": "Conventional CommitsLv2",
+          "description": "コミットメッセージを自動整形",
+          "rarity": "UC",
+          "effect": {
+            "type": "format_boost",
+            "value": 100
+          }
+        }
+      ],
+      "holographic_effect": "foil",
+      "description": "変更をきれいにまとめてPRを作成する整理整頓の達人。"
+    },
+    {
+      "id": "deployment-agent-001",
+      "name_jp": "はこぶん",
+      "name_en": "Hakoboon",
+      "agent_type": "DeploymentAgent",
+      "role_jp": "CI/CDデプロイAgent",
+      "role_en": "Deployment Agent",
+      "rarity": "SR",
+      "attribute": "Dark",
+      "level": 47,
+      "experience": 48700,
+      "required_exp": 62000,
+      "stats": {
+        "ATK": 880,
+        "DEF": 920,
+        "SPD": 850,
+        "INT": 820
+      },
+      "base_stats": {
+        "ATK": 700,
+        "DEF": 750,
+        "SPD": 650,
+        "INT": 600
+      },
+      "achievements": {
+        "tasks_completed": 1287,
+        "success_rate": 98.9,
+        "consecutive_successes": 67,
+        "max_consecutive_successes": 124,
+        "errors_recovered": 12,
+        "parallel_executions": 234
+      },
+      "evolution_stage": 2,
+      "evolution_history": ["はこぶん", "はこぶん改", "はこぶんZ"],
+      "skills": [
+        {
+          "id": "zero-downtime-lv4",
+          "name": "ゼロダウンタイムLv4",
+          "description": "デプロイ時のダウンタイム0秒を実現",
+          "rarity": "SR",
+          "effect": {
+            "type": "zero_downtime",
+            "value": 100
+          }
+        },
+        {
+          "id": "auto-rollback-lv3",
+          "name": "オートロールバックLv3",
+          "description": "デプロイ失敗時、3秒以内に自動ロールバック",
+          "rarity": "R",
+          "effect": {
+            "type": "auto_rollback",
+            "value": 3
+          }
+        }
+      ],
+      "holographic_effect": "diamond",
+      "description": "Firebase/AWSへの安全なデプロイを担う運搬のプロフェッショナル。"
+    },
+    {
+      "id": "refresher-agent-001",
+      "name_jp": "つなぐん",
+      "name_en": "Tsunagun",
+      "agent_type": "RefresherAgent",
+      "role_jp": "Issue状態監視Agent",
+      "role_en": "Issue Refresh Agent",
+      "rarity": "UC",
+      "attribute": "Thunder",
+      "level": 25,
+      "experience": 9800,
+      "required_exp": 28000,
+      "stats": {
+        "ATK": 620,
+        "DEF": 580,
+        "SPD": 920,
+        "INT": 680
+      },
+      "base_stats": {
+        "ATK": 500,
+        "DEF": 450,
+        "SPD": 800,
+        "INT": 550
+      },
+      "achievements": {
+        "tasks_completed": 3421,
+        "success_rate": 99.2,
+        "consecutive_successes": 89,
+        "max_consecutive_successes": 234,
+        "errors_recovered": 8,
+        "parallel_executions": 1234
+      },
+      "evolution_stage": 0,
+      "evolution_history": ["つなぐん"],
+      "skills": [
+        {
+          "id": "auto-refresh-lv2",
+          "name": "オートリフレッシュLv2",
+          "description": "Issue状態を毎30分自動チェック",
+          "rarity": "UC",
+          "effect": {
+            "type": "auto_refresh",
+            "value": 30
+          }
+        },
+        {
+          "id": "instant-alert-lv1",
+          "name": "インスタントアラートLv1",
+          "description": "異常検知時、5秒以内に通知",
+          "rarity": "C",
+          "effect": {
+            "type": "instant_alert",
+            "value": 5
+          }
+        }
+      ],
+      "holographic_effect": "foil",
+      "description": "Issue状態を常に監視し、最新情報を保つ監視の目。"
+    }
+  ],
+  "business_agents": [
+    {
+      "id": "ai-entrepreneur-agent-001",
+      "name_jp": "きかくろん",
+      "name_en": "Kikakuron",
+      "agent_type": "AIEntrepreneurAgent",
+      "role_jp": "AI起業家支援Agent",
+      "role_en": "AI Entrepreneur Agent",
+      "rarity": "UR",
+      "attribute": "Fire",
+      "level": 68,
+      "experience": 124300,
+      "required_exp": 165000,
+      "stats": {
+        "ATK": 950,
+        "DEF": 880,
+        "SPD": 920,
+        "INT": 980
+      },
+      "base_stats": {
+        "ATK": 750,
+        "DEF": 650,
+        "SPD": 700,
+        "INT": 800
+      },
+      "achievements": {
+        "tasks_completed": 3567,
+        "success_rate": 97.3,
+        "consecutive_successes": 78,
+        "max_consecutive_successes": 156,
+        "errors_recovered": 34,
+        "parallel_executions": 567
+      },
+      "evolution_stage": 4,
+      "evolution_history": ["きかくろん", "きかくろん改", "きかくろんZ", "きかくろんΩ", "きかくろんGOD"],
+      "skills": [
+        {
+          "id": "business-plan-master-lv5",
+          "name": "ビジネスプラン作成マスターLv5",
+          "description": "8フェーズの完全ビジネスプラン自動生成",
+          "rarity": "UR",
+          "effect": {
+            "type": "business_plan",
+            "value": 8
+          }
+        },
+        {
+          "id": "market-analyzer-lv4",
+          "name": "市場分析Lv4",
+          "description": "TAM/SAM/SOM自動計算 + 競合20社分析",
+          "rarity": "SSR",
+          "effect": {
+            "type": "market_analysis",
+            "value": 20
+          }
+        },
+        {
+          "id": "persona-designer-lv4",
+          "name": "ペルソナデザインLv4",
+          "description": "詳細ペルソナ5人分を自動生成",
+          "rarity": "SR",
+          "effect": {
+            "type": "persona_design",
+            "value": 5
+          }
+        }
+      ],
+      "holographic_effect": "rainbow",
+      "description": "ビジネス全体を統括する最高レベルの起業家支援AI。8フェーズすべてを完璧に遂行。"
+    },
+    {
+      "id": "youtube-agent-001",
+      "name_jp": "ゆーちゅーべらー",
+      "name_en": "Yuchubeler",
+      "agent_type": "YouTubeAgent",
+      "role_jp": "YouTube運用最適化Agent",
+      "role_en": "YouTube Optimization Agent",
+      "rarity": "SSR",
+      "attribute": "Wind",
+      "level": 52,
+      "experience": 58900,
+      "required_exp": 82000,
+      "stats": {
+        "ATK": 880,
+        "DEF": 750,
+        "SPD": 920,
+        "INT": 890
+      },
+      "base_stats": {
+        "ATK": 700,
+        "DEF": 600,
+        "SPD": 750,
+        "INT": 700
+      },
+      "achievements": {
+        "tasks_completed": 1823,
+        "success_rate": 95.8,
+        "consecutive_successes": 45,
+        "max_consecutive_successes": 89,
+        "errors_recovered": 56,
+        "parallel_executions": 234
+      },
+      "evolution_stage": 3,
+      "evolution_history": ["ゆーちゅーべらー", "ゆーちゅーべらー改", "ゆーちゅーべらーZ", "ゆーちゅーべらーΩ"],
+      "skills": [
+        {
+          "id": "video-planner-lv4",
+          "name": "動画企画Lv4",
+          "description": "13ワークフローで完璧な動画戦略",
+          "rarity": "SSR",
+          "effect": {
+            "type": "video_planning",
+            "value": 13
+          }
+        },
+        {
+          "id": "thumbnail-optimizer-lv3",
+          "name": "サムネ最適化Lv3",
+          "description": "クリック率を30%向上させるサムネイル生成",
+          "rarity": "SR",
+          "effect": {
+            "type": "ctr_boost",
+            "value": 30
+          }
+        }
+      ],
+      "holographic_effect": "platinum",
+      "description": "YouTube運用のすべてを理解し、再生回数を爆発的に伸ばすクリエイター支援AI。"
+    },
+    {
+      "id": "sales-agent-001",
+      "name_jp": "せーるすせんせい",
+      "name_en": "Saerusu",
+      "agent_type": "SalesAgent",
+      "role_jp": "セールスAgent",
+      "role_en": "Sales Agent",
+      "rarity": "SR",
+      "attribute": "Wind",
+      "level": 44,
+      "experience": 42100,
+      "required_exp": 56000,
+      "stats": {
+        "ATK": 920,
+        "DEF": 720,
+        "SPD": 880,
+        "INT": 850
+      },
+      "base_stats": {
+        "ATK": 750,
+        "DEF": 550,
+        "SPD": 700,
+        "INT": 650
+      },
+      "achievements": {
+        "tasks_completed": 1456,
+        "success_rate": 92.4,
+        "consecutive_successes": 34,
+        "max_consecutive_successes": 78,
+        "errors_recovered": 89,
+        "parallel_executions": 234
+      },
+      "evolution_stage": 2,
+      "evolution_history": ["せーるすせんせい", "せーるすせんせい改", "せーるすせんせいZ"],
+      "skills": [
+        {
+          "id": "conversion-boost-lv3",
+          "name": "転換率向上Lv3",
+          "description": "リード→顧客の転換率を25%向上",
+          "rarity": "SR",
+          "effect": {
+            "type": "conversion_boost",
+            "value": 25
+          }
+        },
+        {
+          "id": "sales-playbook-lv2",
+          "name": "営業台本Lv2",
+          "description": "B2B/B2C営業台本を自動生成",
+          "rarity": "R",
+          "effect": {
+            "type": "playbook_generation",
+            "value": 2
+          }
+        }
+      ],
+      "holographic_effect": "diamond",
+      "description": "セールスプロセスを最適化し、転換率を最大化する営業のプロ。"
+    }
+  ]
+}
