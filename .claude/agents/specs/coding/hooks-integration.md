@@ -1,3 +1,10 @@
+---
+name: HooksIntegration
+description: Hooks Integration Documentation
+type: documentation
+subagent_type: "HooksIntegration"
+---
+
 # Hook System Integration with Agents
 
 このドキュメントは、各AgentがHook Systemをどのように活用するかを説明します。

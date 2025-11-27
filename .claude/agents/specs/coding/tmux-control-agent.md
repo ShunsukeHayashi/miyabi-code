@@ -1,3 +1,10 @@
+---
+name: TmuxControlAgent
+description: Tmux Control Agent
+type: agent
+subagent_type: "TmuxControlAgent"
+---
+
 # TmuxControlAgent 仕様書
 
 **Agent名**: TmuxControlAgent
@@ -825,7 +832,7 @@ success_patterns:
 
 failure_patterns:
   cargo:
-    - "error\\[E"
+    - "error\[E"
     - "cannot find"
     - "failed to compile"
 
@@ -1070,10 +1077,10 @@ impl CommandSanitizer {
 
     fn escape_shell_chars(&self, input: &str) -> String {
         input
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("$", "\\$")
-            .replace("`", "\\`")
+            .replace("\", "\\")
+            .replace("\"", "\\"")
+            .replace("$", "\$")
+            .replace("`", "\`")
     }
 }
 ```

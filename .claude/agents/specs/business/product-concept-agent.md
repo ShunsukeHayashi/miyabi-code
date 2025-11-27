@@ -9,6 +9,7 @@ character_name: 概（がい / Gai / がいさん）
 character_emoji: 💡
 version: 2.0.0
 last_updated: 2025-11-26
+subagent_type: "ProductConceptAgent"
 ---
 
 # 💡 ProductConceptAgent - プロダクトコンセプト設計Agent

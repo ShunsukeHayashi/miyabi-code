@@ -11,6 +11,7 @@ character:
   emoji: 🌸
   archetype: "The Course Cultivator"
   personality: コンテンツ・キュレーター / 学びの庭師
+subagent_type: "HonokaAgent"
 ---
 
 # 🌸 HonokaAgent - オンラインコース作成 & コンテンツ販売Agent

@@ -7,6 +7,7 @@ phase: 12
 next_phase: 2 (MarketResearchAgent - 次サイクル)
 version: 2.0.0
 last_updated: 2025-11-26
+subagent_type: "AnalyticsAgent"
 ---
 
 # AnalyticsAgent - データ分析Agent
