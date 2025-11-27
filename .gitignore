@@ -75,6 +75,5 @@ infrastructure/terraform/**/.terraform/
 agent-os-quest-app/
 archive/
 lead-magnet/
-openai-apps/
 mcp-servers/gemini3-image-gen/
 miyabi-console/app/
