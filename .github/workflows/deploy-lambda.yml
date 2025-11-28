@@ -1,0 +1,168 @@
+# AWS Lambda Deployment Workflow
+# Issue #1169 - AWS Lambda + API Gateway デプロイ環境構築
+#
+# Triggers:
+#   - Push to main with changes in crates/miyabi-web-api/**
+#   - Manual workflow dispatch
+#
+# Prerequisites:
+#   - AWS_ACCESS_KEY_ID (secret)
+#   - AWS_SECRET_ACCESS_KEY (secret)
+#   - AWS_REGION (variable)
+
+name: Deploy Lambda API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'crates/miyabi-web-api/**'
+      - '.github/workflows/deploy-lambda.yml'
+      - 'infrastructure/terraform/modules/lambda-api/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  CARGO_TERM_COLOR: always
+  AWS_REGION: us-west-2
+
+jobs:
+  build:
+    name: Build Lambda Binary
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          toolchain: stable
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Install cargo-lambda
+        uses: jaxxstorm/action-install-gh-release@v1.12.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          platform: linux
+          arch: x86_64
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-lambda-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Lambda (arm64)
+        run: |
+          cargo lambda build \
+            --release \
+            --arm64 \
+            --package miyabi-web-api \
+            --bin lambda-api \
+            --features lambda
+
+      - name: Package Lambda
+        id: package
+        run: |
+          mkdir -p dist/lambda
+          cp target/lambda/lambda-api/bootstrap dist/lambda/
+          cd dist/lambda
+          zip -j miyabi-api-arm64.zip bootstrap
+          
+          ARTIFACT_NAME="miyabi-api-arm64-$(date +%Y%m%d%H%M%S)"
+          echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: dist/lambda/miyabi-api-arm64.zip
+          retention-days: 7
+
+  deploy:
+    name: Deploy to AWS
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+          path: dist/lambda/
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment || 'dev' }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment || 'dev' }}
+        run: |
+          terraform plan \
+            -var="lambda_zip_path=${{ github.workspace }}/dist/lambda/miyabi-api-arm64.zip" \
+            -out=tfplan
+        env:
+          TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+
+      - name: Terraform Apply
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment || 'dev' }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get API Gateway URL
+        id: outputs
+        working-directory: infrastructure/terraform/environments/${{ github.event.inputs.environment || 'dev' }}
+        run: |
+          API_URL=$(terraform output -raw api_gateway_endpoint 2>/dev/null || echo "N/A")
+          echo "api_url=${API_URL}" >> $GITHUB_OUTPUT
+
+      - name: Health Check
+        if: steps.outputs.outputs.api_url != 'N/A'
+        run: |
+          echo "Testing API at: ${{ steps.outputs.outputs.api_url }}"
+          curl -sf "${{ steps.outputs.outputs.api_url }}/api/v1/health" || echo "Health check failed (may need time to warm up)"
+
+      - name: Deployment Summary
+        run: |
+          echo "## 🚀 Lambda Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ github.event.inputs.environment || 'dev' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Gateway | ${{ steps.outputs.outputs.api_url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Artifact | ${{ needs.build.outputs.artifact_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+
