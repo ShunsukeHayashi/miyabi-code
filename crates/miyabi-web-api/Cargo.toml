@@ -18,6 +18,8 @@ miyabi-github = { path = "../miyabi-github", version = "0.1.2" }
 miyabi-telegram = { path = "../miyabi-telegram", version = "0.1.2" }
 miyabi-llm = { path = "../miyabi-llm", version = "0.1.2" }
 miyabi-approval = { path = "../miyabi-approval", version = "0.1.2" }
+miyabi-worktree = { path = "../miyabi-worktree", version = "0.1.2" }
+miyabi-core = { path = "../miyabi-core", version = "0.1.2" }
 
 # Web framework
 axum = { version = "0.8", features = ["ws"] }

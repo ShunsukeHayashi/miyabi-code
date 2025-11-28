@@ -1,9 +1,13 @@
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     routing::{get, post},
     Json, Router,
 };
+use miyabi_worktree::{PoolConfig, TaskStatus, WorktreePool, WorktreeTask};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use tracing::{error, info};
 
 /// Agent type classification
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -359,6 +363,251 @@ pub async fn execute_agent(
 }
 
 // ============================================================================
+// Parallel Execution API (#1174)
+// ============================================================================
+
+/// Shared state for parallel execution
+pub struct ParallelExecutionState {
+    pub pool: Option<Arc<WorktreePool>>,
+    pub active_executions: RwLock<Vec<ParallelExecutionStatus>>,
+}
+
+impl ParallelExecutionState {
+    pub fn new() -> Self {
+        let pool = match WorktreePool::new(
+            PoolConfig {
+                max_concurrency: 3,
+                timeout_seconds: 1800,
+                fail_fast: false,
+                auto_cleanup: true,
+            },
+            None,
+        ) {
+            Ok(p) => Some(Arc::new(p)),
+            Err(e) => {
+                error!("Failed to initialize WorktreePool: {}", e);
+                None
+            }
+        };
+
+        Self {
+            pool,
+            active_executions: RwLock::new(Vec::new()),
+        }
+    }
+}
+
+impl Default for ParallelExecutionState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Request for parallel agent execution
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ParallelExecuteRequest {
+    /// List of issues to process in parallel
+    pub issues: Vec<ParallelIssueTask>,
+    /// Maximum concurrency (default: 3)
+    pub max_concurrency: Option<usize>,
+    /// Whether to fail fast on first error
+    pub fail_fast: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ParallelIssueTask {
+    pub issue_number: u64,
+    pub agent_type: String,
+    pub description: Option<String>,
+}
+
+/// Response for parallel execution
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ParallelExecuteResponse {
+    pub execution_id: String,
+    pub status: String,
+    pub tasks_queued: usize,
+    pub message: String,
+}
+
+/// Status of a parallel execution
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ParallelExecutionStatus {
+    pub execution_id: String,
+    pub status: String,
+    pub total_tasks: usize,
+    pub completed_tasks: usize,
+    pub failed_tasks: usize,
+    pub results: Vec<ParallelTaskResult>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ParallelTaskResult {
+    pub issue_number: u64,
+    pub agent_type: String,
+    pub status: String,
+    pub duration_ms: u64,
+    pub error: Option<String>,
+}
+
+/// Execute multiple agents in parallel using worktrees
+pub async fn execute_parallel(
+    State(state): State<Arc<ParallelExecutionState>>,
+    Json(request): Json<ParallelExecuteRequest>,
+) -> Json<ParallelExecuteResponse> {
+    let execution_id = uuid::Uuid::new_v4().to_string();
+    let task_count = request.issues.len();
+
+    info!(
+        "Starting parallel execution {} with {} tasks",
+        execution_id, task_count
+    );
+
+    // Check if pool is available
+    let pool = match state.pool.clone() {
+        Some(p) => p,
+        None => {
+            return Json(ParallelExecuteResponse {
+                execution_id,
+                status: "error".to_string(),
+                tasks_queued: 0,
+                message: "WorktreePool not initialized".to_string(),
+            });
+        }
+    };
+
+    // Convert request to WorktreeTasks
+    let tasks: Vec<WorktreeTask> = request
+        .issues
+        .iter()
+        .map(|issue| WorktreeTask {
+            issue_number: issue.issue_number,
+            description: issue
+                .description
+                .clone()
+                .unwrap_or_else(|| format!("Issue #{}", issue.issue_number)),
+            agent_type: Some(issue.agent_type.clone()),
+            metadata: None,
+        })
+        .collect();
+
+    // Create initial status
+    let status = ParallelExecutionStatus {
+        execution_id: execution_id.clone(),
+        status: "running".to_string(),
+        total_tasks: task_count,
+        completed_tasks: 0,
+        failed_tasks: 0,
+        results: Vec::new(),
+    };
+
+    // Store status
+    {
+        let mut executions = state.active_executions.write().await;
+        executions.push(status);
+    }
+
+    // Spawn background task for execution
+    let state_clone = state.clone();
+    let execution_id_clone = execution_id.clone();
+    tokio::spawn(async move {
+        let result = pool
+            .execute_parallel(tasks, |worktree_info, task| async move {
+                info!(
+                    "Executing task for issue #{} in worktree {}",
+                    task.issue_number, worktree_info.path.display()
+                );
+                // For now, just return success
+                // TODO: Actually execute the agent via Claude Code or similar
+                Ok(serde_json::json!({
+                    "issue_number": task.issue_number,
+                    "worktree_path": worktree_info.path.to_string_lossy(),
+                    "agent_type": task.agent_type,
+                }))
+            })
+            .await;
+
+        // Update status with results
+        let mut executions = state_clone.active_executions.write().await;
+        if let Some(status) = executions
+            .iter_mut()
+            .find(|s| s.execution_id == execution_id_clone)
+        {
+            status.status = "completed".to_string();
+            status.completed_tasks = result
+                .results
+                .iter()
+                .filter(|r| r.status == TaskStatus::Success)
+                .count();
+            status.failed_tasks = result
+                .results
+                .iter()
+                .filter(|r| r.status == TaskStatus::Failed)
+                .count();
+            status.results = result
+                .results
+                .iter()
+                .map(|r| ParallelTaskResult {
+                    issue_number: r.issue_number,
+                    agent_type: "unknown".to_string(), // TODO: preserve from request
+                    status: format!("{:?}", r.status),
+                    duration_ms: r.duration_ms,
+                    error: r.error.clone(),
+                })
+                .collect();
+        }
+
+        info!(
+            "Parallel execution {} completed: {} success, {} failed",
+            execution_id_clone,
+            result
+                .results
+                .iter()
+                .filter(|r| r.status == TaskStatus::Success)
+                .count(),
+            result
+                .results
+                .iter()
+                .filter(|r| r.status == TaskStatus::Failed)
+                .count()
+        );
+    });
+
+    Json(ParallelExecuteResponse {
+        execution_id,
+        status: "started".to_string(),
+        tasks_queued: task_count,
+        message: format!("Parallel execution started with {} tasks", task_count),
+    })
+}
+
+/// Get status of a parallel execution
+pub async fn get_execution_status(
+    State(state): State<Arc<ParallelExecutionState>>,
+    Path(execution_id): Path<String>,
+) -> Json<Option<ParallelExecutionStatus>> {
+    let executions = state.active_executions.read().await;
+    let status = executions
+        .iter()
+        .find(|s| s.execution_id == execution_id)
+        .cloned();
+    Json(status)
+}
+
+/// List all active/recent parallel executions
+pub async fn list_executions(
+    State(state): State<Arc<ParallelExecutionState>>,
+) -> Json<Vec<ParallelExecutionStatus>> {
+    let executions = state.active_executions.read().await;
+    Json(executions.clone())
+}
+
+// ============================================================================
 // Worker/Coordinator Status API (Phase 2.2)
 // ============================================================================
 
@@ -522,12 +771,22 @@ pub async fn get_system_overview() -> Json<SystemOverviewResponse> {
     })
 }
 
+/// Create routes without state (for backward compatibility)
 pub fn routes() -> Router {
+    routes_with_state(Arc::new(ParallelExecutionState::new()))
+}
+
+/// Create routes with shared state for parallel execution
+pub fn routes_with_state(state: Arc<ParallelExecutionState>) -> Router {
     Router::new()
         .route("/", get(list_agents))
         .route("/overview", get(get_system_overview))
         .route("/workers", get(list_workers))
         .route("/coordinators", get(list_coordinators))
+        .route("/execute-parallel", post(execute_parallel))
+        .route("/executions", get(list_executions))
+        .route("/executions/{execution_id}", get(get_execution_status))
         .route("/{agent_type}", get(get_agent_status))
         .route("/{agent_type}/execute", post(execute_agent))
+        .with_state(state)
 }
