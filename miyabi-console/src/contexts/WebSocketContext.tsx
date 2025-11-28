@@ -80,7 +80,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectAttempts = useRef(0)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const eventHandlers = useRef<Map<WebSocketEventType, Set<EventHandler>>>(new Map())
   const messageQueue = useRef<unknown[]>([])
 

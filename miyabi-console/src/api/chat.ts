@@ -1,63 +1,19 @@
 /**
- * AI Chat API Route - Vercel AI SDK 6 with Google Gemini
+ * AI Chat API Route - Placeholder
  *
- * This endpoint handles streaming chat responses using Google's Gemini model.
+ * This endpoint will handle streaming chat responses.
+ * Actual AI SDK integration will be added when dependencies are properly configured.
  */
 
-import { google } from '@ai-sdk/google';
-import { convertToModelMessages, streamText, UIMessage } from 'ai';
-
-// System prompt for Miyabi AI Assistant
-const SYSTEM_PROMPT = `You are Miyabi AI Assistant, an expert in:
-- UI/UX design following Jonathan Ive's minimalist philosophy
-- Full-stack development (React, TypeScript, Rust, Next.js)
-- Agent orchestration and autonomous systems
-- Software architecture and system design
-- Code review and optimization
-
-Your responses should be:
-- Clear and concise
-- Technically accurate
-- Visually appealing (use markdown formatting)
-- Include code examples when relevant
-- Suggest best practices
-
-When generating code:
-- Use TypeScript for frontend
-- Use Rust for backend/systems
-- Follow modern best practices
-- Include comments for clarity
-- Provide complete, runnable examples`;
-
-export async function chatAPI(request: Request): Promise<Response> {
-  try {
-    const { messages }: { messages: UIMessage[] } = await request.json();
-
-    // Get API key from environment
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
-    if (!apiKey) {
-      return new Response('GEMINI_API_KEY not configured', { status: 500 });
+export async function chatAPI(_request: Request): Promise<Response> {
+  // Placeholder implementation
+  return new Response(
+    JSON.stringify({
+      message: 'AI Chat API is not yet configured. Please set up VITE_GEMINI_API_KEY.',
+    }),
+    {
+      status: 501,
+      headers: { 'Content-Type': 'application/json' },
     }
-
-    // Stream the response using Gemini 3 Pro Preview
-    const result = streamText({
-      model: google('gemini-3.0-pro-preview', {
-        apiKey,
-      }),
-      system: SYSTEM_PROMPT,
-      messages: convertToModelMessages(messages),
-      temperature: 0.7,
-      maxTokens: 2048,
-    });
-
-    // Return streaming response using toUIMessageStreamResponse
-    return result.toUIMessageStreamResponse();
-  } catch (error) {
-    console.error('Chat API error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to process chat request' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+  );
 }

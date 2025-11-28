@@ -1,67 +1,25 @@
 /**
- * Vite API Middleware - Handles /api/* routes
+ * Vite API Middleware - Placeholder
+ *
+ * This middleware handles /api/* routes in dev mode.
+ * In production, API routes are handled by the backend server.
  */
 
 import type { Connect } from 'vite';
-import { chatAPI } from './chat';
 
 export function apiMiddleware(): Connect.NextHandleFunction {
-  return async (req, res, next) => {
-    if (req.url?.startsWith('/api/chat')) {
-      try {
-        // Convert Node request to Web Request
-        const body = await new Promise<string>((resolve) => {
-          let data = '';
-          req.on('data', (chunk) => {
-            data += chunk;
-          });
-          req.on('end', () => {
-            resolve(data);
-          });
-        });
+  // Type assertion to handle the req/res types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (req: any, res: any, next: Connect.NextFunction) => {
+    const url = req.url as string | undefined;
 
-        const request = new Request(`http://localhost${req.url}`, {
-          method: req.method || 'POST',
-          headers: Object.entries(req.headers).reduce((acc, [key, value]) => {
-            if (value) {
-              acc[key] = Array.isArray(value) ? value[0] : value;
-            }
-            return acc;
-          }, {} as Record<string, string>),
-          body: body || undefined,
-        });
-
-        const response = await chatAPI(request);
-
-        // Set response headers
-        response.headers.forEach((value, key) => {
-          res.setHeader(key, value);
-        });
-
-        // Stream the response
-        if (response.body) {
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              const chunk = decoder.decode(value, { stream: true });
-              res.write(chunk);
-            }
-          } finally {
-            reader.releaseLock();
-          }
-        }
-
-        res.end();
-      } catch (error) {
-        console.error('API middleware error:', error);
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Internal server error' }));
-      }
+    if (url?.startsWith('/api/chat')) {
+      // Return placeholder response for chat API
+      res.statusCode = 501;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({
+        message: 'AI Chat API is not yet configured. Please set up VITE_GEMINI_API_KEY.',
+      }));
       return;
     }
 

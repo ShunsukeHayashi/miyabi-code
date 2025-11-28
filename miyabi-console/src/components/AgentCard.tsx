@@ -23,10 +23,10 @@ import { useState } from 'react';
 
 // ===== Types =====
 
-type Rarity = 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR';
-type Attribute = 'Light' | 'Dark' | 'Fire' | 'Water' | 'Wind' | 'Earth' | 'Thunder';
+export type Rarity = 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR';
+export type Attribute = 'Light' | 'Dark' | 'Fire' | 'Water' | 'Wind' | 'Earth' | 'Thunder';
 
-interface AgentCardData {
+export interface AgentCardData {
   id: string;
   name_jp: string;
   name_en: string;

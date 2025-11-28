@@ -11,8 +11,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, SortAsc } from 'lucide-react';
-import { AgentCard } from '../components/AgentCard';
+import { Search, SortAsc } from 'lucide-react';
+import { AgentCard, type AgentCardData } from '../components/AgentCard';
 import agentData from '../../../.claude/agents/AGENT_CARD_DATA.json';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -26,11 +26,11 @@ export default function AgentGalleryPage() {
   const [attributeFilter, setAttributeFilter] = useState<Attribute | 'ALL'>('ALL');
   const [sortBy, setSortBy] = useState<'level' | 'atk' | 'rarity'>('level');
 
-  // Combine coding and business agents
-  const allAgents = [
+  // Combine coding and business agents (cast to AgentCardData)
+  const allAgents: AgentCardData[] = [
     ...(agentData.agents || []),
     ...(agentData.business_agents || []),
-  ];
+  ] as AgentCardData[];
 
   // Filter agents
   const filteredAgents = allAgents
@@ -49,8 +49,8 @@ export default function AgentGalleryPage() {
       if (sortBy === 'level') return b.level - a.level;
       if (sortBy === 'atk') return b.stats.ATK - a.stats.ATK;
       if (sortBy === 'rarity') {
-        const rarityOrder = { UR: 6, SSR: 5, SR: 4, R: 3, UC: 2, C: 1 };
-        return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+        const rarityOrder: Record<string, number> = { UR: 6, SSR: 5, SR: 4, R: 3, UC: 2, C: 1 };
+        return (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0);
       }
       return 0;
     });

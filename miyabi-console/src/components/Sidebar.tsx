@@ -32,13 +32,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { useConnectionState, useWebSocket } from '../contexts/WebSocketContext';
 import { useTheme } from '../contexts/ThemeContext';
 
+import type { LucideIcon } from 'lucide-react';
+
 interface NavGroup {
   title: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   items: Array<{
     name: string;
     path: string;
-    icon: React.ComponentType<{ size?: number; className?: string }>;
+    icon: LucideIcon;
   }>;
 }
 
@@ -54,7 +56,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const connectionState = useConnectionState();
   const { reconnect } = useWebSocket();
-  const { tokens, theme, toggleTheme, isDark } = useTheme();
+  const { tokens, toggleTheme, isDark } = useTheme();
 
   const connectionConfig = {
     connected: { color: tokens.colors.accent.success, bg: tokens.colors.accent.success, label: 'Live', icon: Wifi },

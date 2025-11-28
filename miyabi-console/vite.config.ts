@@ -45,8 +45,6 @@ export default defineConfig({
           'vendor-recharts': ['recharts'],
           // Icons
           'vendor-icons': ['lucide-react'],
-          // AI SDK
-          'vendor-ai': ['ai', '@ai-sdk/google'],
           // Animations
           'vendor-animation': ['framer-motion'],
         },
