@@ -382,8 +382,6 @@ impl RbacService {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_rbac_service_creation() {
         // This would require a database connection for actual testing

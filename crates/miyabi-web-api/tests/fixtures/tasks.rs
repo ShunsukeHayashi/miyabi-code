@@ -3,6 +3,7 @@
 use sqlx::{PgPool, Row};
 
 /// Task fixture for testing
+#[allow(dead_code)]
 pub struct TaskFixture {
     pub id: i64,
     pub name: String,
@@ -12,6 +13,7 @@ pub struct TaskFixture {
 
 impl TaskFixture {
     /// Create a test task in the database
+    #[allow(dead_code)]
     pub async fn create(pool: &PgPool, name: &str, status: &str, repository_id: i64) -> Self {
         // Using dynamic query to avoid compile-time schema verification
         let row = sqlx::query(
@@ -37,16 +39,19 @@ impl TaskFixture {
     }
 
     /// Create a default pending task
+    #[allow(dead_code)]
     pub async fn pending(pool: &PgPool, repository_id: i64) -> Self {
         Self::create(pool, "Test Task", "pending", repository_id).await
     }
 
     /// Create a running task
+    #[allow(dead_code)]
     pub async fn running(pool: &PgPool, repository_id: i64) -> Self {
         Self::create(pool, "Running Task", "running", repository_id).await
     }
 
     /// Create a completed task
+    #[allow(dead_code)]
     pub async fn completed(pool: &PgPool, repository_id: i64) -> Self {
         Self::create(pool, "Completed Task", "completed", repository_id).await
     }

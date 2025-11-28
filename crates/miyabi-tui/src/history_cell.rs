@@ -119,15 +119,9 @@ impl HistoryCell for AssistantMessageCell {
         } else {
             "Assistant"
         };
-        let header_style = if self.streaming {
-            Style::default()
-                .fg(Color::Magenta)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::default()
-                .fg(Color::Magenta)
-                .add_modifier(Modifier::BOLD)
-        };
+        let header_style = Style::default()
+            .fg(Color::Magenta)
+            .add_modifier(Modifier::BOLD);
 
         lines.push(Line::from(vec![
             Span::styled("│ ", Style::default().fg(Color::Magenta)),

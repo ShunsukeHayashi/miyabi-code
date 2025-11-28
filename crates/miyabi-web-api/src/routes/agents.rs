@@ -461,7 +461,7 @@ pub async fn get_system_overview() -> Json<SystemOverviewResponse> {
     let coordinators: Vec<&Agent> = agents.iter().filter(|a| a.layer == 3).collect();
 
     // Coding agents (7): Coordinator, CodeGen, Review, Issue, PR, Deployment, Refresher
-      let coding_names = [
+    let coding_names = [
         "CoordinatorAgent",
         "CodeGenAgent",
         "ReviewAgent",

@@ -6,7 +6,7 @@
 
 use crate::{
     error::{AppError, Result},
-    middleware::{AuthenticatedUser, require_permission},
+    middleware::{require_permission, AuthenticatedUser},
     models::{CreateTaskRequest, Task, TaskQueryFilters, UpdateTaskRequest},
     AppState,
 };

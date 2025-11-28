@@ -13,6 +13,7 @@ use ratatui::{
 
 // Additional theme colors for premium look
 const MIYABI_BG: Color = Color::Rgb(26, 27, 38); // Tokyo Night Background
+#[allow(dead_code)]
 const MIYABI_CARD_BG: Color = Color::Rgb(36, 40, 59); // Card Background
 const MIYABI_BORDER: Color = Color::Rgb(65, 72, 104); // Subtle Blue-Gray
 use futures::StreamExt;
@@ -74,6 +75,7 @@ pub struct ChatView {
     pub content_height: u16,
     pub loading: bool,
     client: Option<AnthropicClient>,
+    #[allow(dead_code)]
     tools: Vec<AgentTool>,
     pub error: Option<String>,
     pub auto_scroll: bool,

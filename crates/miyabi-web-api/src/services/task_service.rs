@@ -6,7 +6,7 @@ use crate::error::ApiError;
 use crate::models::{CreateTaskRequest, Task, TaskDependency, TaskQueryFilters, UpdateTaskRequest};
 use chrono::Utc;
 use sqlx::PgPool;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, VecDeque};
 use uuid::Uuid;
 
 /// Task service for managing tasks and dependencies
@@ -406,7 +406,7 @@ impl TaskService {
         for dep in dependencies {
             adjacency
                 .entry(dep.depends_on_task_id)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(dep.task_id);
             *in_degree.entry(dep.task_id).or_insert(0) += 1;
         }

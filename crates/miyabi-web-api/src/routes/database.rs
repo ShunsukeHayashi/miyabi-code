@@ -99,7 +99,7 @@ fn get_tables_from_migrations() -> Result<Vec<String>, String> {
     if let Ok(entries) = fs::read_dir(migrations_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.extension().map_or(false, |ext| ext == "sql") {
+            if path.extension().is_some_and(|ext| ext == "sql") {
                 // Read the migration file
                 if let Ok(content) = fs::read_to_string(&path) {
                     // Find CREATE TABLE statements

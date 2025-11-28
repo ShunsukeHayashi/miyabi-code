@@ -18,6 +18,7 @@ use axum::{
 use tower::ServiceExt;
 
 /// Make a test request to a router
+#[allow(dead_code)]
 pub async fn make_request(
     router: Router,
     method: &str,

@@ -192,7 +192,7 @@ async fn test_e2e_tool_execution_timing() {
         .await
         .expect("Failed to init agents");
 
-    let tools = bridge.get_tool_definitions().await;
+    let _tools = bridge.get_tool_definitions().await;
 
     // Test execution timing for multiple tools (using actual tool names)
     let test_tools = vec![

@@ -4,6 +4,7 @@ use sqlx::{PgPool, Row};
 
 /// Agent fixture for testing
 pub struct AgentFixture {
+    #[allow(dead_code)]
     pub id: i64,
     pub agent_type: String,
     pub status: String,
@@ -39,16 +40,19 @@ impl AgentFixture {
     }
 
     /// Create a Review agent
+    #[allow(dead_code)]
     pub async fn review(pool: &PgPool) -> Self {
         Self::create(pool, "Review", "available").await
     }
 
     /// Create a Deployment agent
+    #[allow(dead_code)]
     pub async fn deployment(pool: &PgPool) -> Self {
         Self::create(pool, "Deployment", "available").await
     }
 
     /// Create a busy agent
+    #[allow(dead_code)]
     pub async fn busy(pool: &PgPool, agent_type: &str) -> Self {
         Self::create(pool, agent_type, "busy").await
     }

@@ -176,8 +176,10 @@ impl WorkerService {
 
 #[derive(Debug, sqlx::FromRow)]
 struct WorkerStatusRow {
+    #[allow(dead_code)]
     worker_id: Uuid,
     name: String,
+    #[allow(dead_code)]
     coordinator_id: Option<Uuid>,
     status: String,
     coordinator_name: Option<String>,

@@ -43,7 +43,7 @@ pub async fn health_check(State(state): State<AppState>) -> (StatusCode, Json<He
     let database = match sqlx::query("SELECT 1").fetch_one(&state.db).await {
         Ok(_) => {
             let pool_options = state.db.options();
-            let total_connections = state.db.size() as u32;
+            let total_connections = state.db.size();
             let idle = state.db.num_idle() as u32;
             Some(DatabaseStats {
                 active_connections: total_connections.saturating_sub(idle),

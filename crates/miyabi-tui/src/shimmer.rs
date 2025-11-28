@@ -172,7 +172,7 @@ mod tests {
     fn test_shimmer_intensity() {
         let config = ShimmerConfig::default();
         let intensity = shimmer_intensity(0, 10, &config);
-        assert!(intensity >= 0.0 && intensity <= 1.0);
+        assert!((0.0..=1.0).contains(&intensity));
     }
 
     #[test]

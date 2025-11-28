@@ -367,8 +367,8 @@ fn get_worktree_nodes() -> Result<Vec<TopologyNode>, String> {
             // Skip main worktree
             if !current_path.ends_with("miyabi-private") {
                 let name = current_path
-                    .split('/')
-                    .last()
+                    .rsplit('/')
+                    .next()
                     .unwrap_or("unknown")
                     .to_string();
 

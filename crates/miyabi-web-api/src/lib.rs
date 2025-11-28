@@ -145,7 +145,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     tracing::info!("Initializing PostgreSQL connection pool");
     tracing::info!(
         "Database URL: {}",
-        config.database_url.split('@').last().unwrap_or("unknown")
+        config.database_url.rsplit('@').next().unwrap_or("unknown")
     );
 
     // Connection pool configuration optimized for Lambda + RDS
@@ -166,7 +166,7 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
             tracing::error!("Failed to connect to PostgreSQL: {}", e);
             tracing::error!(
                 "Connection URL host: {}",
-                config.database_url.split('@').last().unwrap_or("unknown")
+                config.database_url.rsplit('@').next().unwrap_or("unknown")
             );
             tracing::error!("Ensure PostgreSQL is running and DATABASE_URL is correct");
             AppError::Database(e)

@@ -8,6 +8,7 @@ use std::sync::Arc;
 /// Test database wrapper
 pub struct TestDatabase {
     pub pool: PgPool,
+    #[allow(dead_code)]
     pub database_name: String,
 }
 
@@ -70,11 +71,13 @@ impl TestDatabase {
     }
 
     /// Get a reference to the pool
+    #[allow(dead_code)]
     pub fn pool(&self) -> &PgPool {
         &self.pool
     }
 
     /// Get an Arc-wrapped pool for use in app state
+    #[allow(dead_code)]
     pub fn pool_arc(&self) -> Arc<PgPool> {
         Arc::new(self.pool.clone())
     }

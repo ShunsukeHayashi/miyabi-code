@@ -193,11 +193,7 @@ impl EventBroadcaster {
 
         // Issue #1175: Also broadcast to WebSocket clients
         if let Some(ref ws) = self.ws_manager {
-            ws.broadcast_agent_started(
-                agent_type,
-                issue_number,
-                execution_id.to_string(),
-            );
+            ws.broadcast_agent_started(agent_type, issue_number, execution_id.to_string());
         }
     }
 

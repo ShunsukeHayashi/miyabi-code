@@ -10,9 +10,8 @@
 //! - Automatic reconnection
 //! - JWT authentication
 
-use futures::{SinkExt, StreamExt};
 use miyabi_web_api::{
-    events::{AgentEvent, EventBroadcaster},
+    events::EventBroadcaster,
     websocket::{AgentResult, WsEvent, WsState},
 };
 use std::sync::Arc;
@@ -204,9 +203,9 @@ async fn test_websocket_multiple_subscribers() {
     let event_broadcaster = EventBroadcaster::with_websocket(ws_state.clone());
 
     // Create 3 subscribers
-    let mut rx1 = ws_state.tx.subscribe();
-    let mut rx2 = ws_state.tx.subscribe();
-    let mut rx3 = ws_state.tx.subscribe();
+    let rx1 = ws_state.tx.subscribe();
+    let rx2 = ws_state.tx.subscribe();
+    let rx3 = ws_state.tx.subscribe();
 
     let execution_id = Uuid::new_v4();
 

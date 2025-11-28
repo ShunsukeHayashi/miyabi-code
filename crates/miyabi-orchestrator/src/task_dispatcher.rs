@@ -243,7 +243,6 @@ pub struct DispatcherStats {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::priority::Issue;
 
     #[test]
     fn test_dispatcher_creation() {

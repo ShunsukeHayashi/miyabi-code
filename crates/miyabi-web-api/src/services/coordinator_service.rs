@@ -182,7 +182,7 @@ impl CoordinatorService {
     /// Fetch metrics via SSH (stub - would use actual SSH in production)
     pub async fn fetch_metrics(
         &self,
-        coordinator_id: Uuid,
+        _coordinator_id: Uuid,
     ) -> Result<CoordinatorMetrics, ApiError> {
         // In production, this would SSH to the coordinator and run:
         // - `top -bn1 | grep "Cpu(s)"` for CPU

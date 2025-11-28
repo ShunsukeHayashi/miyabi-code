@@ -4,6 +4,7 @@
 //! - Task statistics
 //! - Worker status
 //! - System metrics
+//!
 //! Issue: #983 Phase 2.1 - Service Layer Refactoring
 
 use chrono::{DateTime, Utc};

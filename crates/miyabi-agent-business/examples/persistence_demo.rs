@@ -54,7 +54,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demo 1: Save AIEntrepreneurAgent execution
-async fn demo_ai_entrepreneur(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
+async fn demo_ai_entrepreneur(
+    pool: &PgPool,
+    repo_id: Uuid,
+) -> Result<(), Box<dyn std::error::Error>> {
     let agent = AIEntrepreneurAgent::new(Default::default());
 
     // Create execution result
@@ -167,14 +170,20 @@ async fn demo_analytics(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std:
 }
 
 /// Demo 4: Query execution history
-async fn demo_query_history(pool: &PgPool, repo_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
+async fn demo_query_history(
+    pool: &PgPool,
+    repo_id: Uuid,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("📜 Querying execution history...\n");
 
     // Query AIEntrepreneurAgent history
     let entrepreneur = AIEntrepreneurAgent::new(Default::default());
     let history = entrepreneur.load_history(pool, repo_id, 10).await?;
 
-    println!("📊 AIEntrepreneurAgent History ({} executions):", history.len());
+    println!(
+        "📊 AIEntrepreneurAgent History ({} executions):",
+        history.len()
+    );
     for exec in &history {
         println!(
             "  - Execution {}: {:?} (Quality: {:?})",

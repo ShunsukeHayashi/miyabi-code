@@ -4,7 +4,7 @@ use miyabi_approval::notifications::{
     ApprovalRequest, DiscordNotifier, SlackNotifier, WorkflowStatusUpdate,
 };
 
-#[cfg(feature = "integration_tests")]
+#[cfg(feature = "integration-tests")]
 use miyabi_approval::notifications::Notifier;
 
 /// Mock Discord webhook for testing
@@ -184,7 +184,7 @@ fn test_workflow_status_serialization() {
 // or environment variables with real webhook URLs.
 // These tests verify the structure and formatting without network calls.
 
-#[cfg(feature = "integration_tests")]
+#[cfg(feature = "integration-tests")]
 mod integration {
     use super::*;
     use std::env;

@@ -187,11 +187,7 @@ impl WsState {
     }
 
     /// Broadcast task updated event (Issue #1175)
-    pub fn broadcast_task_updated(
-        &self,
-        task_id: impl Into<String>,
-        status: impl Into<String>,
-    ) {
+    pub fn broadcast_task_updated(&self, task_id: impl Into<String>, status: impl Into<String>) {
         self.broadcast(WsEvent::TaskUpdated {
             task_id: task_id.into(),
             status: status.into(),

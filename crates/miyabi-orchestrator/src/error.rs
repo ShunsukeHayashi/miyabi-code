@@ -124,7 +124,7 @@ mod unified_error_tests {
 
     #[test]
     fn test_scheduler_error_codes() {
-        let error = SchedulerError::SpawnFailed(io::Error::new(io::ErrorKind::Other, "test"));
+        let error = SchedulerError::SpawnFailed(io::Error::other("test"));
         assert_eq!(error.code(), ErrorCode::PROCESS_ERROR);
 
         let error = SchedulerError::SessionNotFound("test-session".to_string());
@@ -175,7 +175,7 @@ mod unified_error_tests {
         let error = SchedulerError::Timeout(30);
         assert!(error.context().is_some());
 
-        let error = SchedulerError::SpawnFailed(io::Error::new(io::ErrorKind::Other, "test"));
+        let error = SchedulerError::SpawnFailed(io::Error::other("test"));
         assert!(error.context().is_none());
 
         let error = SchedulerError::ProcessFailed {

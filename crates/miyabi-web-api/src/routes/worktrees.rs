@@ -124,7 +124,12 @@ impl WorktreeBuilder {
         }
 
         // Generate ID from path
-        let id = self.path.split('/').last().unwrap_or("unknown").to_string();
+        let id = self
+            .path
+            .rsplit('/')
+            .next()
+            .unwrap_or("unknown")
+            .to_string();
 
         // Determine branch name
         let branch = if self.is_detached {

@@ -117,31 +117,31 @@ impl MarkdownRenderer {
         let trimmed = line.trim();
 
         // Headers
-        if trimmed.starts_with("### ") {
+        if let Some(rest) = trimmed.strip_prefix("### ") {
             return Line::from(vec![
                 Span::styled("   ", Style::default()),
-                Span::styled(trimmed[4..].to_string(), self.styles.h3),
+                Span::styled(rest.to_string(), self.styles.h3),
             ]);
         }
-        if trimmed.starts_with("## ") {
+        if let Some(rest) = trimmed.strip_prefix("## ") {
             return Line::from(vec![
                 Span::styled("  ", Style::default()),
-                Span::styled(trimmed[3..].to_string(), self.styles.h2),
+                Span::styled(rest.to_string(), self.styles.h2),
             ]);
         }
-        if trimmed.starts_with("# ") {
+        if let Some(rest) = trimmed.strip_prefix("# ") {
             return Line::from(vec![
                 Span::styled(" ", Style::default()),
-                Span::styled(trimmed[2..].to_string(), self.styles.h1),
+                Span::styled(rest.to_string(), self.styles.h1),
             ]);
         }
 
         // Blockquotes
-        if trimmed.starts_with("> ") {
+        if let Some(rest) = trimmed.strip_prefix("> ") {
             return Line::from(vec![
                 Span::styled("  > ", self.styles.blockquote),
                 Span::styled(
-                    trimmed[2..].to_string(),
+                    rest.to_string(),
                     Style::default().fg(Color::Rgb(192, 202, 245)),
                 ),
             ]);

@@ -3,7 +3,7 @@
 //! Tests the bidirectional communication between Skills and Orchestrator
 
 use miyabi_orchestrator::skills_bridge::{
-    ErrorSeverity, OrchestratorEvent, SkillExecutor, SkillRequest, SkillsBridge,
+    ErrorSeverity, OrchestratorEvent, SkillRequest, SkillsBridge,
 };
 use std::collections::HashMap;
 

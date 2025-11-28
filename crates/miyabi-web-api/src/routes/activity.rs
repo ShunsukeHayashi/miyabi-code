@@ -119,7 +119,7 @@ fn get_system_uptime() -> Result<u64, String> {
 
     // Parse uptime output to get seconds
     // Format varies: "up 10 days, 5:30" or "up 5:30"
-    if let Some(days_match) = stdout.find("day") {
+    if let Some(_days_match) = stdout.find("day") {
         // Has days
         if let Some(num_start) = stdout.find("up ") {
             let num_str: String = stdout[num_start + 3..]

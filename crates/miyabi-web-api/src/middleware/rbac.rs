@@ -9,11 +9,7 @@
 //! Note: RBAC middleware functions currently pass through all requests.
 //! Full permission checking will be implemented in a future phase.
 
-use crate::{
-    error::AppError,
-    middleware::AuthenticatedUser,
-    services::RbacService,
-};
+use crate::{error::AppError, middleware::AuthenticatedUser, services::RbacService};
 use axum::{
     extract::Request,
     middleware::Next,
@@ -43,6 +39,15 @@ pub struct RbacContext {
 // Permission Requirement Builder
 // ============================================================================
 
+/// Type alias for custom permission check function
+pub type PermissionCheckFn = dyn Fn(
+        &RbacService,
+        Uuid,
+        Uuid,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = RbacResult<bool>> + Send>>
+    + Send
+    + Sync;
+
 /// Permission requirement for a route
 /// Supports both single permission and multiple permission checks
 #[derive(Clone)]
@@ -54,7 +59,7 @@ pub enum PermissionRequirement {
     /// User must have ALL of these permissions (AND logic)
     All(Vec<String>),
     /// Custom permission check function
-    Custom(Arc<dyn Fn(&RbacService, Uuid, Uuid) -> std::pin::Pin<Box<dyn std::future::Future<Output = RbacResult<bool>> + Send>> + Send + Sync>),
+    Custom(Arc<PermissionCheckFn>),
 }
 
 impl std::fmt::Debug for PermissionRequirement {
@@ -130,21 +135,18 @@ impl PermissionRequirement {
 /// ```
 pub fn require_permission(
     permission: &'static str,
-) -> impl Fn(Request, Next) -> std::pin::Pin<Box<dyn std::future::Future<Output = Response> + Send>> + Clone + Send + 'static {
+) -> impl Fn(Request, Next) -> std::pin::Pin<Box<dyn std::future::Future<Output = Response> + Send>>
+       + Clone
+       + Send
+       + 'static {
     move |request: Request, next: Next| {
         let perm = permission;
-        Box::pin(async move {
-            check_permission_impl(request, next, perm).await
-        })
+        Box::pin(async move { check_permission_impl(request, next, perm).await })
     }
 }
 
 /// Internal implementation for permission check
-async fn check_permission_impl(
-    mut request: Request,
-    next: Next,
-    permission: &str,
-) -> Response {
+async fn check_permission_impl(mut request: Request, next: Next, permission: &str) -> Response {
     // 1. Get authenticated user from extensions
     let auth_user = match request.extensions().get::<AuthenticatedUser>().cloned() {
         Some(user) => user,
@@ -177,26 +179,27 @@ async fn check_permission_impl(
     };
 
     // 4. Check permission using has_permission database function
-    let has_permission: bool = match sqlx::query_scalar(
-        "SELECT COALESCE(has_permission($1, $2, $3), false)"
-    )
-    .bind(auth_user.user_id)
-    .bind(organization_id)
-    .bind(permission)
-    .fetch_one(&db)
-    .await
-    {
-        Ok(result) => result,
-        Err(e) => {
-            tracing::error!("RBAC permission check failed: {}", e);
-            return AppError::Database(e).into_response();
-        }
-    };
+    let has_permission: bool =
+        match sqlx::query_scalar("SELECT COALESCE(has_permission($1, $2, $3), false)")
+            .bind(auth_user.user_id)
+            .bind(organization_id)
+            .bind(permission)
+            .fetch_one(&db)
+            .await
+        {
+            Ok(result) => result,
+            Err(e) => {
+                tracing::error!("RBAC permission check failed: {}", e);
+                return AppError::Database(e).into_response();
+            }
+        };
 
     if !has_permission {
         tracing::warn!(
             "Permission denied: user={}, org={}, permission={}",
-            auth_user.user_id, organization_id, permission
+            auth_user.user_id,
+            organization_id,
+            permission
         );
         return AppError::Authorization(format!(
             "Insufficient permissions: {} required",
@@ -215,7 +218,9 @@ async fn check_permission_impl(
 
     tracing::debug!(
         "Permission granted: user={}, org={}, permission={}",
-        auth_user.user_id, organization_id, permission
+        auth_user.user_id,
+        organization_id,
+        permission
     );
 
     // 6. Continue to next middleware/handler
@@ -225,10 +230,7 @@ async fn check_permission_impl(
 /// Middleware function that checks a specific permission (legacy, pass-through)
 /// Deprecated: Use require_permission() instead for actual enforcement
 #[deprecated(note = "Use require_permission() for actual RBAC enforcement")]
-pub async fn rbac_check_permission(
-    request: Request,
-    next: Next,
-) -> Response {
+pub async fn rbac_check_permission(request: Request, next: Next) -> Response {
     // Legacy pass-through - use require_permission() for actual checks
     next.run(request).await
 }
@@ -284,10 +286,8 @@ async fn rbac_middleware_impl(
     };
 
     if !has_permission {
-        return AppError::Authorization(
-            "Insufficient permissions for this operation".to_string(),
-        )
-        .into_response();
+        return AppError::Authorization("Insufficient permissions for this operation".to_string())
+            .into_response();
     }
 
     // 5. Add RBAC context to request extensions
@@ -362,7 +362,8 @@ mod tests {
 
     #[test]
     fn test_permission_requirement_any() {
-        let req = PermissionRequirement::any(vec!["test.read".to_string(), "test.write".to_string()]);
+        let req =
+            PermissionRequirement::any(vec!["test.read".to_string(), "test.write".to_string()]);
         match req {
             PermissionRequirement::Any(p) => {
                 assert_eq!(p.len(), 2);
@@ -374,7 +375,8 @@ mod tests {
 
     #[test]
     fn test_permission_requirement_all() {
-        let req = PermissionRequirement::all(vec!["test.read".to_string(), "test.write".to_string()]);
+        let req =
+            PermissionRequirement::all(vec!["test.read".to_string(), "test.write".to_string()]);
         match req {
             PermissionRequirement::All(p) => {
                 assert_eq!(p.len(), 2);

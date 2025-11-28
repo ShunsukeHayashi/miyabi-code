@@ -286,7 +286,7 @@ mod tests {
     #[test]
     fn test_wrap_single_word() {
         let result = wrap_text("supercalifragilisticexpialidocious", 10);
-        assert!(result.len() >= 1);
+        assert!(!result.is_empty());
     }
 
     #[test]

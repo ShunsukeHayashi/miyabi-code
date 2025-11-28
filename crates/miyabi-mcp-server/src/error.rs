@@ -190,7 +190,7 @@ mod unified_error_tests {
         let error = ServerError::MethodNotFound("method".to_string());
         assert!(error.context().is_some());
 
-        let error = ServerError::Io(std::io::Error::new(std::io::ErrorKind::Other, "test"));
+        let error = ServerError::Io(std::io::Error::other("test"));
         assert!(error.context().is_none());
     }
 }

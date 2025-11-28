@@ -100,8 +100,8 @@ pub struct MessageResponse {
 /// - DELETE /organizations/{org_id}/teams/{team_id}/members/{user_id} -> organization.members.manage
 pub fn routes() -> Router<AppState> {
     // User's organizations list (authenticated only, no org context needed)
-    let user_orgs_routes = Router::new()
-        .route("/", get(list_organizations).post(create_organization));
+    let user_orgs_routes =
+        Router::new().route("/", get(list_organizations).post(create_organization));
 
     // Organization read routes
     let org_read_routes = Router::new()

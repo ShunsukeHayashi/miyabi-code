@@ -7,7 +7,9 @@ pub struct UserFixture {
     pub id: i64,
     pub github_id: i64,
     pub username: String,
+    #[allow(dead_code)]
     pub email: Option<String>,
+    #[allow(dead_code)]
     pub avatar_url: Option<String>,
 }
 
@@ -50,6 +52,7 @@ impl UserFixture {
     }
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct UserRecord {
     id: i64,
