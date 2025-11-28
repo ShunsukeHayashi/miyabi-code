@@ -11,6 +11,7 @@ pub mod hooks;
 pub mod metrics;
 pub mod observable;
 pub mod orchestration;
+pub mod persistence;
 pub mod prompt_enhancement;
 // TODO: Re-enable after miyabi_core::rules is implemented
 // pub mod rules_context;
@@ -35,5 +36,8 @@ pub use miyabi_core::tools::{ToolRegistry, ToolResult as CoreToolResult};
 pub use miyabi_core::ExecutionMode;
 pub use observable::{LogEntry, LogLevel, ObservableAgent, ProgressObserver, ProgressUpdate};
 pub use orchestration::{Orchestrated, OrchestrationEngine};
+pub use persistence::{
+    BusinessAnalytics, ExecutionMetadata, ExecutionStatus, PersistableAgent, PersistableResult,
+};
 pub use prompt_enhancement::{AgentPromptEnhancer, PromptEnhancementConfig, PromptTemplate};
 // pub use rules_context::RulesContext;
