@@ -9,6 +9,7 @@ import PRsPage from './pages/PRsPage';
 import WorktreesPage from './pages/WorktreesPage';
 import DeploymentsPage from './pages/DeploymentsPage';
 import LogsPage from './pages/LogsPage';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ function App() {
             <Route path="/worktrees" element={<WorktreesPage />} />
             <Route path="/deployments" element={<DeploymentsPage />} />
             <Route path="/logs" element={<LogsPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>
