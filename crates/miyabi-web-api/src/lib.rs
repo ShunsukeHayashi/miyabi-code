@@ -33,7 +33,7 @@ pub mod websocket;
 pub mod ws;
 
 use axum::{
-    middleware::from_fn_with_state,
+    middleware::{from_fn, from_fn_with_state},
     routing::{get, post},
     Router,
 };
@@ -300,9 +300,19 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
         .nest("/workers", routes::workers::routes())
         .nest("/coordinators", routes::coordinators::routes());
 
-    // Protected routes requiring authentication
-    let protected_routes = Router::new()
-        // Repository routes - Phase 2.4: Re-enabled with database
+    // Protected routes requiring authentication + RBAC
+    // Issue #1176: RBAC Middleware Integration for all protected routes
+    //
+    // Permission mapping:
+    // - repositories.read: List/view repositories
+    // - repositories.create: Create new repositories
+    // - workflows.read: List/view workflows
+    // - workflows.create: Create new workflows
+    // - dashboard.read: View dashboard statistics
+    // - agents.execute: Execute agents
+
+    // Repository routes with RBAC
+    let repository_read_routes = Router::new()
         .route(
             "/repositories",
             get(routes::repositories::list_repositories),
@@ -311,17 +321,34 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
             "/repositories/{id}",
             get(routes::repositories::get_repository),
         )
+        .route_layer(from_fn(middleware::require_permission("repositories.read")));
+
+    let repository_create_routes = Router::new()
         .route(
             "/repositories",
             post(routes::repositories::create_repository),
         )
-        // Agent execution routes - Phase 2.4: Re-enabled with database
+        .route_layer(from_fn(middleware::require_permission(
+            "repositories.create",
+        )));
+
+    // Agent execution routes with RBAC
+    let agent_routes = Router::new()
         .route("/agents/execute", post(routes::agents::execute_agent))
-        // Workflow routes - Phase 2.4: Re-enabled with database
-        .route("/workflows", post(routes::workflows::create_workflow))
+        .route_layer(from_fn(middleware::require_permission("agents.execute")));
+
+    // Workflow routes with RBAC
+    let workflow_read_routes = Router::new()
         .route("/workflows", get(routes::workflows::list_workflows))
         .route("/workflows/{id}", get(routes::workflows::get_workflow))
-        // Dashboard routes - Phase 2.4: Re-enabled with database
+        .route_layer(from_fn(middleware::require_permission("workflows.read")));
+
+    let workflow_create_routes = Router::new()
+        .route("/workflows", post(routes::workflows::create_workflow))
+        .route_layer(from_fn(middleware::require_permission("workflows.create")));
+
+    // Dashboard routes with RBAC
+    let dashboard_routes = Router::new()
         .route(
             "/dashboard/summary",
             get(routes::dashboard::get_dashboard_summary),
@@ -330,11 +357,21 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
             "/dashboard/recent",
             get(routes::dashboard::get_recent_executions),
         )
-        // Organization routes - Phase 1.4: RBAC Implementation (#970)
+        .route_layer(from_fn(middleware::require_permission("dashboard.read")));
+
+    // Merge all protected routes
+    let protected_routes = Router::new()
+        .merge(repository_read_routes)
+        .merge(repository_create_routes)
+        .merge(agent_routes)
+        .merge(workflow_read_routes)
+        .merge(workflow_create_routes)
+        .merge(dashboard_routes)
+        // Organization routes - Phase 1.4: RBAC already integrated (#970)
         .nest("/organizations", routes::organizations::routes())
-        // Task Management routes - Phase 2.1: Task Management API (#970)
+        // Task Management routes - Phase 2.1: RBAC already integrated (#970)
         .nest("/tasks", routes::tasks::routes())
-        // Apply auth middleware to all protected routes
+        // Apply auth middleware to all protected routes (base layer)
         .route_layer(from_fn_with_state(
             state.jwt_secret.clone(),
             middleware::auth_middleware,
