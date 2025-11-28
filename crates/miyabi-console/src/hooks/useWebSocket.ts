@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 export interface WsEvent {
-  type: 'agent_status' | 'log_entry' | 'issue_update' | 'pr_update' | 'deployment_update' | 'worktree_update' | 'notification';
+  type: 'agent_status' | 'agent_started' | 'agent_progress' | 'agent_completed' | 'task_updated' | 'log_entry' | 'issue_update' | 'pr_update' | 'deployment_update' | 'worktree_update' | 'notification';
   [key: string]: any;
 }
 
@@ -34,7 +34,45 @@ export interface WsNotification {
   timestamp: string;
 }
 
-export type WebSocketEvent = WsAgentStatus | WsLogEntry | WsNotification;
+// Issue #1175: Agent execution events
+export interface WsAgentStarted {
+  type: 'agent_started';
+  agent_type: string;
+  issue_number: number;
+  execution_id: string;
+  timestamp: string;
+}
+
+export interface WsAgentProgress {
+  type: 'agent_progress';
+  agent_type: string;
+  progress: number; // 0-100
+  message: string;
+  execution_id: string;
+  timestamp: string;
+}
+
+export interface WsAgentCompleted {
+  type: 'agent_completed';
+  agent_type: string;
+  execution_id: string;
+  result: {
+    success: boolean;
+    quality_score?: number;
+    pr_number?: number;
+    error?: string;
+  };
+  timestamp: string;
+}
+
+export interface WsTaskUpdated {
+  type: 'task_updated';
+  task_id: string;
+  status: string;
+  timestamp: string;
+}
+
+export type WebSocketEvent = WsAgentStatus | WsAgentStarted | WsAgentProgress | WsAgentCompleted | WsTaskUpdated | WsLogEntry | WsNotification;
 
 export interface UseWebSocketOptions {
   url?: string;
