@@ -414,6 +414,74 @@ pub async fn get_user_organizations(
     Ok(orgs)
 }
 
+// ============================================================================
+// Row Level Security (RLS) Context Middleware
+// Issue: #1177 - Multi-tenant data isolation
+// ============================================================================
+
+/// Database connection with RLS context set
+///
+/// This middleware sets the PostgreSQL session variable for RLS policies.
+/// Must be used after org_member_middleware to have OrganizationContext available.
+pub async fn rls_context_middleware(
+    State(db): State<PgPool>,
+    request: Request,
+    next: Next,
+) -> Result<Response> {
+    // Get organization context from extensions (set by org_member_middleware)
+    let org_ctx = request
+        .extensions()
+        .get::<OrganizationContext>()
+        .cloned();
+
+    if let Some(ctx) = org_ctx {
+        // Set the RLS context variable for this connection
+        // This will be checked by RLS policies on tables
+        sqlx::query("SET LOCAL app.current_org_id = $1")
+            .bind(ctx.organization_id.to_string())
+            .execute(&db)
+            .await
+            .map_err(|e| {
+                tracing::error!("Failed to set RLS context: {}", e);
+                AppError::Database(e)
+            })?;
+
+        tracing::debug!(
+            "RLS context set for organization {}",
+            ctx.organization_id
+        );
+    }
+
+    Ok(next.run(request).await)
+}
+
+/// Set RLS context manually for a specific organization
+///
+/// Use this when you need to set RLS context outside of middleware chain
+pub async fn set_rls_context(db: &PgPool, organization_id: Uuid) -> Result<()> {
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(organization_id.to_string())
+        .execute(db)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to set RLS context: {}", e);
+            AppError::Database(e)
+        })?;
+    Ok(())
+}
+
+/// Clear RLS context
+pub async fn clear_rls_context(db: &PgPool) -> Result<()> {
+    sqlx::query("RESET app.current_org_id")
+        .execute(db)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to clear RLS context: {}", e);
+            AppError::Database(e)
+        })?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
