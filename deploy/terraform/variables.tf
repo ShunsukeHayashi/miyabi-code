@@ -1,16 +1,18 @@
 # Miyabi Frontend Infrastructure - Variables
 # S3 + CloudFront for miyabi-console hosting
+# AWS Account: 112530848482 (Hayashi)
+# Domain: miyabi-world.com
 
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "ap-northeast-1"
+  default     = "us-west-2"
 }
 
 variable "aws_account_id" {
   description = "AWS Account ID"
   type        = string
-  default     = "211234825975"
+  default     = "112530848482"
 }
 
 variable "environment" {
@@ -28,7 +30,7 @@ variable "project_name" {
 variable "domain_name" {
   description = "Primary domain name for CloudFront"
   type        = string
-  default     = "miyabi-society.com"
+  default     = "miyabi-world.com"
 }
 
 variable "api_origin_domain" {

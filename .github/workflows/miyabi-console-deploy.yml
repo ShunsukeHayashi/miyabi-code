@@ -17,9 +17,11 @@ on:
 env:
   NODE_VERSION: '20'
   WORKING_DIRECTORY: miyabi-console
-  S3_BUCKET: miyabi-webui-211234825975
-  CLOUDFRONT_DISTRIBUTION_ID: E1114G9SW1V5FC
-  AWS_REGION: ap-northeast-1
+  # AWS Account: 112530848482 (Hayashi)
+  # Domain: miyabi-world.com
+  S3_BUCKET: miyabi-webui-112530848482
+  CLOUDFRONT_DISTRIBUTION_ID: E1FF97QM8U71OR
+  AWS_REGION: us-west-2
 
 jobs:
   # ---------------------------------
@@ -76,8 +78,8 @@ jobs:
       - name: Build application
         working-directory: ${{ env.WORKING_DIRECTORY }}
         env:
-          VITE_API_URL: https://api.miyabi-society.com
-          VITE_WS_URL: wss://api.miyabi-society.com
+          VITE_API_URL: https://api.miyabi-world.com
+          VITE_WS_URL: wss://api.miyabi-world.com
         run: npm run build
 
       - name: Run tests
@@ -101,7 +103,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://miyabi-society.com
+      url: https://miyabi-world.com
 
     permissions:
       id-token: write
@@ -152,5 +154,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **S3 Bucket**: ${{ env.S3_BUCKET }}" >> $GITHUB_STEP_SUMMARY
           echo "- **CloudFront**: ${{ env.CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL**: https://miyabi-society.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://miyabi-world.com" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

@@ -5,9 +5,12 @@
 set -e
 
 # Configuration
-S3_BUCKET="miyabi-webui-211234825975"
-CLOUDFRONT_DISTRIBUTION_ID="E1114G9SW1V5FC"
+# AWS Account: 112530848482 (Hayashi)
+# Domain: miyabi-world.com
+S3_BUCKET="miyabi-webui-112530848482"
+CLOUDFRONT_DISTRIBUTION_ID="E1FF97QM8U71OR"
 FRONTEND_DIR="miyabi-console"
+AWS_PROFILE="hayashi"
 
 echo "=========================================="
 echo "[DEPLOY] Miyabi Frontend Deployment"
@@ -37,18 +40,18 @@ ls -la "$BUILD_DIR"
 
 # Step 3: Upload to S3
 echo "[3/4] Uploading to S3..."
-aws s3 sync "$BUILD_DIR" "s3://$S3_BUCKET/" \
+aws --profile "$AWS_PROFILE" s3 sync "$BUILD_DIR" "s3://$S3_BUCKET/" \
     --delete \
     --cache-control "max-age=31536000,public" \
     --exclude "index.html" \
     --exclude "*.json"
 
 # Upload index.html with no-cache
-aws s3 cp "$BUILD_DIR/index.html" "s3://$S3_BUCKET/index.html" \
+aws --profile "$AWS_PROFILE" s3 cp "$BUILD_DIR/index.html" "s3://$S3_BUCKET/index.html" \
     --cache-control "no-cache,no-store,must-revalidate"
 
 # Upload JSON files with short cache
-aws s3 sync "$BUILD_DIR" "s3://$S3_BUCKET/" \
+aws --profile "$AWS_PROFILE" s3 sync "$BUILD_DIR" "s3://$S3_BUCKET/" \
     --exclude "*" \
     --include "*.json" \
     --cache-control "max-age=300,public"
@@ -57,7 +60,7 @@ echo "S3 upload completed."
 
 # Step 4: Invalidate CloudFront cache
 echo "[4/4] Invalidating CloudFront cache..."
-INVALIDATION_ID=$(aws cloudfront create-invalidation \
+INVALIDATION_ID=$(aws --profile "$AWS_PROFILE" cloudfront create-invalidation \
     --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
     --paths "/*" \
     --query "Invalidation.Id" \
@@ -70,5 +73,5 @@ echo "[DEPLOY] COMPLETED"
 echo "=========================================="
 echo "S3 Bucket: $S3_BUCKET"
 echo "CloudFront: $CLOUDFRONT_DISTRIBUTION_ID"
-echo "URL: https://miyabi-society.com"
+echo "URL: https://miyabi-world.com"
 echo "=========================================="
