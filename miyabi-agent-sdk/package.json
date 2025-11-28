@@ -1,0 +1,48 @@
+{
+  "name": "@miyabi/agent-sdk",
+  "version": "0.1.0",
+  "description": "Miyabi Agent SDK for TypeScript - Build and orchestrate AI agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "docs": "typedoc --out docs src/index.ts"
+  },
+  "keywords": [
+    "miyabi",
+    "agent",
+    "ai",
+    "claude",
+    "sdk",
+    "typescript"
+  ],
+  "author": "Miyabi Team",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "typescript": "^5.8.3",
+    "vitest": "^3.0.9",
+    "eslint": "^9.19.0",
+    "typedoc": "^0.28.5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/customer-cloud/miyabi-private.git",
+    "directory": "miyabi-agent-sdk"
+  }
+}
