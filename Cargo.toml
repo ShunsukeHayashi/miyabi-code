@@ -136,7 +136,7 @@ hostname = "0.4"
 uuid = { version = "1.6", features = ["v4", "serde"] }
 
 # Testing
-insta = "1.40"
+insta = "1.44"
 serial_test = "3.2"
 
 # Web framework (unified versions to resolve duplicates - Issue #462)
