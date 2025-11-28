@@ -167,6 +167,49 @@ impl AgentType {
     }
 }
 
+impl std::str::FromStr for AgentType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            // Coding Agents
+            "coordinator" | "coordinatoragent" => Ok(AgentType::CoordinatorAgent),
+            "codegen" | "codegenagent" => Ok(AgentType::CodeGenAgent),
+            "review" | "reviewagent" => Ok(AgentType::ReviewAgent),
+            "issue" | "issueagent" => Ok(AgentType::IssueAgent),
+            "pr" | "pragent" => Ok(AgentType::PRAgent),
+            "deployment" | "deploymentagent" => Ok(AgentType::DeploymentAgent),
+            "autofix" | "autofixagent" => Ok(AgentType::AutoFixAgent),
+            "waterspider" | "waterspideragent" => Ok(AgentType::WaterSpiderAgent),
+            "refresher" | "refresheragent" => Ok(AgentType::RefresherAgent),
+
+            // Business Agents
+            "ai-entrepreneur" | "aientrepreneuragent" => Ok(AgentType::AIEntrepreneurAgent),
+            "product-concept" | "productconceptagent" => Ok(AgentType::ProductConceptAgent),
+            "product-design" | "productdesignagent" => Ok(AgentType::ProductDesignAgent),
+            "funnel-design" | "funneldesignagent" => Ok(AgentType::FunnelDesignAgent),
+            "persona" | "personaagent" => Ok(AgentType::PersonaAgent),
+            "self-analysis" | "selfanalysisagent" => Ok(AgentType::SelfAnalysisAgent),
+            "market-research" | "marketresearchagent" => Ok(AgentType::MarketResearchAgent),
+            "marketing" | "marketingagent" => Ok(AgentType::MarketingAgent),
+            "content-creation" | "contentcreationagent" => Ok(AgentType::ContentCreationAgent),
+            "sns-strategy" | "snsstrategyagent" => Ok(AgentType::SNSStrategyAgent),
+            "youtube" | "youtubeagent" => Ok(AgentType::YouTubeAgent),
+            "sales" | "salesagent" => Ok(AgentType::SalesAgent),
+            "crm" | "crmagent" => Ok(AgentType::CRMAgent),
+            "analytics" | "analyticsagent" => Ok(AgentType::AnalyticsAgent),
+            "jonathan-ive-design" | "jonathanivedesignagent" => {
+                Ok(AgentType::JonathanIveDesignAgent)
+            }
+
+            // Community Agents
+            "discord-community" | "discordcommunity" => Ok(AgentType::DiscordCommunity),
+
+            _ => Err(format!("Unknown agent type: {}", s)),
+        }
+    }
+}
+
 /// Issue severity levels (ordered from lowest to highest severity for Ord)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Severity {
@@ -275,7 +318,7 @@ pub struct EscalationInfo {
 }
 
 /// Agent configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentConfig {
     /// Device identifier (e.g., "MacBook-Pro", "GitHub-Actions")
     pub device_identifier: String,
