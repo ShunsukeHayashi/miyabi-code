@@ -14,17 +14,28 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
 
-from fastapi import FastAPI, Request, HTTPException, Security, Depends, Form, Query
+from fastapi import FastAPI, Request, HTTPException, Depends, Form, Query
+from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, Response, RedirectResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import secrets
 import hashlib
 import base64
 import time
 from pydantic import BaseModel, Field
 from github import Github
+from functools import lru_cache
 from dotenv import load_dotenv
+import logging
+
+# Sandbox Manager (multi-user isolation)
+from sandbox_manager import sandbox_manager, SandboxManager
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("miyabi-mcp")
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from a2a_client import get_client as get_a2a_client
@@ -55,7 +66,42 @@ GITHUB_OAUTH_CALLBACK_URL = os.getenv("GITHUB_OAUTH_CALLBACK_URL", "")
 oauth_authorization_codes: Dict[str, Dict[str, Any]] = {}
 oauth_access_tokens: Dict[str, Dict[str, Any]] = {}
 oauth_refresh_tokens: Dict[str, Dict[str, Any]] = {}
-oauth_pkce_challenges: Dict[str, str] = {}  # code -> code_challenge
+oauth_pkce_challenges: Dict[str, str] = {}
+# User and Project Management (Multi-tenant support)
+user_profiles: Dict[str, Dict[str, Any]] = {}
+token_to_user: Dict[str, str] = {}
+user_projects: Dict[str, Dict[str, Any]] = {}
+
+DEFAULT_PROJECT = {
+    "project_root": str(MIYABI_ROOT),
+    "github_repo": f"{REPO_OWNER}/{REPO_NAME}",
+    "github_token": GITHUB_TOKEN,
+}
+# Request-scoped user context using contextvars
+from contextvars import ContextVar
+
+current_user_token: ContextVar[str] = ContextVar("current_user_token", default="")
+current_user_project: ContextVar[Path] = ContextVar("current_user_project", default=MIYABI_ROOT)
+
+def get_current_project_root() -> Path:
+    """Get the project root for the current request context"""
+    return current_user_project.get()
+
+
+
+def get_user_project(token: str) -> Dict[str, Any]:
+    """Get project configuration for the authenticated user"""
+    user_id = token_to_user.get(token)
+    if user_id and user_id in user_projects:
+        return user_projects[user_id]
+    return DEFAULT_PROJECT
+
+def get_user_miyabi_root(token: str) -> Path:
+    """Get MIYABI_ROOT for the authenticated user"""
+    project = get_user_project(token)
+    return Path(project.get("project_root", str(MIYABI_ROOT)))
+
+  # code -> code_challenge
 
 app = FastAPI(title="Miyabi MCP Server", version="1.0.0")
 
@@ -278,7 +324,193 @@ class TmuxSendKeysParams(BaseModel):
     window: Optional[int] = Field(None, description="Window index")
 
 
+
+
+# ============================================
+# GitHub Extended Tools - Pydantic Models
+# ============================================
+
+class GetIssueParams(BaseModel):
+    """Parameters for get_issue tool"""
+    issue_number: int = Field(..., description="Issue number to get")
+
+class UpdateIssueParams(BaseModel):
+    """Parameters for update_issue tool"""
+    issue_number: int = Field(..., description="Issue number to update")
+    title: Optional[str] = Field(None, description="New title")
+    body: Optional[str] = Field(None, description="New body")
+    state: Optional[str] = Field(None, description="State: open or closed")
+    labels: Optional[List[str]] = Field(None, description="Labels to set")
+
+class CloseIssueParams(BaseModel):
+    """Parameters for close_issue tool"""
+    issue_number: int = Field(..., description="Issue number to close")
+    comment: Optional[str] = Field(None, description="Comment when closing")
+
+class ListPRsParams(BaseModel):
+    """Parameters for list_prs tool"""
+    state: str = Field("open", description="PR state: open, closed, all")
+    limit: int = Field(10, description="Number of PRs to return")
+
+class GetPRParams(BaseModel):
+    """Parameters for get_pr tool"""
+    pr_number: int = Field(..., description="PR number to get")
+
+class CreatePRParams(BaseModel):
+    """Parameters for create_pr tool"""
+    title: str = Field(..., description="PR title")
+    body: str = Field(..., description="PR body/description")
+    head: str = Field(..., description="Branch containing changes")
+    base: str = Field("main", description="Base branch to merge into")
+
+class MergePRParams(BaseModel):
+    """Parameters for merge_pr tool"""
+    pr_number: int = Field(..., description="PR number to merge")
+    merge_method: str = Field("squash", description="Merge method: merge, squash, rebase")
+
+# ============================================
+# Git Extended Tools - Pydantic Models
+# ============================================
+
+class GitCommitParams(BaseModel):
+    """Parameters for git_commit tool"""
+    message: str = Field(..., description="Commit message")
+    files: Optional[List[str]] = Field(None, description="Files to stage (None = all)")
+
+class GitPushParams(BaseModel):
+    """Parameters for git_push tool"""
+    remote: str = Field("origin", description="Remote name")
+    branch: Optional[str] = Field(None, description="Branch name (default: current)")
+    force: bool = Field(False, description="Force push")
+
+class GitPullParams(BaseModel):
+    """Parameters for git_pull tool"""
+    remote: str = Field("origin", description="Remote name")
+    branch: Optional[str] = Field(None, description="Branch name")
+
+class GitCheckoutParams(BaseModel):
+    """Parameters for git_checkout tool"""
+    branch: str = Field(..., description="Branch to checkout")
+    create: bool = Field(False, description="Create new branch")
+
+class GitCreateBranchParams(BaseModel):
+    """Parameters for git_create_branch tool"""
+    name: str = Field(..., description="New branch name")
+    from_branch: Optional[str] = Field(None, description="Source branch")
+
+class GitStashParams(BaseModel):
+    """Parameters for git_stash tool"""
+    action: str = Field("push", description="Action: push, pop, list, drop")
+    message: Optional[str] = Field(None, description="Stash message (for push)")
+
+# ============================================
+# File Operations - Pydantic Models
+# ============================================
+
+class ReadFileParams(BaseModel):
+    """Parameters for read_file tool"""
+    path: str = Field(..., description="File path to read")
+    limit: int = Field(100, description="Max lines to return")
+
+class WriteFileParams(BaseModel):
+    """Parameters for write_file tool"""
+    path: str = Field(..., description="File path to write")
+    content: str = Field(..., description="Content to write")
+
+class ListFilesParams(BaseModel):
+    """Parameters for list_files tool"""
+    path: str = Field(".", description="Directory path")
+    pattern: Optional[str] = Field(None, description="Glob pattern filter")
+
+class SearchCodeParams(BaseModel):
+    """Parameters for search_code tool"""
+    query: str = Field(..., description="Search query (grep pattern)")
+    path: str = Field(".", description="Directory to search")
+    file_pattern: Optional[str] = Field(None, description="File pattern (e.g., *.py)")
+
+# ============================================
+# Build/Test Tools - Pydantic Models
+# ============================================
+
+class CargoBuildParams(BaseModel):
+    """Parameters for cargo_build tool"""
+    release: bool = Field(False, description="Build in release mode")
+    package: Optional[str] = Field(None, description="Specific package to build")
+
+class CargoTestParams(BaseModel):
+    """Parameters for cargo_test tool"""
+    test_name: Optional[str] = Field(None, description="Specific test to run")
+    package: Optional[str] = Field(None, description="Specific package to test")
+
+class CargoClippyParams(BaseModel):
+    """Parameters for cargo_clippy tool"""
+    fix: bool = Field(False, description="Auto-fix warnings")
+
+class NpmInstallParams(BaseModel):
+    """Parameters for npm_install tool"""
+    package: Optional[str] = Field(None, description="Package to install (None = all)")
+
+class NpmRunParams(BaseModel):
+    """Parameters for npm_run tool"""
+    script: str = Field(..., description="Script name to run")
+
+# ============================================
+# Agent Details - Pydantic Models
+# ============================================
+
+class GetAgentStatusParams(BaseModel):
+    """Parameters for get_agent_status tool"""
+    agent: Optional[str] = Field(None, description="Agent name (None = all)")
+
+class StopAgentParams(BaseModel):
+    """Parameters for stop_agent tool"""
+    agent: str = Field(..., description="Agent name to stop")
+
+class GetAgentLogsParams(BaseModel):
+    """Parameters for get_agent_logs tool"""
+    agent: str = Field(..., description="Agent name")
+    limit: int = Field(50, description="Number of log lines")
+
+class GetAgentCardParams(BaseModel):
+    """Parameters for get_agent_card tool"""
+    agent_name: str = Field(..., description="Agent name in English (e.g., 'shikiroon', 'tsukuroon')")
+
+
+
+
 # Helper Functions
+
+def make_response(text: str, is_error: bool = False) -> Dict[str, Any]:
+    """Create standardized MCP response"""
+    return {
+        "content": [{"type": "text", "text": text}],
+        "isError": is_error
+    }
+
+def make_error(message: str, details: str = None) -> Dict[str, Any]:
+    """Create error response with optional details"""
+    text = f"Error: {message}"
+    if details:
+        text += f"\nDetails: {details}"
+    return make_response(text, is_error=True)
+
+def validate_path(path: str, allow_absolute: bool = True) -> Path:
+    """Validate and sanitize file path"""
+    p = Path(path)
+    if not p.is_absolute():
+        p = MIYABI_ROOT / p
+    
+    # Security: prevent path traversal
+    try:
+        p = p.resolve()
+        if not allow_absolute and not str(p).startswith(str(MIYABI_ROOT)):
+            raise ValueError(f"Path must be within MIYABI_ROOT: {MIYABI_ROOT}")
+    except Exception:
+        raise ValueError(f"Invalid path: {path}")
+    
+    return p
+
+
 def run_command(cmd: List[str], cwd: Path = MIYABI_ROOT) -> tuple[str, str, int]:
     """Run a shell command and return stdout, stderr, returncode"""
     result = subprocess.run(
@@ -290,12 +522,33 @@ def run_command(cmd: List[str], cwd: Path = MIYABI_ROOT) -> tuple[str, str, int]
     return result.stdout, result.stderr, result.returncode
 
 
+# Cache GitHub client instance
+_github_client = None
+
 def get_github_client() -> Github:
-    """Get authenticated GitHub client"""
+    """Get authenticated GitHub client (cached)"""
+    global _github_client
     if not GITHUB_TOKEN:
         raise ValueError("GITHUB_TOKEN not set")
-    return Github(GITHUB_TOKEN)
+    if _github_client is None:
+        _github_client = Github(GITHUB_TOKEN)
+    return _github_client
 
+
+
+_cached_repo = None
+_cached_repo_time = 0
+
+def get_repo():
+    """Get cached repository object (refreshes every 5 min)"""
+    global _cached_repo, _cached_repo_time
+    import time
+    now = time.time()
+    if _cached_repo is None or (now - _cached_repo_time) > 300:
+        g = get_github_client()
+        _cached_repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        _cached_repo_time = now
+    return _cached_repo
 
 def get_project_status() -> Dict[str, Any]:
     """Get current Miyabi project status"""
@@ -684,7 +937,168 @@ TOOLS = [
             },
         },
     },
+            {
+                "name": "get_issue",
+                "description": "Get detailed information about a GitHub issue including title, state, author, labels, assignees, and full body content",
+                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer", "description": "Issue number"}}, "required": ["issue_number"]}
+            },
+            {
+                "name": "update_issue",
+                "description": "Update an existing GitHub issue. Can modify title, body, state (open/closed), and labels. Only specified fields will be updated",
+                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "title": {"type": "string"}, "body": {"type": "string"}, "state": {"type": "string"}, "labels": {"type": "array", "items": {"type": "string"}}}, "required": ["issue_number"]}
+            },
+            {
+                "name": "close_issue",
+                "description": "Close a GitHub issue and optionally add a closing comment explaining why it was closed",
+                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "comment": {"type": "string"}}, "required": ["issue_number"]}
+            },
+            {
+                "name": "list_prs",
+                "description": "List pull requests in the repository. Filter by state (open/closed/all) and limit the number of results",
+                "inputSchema": {"type": "object", "properties": {"state": {"type": "string", "default": "open"}, "limit": {"type": "integer", "default": 10}}}
+            },
+            {
+                "name": "get_pr",
+                "description": "Get comprehensive pull request details including branch info, review status, file changes, and merge status",
+                "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}}, "required": ["pr_number"]}
+            },
+            {
+                "name": "create_pr",
+                "description": "Create a new pull request from a feature branch to the base branch (default: main)",
+                "inputSchema": {"type": "object", "properties": {"title": {"type": "string"}, "body": {"type": "string"}, "head": {"type": "string"}, "base": {"type": "string", "default": "main"}}, "required": ["title", "body", "head"]}
+            },
+            {
+                "name": "merge_pr",
+                "description": "Merge a pull request using the specified method (squash/merge/rebase). Default is squash merge",
+                "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}, "merge_method": {"type": "string", "default": "squash"}}, "required": ["pr_number"]}
+            },
+            {
+                "name": "git_commit",
+                "description": "Stage files and create a git commit with the specified message. If no files specified, stages all changes",
+                "inputSchema": {"type": "object", "properties": {"message": {"type": "string"}, "files": {"type": "array", "items": {"type": "string"}}}, "required": ["message"]}
+            },
+            {
+                "name": "git_push",
+                "description": "Push local commits to the remote repository. Supports force push for rebased branches",
+                "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}, "force": {"type": "boolean", "default": False}}}
+            },
+            {
+                "name": "git_pull",
+                "description": "Pull latest changes from the remote repository and merge into current branch",
+                "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}}}
+            },
+            {
+                "name": "git_checkout",
+                "description": "Switch to an existing branch or create and switch to a new branch with -b flag",
+                "inputSchema": {"type": "object", "properties": {"branch": {"type": "string"}, "create": {"type": "boolean", "default": False}}, "required": ["branch"]}
+            },
+            {
+                "name": "git_create_branch",
+                "description": "Create a new branch from the current HEAD or from a specified source branch",
+                "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "from_branch": {"type": "string"}}, "required": ["name"]}
+            },
+            {
+                "name": "git_stash",
+                "description": "Temporarily store uncommitted changes. Actions: push (save), pop (restore), list, drop",
+                "inputSchema": {"type": "object", "properties": {"action": {"type": "string", "default": "push"}, "message": {"type": "string"}}}
+            },
+            {
+                "name": "read_file",
+                "description": "Read file contents with line limit. Supports both absolute paths and relative paths from MIYABI_ROOT",
+                "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "limit": {"type": "integer", "default": 100}}, "required": ["path"]}
+            },
+            {
+                "name": "write_file",
+                "description": "Write content to a file. Creates parent directories if needed. Overwrites existing content",
+                "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}
+            },
+            {
+                "name": "list_files",
+                "description": "List files and directories with optional glob pattern filtering. Shows file type indicators",
+                "inputSchema": {"type": "object", "properties": {"path": {"type": "string", "default": "."}, "pattern": {"type": "string"}}}
+            },
+            {
+                "name": "search_code",
+                "description": "Search for patterns in code files using grep. Supports regex and file type filtering",
+                "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "path": {"type": "string", "default": "."}, "file_pattern": {"type": "string"}}, "required": ["query"]}
+            },
+            {
+                "name": "cargo_build",
+                "description": "Build Rust project using Cargo. Supports release mode and specific package builds",
+                "inputSchema": {"type": "object", "properties": {"release": {"type": "boolean", "default": False}, "package": {"type": "string"}}}
+            },
+            {
+                "name": "cargo_test",
+                "description": "Run Rust tests. Can filter by test name or package. Shows test results and failures",
+                "inputSchema": {"type": "object", "properties": {"test_name": {"type": "string"}, "package": {"type": "string"}}}
+            },
+            {
+                "name": "cargo_clippy",
+                "description": "Run Clippy linter for Rust code quality checks. Can auto-fix some warnings",
+                "inputSchema": {"type": "object", "properties": {"fix": {"type": "boolean", "default": False}}}
+            },
+            {
+                "name": "npm_install",
+                "description": "Install npm dependencies. Can install specific packages or all from package.json",
+                "inputSchema": {"type": "object", "properties": {"package": {"type": "string"}}}
+            },
+            {
+                "name": "npm_run",
+                "description": "Execute npm scripts defined in package.json (e.g., build, test, dev)",
+                "inputSchema": {"type": "object", "properties": {"script": {"type": "string"}}, "required": ["script"]}
+            },
+            {
+                "name": "get_agent_status",
+                "description": "Check status of running agents by inspecting tmux sessions. Filter by agent name",
+                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}}
+            },
+            {
+                "name": "stop_agent",
+                "description": "Stop a running agent by killing its tmux session",
+                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}, "required": ["agent"]}
+            },
+            {
+                "name": "get_agent_logs",
+                "description": "Retrieve recent output/logs from an agent's tmux session pane",
+                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}, "limit": {"type": "integer", "default": 50}}, "required": ["agent"]}
+            },
+            {
+                "name": "get_agent_card",
+                "description": "Get a single Miyabi agent TCG card with image. Available agents: shikiroon, tsukuroon, medaman, mitsukeroon, matomeroon, hakoboon, tsunagun",
+                "inputSchema": {"type": "object", "properties": {"agent_name": {"type": "string", "description": "Agent name in English"}}, "required": ["agent_name"]}
+            },
+            {
+                "name": "setup_project",
+                "description": "Setup or configure your GitHub repository for Miyabi. Use this to connect your repo and start using Miyabi tools.",
+                "inputSchema": {"type": "object", "properties": {}}
+            },
 ]
+
+# Tools that can be executed in sandbox
+SANDBOX_TOOLS = {
+    "git_status", "git_diff", "git_log", "git_branch",
+    "read_file", "write_file", "list_directory", "search_code",
+    "cargo_build", "cargo_test", "cargo_clippy",
+    "run_command",
+}
+
+# Feature flag for sandbox mode
+SANDBOX_ENABLED = os.getenv("SANDBOX_ENABLED", "false").lower() == "true"
+
+
+async def execute_in_sandbox_if_enabled(user_id: str, tool_name: str, arguments: dict) -> dict:
+    """Execute tool in sandbox if enabled, otherwise run directly"""
+    if not SANDBOX_ENABLED or tool_name not in SANDBOX_TOOLS:
+        return None  # Signal to use direct execution
+    
+    try:
+        sandbox = await sandbox_manager.get_or_create_sandbox(user_id)
+        result = await sandbox.execute(tool_name, arguments)
+        return result
+    except Exception as e:
+        logger.warning(f"Sandbox execution failed, falling back to direct: {e}")
+        return None
+
 
 
 # Tool Implementations
@@ -731,21 +1145,15 @@ async def execute_agent_tool(params: ExecuteAgentParams) -> Dict[str, Any]:
             "duration_ms": duration_ms,
         }
 
-        # Return with widget metadata
+        # Return text-only response
+        result_text = f"""Agent: {agent_name}
+Status: {result_data.get('status', 'unknown')}
+Duration: {duration_ms}ms
+Output: {output[:500] if output else 'No output'}
+Files Changed: {files_changed}
+Commits: {commits}"""
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Executed {agent_name}",
-                },
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('agent-result', result_data)}",
-                        "mimeType": "text/html",
-                    },
-                },
-            ],
+            "content": [{"type": "text", "text": result_text}],
             "isError": False,
         }
 
@@ -760,19 +1168,7 @@ async def execute_agent_tool(params: ExecuteAgentParams) -> Dict[str, Any]:
         }
 
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Error executing {agent_name}: {str(e)}",
-                },
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('agent-result', error_data)}",
-                        "mimeType": "text/html",
-                    },
-                },
-            ],
+            "content": [{"type": "text", "text": f"Error executing {agent_name}: {str(e)}\nDuration: {duration_ms}ms"}],
             "isError": True,
         }
 
@@ -825,25 +1221,15 @@ async def list_issues_tool(params: ListIssuesParams) -> Dict[str, Any]:
                 }
             )
 
-        widget_data = {
-            "issues": issue_list,
-            "repository": f"{REPO_OWNER}/{REPO_NAME}",
-        }
-
+        # Build text list of issues
+        lines = [f"Found {len(issue_list)} issue(s) in {REPO_OWNER}/{REPO_NAME}:", ""]
+        for issue in issue_list[:20]:  # Limit to 20
+            lines.append(f"#{issue['number']} [{issue.get('state','?')}] {issue['title']}")
+            if issue.get('labels'):
+                lines.append(f"   Labels: {', '.join(issue['labels'])}")
+        
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Found {len(issue_list)} issue(s)",
-                },
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('issue-list', widget_data)}",
-                        "mimeType": "text/html",
-                    },
-                },
-            ],
+            "content": [{"type": "text", "text": chr(10).join(lines)}],
             "isError": False,
         }
     except Exception as e:
@@ -864,13 +1250,7 @@ async def get_project_status_tool() -> Dict[str, Any]:
                     "type": "text",
                     "text": f"Miyabi Project Status\nBranch: {status['branch']}\nCrates: {status['crates_count']}\nMCP Servers: {status['mcp_servers']}",
                 },
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('project-status', status)}",
-                        "mimeType": "text/html",
-                    },
-                },
+
             ],
             "isError": False,
         }
@@ -879,6 +1259,38 @@ async def get_project_status_tool() -> Dict[str, Any]:
             "content": [{"type": "text", "text": f"Error getting status: {str(e)}"}],
             "isError": True,
         }
+
+
+async def setup_project_tool() -> Dict[str, Any]:
+    """Guide user to setup their GitHub repository for Miyabi"""
+    onboarding_url = "https://mcp.miyabi-world.com/onboarding/"
+    
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"""🚀 **Miyabi Project Setup**
+
+To connect your GitHub repository to Miyabi, please visit:
+
+👉 **{onboarding_url}**
+
+This will allow you to:
+1. Select a GitHub repository
+2. Configure Miyabi tools for your project
+3. Start using AI-powered development agents
+
+After setup, you can use tools like:
+- **execute_agent**: Run AI agents (CodeGen, Review, etc.)
+- **create_issue**: Create GitHub issues
+- **list_issues**: View your issues
+- **git_status**: Check repository status
+
+Need help? Just ask!"""
+            },
+        ],
+        "isError": False,
+    }
 
 
 async def list_agents_tool() -> Dict[str, Any]:
@@ -896,13 +1308,7 @@ async def list_agents_tool() -> Dict[str, Any]:
         return {
             "content": [
                 {"type": "text", "text": f"🎯 Miyabi Agent Selector - Choose from {len(agents)} AI agents"},
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('agent-selector', data)}",
-                        "mimeType": "text/html",
-                    },
-                },
+
             ],
             "isError": False,
         }
@@ -914,14 +1320,14 @@ async def list_agents_tool() -> Dict[str, Any]:
 
 
 async def show_agent_cards_tool() -> Dict[str, Any]:
-    """Display Miyabi agents as collectible TCG trading cards"""
+    """Display Miyabi agents as collectible TCG trading cards (text format)"""
     try:
         # Load agent card data from JSON
         card_data_path = MIYABI_ROOT / ".claude" / "agents" / "AGENT_CARD_DATA.json"
 
         if not card_data_path.exists():
             return {
-                "content": [{"type": "text", "text": f"❌ Agent card data not found at {card_data_path}"}],
+                "content": [{"type": "text", "text": f"Agent card data not found at {card_data_path}"}],
                 "isError": True,
             }
 
@@ -929,18 +1335,27 @@ async def show_agent_cards_tool() -> Dict[str, Any]:
             card_data = json.load(f)
 
         agents = card_data.get("agents", [])
-
+        
+        # Build text-based card display
+        lines = [f"MIYABI AGENTS TCG - {len(agents)} Collectible Agent Cards", "=" * 50]
+        
+        for agent in agents:
+            rarity = agent.get("rarity", "?")
+            name_jp = agent.get("name_jp", "?")
+            name_en = agent.get("name_en", "?")
+            role_jp = agent.get("role_jp", "?")
+            level = agent.get("level", 0)
+            stats = agent.get("stats", {})
+            description = agent.get("description", "")
+            
+            lines.append("")
+            lines.append(f"[{rarity}] {name_jp} / {name_en}")
+            lines.append(f"    Role: {role_jp}")
+            lines.append(f"    Lv.{level} | ATK:{stats.get('ATK',0)} DEF:{stats.get('DEF',0)} SPD:{stats.get('SPD',0)} INT:{stats.get('INT',0)}")
+            lines.append(f"    {description[:80]}...")
+        
         return {
-            "content": [
-                {"type": "text", "text": f"⭐ MIYABI AGENTS TCG - {len(agents)} Collectible Agent Cards"},
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('agent-tcg-card', {'agents': agents})}",
-                        "mimeType": "text/html",
-                    },
-                },
-            ],
+            "content": [{"type": "text", "text": chr(10).join(lines)}],
             "isError": False,
         }
     except Exception as e:
@@ -948,6 +1363,64 @@ async def show_agent_cards_tool() -> Dict[str, Any]:
             "content": [{"type": "text", "text": f"Error loading TCG cards: {str(e)}"}],
             "isError": True,
         }
+
+
+
+async def get_agent_card_tool(params: GetAgentCardParams) -> Dict[str, Any]:
+    """Get a single agent TCG card with image"""
+    try:
+        card_data_path = MIYABI_ROOT / ".claude" / "agents" / "AGENT_CARD_DATA.json"
+        images_dir = MIYABI_ROOT / ".claude" / "agents" / "character-images" / "generated"
+        
+        with open(card_data_path, "r", encoding="utf-8") as f:
+            card_data = json.load(f)
+        
+        agent_name = params.agent_name.lower()
+        agent = None
+        for a in card_data.get("agents", []):
+            if a.get("name_en", "").lower() == agent_name:
+                agent = a
+                break
+        
+        if not agent:
+            return {
+                "content": [{"type": "text", "text": f"Agent '{agent_name}' not found. Available: shikiroon, tsukuroon, medaman, mitsukeroon, matomeroon, hakoboon, tsunagun"}],
+                "isError": True,
+            }
+        
+        content_items = []
+        
+        image_path = images_dir / f"{agent_name}.png"
+        if image_path.exists():
+            with open(image_path, "rb") as img_file:
+                image_data = base64.b64encode(img_file.read()).decode("utf-8")
+            content_items.append({
+                "type": "image",
+                "data": image_data,
+                "mimeType": "image/png"
+            })
+        
+        rarity = agent.get("rarity", "?")
+        name_jp = agent.get("name_jp", "?")
+        name_en = agent.get("name_en", "?")
+        role_jp = agent.get("role_jp", "?")
+        level = agent.get("level", 0)
+        stats = agent.get("stats", {})
+        description = agent.get("description", "")
+        skills = agent.get("skills", [])
+        
+        card_text = f"""[{rarity}] {name_jp} / {name_en}
+Role: {role_jp}
+Level: {level}
+Stats: ATK:{stats.get('ATK',0)} DEF:{stats.get('DEF',0)} SPD:{stats.get('SPD',0)} INT:{stats.get('INT',0)}
+Skills: {', '.join([s.get('name','') for s in skills])}
+Description: {description}"""
+        
+        content_items.append({"type": "text", "text": card_text})
+        
+        return {"content": content_items, "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
 
 
 async def execute_agents_parallel_tool(params: ExecuteAgentsParallelParams) -> Dict[str, Any]:
@@ -1010,76 +1483,8 @@ async def execute_agents_parallel_tool(params: ExecuteAgentsParallelParams) -> D
             "content": [
                 {
                     "type": "text",
-                    "text": f"🚀 Parallel Execution: {success_count}/{len(params.agents)} succeeded in {duration_ms}ms",
+                    "text": f"Parallel Execution: {success_count}/{len(params.agents)} succeeded in {duration_ms}ms\n\nResults:\n" + chr(10).join([f"  - {r['agent']}: {r['status']}" for r in agent_results]),
                 },
-                {
-                    "type": "resource",
-                    "resource": {
-                        "uri": f"data:text/html;base64,{create_widget_html('parallel-results', summary_data)}",
-                        "mimeType": "text/html",
-                    },
-                },
-            ],
-            "isError": error_count > 0,
-        }
-
-    except Exception as e:
-        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Error in parallel execution: {str(e)}",
-                }
-            ],
-            "isError": True,
-        }
-
-
-# ==========================================
-# Git Operation Tool Implementations
-# ==========================================
-
-async def git_status_tool(params: GitStatusParams) -> Dict[str, Any]:
-    """Get git status"""
-    try:
-        cmd = ["git", "status", "--porcelain"]
-        if params.path:
-            cmd.append(params.path)
-
-        stdout, stderr, returncode = run_command(cmd)
-
-        if returncode != 0:
-            return {
-                "content": [{"type": "text", "text": f"Error: {stderr}"}],
-                "isError": True,
-            }
-
-        # Parse status
-        files = []
-        for line in stdout.strip().split("\n"):
-            if line:
-                status = line[:2]
-                filepath = line[3:]
-                files.append({"status": status, "path": filepath})
-
-        # Get branch
-        branch_out, _, _ = run_command(["git", "branch", "--show-current"])
-        branch = branch_out.strip()
-
-        result = {
-            "branch": branch,
-            "files": files,
-            "total_changes": len(files),
-        }
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"📁 Git Status on branch '{branch}'\n{len(files)} file(s) changed",
-                }
             ],
             "isError": False,
             **result,
@@ -1653,6 +2058,580 @@ async def get_logs_tool(source: str = "all", limit: int = 50, level: str = "info
         }
 
 
+
+# ============================================
+# GitHub Extended Tools - Functions
+# ============================================
+
+async def get_issue_tool(params: GetIssueParams) -> Dict[str, Any]:
+    """Get details of a specific GitHub issue"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        issue = repo.get_issue(params.issue_number)
+        
+        labels = [l.name for l in issue.labels]
+        assignees = [a.login for a in issue.assignees]
+        
+        text = f"""Issue #{issue.number}: {issue.title}
+State: {issue.state}
+Author: {issue.user.login}
+Created: {issue.created_at}
+Updated: {issue.updated_at}
+Labels: {', '.join(labels) if labels else 'None'}
+Assignees: {', '.join(assignees) if assignees else 'None'}
+
+Body:
+{issue.body or 'No description'}"""
+        return {"content": [{"type": "text", "text": text}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error getting issue: {str(e)}"}], "isError": True}
+
+
+async def update_issue_tool(params: UpdateIssueParams) -> Dict[str, Any]:
+    """Update a GitHub issue"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        issue = repo.get_issue(params.issue_number)
+        
+        kwargs = {}
+        if params.title:
+            kwargs['title'] = params.title
+        if params.body:
+            kwargs['body'] = params.body
+        if params.state:
+            kwargs['state'] = params.state
+        if params.labels:
+            kwargs['labels'] = params.labels
+            
+        issue.edit(**kwargs)
+        return {"content": [{"type": "text", "text": f"Issue #{params.issue_number} updated successfully"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error updating issue: {str(e)}"}], "isError": True}
+
+
+async def close_issue_tool(params: CloseIssueParams) -> Dict[str, Any]:
+    """Close a GitHub issue"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        issue = repo.get_issue(params.issue_number)
+        
+        if params.comment:
+            issue.create_comment(params.comment)
+        issue.edit(state="closed")
+        
+        return {"content": [{"type": "text", "text": f"Issue #{params.issue_number} closed"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error closing issue: {str(e)}"}], "isError": True}
+
+
+async def list_prs_tool(params: ListPRsParams) -> Dict[str, Any]:
+    """List pull requests"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        prs = repo.get_pulls(state=params.state)
+        
+        lines = [f"Pull Requests ({params.state}):"]
+        for i, pr in enumerate(prs):
+            if i >= params.limit:
+                break
+            lines.append(f"#{pr.number} [{pr.state}] {pr.title}")
+            lines.append(f"   {pr.head.ref} -> {pr.base.ref} by {pr.user.login}")
+        
+        return {"content": [{"type": "text", "text": chr(10).join(lines)}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error listing PRs: {str(e)}"}], "isError": True}
+
+
+async def get_pr_tool(params: GetPRParams) -> Dict[str, Any]:
+    """Get PR details"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        pr = repo.get_pull(params.pr_number)
+        
+        labels = [l.name for l in pr.labels]
+        reviewers = [r.login for r in pr.requested_reviewers]
+        
+        text = f"""PR #{pr.number}: {pr.title}
+State: {pr.state} | Merged: {pr.merged}
+Author: {pr.user.login}
+Branch: {pr.head.ref} -> {pr.base.ref}
+Created: {pr.created_at}
+Labels: {', '.join(labels) if labels else 'None'}
+Reviewers: {', '.join(reviewers) if reviewers else 'None'}
+Additions: +{pr.additions} | Deletions: -{pr.deletions} | Files: {pr.changed_files}
+
+Body:
+{pr.body or 'No description'}"""
+        return {"content": [{"type": "text", "text": text}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error getting PR: {str(e)}"}], "isError": True}
+
+
+async def create_pr_tool(params: CreatePRParams) -> Dict[str, Any]:
+    """Create a pull request"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        
+        pr = repo.create_pull(
+            title=params.title,
+            body=params.body,
+            head=params.head,
+            base=params.base
+        )
+        return {"content": [{"type": "text", "text": f"PR #{pr.number} created: {pr.html_url}"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error creating PR: {str(e)}"}], "isError": True}
+
+
+async def merge_pr_tool(params: MergePRParams) -> Dict[str, Any]:
+    """Merge a pull request"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        pr = repo.get_pull(params.pr_number)
+        
+        pr.merge(merge_method=params.merge_method)
+        return {"content": [{"type": "text", "text": f"PR #{params.pr_number} merged successfully"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error merging PR: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# Git Extended Tools - Functions
+# ============================================
+
+async def git_commit_tool(params: GitCommitParams) -> Dict[str, Any]:
+    """Create a git commit"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        
+        if params.files:
+            for f in params.files:
+                subprocess.run(["git", "add", f], cwd=cwd, check=True)
+        else:
+            subprocess.run(["git", "add", "-A"], cwd=cwd, check=True)
+        
+        result = subprocess.run(
+            ["git", "commit", "-m", params.message],
+            cwd=cwd, capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Commit created:\n{result.stdout}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Commit failed: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_push_tool(params: GitPushParams) -> Dict[str, Any]:
+    """Push to remote"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "push", params.remote]
+        if params.branch:
+            cmd.append(params.branch)
+        if params.force:
+            cmd.insert(2, "--force")
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Push successful:\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Push failed: {output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_pull_tool(params: GitPullParams) -> Dict[str, Any]:
+    """Pull from remote"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "pull", params.remote]
+        if params.branch:
+            cmd.append(params.branch)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Pull successful:\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Pull failed: {output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_checkout_tool(params: GitCheckoutParams) -> Dict[str, Any]:
+    """Checkout a branch"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "checkout"]
+        if params.create:
+            cmd.append("-b")
+        cmd.append(params.branch)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Checked out {params.branch}:\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Checkout failed: {output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_create_branch_tool(params: GitCreateBranchParams) -> Dict[str, Any]:
+    """Create a new branch"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        
+        if params.from_branch:
+            subprocess.run(["git", "checkout", params.from_branch], cwd=cwd, check=True)
+        
+        result = subprocess.run(
+            ["git", "checkout", "-b", params.name],
+            cwd=cwd, capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Branch '{params.name}' created"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Failed: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_stash_tool(params: GitStashParams) -> Dict[str, Any]:
+    """Stash changes"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "stash", params.action]
+        if params.action == "push" and params.message:
+            cmd.extend(["-m", params.message])
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        return {"content": [{"type": "text", "text": f"Git stash {params.action}:\n{output}"}], "isError": result.returncode != 0}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# File Operations - Functions
+# ============================================
+
+async def read_file_tool(params: ReadFileParams) -> Dict[str, Any]:
+    """Read a file with path validation"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        # Security: resolve and validate path
+        path = path.resolve()
+        
+        # Prevent reading sensitive files
+        sensitive_patterns = ['.env', 'credentials', 'secrets', '.ssh', '.aws']
+        if any(p in str(path).lower() for p in sensitive_patterns):
+            return {"content": [{"type": "text", "text": "Access denied: Cannot read sensitive files"}], "isError": True}
+        
+        if not path.exists():
+            return {"content": [{"type": "text", "text": f"File not found: {path}"}], "isError": True}
+        
+        with open(path, 'r') as f:
+            lines = f.readlines()[:params.limit]
+        
+        content = ''.join(lines)
+        return {"content": [{"type": "text", "text": f"{path} ({len(lines)} lines):\n\n{content}"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error reading file: {str(e)}"}], "isError": True}
+
+
+async def write_file_tool(params: WriteFileParams) -> Dict[str, Any]:
+    """Write to a file with path validation"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        # Security: resolve and validate path  
+        path = path.resolve()
+        
+        # Prevent writing to sensitive locations
+        if not str(path).startswith(str(MIYABI_ROOT.resolve())):
+            return {"content": [{"type": "text", "text": "Access denied: Can only write within MIYABI_ROOT"}], "isError": True}
+        
+        # Prevent overwriting critical files
+        critical_files = ['.env', 'credentials.json', 'secrets.yaml']
+        if path.name in critical_files:
+            return {"content": [{"type": "text", "text": f"Access denied: Cannot overwrite {path.name}"}], "isError": True}
+        
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as f:
+            f.write(params.content)
+        
+        return {"content": [{"type": "text", "text": f"Written to {path}"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error writing file: {str(e)}"}], "isError": True}
+
+
+async def list_files_tool(params: ListFilesParams) -> Dict[str, Any]:
+    """List files in a directory"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        if params.pattern:
+            files = list(path.glob(params.pattern))
+        else:
+            files = list(path.iterdir())
+        
+        lines = [f"{path}:"]
+        for f in sorted(files)[:50]:
+            prefix = "[DIR]" if f.is_dir() else "[FILE]"
+            lines.append(f"  {prefix} {f.name}")
+        
+        if len(files) > 50:
+            lines.append(f"  ... and {len(files) - 50} more")
+        
+        return {"content": [{"type": "text", "text": chr(10).join(lines)}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def search_code_tool(params: SearchCodeParams) -> Dict[str, Any]:
+    """Search code using grep with input sanitization"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        # Security: validate path
+        path = path.resolve()
+        if not str(path).startswith(str(MIYABI_ROOT.resolve())):
+            return {"content": [{"type": "text", "text": "Access denied: Search path must be within MIYABI_ROOT"}], "isError": True}
+        
+        # Security: sanitize query (prevent command injection via grep patterns)
+        if len(params.query) > 200:
+            return {"content": [{"type": "text", "text": "Query too long (max 200 chars)"}], "isError": True}
+        
+        cmd = ["grep", "-rn", params.query, str(path)]
+        if params.file_pattern:
+            cmd = ["grep", "-rn", "--include", params.file_pattern, params.query, str(path)]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        output = result.stdout[:5000]
+        
+        if result.returncode == 0:
+            lines = output.strip().split(chr(10))
+            return {"content": [{"type": "text", "text": f"Found {len(lines)} matches:\n\n{output}"}], "isError": False}
+        elif result.returncode == 1:
+            return {"content": [{"type": "text", "text": "No matches found"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Search error: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# Build/Test Tools - Functions
+# ============================================
+
+async def cargo_build_tool(params: CargoBuildParams) -> Dict[str, Any]:
+    """Run cargo build with timeout protection"""
+    try:
+        logger.info("Starting cargo build (timeout: 5min)")
+        cwd = str(MIYABI_ROOT)
+        cmd = ["cargo", "build"]
+        if params.release:
+            cmd.append("--release")
+        if params.package:
+            cmd.extend(["-p", params.package])
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=300)
+        output = result.stderr[:3000]
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Build successful\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Build failed:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Build timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def cargo_test_tool(params: CargoTestParams) -> Dict[str, Any]:
+    """Run cargo test"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["cargo", "test"]
+        if params.package:
+            cmd.extend(["-p", params.package])
+        if params.test_name:
+            cmd.append(params.test_name)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=300)
+        output = (result.stdout + result.stderr)[:4000]
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Tests passed\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Tests failed:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Tests timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def cargo_clippy_tool(params: CargoClippyParams) -> Dict[str, Any]:
+    """Run cargo clippy"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["cargo", "clippy"]
+        if params.fix:
+            cmd.append("--fix")
+        cmd.extend(["--", "-D", "warnings"])
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=300)
+        output = result.stderr[:4000]
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Clippy passed\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Clippy warnings/errors:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Clippy timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def npm_install_tool(params: NpmInstallParams) -> Dict[str, Any]:
+    """Run npm install"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["npm", "install"]
+        if params.package:
+            cmd.append(params.package)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"npm install successful\n{output[:2000]}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"npm install failed:\n{output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def npm_run_tool(params: NpmRunParams) -> Dict[str, Any]:
+    """Run npm script"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        result = subprocess.run(
+            ["npm", "run", params.script],
+            cwd=cwd, capture_output=True, text=True, timeout=300
+        )
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"npm run {params.script}:\n{output[:3000]}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"npm run {params.script} failed:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Script timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# Agent Details - Functions
+# ============================================
+
+async def get_agent_status_tool(params: GetAgentStatusParams) -> Dict[str, Any]:
+    """Get agent status"""
+    try:
+        result = subprocess.run(
+            ["tmux", "list-sessions", "-F", "#{session_name}:#{session_windows}"],
+            capture_output=True, text=True
+        )
+        
+        sessions = result.stdout.strip().split(chr(10)) if result.stdout.strip() else []
+        
+        lines = ["Agent Status:"]
+        for session in sessions:
+            if params.agent and params.agent not in session:
+                continue
+            lines.append(f"  - {session}")
+        
+        if len(lines) == 1:
+            lines.append("  No agents running")
+        
+        return {"content": [{"type": "text", "text": chr(10).join(lines)}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def stop_agent_tool(params: StopAgentParams) -> Dict[str, Any]:
+    """Stop an agent"""
+    try:
+        result = subprocess.run(
+            ["tmux", "kill-session", "-t", params.agent],
+            capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Agent {params.agent} stopped"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Failed to stop agent: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def get_agent_logs_tool(params: GetAgentLogsParams) -> Dict[str, Any]:
+    """Get agent logs"""
+    try:
+        result = subprocess.run(
+            ["tmux", "capture-pane", "-t", params.agent, "-p", "-S", f"-{params.limit}"],
+            capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Logs for {params.agent}:\n{result.stdout}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Failed to get logs: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+
 # ==========================================
 # OAuth 2.1 Endpoints (MCP Spec Compliant)
 # ==========================================
@@ -1692,6 +2671,24 @@ async def oauth_server_metadata():
         "service_documentation": "https://github.com/customer-cloud/miyabi-private",
     }
 
+
+
+
+@app.get("/.well-known/oauth-protected-resource")
+@app.get("/.well-known/oauth-protected-resource/{path:path}")
+async def oauth_protected_resource(path: str = ""):
+    """
+    OAuth 2.0 Protected Resource Metadata (RFC 9728)
+    Tells clients which authorization server protects this resource
+    """
+    server_url = os.getenv("SERVER_URL", "http://localhost:8000")
+    
+    return {
+        "resource": server_url,
+        "authorization_servers": [f"{server_url}/.well-known/oauth-authorization-server"],
+        "bearer_methods_supported": ["header"],
+        "scopes_supported": ["mcp:read", "mcp:write", "mcp:admin"],
+    }
 
 @app.get("/.well-known/mcp-configuration")
 async def mcp_configuration():
@@ -1772,10 +2769,19 @@ async def oauth_authorize(
     auth_code = secrets.token_urlsafe(32)
 
     # Store authorization code with metadata
+    # Generate temporary user ID (will be replaced by GitHub OAuth)
+    temp_user_id = f"user_{secrets.token_hex(8)}"
+    
+    # Initialize default project for new user
+    if temp_user_id not in user_projects:
+        user_projects[temp_user_id] = DEFAULT_PROJECT.copy()
+        logger.info(f"Created default project for new user: {temp_user_id}")
+    
     oauth_authorization_codes[auth_code] = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "scope": scope,
+        "user_id": temp_user_id,
         "created_at": time.time(),
         "expires_at": time.time() + 600,  # 10 minutes
     }
@@ -1839,6 +2845,19 @@ async def oauth_token(
             "created_at": time.time(),
             "expires_at": time.time() + 3600,  # 1 hour
         }
+        # Link token to user
+        user_id = auth_data.get("user_id", f"unknown_{secrets.token_hex(4)}")
+        token_data["user_id"] = user_id
+        token_to_user[access_token] = user_id
+        
+        # Store in database for persistence
+        try:
+            await sandbox_manager.create_user(user_id)
+            await sandbox_manager.store_token(access_token, user_id, auth_data["scope"])
+            logger.info(f"Issued and persisted token for user: {user_id}")
+        except Exception as e:
+            logger.warning(f"Failed to persist token (using in-memory): {e}")
+        
         oauth_access_tokens[access_token] = token_data
         oauth_refresh_tokens[new_refresh_token] = {
             **token_data,
@@ -1898,6 +2917,68 @@ async def oauth_token(
 
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported grant_type: {grant_type}")
+
+
+
+
+# User Project Management Endpoints
+@app.get("/user/project")
+async def get_user_project_config(token: str = Depends(verify_bearer_token)):
+    """Get current user's project configuration"""
+    project = get_user_project(token)
+    return {
+        "project_root": project.get("project_root"),
+        "github_repo": project.get("github_repo"),
+        "configured": project != DEFAULT_PROJECT,
+    }
+
+
+@app.post("/user/project")
+async def set_user_project_config(request: Request, token: str = Depends(verify_bearer_token)):
+    """Set user's project configuration"""
+    try:
+        body = await request.json()
+        user_id = token_to_user.get(token)
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="User not identified")
+        
+        project_root = body.get("project_root")
+        if project_root and not Path(project_root).exists():
+            raise HTTPException(status_code=400, detail=f"Project root does not exist: {project_root}")
+        
+        if user_id not in user_projects:
+            user_projects[user_id] = DEFAULT_PROJECT.copy()
+        
+        if project_root:
+            user_projects[user_id]["project_root"] = project_root
+        if body.get("github_repo"):
+            user_projects[user_id]["github_repo"] = body["github_repo"]
+        if body.get("github_token"):
+            user_projects[user_id]["github_token"] = body["github_token"]
+        
+        logger.info(f"Updated project config for user {user_id}")
+        
+        return {"status": "success", "project": user_projects[user_id]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/user/info")
+async def get_user_info(token: str = Depends(verify_bearer_token)):
+    """Get current user information"""
+    user_id = token_to_user.get(token)
+    token_data = oauth_access_tokens.get(token, {})
+    project = get_user_project(token)
+    
+    return {
+        "user_id": user_id,
+        "scope": token_data.get("scope"),
+        "project": {"root": project.get("project_root"), "repo": project.get("github_repo")},
+        "token_expires_at": token_data.get("expires_at"),
+    }
 
 
 # ==========================================
@@ -2026,22 +3107,217 @@ async def github_auth_callback(
     # Clean up state
     del github_oauth_states[state]
 
-    # Redirect to original destination or return token
-    redirect_uri = state_data.get("redirect_uri")
-    if redirect_uri:
-        separator = "&" if "?" in redirect_uri else "?"
-        return RedirectResponse(
-            url=f"{redirect_uri}{separator}access_token={our_access_token}&token_type=Bearer&github_user={user_info['login']}"
-        )
+    # Check if user has completed onboarding
+    user_id = f"github_{user_info['id']}"
+    try:
+        projects = await sandbox_manager.get_user_projects(user_id)
+        has_projects = len(projects) > 0
+    except Exception:
+        has_projects = False
 
-    return {
-        "access_token": our_access_token,
-        "token_type": "Bearer",
-        "expires_in": 3600 * 8,
-        "refresh_token": our_refresh_token,
-        "scope": scope,
-        "github_user": user_info["login"],
-    }
+    # Check if this is from ChatGPT/MCP client (no redirect_uri or specific patterns)
+    redirect_uri = state_data.get("redirect_uri")
+    is_mcp_client = not redirect_uri or "chatgpt.com" in (redirect_uri or "") or "connector" in (redirect_uri or "")
+    
+    if is_mcp_client:
+        # Return HTML completion page for MCP clients
+        onboarding_url = f"https://mcp.miyabi-world.com/onboarding/?access_token={our_access_token}&github_user={user_info['login']}"
+        dashboard_url = f"https://mcp.miyabi-world.com/admin-ui/?access_token={our_access_token}&github_user={user_info['login']}"
+        
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi - Authentication Complete</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f1117 0%, #1a1d24 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }}
+        .card {{
+            background: #1a1d24;
+            border: 1px solid #2d3139;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }}
+        .success-icon {{
+            width: 80px;
+            height: 80px;
+            background: rgba(34, 197, 94, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }}
+        .success-icon svg {{
+            width: 40px;
+            height: 40px;
+            color: #22c55e;
+        }}
+        h1 {{
+            font-size: 24px;
+            margin-bottom: 8px;
+        }}
+        .user-info {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #242830;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            margin: 16px 0 24px;
+            font-size: 14px;
+            color: #a0a8b8;
+        }}
+        .divider {{
+            height: 1px;
+            background: #2d3139;
+            margin: 24px 0;
+        }}
+        .next-steps {{
+            text-align: left;
+        }}
+        .next-steps h2 {{
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #a0a8b8;
+        }}
+        .step {{
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #242830;
+            border-radius: 8px;
+        }}
+        .step-number {{
+            width: 28px;
+            height: 28px;
+            background: #6366f1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }}
+        .step-content h3 {{
+            font-size: 14px;
+            margin-bottom: 4px;
+        }}
+        .step-content p {{
+            font-size: 13px;
+            color: #a0a8b8;
+            line-height: 1.5;
+        }}
+        .btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }}
+        .btn:hover {{
+            background: #818cf8;
+        }}
+        .btn-secondary {{
+            background: transparent;
+            border: 1px solid #2d3139;
+            color: #a0a8b8;
+        }}
+        .btn-secondary:hover {{
+            background: #242830;
+            color: #fff;
+        }}
+        .chatgpt-note {{
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #a0a8b8;
+        }}
+        .chatgpt-note strong {{
+            color: #fff;
+        }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <h1>GitHub Authentication Complete!</h1>
+        <div class="user-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            {user_info['login']}
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="next-steps">
+            <h2>{'Next Step: Select a Repository' if not has_projects else 'You are All Set!'}</h2>
+            
+            {'<div class="step"><div class="step-number">1</div><div class="step-content"><h3>Choose Your Repository</h3><p>Select a GitHub repository to connect with Miyabi. This will enable AI-powered development tools for that project.</p></div></div>' if not has_projects else '<div class="step"><div class="step-number">✓</div><div class="step-content"><h3>Projects Already Configured</h3><p>You have ' + str(len(projects)) + ' project(s) set up. You can manage them in the dashboard.</p></div></div>'}
+            
+            <a href="{onboarding_url if not has_projects else dashboard_url}" class="btn">
+                {'Setup Repository' if not has_projects else 'Go to Dashboard'}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        
+        <div class="chatgpt-note">
+            <strong>Using ChatGPT?</strong><br>
+            After setting up your repository, return to ChatGPT and start using Miyabi tools. Try asking: <em>"Show my GitHub issues"</em> or <em>"Create a new branch"</em>
+        </div>
+    </div>
+</body>
+</html>
+"""
+        return HTMLResponse(content=html_content)
+    
+    # For other clients, redirect normally
+    if not redirect_uri or redirect_uri == "/":
+        if has_projects:
+            redirect_uri = "/admin-ui/"
+        else:
+            redirect_uri = "/onboarding/"
+    
+    separator = "&" if "?" in redirect_uri else "?"
+    return RedirectResponse(
+        url=f"{redirect_uri}{separator}access_token={our_access_token}&token_type=Bearer&github_user={user_info['login']}&github_id={user_info['id']}"
+    )
 
 
 @app.get("/auth/github/user")
@@ -2058,7 +3334,360 @@ async def get_github_user(token: str = Depends(verify_bearer_token)):
     }
 
 
-# MCP Endpoints
+
+# SSE MCP Endpoint for Claude Desktop
+import uuid
+from typing import AsyncGenerator
+
+# Store active SSE connections
+sse_connections: Dict[str, asyncio.Queue] = {}
+
+@app.get("/mcp")
+async def mcp_sse_handler(request: Request):
+    """
+    SSE MCP endpoint for Claude Desktop
+    
+    This endpoint establishes a Server-Sent Events connection for real-time MCP communication.
+    Claude Desktop uses this for bidirectional communication via SSE + POST.
+    """
+    # Check for SSE request (Accept: text/event-stream)
+    accept = request.headers.get("accept", "")
+    
+    if "text/event-stream" not in accept:
+        # Return MCP server info for non-SSE requests
+        return {
+            "name": "Miyabi MCP Server",
+            "version": "2.0.0",
+            "protocol": "mcp",
+            "transport": "sse",
+            "endpoints": {
+                "sse": "/mcp",
+                "messages": "/mcp/messages"
+            }
+        }
+    
+    # Generate connection ID
+    connection_id = str(uuid.uuid4())
+    message_queue: asyncio.Queue = asyncio.Queue()
+    sse_connections[connection_id] = message_queue
+    
+    async def event_generator() -> AsyncGenerator[str, None]:
+        """Generate SSE events"""
+        try:
+            # Send initial connection event with endpoint info
+            yield f"event: endpoint\ndata: /mcp/messages?session_id={connection_id}\n\n"
+            
+            # Keep connection alive and send queued messages
+            while True:
+                try:
+                    # Wait for messages with timeout for keepalive
+                    message = await asyncio.wait_for(message_queue.get(), timeout=30.0)
+                    yield f"event: message\ndata: {json.dumps(message)}\n\n"
+                except asyncio.TimeoutError:
+                    # Send keepalive ping
+                    yield f": keepalive\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            # Cleanup connection
+            if connection_id in sse_connections:
+                del sse_connections[connection_id]
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
+
+
+@app.post("/mcp/messages")
+async def mcp_sse_messages(
+    request: Request,
+    session_id: str = None
+):
+    """
+    Handle MCP messages for SSE connections
+    
+    This endpoint receives JSON-RPC messages and processes them,
+    then queues responses for the SSE connection.
+    """
+    try:
+        body = await request.json()
+        mcp_request = MCPRequest(**body)
+        
+        # Process the request (reuse existing logic)
+        response = await process_mcp_request(mcp_request)
+        
+        # If we have an SSE connection, queue the response
+        if session_id and session_id in sse_connections:
+            await sse_connections[session_id].put(response)
+        
+        # Also return the response directly
+        if response is None:
+            return Response(status_code=204)
+        return response
+        
+    except Exception as e:
+        error_response = {
+            "jsonrpc": "2.0",
+            "id": None,
+            "error": {
+                "code": -32603,
+                "message": str(e)
+            }
+        }
+        return error_response
+
+
+async def process_mcp_request(mcp_request: MCPRequest) -> dict:
+    """Process MCP request and return response (shared logic)"""
+    
+    if mcp_request.method == "initialize":
+        return MCPResponse(
+            id=mcp_request.id,
+            result={
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "prompts": {},
+                    "resources": {}
+                },
+                "serverInfo": {
+                    "name": "Miyabi MCP Server",
+                    "version": "2.0.0"
+                }
+            }
+        ).dict()
+    
+    elif mcp_request.method in ("initialized", "notifications/initialized"):
+        return None
+    
+    elif mcp_request.method == "tools/list":
+        return MCPResponse(id=mcp_request.id, result={"tools": TOOLS}).dict()
+    
+    elif mcp_request.method == "tools/call":
+        # Delegate to existing tool handler
+        return await handle_tool_call(mcp_request)
+    
+    else:
+        return {
+            "jsonrpc": "2.0",
+            "id": mcp_request.id,
+            "error": {
+                "code": -32601,
+                "message": f"Method not found: {mcp_request.method}"
+            }
+        }
+
+
+async def handle_tool_call(mcp_request: MCPRequest) -> dict:
+    """Handle tools/call request"""
+    tool_name = mcp_request.params.get("name")
+    arguments = mcp_request.params.get("arguments", {})
+    
+    try:
+        # Import all tool handlers (they should already exist)
+        result = None
+        
+        if tool_name == "execute_agent":
+            result = await execute_agent_tool(ExecuteAgentParams(**arguments))
+        elif tool_name == "create_issue":
+            result = await create_issue_tool(CreateIssueParams(**arguments))
+        elif tool_name == "list_issues":
+            result = await list_issues_tool(ListIssuesParams(**arguments))
+        elif tool_name == "get_project_status":
+            result = await get_project_status_tool()
+        elif tool_name == "list_agents":
+            result = await list_agents_tool()
+        elif tool_name == "show_agent_cards":
+            result = await show_agent_cards_tool()
+        elif tool_name == "execute_agents_parallel":
+            result = await execute_agents_parallel_tool(ExecuteAgentsParallelParams(**arguments))
+        elif tool_name == "git_status":
+            result = await git_status_tool(GitStatusParams(**arguments))
+        elif tool_name == "git_diff":
+            result = await git_diff_tool(GitDiffParams(**arguments))
+        elif tool_name == "git_log":
+            result = await git_log_tool(GitLogParams(**arguments))
+        elif tool_name == "git_branch":
+            result = await git_branch_tool(GitBranchParams(**arguments))
+        elif tool_name == "system_resources":
+            result = await system_resources_tool()
+        elif tool_name == "process_list":
+            result = await process_list_tool(ProcessListParams(**arguments))
+        elif tool_name == "network_status":
+            result = await network_status_tool(NetworkStatusParams(**arguments))
+        elif tool_name == "obsidian_create_note":
+            result = await obsidian_create_note_tool(ObsidianCreateNoteParams(**arguments))
+        elif tool_name == "obsidian_search":
+            result = await obsidian_search_tool(ObsidianSearchParams(**arguments))
+        elif tool_name == "obsidian_update_note":
+            result = await obsidian_update_note_tool(ObsidianUpdateNoteParams(**arguments))
+        elif tool_name == "tmux_list_sessions":
+            result = await tmux_list_sessions_tool(TmuxListParams(**arguments))
+        elif tool_name == "tmux_send_keys":
+            result = await tmux_send_keys_tool(TmuxSendKeysParams(**arguments))
+        elif tool_name == "get_logs":
+            result = await get_logs_tool(**arguments)
+        elif tool_name == "get_issue":
+            result = await get_issue_tool(GetIssueParams(**arguments))
+        elif tool_name == "update_issue":
+            result = await update_issue_tool(UpdateIssueParams(**arguments))
+        elif tool_name == "close_issue":
+            result = await close_issue_tool(CloseIssueParams(**arguments))
+        elif tool_name == "add_issue_comment":
+            result = await add_issue_comment_tool(AddIssueCommentParams(**arguments))
+        elif tool_name == "list_prs":
+            result = await list_prs_tool(ListPRsParams(**arguments))
+        elif tool_name == "get_pr":
+            result = await get_pr_tool(GetPRParams(**arguments))
+        elif tool_name == "create_pr":
+            result = await create_pr_tool(CreatePRParams(**arguments))
+        elif tool_name == "merge_pr":
+            result = await merge_pr_tool(MergePRParams(**arguments))
+        elif tool_name == "run_workflow":
+            result = await run_workflow_tool(RunWorkflowParams(**arguments))
+        elif tool_name == "list_workflows":
+            result = await list_workflows_tool(ListWorkflowsParams(**arguments))
+        elif tool_name == "read_file":
+            result = await read_file_tool(ReadFileParams(**arguments))
+        elif tool_name == "write_file":
+            result = await write_file_tool(WriteFileParams(**arguments))
+        elif tool_name == "search_code":
+            result = await search_code_tool(SearchCodeParams(**arguments))
+        elif tool_name == "list_directory":
+            result = await list_directory_tool(ListDirectoryParams(**arguments))
+        elif tool_name == "cargo_build":
+            result = await cargo_build_tool(CargoBuildParams(**arguments))
+        elif tool_name == "cargo_test":
+            result = await cargo_test_tool(CargoTestParams(**arguments))
+        elif tool_name == "cargo_clippy":
+            result = await cargo_clippy_tool(CargoClippyParams(**arguments))
+        elif tool_name == "run_command":
+            result = await run_command_tool(RunCommandParams(**arguments))
+        elif tool_name == "get_agent_logs":
+            result = await get_agent_logs_tool(GetAgentLogsParams(**arguments))
+        elif tool_name == "get_agent_card":
+            result = await get_agent_card_tool(GetAgentCardParams(**arguments))
+        elif tool_name == "setup_project":
+            result = await setup_project_tool()
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": mcp_request.id,
+                "error": {
+                    "code": -32602,
+                    "message": f"Unknown tool: {tool_name}"
+                }
+            }
+        
+        return MCPResponse(id=mcp_request.id, result=result).dict()
+        
+    except Exception as e:
+        return {
+            "jsonrpc": "2.0",
+            "id": mcp_request.id,
+            "error": {
+                "code": -32603,
+                "message": f"Tool execution error: {str(e)}"
+            }
+        }
+
+
+
+
+
+# Admin API Endpoints
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
+
+async def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> bool:
+    """Verify admin token"""
+    if not ADMIN_TOKEN:
+        raise HTTPException(status_code=503, detail="Admin API not configured")
+    if credentials is None or credentials.credentials != ADMIN_TOKEN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return True
+
+
+@app.get("/admin/users")
+async def admin_list_users(is_admin: bool = Depends(verify_admin_token)):
+    """List all users (Admin only)"""
+    users = await sandbox_manager.list_all_users()
+    return {"users": users, "count": len(users)}
+
+
+@app.get("/admin/user/{user_id}")
+async def admin_get_user(user_id: str, is_admin: bool = Depends(verify_admin_token)):
+    """Get user details (Admin only)"""
+    user = await sandbox_manager.get_user(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    sub = await sandbox_manager.get_subscription(user_id)
+    usage = await sandbox_manager.get_usage_summary(user_id)
+    projects = await sandbox_manager.get_user_projects(user_id)
+    
+    return {
+        "user": user,
+        "subscription": sub,
+        "usage": usage,
+        "projects": projects,
+    }
+
+
+@app.post("/admin/user/{user_id}/suspend")
+async def admin_suspend_user(user_id: str, is_admin: bool = Depends(verify_admin_token)):
+    """Suspend user access (Admin only)"""
+    result = await sandbox_manager.suspend_user(user_id)
+    return {"status": "suspended" if result else "failed", "user_id": user_id}
+
+
+@app.post("/admin/user/{user_id}/reactivate")
+async def admin_reactivate_user(user_id: str, is_admin: bool = Depends(verify_admin_token)):
+    """Reactivate suspended user (Admin only)"""
+    result = await sandbox_manager.reactivate_user(user_id)
+    return {"status": "reactivated" if result else "failed", "user_id": user_id}
+
+
+@app.post("/admin/user/{user_id}/plan")
+async def admin_set_plan(user_id: str, request: Request, is_admin: bool = Depends(verify_admin_token)):
+    """Set user plan (Admin only)"""
+    body = await request.json()
+    plan = body.get("plan", "free")
+    if plan not in ["free", "pro", "enterprise"]:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    sub = await sandbox_manager.create_subscription(user_id, plan)
+    return {"status": "updated", "subscription": sub}
+
+
+@app.get("/admin/stats")
+async def admin_stats(is_admin: bool = Depends(verify_admin_token)):
+    """Get system statistics (Admin only)"""
+    async with sandbox_manager.db_pool.acquire() as conn:
+        user_count = await conn.fetchval("SELECT COUNT(*) FROM mcp_users")
+        active_subs = await conn.fetchval(
+            "SELECT COUNT(*) FROM mcp_subscriptions WHERE status = 'active'"
+        )
+        total_usage = await conn.fetchrow(
+            "SELECT COUNT(*) as calls, SUM(tokens_used) as tokens FROM mcp_usage"
+        )
+    
+    return {
+        "total_users": user_count,
+        "active_subscriptions": active_subs,
+        "total_api_calls": total_usage["calls"] or 0,
+        "total_tokens_used": total_usage["tokens"] or 0,
+        "active_sandboxes": len(sandbox_manager.active_sandboxes),
+    }
+
+
+
+# MCP Endpoints (HTTP POST - original)
 @app.post("/mcp")
 async def mcp_handler(
     request: Request,
@@ -2070,6 +3699,12 @@ async def mcp_handler(
     Requires: Authorization: Bearer <token>
     """
     try:
+        # Set user context for this request
+        current_user_token.set(token)
+        user_project = get_user_project(token)
+        project_root = Path(user_project.get("project_root", str(MIYABI_ROOT)))
+        current_user_project.set(project_root)
+        
         body = await request.json()
         mcp_request = MCPRequest(**body)
 
@@ -2087,7 +3722,7 @@ async def mcp_handler(
                     },
                     "serverInfo": {
                         "name": "Miyabi MCP Server",
-                        "version": "1.0.0"
+                        "version": "2.0.0"  # Brushup Sprint - 45 tools, enhanced descriptions
                     }
                 }
             ).dict()
@@ -2150,6 +3785,65 @@ async def mcp_handler(
             # Log tools
             elif tool_name == "get_logs":
                 result = await get_logs_tool(**arguments)
+                        # GitHub Extended
+            elif tool_name == "get_issue":
+                result = await get_issue_tool(GetIssueParams(**arguments))
+            elif tool_name == "update_issue":
+                result = await update_issue_tool(UpdateIssueParams(**arguments))
+            elif tool_name == "close_issue":
+                result = await close_issue_tool(CloseIssueParams(**arguments))
+            elif tool_name == "list_prs":
+                result = await list_prs_tool(ListPRsParams(**arguments))
+            elif tool_name == "get_pr":
+                result = await get_pr_tool(GetPRParams(**arguments))
+            elif tool_name == "create_pr":
+                result = await create_pr_tool(CreatePRParams(**arguments))
+            elif tool_name == "merge_pr":
+                result = await merge_pr_tool(MergePRParams(**arguments))
+            # Git Extended
+            elif tool_name == "git_commit":
+                result = await git_commit_tool(GitCommitParams(**arguments))
+            elif tool_name == "git_push":
+                result = await git_push_tool(GitPushParams(**arguments))
+            elif tool_name == "git_pull":
+                result = await git_pull_tool(GitPullParams(**arguments))
+            elif tool_name == "git_checkout":
+                result = await git_checkout_tool(GitCheckoutParams(**arguments))
+            elif tool_name == "git_create_branch":
+                result = await git_create_branch_tool(GitCreateBranchParams(**arguments))
+            elif tool_name == "git_stash":
+                result = await git_stash_tool(GitStashParams(**arguments))
+            # File Operations
+            elif tool_name == "read_file":
+                result = await read_file_tool(ReadFileParams(**arguments))
+            elif tool_name == "write_file":
+                result = await write_file_tool(WriteFileParams(**arguments))
+            elif tool_name == "list_files":
+                result = await list_files_tool(ListFilesParams(**arguments))
+            elif tool_name == "search_code":
+                result = await search_code_tool(SearchCodeParams(**arguments))
+            # Build/Test
+            elif tool_name == "cargo_build":
+                result = await cargo_build_tool(CargoBuildParams(**arguments))
+            elif tool_name == "cargo_test":
+                result = await cargo_test_tool(CargoTestParams(**arguments))
+            elif tool_name == "cargo_clippy":
+                result = await cargo_clippy_tool(CargoClippyParams(**arguments))
+            elif tool_name == "npm_install":
+                result = await npm_install_tool(NpmInstallParams(**arguments))
+            elif tool_name == "npm_run":
+                result = await npm_run_tool(NpmRunParams(**arguments))
+            # Agent Details
+            elif tool_name == "get_agent_status":
+                result = await get_agent_status_tool(GetAgentStatusParams(**arguments))
+            elif tool_name == "stop_agent":
+                result = await stop_agent_tool(StopAgentParams(**arguments))
+            elif tool_name == "get_agent_logs":
+                result = await get_agent_logs_tool(GetAgentLogsParams(**arguments))
+            elif tool_name == "get_agent_card":
+                result = await get_agent_card_tool(GetAgentCardParams(**arguments))
+            elif tool_name == "setup_project":
+                result = await setup_project_tool()
             else:
                 return MCPResponse(
                     id=mcp_request.id,
@@ -2175,12 +3869,32 @@ async def mcp_handler(
         )
 
 
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize sandbox manager on startup"""
+    try:
+        await sandbox_manager.initialize()
+        logger.info("Sandbox manager initialized")
+    except Exception as e:
+        logger.warning(f"Sandbox manager initialization failed (non-fatal): {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    try:
+        await sandbox_manager.close()
+    except Exception:
+        pass
+
 @app.get("/")
 async def root():
     """Health check endpoint"""
     return {
         "name": "Miyabi MCP Server",
-        "version": "1.0.0",
+        "version": "2.0.0",  # Brushup Sprint - 45 tools, enhanced descriptions
         "status": "running",
         "tools": len(TOOLS),
     }
@@ -2191,7 +3905,7 @@ async def mcp_info():
     """MCP endpoint information (use POST for actual MCP requests)"""
     return {
         "name": "Miyabi MCP Server",
-        "version": "1.0.0",
+        "version": "2.0.0",  # Brushup Sprint - 45 tools, enhanced descriptions
         "protocol": "Model Context Protocol (MCP)",
         "description": "MCP server for Miyabi autonomous agent framework",
         "methods": ["tools/list", "tools/call"],
@@ -2215,3 +3929,271 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+# ============================================
+# Admin UI Static Files
+# ============================================
+ADMIN_UI_PATH = Path(__file__).parent.parent / "admin-ui" / "dist"
+if ADMIN_UI_PATH.exists():
+    app.mount("/admin-ui", StaticFiles(directory=str(ADMIN_UI_PATH), html=True), name="admin-ui")
+    logger.info(f"Admin UI mounted from {ADMIN_UI_PATH}")
+else:
+    logger.warning(f"Admin UI directory not found: {ADMIN_UI_PATH}")
+
+
+# ============================================
+# Onboarding API Endpoints
+# ============================================
+
+@app.get("/user/onboarding/status")
+async def get_onboarding_status(token: str = Depends(verify_bearer_token)):
+    """Check if user has completed onboarding (has at least one project)"""
+    token_data = oauth_access_tokens.get(token)
+    if not token_data:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    github_user = token_data.get("github_user")
+    github_id = token_data.get("github_id")
+    
+    # Check if user has projects in database
+    projects = await sandbox_manager.get_user_projects(f"github_{github_id}")
+    
+    return {
+        "completed": len(projects) > 0,
+        "github_user": github_user,
+        "github_id": github_id,
+        "project_count": len(projects),
+        "projects": projects
+    }
+
+
+@app.get("/user/github/repos")
+async def list_github_repos(
+    token: str = Depends(verify_bearer_token),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(30, ge=1, le=100),
+):
+    """List user's GitHub repositories for project selection"""
+    token_data = oauth_access_tokens.get(token)
+    if not token_data or "github_token" not in token_data:
+        raise HTTPException(status_code=401, detail="Not authenticated with GitHub")
+    
+    github_token = token_data["github_token"]
+    
+    import httpx
+    async with httpx.AsyncClient() as client:
+        # Get user's repos (owned + collaborator access)
+        response = await client.get(
+            "https://api.github.com/user/repos",
+            params={
+                "type": "all",  # all, owner, public, private, member
+                "sort": "updated",
+                "direction": "desc",
+                "page": page,
+                "per_page": per_page,
+            },
+            headers={
+                "Authorization": f"Bearer {github_token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch repositories")
+        
+        repos = response.json()
+        
+        return {
+            "repos": [
+                {
+                    "id": repo["id"],
+                    "name": repo["name"],
+                    "full_name": repo["full_name"],
+                    "description": repo.get("description"),
+                    "private": repo["private"],
+                    "html_url": repo["html_url"],
+                    "clone_url": repo["clone_url"],
+                    "default_branch": repo.get("default_branch", "main"),
+                    "language": repo.get("language"),
+                    "updated_at": repo["updated_at"],
+                    "owner": {
+                        "login": repo["owner"]["login"],
+                        "avatar_url": repo["owner"]["avatar_url"],
+                    }
+                }
+                for repo in repos
+            ],
+            "page": page,
+            "per_page": per_page,
+            "has_more": len(repos) == per_page,
+        }
+
+
+class ProjectCreateRequest(BaseModel):
+    repo_full_name: str  # e.g., "owner/repo-name"
+    project_name: Optional[str] = None  # Custom name, defaults to repo name
+
+
+@app.post("/user/projects")
+async def create_user_project(
+    request: ProjectCreateRequest,
+    token: str = Depends(verify_bearer_token),
+):
+    """Create a new project from a GitHub repository"""
+    token_data = oauth_access_tokens.get(token)
+    if not token_data or "github_token" not in token_data:
+        raise HTTPException(status_code=401, detail="Not authenticated with GitHub")
+    
+    github_token = token_data["github_token"]
+    github_user = token_data["github_user"]
+    github_id = token_data["github_id"]
+    user_id = f"github_{github_id}"
+    
+    # Validate repository access
+    import httpx
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"https://api.github.com/repos/{request.repo_full_name}",
+            headers={
+                "Authorization": f"Bearer {github_token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        
+        if response.status_code == 404:
+            raise HTTPException(status_code=404, detail="Repository not found or no access")
+        elif response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to verify repository")
+        
+        repo_info = response.json()
+    
+    # Create project name
+    project_name = request.project_name or repo_info["name"]
+    
+    # Check if project already exists
+    existing_projects = await sandbox_manager.get_user_projects(user_id)
+    for proj in existing_projects:
+        if proj.get("github_repo") == request.repo_full_name:
+            raise HTTPException(status_code=409, detail="Project for this repository already exists")
+    
+    # Create user if not exists
+    await sandbox_manager.create_user(
+        user_id=user_id,
+        github_id=str(github_id),
+        github_username=github_user,
+        email=None,
+        plan="free"
+    )
+    
+    # Create the project
+    project_id = await sandbox_manager.create_project(
+        user_id=user_id,
+        project_name=project_name,
+        github_repo=request.repo_full_name,
+        github_token=github_token,
+    )
+    
+    # Initialize sandbox with git clone (async, don't block)
+    try:
+        sandbox = await sandbox_manager.get_or_create_sandbox(user_id, project_name)
+        # Clone the repository in the sandbox
+        clone_result = await sandbox.execute(
+            "run_bash",
+            {
+                "command": f"git clone https://{github_token}@github.com/{request.repo_full_name}.git /workspace/{project_name} 2>&1 || echo 'Clone may have failed or repo already exists'"
+            }
+        )
+        logger.info(f"Clone result for {project_name}: {clone_result}")
+    except Exception as e:
+        logger.warning(f"Failed to initialize sandbox for {project_name}: {e}")
+    
+    return {
+        "project_id": project_id,
+        "project_name": project_name,
+        "github_repo": request.repo_full_name,
+        "status": "created",
+        "message": f"Project '{project_name}' created successfully"
+    }
+
+
+@app.get("/user/projects")
+async def list_user_projects(token: str = Depends(verify_bearer_token)):
+    """List all projects for the authenticated user"""
+    token_data = oauth_access_tokens.get(token)
+    if not token_data:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    github_id = token_data.get("github_id")
+    user_id = f"github_{github_id}"
+    
+    projects = await sandbox_manager.get_user_projects(user_id)
+    
+    return {
+        "projects": projects,
+        "count": len(projects)
+    }
+
+
+@app.delete("/user/projects/{project_name}")
+async def delete_user_project(
+    project_name: str,
+    token: str = Depends(verify_bearer_token),
+):
+    """Delete a user project"""
+    token_data = oauth_access_tokens.get(token)
+    if not token_data:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    github_id = token_data.get("github_id")
+    user_id = f"github_{github_id}"
+    
+    # Delete from database
+    success = await sandbox_manager.delete_project(user_id, project_name)
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    return {"status": "deleted", "project_name": project_name}
+
+
+
+# ============================================
+# Onboarding UI Static Files
+# ============================================
+ONBOARDING_UI_PATH = Path(__file__).parent.parent / "onboarding-ui" / "dist"
+if ONBOARDING_UI_PATH.exists():
+    app.mount("/onboarding", StaticFiles(directory=str(ONBOARDING_UI_PATH), html=True), name="onboarding-ui")
+    logger.info(f"Onboarding UI mounted from {ONBOARDING_UI_PATH}")
+else:
+    logger.warning(f"Onboarding UI directory not found: {ONBOARDING_UI_PATH}")
+
+
+# ============================================
+# GitHub Login Shortcut
+# ============================================
+@app.get("/auth/github/login")
+async def github_login_redirect():
+    """
+    Convenience endpoint to start GitHub OAuth flow.
+    Redirects to the OAuth authorize endpoint with default settings.
+    """
+    import secrets
+    state = secrets.token_urlsafe(32)
+    
+    # Store state
+    github_oauth_states[state] = {
+        "redirect_uri": "/onboarding/",
+        "created_at": time.time(),
+        "expires_at": time.time() + 600,
+    }
+    
+    # Redirect to GitHub OAuth
+    github_auth_url = (
+        f"https://github.com/login/oauth/authorize"
+        f"?client_id={GITHUB_OAUTH_CLIENT_ID}"
+        f"&redirect_uri={GITHUB_OAUTH_CALLBACK_URL}"
+        f"&scope=repo,read:user,user:email"
+        f"&state={state}"
+    )
+    return RedirectResponse(url=github_auth_url)
