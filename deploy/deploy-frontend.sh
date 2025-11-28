@@ -7,7 +7,7 @@ set -e
 # Configuration
 S3_BUCKET="miyabi-webui-211234825975"
 CLOUDFRONT_DISTRIBUTION_ID="E1114G9SW1V5FC"
-FRONTEND_DIR="crates/miyabi-console"
+FRONTEND_DIR="miyabi-console"
 
 echo "=========================================="
 echo "[DEPLOY] Miyabi Frontend Deployment"
