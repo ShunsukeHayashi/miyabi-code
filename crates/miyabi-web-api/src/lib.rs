@@ -47,7 +47,7 @@ use tower_http::{
 // use utoipa::OpenApi;
 // use utoipa_swagger_ui::SwaggerUi;
 
-pub use config::AppConfig;
+pub use config::{AppConfig, DatabasePoolConfig};
 pub use error::{AppError, Result};
 
 // OpenAPI documentation (temporarily disabled)
@@ -144,22 +144,42 @@ pub async fn create_app(config: AppConfig) -> Result<Router> {
     // Configure connection pool for Lambda + RDS with proper tuning
     tracing::info!("Initializing PostgreSQL connection pool");
     tracing::info!(
+        "Environment: {}",
+        config.environment
+    );
+    tracing::info!(
         "Database URL: {}",
         config.database_url.rsplit('@').next().unwrap_or("unknown")
     );
 
-    // Connection pool configuration optimized for Lambda + RDS
-    // - max_connections: 100 to handle concurrent requests
-    // - min_connections: 10 to maintain warm connections
-    // - acquire_timeout: 30s for production workloads
-    // - idle_timeout: 10min to clean up unused connections
-    // - max_lifetime: 30min to prevent stale connections
-    let db = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(100)
-        .min_connections(10)
-        .acquire_timeout(std::time::Duration::from_secs(30))
-        .idle_timeout(Some(std::time::Duration::from_secs(600)))
-        .max_lifetime(Some(std::time::Duration::from_secs(1800)))
+    // Get environment-specific pool configuration
+    let pool_config = config.database_pool();
+
+    tracing::info!(
+        "Connection pool settings: max={}, min={}, acquire_timeout={:?}s",
+        pool_config.max_connections,
+        pool_config.min_connections,
+        pool_config.acquire_timeout.as_secs()
+    );
+
+    // Build connection pool with optimized settings
+    let mut pool_options = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(pool_config.max_connections)
+        .min_connections(pool_config.min_connections)
+        .acquire_timeout(pool_config.acquire_timeout)
+        .test_before_acquire(pool_config.test_before_acquire);
+
+    // Apply optional timeouts
+    if let Some(idle_timeout) = pool_config.idle_timeout {
+        pool_options = pool_options.idle_timeout(idle_timeout);
+    }
+
+    if let Some(max_lifetime) = pool_config.max_lifetime {
+        pool_options = pool_options.max_lifetime(max_lifetime);
+    }
+
+    // Connect to database
+    let db = pool_options
         .connect(&config.database_url)
         .await
         .map_err(|e| {

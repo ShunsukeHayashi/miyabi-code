@@ -470,4 +470,132 @@ mod tests {
         // We just check that it's within valid range
         assert!((2..=5).contains(&new_limit));
     }
+
+    #[tokio::test]
+    async fn test_start_monitoring_initialization() {
+        let config = DynamicScalerConfig {
+            monitor_interval: Duration::from_millis(100),
+            ..Default::default()
+        };
+        let scaler = DynamicScaler::new(config);
+
+        // Start monitoring (non-blocking)
+        scaler.start_monitoring().await;
+
+        // Give it a moment to initialize
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        // Verify scaler is still functional
+        let limit = scaler.get_current_limit().await;
+        assert!(limit >= config.min_concurrent && limit <= config.max_concurrent);
+    }
+
+    #[tokio::test]
+    async fn test_scale_up_behavior() {
+        // Create config that favors scaling up (low scale_up_threshold)
+        let config = DynamicScalerConfig {
+            monitor_interval: Duration::from_secs(1),
+            scale_up_threshold: 0.01, // Very low - should trigger scale up
+            scale_down_threshold: 0.99,
+            min_concurrent: 1,
+            max_concurrent: 10,
+        };
+        let scaler = DynamicScaler::new(config);
+
+        let initial_limit = scaler.get_current_limit().await;
+
+        // Attempt to trigger scale up
+        let result = scaler.check_and_adjust().await;
+        assert!(result.is_ok());
+
+        let new_limit = scaler.get_current_limit().await;
+
+        // Verify limit stayed within bounds
+        assert!(new_limit >= 1 && new_limit <= 10);
+        assert!(new_limit >= initial_limit || new_limit == 10);
+    }
+
+    #[tokio::test]
+    async fn test_scale_down_behavior() {
+        // Start with max limit
+        let config = DynamicScalerConfig {
+            monitor_interval: Duration::from_secs(1),
+            scale_up_threshold: 0.01,
+            scale_down_threshold: 0.1, // Very low - should trigger scale down
+            min_concurrent: 1,
+            max_concurrent: 10,
+        };
+        let scaler = DynamicScaler::new(config);
+
+        // Set to max
+        scaler.set_limit(10).await;
+        assert_eq!(scaler.get_current_limit().await, 10);
+
+        // Attempt to trigger scale down
+        let result = scaler.check_and_adjust().await;
+        assert!(result.is_ok());
+
+        let new_limit = scaler.get_current_limit().await;
+
+        // Verify limit stayed within bounds
+        assert!(new_limit >= 1 && new_limit <= 10);
+    }
+
+    #[tokio::test]
+    async fn test_concurrent_limit_access() {
+        let scaler = Arc::new(DynamicScaler::new(DynamicScalerConfig::default()));
+
+        // Spawn multiple tasks that read/write limits concurrently
+        let mut handles = vec![];
+
+        for i in 1..=5 {
+            let scaler_clone = Arc::clone(&scaler);
+            let handle = tokio::spawn(async move {
+                scaler_clone.set_limit(i).await;
+                scaler_clone.get_current_limit().await
+            });
+            handles.push(handle);
+        }
+
+        // Wait for all tasks to complete
+        for handle in handles {
+            let result = handle.await;
+            assert!(result.is_ok());
+            let limit = result.unwrap();
+            assert!(limit >= 1 && limit <= 10);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_resource_monitor_custom_limits() {
+        let hardware = HardwareLimits::custom(64, 16, 1000);
+        let per_worktree = PerWorktreeLimits::custom(4, 2, 50);
+        let monitor = ResourceMonitor::new(hardware, per_worktree);
+
+        let stats = monitor.collect_stats().await;
+        assert!(stats.is_ok());
+
+        let stats = stats.unwrap();
+        assert!(stats.available_worktrees > 0);
+
+        // With 64 GB RAM and 4 GB per worktree, we should have room for multiple worktrees
+        // (considering system overhead and minimum 1 available)
+        assert!(stats.available_worktrees >= 1);
+    }
+
+    #[tokio::test]
+    async fn test_hardware_limits_default() {
+        let hardware = HardwareLimits::default();
+        assert!(hardware.total_memory_gb > 0);
+        assert!(hardware.total_cpu_cores > 0);
+        assert!(hardware.total_disk_gb > 0);
+    }
+
+    #[tokio::test]
+    async fn test_per_worktree_limits_default() {
+        let limits = PerWorktreeLimits::default();
+        assert!(limits.memory_gb > 0);
+        assert!(limits.cpu_cores > 0);
+        assert!(limits.disk_gb > 0);
+    }
 }

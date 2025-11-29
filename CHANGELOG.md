@@ -9,6 +9,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### 🆕 Latest Changes (2025-11-29)
+
+- **[3b6593746]** Miyabi Plugin Marketplace Structure
+  - **Commit**: `feat(marketplace): add Miyabi Plugin Marketplace structure`
+  - **Date**: 2025-11-29
+  - Plugin marketplace infrastructure for Miyabi ecosystem
+  - Support for plugin discovery, distribution, and installation
+  - Marketplace metadata and configuration system
+
+- **[44ffd66b5]** OpenAI App v2.0 - Major Modular Architecture Refactoring (#1210)
+  - **Commit**: `feat(openai-app): Major v2.0 refactoring - modular architecture`
+  - **Date**: 2025-11-29
+  - Complete architectural overhaul with modular design principles
+  - Improved code organization and maintainability
+  - Enhanced scalability and extensibility
+  - Server implementation updates (`openai-apps/miyabi-app/server/main.py`)
+  - Requirements updates (`openai-apps/miyabi-app/server/requirements.txt`)
+
+- **[0009f9a88]** S3 + CloudFront Frontend Deployment Infrastructure (#1207, #1170)
+  - **Commit**: `feat(deploy): S3+CloudFront frontend deployment infrastructure`
+  - **Date**: 2025-11-29
+  - AWS S3 static hosting configuration
+  - CloudFront CDN integration for global content distribution
+  - Automated deployment workflows
+  - Terraform infrastructure as code (`deploy/terraform/`)
+  - Deployment v2 scripts (`openai-apps/miyabi-app/deploy-v2.sh`)
+
+- **[685fd24c4]** Stripe Subscription and Usage Tracking (#1179)
+  - **Commit**: `feat(billing): Stripe subscription and usage tracking`
+  - **Date**: 2025-11-29
+  - Billing system integration with Stripe API
+  - Subscription management features
+  - Usage-based tracking and metering
+  - Payment processing automation
+  - Revenue analytics and reporting
+
+#### 🔧 Bug Fixes (2025-11-29)
+
+- **[8d4cfd2b4]** Claude Code Configuration Issues
+  - **Commit**: `fix(claude-code): resolve /doctor warnings for settings and agent files`
+  - **Date**: 2025-11-29
+  - Resolved `/doctor` command warnings
+  - Fixed settings.json configuration errors
+  - Updated agent file configurations for better compatibility
+  - Improved Claude Code integration stability
+
+- **[6459f3d46]** Rust Type System Enhancements (#1208)
+  - **Commit**: `fix(types): implement Default and FromStr traits for AgentConfig and AgentType`
+  - **Date**: 2025-11-29
+  - Implemented `Default` trait for AgentConfig
+  - Implemented `FromStr` trait for AgentType and AgentConfig
+  - Enhanced type safety and ergonomics
+  - Better error handling in type conversions
+  - Improved developer experience with sensible defaults
+
+- **[aa74a29db]** TypeScript Build Errors (#1206)
+  - **Commit**: `fix(console): resolve TypeScript build errors`
+  - **Date**: 2025-11-29
+  - Resolved console application build errors
+  - Fixed type checking issues
+  - Improved build stability and reliability
+
+#### 📝 Documentation (2025-11-29)
+
+- **[5ccde0f30]** Daily Operation Plan
+  - **Commit**: `docs: add 2025-11-29 daily operation plan`
+  - **Date**: 2025-11-29
+  - Comprehensive daily operation plan for 2025-11-29
+  - Task prioritization and scheduling
+  - Development roadmap updates
+  - Team coordination guidelines
+
+#### ⚙️ Configuration & Deployment (2025-11-29)
+
+- **[fa2fcde33]** AWS Infrastructure Migration
+  - **Commit**: `chore(deploy): update AWS account and domain to miyabi-world.com`
+  - **Date**: 2025-11-29
+  - Updated AWS account configuration
+  - Migrated primary domain to miyabi-world.com
+  - Updated DNS and routing configurations
+  - Environment-specific deployment settings
+  - API keys deployment script (`scripts/deploy-api-keys-to-agents.sh`)
+
+- **[23c46ff4d]** Dependency Updates
+  - **Commit**: `chore(deps): Bump react-ecosystem group in pantheon-webapp`
+  - **Date**: 2025-11-29
+  - Bumped react-ecosystem group packages
+  - Security patches and performance improvements
+  - Compatibility updates for latest React ecosystem
+
+---
+
+#### Previous Unreleased Changes
+
 - **[89ab6e851]** Orchestra v2.0 Documentation Enhancement - Phase 4 Complete ✅
   - **Commit**: `docs(orchestra): enhance documentation with troubleshooting, use cases, and best practices`
   - **Date**: 2025-11-03

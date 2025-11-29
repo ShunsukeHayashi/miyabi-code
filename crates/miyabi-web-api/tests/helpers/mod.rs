@@ -5,6 +5,9 @@
 pub mod database;
 pub mod mock_github;
 
+#[cfg(feature = "lambda")]
+pub mod lambda;
+
 #[allow(unused_imports)]
 pub use database::TestDatabase;
 pub use database::{cleanup_test_database, setup_test_database};

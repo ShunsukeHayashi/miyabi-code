@@ -100,3 +100,143 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# =============================================================================
+# ECS/Fargate Variables
+# =============================================================================
+
+variable "ecs_cluster_name" {
+  description = "ECS cluster name for monitoring"
+  type        = string
+  default     = ""
+}
+
+variable "ecs_service_name" {
+  description = "ECS service name for monitoring"
+  type        = string
+  default     = ""
+}
+
+variable "ecs_cpu_threshold" {
+  description = "Threshold for ECS CPU utilization percentage"
+  type        = number
+  default     = 80
+}
+
+variable "ecs_memory_threshold" {
+  description = "Threshold for ECS memory utilization percentage"
+  type        = number
+  default     = 80
+}
+
+variable "ecs_min_task_count" {
+  description = "Minimum number of running tasks"
+  type        = number
+  default     = 1
+}
+
+# =============================================================================
+# ALB Variables
+# =============================================================================
+
+variable "alb_name" {
+  description = "ALB name for monitoring (LoadBalancer dimension format: app/name/id)"
+  type        = string
+  default     = ""
+}
+
+variable "alb_target_group_name" {
+  description = "ALB target group name for monitoring"
+  type        = string
+  default     = ""
+}
+
+variable "alb_response_time_threshold_ms" {
+  description = "Threshold for ALB P95 response time in milliseconds"
+  type        = number
+  default     = 2000
+}
+
+variable "alb_5xx_error_rate_threshold" {
+  description = "Threshold for ALB 5XX error rate percentage"
+  type        = number
+  default     = 5
+}
+
+variable "alb_4xx_error_rate_threshold" {
+  description = "Threshold for ALB 4XX error rate percentage"
+  type        = number
+  default     = 20
+}
+
+variable "alb_min_healthy_hosts" {
+  description = "Minimum number of healthy hosts"
+  type        = number
+  default     = 1
+}
+
+# =============================================================================
+# API Gateway Enhanced Variables
+# =============================================================================
+
+variable "api_5xx_error_rate_threshold" {
+  description = "Threshold for API Gateway 5XX error rate percentage"
+  type        = number
+  default     = 5
+}
+
+variable "api_4xx_error_rate_threshold" {
+  description = "Threshold for API Gateway 4XX error rate percentage"
+  type        = number
+  default     = 20
+}
+
+variable "api_latency_p50_threshold_ms" {
+  description = "Threshold for API Gateway P50 latency in milliseconds"
+  type        = number
+  default     = 1000
+}
+
+variable "api_latency_p99_threshold_ms" {
+  description = "Threshold for API Gateway P99 latency in milliseconds"
+  type        = number
+  default     = 5000
+}
+
+# =============================================================================
+# Lambda Enhanced Variables
+# =============================================================================
+
+variable "lambda_error_rate_threshold" {
+  description = "Threshold for Lambda error rate percentage"
+  type        = number
+  default     = 5
+}
+
+variable "lambda_throttle_threshold" {
+  description = "Threshold for Lambda throttles count"
+  type        = number
+  default     = 10
+}
+
+variable "lambda_concurrent_executions_threshold" {
+  description = "Threshold for Lambda concurrent executions"
+  type        = number
+  default     = 100
+}
+
+# =============================================================================
+# Advanced Monitoring Features
+# =============================================================================
+
+variable "enable_composite_alarms" {
+  description = "Enable composite alarms for complex failure scenarios"
+  type        = bool
+  default     = true
+}
+
+variable "enable_anomaly_detection" {
+  description = "Enable CloudWatch Anomaly Detection alarms"
+  type        = bool
+  default     = true
+}

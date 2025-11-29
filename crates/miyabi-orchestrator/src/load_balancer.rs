@@ -327,4 +327,152 @@ mod tests {
         assert_eq!(available.len(), 1);
         assert_eq!(available[0].hostname, "macmini2");
     }
+
+    #[tokio::test]
+    async fn test_load_balancer_with_single_machine() {
+        let machines = vec![Machine::new("solo".to_string(), "10.0.0.1".to_string(), 5)];
+        let lb = LoadBalancer::new(machines, SshConfig::default());
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.total_machines, 1);
+        assert_eq!(stats.total_capacity, 5);
+
+        // All tasks should go to the single machine
+        for _ in 0..3 {
+            let machine = lb.assign_task().await.unwrap();
+            assert_eq!(machine.hostname, "solo");
+        }
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 3);
+    }
+
+    #[tokio::test]
+    async fn test_load_balancer_empty_machines() {
+        let machines: Vec<Machine> = vec![];
+        let lb = LoadBalancer::new(machines, SshConfig::default());
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.total_machines, 0);
+        assert_eq!(stats.total_capacity, 0);
+
+        // Should fail when no machines available
+        let result = lb.assign_task().await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_release_nonexistent_task() {
+        let machines = create_test_machines();
+        let lb = LoadBalancer::new(machines, SshConfig::default());
+
+        // Release task on a machine that doesn't have any assigned
+        lb.release_task("nonexistent").await;
+
+        // Stats should remain unchanged
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 0);
+    }
+
+    #[tokio::test]
+    async fn test_concurrent_task_assignment() {
+        let machines = create_test_machines();
+        let lb = Arc::new(LoadBalancer::new(machines, SshConfig::default()));
+
+        // Spawn multiple concurrent task assignments
+        let mut handles = vec![];
+        for _ in 0..3 {
+            let lb_clone = Arc::clone(&lb);
+            let handle = tokio::spawn(async move {
+                lb_clone.assign_task().await
+            });
+            handles.push(handle);
+        }
+
+        // Wait for all assignments
+        let mut assigned_count = 0;
+        for handle in handles {
+            if let Ok(Ok(_)) = handle.await {
+                assigned_count += 1;
+            }
+        }
+
+        assert_eq!(assigned_count, 3);
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 3);
+    }
+
+    #[tokio::test]
+    async fn test_load_balancer_stats_accuracy() {
+        let machines = create_test_machines();
+        let lb = LoadBalancer::new(machines, SshConfig::default());
+
+        // Initial stats
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.total_machines, 2);
+        assert_eq!(stats.total_capacity, 5);
+        assert_eq!(stats.used_capacity, 0);
+        assert_eq!(stats.available_capacity, 5);
+
+        // Assign some tasks
+        let m1 = lb.assign_task().await.unwrap();
+        let m2 = lb.assign_task().await.unwrap();
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 2);
+        assert_eq!(stats.available_capacity, 3);
+
+        // Release one
+        lb.release_task(&m1.hostname).await;
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 1);
+        assert_eq!(stats.available_capacity, 4);
+
+        // Release the other
+        lb.release_task(&m2.hostname).await;
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 0);
+        assert_eq!(stats.available_capacity, 5);
+    }
+
+    #[tokio::test]
+    async fn test_machine_selection_fairness() {
+        // Create machines with equal capacity
+        let machines = vec![
+            Machine::new("machine1".to_string(), "10.0.0.1".to_string(), 3),
+            Machine::new("machine2".to_string(), "10.0.0.2".to_string(), 3),
+        ];
+        let lb = LoadBalancer::new(machines, SshConfig::default());
+
+        // Assign first task - should go to first machine with available capacity
+        let m1 = lb.assign_task().await.unwrap();
+
+        // Assign second task - should still go to first machine (capacity available)
+        let m2 = lb.assign_task().await.unwrap();
+        assert_eq!(m1.hostname, m2.hostname);
+
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.used_capacity, 2);
+        assert_eq!(stats.available_capacity, 4);
+    }
+
+    #[tokio::test]
+    async fn test_custom_ssh_config() {
+        let machines = create_test_machines();
+        let custom_config = SshConfig {
+            port: 2222,
+            user: "testuser".to_string(),
+            identity_file: Some(PathBuf::from("/custom/key")),
+            connect_timeout: Duration::from_secs(10),
+        };
+
+        let lb = LoadBalancer::new(machines, custom_config);
+
+        // Verify load balancer was created successfully with custom SSH config
+        let stats = lb.get_stats().await;
+        assert_eq!(stats.total_machines, 2);
+    }
 }

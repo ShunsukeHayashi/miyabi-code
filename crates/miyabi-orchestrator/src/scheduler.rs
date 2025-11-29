@@ -289,4 +289,144 @@ mod tests {
         // Expected to fail since we don't have actual tasks to execute
         assert!(result.is_err() || result.is_ok());
     }
+
+    fn create_complex_dag() -> DAG {
+        let task1 = Task::new(
+            "task-1".to_string(),
+            "Task 1".to_string(),
+            "First task".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let task2 = Task::new(
+            "task-2".to_string(),
+            "Task 2".to_string(),
+            "Second task".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        let task3 = Task::new(
+            "task-3".to_string(),
+            "Task 3".to_string(),
+            "Third task".to_string(),
+            TaskType::Feature,
+            1,
+        )
+        .unwrap();
+
+        DAG {
+            nodes: vec![task1, task2, task3],
+            edges: vec![
+                ("task-1".to_string(), "task-3".to_string()),
+                ("task-2".to_string(), "task-3".to_string()),
+            ],
+            levels: vec![
+                vec!["task-1".to_string(), "task-2".to_string()],
+                vec!["task-3".to_string()],
+            ],
+        }
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_with_complex_dag() {
+        let dag = create_complex_dag();
+        let dag_ops = DAGOperations::new(dag).unwrap();
+        let scheduler = Scheduler::new(dag_ops, 5, SessionConfig::default());
+
+        let stats = scheduler.get_stats();
+        assert_eq!(stats.total_tasks, 3);
+        assert_eq!(stats.completed_tasks, 0);
+        assert_eq!(stats.running_tasks, 0);
+        assert_eq!(stats.pending_tasks, 3);
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_max_parallel_limit() {
+        let dag = create_complex_dag();
+        let dag_ops = DAGOperations::new(dag).unwrap();
+        let scheduler = Scheduler::new(dag_ops, 2, SessionConfig::default());
+
+        // Verify max_parallel is set correctly
+        assert_eq!(scheduler.max_parallel, 2);
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_custom_max_parallel() {
+        let dag = create_simple_dag();
+        let dag_ops = DAGOperations::new(dag).unwrap();
+
+        // Test various max_parallel values
+        for max_parallel in &[1, 3, 5, 10] {
+            let scheduler = Scheduler::new(dag_ops.clone(), *max_parallel, SessionConfig::default());
+            assert_eq!(scheduler.max_parallel, *max_parallel);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_stats_initial_state() {
+        let dag = create_complex_dag();
+        let dag_ops = DAGOperations::new(dag).unwrap();
+        let scheduler = Scheduler::new(dag_ops, 5, SessionConfig::default());
+
+        let stats = scheduler.get_stats();
+
+        // Initial state: all tasks pending
+        assert_eq!(stats.completed_tasks, 0);
+        assert_eq!(stats.running_tasks, 0);
+        assert_eq!(stats.pending_tasks, stats.total_tasks);
+        assert_eq!(stats.progress_percentage, 0);
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_custom_session_config() {
+        let dag = create_simple_dag();
+        let dag_ops = DAGOperations::new(dag).unwrap();
+
+        let custom_config = SessionConfig {
+            claude_code_path: PathBuf::from("/custom/path/to/claude-code"),
+            default_worktree_base: PathBuf::from("/custom/worktrees"),
+            log_dir: PathBuf::from("/custom/logs"),
+            timeout: Duration::from_secs(3600),
+            retry_limit: 5,
+        };
+
+        let scheduler = Scheduler::new(dag_ops, 5, custom_config);
+
+        // Verify scheduler was created successfully with custom config
+        let stats = scheduler.get_stats();
+        assert_eq!(stats.total_tasks, 1);
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_with_empty_dag() {
+        let empty_dag = DAG {
+            nodes: vec![],
+            edges: vec![],
+            levels: vec![],
+        };
+
+        let dag_ops = DAGOperations::new(empty_dag).unwrap();
+        let scheduler = Scheduler::new(dag_ops, 5, SessionConfig::default());
+
+        let stats = scheduler.get_stats();
+        assert_eq!(stats.total_tasks, 0);
+        assert_eq!(stats.progress_percentage, 100); // Empty DAG is 100% complete
+    }
+
+    #[tokio::test]
+    async fn test_scheduler_stats_progress_calculation() {
+        let dag = create_complex_dag();
+        let dag_ops = DAGOperations::new(dag).unwrap();
+        let scheduler = Scheduler::new(dag_ops, 5, SessionConfig::default());
+
+        let stats = scheduler.get_stats();
+
+        // Verify progress calculation
+        let expected_progress = (stats.completed_tasks * 100) / stats.total_tasks.max(1);
+        assert_eq!(stats.progress_percentage, expected_progress);
+    }
 }

@@ -1,0 +1,98 @@
+{
+  "name": "miyabi-official-plugins",
+  "description": "Miyabi official plugin index for Claude Code marketplace",
+  "version": "2.0.0",
+  "repository": "https://github.com/customer-cloud/miyabi-private",
+  "plugins": [
+    {
+      "name": "miyabi-full",
+      "source": "./miyabi-full",
+      "version": "2.0.0",
+      "description": "Miyabi 完全パッケージ - 25 Agents + 22 Skills + 50 Commands + MCP + Hooks",
+      "category": "automation",
+      "tags": ["ai", "agents", "devops", "automation", "github", "rust"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-coding-agents",
+      "source": "./miyabi-coding-agents",
+      "version": "2.0.0",
+      "description": "9 Coding Agents: Coordinator, CodeGen, Review, Issue, PR, Deployment, Hooks, Refresher, TmuxControl",
+      "category": "development",
+      "tags": ["coding", "agents", "rust", "github", "ci-cd"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-business-agents",
+      "source": "./miyabi-business-agents",
+      "version": "2.0.0",
+      "description": "16 Business Agents: Entrepreneur, Persona, Market, Product, Content, Marketing, Sales, CRM, Analytics, YouTube, SNS, Note, ImageGen, Design, Funnel, Course",
+      "category": "business",
+      "tags": ["business", "marketing", "sales", "content", "analytics"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-skills",
+      "source": "./miyabi-skills",
+      "version": "2.0.0",
+      "description": "22 Development Skills: Rust, TDD, Git, Security, Performance, Debugging, Documentation, etc.",
+      "category": "development",
+      "tags": ["skills", "rust", "testing", "security", "workflows"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-commands",
+      "source": "./miyabi-commands",
+      "version": "2.0.0",
+      "description": "50+ Slash Commands: /agent-run, /deploy, /review, /security-scan, /daily-update, /voicevox, etc.",
+      "category": "productivity",
+      "tags": ["commands", "cli", "automation"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-mcp-servers",
+      "source": "./miyabi-mcp-servers",
+      "version": "2.0.0",
+      "description": "MCP Server Configurations: Gemini 3, Lark, Obsidian, GitHub, tmux, and more",
+      "category": "integrations",
+      "tags": ["mcp", "servers", "integrations"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-hooks",
+      "source": "./miyabi-hooks",
+      "version": "2.0.0",
+      "description": "Pre/Post Tool Hooks: Session management, Git integration, MCP initialization",
+      "category": "automation",
+      "tags": ["hooks", "events", "automation"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-honoka",
+      "source": "./miyabi-honoka",
+      "version": "2.0.0",
+      "description": "穂花(ほのか) Agent - Udemy コース作成＆コンテンツ販売の専門家",
+      "category": "education",
+      "tags": ["udemy", "course", "education", "content"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-water-spider",
+      "source": "./miyabi-water-spider",
+      "version": "2.0.0",
+      "description": "Water Spider Agent - システム監視・自動復旧・健全性チェック",
+      "category": "monitoring",
+      "tags": ["monitoring", "health-check", "auto-recovery"],
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "miyabi-guardian",
+      "source": "./miyabi-guardian",
+      "version": "2.0.0",
+      "description": "Guardian Agent - 手動エスカレーション・クリティカル障害対応",
+      "category": "security",
+      "tags": ["security", "escalation", "incident-response"],
+      "license": "Apache-2.0"
+    }
+  ]
+}

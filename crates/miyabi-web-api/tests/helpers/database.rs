@@ -2,6 +2,7 @@
 //!
 //! Provides utilities for setting up and tearing down test databases.
 
+use miyabi_web_api::config::DatabasePoolConfig;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::sync::Arc;
 
@@ -18,8 +19,24 @@ impl TestDatabase {
         let database_url = std::env::var("TEST_DATABASE_URL")
             .unwrap_or_else(|_| "postgres://localhost/miyabi_test".to_string());
 
-        let pool = PgPoolOptions::new()
-            .max_connections(5)
+        // Use optimized test pool configuration
+        let pool_config = DatabasePoolConfig::test();
+
+        let mut pool_options = PgPoolOptions::new()
+            .max_connections(pool_config.max_connections)
+            .min_connections(pool_config.min_connections)
+            .acquire_timeout(pool_config.acquire_timeout)
+            .test_before_acquire(pool_config.test_before_acquire);
+
+        if let Some(idle_timeout) = pool_config.idle_timeout {
+            pool_options = pool_options.idle_timeout(idle_timeout);
+        }
+
+        if let Some(max_lifetime) = pool_config.max_lifetime {
+            pool_options = pool_options.max_lifetime(max_lifetime);
+        }
+
+        let pool = pool_options
             .connect(&database_url)
             .await
             .expect("Failed to connect to test database");

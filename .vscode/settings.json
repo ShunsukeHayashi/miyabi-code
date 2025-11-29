@@ -12,7 +12,7 @@
   // ==========================================
 
   // Rust Analyzer - 30+ crates workspace optimization
-  "rust-analyzer.server.path": "/Users/shunsuke/.cargo/bin/rust-analyzer",
+  // Note: server.path is auto-detected (removed macOS-specific path)
   "rust-analyzer.cargo.features": "all",
   "rust-analyzer.check.features": "all",
   "rust-analyzer.checkOnSave.command": "clippy",
@@ -246,11 +246,14 @@
   "search.followSymlinks": false,
   "search.quickOpen.includeSymbols": true,
 
+  // Terminal settings - cross-platform
   "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.defaultProfile.linux": "bash",
   "terminal.integrated.cursorBlinking": true,
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.scrollback": 10000,
   "terminal.integrated.shell.osx": "/bin/zsh",
+  "terminal.integrated.shell.linux": "/bin/bash",
 
   // ==========================================
   // 📊 YAML & Schema Settings
@@ -295,7 +298,10 @@
     "*.claude.md": "markdown",
     ".env.*": "properties",
     "Cargo.lock": "toml",
-    ".cargo/config.toml": "toml"
+    ".cargo/config.toml": "toml",
+    "*.drawio": "xml",
+    "*.drawio.svg": "xml",
+    "*.drawio.png": "png"
   },
 
   "files.eol": "\n",
@@ -357,19 +363,5 @@
   // Draw.io file associations
   "[drawio]": {
     "editor.formatOnSave": false
-  },
-
-  // File associations for diagram files
-  "files.associations": {
-    "*.rs": "rust",
-    "*.toml": "toml",
-    "CLAUDE.md": "markdown",
-    "*.claude.md": "markdown",
-    ".env.*": "properties",
-    "Cargo.lock": "toml",
-    ".cargo/config.toml": "toml",
-    "*.drawio": "xml",
-    "*.drawio.svg": "xml",
-    "*.drawio.png": "png"
   }
 }

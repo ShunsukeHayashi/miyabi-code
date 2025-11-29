@@ -10,15 +10,20 @@ Miyabi の Agent ステータス、Issue 一覧、開発進捗をリアルタイ
 
 ---
 
-> ⚠️ **Restructuring Notice (November 6, 2025 – February 28, 2026)**  
+> ⚠️ **Restructuring Notice (November 29, 2025 – February 28, 2026)**  
 > Miyabi is in the middle of the ecosystem restructuring described in `.ai/plans/MASTER_RESTRUCTURING_PLAN.md`. During this window the repository layout, crate boundaries, and deployment workflows will evolve. Expect breaking moves (e.g., crate extraction, new package namespaces) on a weekly cadence. Track week-by-week progress in `.ai/metrics/restructuring-progress.md` once published and report blockers via GitHub issues tagged `restructuring`.
 
 ## 📊 Features
 
-- **Agent Status Monitor**: 7つのAgent (Coordinator, CodeGen, Review, PR, Deployment, Issue, Refresher) の実行状況をリアルタイム表示
+- **21 AI Autonomous Agents**: Coding Agents (7個) + Business Agents (14個) による完全自律型開発
+- **28 MCP Servers**: Model Context Protocol統合による拡張可能なツールエコシステム
+- **Agent Status Monitor**: 7つのCoding Agent (Coordinator, CodeGen, Review, PR, Deployment, Issue, Refresher) の実行状況をリアルタイム表示
 - **Issue Dashboard**: GitHub Issues を優先度・ラベル別に一覧表示
 - **Progress Tracking**: 各Agentの進捗率 (0-100%) を視覚化
 - **GitHub Integration**: GitHub API を使った実際のIssueデータ取得
+- **Plugin Marketplace**: Miyabi拡張機能のマーケットプレイス（NEW）
+- **Cloud Deployment**: S3/CloudFrontによる自動デプロイ基盤（NEW）
+- **Billing System**: Stripe統合による課金・サブスクリプション管理（NEW）
 
 ---
 
@@ -97,7 +102,7 @@ Miyabi now follows a three-layer architecture aligned with the restructuring roa
 
 Foundation crates are being hardened first (Phase 0–2), Platform crates are extracted and simplified next (Phase 2–3), and Integrations settle once the new APIs are stable (Phase 4–5). Follow the restructuring plan for detailed timelines.
 
-## 📦 Crate Catalog (53)
+## 📦 Crate Catalog (61)
 
 The table below captures every crate or package tracked during the restructuring. Status reflects the current state (some specs still need Cargo manifests, and a few frontends are TypeScript packages scheduled for crate extraction).
 
@@ -157,7 +162,7 @@ The table below captures every crate or package tracked during the restructuring
 | Integrations | `miyabi-web-ui (frontend)` | Next.js/Vite dashboard surface for monitoring agents and progress. | TypeScript package (crate planned) |
 | Integrations | `miyabi-webhook` | Signature-verified webhook relay for agent-to-agent event fan-out. | Rust crate |
 
-## 🚀 Quick Start (Updated November 6, 2025)
+## 🚀 Quick Start (Updated November 29, 2025)
 
 **Prerequisites**
 - Node.js ≥ 20 (aligns with Next.js 14 runtime requirements)
@@ -1161,7 +1166,9 @@ From issue creation to code implementation, PR creation, and deployment—**ever
 
 ### 🎨 Key Features
 
-#### 🤖 **7 AI Autonomous Agents**
+#### 🤖 **21 AI Autonomous Agents** (7 Coding + 14 Business)
+
+##### Coding Agents (7)
 
 <div align="center">
 
@@ -1177,6 +1184,23 @@ From issue creation to code implementation, PR creation, and deployment—**ever
 
 </div>
 
+##### Business Agents (14)
+
+Business domain specialists covering:
+- 💼 **Strategy & Planning**: AI Entrepreneur, Self Analysis, Market Research, Persona Design
+- 🎨 **Product & Design**: Product Concept, Product Design, Content Creation
+- 📢 **Marketing & Sales**: Funnel Design, SNS Strategy, Marketing, Sales, CRM
+- 📊 **Analytics**: Analytics Agent, YouTube Optimization
+
+#### 🔌 **28 MCP Servers**
+
+Integration ecosystem powered by Model Context Protocol:
+- 🤖 **Gemini AI** (3): UI/UX Designer, Adaptive Runtime, General
+- 📱 **Lark Integration** (4): OpenAPI, Wiki, Enhanced features
+- 🛠️ **Miyabi Core** (13): File operations, Git, GitHub, tmux, monitoring, logs
+- 🧠 **AI Tools** (3): Codex, OpenAI Assistant, Commercial Agents
+- 🔧 **Development** (5): Context Engineering, Claude Code, Obsidian, Pixel MCP
+
 #### 🔄 **Fully Automated Workflow**
 
 - ✅ Fully automated from issue creation to PR creation
@@ -1184,6 +1208,9 @@ From issue creation to code implementation, PR creation, and deployment—**ever
 - ✅ Auto-integration with GitHub Projects V2
 - ✅ Real-time progress tracking
 - ✅ High-speed processing with parallel execution (72% efficiency)
+- ✅ Cloud deployment automation (S3/CloudFront)
+- ✅ Plugin marketplace for extensibility
+- ✅ Stripe-powered billing and subscriptions
 
 ---
 

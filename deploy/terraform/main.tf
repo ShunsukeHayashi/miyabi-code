@@ -129,7 +129,7 @@ resource "aws_cloudfront_distribution" "webui" {
   is_ipv6_enabled     = true
   comment             = "${var.project_name} WebUI Distribution"
   default_root_object = "index.html"
-  price_class         = "PriceClass_200"  # US, Europe, Asia
+  price_class         = "PriceClass_200" # US, Europe, Asia
   http_version        = "http2and3"
 
   # Custom domain (optional)

@@ -58,6 +58,11 @@ infrastructure/terraform/**/.terraform/
 **/.terraform/
 *.tfstate
 *.tfstate.backup
+*.tfstate.lock.info
+tfplan
+tfplan.*
+terraform.tfvars
+*.tfvars
 
 # Miyabi runtime state files
 .miyabi/polling-worker-state.json

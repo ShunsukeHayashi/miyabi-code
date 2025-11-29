@@ -2,6 +2,113 @@
 
 use serde::Deserialize;
 use std::env;
+use std::time::Duration;
+
+/// Database connection pool configuration
+#[derive(Debug, Clone)]
+pub struct DatabasePoolConfig {
+    /// Maximum number of connections in the pool
+    pub max_connections: u32,
+    /// Minimum number of idle connections to maintain
+    pub min_connections: u32,
+    /// Timeout for acquiring a connection from the pool
+    pub acquire_timeout: Duration,
+    /// Maximum idle time for a connection before it's closed
+    pub idle_timeout: Option<Duration>,
+    /// Maximum lifetime of a connection before it's closed
+    pub max_lifetime: Option<Duration>,
+    /// Test connections before acquiring them
+    pub test_before_acquire: bool,
+}
+
+impl DatabasePoolConfig {
+    /// Create configuration optimized for production environment
+    ///
+    /// - High connection limit for Lambda concurrency
+    /// - Warm connection pool to reduce latency
+    /// - Longer timeouts for stability
+    pub fn production() -> Self {
+        Self {
+            max_connections: 100,
+            min_connections: 10,
+            acquire_timeout: Duration::from_secs(30),
+            idle_timeout: Some(Duration::from_secs(600)), // 10 minutes
+            max_lifetime: Some(Duration::from_secs(1800)), // 30 minutes
+            test_before_acquire: true,
+        }
+    }
+
+    /// Create configuration optimized for development environment
+    ///
+    /// - Lower connection limit to avoid overwhelming local DB
+    /// - Shorter timeouts for faster feedback
+    pub fn development() -> Self {
+        Self {
+            max_connections: 20,
+            min_connections: 5,
+            acquire_timeout: Duration::from_secs(10),
+            idle_timeout: Some(Duration::from_secs(300)), // 5 minutes
+            max_lifetime: Some(Duration::from_secs(900)), // 15 minutes
+            test_before_acquire: false,
+        }
+    }
+
+    /// Create configuration optimized for test environment
+    ///
+    /// - Minimal connections to avoid test interference
+    /// - Short timeouts for fast test execution
+    pub fn test() -> Self {
+        Self {
+            max_connections: 5,
+            min_connections: 1,
+            acquire_timeout: Duration::from_secs(5),
+            idle_timeout: Some(Duration::from_secs(60)), // 1 minute
+            max_lifetime: Some(Duration::from_secs(300)), // 5 minutes
+            test_before_acquire: false,
+        }
+    }
+
+    /// Create configuration from environment variables
+    ///
+    /// Falls back to environment-specific defaults if variables are not set
+    pub fn from_env(environment: &str) -> Self {
+        let base_config = match environment {
+            "production" => Self::production(),
+            "test" => Self::test(),
+            _ => Self::development(),
+        };
+
+        Self {
+            max_connections: env::var("DB_MAX_CONNECTIONS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(base_config.max_connections),
+            min_connections: env::var("DB_MIN_CONNECTIONS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(base_config.min_connections),
+            acquire_timeout: env::var("DB_ACQUIRE_TIMEOUT_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .map(Duration::from_secs)
+                .unwrap_or(base_config.acquire_timeout),
+            idle_timeout: env::var("DB_IDLE_TIMEOUT_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .map(Duration::from_secs)
+                .or(base_config.idle_timeout),
+            max_lifetime: env::var("DB_MAX_LIFETIME_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .map(Duration::from_secs)
+                .or(base_config.max_lifetime),
+            test_before_acquire: env::var("DB_TEST_BEFORE_ACQUIRE")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(base_config.test_before_acquire),
+        }
+    }
+}
 
 /// Application configuration
 #[derive(Debug, Clone, Deserialize)]
@@ -29,6 +136,9 @@ pub struct AppConfig {
     /// Environment (development, staging, production)
     #[serde(default = "default_environment")]
     pub environment: String,
+    /// Database pool configuration (not deserializable, created from environment)
+    #[serde(skip)]
+    pub database_pool: Option<DatabasePoolConfig>,
 }
 
 fn default_jwt_expiration() -> i64 {
@@ -92,6 +202,9 @@ impl AppConfig {
 
         let environment = env::var("ENVIRONMENT").unwrap_or_else(|_| default_environment());
 
+        // Create database pool configuration based on environment
+        let database_pool = Some(DatabasePoolConfig::from_env(&environment));
+
         Ok(Self {
             database_url,
             server_address,
@@ -103,7 +216,17 @@ impl AppConfig {
             jwt_expiration,
             refresh_expiration,
             environment,
+            database_pool,
         })
+    }
+
+    /// Get database pool configuration
+    ///
+    /// Returns the configured pool settings, or creates default settings for the environment
+    pub fn database_pool(&self) -> DatabasePoolConfig {
+        self.database_pool
+            .clone()
+            .unwrap_or_else(|| DatabasePoolConfig::from_env(&self.environment))
     }
 
     /// Check if running in production environment
@@ -141,9 +264,50 @@ mod tests {
             jwt_expiration: 3600,
             refresh_expiration: 604800,
             environment: "production".to_string(),
+            database_pool: None,
         };
 
         assert!(config.is_production());
         assert!(!config.is_development());
+    }
+
+    #[test]
+    fn test_database_pool_configs() {
+        // Test production config
+        let prod_config = DatabasePoolConfig::production();
+        assert_eq!(prod_config.max_connections, 100);
+        assert_eq!(prod_config.min_connections, 10);
+        assert!(prod_config.test_before_acquire);
+
+        // Test development config
+        let dev_config = DatabasePoolConfig::development();
+        assert_eq!(dev_config.max_connections, 20);
+        assert_eq!(dev_config.min_connections, 5);
+        assert!(!dev_config.test_before_acquire);
+
+        // Test test config
+        let test_config = DatabasePoolConfig::test();
+        assert_eq!(test_config.max_connections, 5);
+        assert_eq!(test_config.min_connections, 1);
+        assert!(!test_config.test_before_acquire);
+    }
+
+    #[test]
+    fn test_pool_config_from_env() {
+        // Test production environment
+        let prod_pool = DatabasePoolConfig::from_env("production");
+        assert_eq!(prod_pool.max_connections, 100);
+
+        // Test development environment
+        let dev_pool = DatabasePoolConfig::from_env("development");
+        assert_eq!(dev_pool.max_connections, 20);
+
+        // Test test environment
+        let test_pool = DatabasePoolConfig::from_env("test");
+        assert_eq!(test_pool.max_connections, 5);
+
+        // Test unknown environment (defaults to development)
+        let unknown_pool = DatabasePoolConfig::from_env("staging");
+        assert_eq!(unknown_pool.max_connections, 20);
     }
 }

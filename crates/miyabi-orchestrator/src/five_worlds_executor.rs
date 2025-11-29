@@ -1020,4 +1020,78 @@ mod tests {
             );
         }
     }
+
+    #[tokio::test]
+    async fn test_executor_with_circuit_breaker_disabled() {
+        let config = FiveWorldsExecutorConfig {
+            enable_circuit_breaker: false,
+            ..Default::default()
+        };
+        let executor = FiveWorldsExecutor::new(config);
+        assert!(!executor.config.enable_circuit_breaker);
+    }
+
+    #[tokio::test]
+    async fn test_executor_with_dynamic_scaling_disabled() {
+        let config = FiveWorldsExecutorConfig {
+            enable_dynamic_scaling: false,
+            ..Default::default()
+        };
+        let executor = FiveWorldsExecutor::new(config);
+        assert!(!executor.config.enable_dynamic_scaling);
+    }
+
+    #[tokio::test]
+    async fn test_executor_custom_timeout() {
+        let custom_timeout = Duration::from_secs(60 * 10); // 10 minutes
+        let config = FiveWorldsExecutorConfig {
+            world_timeout: custom_timeout,
+            ..Default::default()
+        };
+        let executor = FiveWorldsExecutor::new(config);
+        assert_eq!(executor.config.world_timeout, custom_timeout);
+    }
+
+    #[tokio::test]
+    async fn test_executor_custom_paths() {
+        let config = FiveWorldsExecutorConfig {
+            worktrees_base: PathBuf::from("/tmp/test-worktrees"),
+            repo_path: PathBuf::from("/tmp/test-repo"),
+            ..Default::default()
+        };
+        let executor = FiveWorldsExecutor::new(config);
+        assert_eq!(executor.config.worktrees_base, PathBuf::from("/tmp/test-worktrees"));
+        assert_eq!(executor.config.repo_path, PathBuf::from("/tmp/test-repo"));
+    }
+
+    #[tokio::test]
+    async fn test_executor_fallback_strategy_configuration() {
+        use miyabi_core::error_policy::FallbackStrategy;
+
+        let fallback = FallbackStrategy::default();
+        let config = FiveWorldsExecutorConfig {
+            fallback_strategy: fallback.clone(),
+            ..Default::default()
+        };
+        let executor = FiveWorldsExecutor::new(config);
+
+        // Verify fallback strategy is properly set
+        // Note: FallbackStrategy doesn't implement PartialEq, so we can't directly compare
+        // We just verify the executor was created successfully with the fallback strategy
+        assert!(executor.config.enable_circuit_breaker);
+    }
+
+    #[tokio::test]
+    async fn test_active_executions_empty_on_new_executor() {
+        let executor = FiveWorldsExecutor::new(FiveWorldsExecutorConfig::default());
+        let executions = executor.get_active_executions().await;
+        assert_eq!(executions.len(), 0, "New executor should have no active executions");
+    }
+
+    #[tokio::test]
+    async fn test_statistics_zero_on_new_executor() {
+        let executor = FiveWorldsExecutor::new(FiveWorldsExecutorConfig::default());
+        let stats = executor.get_statistics().await;
+        assert_eq!(stats.total_active, 0, "New executor should have 0 active tasks");
+    }
 }

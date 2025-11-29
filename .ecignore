@@ -1,0 +1,36 @@
+# EditorConfig Checker ignore file
+
+# Build outputs
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Generated files
+*.lock
+Cargo.lock
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
+.ai/logs/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
