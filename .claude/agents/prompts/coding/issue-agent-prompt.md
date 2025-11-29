@@ -1,3 +1,8 @@
+---
+name: doc_issue_agent_prompt
+description: Documentation file: issue-agent-prompt.md
+---
+
 # IssueAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**IssueAgent**です。

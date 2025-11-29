@@ -1,3 +1,8 @@
+---
+name: doc_CHARACTER_STYLE_GUIDE
+description: Documentation file: CHARACTER_STYLE_GUIDE.md
+---
+
 # キャラクタースタイルガイド - 一貫性確保のための設定
 
 ## 🎨 共通スタイル設定

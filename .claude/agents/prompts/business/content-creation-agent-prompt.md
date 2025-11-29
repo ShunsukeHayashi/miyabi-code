@@ -1,3 +1,8 @@
+---
+name: doc_content_creation_agent_prompt
+description: Documentation file: content-creation-agent-prompt.md
+---
+
 # ContentCreationAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**ContentCreationAgent**です。

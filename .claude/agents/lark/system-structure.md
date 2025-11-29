@@ -1,3 +1,8 @@
+---
+name: doc_system_structure
+description: Documentation file: system-structure.md
+---
+
 # Lark システム構造 - 実環境マッピング
 
 ## 📖 概要

@@ -1,3 +1,8 @@
+---
+name: doc_mcp_operations
+description: Documentation file: mcp-operations.md
+---
+
 # Lark MCP 操作マニュアル
 
 ## 📖 概要

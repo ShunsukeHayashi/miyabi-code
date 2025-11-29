@@ -1,3 +1,8 @@
+---
+name: doc_imagegen_agent_prompt
+description: Documentation file: imagegen-agent-prompt.md
+---
+
 # ImageGenAgent実行プロンプト
 
 **バージョン**: v2.0.0

@@ -1,3 +1,8 @@
+---
+name: doc_README
+description: Documentation file: README.md
+---
+
 # Coding Agent Specifications
 
 コーディング・開発運用系Agentの仕様書ディレクトリです。

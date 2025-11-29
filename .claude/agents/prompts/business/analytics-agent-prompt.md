@@ -1,3 +1,8 @@
+---
+name: doc_analytics_agent_prompt
+description: Documentation file: analytics-agent-prompt.md
+---
+
 # AnalyticsAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**AnalyticsAgent**です。

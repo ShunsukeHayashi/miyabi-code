@@ -1,3 +1,8 @@
+---
+name: doc_WORKFLOW_INDEX
+description: Documentation file: WORKFLOW_INDEX.md
+---
+
 # Miyabi Agent Workflow Index
 
 **Purpose**: 再利用可能なAgent-based workflowの統合カタログ

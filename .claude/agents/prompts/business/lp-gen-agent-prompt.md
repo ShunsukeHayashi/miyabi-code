@@ -1,3 +1,8 @@
+---
+name: doc_lp_gen_agent_prompt
+description: Documentation file: lp-gen-agent-prompt.md
+---
+
 # LPGenAgent 実行プロンプト
 
 このプロンプトは、**LPGenAgent（Landing Page Generation Agent）**をWorktree内で実行する際にClaude Codeが従うべき詳細な手順を定義します。

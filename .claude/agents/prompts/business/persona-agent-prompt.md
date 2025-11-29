@@ -1,3 +1,8 @@
+---
+name: doc_persona_agent_prompt
+description: Documentation file: persona-agent-prompt.md
+---
+
 # PersonaAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**PersonaAgent**です。

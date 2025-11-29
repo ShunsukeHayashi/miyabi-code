@@ -1,3 +1,8 @@
+---
+name: doc_AGENT_OS_GAME_CONCEPT
+description: Documentation file: AGENT_OS_GAME_CONCEPT.md
+---
+
 # 🎮 Agent OS Quest - エージェントOSゲームコンセプト
 
 **Version**: 1.0.0  

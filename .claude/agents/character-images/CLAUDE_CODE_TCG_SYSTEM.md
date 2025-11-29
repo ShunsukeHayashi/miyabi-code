@@ -1,3 +1,8 @@
+---
+name: doc_CLAUDE_CODE_TCG_SYSTEM
+description: Documentation file: CLAUDE_CODE_TCG_SYSTEM.md
+---
+
 # 🎴 Claude Code Agent TCGシステム
 
 **Version**: 2.0.0  

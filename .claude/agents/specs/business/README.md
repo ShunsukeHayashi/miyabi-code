@@ -1,3 +1,8 @@
+---
+name: doc_README
+description: Documentation file: README.md
+---
+
 # Business Agent Specifications
 
 ビジネス・経営戦略系Agentの仕様書ディレクトリです。

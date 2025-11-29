@@ -1,3 +1,8 @@
+---
+name: doc_slide_gen_agent_prompt
+description: Documentation file: slide-gen-agent-prompt.md
+---
+
 # SlideGenAgent実行プロンプト
 
 **Agent**: SlideGenAgent（すらいだー）

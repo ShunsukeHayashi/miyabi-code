@@ -1,3 +1,8 @@
+---
+name: doc_market_research_agent_prompt
+description: Documentation file: market-research-agent-prompt.md
+---
+
 # MarketResearchAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**MarketResearchAgent**です。

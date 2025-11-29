@@ -1,3 +1,8 @@
+---
+name: doc_ai_entrepreneur_agent_prompt
+description: Documentation file: ai-entrepreneur-agent-prompt.md
+---
+
 # AIEntrepreneurAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**AIEntrepreneurAgent**です。

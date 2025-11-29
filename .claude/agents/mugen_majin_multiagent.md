@@ -1,3 +1,8 @@
+---
+name: doc_mugen_majin_multiagent
+description: Documentation file: mugen_majin_multiagent.md
+---
+
 /Users/shunsuke/Dev/multi_codex_Mugen_miyabi-orchestra/.claude/agents/multi-codex-mugen-miyabi-orchestra.md
 
 # Agent: Multi-Codex MUGEN/MAJIN Orchestra

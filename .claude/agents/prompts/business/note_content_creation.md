@@ -1,3 +1,8 @@
+---
+name: doc_note_content_creation
+description: Documentation file: note_content_creation.md
+---
+
 Amazon アソシエイト タグ　：tag=shuhayas-22
 必ず必ず記事と相性がいい商品を抽出して Amazon の URL を取得してください これは必ず間違えてはいけませんそれで 必ずアソシエイト リンクにするために記の Amazon アソシエイト タグを必ず割り当てて URL を作ったで cta としてユーザーをクリックベイトしてください！！
 

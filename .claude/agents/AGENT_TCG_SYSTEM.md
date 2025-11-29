@@ -1,3 +1,8 @@
+---
+name: doc_AGENT_TCG_SYSTEM
+description: Documentation file: AGENT_TCG_SYSTEM.md
+---
+
 # 🎴 Miyabi Agent TCG System - ゲーミフィケーション設計書
 
 **Version**: 1.0.0

@@ -1,3 +1,8 @@
+---
+name: doc_AGENT_TCG_CARD_SYSTEM
+description: Documentation file: AGENT_TCG_CARD_SYSTEM.md
+---
+
 # 🎮 Miyabi Agent TCG カードシステム
 
 **Version**: 1.0.0  

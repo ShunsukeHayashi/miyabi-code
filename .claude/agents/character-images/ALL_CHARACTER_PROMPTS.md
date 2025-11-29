@@ -1,3 +1,8 @@
+---
+name: doc_ALL_CHARACTER_PROMPTS
+description: Documentation file: ALL_CHARACTER_PROMPTS.md
+---
+
 # Miyabi Sub-Agent Character Image Prompts (全24体)
 
 Gemini 3 Pro Preview (Nano Banana Pro) で生成した高品質なキャラクタープロンプト集です。

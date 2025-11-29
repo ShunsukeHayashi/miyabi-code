@@ -1,3 +1,8 @@
+---
+name: doc_README
+description: Documentation file: README.md
+---
+
 # Coding Agent Execution Prompts
 
 コーディング・開発運用系AgentのWorktree実行プロンプトディレクトリです。

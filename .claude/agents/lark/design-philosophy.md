@@ -1,3 +1,8 @@
+---
+name: doc_design_philosophy
+description: Documentation file: design-philosophy.md
+---
+
 # Lark Agent 設計思想 - 識学理論ベース
 
 ## 📖 概要

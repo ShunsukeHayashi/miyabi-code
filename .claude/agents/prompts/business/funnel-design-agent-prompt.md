@@ -1,3 +1,8 @@
+---
+name: doc_funnel_design_agent_prompt
+description: Documentation file: funnel-design-agent-prompt.md
+---
+
 # FunnelDesignAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**FunnelDesignAgent**です。

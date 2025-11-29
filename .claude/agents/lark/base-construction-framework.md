@@ -1,3 +1,8 @@
+---
+name: doc_base_construction_framework
+description: Documentation file: base-construction-framework.md
+---
+
 # Lark Base 構築フレームワーク - 10コマンドスタック
 
 ## 📖 概要

@@ -1,3 +1,8 @@
+---
+name: doc_AGENT_CHARACTERS
+description: Documentation file: AGENT_CHARACTERS.md
+---
+
 # Agent Characters - エージェントキャラクター図鑑
 
 **小中学生でも分かる！かわいいキャラクターになったAIエージェントたち**

@@ -1,3 +1,8 @@
+---
+name: doc_README
+description: Documentation file: README.md
+---
+
 # Agent Documentation Structure
 
 このディレクトリには、Miyabiプロジェクトで使用される各Agentの仕様書と実行プロンプトが格納されています。

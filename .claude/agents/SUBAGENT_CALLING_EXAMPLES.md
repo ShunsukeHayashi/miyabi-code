@@ -1,3 +1,8 @@
+---
+name: doc_SUBAGENT_CALLING_EXAMPLES
+description: Documentation file: SUBAGENT_CALLING_EXAMPLES.md
+---
+
 # Sub-Agent 呼び出し実例集
 
 **Version**: 1.0.0  

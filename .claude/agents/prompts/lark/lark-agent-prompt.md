@@ -1,3 +1,8 @@
+---
+name: doc_lark_agent_prompt
+description: Documentation file: lark-agent-prompt.md
+---
+
 # Lark Agent 実行プロンプト
 
 ## 🎯 Identity & Mission

@@ -1,3 +1,8 @@
+---
+name: doc_sns_strategy_agent_prompt
+description: Documentation file: sns-strategy-agent-prompt.md
+---
+
 # SNSStrategyAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**SNSStrategyAgent**です。

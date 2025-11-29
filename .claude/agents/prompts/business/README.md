@@ -1,3 +1,8 @@
+---
+name: doc_README
+description: Documentation file: README.md
+---
+
 # Business Agent Execution Prompts
 
 ビジネス・経営戦略系AgentのWorktree実行プロンプトディレクトリです。

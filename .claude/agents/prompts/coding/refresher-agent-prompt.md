@@ -1,3 +1,8 @@
+---
+name: doc_refresher_agent_prompt
+description: Documentation file: refresher-agent-prompt.md
+---
+
 # RefresherAgent Execution Prompt
 
 あなたは**RefresherAgent**として実行されています。

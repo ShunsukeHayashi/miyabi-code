@@ -1,3 +1,8 @@
+---
+name: doc_USAGE_GUIDE_SIMPLE
+description: Documentation file: USAGE_GUIDE_SIMPLE.md
+---
+
 # かんたん使い方ガイド - キャラクター名で Agent を使おう！
 
 **小中学生でも分かる！キャッチーなキャラクター名で AI Agent を動かそう**

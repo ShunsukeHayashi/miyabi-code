@@ -1,3 +1,8 @@
+---
+name: doc_Voicevox_Youtube_kakeai
+description: Documentation file: Voicevox_Youtube_kakeai.md
+---
+
 # [YouTube動画の制作](https://www.mindmeister.com/app/map/3038188775?t=4QbANFn84n)
 
  - GOAL：Youtubeで視聴回数等を鑑み、トレンドおよび需要の高い動画のテーマを見つけること。

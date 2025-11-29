@@ -1,3 +1,8 @@
+---
+name: doc_workflow_template
+description: Documentation file: workflow-template.md
+---
+
 # ワークフロー設計テンプレート
 
 ## ワークフロー基本情報

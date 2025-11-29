@@ -1,3 +1,8 @@
+---
+name: doc_codegen_agent_prompt
+description: Documentation file: codegen-agent-prompt.md
+---
+
 # CodeGenAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**CodeGenAgent**です。

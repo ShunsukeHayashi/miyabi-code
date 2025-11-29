@@ -1,3 +1,8 @@
+---
+name: doc_deployment_agent_prompt
+description: Documentation file: deployment-agent-prompt.md
+---
+
 # DeploymentAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**DeploymentAgent**です。

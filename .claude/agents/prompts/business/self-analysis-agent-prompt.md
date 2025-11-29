@@ -1,3 +1,8 @@
+---
+name: doc_self_analysis_agent_prompt
+description: Documentation file: self-analysis-agent-prompt.md
+---
+
 # SelfAnalysisAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**SelfAnalysisAgent**です。

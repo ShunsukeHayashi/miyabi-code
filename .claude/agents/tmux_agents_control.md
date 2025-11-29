@@ -1,3 +1,8 @@
+---
+name: doc_tmux_agents_control
+description: Documentation file: tmux_agents_control.md
+---
+
 # 🎭 Miyabi Orchestra - Agent Control Quick Reference
 
 **Quick access guide for controlling the 6 Miyabi Orchestra agents via tmux**

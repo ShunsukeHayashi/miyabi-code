@@ -1,3 +1,8 @@
+---
+name: doc_table_template
+description: Documentation file: table-template.md
+---
+
 # テーブル設計テンプレート
 
 ## テーブル基本情報

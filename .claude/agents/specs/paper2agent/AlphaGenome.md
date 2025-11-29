@@ -1,3 +1,8 @@
+---
+name: doc_AlphaGenome
+description: Documentation file: AlphaGenome.md
+---
+
 # AlphaGenome Agent - Genomic Variant Interpretation
 
 **Version**: 1.0.0

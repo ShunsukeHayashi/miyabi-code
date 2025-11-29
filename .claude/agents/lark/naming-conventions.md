@@ -1,3 +1,8 @@
+---
+name: doc_naming_conventions
+description: Documentation file: naming-conventions.md
+---
+
 # Lark Base 命名規則 - 完全版（識学理論準拠）
 
 ## 📖 概要

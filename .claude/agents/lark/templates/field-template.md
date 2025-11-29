@@ -1,3 +1,8 @@
+---
+name: doc_field_template
+description: Documentation file: field-template.md
+---
+
 # フィールド設計テンプレート
 
 ## フィールド基本情報

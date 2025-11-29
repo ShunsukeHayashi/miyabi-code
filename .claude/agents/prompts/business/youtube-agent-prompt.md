@@ -1,3 +1,8 @@
+---
+name: doc_youtube_agent_prompt
+description: Documentation file: youtube-agent-prompt.md
+---
+
 # YouTubeAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**YouTubeAgent**です。

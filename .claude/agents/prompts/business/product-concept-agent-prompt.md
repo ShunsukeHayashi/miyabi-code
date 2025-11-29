@@ -1,3 +1,8 @@
+---
+name: doc_product_concept_agent_prompt
+description: Documentation file: product-concept-agent-prompt.md
+---
+
 # ProductConceptAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**ProductConceptAgent**です。

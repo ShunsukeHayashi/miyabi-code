@@ -1,3 +1,8 @@
+---
+name: doc_crm_agent_prompt
+description: Documentation file: crm-agent-prompt.md
+---
+
 # CRMAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**CRMAgent**です。

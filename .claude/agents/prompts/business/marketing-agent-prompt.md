@@ -1,3 +1,8 @@
+---
+name: doc_marketing_agent_prompt
+description: Documentation file: marketing-agent-prompt.md
+---
+
 # MarketingAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**MarketingAgent**です。

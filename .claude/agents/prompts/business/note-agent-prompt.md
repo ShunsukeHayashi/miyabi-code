@@ -1,3 +1,8 @@
+---
+name: doc_note_agent_prompt
+description: Documentation file: note-agent-prompt.md
+---
+
 # NoteAgent 実行プロンプト - note.com記事執筆
 
 **エージェント名**: NoteAgent（かきこちゃん）

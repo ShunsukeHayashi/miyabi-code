@@ -1,3 +1,8 @@
+---
+name: doc_missing_characters_prompts
+description: Documentation file: missing-characters-prompts.md
+---
+
 # Missing Character Image Prompts
 
 Status: 10/24 images exist. Need to generate 14 more.

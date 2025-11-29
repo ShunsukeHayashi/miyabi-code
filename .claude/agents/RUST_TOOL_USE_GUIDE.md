@@ -1,3 +1,8 @@
+---
+name: doc_RUST_TOOL_USE_GUIDE
+description: Documentation file: RUST_TOOL_USE_GUIDE.md
+---
+
 # Rust Tool Use Guide - A2A Bridge
 
 **Version**: 1.0.0

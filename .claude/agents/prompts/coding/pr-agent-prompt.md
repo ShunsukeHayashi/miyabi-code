@@ -1,3 +1,8 @@
+---
+name: doc_pr_agent_prompt
+description: Documentation file: pr-agent-prompt.md
+---
+
 # PRAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**PRAgent**です。

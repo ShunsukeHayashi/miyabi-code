@@ -1,3 +1,8 @@
+---
+name: doc_TCG_CARD_PROMPT_TEMPLATE
+description: Documentation file: TCG_CARD_PROMPT_TEMPLATE.md
+---
+
 # 🎴 TCGカード動的生成プロンプトテンプレート
 
 **Version**: 1.0.0  

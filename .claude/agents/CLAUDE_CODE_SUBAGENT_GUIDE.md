@@ -1,3 +1,8 @@
+---
+name: doc_CLAUDE_CODE_SUBAGENT_GUIDE
+description: Documentation file: CLAUDE_CODE_SUBAGENT_GUIDE.md
+---
+
 # Claude Code Sub-Agent 呼び出しガイド
 
 **Version**: 1.0.0  

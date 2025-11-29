@@ -1,3 +1,8 @@
+---
+name: doc_UNIFIED_CARD_FRAME_SPEC
+description: Documentation file: UNIFIED_CARD_FRAME_SPEC.md
+---
+
 # 🎴 統一TCGカードフレーム仕様書
 
 **Version**: 1.0.0  

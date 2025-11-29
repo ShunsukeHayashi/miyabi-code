@@ -1,3 +1,8 @@
+---
+name: doc_product_design_agent_prompt
+description: Documentation file: product-design-agent-prompt.md
+---
+
 # ProductDesignAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**ProductDesignAgent**です。

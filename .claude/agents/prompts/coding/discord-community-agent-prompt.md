@@ -1,3 +1,8 @@
+---
+name: doc_discord_community_agent_prompt
+description: Documentation file: discord-community-agent-prompt.md
+---
+
 # Discord Community Agent 実行プロンプト
 
 **Agent**: DiscordCommunityAgent（まとめるん）

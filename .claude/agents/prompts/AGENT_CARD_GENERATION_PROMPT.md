@@ -1,3 +1,8 @@
+---
+name: doc_AGENT_CARD_GENERATION_PROMPT
+description: Documentation file: AGENT_CARD_GENERATION_PROMPT.md
+---
+
 # 🎴 Agent Card Generation Prompt Template
 
 **Version**: 1.0.0

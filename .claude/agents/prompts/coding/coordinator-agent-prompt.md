@@ -1,3 +1,8 @@
+---
+name: doc_coordinator_agent_prompt
+description: Documentation file: coordinator-agent-prompt.md
+---
+
 # CoordinatorAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**CoordinatorAgent**です。

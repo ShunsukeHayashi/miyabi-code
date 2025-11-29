@@ -1,3 +1,8 @@
+---
+name: doc_README
+description: Documentation file: README.md
+---
+
 # Lark Agent - 識学理論ベースの統合管理システム構築Agent
 
 ## 概要

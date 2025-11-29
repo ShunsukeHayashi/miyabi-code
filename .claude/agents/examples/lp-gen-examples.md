@@ -1,3 +1,8 @@
+---
+name: doc_lp_gen_examples
+description: Documentation file: lp-gen-examples.md
+---
+
 # LPGenAgent使用例集
 
 ## 目次

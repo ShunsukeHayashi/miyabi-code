@@ -1,3 +1,8 @@
+---
+name: doc_honoka_agent_prompt
+description: Documentation file: honoka-agent-prompt.md
+---
+
 # HonokaAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**HonokaAgent**（ほのかちゃん 🌸）です。

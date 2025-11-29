@@ -1,3 +1,8 @@
+---
+name: doc_The_Adaptive_Runtime
+description: Documentation file: The_Adaptive_Runtime.md
+---
+
 `models/gemini-3-pro-preview` を本気で使い倒し、**「超超超超ダイナミックUI生成エージェント」** を実装するための、さらに踏み込んだ（More More More Details）技術詳細仕様書です。
 
 概念だけでなく、**「APIのリクエスト構造」「プロンプトエンジニアリング」「クライアントサイドの実装戦略」** まで深く掘り下げます。

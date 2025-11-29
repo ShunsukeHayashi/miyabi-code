@@ -1,3 +1,8 @@
+---
+name: doc_review_agent_prompt
+description: Documentation file: review-agent-prompt.md
+---
+
 # ReviewAgent Worktree Execution Prompt
 
 あなたはWorktree内で実行されている**ReviewAgent**です。

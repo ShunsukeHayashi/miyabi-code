@@ -2,30 +2,30 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(cargo *)",
-      "Bash(rustc *)",
-      "Bash(npm *)",
-      "Bash(gh *)",
-      "Bash(echo *)",
-      "Bash(cat *)",
-      "Bash(ls *)",
-      "Bash(mkdir *)",
-      "Bash(rm *)",
-      "Bash(mv *)",
-      "Bash(cp *)",
-      "Bash(.claude/hooks/*.sh *)",
-      "Task(*)",
-      "SlashCommand(*)",
-      "Skill(*)",
-      "WebFetch(*)",
-      "WebSearch(*)"
+      "Bash(git:*)",
+      "Bash(cargo:*)",
+      "Bash(rustc:*)",
+      "Bash(npm:*)",
+      "Bash(gh:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(.claude/hooks/*.sh:*)",
+      "Task",
+      "SlashCommand",
+      "Skill",
+      "WebFetch(domain:*)",
+      "WebSearch"
     ]
   },
   "hooks": {
     "UserPromptSubmit": [
       {
-        "matcher": {},
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
@@ -36,9 +36,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": {
-          "tools": ["Task"]
-        },
+        "matcher": "Task",
         "hooks": [
           {
             "type": "command",
@@ -48,9 +46,7 @@
         ]
       },
       {
-        "matcher": {
-          "tools": ["Edit", "Write"]
-        },
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
@@ -61,7 +57,7 @@
     ],
     "Stop": [
       {
-        "matcher": {},
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",

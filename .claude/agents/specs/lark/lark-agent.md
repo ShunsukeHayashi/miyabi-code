@@ -1,3 +1,8 @@
+---
+name: doc_lark_agent
+description: Documentation file: lark-agent.md
+---
+
 # Lark Agent 仕様書
 
 ## 🎯 Agent Identity

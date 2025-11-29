@@ -1,3 +1,8 @@
+---
+name: doc_RUST_COMMANDS_OPTIMIZATION
+description: Documentation file: RUST_COMMANDS_OPTIMIZATION.md
+---
+
 # 🦀 Rust Commands最適化ガイド - Agent実行の高速化
 
 **Last Updated**: 2025-11-03

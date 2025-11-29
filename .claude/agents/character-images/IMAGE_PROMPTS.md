@@ -1,3 +1,8 @@
+---
+name: doc_IMAGE_PROMPTS
+description: Documentation file: IMAGE_PROMPTS.md
+---
+
 # Miyabi Sub-Agent Character Image Prompts
 
 これらのプロンプトを使用して、AI画像生成ツール（DALL-E 3、Midjourney、Stable Diffusion等）でキャラクター画像を生成してください。
