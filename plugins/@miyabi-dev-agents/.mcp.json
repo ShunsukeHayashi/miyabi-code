@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/dev-agents",
+  "description": "MCP configuration for 9 Coding Agents",
+  "mcpServers": {
+    "//": "=== Core Development Servers ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub操作 - Issue/PR/Labels/Milestones管理 (IssueAgent, PRAgent用)",
+      "agents": ["IssueAgent", "PRAgent", "CoordinatorAgent", "RefresherAgent"]
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "tmuxセッション管理・マルチスレッド通信 (TmuxControlAgent用)",
+      "agents": ["TmuxControlAgent", "CoordinatorAgent"]
+    },
+
+    "miyabi-git-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-git-inspector/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_REPO_PATH": "${MIYABI_REPO_PATH}"
+      },
+      "disabled": false,
+      "description": "Git履歴・差分分析 (ReviewAgent, PRAgent用)",
+      "agents": ["ReviewAgent", "PRAgent", "CodeGenAgent"]
+    },
+
+    "//": "=== Code Quality & Analysis ===",
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-rules-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ルールエンジン・プロトコル検証 (ReviewAgent用)",
+      "agents": ["ReviewAgent", "CodeGenAgent"]
+    },
+
+    "gemini3-general": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-general/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "コード生成・分析・問題解決 (CodeGenAgent用)",
+      "agents": ["CodeGenAgent", "ReviewAgent"]
+    },
+
+    "//": "=== Deployment & Infrastructure ===",
+
+    "miyabi-process-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-process-inspector/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "プロセス監視 (DeploymentAgent用)",
+      "agents": ["DeploymentAgent"]
+    },
+
+    "miyabi-resource-monitor": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-resource-monitor/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "リソース監視 (DeploymentAgent用)",
+      "agents": ["DeploymentAgent"]
+    },
+
+    "//": "=== File & Context ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ファイル操作 (全Agent共通)",
+      "agents": ["CodeGenAgent", "ReviewAgent", "HooksIntegration"]
+    },
+
+    "miyabi-file-watcher": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-watcher/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_WATCH_DIR": "${MIYABI_WATCH_DIR}"
+      },
+      "disabled": false,
+      "description": "ファイル変更監視 (HooksIntegration用)",
+      "agents": ["HooksIntegration", "RefresherAgent"]
+    }
+  },
+  "agentMcpMapping": {
+    "CoordinatorAgent": ["miyabi-github", "miyabi-tmux", "gemini3-general"],
+    "CodeGenAgent": ["gemini3-general", "miyabi-git-inspector", "miyabi-rules", "miyabi-file-access"],
+    "ReviewAgent": ["miyabi-git-inspector", "miyabi-rules", "gemini3-general", "miyabi-file-access"],
+    "IssueAgent": ["miyabi-github"],
+    "PRAgent": ["miyabi-github", "miyabi-git-inspector"],
+    "DeploymentAgent": ["miyabi-process-inspector", "miyabi-resource-monitor"],
+    "RefresherAgent": ["miyabi-github", "miyabi-file-watcher"],
+    "TmuxControlAgent": ["miyabi-tmux"],
+    "HooksIntegration": ["miyabi-file-watcher", "miyabi-file-access"]
+  }
+}

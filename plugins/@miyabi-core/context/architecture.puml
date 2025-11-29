@@ -1,0 +1,274 @@
+@startuml Miyabi System Architecture - Rust Edition
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+skinparam shadowing false
+skinparam roundCorner 10
+
+title Miyabi System Architecture v2.0.1 - High-Performance Rust Edition
+
+package "Cargo Workspace Structure" {
+  ' Core Layer
+  package "Core Layer" {
+    [miyabi-types] as types #FFE5E5
+    note top of types
+      **Performance Improvements (Rust vs Node.js)**:
+      ✅ 50%+ execution time reduction
+      ✅ 30%+ memory usage reduction
+      ✅ Single binary distribution
+      ✅ Compile-time type safety
+    end note
+    note right of types
+      **Core Type Definitions**
+      - Agent, Task, Issue
+      - MiyabiError (12 variants)
+      - Workflow types
+    end note
+
+    [miyabi-core] as core #FFE5E5
+    note right of core
+      **Common Utilities**
+      - Config management
+      - Logger
+      - Shared utilities
+    end note
+  }
+
+  ' Integration Layer
+  package "Integration Layer" {
+    [miyabi-github] as github #E5F5FF
+    note right of github
+      **GitHub API Integration**
+      - Issues, PRs, Labels
+      - Webhooks
+      - Projects V2
+    end note
+
+    [miyabi-llm] as llm #E5F5FF
+    note right of llm
+      **LLM Provider Abstraction**
+      - GPT-OSS-20B
+      - Groq
+      - vLLM
+      - Ollama (Mac mini support)
+      - Reasoning Effort: Low/Medium/High
+    end note
+
+    [miyabi-knowledge] as knowledge #E5FFE5
+    note right of knowledge
+      **Knowledge Management (NEW v0.1.1)**
+      - Qdrant Vector DB
+      - Ollama/OpenAI embeddings
+      - Log collection (.ai/logs/)
+      - Metadata extraction
+      - Vector search
+    end note
+
+    [miyabi-worktree] as worktree #E5F5FF
+    note right of worktree
+      **Git Worktree Management**
+      - Parallel execution
+      - Worktree lifecycle
+      - Agent isolation
+    end note
+  }
+
+  ' Agent Layer
+  package "Agent Layer" {
+    [miyabi-agents] as agents #FFE5F5
+    note right of agents
+      **21 Agents Implementation**
+      - 6 Coding Agents (tmux Orchestra)
+      - 14 Business Agents (Rust)
+      - BaseAgent trait
+    end note
+  }
+
+  ' Application Layer
+  package "Application Layer" {
+    [miyabi-cli] as cli #E5FFE5
+    note right of cli
+      **CLI Tool (bin)**
+      - agent run
+      - knowledge search/stats/index
+      - worktree management
+      - github operations
+    end note
+
+    [miyabi-mcp-server] as mcp #E5FFE5
+    note right of mcp
+      **MCP Server (JSON-RPC 2.0)**
+      - stdio transport
+      - HTTP transport
+      - agents/{agent_type}/execute
+      - knowledge.search
+    end note
+  }
+
+  ' Deprecated
+  package "Deprecated (v0.1.1)" {
+    [miyabi-business-agents] as deprecated #F0F0F0
+    note right of deprecated
+      **DEPRECATED**
+      Migrated to miyabi-agents/business
+      See: DEPRECATED.md
+    end note
+  }
+
+  ' Dependencies
+  types --> core
+  github --> types
+  github --> core
+  llm --> types
+  llm --> core
+  knowledge --> types
+  knowledge --> core
+  worktree --> types
+  worktree --> core
+  worktree --> github
+  agents --> types
+  agents --> core
+  agents --> llm
+  agents --> github
+  agents --> worktree
+  cli --> types
+  cli --> core
+  cli --> agents
+  cli --> github
+  cli --> worktree
+  cli --> knowledge
+  mcp --> types
+  mcp --> agents
+  mcp --> knowledge
+}
+
+' GitHub as OS Integration
+package "GitHub as OS" {
+  component "Projects V2" as projects #FFE5E5
+  note right of projects
+    **Data Persistence Layer**
+    Storage for Issues, Tasks
+  end note
+
+  component "Webhooks" as webhooks #E5F5FF
+  note right of webhooks
+    **Event Bus**
+    Event-driven architecture
+  end note
+
+  component "Actions" as actions #E5FFE5
+  note right of actions
+    **Execution Engine**
+    CI/CD pipeline
+  end note
+
+  component "Discussions" as discussions #FFE5F5
+  note right of discussions
+    **Message Queue**
+    Notifications & queuing
+  end note
+
+  component "Pages" as pages #F5E5FF
+  note right of pages
+    **Static Hosting**
+    Website deployment
+  end note
+
+  component "Packages" as packages #E5F5E5
+  note right of packages
+    **Artifact Management**
+    Package distribution
+  end note
+
+  github --> projects : Store
+  github --> webhooks : Listen
+  github --> actions : Trigger
+  github --> discussions : Post
+  github --> pages : Deploy
+  github --> packages : Publish
+}
+
+' Windows Platform Support
+package "Windows Platform Support" {
+  component "CI/CD Pipeline" as wincicd #E5FFE5
+  note right of wincicd
+    ✅ GitHub Actions windows-latest
+    ✅ Release binary: miyabi.exe
+    ✅ Cross-platform tests
+  end note
+
+  component "Path Handling" as winpath #FFE5E5
+  note right of winpath
+    🔄 std::path::PathBuf migration
+    🔄 Windows path limits (260 chars)
+    🔄 Environment variables (dirs crate)
+  end note
+
+  component "Known Constraints" as winconstraints #FFF5E5
+  note right of winconstraints
+    - Some hardcoded `/` paths
+    - UNC paths (\\?\C:\...) unsupported
+    - CRLF/LF depends on git config
+  end note
+}
+
+' Execution Flow
+package "Parallel Execution Architecture" {
+  actor "User/GitHub Event" as user
+
+  user --> cli : miyabi agent run
+  user --> mcp : JSON-RPC 2.0
+  cli --> agents : Execute
+  mcp --> agents : Execute
+  agents --> worktree : Create Worktree
+  worktree --> github : git worktree add
+
+  note as parallel
+    **Git Worktree Parallel Execution**
+    CoordinatorAgent (Main Process)
+        │
+        ├─ Worktree #1 (Issue #270) → CodeGenAgent
+        ├─ Worktree #2 (Issue #271) → ReviewAgent
+        └─ Worktree #3 (Issue #272) → DeploymentAgent
+        │
+        └─ Merge Back to Main
+  end note
+}
+
+' Knowledge Management Flow
+package "Knowledge Management System" {
+  component "Qdrant Vector DB" as qdrant #E5F5FF
+  component "Ollama (all-MiniLM-L6-v2)\nOpenAI (text-embedding-3-small)" as embeddings #FFE5F5
+  component ".ai/logs/ Collection" as logs #E5FFE5
+
+  logs --> embeddings : Extract
+  embeddings --> qdrant : Index (384/1536 dimensions)
+  knowledge --> qdrant : Search
+  knowledge --> logs : Collect
+
+  note right of qdrant
+    **3 Access Methods**:
+    1. Rust API: KnowledgeManager
+    2. CLI: miyabi knowledge search
+    3. MCP: knowledge.search
+  end note
+}
+
+note bottom
+  **Technology Stack**:
+  - Language: Rust 2021 Edition (Stable)
+  - Async Runtime: Tokio
+  - HTTP Client: reqwest
+  - Git: git2-rs
+  - Vector DB: Qdrant
+  - Embeddings: Ollama, OpenAI
+
+  **References**:
+  - Cargo Workspace: /Users/shunsuke/Dev/miyabi-private/crates/
+  - GitHub OS: docs/GITHUB_OS_INTEGRATION.md
+  - Rust Migration: docs/RUST_MIGRATION_REQUIREMENTS.md
+  - Knowledge System: crates/miyabi-knowledge/README.md
+  - Windows Support: Issue #360
+end note
+
+@enduml

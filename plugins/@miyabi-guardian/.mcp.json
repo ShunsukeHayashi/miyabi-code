@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/guardian",
+  "description": "MCP configuration for Guardian Agent - Manual Escalation & Critical Incident Response",
+  "mcpServers": {
+    "//": "=== Incident Detection ===",
+
+    "miyabi-log-aggregator": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-log-aggregator/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LOG_DIR": "${MIYABI_LOG_DIR}"
+      },
+      "disabled": false,
+      "description": "エラーログ・クリティカルイベント収集",
+      "purpose": "incident-detection"
+    },
+
+    "miyabi-network-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-network-inspector/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ネットワーク障害検知・接続監視",
+      "purpose": "network-incident-detection"
+    },
+
+    "miyabi-process-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-process-inspector/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "プロセス異常終了・ハング検知",
+      "purpose": "process-incident-detection"
+    },
+
+    "//": "=== Escalation & Communication ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "緊急Issue作成・ラベル付与",
+      "purpose": "escalation"
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "Agent間緊急通信・ブロードキャスト",
+      "purpose": "emergency-broadcast"
+    },
+
+    "//": "=== Analysis & Decision ===",
+
+    "gemini3-general": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-general/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "インシデント分析・対応策提案",
+      "purpose": "incident-analysis"
+    },
+
+    "gemini3-adaptive-runtime": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-adaptive-runtime/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview",
+        "GEMINI_THINKING_LEVEL": "high"
+      },
+      "disabled": false,
+      "description": "深い推論による根本原因分析",
+      "purpose": "root-cause-analysis"
+    },
+
+    "//": "=== Recovery Actions ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "設定ファイル復旧・バックアップ操作",
+      "purpose": "recovery"
+    },
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-rules-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "プロトコル検証・復旧手順確認",
+      "purpose": "protocol-verification"
+    }
+  },
+  "incidentResponseFlow": {
+    "detection": ["miyabi-log-aggregator", "miyabi-network-inspector", "miyabi-process-inspector"],
+    "analysis": ["gemini3-general", "gemini3-adaptive-runtime"],
+    "escalation": ["miyabi-github", "miyabi-tmux"],
+    "recovery": ["miyabi-file-access", "miyabi-rules"]
+  },
+  "severityLevels": {
+    "critical": {
+      "autoEscalate": true,
+      "createIssue": true,
+      "broadcastAlert": true
+    },
+    "high": {
+      "autoEscalate": false,
+      "createIssue": true,
+      "broadcastAlert": true
+    },
+    "medium": {
+      "autoEscalate": false,
+      "createIssue": true,
+      "broadcastAlert": false
+    },
+    "low": {
+      "autoEscalate": false,
+      "createIssue": false,
+      "broadcastAlert": false
+    }
+  }
+}

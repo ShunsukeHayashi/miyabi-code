@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "miyabi-mcp-servers",
+  "version": "2.0.0",
+  "description": "Miyabi MCP Server Configurations - 24 External Service Integrations",
+  "total_servers": 24,
+  "categories": {
+    "core": {
+      "name": "Core Servers",
+      "description": "常に有効な基幹サーバー",
+      "servers": [
+        {
+          "name": "miyabi",
+          "type": "rust",
+          "binary": "target/release/miyabi-mcp-server",
+          "description": "Miyabi Rust MCP Server - Agent execution via JSON-RPC 2.0",
+          "tools": [
+            "a2a.execute",
+            "a2a.code_generation_agent.generate_code",
+            "a2a.task_coordination_agent.orchestrate_agents",
+            "a2a.code_review_agent.review_code",
+            "a2a.issue_analysis_agent.analyze_issues",
+            "a2a.pr_creation_agent.create_pr",
+            "a2a.deployment_agent.deploy"
+          ],
+          "environment": {
+            "RUST_LOG": "miyabi_mcp_server=info,miyabi_agents=debug",
+            "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+          },
+          "priority": "P0"
+        },
+        {
+          "name": "filesystem",
+          "type": "npm",
+          "package": "@modelcontextprotocol/server-filesystem",
+          "description": "Filesystem access for project files",
+          "tools": ["read_file", "write_file", "list_directory", "search_files"],
+          "priority": "P0"
+        },
+        {
+          "name": "github-enhanced",
+          "type": "node",
+          "script": ".claude/mcp-servers/github-enhanced.cjs",
+          "description": "Enhanced GitHub operations for Issue/PR management",
+          "tools": ["create_issue", "update_issue", "list_issues", "create_pr", "merge_pr"],
+          "environment": {
+            "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+            "REPOSITORY": "${REPOSITORY}"
+          },
+          "priority": "P0"
+        },
+        {
+          "name": "project-context",
+          "type": "node",
+          "script": ".claude/mcp-servers/project-context.cjs",
+          "description": "Project-specific context and dependency information",
+          "tools": ["get_project_context", "get_dependencies", "get_architecture"],
+          "priority": "P1"
+        }
+      ]
+    },
+    "development": {
+      "name": "Development Servers",
+      "description": "開発支援サーバー",
+      "servers": [
+        {
+          "name": "ide-integration",
+          "type": "node",
+          "script": ".claude/mcp-servers/ide-integration.cjs",
+          "description": "VS Code diagnostics and Jupyter execution integration",
+          "tools": ["get_diagnostics", "execute_jupyter", "format_code"],
+          "priority": "P1"
+        },
+        {
+          "name": "context-engineering",
+          "type": "node",
+          "script": "external/context-engineering-mcp/mcp-server/index.js",
+          "description": "Context Engineering - AI-powered context analysis",
+          "environment": {
+            "AI_GUIDES_API_URL": "http://localhost:8888"
+          },
+          "priority": "P2"
+        }
+      ]
+    },
+    "ai_integration": {
+      "name": "AI Integration Servers",
+      "description": "AI/LLMサービス統合",
+      "servers": [
+        {
+          "name": "gemini3-image-gen",
+          "type": "node",
+          "script": "mcp-servers/gemini3-image-gen/dist/simple-server.js",
+          "description": "Gemini 3 Pro Preview image generation",
+          "tools": ["generate_image", "edit_image", "analyze_image"],
+          "environment": {
+            "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+          },
+          "priority": "P1"
+        },
+        {
+          "name": "gemini-image-generation",
+          "type": "node",
+          "script": ".claude/mcp-servers/image-generation.js",
+          "description": "Gemini 2.5 Flash Image - テキストから画像生成",
+          "environment": {
+            "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
+          },
+          "priority": "P2"
+        },
+        {
+          "name": "gemini3-uiux-designer",
+          "type": "node",
+          "description": "UI/UX設計レビュー (Jonathan Ive哲学)",
+          "priority": "P2"
+        },
+        {
+          "name": "gemini3-adaptive-runtime",
+          "type": "node",
+          "description": "適応的ランタイム",
+          "priority": "P2"
+        }
+      ]
+    },
+    "lark_integration": {
+      "name": "Lark Integration",
+      "description": "Lark/Feishuサービス統合",
+      "servers": [
+        {
+          "name": "lark-openapi",
+          "type": "node",
+          "script": "mcp-servers/lark-openapi-mcp-enhanced/dist/cli.js",
+          "description": "Lark OpenAPI MCP - Bitable/Base + IM tools",
+          "tools": [
+            "bitable_v1_app_get",
+            "bitable_v1_appTable_list",
+            "bitable_v1_appTableRecord_list",
+            "bitable_v1_appTableRecord_create",
+            "im_v1_message_create",
+            "im_v1_chat_list"
+          ],
+          "environment": {
+            "LARK_APP_ID": "${LARK_APP_ID}",
+            "LARK_APP_SECRET": "${LARK_APP_SECRET}"
+          },
+          "priority": "P1"
+        },
+        {
+          "name": "lark-wiki-agents",
+          "type": "node",
+          "description": "Lark Wiki操作",
+          "priority": "P2"
+        },
+        {
+          "name": "lark-mcp-enhanced",
+          "type": "node",
+          "description": "拡張Lark機能",
+          "priority": "P2"
+        }
+      ]
+    },
+    "communication": {
+      "name": "Communication Servers",
+      "description": "コミュニケーションツール統合",
+      "servers": [
+        {
+          "name": "discord-community",
+          "type": "node",
+          "script": ".claude/mcp-servers/discord-integration.js",
+          "description": "Miyabi Discord community management",
+          "tools": ["send_message", "get_messages", "create_channel", "manage_members"],
+          "environment": {
+            "DISCORD_BOT_TOKEN": "${DISCORD_BOT_TOKEN}",
+            "DISCORD_GUILD_ID": "${DISCORD_GUILD_ID}"
+          },
+          "priority": "P2"
+        }
+      ]
+    },
+    "tmux": {
+      "name": "Tmux Integration",
+      "description": "Tmuxセッション管理",
+      "servers": [
+        {
+          "name": "miyabi-tmux",
+          "type": "node",
+          "script": "mcp-servers/miyabi-tmux-server/dist/index.js",
+          "description": "Miyabi tmux MCP Server - Multithread communication aggregation",
+          "tools": ["send_keys", "capture_pane", "list_sessions", "create_session", "select_pane"],
+          "priority": "P1"
+        }
+      ]
+    },
+    "monitoring": {
+      "name": "Monitoring Servers",
+      "description": "システム監視",
+      "servers": [
+        {
+          "name": "miyabi-obsidian",
+          "type": "node",
+          "description": "Obsidian Vault操作",
+          "tools": ["create_note", "update_note", "search", "link_notes"],
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-file-watcher",
+          "type": "node",
+          "description": "ファイル監視",
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-git-inspector",
+          "type": "node",
+          "description": "Git検査",
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-log-aggregator",
+          "type": "node",
+          "description": "ログ集約",
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-network-inspector",
+          "type": "node",
+          "description": "ネットワーク監視",
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-process-inspector",
+          "type": "node",
+          "description": "プロセス監視",
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-resource-monitor",
+          "type": "node",
+          "description": "リソース監視",
+          "priority": "P2"
+        }
+      ]
+    },
+    "utilities": {
+      "name": "Utility Servers",
+      "description": "ユーティリティ",
+      "servers": [
+        {
+          "name": "miyabi-rules",
+          "type": "node",
+          "description": "ルールエンジン",
+          "priority": "P2"
+        },
+        {
+          "name": "miyabi-sse-gateway",
+          "type": "node",
+          "description": "SSEゲートウェイ",
+          "priority": "P2"
+        }
+      ]
+    }
+  },
+  "environment_variables": {
+    "required": [
+      {
+        "name": "GITHUB_TOKEN",
+        "description": "GitHub Personal Access Token",
+        "scope": ["miyabi", "github-enhanced"]
+      }
+    ],
+    "optional": [
+      {
+        "name": "GEMINI_API_KEY",
+        "description": "Google Gemini API Key",
+        "scope": ["gemini3-image-gen"]
+      },
+      {
+        "name": "GOOGLE_API_KEY",
+        "description": "Google API Key",
+        "scope": ["gemini-image-generation"]
+      },
+      {
+        "name": "LARK_APP_ID",
+        "description": "Lark App ID",
+        "scope": ["lark-openapi"]
+      },
+      {
+        "name": "LARK_APP_SECRET",
+        "description": "Lark App Secret",
+        "scope": ["lark-openapi"]
+      },
+      {
+        "name": "DISCORD_BOT_TOKEN",
+        "description": "Discord Bot Token",
+        "scope": ["discord-community"]
+      },
+      {
+        "name": "DISCORD_GUILD_ID",
+        "description": "Discord Guild ID",
+        "scope": ["discord-community"]
+      }
+    ]
+  },
+  "installation": {
+    "npm_packages": [
+      "@modelcontextprotocol/server-filesystem"
+    ],
+    "build_commands": {
+      "miyabi": "cargo build --release -p miyabi-mcp-server",
+      "gemini3-image-gen": "cd mcp-servers/gemini3-image-gen && npm install && npm run build",
+      "lark-openapi": "cd mcp-servers/lark-openapi-mcp-enhanced && npm install && npm run build",
+      "miyabi-tmux": "cd mcp-servers/miyabi-tmux-server && npm install && npm run build"
+    }
+  }
+}

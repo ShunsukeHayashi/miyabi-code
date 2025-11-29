@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/biz-agents",
+  "description": "MCP configuration for 16 Business Agents",
+  "mcpServers": {
+    "//": "=== AI Generation & Analysis ===",
+
+    "gemini3-general": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-general/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "テキスト生成・分析・問題解決 (全Business Agent共通)",
+      "agents": ["AIEntrepreneurAgent", "SelfAnalysisAgent", "MarketResearchAgent", "ContentCreationAgent"]
+    },
+
+    "gemini3-uiux-designer": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-uiux-designer/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "UI/UXデザインレビュー (ProductDesignAgent用)",
+      "agents": ["ProductDesignAgent", "ProductConceptAgent"]
+    },
+
+    "gemini3-image-gen": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-image-gen/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "画像生成 (ImageGenAgent, ContentCreationAgent用)",
+      "agents": ["ImageGenAgent", "ContentCreationAgent", "SNSStrategyAgent"]
+    },
+
+    "//": "=== Business Data & Knowledge ===",
+
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-obsidian-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ナレッジベース管理 (全Business Agent共通)",
+      "agents": ["AIEntrepreneurAgent", "MarketResearchAgent", "ContentCreationAgent", "AnalyticsAgent"]
+    },
+
+    "lark-wiki-agents": {
+      "command": "node",
+      "args": [
+        "mcp-servers/lark-openapi-mcp-enhanced/dist/cli.js",
+        "mcp",
+        "--mode", "stdio",
+        "--app-id", "${LARK_APP_ID}",
+        "--app-secret", "${LARK_APP_SECRET}"
+      ],
+      "disabled": false,
+      "description": "Larkデータベース・ドキュメント連携 (CRMAgent, SalesAgent用)",
+      "agents": ["CRMAgent", "SalesAgent", "AnalyticsAgent"]
+    },
+
+    "//": "=== Content & Marketing ===",
+
+    "miyabi-commercial-agents": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-commercial-agents/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LICENSE_KEY": "${MIYABI_LICENSE_KEY}",
+        "NODE_ENV": "production"
+      },
+      "disabled": false,
+      "description": "商用Agent機能 (MarketingAgent, SalesAgent用)",
+      "agents": ["MarketingAgent", "SalesAgent", "FunnelDesignAgent"]
+    },
+
+    "//": "=== Social & Community ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub連携 (コンテンツ管理用)",
+      "agents": ["ContentCreationAgent", "YouTubeAgent", "NoteAgent"]
+    },
+
+    "//": "=== File & Data ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ファイル操作 (全Agent共通)",
+      "agents": ["ContentCreationAgent", "NoteAgent", "AnalyticsAgent"]
+    }
+  },
+  "agentMcpMapping": {
+    "AIEntrepreneurAgent": ["gemini3-general", "miyabi-obsidian"],
+    "SelfAnalysisAgent": ["gemini3-general", "miyabi-obsidian"],
+    "MarketResearchAgent": ["gemini3-general", "miyabi-obsidian"],
+    "PersonaAgent": ["gemini3-general", "miyabi-obsidian"],
+    "ProductConceptAgent": ["gemini3-general", "gemini3-uiux-designer"],
+    "ProductDesignAgent": ["gemini3-uiux-designer", "gemini3-general"],
+    "ContentCreationAgent": ["gemini3-general", "gemini3-image-gen", "miyabi-obsidian", "miyabi-file-access"],
+    "FunnelDesignAgent": ["gemini3-general", "miyabi-commercial-agents"],
+    "SNSStrategyAgent": ["gemini3-general", "gemini3-image-gen"],
+    "MarketingAgent": ["gemini3-general", "miyabi-commercial-agents"],
+    "SalesAgent": ["gemini3-general", "miyabi-commercial-agents", "lark-wiki-agents"],
+    "CRMAgent": ["lark-wiki-agents", "gemini3-general"],
+    "AnalyticsAgent": ["gemini3-general", "miyabi-obsidian", "lark-wiki-agents"],
+    "YouTubeAgent": ["gemini3-general", "miyabi-github"],
+    "NoteAgent": ["gemini3-general", "miyabi-file-access", "miyabi-github"],
+    "ImageGenAgent": ["gemini3-image-gen"]
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/honoka",
+  "description": "MCP configuration for 穂花(ほのか) Agent - Udemy Course Creation & Content Sales",
+  "mcpServers": {
+    "//": "=== Content Generation ===",
+
+    "gemini3-general": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-general/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "コース構成・スクリプト生成 (穂花コア機能)",
+      "workflows": ["course-outline", "lecture-script", "quiz-generation"]
+    },
+
+    "gemini3-image-gen": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-image-gen/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      },
+      "disabled": false,
+      "description": "サムネイル・スライド画像生成",
+      "workflows": ["thumbnail-creation", "slide-design"]
+    },
+
+    "gemini3-uiux-designer": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-uiux-designer/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "スライドデザイン・UI設計",
+      "workflows": ["slide-design", "landing-page"]
+    },
+
+    "//": "=== Knowledge & Data ===",
+
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-obsidian-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "コースコンテンツ・ナレッジ管理",
+      "workflows": ["content-management", "research-notes"]
+    },
+
+    "//": "=== File & Asset Management ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "コース素材・アセット管理",
+      "workflows": ["asset-management", "export"]
+    },
+
+    "//": "=== Business Integration ===",
+
+    "miyabi-commercial-agents": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-commercial-agents/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LICENSE_KEY": "${MIYABI_LICENSE_KEY}",
+        "NODE_ENV": "production"
+      },
+      "disabled": false,
+      "description": "販売戦略・価格設定",
+      "workflows": ["pricing-strategy", "sales-page"]
+    }
+  },
+  "workflowMcpMapping": {
+    "course-outline": ["gemini3-general", "miyabi-obsidian"],
+    "lecture-script": ["gemini3-general"],
+    "quiz-generation": ["gemini3-general"],
+    "thumbnail-creation": ["gemini3-image-gen"],
+    "slide-design": ["gemini3-image-gen", "gemini3-uiux-designer"],
+    "landing-page": ["gemini3-uiux-designer", "gemini3-general"],
+    "content-management": ["miyabi-obsidian", "miyabi-file-access"],
+    "research-notes": ["miyabi-obsidian"],
+    "asset-management": ["miyabi-file-access"],
+    "export": ["miyabi-file-access"],
+    "pricing-strategy": ["miyabi-commercial-agents", "gemini3-general"],
+    "sales-page": ["miyabi-commercial-agents", "gemini3-uiux-designer"]
+  }
+}

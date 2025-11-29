@@ -1,98 +1,331 @@
 {
-  "name": "miyabi-official-plugins",
-  "description": "Miyabi official plugin index for Claude Code marketplace",
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/plugins",
   "version": "2.0.0",
+  "description": "Miyabi Plugin Marketplace Index - 完全自律型AI開発オペレーションプラットフォーム",
+  "homepage": "https://miyabi-world.com",
   "repository": "https://github.com/customer-cloud/miyabi-private",
-  "plugins": [
+  "author": {
+    "name": "Shunsuke Hayashi",
+    "email": "supernovasyun@gmail.com",
+    "url": "https://github.com/ShunsukeHayashi"
+  },
+  "license": "Apache-2.0",
+  "updated_at": "2025-11-29T00:00:00Z",
+  "stats": {
+    "total_plugins": 11,
+    "total_agents": 25,
+    "total_skills": 22,
+    "total_commands": 50,
+    "total_mcp_servers": 24,
+    "total_hooks": 10,
+    "total_context_files": 31,
+    "total_definitions": 143
+  },
+  "categories": [
     {
-      "name": "miyabi-full",
-      "source": "./miyabi-full",
+      "id": "foundation",
+      "name": "Foundation",
+      "description": "Miyabi Society/Operation を再現するための基盤",
+      "plugins": ["@miyabi/core"]
+    },
+    {
+      "id": "automation",
+      "name": "Automation",
+      "description": "自動化・オーケストレーション",
+      "plugins": ["@miyabi/suite"]
+    },
+    {
+      "id": "development",
+      "name": "Development",
+      "description": "開発ツール・ワークフロー",
+      "plugins": ["@miyabi/dev-agents", "@miyabi/skills"]
+    },
+    {
+      "id": "business",
+      "name": "Business",
+      "description": "ビジネス自動化・マーケティング",
+      "plugins": ["@miyabi/biz-agents"]
+    },
+    {
+      "id": "productivity",
+      "name": "Productivity",
+      "description": "生産性向上ツール",
+      "plugins": ["@miyabi/cli"]
+    },
+    {
+      "id": "integrations",
+      "name": "Integrations",
+      "description": "外部サービス統合",
+      "plugins": ["@miyabi/mcp", "@miyabi/hooks"]
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "description": "教育・コース作成",
+      "plugins": ["@miyabi/honoka"]
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitoring",
+      "description": "システム監視",
+      "plugins": ["@miyabi/monitor"]
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "description": "セキュリティ・インシデント対応",
+      "plugins": ["@miyabi/guardian"]
+    }
+  ],
+  "plugins": {
+    "@miyabi/core": {
+      "name": "@miyabi/core",
+      "directory": "@miyabi-core",
+      "version": "2.0.0",
+      "description": "Miyabi Core Foundation - Source of Truth, Context, Principles (Society/Operationを再現するための基盤)",
+      "category": "foundation",
+      "featured": true,
+      "required": true,
+      "downloads": 0,
+      "rating": 5.0,
+      "components": {
+        "miyabi_def": 15,
+        "context_files": 31,
+        "principles": 3,
+        "configurations": 4
+      },
+      "includes": [
+        "miyabi_def/variables/*.yaml",
+        "miyabi_def/templates/*.j2",
+        "context/*.md",
+        "principles/*.md",
+        "CLAUDE.md",
+        "AGENT_CHARACTERS.md",
+        "AGENT_CARD_TEMPLATE.md",
+        "settings.json",
+        "orchestra-config.yaml"
+      ]
+    },
+    "@miyabi/suite": {
+      "name": "@miyabi/suite",
+      "directory": "@miyabi-suite",
       "version": "2.0.0",
       "description": "Miyabi 完全パッケージ - 25 Agents + 22 Skills + 50 Commands + MCP + Hooks",
       "category": "automation",
-      "tags": ["ai", "agents", "devops", "automation", "github", "rust"],
-      "license": "Apache-2.0"
+      "featured": true,
+      "downloads": 0,
+      "rating": 5.0,
+      "components": {
+        "agents": 25,
+        "skills": 22,
+        "commands": 50,
+        "mcp_servers": 24,
+        "hooks": 10
+      }
     },
-    {
-      "name": "miyabi-coding-agents",
-      "source": "./miyabi-coding-agents",
+    "@miyabi/dev-agents": {
+      "name": "@miyabi/dev-agents",
+      "directory": "@miyabi-dev-agents",
       "version": "2.0.0",
       "description": "9 Coding Agents: Coordinator, CodeGen, Review, Issue, PR, Deployment, Hooks, Refresher, TmuxControl",
       "category": "development",
-      "tags": ["coding", "agents", "rust", "github", "ci-cd"],
-      "license": "Apache-2.0"
+      "featured": true,
+      "downloads": 0,
+      "rating": 5.0,
+      "components": {
+        "agents": 9
+      },
+      "agents": [
+        "CoordinatorAgent",
+        "CodeGenAgent",
+        "ReviewAgent",
+        "IssueAgent",
+        "PRAgent",
+        "DeploymentAgent",
+        "RefresherAgent",
+        "TmuxControlAgent",
+        "HooksIntegration"
+      ]
     },
-    {
-      "name": "miyabi-business-agents",
-      "source": "./miyabi-business-agents",
+    "@miyabi/biz-agents": {
+      "name": "@miyabi/biz-agents",
+      "directory": "@miyabi-biz-agents",
       "version": "2.0.0",
-      "description": "16 Business Agents: Entrepreneur, Persona, Market, Product, Content, Marketing, Sales, CRM, Analytics, YouTube, SNS, Note, ImageGen, Design, Funnel, Course",
+      "description": "16 Business Agents for marketing, sales, content, and analytics automation",
       "category": "business",
-      "tags": ["business", "marketing", "sales", "content", "analytics"],
-      "license": "Apache-2.0"
+      "featured": true,
+      "downloads": 0,
+      "rating": 5.0,
+      "components": {
+        "agents": 16
+      },
+      "agents": [
+        "AIEntrepreneurAgent",
+        "SelfAnalysisAgent",
+        "MarketResearchAgent",
+        "PersonaAgent",
+        "ProductConceptAgent",
+        "ProductDesignAgent",
+        "ContentCreationAgent",
+        "FunnelDesignAgent",
+        "SNSStrategyAgent",
+        "MarketingAgent",
+        "SalesAgent",
+        "CRMAgent",
+        "AnalyticsAgent",
+        "YouTubeAgent",
+        "NoteAgent",
+        "ImageGenAgent"
+      ]
     },
-    {
-      "name": "miyabi-skills",
-      "source": "./miyabi-skills",
+    "@miyabi/skills": {
+      "name": "@miyabi/skills",
+      "directory": "@miyabi-skills",
       "version": "2.0.0",
-      "description": "22 Development Skills: Rust, TDD, Git, Security, Performance, Debugging, Documentation, etc.",
+      "description": "22 Development Skills for Rust, TDD, Git, Security, Performance, and more",
       "category": "development",
-      "tags": ["skills", "rust", "testing", "security", "workflows"],
-      "license": "Apache-2.0"
+      "featured": false,
+      "downloads": 0,
+      "rating": 4.8,
+      "components": {
+        "skills": 22
+      },
+      "skills": [
+        "agent-execution",
+        "business-strategy-planning",
+        "claude-code-x",
+        "content-marketing-strategy",
+        "context-eng",
+        "debugging-troubleshooting",
+        "dependency-management",
+        "documentation-generation",
+        "git-workflow",
+        "growth-analytics-dashboard",
+        "issue-analysis",
+        "market-research-analysis",
+        "paper2agent",
+        "performance-analysis",
+        "project-setup",
+        "rust-development",
+        "sales-crm-management",
+        "security-audit",
+        "tdd-workflow",
+        "tmux-iterm-integration",
+        "voicevox"
+      ]
     },
-    {
-      "name": "miyabi-commands",
-      "source": "./miyabi-commands",
+    "@miyabi/cli": {
+      "name": "@miyabi/cli",
+      "directory": "@miyabi-cli",
       "version": "2.0.0",
-      "description": "50+ Slash Commands: /agent-run, /deploy, /review, /security-scan, /daily-update, /voicevox, etc.",
+      "description": "50+ Slash Commands for development automation",
       "category": "productivity",
-      "tags": ["commands", "cli", "automation"],
-      "license": "Apache-2.0"
+      "featured": false,
+      "downloads": 0,
+      "rating": 4.9,
+      "components": {
+        "commands": 50
+      }
     },
-    {
-      "name": "miyabi-mcp-servers",
-      "source": "./miyabi-mcp-servers",
+    "@miyabi/mcp": {
+      "name": "@miyabi/mcp",
+      "directory": "@miyabi-mcp",
       "version": "2.0.0",
-      "description": "MCP Server Configurations: Gemini 3, Lark, Obsidian, GitHub, tmux, and more",
+      "description": "24 MCP Server configurations for external service integration",
       "category": "integrations",
-      "tags": ["mcp", "servers", "integrations"],
-      "license": "Apache-2.0"
+      "featured": false,
+      "downloads": 0,
+      "rating": 4.7,
+      "components": {
+        "mcp_servers": 24
+      }
     },
-    {
-      "name": "miyabi-hooks",
-      "source": "./miyabi-hooks",
+    "@miyabi/hooks": {
+      "name": "@miyabi/hooks",
+      "directory": "@miyabi-hooks",
       "version": "2.0.0",
-      "description": "Pre/Post Tool Hooks: Session management, Git integration, MCP initialization",
-      "category": "automation",
-      "tags": ["hooks", "events", "automation"],
-      "license": "Apache-2.0"
+      "description": "Pre/Post Tool Hooks for automated workflows",
+      "category": "integrations",
+      "featured": false,
+      "downloads": 0,
+      "rating": 4.6,
+      "components": {
+        "hooks": 10
+      }
     },
-    {
-      "name": "miyabi-honoka",
-      "source": "./miyabi-honoka",
+    "@miyabi/honoka": {
+      "name": "@miyabi/honoka",
+      "directory": "@miyabi-honoka",
       "version": "2.0.0",
       "description": "穂花(ほのか) Agent - Udemy コース作成＆コンテンツ販売の専門家",
       "category": "education",
-      "tags": ["udemy", "course", "education", "content"],
-      "license": "Apache-2.0"
+      "featured": false,
+      "downloads": 0,
+      "rating": 5.0,
+      "components": {
+        "agents": 1,
+        "workflows": 13
+      }
     },
-    {
-      "name": "miyabi-water-spider",
-      "source": "./miyabi-water-spider",
+    "@miyabi/monitor": {
+      "name": "@miyabi/monitor",
+      "directory": "@miyabi-monitor",
       "version": "2.0.0",
       "description": "Water Spider Agent - システム監視・自動復旧・健全性チェック",
       "category": "monitoring",
-      "tags": ["monitoring", "health-check", "auto-recovery"],
-      "license": "Apache-2.0"
+      "featured": false,
+      "downloads": 0,
+      "rating": 4.9,
+      "components": {
+        "agents": 1
+      }
     },
-    {
-      "name": "miyabi-guardian",
-      "source": "./miyabi-guardian",
+    "@miyabi/guardian": {
+      "name": "@miyabi/guardian",
+      "directory": "@miyabi-guardian",
       "version": "2.0.0",
       "description": "Guardian Agent - 手動エスカレーション・クリティカル障害対応",
       "category": "security",
-      "tags": ["security", "escalation", "incident-response"],
-      "license": "Apache-2.0"
+      "featured": false,
+      "downloads": 0,
+      "rating": 5.0,
+      "components": {
+        "agents": 1
+      }
     }
-  ]
+  },
+  "search_keywords": {
+    "core": ["@miyabi/core"],
+    "foundation": ["@miyabi/core"],
+    "society": ["@miyabi/core"],
+    "principles": ["@miyabi/core"],
+    "coding": ["@miyabi/dev-agents", "@miyabi/skills"],
+    "business": ["@miyabi/biz-agents"],
+    "automation": ["@miyabi/suite", "@miyabi/hooks"],
+    "rust": ["@miyabi/dev-agents", "@miyabi/skills"],
+    "github": ["@miyabi/dev-agents", "@miyabi/cli"],
+    "marketing": ["@miyabi/biz-agents"],
+    "youtube": ["@miyabi/biz-agents"],
+    "udemy": ["@miyabi/honoka"],
+    "monitoring": ["@miyabi/monitor"],
+    "security": ["@miyabi/guardian", "@miyabi/skills"],
+    "tdd": ["@miyabi/skills"],
+    "mcp": ["@miyabi/mcp"],
+    "agent": ["@miyabi/dev-agents", "@miyabi/biz-agents", "@miyabi/suite", "@miyabi/core"],
+    "tcg": ["@miyabi/core"],
+    "cards": ["@miyabi/core"]
+  },
+  "dependencies": {
+    "@miyabi/suite": ["@miyabi/core"],
+    "@miyabi/dev-agents": ["@miyabi/core"],
+    "@miyabi/biz-agents": ["@miyabi/core"],
+    "@miyabi/skills": ["@miyabi/core"],
+    "@miyabi/cli": ["@miyabi/core"],
+    "@miyabi/mcp": ["@miyabi/core"],
+    "@miyabi/hooks": ["@miyabi/core"],
+    "@miyabi/honoka": ["@miyabi/core", "@miyabi/biz-agents"],
+    "@miyabi/monitor": ["@miyabi/core"],
+    "@miyabi/guardian": ["@miyabi/core"]
+  }
 }

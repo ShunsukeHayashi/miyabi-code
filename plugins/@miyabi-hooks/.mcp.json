@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/hooks",
+  "description": "MCP configuration for Pre/Post Tool Hooks",
+  "mcpServers": {
+    "//": "=== Hook Event Monitoring ===",
+
+    "miyabi-file-watcher": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-watcher/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_WATCH_DIR": "${MIYABI_WATCH_DIR}"
+      },
+      "disabled": false,
+      "description": "ファイル変更イベント監視",
+      "hookTypes": ["pre-edit", "post-edit", "pre-write", "post-write"]
+    },
+
+    "miyabi-git-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-git-inspector/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_REPO_PATH": "${MIYABI_REPO_PATH}"
+      },
+      "disabled": false,
+      "description": "Git操作フック用状態確認",
+      "hookTypes": ["pre-commit", "post-commit", "pre-push"]
+    },
+
+    "//": "=== Hook Action Execution ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub操作フック (Issue/PR自動作成)",
+      "hookTypes": ["post-commit", "post-push"]
+    },
+
+    "//": "=== Validation & Rules ===",
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-rules-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "プロトコル検証フック",
+      "hookTypes": ["pre-bash", "pre-edit", "pre-write"]
+    },
+
+    "//": "=== Logging & Notification ===",
+
+    "miyabi-log-aggregator": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-log-aggregator/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LOG_DIR": "${MIYABI_LOG_DIR}"
+      },
+      "disabled": false,
+      "description": "フックイベントログ記録",
+      "hookTypes": ["all"]
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "フックイベント通知・ブロードキャスト",
+      "hookTypes": ["post-session", "error"]
+    }
+  },
+  "hookEventMapping": {
+    "PreToolUse": {
+      "Bash": ["miyabi-rules"],
+      "Edit": ["miyabi-file-watcher", "miyabi-rules"],
+      "Write": ["miyabi-file-watcher", "miyabi-rules"]
+    },
+    "PostToolUse": {
+      "Bash": ["miyabi-log-aggregator"],
+      "Edit": ["miyabi-file-watcher", "miyabi-log-aggregator"],
+      "Write": ["miyabi-file-watcher", "miyabi-log-aggregator"]
+    },
+    "UserPromptSubmit": ["miyabi-rules"],
+    "Stop": ["miyabi-tmux", "miyabi-log-aggregator"]
+  },
+  "hookCategories": {
+    "git-ops": {
+      "description": "Git操作関連フック",
+      "servers": ["miyabi-git-inspector", "miyabi-github"]
+    },
+    "validation": {
+      "description": "検証・ルールチェックフック",
+      "servers": ["miyabi-rules"]
+    },
+    "monitoring": {
+      "description": "監視・ログフック",
+      "servers": ["miyabi-file-watcher", "miyabi-log-aggregator"]
+    },
+    "notification": {
+      "description": "通知フック",
+      "servers": ["miyabi-tmux"]
+    }
+  }
+}

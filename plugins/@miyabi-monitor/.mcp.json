@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/monitor",
+  "description": "MCP configuration for Water Spider Agent - System Monitoring & Auto-Recovery",
+  "mcpServers": {
+    "//": "=== System Monitoring ===",
+
+    "miyabi-resource-monitor": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-resource-monitor/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "CPU/メモリ/ディスク使用率監視",
+      "capabilities": ["cpu-monitoring", "memory-monitoring", "disk-monitoring"]
+    },
+
+    "miyabi-process-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-process-inspector/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "プロセス状態監視・異常検知",
+      "capabilities": ["process-monitoring", "anomaly-detection"]
+    },
+
+    "miyabi-network-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-network-inspector/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ネットワーク接続・レイテンシ監視",
+      "capabilities": ["network-monitoring", "latency-check"]
+    },
+
+    "//": "=== Logging & Analysis ===",
+
+    "miyabi-log-aggregator": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-log-aggregator/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LOG_DIR": "${MIYABI_LOG_DIR}"
+      },
+      "disabled": false,
+      "description": "ログ収集・パターン分析",
+      "capabilities": ["log-collection", "pattern-analysis", "alert-trigger"]
+    },
+
+    "//": "=== File & Change Monitoring ===",
+
+    "miyabi-file-watcher": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-watcher/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_WATCH_DIR": "${MIYABI_WATCH_DIR}"
+      },
+      "disabled": false,
+      "description": "ファイル変更検知・イベント発火",
+      "capabilities": ["file-monitoring", "change-detection"]
+    },
+
+    "//": "=== Communication ===",
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "tmux経由でのAgent間通信・CommHub",
+      "capabilities": ["inter-agent-communication", "broadcast"]
+    },
+
+    "//": "=== Git Status ===",
+
+    "miyabi-git-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-git-inspector/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_REPO_PATH": "${MIYABI_REPO_PATH}"
+      },
+      "disabled": false,
+      "description": "Git状態監視・未コミット変更検知",
+      "capabilities": ["git-status", "uncommitted-changes"]
+    }
+  },
+  "monitoringCapabilities": {
+    "system": ["miyabi-resource-monitor", "miyabi-process-inspector"],
+    "network": ["miyabi-network-inspector"],
+    "logs": ["miyabi-log-aggregator"],
+    "files": ["miyabi-file-watcher"],
+    "git": ["miyabi-git-inspector"],
+    "communication": ["miyabi-tmux"]
+  },
+  "alertingFlow": {
+    "detection": ["miyabi-resource-monitor", "miyabi-process-inspector", "miyabi-log-aggregator"],
+    "notification": ["miyabi-tmux"],
+    "escalation": "GuardianAgent"
+  }
+}

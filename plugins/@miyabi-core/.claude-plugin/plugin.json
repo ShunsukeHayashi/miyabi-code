@@ -1,0 +1,31 @@
+{
+  "name": "@miyabi/core",
+  "version": "2.0.0",
+  "description": "Miyabi Core Foundation - Source of Truth, Context, Principles, Settings (Society/Operationを再現するための基盤)",
+  "author": {
+    "name": "Shunsuke Hayashi",
+    "email": "supernovasyun@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "miyabi",
+    "core",
+    "foundation",
+    "society",
+    "principles",
+    "context",
+    "source-of-truth"
+  ],
+  "dependencies": [],
+  "context": "./context",
+  "includes": [
+    "miyabi_def/**/*",
+    "context/**/*",
+    "principles/**/*",
+    "CLAUDE.md",
+    "AGENT_CHARACTERS.md",
+    "AGENT_CARD_TEMPLATE.md",
+    "settings.json",
+    "orchestra-config.yaml"
+  ]
+}

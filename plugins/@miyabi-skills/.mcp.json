@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/skills",
+  "description": "MCP configuration for 22 Development Skills",
+  "mcpServers": {
+    "//": "=== Development & Coding ===",
+
+    "gemini3-general": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-general/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "コード生成・問題解決・ドキュメント生成",
+      "skills": ["rust-development", "debugging-troubleshooting", "documentation-generation"]
+    },
+
+    "gemini3-adaptive-runtime": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-adaptive-runtime/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview",
+        "GEMINI_THINKING_LEVEL": "high"
+      },
+      "disabled": false,
+      "description": "深い推論・複雑な問題分析",
+      "skills": ["performance-analysis", "security-audit"]
+    },
+
+    "//": "=== Git & Version Control ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "Git操作・Issue/PR管理",
+      "skills": ["git-workflow", "issue-analysis"]
+    },
+
+    "miyabi-git-inspector": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-git-inspector/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_REPO_PATH": "${MIYABI_REPO_PATH}"
+      },
+      "disabled": false,
+      "description": "Git履歴分析・差分確認",
+      "skills": ["git-workflow"]
+    },
+
+    "//": "=== Agent Execution & Orchestration ===",
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "tmux管理・Agent並列実行",
+      "skills": ["agent-execution", "tmux-iterm-integration"]
+    },
+
+    "//": "=== Knowledge & Context ===",
+
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-obsidian-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ナレッジベース操作・コンテキスト管理",
+      "skills": ["documentation-generation", "context-eng"]
+    },
+
+    "//": "=== Business Intelligence ===",
+
+    "miyabi-commercial-agents": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-commercial-agents/dist/index.js"
+      ],
+      "env": {
+        "MIYABI_LICENSE_KEY": "${MIYABI_LICENSE_KEY}",
+        "NODE_ENV": "production"
+      },
+      "disabled": false,
+      "description": "ビジネス分析・戦略策定",
+      "skills": ["business-strategy-planning", "market-research-analysis", "sales-crm-management", "growth-analytics-dashboard"]
+    },
+
+    "//": "=== File Operations ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ファイル操作・プロジェクト構造管理",
+      "skills": ["project-setup", "documentation-generation"]
+    },
+
+    "//": "=== Rules & Quality ===",
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-rules-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ルール検証・品質チェック",
+      "skills": ["tdd-workflow", "security-audit"]
+    }
+  },
+  "skillMcpMapping": {
+    "agent-execution": ["miyabi-tmux", "miyabi-github"],
+    "business-strategy-planning": ["miyabi-commercial-agents", "gemini3-general"],
+    "claude-code-x": ["gemini3-general"],
+    "content-marketing-strategy": ["miyabi-commercial-agents", "gemini3-general"],
+    "context-eng": ["miyabi-obsidian", "gemini3-general"],
+    "debugging-troubleshooting": ["gemini3-general", "gemini3-adaptive-runtime"],
+    "dependency-management": ["miyabi-file-access", "gemini3-general"],
+    "documentation-generation": ["gemini3-general", "miyabi-obsidian", "miyabi-file-access"],
+    "git-workflow": ["miyabi-github", "miyabi-git-inspector"],
+    "growth-analytics-dashboard": ["miyabi-commercial-agents", "gemini3-general"],
+    "issue-analysis": ["miyabi-github", "gemini3-general"],
+    "market-research-analysis": ["miyabi-commercial-agents", "gemini3-general"],
+    "paper2agent": ["gemini3-general", "miyabi-obsidian"],
+    "performance-analysis": ["gemini3-adaptive-runtime", "gemini3-general"],
+    "project-setup": ["miyabi-file-access", "miyabi-github"],
+    "rust-development": ["gemini3-general", "miyabi-file-access"],
+    "sales-crm-management": ["miyabi-commercial-agents"],
+    "security-audit": ["gemini3-adaptive-runtime", "miyabi-rules"],
+    "tdd-workflow": ["gemini3-general", "miyabi-rules"],
+    "tmux-iterm-integration": ["miyabi-tmux"],
+    "voicevox": ["miyabi-file-access"]
+  }
+}

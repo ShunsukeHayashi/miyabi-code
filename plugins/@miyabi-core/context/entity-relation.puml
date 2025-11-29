@@ -1,0 +1,223 @@
+@startuml Miyabi Entity-Relation Model - 12 Entities, 27 Relations
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "SF Pro Display"
+skinparam shadowing false
+skinparam roundCorner 10
+
+title Miyabi Entity-Relation Model v2.0.1 - Comprehensive System Architecture
+
+' Core Entities
+entity "Issue\n(E1)" as Issue {
+  * number : integer
+  --
+  title : string
+  body : string
+  labels : Label[]
+  state : Open/Closed
+  assignees : string[]
+}
+
+entity "Task\n(E2)" as Task {
+  * id : uuid
+  --
+  type : TaskType
+  priority : Priority
+  dependencies : Task[]
+  estimated_time : duration
+  agent_type : AgentType
+}
+
+entity "Agent\n(E3)" as Agent {
+  * type : AgentType
+  --
+  status : idle/executing/completed
+  worktree_path : PathBuf
+  session_id : uuid
+  config : AgentConfig
+}
+
+entity "PR\n(E4)" as PR {
+  * number : integer
+  --
+  title : string
+  branch : string
+  commits : Commit[]
+  reviews : Review[]
+  merge_status : Status
+}
+
+entity "Label\n(E5)" as Label {
+  * name : string
+  --
+  category : LabelCategory
+  color : string
+  description : string
+  priority : Priority
+}
+
+entity "QualityReport\n(E6)" as QualityReport {
+  * id : uuid
+  --
+  score : float
+  clippy_warnings : integer
+  test_coverage : percentage
+  security_issues : Issue[]
+  recommendations : string[]
+}
+
+entity "Command\n(E7)" as Command {
+  * name : string
+  --
+  path : PathBuf
+  description : string
+  category : CommandCategory
+  template : string
+}
+
+entity "Escalation\n(E8)" as Escalation {
+  * id : uuid
+  --
+  severity : P0/P1/P2/P3
+  reason : string
+  triggered_by : AgentType
+  escalated_at : timestamp
+  resolved : boolean
+}
+
+entity "Deployment\n(E9)" as Deployment {
+  * id : uuid
+  --
+  environment : staging/production
+  status : pending/deploying/success/failed
+  health_check : boolean
+  rollback_ready : boolean
+}
+
+entity "LDDLog\n(E10)" as LDDLog {
+  * id : uuid
+  --
+  stage : LDDStage
+  agent_type : AgentType
+  task_id : uuid
+  log_entry : string
+  timestamp : timestamp
+}
+
+entity "DAG\n(E11)" as DAG {
+  * id : uuid
+  --
+  nodes : Task[]
+  edges : (Task, Task)[]
+  topological_order : Task[]
+  circular_check : boolean
+}
+
+entity "Worktree\n(E12)" as Worktree {
+  * path : PathBuf
+  --
+  branch_name : string
+  issue_number : integer
+  status : active/idle/completed
+  agent_context : JSON
+}
+
+' Issue Processing Flow (R1-R4)
+Issue "1" --> "1" Agent : R1: analyzed-by\n(IssueAgent)
+Issue "1" --> "*" Task : R2: decomposed-into\n(CoordinatorAgent)
+Issue "1" --> "*" Label : R3: tagged-with
+Issue "1" --> "0..1" PR : R4: creates
+
+' Agent Execution (R9-R13)
+Agent "1" --> "*" Task : R9: executes
+Agent "1" --> "0..1" PR : R10: generates
+Agent "1" --> "0..1" QualityReport : R11: creates
+Agent "1" --> "0..*" Escalation : R12: triggers
+Agent "1" --> "0..1" Deployment : R13: performs
+
+' Task Management (R5-R7)
+Task "*" --> "1" Agent : R5: assigned-to
+Task "*" --> "*" Task : R6: depends-on\n(DAG)
+Task "1" --> "1" Worktree : R7: executes-in
+
+' PR & Quality (R8, R14-R16)
+PR "1" --> "1" QualityReport : R8: evaluated-by\n(ReviewAgent)
+PR "1" --> "*" Label : R14: tagged-with
+PR "1" --> "0..1" Deployment : R15: triggers
+QualityReport "1" --> "*" Escalation : R16: may-trigger
+
+' DAG & LDD (R17-R21)
+DAG "1" --> "*" Task : R17: contains
+DAG "1" --> "1" Issue : R18: generated-from
+LDDLog "*" --> "1" Task : R19: logs
+LDDLog "*" --> "1" Agent : R20: logged-by
+LDDLog "*" --> "0..1" Escalation : R21: may-create
+
+' Worktree Relations (R22-R25)
+Worktree "1" --> "1" Issue : R22: created-for
+Worktree "1" --> "1" Agent : R23: assigned-to
+Worktree "1" --> "*" Task : R24: executes
+Worktree "1" --> "0..1" PR : R25: produces
+
+' Command & Escalation (R26-R27)
+Command "*" --> "*" Agent : R26: invoked-by
+Escalation "1" --> "1" Command : R27: requires-resolution
+
+' N1/N2/N3 Notation Workflow
+package "N1/N2/N3 Notation - LLM Optimized Workflow" {
+  note as N1N2N3
+    **階層的ワークフロー表記**:
+    N1:EntityName $H→ N2:ProcessingEntity $L→ N3:OutputEntity
+
+    **階層定義**:
+    - N1 (Primary): ルートEntity（Issue, UserRequest）
+    - N2 (Processing): 処理Entity（Agent, Task）
+    - N3 (Output): 出力Entity（PR, QualityReport）
+
+    **依存度マーカー**:
+    - $H (High): 必須依存 - クリティカルパス
+    - $L (Low): オプション依存 - 拡張機能
+
+    **Example**:
+    N1:Issue $H→ N2:IssueAgent $H→ N3:LabeledIssue
+    N1:Issue $H→ N2:CoordinatorAgent $H→ N3:TaskDecomposition
+    N1:Task $H→ N2:CodeGenAgent $H→ N3:GeneratedCode
+    N2:CodeGenAgent $H→ N2:ReviewAgent $H→ N3:QualityReport
+  end note
+}
+
+' 88 Templates System
+package "88 Templates System" {
+  note as Templates
+    **統合テンプレート管理**:
+    - Coding Agent仕様 (7 files): .claude/agents/specs/coding/
+    - Business Agent仕様 (14 files): .claude/agents/specs/business/
+    - Coding Agent実行プロンプト (6 files): .claude/agents/prompts/coding/
+    - Claude Codeコマンド (9 files): .claude/commands/
+    - Rust型定義 (7 files): crates/miyabi-types/src/
+    - ドキュメント (20+ files): docs/
+
+    **Master Index**: docs/TEMPLATE_MASTER_INDEX.md
+  end note
+}
+
+note bottom
+  **Entity-Relation Statistics**:
+  - Total Entities: 12
+  - Total Relations: 27
+  - Critical Relations (R1-R13): 13
+  - Workflow Relations (R14-R27): 14
+
+  **Rust Type Definitions**:
+  - Core Types: crates/miyabi-types/src/
+  - Agent Types: crates/miyabi-types/src/agent.rs
+  - Task Types: crates/miyabi-types/src/task.rs
+  - Workflow Types: crates/miyabi-types/src/workflow.rs
+
+  **References**:
+  - Entity-Relation Model: docs/ENTITY_RELATION_MODEL.md
+  - Template Master Index: docs/TEMPLATE_MASTER_INDEX.md
+  - Label System: docs/LABEL_SYSTEM_GUIDE.md
+end note
+
+@enduml

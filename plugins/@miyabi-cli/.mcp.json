@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/cli",
+  "description": "MCP configuration for 50+ Slash Commands",
+  "mcpServers": {
+    "//": "=== Core Command Support ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub操作コマンド用",
+      "commands": ["/create-issue", "/deploy", "/daily-update"]
+    },
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "tmux制御コマンド用",
+      "commands": ["/tmux-control", "/miyabi-auto", "/ssh-connect"]
+    },
+
+    "//": "=== Documentation & Generation ===",
+
+    "gemini3-general": {
+      "command": "node",
+      "args": [
+        "mcp-servers/gemini3-general/dist/index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-3-pro-preview"
+      },
+      "disabled": false,
+      "description": "ドキュメント・コード生成コマンド用",
+      "commands": ["/generate-docs", "/agent-run"]
+    },
+
+    "//": "=== Verification & Security ===",
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-rules-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "検証・セキュリティコマンド用",
+      "commands": ["/verify", "/security-scan"]
+    },
+
+    "//": "=== File & Project ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ファイル操作コマンド用",
+      "commands": ["/miyabi-todos"]
+    },
+
+    "//": "=== Monitoring & Status ===",
+
+    "miyabi-resource-monitor": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-resource-monitor/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "システム状態確認コマンド用",
+      "commands": ["/verify"]
+    },
+
+    "//": "=== Notification ===",
+
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-obsidian-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ナレッジベース操作コマンド用",
+      "commands": ["/daily-update"]
+    }
+  },
+  "commandMcpMapping": {
+    "/generate-docs": ["gemini3-general", "miyabi-file-access"],
+    "/tmux-control": ["miyabi-tmux"],
+    "/create-issue": ["miyabi-github"],
+    "/deploy": ["miyabi-github", "miyabi-resource-monitor"],
+    "/session-end": [],
+    "/daily-update": ["miyabi-github", "miyabi-obsidian"],
+    "/verify": ["miyabi-rules", "miyabi-resource-monitor"],
+    "/miyabi-auto": ["miyabi-tmux", "miyabi-github"],
+    "/security-scan": ["miyabi-rules"],
+    "/ssh-connect": ["miyabi-tmux"],
+    "/agent-run": ["gemini3-general", "miyabi-github"],
+    "/miyabi-todos": ["miyabi-file-access", "miyabi-github"]
+  }
+}

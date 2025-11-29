@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "miyabi-hooks",
+  "version": "4.0.0",
+  "description": "Miyabi Pre/Post Tool Hooks - Automated Operational Best Practices",
+  "total_hooks": 10,
+  "priority_levels": {
+    "P0": {
+      "name": "Critical",
+      "description": "Safety and validation - must execute successfully",
+      "hooks": ["init-mcp-environment", "permission-check", "git-status-check"]
+    },
+    "P1": {
+      "name": "Recommended",
+      "description": "Quality and automation - enhance development experience",
+      "hooks": ["auto-format", "run-tests"]
+    },
+    "P2": {
+      "name": "Extensions",
+      "description": "Optional enhancements - project-specific features",
+      "hooks": ["voicevox-narration", "notification"]
+    }
+  },
+  "hooks": {
+    "session": {
+      "description": "Session lifecycle hooks",
+      "hooks": [
+        {
+          "name": "init-mcp-environment",
+          "file": "session-hooks/init-mcp-environment.sh",
+          "event": "SessionStart",
+          "priority": "P0",
+          "purpose": "Initialize and validate Miyabi development environment",
+          "checks": ["Project root", "Git status", "MCP servers", "Environment variables"],
+          "timeout_ms": 30000,
+          "exit_codes": {
+            "0": "success",
+            "1": "warning"
+          }
+        }
+      ]
+    },
+    "pre_tool": {
+      "description": "Pre-tool execution hooks",
+      "hooks": [
+        {
+          "name": "permission-check",
+          "file": "pre-hooks/permission-check.sh",
+          "event": "PreToolUse",
+          "matcher": "Bash",
+          "priority": "P0",
+          "purpose": "Block dangerous operations before execution",
+          "blocks": ["git push --force", "git reset --hard", "rm -rf /"],
+          "timeout_ms": 10000,
+          "exit_codes": {
+            "0": "allow",
+            "2": "block"
+          }
+        },
+        {
+          "name": "git-status-check",
+          "file": "pre-hooks/git-status-check.sh",
+          "event": "PreToolUse",
+          "matcher": "git commit",
+          "priority": "P0",
+          "purpose": "Ensure proper git workflow before commits",
+          "validates": ["Staged changes exist", "No large files (>10MB)", "No sensitive files"],
+          "timeout_ms": 15000,
+          "exit_codes": {
+            "0": "allow",
+            "2": "block"
+          }
+        },
+        {
+          "name": "agent-worktree-pre",
+          "file": "agent-worktree-pre.sh",
+          "event": "PreToolUse",
+          "matcher": "Task",
+          "priority": "P1",
+          "purpose": "Create isolated worktree for Sub-Agent execution",
+          "timeout_ms": 60000
+        }
+      ]
+    },
+    "post_tool": {
+      "description": "Post-tool execution hooks",
+      "hooks": [
+        {
+          "name": "auto-format",
+          "file": "post-hooks/auto-format.sh",
+          "event": "PostToolUse",
+          "matcher": ["Write", "Edit"],
+          "priority": "P1",
+          "purpose": "Automatically format code after modifications",
+          "formatters": {
+            ".rs": "rustfmt",
+            ".ts": "prettier",
+            ".tsx": "prettier",
+            ".js": "prettier",
+            ".jsx": "prettier",
+            ".json": "jq"
+          },
+          "timeout_ms": 30000,
+          "behavior": "non-blocking"
+        },
+        {
+          "name": "run-tests",
+          "file": "post-hooks/run-tests.sh",
+          "event": "PostToolUse",
+          "matcher": ["Write", "Edit"],
+          "priority": "P1",
+          "purpose": "Automatically run tests after code changes",
+          "test_runners": {
+            ".rs": "cargo test -p <crate>",
+            ".ts": "npm test",
+            ".tsx": "npm test"
+          },
+          "timeout_ms": 60000,
+          "behavior": "non-blocking"
+        },
+        {
+          "name": "agent-worktree-post",
+          "file": "agent-worktree-post.sh",
+          "event": "PostToolUse",
+          "matcher": "Task",
+          "priority": "P1",
+          "purpose": "Cleanup worktree after Sub-Agent execution",
+          "timeout_ms": 120000
+        },
+        {
+          "name": "validate-rust",
+          "file": "validate-rust.sh",
+          "event": "PostToolUse",
+          "matcher": ["Write", "Edit"],
+          "priority": "P1",
+          "purpose": "Validate Rust code after edit",
+          "checks": ["cargo check", "cargo clippy"],
+          "timeout_ms": 60000
+        },
+        {
+          "name": "validate-typescript",
+          "file": "validate-typescript.sh",
+          "event": "PostToolUse",
+          "matcher": ["Write", "Edit"],
+          "priority": "P1",
+          "purpose": "Validate TypeScript code after edit",
+          "checks": ["tsc --noEmit", "eslint"],
+          "timeout_ms": 30000
+        }
+      ]
+    },
+    "notification": {
+      "description": "Notification hooks",
+      "hooks": [
+        {
+          "name": "notification",
+          "file": "notification.sh",
+          "event": "PostToolUse",
+          "priority": "P2",
+          "purpose": "Desktop notifications for important events",
+          "timeout_ms": 5000
+        }
+      ]
+    }
+  },
+  "libraries": {
+    "lib/logging.sh": {
+      "description": "Logging functions with color-coded output",
+      "functions": ["log_info", "log_warning", "log_error", "log_success", "log_hook_start", "log_hook_end", "log_progress"]
+    },
+    "lib/validation.sh": {
+      "description": "Common validation functions",
+      "functions": ["is_git_repo", "has_uncommitted_changes", "is_miyabi_project", "validate_tool_permission", "check_file_readable", "check_required_env"]
+    }
+  },
+  "worktree_management": {
+    "description": "Orchestrator pattern for Sub-Agent isolation",
+    "scripts": {
+      "worktree-manager.sh": "Core worktree lifecycle management",
+      "worktree-prompt.sh": "Interactive task prompt",
+      "agent-worktree-pre.sh": "PreToolUse(Task) - Create worktree",
+      "agent-worktree-post.sh": "PostToolUse(Task) - Cleanup worktree"
+    },
+    "features": [
+      "Main session stays in main branch (Orchestrator never enters worktree)",
+      "Each Sub-Agent gets isolated worktree",
+      "Automatic worktree naming: {subagent-type}-issue-{num}-{timestamp}",
+      "Agent context tracking (.agent-context.json)",
+      "Automatic merge to main after successful execution",
+      "Safety checks: prevents nested worktrees"
+    ]
+  },
+  "settings_example": {
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "Task",
+          "command": "jq -r '.tool_input' | .claude/hooks/agent-worktree-pre.sh",
+          "description": "Create worktree for Sub-Agent execution",
+          "timeout": 60000
+        }
+      ],
+      "PostToolUse": [
+        {
+          "matcher": "Task",
+          "command": "jq -r '.tool_input' | .claude/hooks/agent-worktree-post.sh",
+          "description": "Cleanup worktree after Sub-Agent execution",
+          "timeout": 120000
+        }
+      ]
+    }
+  }
+}

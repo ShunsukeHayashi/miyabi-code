@@ -1,0 +1,116 @@
+{
+  "codexHaltMonitor": {
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Codex process halt monitor with automatic recovery",
+    "silenceThreshold": 30,
+    "maxRestarts": 3,
+    "cooldownSeconds": 60,
+    "rules": {
+      "processExit": {
+        "enabled": true,
+        "severity": "P0",
+        "description": "Detect process exit with non-zero code",
+        "actions": ["restart", "notify", "debug-collect"]
+      },
+      "fatalError": {
+        "enabled": true,
+        "severity": "P0",
+        "description": "Detect fatal error messages in logs",
+        "patterns": [
+          "Codex crashed",
+          "Unhandled rejection",
+          "Fatal error",
+          "ECONNREFUSED",
+          "SIGTERM",
+          "SIGKILL",
+          "Rate limit exceeded",
+          "429 Too Many Requests",
+          "ENOMEM",
+          "Out of memory"
+        ],
+        "actions": ["restart", "notify", "debug-collect"]
+      },
+      "silenceTimeout": {
+        "enabled": true,
+        "severity": "P1",
+        "description": "Detect prolonged silence (no output)",
+        "thresholdSeconds": 30,
+        "actions": ["notify"]
+      },
+      "warning": {
+        "enabled": true,
+        "severity": "P1",
+        "description": "Detect warning messages",
+        "patterns": [
+          "Timeout",
+          "Connection lost",
+          "Retry"
+        ],
+        "actions": ["notify"]
+      }
+    },
+    "hooks": {
+      "restart": {
+        "script": ".claude/hooks/codex-restart.sh",
+        "description": "Restart Codex with exponential backoff",
+        "timeout": 120
+      },
+      "notify": {
+        "script": ".claude/hooks/codex-notify.sh",
+        "description": "Send notifications via macOS, VOICEVOX, and webhooks",
+        "timeout": 30
+      },
+      "debug-collect": {
+        "script": ".claude/hooks/codex-debug-collect.sh",
+        "description": "Collect debug information and upload to S3",
+        "timeout": 60
+      }
+    },
+    "logging": {
+      "enabled": true,
+      "directory": ".ai/logs",
+      "retentionDays": 7,
+      "files": {
+        "monitor": "codex-monitor-{date}.log",
+        "events": "codex-events-{date}.log",
+        "restart": "codex-restart-{date}.log",
+        "notify": "codex-notify-{date}.log"
+      }
+    },
+    "notifications": {
+      "macOS": {
+        "enabled": true,
+        "description": "Native macOS notifications via osascript"
+      },
+      "voicevox": {
+        "enabled": true,
+        "speaker": 3,
+        "speed": 1.0,
+        "port": 50021,
+        "description": "Audio notifications using VOICEVOX (Zundamon)"
+      },
+      "webhook": {
+        "enabled": false,
+        "url": "${MIYABI_WEBHOOK_URL}",
+        "description": "HTTP POST to webhook URL (Slack, Discord, etc.)"
+      }
+    },
+    "debug": {
+      "enabled": true,
+      "directory": ".ai/debug",
+      "compressionEnabled": true,
+      "s3Upload": {
+        "enabled": false,
+        "bucket": "${MIYABI_DEBUG_S3_BUCKET}",
+        "prefix": "codex-debug/"
+      }
+    },
+    "safety": {
+      "maxRestarts": 3,
+      "cooldownSeconds": 60,
+      "exponentialBackoff": true,
+      "preventInfiniteLoop": true
+    }
+  }
+}

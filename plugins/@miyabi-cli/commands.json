@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "miyabi-commands",
+  "version": "2.0.0",
+  "description": "Miyabi Slash Commands Collection - 50+ Development Automation Commands",
+  "total_commands": 50,
+  "categories": {
+    "development": {
+      "name": "Development",
+      "description": "開発・コーディング関連コマンド",
+      "commands": [
+        {
+          "name": "/create-issue",
+          "file": "create-issue.md",
+          "description": "GitHub Issue作成（Agent実行用・汎用両対応）",
+          "usage": "/create-issue [--simple]",
+          "examples": [
+            "/create-issue",
+            "/create-issue --simple"
+          ]
+        },
+        {
+          "name": "/test",
+          "file": "test.md",
+          "description": "プロジェクト全体テスト実行",
+          "usage": "/test",
+          "examples": ["/test"]
+        },
+        {
+          "name": "/verify",
+          "file": "verify.md",
+          "description": "システム動作確認（環境・コンパイル・テスト）",
+          "usage": "/verify",
+          "examples": ["/verify"]
+        },
+        {
+          "name": "/review",
+          "file": "review.md",
+          "description": "コード品質レビュー（100点満点スコアリング）",
+          "usage": "/review",
+          "examples": ["/review"]
+        }
+      ]
+    },
+    "agent": {
+      "name": "Agent",
+      "description": "Agent実行・管理コマンド",
+      "commands": [
+        {
+          "name": "/agent-run",
+          "file": "agent-run.md",
+          "description": "Agent実行（単一/並列/バッチ）",
+          "usage": "/agent-run <agent-name> --issue <issue-id>",
+          "examples": [
+            "/agent-run coordinator --issue 270",
+            "/agent-run codegen --issues 270,271,272 --concurrency 3"
+          ]
+        },
+        {
+          "name": "/miyabi-auto",
+          "file": "miyabi-auto.md",
+          "description": "全自動開発モード起動",
+          "usage": "/miyabi-auto",
+          "examples": ["/miyabi-auto"]
+        },
+        {
+          "name": "/miyabi-infinity",
+          "file": "miyabi-infinity.md",
+          "description": "Infinity Sprint起動（無限自律実行）",
+          "usage": "/miyabi-infinity",
+          "examples": ["/miyabi-infinity"]
+        },
+        {
+          "name": "/miyabi-todos",
+          "file": "miyabi-todos.md",
+          "description": "TODOコメント自動検出・Issue化",
+          "usage": "/miyabi-todos",
+          "examples": ["/miyabi-todos"]
+        },
+        {
+          "name": "/claude-code-x",
+          "file": "claude-code-x.md",
+          "description": "Claude Codeバックグラウンド自律実行",
+          "usage": "/claude-code-x exec \"Task description\"",
+          "examples": [
+            "/claude-code-x exec \"Implement user authentication\"",
+            "/claude-code-x sessions",
+            "/claude-code-x status <session-id>"
+          ]
+        },
+        {
+          "name": "/codex",
+          "file": "codex.md",
+          "description": "Codex X統合（GPT-5/o3並列実行）",
+          "usage": "/codex exec \"Task description\"",
+          "examples": [
+            "/codex exec \"Generate zero-bug code\"",
+            "/codex continue <session-id> \"Additional task\""
+          ]
+        },
+        {
+          "name": "/tmux-control",
+          "file": "tmux-control.md",
+          "description": "TmuxControlAgentでセッション管制",
+          "usage": "/tmux-control session=<name> pane=%n command=\"...\" mode=send|capture|recover|status",
+          "examples": [
+            "/tmux-control mode=recover",
+            "/tmux-control pane=%2 command=\"./scripts/miyabi-orchestra.sh\""
+          ]
+        }
+      ]
+    },
+    "security": {
+      "name": "Security",
+      "description": "セキュリティ関連コマンド",
+      "commands": [
+        {
+          "name": "/security-scan",
+          "file": "security-scan.md",
+          "description": "セキュリティ脆弱性スキャン",
+          "usage": "/security-scan",
+          "examples": ["/security-scan"]
+        }
+      ]
+    },
+    "deployment": {
+      "name": "Deployment",
+      "description": "デプロイ関連コマンド",
+      "commands": [
+        {
+          "name": "/deploy",
+          "file": "deploy.md",
+          "description": "Firebase/Cloud デプロイ実行",
+          "usage": "/deploy [target]",
+          "examples": [
+            "/deploy",
+            "/deploy firebase",
+            "/deploy cloudrun"
+          ]
+        }
+      ]
+    },
+    "documentation": {
+      "name": "Documentation",
+      "description": "ドキュメント生成コマンド",
+      "commands": [
+        {
+          "name": "/generate-docs",
+          "file": "generate-docs.md",
+          "description": "コードからドキュメント自動生成",
+          "usage": "/generate-docs",
+          "examples": ["/generate-docs"]
+        },
+        {
+          "name": "/generate-lp",
+          "file": "generate-lp.md",
+          "description": "ランディングページ生成",
+          "usage": "/generate-lp",
+          "examples": ["/generate-lp"]
+        }
+      ]
+    },
+    "reports": {
+      "name": "Reports",
+      "description": "レポート・統計コマンド",
+      "commands": [
+        {
+          "name": "/daily-update",
+          "file": "daily-update.md",
+          "description": "毎日の開発進捗レポート生成（note.com投稿用）",
+          "usage": "/daily-update",
+          "examples": ["/daily-update"]
+        },
+        {
+          "name": "/check-benchmark",
+          "file": "check-benchmark.md",
+          "description": "ベンチマーク実装チェック",
+          "usage": "/check-benchmark",
+          "examples": ["/check-benchmark"]
+        },
+        {
+          "name": "/pattern3-report",
+          "file": "pattern3-report.md",
+          "description": "Pattern 3実行結果レポート生成",
+          "usage": "/pattern3-report",
+          "examples": ["/pattern3-report"]
+        }
+      ]
+    },
+    "workflow": {
+      "name": "Workflow",
+      "description": "ワークフロー管理コマンド",
+      "commands": [
+        {
+          "name": "/pattern3",
+          "file": "pattern3.md",
+          "description": "Pattern 3 Hybrid Orchestration起動",
+          "usage": "/pattern3",
+          "examples": ["/pattern3"]
+        }
+      ]
+    },
+    "notifications": {
+      "name": "Notifications",
+      "description": "通知関連コマンド",
+      "commands": [
+        {
+          "name": "/session-end",
+          "file": "session-end.md",
+          "description": "セッション終了通知（macOS通知+音声）",
+          "usage": "/session-end",
+          "examples": ["/session-end"]
+        }
+      ]
+    },
+    "voicevox": {
+      "name": "VoiceVox",
+      "description": "音声合成関連コマンド",
+      "commands": [
+        {
+          "name": "/voicevox",
+          "file": "voicevox.md",
+          "description": "単発テキスト読み上げ",
+          "usage": "/voicevox \"テキスト\" [speaker] [speed]",
+          "examples": [
+            "/voicevox \"やぁやぁ!ずんだもんなのだ!\" 3 1.2"
+          ]
+        },
+        {
+          "name": "/narrate",
+          "file": "narrate.md",
+          "description": "Git commitから開発進捗ナレーション生成",
+          "usage": "/narrate",
+          "examples": ["/narrate"]
+        },
+        {
+          "name": "/watch-sprint",
+          "file": "watch-sprint.md",
+          "description": "Infinity Sprintログ監視 + 音声通知",
+          "usage": "/watch-sprint",
+          "examples": ["/watch-sprint"]
+        }
+      ]
+    },
+    "ssh": {
+      "name": "SSH",
+      "description": "リモート接続コマンド",
+      "commands": [
+        {
+          "name": "/ssh-connect",
+          "file": "ssh-connect.md",
+          "description": "MUGEN/MAJIN SSH接続・リソース監視・Claude Codeリモート実行",
+          "usage": "/ssh-connect [mugen|majin]",
+          "examples": [
+            "/ssh-connect mugen",
+            "/ssh-connect majin"
+          ]
+        }
+      ]
+    },
+    "database": {
+      "name": "Database",
+      "description": "データベース操作コマンド",
+      "commands": [
+        {
+          "name": "/db-backup",
+          "file": "db-backup.md",
+          "description": "データベースバックアップ",
+          "usage": "/db-backup",
+          "examples": ["/db-backup"]
+        }
+      ]
+    },
+    "monitoring": {
+      "name": "Monitoring",
+      "description": "監視・ヘルスチェックコマンド",
+      "commands": [
+        {
+          "name": "/health-check",
+          "file": "health-check.md",
+          "description": "システムヘルスチェック",
+          "usage": "/health-check",
+          "examples": ["/health-check"]
+        },
+        {
+          "name": "/dashboard",
+          "file": "dashboard.md",
+          "description": "リアルタイムダッシュボード",
+          "usage": "/dashboard",
+          "examples": ["/dashboard"]
+        }
+      ]
+    },
+    "codex": {
+      "name": "Codex Monitor",
+      "description": "Codex監視コマンド",
+      "commands": [
+        {
+          "name": "/codex-monitor",
+          "file": "codex-monitor.md",
+          "description": "Codexセッション監視",
+          "usage": "/codex-monitor",
+          "examples": ["/codex-monitor"]
+        }
+      ]
+    },
+    "live": {
+      "name": "Live",
+      "description": "ライブ配信関連コマンド",
+      "commands": [
+        {
+          "name": "/live",
+          "file": "live.md",
+          "description": "ライブ配信サポート",
+          "usage": "/live",
+          "examples": ["/live"]
+        }
+      ]
+    }
+  },
+  "search_keywords": {
+    "issue": ["/create-issue", "/issue-analyze", "/issue-batch"],
+    "test": ["/test", "/verify", "/check-benchmark"],
+    "deploy": ["/deploy", "/deploy-status", "/deploy-rollback"],
+    "agent": ["/agent-run", "/miyabi-auto", "/miyabi-infinity"],
+    "doc": ["/generate-docs", "/generate-lp"],
+    "security": ["/security-scan"],
+    "voice": ["/voicevox", "/narrate", "/watch-sprint"],
+    "ssh": ["/ssh-connect"],
+    "tmux": ["/tmux-control"],
+    "codex": ["/codex", "/codex-monitor", "/claude-code-x"]
+  }
+}

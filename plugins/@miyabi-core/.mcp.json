@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "@miyabi/core",
+  "description": "MCP configuration for Miyabi Core Foundation - Source of Truth, Context, Principles",
+  "mcpServers": {
+    "//": "=== Miyabi Foundation Servers ===",
+
+    "miyabi-rules": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-rules-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "Miyabiルールエンジン・P0-P3プロトコル管理",
+      "purpose": "protocol-enforcement"
+    },
+
+    "miyabi-obsidian": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-obsidian-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ナレッジベース・コンテキスト管理",
+      "purpose": "knowledge-management"
+    },
+
+    "//": "=== GitHub as OS ===",
+
+    "miyabi-github": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "customer-cloud",
+        "GITHUB_DEFAULT_REPO": "miyabi-private"
+      },
+      "disabled": false,
+      "description": "GitHub操作 - Issue/PR/Labels/Milestones",
+      "purpose": "github-as-os"
+    },
+
+    "//": "=== File System ===",
+
+    "miyabi-file-access": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-file-access/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "ファイル読み書き・ディレクトリ操作",
+      "purpose": "file-operations"
+    },
+
+    "//": "=== Agent Communication ===",
+
+    "miyabi-tmux": {
+      "command": "node",
+      "args": [
+        "mcp-servers/miyabi-tmux-server/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "tmux P0.2プロトコル・Agent間通信",
+      "purpose": "inter-agent-communication"
+    }
+  },
+  "coreComponents": {
+    "miyabi_def": {
+      "description": "Entity-Relation定義 (14 entities, 39 relations)",
+      "files": ["miyabi_def/variables/*.yaml", "miyabi_def/templates/*.j2"]
+    },
+    "context": {
+      "description": "コンテキストファイル群",
+      "files": ["context/*.md"]
+    },
+    "principles": {
+      "description": "15 Leadership Principles (P₁-P₁₅)",
+      "files": ["principles/*.md"]
+    },
+    "agent_characters": {
+      "description": "24 Agent キャラクター定義",
+      "files": ["AGENT_CHARACTERS.md", "AGENT_CARD_TEMPLATE.md"]
+    }
+  },
+  "agentFormula": {
+    "description": "Agent_i = (𝒯_i, 𝒰_i, 𝒮_i, 𝒟_i, Ω_i, 𝒫)",
+    "components": {
+      "𝒯": "Tasks",
+      "𝒰": "Tools (MCP Servers)",
+      "𝒮": "Skills",
+      "𝒟": "Todos",
+      "Ω": "Agent-specific transformation",
+      "𝒫": "15 Principles (shared)"
+    }
+  }
+}
