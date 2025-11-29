@@ -1,0 +1,59 @@
+{
+  "toolSearch": {
+    "enabled": true,
+    "searchType": "hybrid",
+    "maxResults": 5,
+    "catalogPath": "./data/tool-catalog.json"
+  },
+  "alwaysLoadedTools": [
+    "obsidian_read_document",
+    "obsidian_search",
+    "tmux_list_sessions",
+    "tmux_send_message",
+    "github_list_issues",
+    "github_get_issue",
+    "github_create_issue"
+  ],
+  "deferredCategories": [
+    "development",
+    "file_operations",
+    "monitoring",
+    "other",
+    "business",
+    "rust_agents"
+  ],
+  "toolPriorities": {
+    "obsidian_list_documents": "high",
+    "obsidian_read_document": "always",
+    "obsidian_create_document": "high",
+    "obsidian_update_document": "high",
+    "obsidian_search": "always",
+    "obsidian_get_tags": "high",
+    "obsidian_get_categories": "high",
+    "obsidian_get_directory_tree": "high",
+    "obsidian_get_backlinks": "high",
+    "tmux_list_sessions": "always",
+    "tmux_list_panes": "high",
+    "tmux_send_message": "always",
+    "tmux_join_commhub": "high",
+    "tmux_get_commhub_status": "high",
+    "tmux_broadcast": "high",
+    "tmux_pane_capture": "high",
+    "tmux_pane_search": "high",
+    "tmux_pane_tail": "high",
+    "tmux_pane_is_busy": "high",
+    "tmux_pane_current_command": "high",
+    "github_list_issues": "always",
+    "github_get_issue": "always",
+    "github_create_issue": "always",
+    "github_update_issue": "high",
+    "github_add_comment": "high",
+    "github_list_prs": "high",
+    "github_get_pr": "high",
+    "github_create_pr": "high",
+    "github_merge_pr": "high",
+    "github_list_labels": "high",
+    "github_add_labels": "high",
+    "github_list_milestones": "high"
+  }
+}

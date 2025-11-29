@@ -1,0 +1,117 @@
+{
+  "mcpServers": {
+    "miyabi-tool-search": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "./mcp-servers/miyabi-tool-search/dist/index.js"
+      ],
+      "priority": 0,
+      "alwaysEnabled": true
+    },
+    "miyabi-obsidian": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {
+          "obsidian_read_document": {
+            "deferLoading": false
+          },
+          "obsidian_search": {
+            "deferLoading": false
+          }
+        }
+      }
+    },
+    "gemini3-adaptive-runtime": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    },
+    "gemini3-uiux-designer": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    },
+    "gemini3-general": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    },
+    "miyabi-tmux": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {
+          "tmux_list_sessions": {
+            "deferLoading": false
+          },
+          "tmux_send_message": {
+            "deferLoading": false
+          }
+        }
+      }
+    },
+    "miyabi-rules": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    },
+    "miyabi-github": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {
+          "github_list_issues": {
+            "deferLoading": false
+          },
+          "github_get_issue": {
+            "deferLoading": false
+          },
+          "github_create_issue": {
+            "deferLoading": false
+          }
+        }
+      }
+    },
+    "miyabi-file-access": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    },
+    "miyabi-log-aggregator": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    },
+    "miyabi-resource-monitor": {
+      "toolConfig": {
+        "default": {
+          "deferLoading": true
+        },
+        "overrides": {}
+      }
+    }
+  }
+}

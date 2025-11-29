@@ -1,0 +1,5964 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-11-29T02:12:04.277Z",
+  "tools": [
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_list_documents",
+      "name": "obsidian_list_documents",
+      "displayName": "Obsidian List Documents",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "List all documents in Miyabi Obsidian vault",
+      "keywords": [
+        "obsidian",
+        "list",
+        "documents",
+        "all",
+        "miyabi",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian list documents",
+        "list all documents"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_read_document",
+      "name": "obsidian_read_document",
+      "displayName": "Obsidian Read Document",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Read a document from Miyabi Obsidian vault",
+      "keywords": [
+        "obsidian",
+        "read",
+        "document",
+        "miyabi",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian read document",
+        "read a document"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_create_document",
+      "name": "obsidian_create_document",
+      "displayName": "Obsidian Create Document",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Create a new document in Miyabi Obsidian vault",
+      "keywords": [
+        "obsidian",
+        "create",
+        "document",
+        "new",
+        "miyabi",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian create document",
+        "create a new"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_update_document",
+      "name": "obsidian_update_document",
+      "displayName": "Obsidian Update Document",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Update an existing document",
+      "keywords": [
+        "obsidian",
+        "update",
+        "document",
+        "existing"
+      ],
+      "aliases": [
+        "obsidian update document",
+        "update an existing"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_search",
+      "name": "obsidian_search",
+      "displayName": "Obsidian Search",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Search documents by content",
+      "keywords": [
+        "obsidian",
+        "search",
+        "documents",
+        "content"
+      ],
+      "aliases": [
+        "obsidian search",
+        "search documents by"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_get_tags",
+      "name": "obsidian_get_tags",
+      "displayName": "Obsidian Get Tags",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Get all unique tags used in vault",
+      "keywords": [
+        "obsidian",
+        "get",
+        "tags",
+        "all",
+        "unique",
+        "used",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian get tags",
+        "get all unique"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_get_categories",
+      "name": "obsidian_get_categories",
+      "displayName": "Obsidian Get Categories",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Get all unique categories",
+      "keywords": [
+        "obsidian",
+        "get",
+        "categories",
+        "all",
+        "unique"
+      ],
+      "aliases": [
+        "obsidian get categories",
+        "get all unique"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_get_directory_tree",
+      "name": "obsidian_get_directory_tree",
+      "displayName": "Obsidian Get Directory Tree",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Get directory structure of vault",
+      "keywords": [
+        "obsidian",
+        "get",
+        "directory",
+        "tree",
+        "structure",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian get directory tree",
+        "get directory structure"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-obsidian:obsidian_get_backlinks",
+      "name": "obsidian_get_backlinks",
+      "displayName": "Obsidian Get Backlinks",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Find all documents that link to a specific document",
+      "keywords": [
+        "obsidian",
+        "get",
+        "backlinks",
+        "find",
+        "all",
+        "documents",
+        "link",
+        "specific",
+        "document"
+      ],
+      "aliases": [
+        "obsidian get backlinks",
+        "find all documents"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:generate_dynamic_ui",
+      "name": "generate_dynamic_ui",
+      "displayName": "Generate Dynamic Ui",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate a dynamic React TypeScript UI component",
+      "keywords": [
+        "generate",
+        "dynamic",
+        "react",
+        "typescript",
+        "component"
+      ],
+      "aliases": [
+        "generate dynamic ui",
+        "generate a dynamic"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:iterate_ui",
+      "name": "iterate_ui",
+      "displayName": "Iterate Ui",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Improve an existing UI component based on feedback",
+      "keywords": [
+        "iterate",
+        "improve",
+        "existing",
+        "component",
+        "based",
+        "feedback"
+      ],
+      "aliases": [
+        "iterate ui",
+        "improve an existing"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:deep_reasoning",
+      "name": "deep_reasoning",
+      "displayName": "Deep Reasoning",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "Perform deep reasoning on complex questions",
+      "keywords": [
+        "deep",
+        "reasoning",
+        "perform",
+        "complex",
+        "questions"
+      ],
+      "aliases": [
+        "deep reasoning",
+        "perform deep reasoning"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:compare_options",
+      "name": "compare_options",
+      "displayName": "Compare Options",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Compare multiple options and provide recommendation",
+      "keywords": [
+        "compare",
+        "options",
+        "multiple",
+        "provide",
+        "recommendation"
+      ],
+      "aliases": [
+        "compare options",
+        "compare multiple options"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:analyze_decision",
+      "name": "analyze_decision",
+      "displayName": "Analyze Decision",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Analyze a decision with potential consequences",
+      "keywords": [
+        "analyze",
+        "decision",
+        "potential",
+        "consequences"
+      ],
+      "aliases": [
+        "analyze decision",
+        "analyze a decision"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:execute_code",
+      "name": "execute_code",
+      "displayName": "Execute Code",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate and execute code to solve tasks",
+      "keywords": [
+        "execute",
+        "code",
+        "generate",
+        "solve",
+        "tasks"
+      ],
+      "aliases": [
+        "execute code",
+        "generate and execute"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:analyze_code",
+      "name": "analyze_code",
+      "displayName": "Analyze Code",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Analyze existing code for issues",
+      "keywords": [
+        "analyze",
+        "code",
+        "existing",
+        "issues"
+      ],
+      "aliases": [
+        "analyze code",
+        "analyze existing code"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:generate_tests",
+      "name": "generate_tests",
+      "displayName": "Generate Tests",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Generate comprehensive test cases",
+      "keywords": [
+        "generate",
+        "tests",
+        "comprehensive",
+        "test",
+        "cases"
+      ],
+      "aliases": [
+        "generate tests",
+        "generate comprehensive test"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-adaptive-runtime:solve_algorithm",
+      "name": "solve_algorithm",
+      "displayName": "Solve Algorithm",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Solve algorithmic problems",
+      "keywords": [
+        "solve",
+        "algorithm",
+        "algorithmic",
+        "problems"
+      ],
+      "aliases": [
+        "solve algorithm",
+        "solve algorithmic problems"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:review_design",
+      "name": "review_design",
+      "displayName": "Review Design",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Review UI/UX design using Jonathan Ive principles",
+      "keywords": [
+        "review",
+        "design",
+        "using",
+        "jonathan",
+        "ive",
+        "principles"
+      ],
+      "aliases": [
+        "review design",
+        "review ui/ux design"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:generate_design_system",
+      "name": "generate_design_system",
+      "displayName": "Generate Design System",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate a complete design system",
+      "keywords": [
+        "generate",
+        "design",
+        "system",
+        "complete"
+      ],
+      "aliases": [
+        "generate design system",
+        "generate a complete"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:create_wireframe",
+      "name": "create_wireframe",
+      "displayName": "Create Wireframe",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Create minimalist wireframes",
+      "keywords": [
+        "create",
+        "wireframe",
+        "minimalist",
+        "wireframes"
+      ],
+      "aliases": [
+        "create wireframe",
+        "create minimalist wireframes"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup",
+      "name": "generate_high_fidelity_mockup",
+      "displayName": "Generate High Fidelity Mockup",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate high-fidelity React mockup",
+      "keywords": [
+        "generate",
+        "high",
+        "fidelity",
+        "mockup",
+        "react"
+      ],
+      "aliases": [
+        "generate high fidelity mockup",
+        "generate high-fidelity react"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:check_accessibility",
+      "name": "check_accessibility",
+      "displayName": "Check Accessibility",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Comprehensive WCAG accessibility audit",
+      "keywords": [
+        "check",
+        "accessibility",
+        "comprehensive",
+        "wcag",
+        "audit"
+      ],
+      "aliases": [
+        "check accessibility",
+        "comprehensive wcag accessibility"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:analyze_usability",
+      "name": "analyze_usability",
+      "displayName": "Analyze Usability",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Usability analysis using Nielsen heuristics",
+      "keywords": [
+        "analyze",
+        "usability",
+        "analysis",
+        "using",
+        "nielsen",
+        "heuristics"
+      ],
+      "aliases": [
+        "analyze usability",
+        "usability analysis using"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:optimize_ux_writing",
+      "name": "optimize_ux_writing",
+      "displayName": "Optimize Ux Writing",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Optimize microcopy and UI text",
+      "keywords": [
+        "optimize",
+        "writing",
+        "microcopy",
+        "text"
+      ],
+      "aliases": [
+        "optimize ux writing",
+        "optimize microcopy and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:design_interaction_flow",
+      "name": "design_interaction_flow",
+      "displayName": "Design Interaction Flow",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Design interaction flows with state transitions",
+      "keywords": [
+        "design",
+        "interaction",
+        "flow",
+        "flows",
+        "state",
+        "transitions"
+      ],
+      "aliases": [
+        "design interaction flow",
+        "design interaction flows"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-uiux-designer:create_animation_specs",
+      "name": "create_animation_specs",
+      "displayName": "Create Animation Specs",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "file_operations",
+      "subcategory": "write",
+      "description": "Create subtle animation specifications",
+      "keywords": [
+        "create",
+        "animation",
+        "specs",
+        "subtle",
+        "specifications"
+      ],
+      "aliases": [
+        "create animation specs",
+        "create subtle animation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-general:generate_code",
+      "name": "generate_code",
+      "displayName": "Generate Code",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Generate code in any programming language",
+      "keywords": [
+        "generate",
+        "code",
+        "any",
+        "programming",
+        "language"
+      ],
+      "aliases": [
+        "generate code",
+        "generate code in"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-general:analyze_code",
+      "name": "analyze_code",
+      "displayName": "Analyze Code",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Analyze code for bugs and issues",
+      "keywords": [
+        "analyze",
+        "code",
+        "bugs",
+        "issues"
+      ],
+      "aliases": [
+        "analyze code",
+        "analyze code for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-general:explain_concept",
+      "name": "explain_concept",
+      "displayName": "Explain Concept",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Explain programming concepts",
+      "keywords": [
+        "explain",
+        "concept",
+        "programming",
+        "concepts"
+      ],
+      "aliases": [
+        "explain concept",
+        "explain programming concepts"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-general:solve_problem",
+      "name": "solve_problem",
+      "displayName": "Solve Problem",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Solve programming problems",
+      "keywords": [
+        "solve",
+        "problem",
+        "programming",
+        "problems"
+      ],
+      "aliases": [
+        "solve problem",
+        "solve programming problems"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-general:generate_text",
+      "name": "generate_text",
+      "displayName": "Generate Text",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate documentation and text content",
+      "keywords": [
+        "generate",
+        "text",
+        "documentation",
+        "content"
+      ],
+      "aliases": [
+        "generate text",
+        "generate documentation and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:gemini3-general:ask_gemini",
+      "name": "ask_gemini",
+      "displayName": "Ask Gemini",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "Ask Gemini any question",
+      "keywords": [
+        "ask",
+        "gemini",
+        "any",
+        "question"
+      ],
+      "aliases": [
+        "ask gemini",
+        "ask gemini any"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_list_sessions",
+      "name": "tmux_list_sessions",
+      "displayName": "Tmux List Sessions",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "List all tmux sessions",
+      "keywords": [
+        "tmux",
+        "list",
+        "sessions",
+        "all"
+      ],
+      "aliases": [
+        "tmux list sessions",
+        "list all tmux"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_list_panes",
+      "name": "tmux_list_panes",
+      "displayName": "Tmux List Panes",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "List all panes across tmux sessions",
+      "keywords": [
+        "tmux",
+        "list",
+        "panes",
+        "all",
+        "across",
+        "sessions"
+      ],
+      "aliases": [
+        "tmux list panes",
+        "list all panes"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_send_message",
+      "name": "tmux_send_message",
+      "displayName": "Tmux Send Message",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Send a message to a specific tmux pane",
+      "keywords": [
+        "tmux",
+        "send",
+        "message",
+        "specific",
+        "pane"
+      ],
+      "aliases": [
+        "tmux send message",
+        "send a message"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_join_commhub",
+      "name": "tmux_join_commhub",
+      "displayName": "Tmux Join Commhub",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Join the Miyabi CommHub session",
+      "keywords": [
+        "tmux",
+        "join",
+        "commhub",
+        "miyabi",
+        "session"
+      ],
+      "aliases": [
+        "tmux join commhub",
+        "join the miyabi"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_get_commhub_status",
+      "name": "tmux_get_commhub_status",
+      "displayName": "Tmux Get Commhub Status",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Get current status of the CommHub",
+      "keywords": [
+        "tmux",
+        "get",
+        "commhub",
+        "status",
+        "current"
+      ],
+      "aliases": [
+        "tmux get commhub status",
+        "get current status"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_broadcast",
+      "name": "tmux_broadcast",
+      "displayName": "Tmux Broadcast",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Broadcast a message to all Miyabi tmux sessions",
+      "keywords": [
+        "tmux",
+        "broadcast",
+        "message",
+        "all",
+        "miyabi",
+        "sessions"
+      ],
+      "aliases": [
+        "tmux broadcast",
+        "broadcast a message"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_pane_capture",
+      "name": "tmux_pane_capture",
+      "displayName": "Tmux Pane Capture",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Capture and return the content of a tmux pane",
+      "keywords": [
+        "tmux",
+        "pane",
+        "capture",
+        "return",
+        "content"
+      ],
+      "aliases": [
+        "tmux pane capture",
+        "capture and return"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_pane_search",
+      "name": "tmux_pane_search",
+      "displayName": "Tmux Pane Search",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "knowledge",
+      "subcategory": "search",
+      "description": "Search for a pattern in pane content",
+      "keywords": [
+        "tmux",
+        "pane",
+        "search",
+        "pattern",
+        "content"
+      ],
+      "aliases": [
+        "tmux pane search",
+        "search for a"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_pane_tail",
+      "name": "tmux_pane_tail",
+      "displayName": "Tmux Pane Tail",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get the last N lines from a pane",
+      "keywords": [
+        "tmux",
+        "pane",
+        "tail",
+        "get",
+        "last",
+        "lines"
+      ],
+      "aliases": [
+        "tmux pane tail",
+        "get the last"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_pane_is_busy",
+      "name": "tmux_pane_is_busy",
+      "displayName": "Tmux Pane Is Busy",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Check if a pane is busy",
+      "keywords": [
+        "tmux",
+        "pane",
+        "busy",
+        "check"
+      ],
+      "aliases": [
+        "tmux pane is busy",
+        "check if a"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-tmux:tmux_pane_current_command",
+      "name": "tmux_pane_current_command",
+      "displayName": "Tmux Pane Current Command",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "monitoring",
+      "subcategory": "process",
+      "description": "Get the current command running in a pane",
+      "keywords": [
+        "tmux",
+        "pane",
+        "current",
+        "command",
+        "get",
+        "running"
+      ],
+      "aliases": [
+        "tmux pane current command",
+        "get the current"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-rules:miyabi_rules_list",
+      "name": "miyabi_rules_list",
+      "displayName": "Miyabi Rules List",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "List all available Miyabi rules",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "list",
+        "all",
+        "available"
+      ],
+      "aliases": [
+        "miyabi rules list",
+        "list all available"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-rules:miyabi_rules_validate",
+      "name": "miyabi_rules_validate",
+      "displayName": "Miyabi Rules Validate",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "Validate a task against Miyabi rules",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "validate",
+        "task",
+        "against"
+      ],
+      "aliases": [
+        "miyabi rules validate",
+        "validate a task"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-rules:miyabi_rules_execute",
+      "name": "miyabi_rules_execute",
+      "displayName": "Miyabi Rules Execute",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "other",
+      "description": "Execute a specific rule enforcement action",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "execute",
+        "specific",
+        "rule",
+        "enforcement",
+        "action"
+      ],
+      "aliases": [
+        "miyabi rules execute",
+        "execute a specific"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-rules:miyabi_rules_sync",
+      "name": "miyabi_rules_sync",
+      "displayName": "Miyabi Rules Sync",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "other",
+      "description": "Synchronize local rules to cloud API",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "sync",
+        "synchronize",
+        "local",
+        "cloud",
+        "api"
+      ],
+      "aliases": [
+        "miyabi rules sync",
+        "synchronize local rules"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-rules:miyabi_rules_get_context",
+      "name": "miyabi_rules_get_context",
+      "displayName": "Miyabi Rules Get Context",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "business",
+      "subcategory": "marketing",
+      "description": "Get specific context module content",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "get",
+        "context",
+        "specific",
+        "module",
+        "content"
+      ],
+      "aliases": [
+        "miyabi rules get context",
+        "get specific context"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_list_issues",
+      "name": "github_list_issues",
+      "displayName": "Github List Issues",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List issues from a GitHub repository",
+      "keywords": [
+        "github",
+        "list",
+        "issues",
+        "repository"
+      ],
+      "aliases": [
+        "github list issues",
+        "list issues from"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_get_issue",
+      "name": "github_get_issue",
+      "displayName": "Github Get Issue",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Get detailed information about a specific issue",
+      "keywords": [
+        "github",
+        "get",
+        "issue",
+        "detailed",
+        "information",
+        "about",
+        "specific"
+      ],
+      "aliases": [
+        "github get issue",
+        "get detailed information"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_create_issue",
+      "name": "github_create_issue",
+      "displayName": "Github Create Issue",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Create a new issue",
+      "keywords": [
+        "github",
+        "create",
+        "issue",
+        "new"
+      ],
+      "aliases": [
+        "github create issue",
+        "create a new"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_update_issue",
+      "name": "github_update_issue",
+      "displayName": "Github Update Issue",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Update an existing issue",
+      "keywords": [
+        "github",
+        "update",
+        "issue",
+        "existing"
+      ],
+      "aliases": [
+        "github update issue",
+        "update an existing"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_add_comment",
+      "name": "github_add_comment",
+      "displayName": "Github Add Comment",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Add a comment to an issue or PR",
+      "keywords": [
+        "github",
+        "add",
+        "comment",
+        "issue"
+      ],
+      "aliases": [
+        "github add comment",
+        "add a comment"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_list_prs",
+      "name": "github_list_prs",
+      "displayName": "Github List Prs",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List pull requests from a repository",
+      "keywords": [
+        "github",
+        "list",
+        "prs",
+        "pull",
+        "requests",
+        "repository"
+      ],
+      "aliases": [
+        "github list prs",
+        "list pull requests"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_get_pr",
+      "name": "github_get_pr",
+      "displayName": "Github Get Pr",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Get detailed information about a specific PR",
+      "keywords": [
+        "github",
+        "get",
+        "detailed",
+        "information",
+        "about",
+        "specific"
+      ],
+      "aliases": [
+        "github get pr",
+        "get detailed information"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_create_pr",
+      "name": "github_create_pr",
+      "displayName": "Github Create Pr",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Create a new pull request",
+      "keywords": [
+        "github",
+        "create",
+        "new",
+        "pull",
+        "request"
+      ],
+      "aliases": [
+        "github create pr",
+        "create a new"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_merge_pr",
+      "name": "github_merge_pr",
+      "displayName": "Github Merge Pr",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Merge a pull request",
+      "keywords": [
+        "github",
+        "merge",
+        "pull",
+        "request"
+      ],
+      "aliases": [
+        "github merge pr",
+        "merge a pull"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_list_labels",
+      "name": "github_list_labels",
+      "displayName": "Github List Labels",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List labels in a repository",
+      "keywords": [
+        "github",
+        "list",
+        "labels",
+        "repository"
+      ],
+      "aliases": [
+        "github list labels",
+        "list labels in"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_add_labels",
+      "name": "github_add_labels",
+      "displayName": "Github Add Labels",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Add labels to an issue or PR",
+      "keywords": [
+        "github",
+        "add",
+        "labels",
+        "issue"
+      ],
+      "aliases": [
+        "github add labels",
+        "add labels to"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-github:github_list_milestones",
+      "name": "github_list_milestones",
+      "displayName": "Github List Milestones",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List milestones in a repository",
+      "keywords": [
+        "github",
+        "list",
+        "milestones",
+        "repository"
+      ],
+      "aliases": [
+        "github list milestones",
+        "list milestones in"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:read_file",
+      "name": "read_file",
+      "displayName": "Read File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "business",
+      "subcategory": "marketing",
+      "description": "Read content from a file",
+      "keywords": [
+        "read",
+        "file",
+        "content"
+      ],
+      "aliases": [
+        "read file",
+        "read content from"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:write_file",
+      "name": "write_file",
+      "displayName": "Write File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "business",
+      "subcategory": "marketing",
+      "description": "Write content to a file",
+      "keywords": [
+        "write",
+        "file",
+        "content"
+      ],
+      "aliases": [
+        "write file",
+        "write content to"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:list_files",
+      "name": "list_files",
+      "displayName": "List Files",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "file_operations",
+      "subcategory": "read",
+      "description": "List files and directories",
+      "keywords": [
+        "list",
+        "files",
+        "directories"
+      ],
+      "aliases": [
+        "list files",
+        "list files and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:get_file_info",
+      "name": "get_file_info",
+      "displayName": "Get File Info",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get detailed information about a file",
+      "keywords": [
+        "get",
+        "file",
+        "info",
+        "detailed",
+        "information",
+        "about"
+      ],
+      "aliases": [
+        "get file info",
+        "get detailed information"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:delete_file",
+      "name": "delete_file",
+      "displayName": "Delete File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "other",
+      "description": "Delete a file or directory",
+      "keywords": [
+        "delete",
+        "file",
+        "directory"
+      ],
+      "aliases": [
+        "delete file",
+        "delete a file"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:create_directory",
+      "name": "create_directory",
+      "displayName": "Create Directory",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "file_operations",
+      "subcategory": "write",
+      "description": "Create a new directory",
+      "keywords": [
+        "create",
+        "directory",
+        "new"
+      ],
+      "aliases": [
+        "create directory",
+        "create a new"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:copy_file",
+      "name": "copy_file",
+      "displayName": "Copy File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "file_operations",
+      "subcategory": "write",
+      "description": "Copy a file to a new location",
+      "keywords": [
+        "copy",
+        "file",
+        "new",
+        "location"
+      ],
+      "aliases": [
+        "copy file",
+        "copy a file"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:move_file",
+      "name": "move_file",
+      "displayName": "Move File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "other",
+      "description": "Move or rename a file",
+      "keywords": [
+        "move",
+        "file",
+        "rename"
+      ],
+      "aliases": [
+        "move file",
+        "move or rename"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-file-access:search_files",
+      "name": "search_files",
+      "displayName": "Search Files",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "knowledge",
+      "subcategory": "search",
+      "description": "Search for files by name or content",
+      "keywords": [
+        "search",
+        "files",
+        "name",
+        "content"
+      ],
+      "aliases": [
+        "search files",
+        "search for files"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-log-aggregator:log_sources",
+      "name": "log_sources",
+      "displayName": "Log Sources",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "List all available log sources",
+      "keywords": [
+        "log",
+        "sources",
+        "list",
+        "all",
+        "available"
+      ],
+      "aliases": [
+        "log sources",
+        "list all available"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-log-aggregator:log_get_recent",
+      "name": "log_get_recent",
+      "displayName": "Log Get Recent",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get recent log entries",
+      "keywords": [
+        "log",
+        "get",
+        "recent",
+        "entries"
+      ],
+      "aliases": [
+        "log get recent",
+        "get recent log"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-log-aggregator:log_search",
+      "name": "log_search",
+      "displayName": "Log Search",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Search logs for a specific query",
+      "keywords": [
+        "log",
+        "search",
+        "logs",
+        "specific",
+        "query"
+      ],
+      "aliases": [
+        "log search",
+        "search logs for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-log-aggregator:log_get_errors",
+      "name": "log_get_errors",
+      "displayName": "Log Get Errors",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get all error-level log entries",
+      "keywords": [
+        "log",
+        "get",
+        "errors",
+        "all",
+        "error",
+        "level",
+        "entries"
+      ],
+      "aliases": [
+        "log get errors",
+        "get all error-level"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-log-aggregator:log_get_warnings",
+      "name": "log_get_warnings",
+      "displayName": "Log Get Warnings",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get all warning-level log entries",
+      "keywords": [
+        "log",
+        "get",
+        "warnings",
+        "all",
+        "warning",
+        "level",
+        "entries"
+      ],
+      "aliases": [
+        "log get warnings",
+        "get all warning-level"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-log-aggregator:log_tail",
+      "name": "log_tail",
+      "displayName": "Log Tail",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get the last N lines from a log file",
+      "keywords": [
+        "log",
+        "tail",
+        "get",
+        "last",
+        "lines",
+        "file"
+      ],
+      "aliases": [
+        "log tail",
+        "get the last"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_cpu",
+      "name": "resource_cpu",
+      "displayName": "Resource Cpu",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get current CPU usage",
+      "keywords": [
+        "resource",
+        "cpu",
+        "get",
+        "current",
+        "usage"
+      ],
+      "aliases": [
+        "resource cpu",
+        "get current cpu"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_memory",
+      "name": "resource_memory",
+      "displayName": "Resource Memory",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get current memory usage",
+      "keywords": [
+        "resource",
+        "memory",
+        "get",
+        "current",
+        "usage"
+      ],
+      "aliases": [
+        "resource memory",
+        "get current memory"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_disk",
+      "name": "resource_disk",
+      "displayName": "Resource Disk",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get disk usage for filesystems",
+      "keywords": [
+        "resource",
+        "disk",
+        "get",
+        "usage",
+        "filesystems"
+      ],
+      "aliases": [
+        "resource disk",
+        "get disk usage"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_load",
+      "name": "resource_load",
+      "displayName": "Resource Load",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get system load average",
+      "keywords": [
+        "resource",
+        "load",
+        "get",
+        "system",
+        "average"
+      ],
+      "aliases": [
+        "resource load",
+        "get system load"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_overview",
+      "name": "resource_overview",
+      "displayName": "Resource Overview",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Get comprehensive overview of all system resources",
+      "keywords": [
+        "resource",
+        "overview",
+        "get",
+        "comprehensive",
+        "all",
+        "system",
+        "resources"
+      ],
+      "aliases": [
+        "resource overview",
+        "get comprehensive overview"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_processes",
+      "name": "resource_processes",
+      "displayName": "Resource Processes",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Get process information",
+      "keywords": [
+        "resource",
+        "processes",
+        "get",
+        "process",
+        "information"
+      ],
+      "aliases": [
+        "resource processes",
+        "get process information"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_uptime",
+      "name": "resource_uptime",
+      "displayName": "Resource Uptime",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get system uptime",
+      "keywords": [
+        "resource",
+        "uptime",
+        "get",
+        "system"
+      ],
+      "aliases": [
+        "resource uptime",
+        "get system uptime"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "mcp:miyabi-resource-monitor:resource_network_stats",
+      "name": "resource_network_stats",
+      "displayName": "Resource Network Stats",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get network interface statistics",
+      "keywords": [
+        "resource",
+        "network",
+        "stats",
+        "get",
+        "interface",
+        "statistics"
+      ],
+      "aliases": [
+        "resource network stats",
+        "get network interface"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents",
+      "name": "a2a.coordinator.orchestrate_agents",
+      "displayName": "A2a.coordinator.orchestrate Agents",
+      "source": "rust_crate",
+      "server": "miyabi-agent-coordinator",
+      "category": "rust_agents",
+      "subcategory": "coordinator",
+      "description": "Coordinate multiple agents for complex tasks",
+      "keywords": [
+        "a2a",
+        "coordinator",
+        "orchestrate",
+        "agents",
+        "coordinate",
+        "multiple",
+        "complex",
+        "tasks"
+      ],
+      "aliases": [
+        "a2a.coordinator.orchestrate agents",
+        "coordinate multiple agents"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag",
+      "name": "a2a.coordinator.execute_dag",
+      "displayName": "A2a.coordinator.execute Dag",
+      "source": "rust_crate",
+      "server": "miyabi-agent-coordinator",
+      "category": "rust_agents",
+      "subcategory": "coordinator",
+      "description": "Execute a DAG-based workflow",
+      "keywords": [
+        "a2a",
+        "coordinator",
+        "execute",
+        "dag",
+        "based",
+        "workflow"
+      ],
+      "aliases": [
+        "a2a.coordinator.execute dag",
+        "execute a dag-based"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code",
+      "name": "a2a.codegen.generate_code",
+      "displayName": "A2a.codegen.generate Code",
+      "source": "rust_crate",
+      "server": "miyabi-agent-codegen",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate code from specifications",
+      "keywords": [
+        "a2a",
+        "codegen",
+        "generate",
+        "code",
+        "specifications"
+      ],
+      "aliases": [
+        "a2a.codegen.generate code",
+        "generate code from"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature",
+      "name": "a2a.codegen.implement_feature",
+      "displayName": "A2a.codegen.implement Feature",
+      "source": "rust_crate",
+      "server": "miyabi-agent-codegen",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Implement a new feature based on requirements",
+      "keywords": [
+        "a2a",
+        "codegen",
+        "implement",
+        "feature",
+        "new",
+        "based",
+        "requirements"
+      ],
+      "aliases": [
+        "a2a.codegen.implement feature",
+        "implement a new"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-review:a2a.review.review_code",
+      "name": "a2a.review.review_code",
+      "displayName": "A2a.review.review Code",
+      "source": "rust_crate",
+      "server": "miyabi-agent-review",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Review code for quality and issues",
+      "keywords": [
+        "a2a",
+        "review",
+        "code",
+        "quality",
+        "issues"
+      ],
+      "aliases": [
+        "a2a.review.review code",
+        "review code for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-review:a2a.review.analyze_security",
+      "name": "a2a.review.analyze_security",
+      "displayName": "A2a.review.analyze Security",
+      "source": "rust_crate",
+      "server": "miyabi-agent-review",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Analyze code for security vulnerabilities",
+      "keywords": [
+        "a2a",
+        "review",
+        "analyze",
+        "security",
+        "code",
+        "vulnerabilities"
+      ],
+      "aliases": [
+        "a2a.review.analyze security",
+        "analyze code for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue",
+      "name": "a2a.issue.analyze_issue",
+      "displayName": "A2a.issue.analyze Issue",
+      "source": "rust_crate",
+      "server": "miyabi-agent-issue",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Analyze and label GitHub issues",
+      "keywords": [
+        "a2a",
+        "issue",
+        "analyze",
+        "label",
+        "github",
+        "issues"
+      ],
+      "aliases": [
+        "a2a.issue.analyze issue",
+        "analyze and label"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues",
+      "name": "a2a.issue.triage_issues",
+      "displayName": "A2a.issue.triage Issues",
+      "source": "rust_crate",
+      "server": "miyabi-agent-issue",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Triage and prioritize issues",
+      "keywords": [
+        "a2a",
+        "issue",
+        "triage",
+        "issues",
+        "prioritize"
+      ],
+      "aliases": [
+        "a2a.issue.triage issues",
+        "triage and prioritize"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request",
+      "name": "a2a.pr.create_pull_request",
+      "displayName": "A2a.pr.create Pull Request",
+      "source": "rust_crate",
+      "server": "miyabi-agent-pr",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Create a pull request with changes",
+      "keywords": [
+        "a2a",
+        "create",
+        "pull",
+        "request",
+        "changes"
+      ],
+      "aliases": [
+        "a2a.pr.create pull request",
+        "create a pull"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge",
+      "name": "a2a.pr.auto_merge",
+      "displayName": "A2a.pr.auto Merge",
+      "source": "rust_crate",
+      "server": "miyabi-agent-pr",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Automatically merge approved PRs",
+      "keywords": [
+        "a2a",
+        "auto",
+        "merge",
+        "automatically",
+        "approved",
+        "prs"
+      ],
+      "aliases": [
+        "a2a.pr.auto merge",
+        "automatically merge approved"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:CoordinatorAgent",
+      "name": "CoordinatorAgent",
+      "displayName": "Coordinator Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "rust_agents",
+      "subcategory": "coordinator",
+      "description": "Task coordination and parallel execution agent",
+      "keywords": [
+        "coordinatoragent",
+        "task",
+        "coordination",
+        "parallel",
+        "execution",
+        "agent"
+      ],
+      "aliases": [
+        "CoordinatorAgent",
+        "task coordination and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:CodeGenAgent",
+      "name": "CodeGenAgent",
+      "displayName": "Code Gen Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "code",
+      "description": "AI-driven code generation agent",
+      "keywords": [
+        "codegenagent",
+        "driven",
+        "code",
+        "generation",
+        "agent"
+      ],
+      "aliases": [
+        "CodeGenAgent",
+        "ai-driven code generation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:ReviewAgent",
+      "name": "ReviewAgent",
+      "displayName": "Review Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Code quality and security review agent",
+      "keywords": [
+        "reviewagent",
+        "code",
+        "quality",
+        "security",
+        "review",
+        "agent"
+      ],
+      "aliases": [
+        "ReviewAgent",
+        "code quality and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:IssueAgent",
+      "name": "IssueAgent",
+      "displayName": "Issue Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Issue analysis and labeling agent",
+      "keywords": [
+        "issueagent",
+        "issue",
+        "analysis",
+        "labeling",
+        "agent"
+      ],
+      "aliases": [
+        "IssueAgent",
+        "issue analysis and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:PRAgent",
+      "name": "PRAgent",
+      "displayName": "PRAgent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Pull request creation and management agent",
+      "keywords": [
+        "pragent",
+        "pull",
+        "request",
+        "creation",
+        "management",
+        "agent"
+      ],
+      "aliases": [
+        "PRAgent",
+        "pull request creation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:DeploymentAgent",
+      "name": "DeploymentAgent",
+      "displayName": "Deployment Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "other",
+      "description": "CI/CD deployment automation agent",
+      "keywords": [
+        "deploymentagent",
+        "deployment",
+        "automation",
+        "agent"
+      ],
+      "aliases": [
+        "DeploymentAgent",
+        "ci/cd deployment automation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:RefresherAgent",
+      "name": "RefresherAgent",
+      "displayName": "Refresher Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Issue status monitoring and update agent",
+      "keywords": [
+        "refresheragent",
+        "issue",
+        "status",
+        "monitoring",
+        "update",
+        "agent"
+      ],
+      "aliases": [
+        "RefresherAgent",
+        "issue status monitoring"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:AWSAgent",
+      "name": "AWSAgent",
+      "displayName": "AWSAgent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "other",
+      "description": "AWS cloud infrastructure management agent",
+      "keywords": [
+        "awsagent",
+        "aws",
+        "cloud",
+        "infrastructure",
+        "management",
+        "agent"
+      ],
+      "aliases": [
+        "AWSAgent",
+        "aws cloud infrastructure"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:ImageGenAgent",
+      "name": "ImageGenAgent",
+      "displayName": "Image Gen Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "ai_design",
+      "subcategory": "image",
+      "description": "Image generation for business materials",
+      "keywords": [
+        "imagegenagent",
+        "image",
+        "generation",
+        "business",
+        "materials"
+      ],
+      "aliases": [
+        "ImageGenAgent",
+        "image generation for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:YouTubeAgent",
+      "name": "YouTubeAgent",
+      "displayName": "You Tube Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "other",
+      "description": "YouTube channel optimization agent",
+      "keywords": [
+        "youtubeagent",
+        "youtube",
+        "channel",
+        "optimization",
+        "agent"
+      ],
+      "aliases": [
+        "YouTubeAgent",
+        "youtube channel optimization"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "id": "subagent:task-subagent:NoteAgent",
+      "name": "NoteAgent",
+      "displayName": "Note Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "note.com article writing agent",
+      "keywords": [
+        "noteagent",
+        "note",
+        "com",
+        "article",
+        "writing",
+        "agent"
+      ],
+      "aliases": [
+        "NoteAgent",
+        "note.com article writing"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    }
+  ],
+  "byId": {
+    "mcp:miyabi-obsidian:obsidian_list_documents": {
+      "id": "mcp:miyabi-obsidian:obsidian_list_documents",
+      "name": "obsidian_list_documents",
+      "displayName": "Obsidian List Documents",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "List all documents in Miyabi Obsidian vault",
+      "keywords": [
+        "obsidian",
+        "list",
+        "documents",
+        "all",
+        "miyabi",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian list documents",
+        "list all documents"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_read_document": {
+      "id": "mcp:miyabi-obsidian:obsidian_read_document",
+      "name": "obsidian_read_document",
+      "displayName": "Obsidian Read Document",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Read a document from Miyabi Obsidian vault",
+      "keywords": [
+        "obsidian",
+        "read",
+        "document",
+        "miyabi",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian read document",
+        "read a document"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_create_document": {
+      "id": "mcp:miyabi-obsidian:obsidian_create_document",
+      "name": "obsidian_create_document",
+      "displayName": "Obsidian Create Document",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Create a new document in Miyabi Obsidian vault",
+      "keywords": [
+        "obsidian",
+        "create",
+        "document",
+        "new",
+        "miyabi",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian create document",
+        "create a new"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_update_document": {
+      "id": "mcp:miyabi-obsidian:obsidian_update_document",
+      "name": "obsidian_update_document",
+      "displayName": "Obsidian Update Document",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Update an existing document",
+      "keywords": [
+        "obsidian",
+        "update",
+        "document",
+        "existing"
+      ],
+      "aliases": [
+        "obsidian update document",
+        "update an existing"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_search": {
+      "id": "mcp:miyabi-obsidian:obsidian_search",
+      "name": "obsidian_search",
+      "displayName": "Obsidian Search",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Search documents by content",
+      "keywords": [
+        "obsidian",
+        "search",
+        "documents",
+        "content"
+      ],
+      "aliases": [
+        "obsidian search",
+        "search documents by"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_get_tags": {
+      "id": "mcp:miyabi-obsidian:obsidian_get_tags",
+      "name": "obsidian_get_tags",
+      "displayName": "Obsidian Get Tags",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Get all unique tags used in vault",
+      "keywords": [
+        "obsidian",
+        "get",
+        "tags",
+        "all",
+        "unique",
+        "used",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian get tags",
+        "get all unique"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_get_categories": {
+      "id": "mcp:miyabi-obsidian:obsidian_get_categories",
+      "name": "obsidian_get_categories",
+      "displayName": "Obsidian Get Categories",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Get all unique categories",
+      "keywords": [
+        "obsidian",
+        "get",
+        "categories",
+        "all",
+        "unique"
+      ],
+      "aliases": [
+        "obsidian get categories",
+        "get all unique"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_get_directory_tree": {
+      "id": "mcp:miyabi-obsidian:obsidian_get_directory_tree",
+      "name": "obsidian_get_directory_tree",
+      "displayName": "Obsidian Get Directory Tree",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Get directory structure of vault",
+      "keywords": [
+        "obsidian",
+        "get",
+        "directory",
+        "tree",
+        "structure",
+        "vault"
+      ],
+      "aliases": [
+        "obsidian get directory tree",
+        "get directory structure"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-obsidian:obsidian_get_backlinks": {
+      "id": "mcp:miyabi-obsidian:obsidian_get_backlinks",
+      "name": "obsidian_get_backlinks",
+      "displayName": "Obsidian Get Backlinks",
+      "source": "mcp",
+      "server": "miyabi-obsidian",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "Find all documents that link to a specific document",
+      "keywords": [
+        "obsidian",
+        "get",
+        "backlinks",
+        "find",
+        "all",
+        "documents",
+        "link",
+        "specific",
+        "document"
+      ],
+      "aliases": [
+        "obsidian get backlinks",
+        "find all documents"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:generate_dynamic_ui": {
+      "id": "mcp:gemini3-adaptive-runtime:generate_dynamic_ui",
+      "name": "generate_dynamic_ui",
+      "displayName": "Generate Dynamic Ui",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate a dynamic React TypeScript UI component",
+      "keywords": [
+        "generate",
+        "dynamic",
+        "react",
+        "typescript",
+        "component"
+      ],
+      "aliases": [
+        "generate dynamic ui",
+        "generate a dynamic"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:iterate_ui": {
+      "id": "mcp:gemini3-adaptive-runtime:iterate_ui",
+      "name": "iterate_ui",
+      "displayName": "Iterate Ui",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Improve an existing UI component based on feedback",
+      "keywords": [
+        "iterate",
+        "improve",
+        "existing",
+        "component",
+        "based",
+        "feedback"
+      ],
+      "aliases": [
+        "iterate ui",
+        "improve an existing"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:deep_reasoning": {
+      "id": "mcp:gemini3-adaptive-runtime:deep_reasoning",
+      "name": "deep_reasoning",
+      "displayName": "Deep Reasoning",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "Perform deep reasoning on complex questions",
+      "keywords": [
+        "deep",
+        "reasoning",
+        "perform",
+        "complex",
+        "questions"
+      ],
+      "aliases": [
+        "deep reasoning",
+        "perform deep reasoning"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:compare_options": {
+      "id": "mcp:gemini3-adaptive-runtime:compare_options",
+      "name": "compare_options",
+      "displayName": "Compare Options",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Compare multiple options and provide recommendation",
+      "keywords": [
+        "compare",
+        "options",
+        "multiple",
+        "provide",
+        "recommendation"
+      ],
+      "aliases": [
+        "compare options",
+        "compare multiple options"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:analyze_decision": {
+      "id": "mcp:gemini3-adaptive-runtime:analyze_decision",
+      "name": "analyze_decision",
+      "displayName": "Analyze Decision",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Analyze a decision with potential consequences",
+      "keywords": [
+        "analyze",
+        "decision",
+        "potential",
+        "consequences"
+      ],
+      "aliases": [
+        "analyze decision",
+        "analyze a decision"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:execute_code": {
+      "id": "mcp:gemini3-adaptive-runtime:execute_code",
+      "name": "execute_code",
+      "displayName": "Execute Code",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate and execute code to solve tasks",
+      "keywords": [
+        "execute",
+        "code",
+        "generate",
+        "solve",
+        "tasks"
+      ],
+      "aliases": [
+        "execute code",
+        "generate and execute"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:analyze_code": {
+      "id": "mcp:gemini3-adaptive-runtime:analyze_code",
+      "name": "analyze_code",
+      "displayName": "Analyze Code",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Analyze existing code for issues",
+      "keywords": [
+        "analyze",
+        "code",
+        "existing",
+        "issues"
+      ],
+      "aliases": [
+        "analyze code",
+        "analyze existing code"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:generate_tests": {
+      "id": "mcp:gemini3-adaptive-runtime:generate_tests",
+      "name": "generate_tests",
+      "displayName": "Generate Tests",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Generate comprehensive test cases",
+      "keywords": [
+        "generate",
+        "tests",
+        "comprehensive",
+        "test",
+        "cases"
+      ],
+      "aliases": [
+        "generate tests",
+        "generate comprehensive test"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-adaptive-runtime:solve_algorithm": {
+      "id": "mcp:gemini3-adaptive-runtime:solve_algorithm",
+      "name": "solve_algorithm",
+      "displayName": "Solve Algorithm",
+      "source": "mcp",
+      "server": "gemini3-adaptive-runtime",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Solve algorithmic problems",
+      "keywords": [
+        "solve",
+        "algorithm",
+        "algorithmic",
+        "problems"
+      ],
+      "aliases": [
+        "solve algorithm",
+        "solve algorithmic problems"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:review_design": {
+      "id": "mcp:gemini3-uiux-designer:review_design",
+      "name": "review_design",
+      "displayName": "Review Design",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Review UI/UX design using Jonathan Ive principles",
+      "keywords": [
+        "review",
+        "design",
+        "using",
+        "jonathan",
+        "ive",
+        "principles"
+      ],
+      "aliases": [
+        "review design",
+        "review ui/ux design"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:generate_design_system": {
+      "id": "mcp:gemini3-uiux-designer:generate_design_system",
+      "name": "generate_design_system",
+      "displayName": "Generate Design System",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate a complete design system",
+      "keywords": [
+        "generate",
+        "design",
+        "system",
+        "complete"
+      ],
+      "aliases": [
+        "generate design system",
+        "generate a complete"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:create_wireframe": {
+      "id": "mcp:gemini3-uiux-designer:create_wireframe",
+      "name": "create_wireframe",
+      "displayName": "Create Wireframe",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Create minimalist wireframes",
+      "keywords": [
+        "create",
+        "wireframe",
+        "minimalist",
+        "wireframes"
+      ],
+      "aliases": [
+        "create wireframe",
+        "create minimalist wireframes"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup": {
+      "id": "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup",
+      "name": "generate_high_fidelity_mockup",
+      "displayName": "Generate High Fidelity Mockup",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate high-fidelity React mockup",
+      "keywords": [
+        "generate",
+        "high",
+        "fidelity",
+        "mockup",
+        "react"
+      ],
+      "aliases": [
+        "generate high fidelity mockup",
+        "generate high-fidelity react"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:check_accessibility": {
+      "id": "mcp:gemini3-uiux-designer:check_accessibility",
+      "name": "check_accessibility",
+      "displayName": "Check Accessibility",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Comprehensive WCAG accessibility audit",
+      "keywords": [
+        "check",
+        "accessibility",
+        "comprehensive",
+        "wcag",
+        "audit"
+      ],
+      "aliases": [
+        "check accessibility",
+        "comprehensive wcag accessibility"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:analyze_usability": {
+      "id": "mcp:gemini3-uiux-designer:analyze_usability",
+      "name": "analyze_usability",
+      "displayName": "Analyze Usability",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Usability analysis using Nielsen heuristics",
+      "keywords": [
+        "analyze",
+        "usability",
+        "analysis",
+        "using",
+        "nielsen",
+        "heuristics"
+      ],
+      "aliases": [
+        "analyze usability",
+        "usability analysis using"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:optimize_ux_writing": {
+      "id": "mcp:gemini3-uiux-designer:optimize_ux_writing",
+      "name": "optimize_ux_writing",
+      "displayName": "Optimize Ux Writing",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Optimize microcopy and UI text",
+      "keywords": [
+        "optimize",
+        "writing",
+        "microcopy",
+        "text"
+      ],
+      "aliases": [
+        "optimize ux writing",
+        "optimize microcopy and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:design_interaction_flow": {
+      "id": "mcp:gemini3-uiux-designer:design_interaction_flow",
+      "name": "design_interaction_flow",
+      "displayName": "Design Interaction Flow",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Design interaction flows with state transitions",
+      "keywords": [
+        "design",
+        "interaction",
+        "flow",
+        "flows",
+        "state",
+        "transitions"
+      ],
+      "aliases": [
+        "design interaction flow",
+        "design interaction flows"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-uiux-designer:create_animation_specs": {
+      "id": "mcp:gemini3-uiux-designer:create_animation_specs",
+      "name": "create_animation_specs",
+      "displayName": "Create Animation Specs",
+      "source": "mcp",
+      "server": "gemini3-uiux-designer",
+      "category": "file_operations",
+      "subcategory": "write",
+      "description": "Create subtle animation specifications",
+      "keywords": [
+        "create",
+        "animation",
+        "specs",
+        "subtle",
+        "specifications"
+      ],
+      "aliases": [
+        "create animation specs",
+        "create subtle animation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-general:generate_code": {
+      "id": "mcp:gemini3-general:generate_code",
+      "name": "generate_code",
+      "displayName": "Generate Code",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Generate code in any programming language",
+      "keywords": [
+        "generate",
+        "code",
+        "any",
+        "programming",
+        "language"
+      ],
+      "aliases": [
+        "generate code",
+        "generate code in"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-general:analyze_code": {
+      "id": "mcp:gemini3-general:analyze_code",
+      "name": "analyze_code",
+      "displayName": "Analyze Code",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Analyze code for bugs and issues",
+      "keywords": [
+        "analyze",
+        "code",
+        "bugs",
+        "issues"
+      ],
+      "aliases": [
+        "analyze code",
+        "analyze code for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-general:explain_concept": {
+      "id": "mcp:gemini3-general:explain_concept",
+      "name": "explain_concept",
+      "displayName": "Explain Concept",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Explain programming concepts",
+      "keywords": [
+        "explain",
+        "concept",
+        "programming",
+        "concepts"
+      ],
+      "aliases": [
+        "explain concept",
+        "explain programming concepts"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-general:solve_problem": {
+      "id": "mcp:gemini3-general:solve_problem",
+      "name": "solve_problem",
+      "displayName": "Solve Problem",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Solve programming problems",
+      "keywords": [
+        "solve",
+        "problem",
+        "programming",
+        "problems"
+      ],
+      "aliases": [
+        "solve problem",
+        "solve programming problems"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-general:generate_text": {
+      "id": "mcp:gemini3-general:generate_text",
+      "name": "generate_text",
+      "displayName": "Generate Text",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate documentation and text content",
+      "keywords": [
+        "generate",
+        "text",
+        "documentation",
+        "content"
+      ],
+      "aliases": [
+        "generate text",
+        "generate documentation and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:gemini3-general:ask_gemini": {
+      "id": "mcp:gemini3-general:ask_gemini",
+      "name": "ask_gemini",
+      "displayName": "Ask Gemini",
+      "source": "mcp",
+      "server": "gemini3-general",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "Ask Gemini any question",
+      "keywords": [
+        "ask",
+        "gemini",
+        "any",
+        "question"
+      ],
+      "aliases": [
+        "ask gemini",
+        "ask gemini any"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_list_sessions": {
+      "id": "mcp:miyabi-tmux:tmux_list_sessions",
+      "name": "tmux_list_sessions",
+      "displayName": "Tmux List Sessions",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "List all tmux sessions",
+      "keywords": [
+        "tmux",
+        "list",
+        "sessions",
+        "all"
+      ],
+      "aliases": [
+        "tmux list sessions",
+        "list all tmux"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_list_panes": {
+      "id": "mcp:miyabi-tmux:tmux_list_panes",
+      "name": "tmux_list_panes",
+      "displayName": "Tmux List Panes",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "List all panes across tmux sessions",
+      "keywords": [
+        "tmux",
+        "list",
+        "panes",
+        "all",
+        "across",
+        "sessions"
+      ],
+      "aliases": [
+        "tmux list panes",
+        "list all panes"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_send_message": {
+      "id": "mcp:miyabi-tmux:tmux_send_message",
+      "name": "tmux_send_message",
+      "displayName": "Tmux Send Message",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Send a message to a specific tmux pane",
+      "keywords": [
+        "tmux",
+        "send",
+        "message",
+        "specific",
+        "pane"
+      ],
+      "aliases": [
+        "tmux send message",
+        "send a message"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_join_commhub": {
+      "id": "mcp:miyabi-tmux:tmux_join_commhub",
+      "name": "tmux_join_commhub",
+      "displayName": "Tmux Join Commhub",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Join the Miyabi CommHub session",
+      "keywords": [
+        "tmux",
+        "join",
+        "commhub",
+        "miyabi",
+        "session"
+      ],
+      "aliases": [
+        "tmux join commhub",
+        "join the miyabi"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_get_commhub_status": {
+      "id": "mcp:miyabi-tmux:tmux_get_commhub_status",
+      "name": "tmux_get_commhub_status",
+      "displayName": "Tmux Get Commhub Status",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Get current status of the CommHub",
+      "keywords": [
+        "tmux",
+        "get",
+        "commhub",
+        "status",
+        "current"
+      ],
+      "aliases": [
+        "tmux get commhub status",
+        "get current status"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_broadcast": {
+      "id": "mcp:miyabi-tmux:tmux_broadcast",
+      "name": "tmux_broadcast",
+      "displayName": "Tmux Broadcast",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Broadcast a message to all Miyabi tmux sessions",
+      "keywords": [
+        "tmux",
+        "broadcast",
+        "message",
+        "all",
+        "miyabi",
+        "sessions"
+      ],
+      "aliases": [
+        "tmux broadcast",
+        "broadcast a message"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_pane_capture": {
+      "id": "mcp:miyabi-tmux:tmux_pane_capture",
+      "name": "tmux_pane_capture",
+      "displayName": "Tmux Pane Capture",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Capture and return the content of a tmux pane",
+      "keywords": [
+        "tmux",
+        "pane",
+        "capture",
+        "return",
+        "content"
+      ],
+      "aliases": [
+        "tmux pane capture",
+        "capture and return"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_pane_search": {
+      "id": "mcp:miyabi-tmux:tmux_pane_search",
+      "name": "tmux_pane_search",
+      "displayName": "Tmux Pane Search",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "knowledge",
+      "subcategory": "search",
+      "description": "Search for a pattern in pane content",
+      "keywords": [
+        "tmux",
+        "pane",
+        "search",
+        "pattern",
+        "content"
+      ],
+      "aliases": [
+        "tmux pane search",
+        "search for a"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_pane_tail": {
+      "id": "mcp:miyabi-tmux:tmux_pane_tail",
+      "name": "tmux_pane_tail",
+      "displayName": "Tmux Pane Tail",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get the last N lines from a pane",
+      "keywords": [
+        "tmux",
+        "pane",
+        "tail",
+        "get",
+        "last",
+        "lines"
+      ],
+      "aliases": [
+        "tmux pane tail",
+        "get the last"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_pane_is_busy": {
+      "id": "mcp:miyabi-tmux:tmux_pane_is_busy",
+      "name": "tmux_pane_is_busy",
+      "displayName": "Tmux Pane Is Busy",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "ai_design",
+      "subcategory": "uiux",
+      "description": "Check if a pane is busy",
+      "keywords": [
+        "tmux",
+        "pane",
+        "busy",
+        "check"
+      ],
+      "aliases": [
+        "tmux pane is busy",
+        "check if a"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-tmux:tmux_pane_current_command": {
+      "id": "mcp:miyabi-tmux:tmux_pane_current_command",
+      "name": "tmux_pane_current_command",
+      "displayName": "Tmux Pane Current Command",
+      "source": "mcp",
+      "server": "miyabi-tmux",
+      "category": "monitoring",
+      "subcategory": "process",
+      "description": "Get the current command running in a pane",
+      "keywords": [
+        "tmux",
+        "pane",
+        "current",
+        "command",
+        "get",
+        "running"
+      ],
+      "aliases": [
+        "tmux pane current command",
+        "get the current"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-rules:miyabi_rules_list": {
+      "id": "mcp:miyabi-rules:miyabi_rules_list",
+      "name": "miyabi_rules_list",
+      "displayName": "Miyabi Rules List",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "List all available Miyabi rules",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "list",
+        "all",
+        "available"
+      ],
+      "aliases": [
+        "miyabi rules list",
+        "list all available"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-rules:miyabi_rules_validate": {
+      "id": "mcp:miyabi-rules:miyabi_rules_validate",
+      "name": "miyabi_rules_validate",
+      "displayName": "Miyabi Rules Validate",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "ai_design",
+      "subcategory": "gemini",
+      "description": "Validate a task against Miyabi rules",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "validate",
+        "task",
+        "against"
+      ],
+      "aliases": [
+        "miyabi rules validate",
+        "validate a task"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-rules:miyabi_rules_execute": {
+      "id": "mcp:miyabi-rules:miyabi_rules_execute",
+      "name": "miyabi_rules_execute",
+      "displayName": "Miyabi Rules Execute",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "other",
+      "description": "Execute a specific rule enforcement action",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "execute",
+        "specific",
+        "rule",
+        "enforcement",
+        "action"
+      ],
+      "aliases": [
+        "miyabi rules execute",
+        "execute a specific"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-rules:miyabi_rules_sync": {
+      "id": "mcp:miyabi-rules:miyabi_rules_sync",
+      "name": "miyabi_rules_sync",
+      "displayName": "Miyabi Rules Sync",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "other",
+      "description": "Synchronize local rules to cloud API",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "sync",
+        "synchronize",
+        "local",
+        "cloud",
+        "api"
+      ],
+      "aliases": [
+        "miyabi rules sync",
+        "synchronize local rules"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-rules:miyabi_rules_get_context": {
+      "id": "mcp:miyabi-rules:miyabi_rules_get_context",
+      "name": "miyabi_rules_get_context",
+      "displayName": "Miyabi Rules Get Context",
+      "source": "mcp",
+      "server": "miyabi-rules",
+      "category": "business",
+      "subcategory": "marketing",
+      "description": "Get specific context module content",
+      "keywords": [
+        "miyabi",
+        "rules",
+        "get",
+        "context",
+        "specific",
+        "module",
+        "content"
+      ],
+      "aliases": [
+        "miyabi rules get context",
+        "get specific context"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_list_issues": {
+      "id": "mcp:miyabi-github:github_list_issues",
+      "name": "github_list_issues",
+      "displayName": "Github List Issues",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List issues from a GitHub repository",
+      "keywords": [
+        "github",
+        "list",
+        "issues",
+        "repository"
+      ],
+      "aliases": [
+        "github list issues",
+        "list issues from"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_get_issue": {
+      "id": "mcp:miyabi-github:github_get_issue",
+      "name": "github_get_issue",
+      "displayName": "Github Get Issue",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Get detailed information about a specific issue",
+      "keywords": [
+        "github",
+        "get",
+        "issue",
+        "detailed",
+        "information",
+        "about",
+        "specific"
+      ],
+      "aliases": [
+        "github get issue",
+        "get detailed information"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_create_issue": {
+      "id": "mcp:miyabi-github:github_create_issue",
+      "name": "github_create_issue",
+      "displayName": "Github Create Issue",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Create a new issue",
+      "keywords": [
+        "github",
+        "create",
+        "issue",
+        "new"
+      ],
+      "aliases": [
+        "github create issue",
+        "create a new"
+      ],
+      "priority": "always",
+      "deferLoading": false,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_update_issue": {
+      "id": "mcp:miyabi-github:github_update_issue",
+      "name": "github_update_issue",
+      "displayName": "Github Update Issue",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Update an existing issue",
+      "keywords": [
+        "github",
+        "update",
+        "issue",
+        "existing"
+      ],
+      "aliases": [
+        "github update issue",
+        "update an existing"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_add_comment": {
+      "id": "mcp:miyabi-github:github_add_comment",
+      "name": "github_add_comment",
+      "displayName": "Github Add Comment",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Add a comment to an issue or PR",
+      "keywords": [
+        "github",
+        "add",
+        "comment",
+        "issue"
+      ],
+      "aliases": [
+        "github add comment",
+        "add a comment"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_list_prs": {
+      "id": "mcp:miyabi-github:github_list_prs",
+      "name": "github_list_prs",
+      "displayName": "Github List Prs",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List pull requests from a repository",
+      "keywords": [
+        "github",
+        "list",
+        "prs",
+        "pull",
+        "requests",
+        "repository"
+      ],
+      "aliases": [
+        "github list prs",
+        "list pull requests"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_get_pr": {
+      "id": "mcp:miyabi-github:github_get_pr",
+      "name": "github_get_pr",
+      "displayName": "Github Get Pr",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Get detailed information about a specific PR",
+      "keywords": [
+        "github",
+        "get",
+        "detailed",
+        "information",
+        "about",
+        "specific"
+      ],
+      "aliases": [
+        "github get pr",
+        "get detailed information"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_create_pr": {
+      "id": "mcp:miyabi-github:github_create_pr",
+      "name": "github_create_pr",
+      "displayName": "Github Create Pr",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Create a new pull request",
+      "keywords": [
+        "github",
+        "create",
+        "new",
+        "pull",
+        "request"
+      ],
+      "aliases": [
+        "github create pr",
+        "create a new"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_merge_pr": {
+      "id": "mcp:miyabi-github:github_merge_pr",
+      "name": "github_merge_pr",
+      "displayName": "Github Merge Pr",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Merge a pull request",
+      "keywords": [
+        "github",
+        "merge",
+        "pull",
+        "request"
+      ],
+      "aliases": [
+        "github merge pr",
+        "merge a pull"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_list_labels": {
+      "id": "mcp:miyabi-github:github_list_labels",
+      "name": "github_list_labels",
+      "displayName": "Github List Labels",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List labels in a repository",
+      "keywords": [
+        "github",
+        "list",
+        "labels",
+        "repository"
+      ],
+      "aliases": [
+        "github list labels",
+        "list labels in"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_add_labels": {
+      "id": "mcp:miyabi-github:github_add_labels",
+      "name": "github_add_labels",
+      "displayName": "Github Add Labels",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Add labels to an issue or PR",
+      "keywords": [
+        "github",
+        "add",
+        "labels",
+        "issue"
+      ],
+      "aliases": [
+        "github add labels",
+        "add labels to"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-github:github_list_milestones": {
+      "id": "mcp:miyabi-github:github_list_milestones",
+      "name": "github_list_milestones",
+      "displayName": "Github List Milestones",
+      "source": "mcp",
+      "server": "miyabi-github",
+      "category": "development",
+      "subcategory": "git",
+      "description": "List milestones in a repository",
+      "keywords": [
+        "github",
+        "list",
+        "milestones",
+        "repository"
+      ],
+      "aliases": [
+        "github list milestones",
+        "list milestones in"
+      ],
+      "priority": "high",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:read_file": {
+      "id": "mcp:miyabi-file-access:read_file",
+      "name": "read_file",
+      "displayName": "Read File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "business",
+      "subcategory": "marketing",
+      "description": "Read content from a file",
+      "keywords": [
+        "read",
+        "file",
+        "content"
+      ],
+      "aliases": [
+        "read file",
+        "read content from"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:write_file": {
+      "id": "mcp:miyabi-file-access:write_file",
+      "name": "write_file",
+      "displayName": "Write File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "business",
+      "subcategory": "marketing",
+      "description": "Write content to a file",
+      "keywords": [
+        "write",
+        "file",
+        "content"
+      ],
+      "aliases": [
+        "write file",
+        "write content to"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:list_files": {
+      "id": "mcp:miyabi-file-access:list_files",
+      "name": "list_files",
+      "displayName": "List Files",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "file_operations",
+      "subcategory": "read",
+      "description": "List files and directories",
+      "keywords": [
+        "list",
+        "files",
+        "directories"
+      ],
+      "aliases": [
+        "list files",
+        "list files and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:get_file_info": {
+      "id": "mcp:miyabi-file-access:get_file_info",
+      "name": "get_file_info",
+      "displayName": "Get File Info",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get detailed information about a file",
+      "keywords": [
+        "get",
+        "file",
+        "info",
+        "detailed",
+        "information",
+        "about"
+      ],
+      "aliases": [
+        "get file info",
+        "get detailed information"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:delete_file": {
+      "id": "mcp:miyabi-file-access:delete_file",
+      "name": "delete_file",
+      "displayName": "Delete File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "other",
+      "description": "Delete a file or directory",
+      "keywords": [
+        "delete",
+        "file",
+        "directory"
+      ],
+      "aliases": [
+        "delete file",
+        "delete a file"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:create_directory": {
+      "id": "mcp:miyabi-file-access:create_directory",
+      "name": "create_directory",
+      "displayName": "Create Directory",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "file_operations",
+      "subcategory": "write",
+      "description": "Create a new directory",
+      "keywords": [
+        "create",
+        "directory",
+        "new"
+      ],
+      "aliases": [
+        "create directory",
+        "create a new"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:copy_file": {
+      "id": "mcp:miyabi-file-access:copy_file",
+      "name": "copy_file",
+      "displayName": "Copy File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "file_operations",
+      "subcategory": "write",
+      "description": "Copy a file to a new location",
+      "keywords": [
+        "copy",
+        "file",
+        "new",
+        "location"
+      ],
+      "aliases": [
+        "copy file",
+        "copy a file"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:move_file": {
+      "id": "mcp:miyabi-file-access:move_file",
+      "name": "move_file",
+      "displayName": "Move File",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "other",
+      "description": "Move or rename a file",
+      "keywords": [
+        "move",
+        "file",
+        "rename"
+      ],
+      "aliases": [
+        "move file",
+        "move or rename"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-file-access:search_files": {
+      "id": "mcp:miyabi-file-access:search_files",
+      "name": "search_files",
+      "displayName": "Search Files",
+      "source": "mcp",
+      "server": "miyabi-file-access",
+      "category": "knowledge",
+      "subcategory": "search",
+      "description": "Search for files by name or content",
+      "keywords": [
+        "search",
+        "files",
+        "name",
+        "content"
+      ],
+      "aliases": [
+        "search files",
+        "search for files"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-log-aggregator:log_sources": {
+      "id": "mcp:miyabi-log-aggregator:log_sources",
+      "name": "log_sources",
+      "displayName": "Log Sources",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "List all available log sources",
+      "keywords": [
+        "log",
+        "sources",
+        "list",
+        "all",
+        "available"
+      ],
+      "aliases": [
+        "log sources",
+        "list all available"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-log-aggregator:log_get_recent": {
+      "id": "mcp:miyabi-log-aggregator:log_get_recent",
+      "name": "log_get_recent",
+      "displayName": "Log Get Recent",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get recent log entries",
+      "keywords": [
+        "log",
+        "get",
+        "recent",
+        "entries"
+      ],
+      "aliases": [
+        "log get recent",
+        "get recent log"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-log-aggregator:log_search": {
+      "id": "mcp:miyabi-log-aggregator:log_search",
+      "name": "log_search",
+      "displayName": "Log Search",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Search logs for a specific query",
+      "keywords": [
+        "log",
+        "search",
+        "logs",
+        "specific",
+        "query"
+      ],
+      "aliases": [
+        "log search",
+        "search logs for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-log-aggregator:log_get_errors": {
+      "id": "mcp:miyabi-log-aggregator:log_get_errors",
+      "name": "log_get_errors",
+      "displayName": "Log Get Errors",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get all error-level log entries",
+      "keywords": [
+        "log",
+        "get",
+        "errors",
+        "all",
+        "error",
+        "level",
+        "entries"
+      ],
+      "aliases": [
+        "log get errors",
+        "get all error-level"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-log-aggregator:log_get_warnings": {
+      "id": "mcp:miyabi-log-aggregator:log_get_warnings",
+      "name": "log_get_warnings",
+      "displayName": "Log Get Warnings",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get all warning-level log entries",
+      "keywords": [
+        "log",
+        "get",
+        "warnings",
+        "all",
+        "warning",
+        "level",
+        "entries"
+      ],
+      "aliases": [
+        "log get warnings",
+        "get all warning-level"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-log-aggregator:log_tail": {
+      "id": "mcp:miyabi-log-aggregator:log_tail",
+      "name": "log_tail",
+      "displayName": "Log Tail",
+      "source": "mcp",
+      "server": "miyabi-log-aggregator",
+      "category": "monitoring",
+      "subcategory": "logs",
+      "description": "Get the last N lines from a log file",
+      "keywords": [
+        "log",
+        "tail",
+        "get",
+        "last",
+        "lines",
+        "file"
+      ],
+      "aliases": [
+        "log tail",
+        "get the last"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_cpu": {
+      "id": "mcp:miyabi-resource-monitor:resource_cpu",
+      "name": "resource_cpu",
+      "displayName": "Resource Cpu",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get current CPU usage",
+      "keywords": [
+        "resource",
+        "cpu",
+        "get",
+        "current",
+        "usage"
+      ],
+      "aliases": [
+        "resource cpu",
+        "get current cpu"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_memory": {
+      "id": "mcp:miyabi-resource-monitor:resource_memory",
+      "name": "resource_memory",
+      "displayName": "Resource Memory",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get current memory usage",
+      "keywords": [
+        "resource",
+        "memory",
+        "get",
+        "current",
+        "usage"
+      ],
+      "aliases": [
+        "resource memory",
+        "get current memory"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_disk": {
+      "id": "mcp:miyabi-resource-monitor:resource_disk",
+      "name": "resource_disk",
+      "displayName": "Resource Disk",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get disk usage for filesystems",
+      "keywords": [
+        "resource",
+        "disk",
+        "get",
+        "usage",
+        "filesystems"
+      ],
+      "aliases": [
+        "resource disk",
+        "get disk usage"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_load": {
+      "id": "mcp:miyabi-resource-monitor:resource_load",
+      "name": "resource_load",
+      "displayName": "Resource Load",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get system load average",
+      "keywords": [
+        "resource",
+        "load",
+        "get",
+        "system",
+        "average"
+      ],
+      "aliases": [
+        "resource load",
+        "get system load"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_overview": {
+      "id": "mcp:miyabi-resource-monitor:resource_overview",
+      "name": "resource_overview",
+      "displayName": "Resource Overview",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Get comprehensive overview of all system resources",
+      "keywords": [
+        "resource",
+        "overview",
+        "get",
+        "comprehensive",
+        "all",
+        "system",
+        "resources"
+      ],
+      "aliases": [
+        "resource overview",
+        "get comprehensive overview"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_processes": {
+      "id": "mcp:miyabi-resource-monitor:resource_processes",
+      "name": "resource_processes",
+      "displayName": "Resource Processes",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Get process information",
+      "keywords": [
+        "resource",
+        "processes",
+        "get",
+        "process",
+        "information"
+      ],
+      "aliases": [
+        "resource processes",
+        "get process information"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_uptime": {
+      "id": "mcp:miyabi-resource-monitor:resource_uptime",
+      "name": "resource_uptime",
+      "displayName": "Resource Uptime",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get system uptime",
+      "keywords": [
+        "resource",
+        "uptime",
+        "get",
+        "system"
+      ],
+      "aliases": [
+        "resource uptime",
+        "get system uptime"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "mcp:miyabi-resource-monitor:resource_network_stats": {
+      "id": "mcp:miyabi-resource-monitor:resource_network_stats",
+      "name": "resource_network_stats",
+      "displayName": "Resource Network Stats",
+      "source": "mcp",
+      "server": "miyabi-resource-monitor",
+      "category": "monitoring",
+      "subcategory": "resource",
+      "description": "Get network interface statistics",
+      "keywords": [
+        "resource",
+        "network",
+        "stats",
+        "get",
+        "interface",
+        "statistics"
+      ],
+      "aliases": [
+        "resource network stats",
+        "get network interface"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents": {
+      "id": "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents",
+      "name": "a2a.coordinator.orchestrate_agents",
+      "displayName": "A2a.coordinator.orchestrate Agents",
+      "source": "rust_crate",
+      "server": "miyabi-agent-coordinator",
+      "category": "rust_agents",
+      "subcategory": "coordinator",
+      "description": "Coordinate multiple agents for complex tasks",
+      "keywords": [
+        "a2a",
+        "coordinator",
+        "orchestrate",
+        "agents",
+        "coordinate",
+        "multiple",
+        "complex",
+        "tasks"
+      ],
+      "aliases": [
+        "a2a.coordinator.orchestrate agents",
+        "coordinate multiple agents"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag": {
+      "id": "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag",
+      "name": "a2a.coordinator.execute_dag",
+      "displayName": "A2a.coordinator.execute Dag",
+      "source": "rust_crate",
+      "server": "miyabi-agent-coordinator",
+      "category": "rust_agents",
+      "subcategory": "coordinator",
+      "description": "Execute a DAG-based workflow",
+      "keywords": [
+        "a2a",
+        "coordinator",
+        "execute",
+        "dag",
+        "based",
+        "workflow"
+      ],
+      "aliases": [
+        "a2a.coordinator.execute dag",
+        "execute a dag-based"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code": {
+      "id": "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code",
+      "name": "a2a.codegen.generate_code",
+      "displayName": "A2a.codegen.generate Code",
+      "source": "rust_crate",
+      "server": "miyabi-agent-codegen",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Generate code from specifications",
+      "keywords": [
+        "a2a",
+        "codegen",
+        "generate",
+        "code",
+        "specifications"
+      ],
+      "aliases": [
+        "a2a.codegen.generate code",
+        "generate code from"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature": {
+      "id": "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature",
+      "name": "a2a.codegen.implement_feature",
+      "displayName": "A2a.codegen.implement Feature",
+      "source": "rust_crate",
+      "server": "miyabi-agent-codegen",
+      "category": "development",
+      "subcategory": "code",
+      "description": "Implement a new feature based on requirements",
+      "keywords": [
+        "a2a",
+        "codegen",
+        "implement",
+        "feature",
+        "new",
+        "based",
+        "requirements"
+      ],
+      "aliases": [
+        "a2a.codegen.implement feature",
+        "implement a new"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-review:a2a.review.review_code": {
+      "id": "rust_crate:miyabi-agent-review:a2a.review.review_code",
+      "name": "a2a.review.review_code",
+      "displayName": "A2a.review.review Code",
+      "source": "rust_crate",
+      "server": "miyabi-agent-review",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Review code for quality and issues",
+      "keywords": [
+        "a2a",
+        "review",
+        "code",
+        "quality",
+        "issues"
+      ],
+      "aliases": [
+        "a2a.review.review code",
+        "review code for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-review:a2a.review.analyze_security": {
+      "id": "rust_crate:miyabi-agent-review:a2a.review.analyze_security",
+      "name": "a2a.review.analyze_security",
+      "displayName": "A2a.review.analyze Security",
+      "source": "rust_crate",
+      "server": "miyabi-agent-review",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Analyze code for security vulnerabilities",
+      "keywords": [
+        "a2a",
+        "review",
+        "analyze",
+        "security",
+        "code",
+        "vulnerabilities"
+      ],
+      "aliases": [
+        "a2a.review.analyze security",
+        "analyze code for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue": {
+      "id": "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue",
+      "name": "a2a.issue.analyze_issue",
+      "displayName": "A2a.issue.analyze Issue",
+      "source": "rust_crate",
+      "server": "miyabi-agent-issue",
+      "category": "development",
+      "subcategory": "git",
+      "description": "Analyze and label GitHub issues",
+      "keywords": [
+        "a2a",
+        "issue",
+        "analyze",
+        "label",
+        "github",
+        "issues"
+      ],
+      "aliases": [
+        "a2a.issue.analyze issue",
+        "analyze and label"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues": {
+      "id": "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues",
+      "name": "a2a.issue.triage_issues",
+      "displayName": "A2a.issue.triage Issues",
+      "source": "rust_crate",
+      "server": "miyabi-agent-issue",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Triage and prioritize issues",
+      "keywords": [
+        "a2a",
+        "issue",
+        "triage",
+        "issues",
+        "prioritize"
+      ],
+      "aliases": [
+        "a2a.issue.triage issues",
+        "triage and prioritize"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request": {
+      "id": "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request",
+      "name": "a2a.pr.create_pull_request",
+      "displayName": "A2a.pr.create Pull Request",
+      "source": "rust_crate",
+      "server": "miyabi-agent-pr",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Create a pull request with changes",
+      "keywords": [
+        "a2a",
+        "create",
+        "pull",
+        "request",
+        "changes"
+      ],
+      "aliases": [
+        "a2a.pr.create pull request",
+        "create a pull"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge": {
+      "id": "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge",
+      "name": "a2a.pr.auto_merge",
+      "displayName": "A2a.pr.auto Merge",
+      "source": "rust_crate",
+      "server": "miyabi-agent-pr",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Automatically merge approved PRs",
+      "keywords": [
+        "a2a",
+        "auto",
+        "merge",
+        "automatically",
+        "approved",
+        "prs"
+      ],
+      "aliases": [
+        "a2a.pr.auto merge",
+        "automatically merge approved"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:CoordinatorAgent": {
+      "id": "subagent:task-subagent:CoordinatorAgent",
+      "name": "CoordinatorAgent",
+      "displayName": "Coordinator Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "rust_agents",
+      "subcategory": "coordinator",
+      "description": "Task coordination and parallel execution agent",
+      "keywords": [
+        "coordinatoragent",
+        "task",
+        "coordination",
+        "parallel",
+        "execution",
+        "agent"
+      ],
+      "aliases": [
+        "CoordinatorAgent",
+        "task coordination and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:CodeGenAgent": {
+      "id": "subagent:task-subagent:CodeGenAgent",
+      "name": "CodeGenAgent",
+      "displayName": "Code Gen Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "code",
+      "description": "AI-driven code generation agent",
+      "keywords": [
+        "codegenagent",
+        "driven",
+        "code",
+        "generation",
+        "agent"
+      ],
+      "aliases": [
+        "CodeGenAgent",
+        "ai-driven code generation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:ReviewAgent": {
+      "id": "subagent:task-subagent:ReviewAgent",
+      "name": "ReviewAgent",
+      "displayName": "Review Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Code quality and security review agent",
+      "keywords": [
+        "reviewagent",
+        "code",
+        "quality",
+        "security",
+        "review",
+        "agent"
+      ],
+      "aliases": [
+        "ReviewAgent",
+        "code quality and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:IssueAgent": {
+      "id": "subagent:task-subagent:IssueAgent",
+      "name": "IssueAgent",
+      "displayName": "Issue Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Issue analysis and labeling agent",
+      "keywords": [
+        "issueagent",
+        "issue",
+        "analysis",
+        "labeling",
+        "agent"
+      ],
+      "aliases": [
+        "IssueAgent",
+        "issue analysis and"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:PRAgent": {
+      "id": "subagent:task-subagent:PRAgent",
+      "name": "PRAgent",
+      "displayName": "PRAgent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Pull request creation and management agent",
+      "keywords": [
+        "pragent",
+        "pull",
+        "request",
+        "creation",
+        "management",
+        "agent"
+      ],
+      "aliases": [
+        "PRAgent",
+        "pull request creation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:DeploymentAgent": {
+      "id": "subagent:task-subagent:DeploymentAgent",
+      "name": "DeploymentAgent",
+      "displayName": "Deployment Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "other",
+      "description": "CI/CD deployment automation agent",
+      "keywords": [
+        "deploymentagent",
+        "deployment",
+        "automation",
+        "agent"
+      ],
+      "aliases": [
+        "DeploymentAgent",
+        "ci/cd deployment automation"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:RefresherAgent": {
+      "id": "subagent:task-subagent:RefresherAgent",
+      "name": "RefresherAgent",
+      "displayName": "Refresher Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "development",
+      "subcategory": "github",
+      "description": "Issue status monitoring and update agent",
+      "keywords": [
+        "refresheragent",
+        "issue",
+        "status",
+        "monitoring",
+        "update",
+        "agent"
+      ],
+      "aliases": [
+        "RefresherAgent",
+        "issue status monitoring"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:AWSAgent": {
+      "id": "subagent:task-subagent:AWSAgent",
+      "name": "AWSAgent",
+      "displayName": "AWSAgent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "other",
+      "description": "AWS cloud infrastructure management agent",
+      "keywords": [
+        "awsagent",
+        "aws",
+        "cloud",
+        "infrastructure",
+        "management",
+        "agent"
+      ],
+      "aliases": [
+        "AWSAgent",
+        "aws cloud infrastructure"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:ImageGenAgent": {
+      "id": "subagent:task-subagent:ImageGenAgent",
+      "name": "ImageGenAgent",
+      "displayName": "Image Gen Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "ai_design",
+      "subcategory": "image",
+      "description": "Image generation for business materials",
+      "keywords": [
+        "imagegenagent",
+        "image",
+        "generation",
+        "business",
+        "materials"
+      ],
+      "aliases": [
+        "ImageGenAgent",
+        "image generation for"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:YouTubeAgent": {
+      "id": "subagent:task-subagent:YouTubeAgent",
+      "name": "YouTubeAgent",
+      "displayName": "You Tube Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "other",
+      "description": "YouTube channel optimization agent",
+      "keywords": [
+        "youtubeagent",
+        "youtube",
+        "channel",
+        "optimization",
+        "agent"
+      ],
+      "aliases": [
+        "YouTubeAgent",
+        "youtube channel optimization"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    "subagent:task-subagent:NoteAgent": {
+      "id": "subagent:task-subagent:NoteAgent",
+      "name": "NoteAgent",
+      "displayName": "Note Agent",
+      "source": "subagent",
+      "server": "task-subagent",
+      "category": "knowledge",
+      "subcategory": "obsidian",
+      "description": "note.com article writing agent",
+      "keywords": [
+        "noteagent",
+        "note",
+        "com",
+        "article",
+        "writing",
+        "agent"
+      ],
+      "aliases": [
+        "NoteAgent",
+        "note.com article writing"
+      ],
+      "priority": "medium",
+      "deferLoading": true,
+      "inputSchema": {
+        "type": "object"
+      }
+    }
+  },
+  "byCategory": {
+    "knowledge": [
+      "mcp:miyabi-obsidian:obsidian_list_documents",
+      "mcp:miyabi-obsidian:obsidian_read_document",
+      "mcp:miyabi-obsidian:obsidian_create_document",
+      "mcp:miyabi-obsidian:obsidian_update_document",
+      "mcp:miyabi-obsidian:obsidian_search",
+      "mcp:miyabi-obsidian:obsidian_get_tags",
+      "mcp:miyabi-obsidian:obsidian_get_categories",
+      "mcp:miyabi-obsidian:obsidian_get_directory_tree",
+      "mcp:miyabi-obsidian:obsidian_get_backlinks",
+      "mcp:miyabi-tmux:tmux_pane_search",
+      "mcp:miyabi-file-access:search_files",
+      "subagent:task-subagent:NoteAgent"
+    ],
+    "development": [
+      "mcp:gemini3-adaptive-runtime:generate_dynamic_ui",
+      "mcp:gemini3-adaptive-runtime:iterate_ui",
+      "mcp:gemini3-adaptive-runtime:compare_options",
+      "mcp:gemini3-adaptive-runtime:analyze_decision",
+      "mcp:gemini3-adaptive-runtime:execute_code",
+      "mcp:gemini3-adaptive-runtime:analyze_code",
+      "mcp:gemini3-adaptive-runtime:generate_tests",
+      "mcp:gemini3-adaptive-runtime:solve_algorithm",
+      "mcp:gemini3-uiux-designer:review_design",
+      "mcp:gemini3-uiux-designer:generate_design_system",
+      "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup",
+      "mcp:gemini3-uiux-designer:check_accessibility",
+      "mcp:gemini3-uiux-designer:analyze_usability",
+      "mcp:gemini3-general:generate_code",
+      "mcp:gemini3-general:analyze_code",
+      "mcp:gemini3-general:explain_concept",
+      "mcp:gemini3-general:solve_problem",
+      "mcp:gemini3-general:generate_text",
+      "mcp:miyabi-github:github_list_issues",
+      "mcp:miyabi-github:github_get_issue",
+      "mcp:miyabi-github:github_create_issue",
+      "mcp:miyabi-github:github_update_issue",
+      "mcp:miyabi-github:github_add_comment",
+      "mcp:miyabi-github:github_list_prs",
+      "mcp:miyabi-github:github_get_pr",
+      "mcp:miyabi-github:github_create_pr",
+      "mcp:miyabi-github:github_merge_pr",
+      "mcp:miyabi-github:github_list_labels",
+      "mcp:miyabi-github:github_add_labels",
+      "mcp:miyabi-github:github_list_milestones",
+      "mcp:miyabi-resource-monitor:resource_overview",
+      "mcp:miyabi-resource-monitor:resource_processes",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature",
+      "rust_crate:miyabi-agent-review:a2a.review.review_code",
+      "rust_crate:miyabi-agent-review:a2a.review.analyze_security",
+      "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue",
+      "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues",
+      "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request",
+      "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge",
+      "subagent:task-subagent:CodeGenAgent",
+      "subagent:task-subagent:ReviewAgent",
+      "subagent:task-subagent:IssueAgent",
+      "subagent:task-subagent:PRAgent",
+      "subagent:task-subagent:RefresherAgent"
+    ],
+    "ai_design": [
+      "mcp:gemini3-adaptive-runtime:deep_reasoning",
+      "mcp:gemini3-uiux-designer:create_wireframe",
+      "mcp:gemini3-uiux-designer:optimize_ux_writing",
+      "mcp:gemini3-uiux-designer:design_interaction_flow",
+      "mcp:gemini3-general:ask_gemini",
+      "mcp:miyabi-tmux:tmux_list_sessions",
+      "mcp:miyabi-tmux:tmux_list_panes",
+      "mcp:miyabi-tmux:tmux_send_message",
+      "mcp:miyabi-tmux:tmux_join_commhub",
+      "mcp:miyabi-tmux:tmux_get_commhub_status",
+      "mcp:miyabi-tmux:tmux_broadcast",
+      "mcp:miyabi-tmux:tmux_pane_capture",
+      "mcp:miyabi-tmux:tmux_pane_is_busy",
+      "mcp:miyabi-rules:miyabi_rules_list",
+      "mcp:miyabi-rules:miyabi_rules_validate",
+      "subagent:task-subagent:ImageGenAgent"
+    ],
+    "file_operations": [
+      "mcp:gemini3-uiux-designer:create_animation_specs",
+      "mcp:miyabi-file-access:list_files",
+      "mcp:miyabi-file-access:create_directory",
+      "mcp:miyabi-file-access:copy_file"
+    ],
+    "monitoring": [
+      "mcp:miyabi-tmux:tmux_pane_tail",
+      "mcp:miyabi-tmux:tmux_pane_current_command",
+      "mcp:miyabi-file-access:get_file_info",
+      "mcp:miyabi-log-aggregator:log_sources",
+      "mcp:miyabi-log-aggregator:log_get_recent",
+      "mcp:miyabi-log-aggregator:log_search",
+      "mcp:miyabi-log-aggregator:log_get_errors",
+      "mcp:miyabi-log-aggregator:log_get_warnings",
+      "mcp:miyabi-log-aggregator:log_tail",
+      "mcp:miyabi-resource-monitor:resource_cpu",
+      "mcp:miyabi-resource-monitor:resource_memory",
+      "mcp:miyabi-resource-monitor:resource_disk",
+      "mcp:miyabi-resource-monitor:resource_load",
+      "mcp:miyabi-resource-monitor:resource_uptime",
+      "mcp:miyabi-resource-monitor:resource_network_stats"
+    ],
+    "other": [
+      "mcp:miyabi-rules:miyabi_rules_execute",
+      "mcp:miyabi-rules:miyabi_rules_sync",
+      "mcp:miyabi-file-access:delete_file",
+      "mcp:miyabi-file-access:move_file",
+      "subagent:task-subagent:DeploymentAgent",
+      "subagent:task-subagent:AWSAgent",
+      "subagent:task-subagent:YouTubeAgent"
+    ],
+    "business": [
+      "mcp:miyabi-rules:miyabi_rules_get_context",
+      "mcp:miyabi-file-access:read_file",
+      "mcp:miyabi-file-access:write_file"
+    ],
+    "rust_agents": [
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents",
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag",
+      "subagent:task-subagent:CoordinatorAgent"
+    ]
+  },
+  "bySource": {
+    "mcp": [
+      "mcp:miyabi-obsidian:obsidian_list_documents",
+      "mcp:miyabi-obsidian:obsidian_read_document",
+      "mcp:miyabi-obsidian:obsidian_create_document",
+      "mcp:miyabi-obsidian:obsidian_update_document",
+      "mcp:miyabi-obsidian:obsidian_search",
+      "mcp:miyabi-obsidian:obsidian_get_tags",
+      "mcp:miyabi-obsidian:obsidian_get_categories",
+      "mcp:miyabi-obsidian:obsidian_get_directory_tree",
+      "mcp:miyabi-obsidian:obsidian_get_backlinks",
+      "mcp:gemini3-adaptive-runtime:generate_dynamic_ui",
+      "mcp:gemini3-adaptive-runtime:iterate_ui",
+      "mcp:gemini3-adaptive-runtime:deep_reasoning",
+      "mcp:gemini3-adaptive-runtime:compare_options",
+      "mcp:gemini3-adaptive-runtime:analyze_decision",
+      "mcp:gemini3-adaptive-runtime:execute_code",
+      "mcp:gemini3-adaptive-runtime:analyze_code",
+      "mcp:gemini3-adaptive-runtime:generate_tests",
+      "mcp:gemini3-adaptive-runtime:solve_algorithm",
+      "mcp:gemini3-uiux-designer:review_design",
+      "mcp:gemini3-uiux-designer:generate_design_system",
+      "mcp:gemini3-uiux-designer:create_wireframe",
+      "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup",
+      "mcp:gemini3-uiux-designer:check_accessibility",
+      "mcp:gemini3-uiux-designer:analyze_usability",
+      "mcp:gemini3-uiux-designer:optimize_ux_writing",
+      "mcp:gemini3-uiux-designer:design_interaction_flow",
+      "mcp:gemini3-uiux-designer:create_animation_specs",
+      "mcp:gemini3-general:generate_code",
+      "mcp:gemini3-general:analyze_code",
+      "mcp:gemini3-general:explain_concept",
+      "mcp:gemini3-general:solve_problem",
+      "mcp:gemini3-general:generate_text",
+      "mcp:gemini3-general:ask_gemini",
+      "mcp:miyabi-tmux:tmux_list_sessions",
+      "mcp:miyabi-tmux:tmux_list_panes",
+      "mcp:miyabi-tmux:tmux_send_message",
+      "mcp:miyabi-tmux:tmux_join_commhub",
+      "mcp:miyabi-tmux:tmux_get_commhub_status",
+      "mcp:miyabi-tmux:tmux_broadcast",
+      "mcp:miyabi-tmux:tmux_pane_capture",
+      "mcp:miyabi-tmux:tmux_pane_search",
+      "mcp:miyabi-tmux:tmux_pane_tail",
+      "mcp:miyabi-tmux:tmux_pane_is_busy",
+      "mcp:miyabi-tmux:tmux_pane_current_command",
+      "mcp:miyabi-rules:miyabi_rules_list",
+      "mcp:miyabi-rules:miyabi_rules_validate",
+      "mcp:miyabi-rules:miyabi_rules_execute",
+      "mcp:miyabi-rules:miyabi_rules_sync",
+      "mcp:miyabi-rules:miyabi_rules_get_context",
+      "mcp:miyabi-github:github_list_issues",
+      "mcp:miyabi-github:github_get_issue",
+      "mcp:miyabi-github:github_create_issue",
+      "mcp:miyabi-github:github_update_issue",
+      "mcp:miyabi-github:github_add_comment",
+      "mcp:miyabi-github:github_list_prs",
+      "mcp:miyabi-github:github_get_pr",
+      "mcp:miyabi-github:github_create_pr",
+      "mcp:miyabi-github:github_merge_pr",
+      "mcp:miyabi-github:github_list_labels",
+      "mcp:miyabi-github:github_add_labels",
+      "mcp:miyabi-github:github_list_milestones",
+      "mcp:miyabi-file-access:read_file",
+      "mcp:miyabi-file-access:write_file",
+      "mcp:miyabi-file-access:list_files",
+      "mcp:miyabi-file-access:get_file_info",
+      "mcp:miyabi-file-access:delete_file",
+      "mcp:miyabi-file-access:create_directory",
+      "mcp:miyabi-file-access:copy_file",
+      "mcp:miyabi-file-access:move_file",
+      "mcp:miyabi-file-access:search_files",
+      "mcp:miyabi-log-aggregator:log_sources",
+      "mcp:miyabi-log-aggregator:log_get_recent",
+      "mcp:miyabi-log-aggregator:log_search",
+      "mcp:miyabi-log-aggregator:log_get_errors",
+      "mcp:miyabi-log-aggregator:log_get_warnings",
+      "mcp:miyabi-log-aggregator:log_tail",
+      "mcp:miyabi-resource-monitor:resource_cpu",
+      "mcp:miyabi-resource-monitor:resource_memory",
+      "mcp:miyabi-resource-monitor:resource_disk",
+      "mcp:miyabi-resource-monitor:resource_load",
+      "mcp:miyabi-resource-monitor:resource_overview",
+      "mcp:miyabi-resource-monitor:resource_processes",
+      "mcp:miyabi-resource-monitor:resource_uptime",
+      "mcp:miyabi-resource-monitor:resource_network_stats"
+    ],
+    "rust_crate": [
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents",
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature",
+      "rust_crate:miyabi-agent-review:a2a.review.review_code",
+      "rust_crate:miyabi-agent-review:a2a.review.analyze_security",
+      "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue",
+      "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues",
+      "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request",
+      "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge"
+    ],
+    "subagent": [
+      "subagent:task-subagent:CoordinatorAgent",
+      "subagent:task-subagent:CodeGenAgent",
+      "subagent:task-subagent:ReviewAgent",
+      "subagent:task-subagent:IssueAgent",
+      "subagent:task-subagent:PRAgent",
+      "subagent:task-subagent:DeploymentAgent",
+      "subagent:task-subagent:RefresherAgent",
+      "subagent:task-subagent:AWSAgent",
+      "subagent:task-subagent:ImageGenAgent",
+      "subagent:task-subagent:YouTubeAgent",
+      "subagent:task-subagent:NoteAgent"
+    ]
+  },
+  "byPriority": {
+    "high": [
+      "mcp:miyabi-obsidian:obsidian_list_documents",
+      "mcp:miyabi-obsidian:obsidian_create_document",
+      "mcp:miyabi-obsidian:obsidian_update_document",
+      "mcp:miyabi-obsidian:obsidian_get_tags",
+      "mcp:miyabi-obsidian:obsidian_get_categories",
+      "mcp:miyabi-obsidian:obsidian_get_directory_tree",
+      "mcp:miyabi-obsidian:obsidian_get_backlinks",
+      "mcp:miyabi-tmux:tmux_list_panes",
+      "mcp:miyabi-tmux:tmux_join_commhub",
+      "mcp:miyabi-tmux:tmux_get_commhub_status",
+      "mcp:miyabi-tmux:tmux_broadcast",
+      "mcp:miyabi-tmux:tmux_pane_capture",
+      "mcp:miyabi-tmux:tmux_pane_search",
+      "mcp:miyabi-tmux:tmux_pane_tail",
+      "mcp:miyabi-tmux:tmux_pane_is_busy",
+      "mcp:miyabi-tmux:tmux_pane_current_command",
+      "mcp:miyabi-github:github_update_issue",
+      "mcp:miyabi-github:github_add_comment",
+      "mcp:miyabi-github:github_list_prs",
+      "mcp:miyabi-github:github_get_pr",
+      "mcp:miyabi-github:github_create_pr",
+      "mcp:miyabi-github:github_merge_pr",
+      "mcp:miyabi-github:github_list_labels",
+      "mcp:miyabi-github:github_add_labels",
+      "mcp:miyabi-github:github_list_milestones"
+    ],
+    "always": [
+      "mcp:miyabi-obsidian:obsidian_read_document",
+      "mcp:miyabi-obsidian:obsidian_search",
+      "mcp:miyabi-tmux:tmux_list_sessions",
+      "mcp:miyabi-tmux:tmux_send_message",
+      "mcp:miyabi-github:github_list_issues",
+      "mcp:miyabi-github:github_get_issue",
+      "mcp:miyabi-github:github_create_issue"
+    ],
+    "medium": [
+      "mcp:gemini3-adaptive-runtime:generate_dynamic_ui",
+      "mcp:gemini3-adaptive-runtime:iterate_ui",
+      "mcp:gemini3-adaptive-runtime:deep_reasoning",
+      "mcp:gemini3-adaptive-runtime:compare_options",
+      "mcp:gemini3-adaptive-runtime:analyze_decision",
+      "mcp:gemini3-adaptive-runtime:execute_code",
+      "mcp:gemini3-adaptive-runtime:analyze_code",
+      "mcp:gemini3-adaptive-runtime:generate_tests",
+      "mcp:gemini3-adaptive-runtime:solve_algorithm",
+      "mcp:gemini3-uiux-designer:review_design",
+      "mcp:gemini3-uiux-designer:generate_design_system",
+      "mcp:gemini3-uiux-designer:create_wireframe",
+      "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup",
+      "mcp:gemini3-uiux-designer:check_accessibility",
+      "mcp:gemini3-uiux-designer:analyze_usability",
+      "mcp:gemini3-uiux-designer:optimize_ux_writing",
+      "mcp:gemini3-uiux-designer:design_interaction_flow",
+      "mcp:gemini3-uiux-designer:create_animation_specs",
+      "mcp:gemini3-general:generate_code",
+      "mcp:gemini3-general:analyze_code",
+      "mcp:gemini3-general:explain_concept",
+      "mcp:gemini3-general:solve_problem",
+      "mcp:gemini3-general:generate_text",
+      "mcp:gemini3-general:ask_gemini",
+      "mcp:miyabi-rules:miyabi_rules_list",
+      "mcp:miyabi-rules:miyabi_rules_validate",
+      "mcp:miyabi-rules:miyabi_rules_execute",
+      "mcp:miyabi-rules:miyabi_rules_sync",
+      "mcp:miyabi-rules:miyabi_rules_get_context",
+      "mcp:miyabi-file-access:read_file",
+      "mcp:miyabi-file-access:write_file",
+      "mcp:miyabi-file-access:list_files",
+      "mcp:miyabi-file-access:get_file_info",
+      "mcp:miyabi-file-access:delete_file",
+      "mcp:miyabi-file-access:create_directory",
+      "mcp:miyabi-file-access:copy_file",
+      "mcp:miyabi-file-access:move_file",
+      "mcp:miyabi-file-access:search_files",
+      "mcp:miyabi-log-aggregator:log_sources",
+      "mcp:miyabi-log-aggregator:log_get_recent",
+      "mcp:miyabi-log-aggregator:log_search",
+      "mcp:miyabi-log-aggregator:log_get_errors",
+      "mcp:miyabi-log-aggregator:log_get_warnings",
+      "mcp:miyabi-log-aggregator:log_tail",
+      "mcp:miyabi-resource-monitor:resource_cpu",
+      "mcp:miyabi-resource-monitor:resource_memory",
+      "mcp:miyabi-resource-monitor:resource_disk",
+      "mcp:miyabi-resource-monitor:resource_load",
+      "mcp:miyabi-resource-monitor:resource_overview",
+      "mcp:miyabi-resource-monitor:resource_processes",
+      "mcp:miyabi-resource-monitor:resource_uptime",
+      "mcp:miyabi-resource-monitor:resource_network_stats",
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents",
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature",
+      "rust_crate:miyabi-agent-review:a2a.review.review_code",
+      "rust_crate:miyabi-agent-review:a2a.review.analyze_security",
+      "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue",
+      "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues",
+      "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request",
+      "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge",
+      "subagent:task-subagent:CoordinatorAgent",
+      "subagent:task-subagent:CodeGenAgent",
+      "subagent:task-subagent:ReviewAgent",
+      "subagent:task-subagent:IssueAgent",
+      "subagent:task-subagent:PRAgent",
+      "subagent:task-subagent:DeploymentAgent",
+      "subagent:task-subagent:RefresherAgent",
+      "subagent:task-subagent:AWSAgent",
+      "subagent:task-subagent:ImageGenAgent",
+      "subagent:task-subagent:YouTubeAgent",
+      "subagent:task-subagent:NoteAgent"
+    ]
+  },
+  "byServer": {
+    "miyabi-obsidian": [
+      "mcp:miyabi-obsidian:obsidian_list_documents",
+      "mcp:miyabi-obsidian:obsidian_read_document",
+      "mcp:miyabi-obsidian:obsidian_create_document",
+      "mcp:miyabi-obsidian:obsidian_update_document",
+      "mcp:miyabi-obsidian:obsidian_search",
+      "mcp:miyabi-obsidian:obsidian_get_tags",
+      "mcp:miyabi-obsidian:obsidian_get_categories",
+      "mcp:miyabi-obsidian:obsidian_get_directory_tree",
+      "mcp:miyabi-obsidian:obsidian_get_backlinks"
+    ],
+    "gemini3-adaptive-runtime": [
+      "mcp:gemini3-adaptive-runtime:generate_dynamic_ui",
+      "mcp:gemini3-adaptive-runtime:iterate_ui",
+      "mcp:gemini3-adaptive-runtime:deep_reasoning",
+      "mcp:gemini3-adaptive-runtime:compare_options",
+      "mcp:gemini3-adaptive-runtime:analyze_decision",
+      "mcp:gemini3-adaptive-runtime:execute_code",
+      "mcp:gemini3-adaptive-runtime:analyze_code",
+      "mcp:gemini3-adaptive-runtime:generate_tests",
+      "mcp:gemini3-adaptive-runtime:solve_algorithm"
+    ],
+    "gemini3-uiux-designer": [
+      "mcp:gemini3-uiux-designer:review_design",
+      "mcp:gemini3-uiux-designer:generate_design_system",
+      "mcp:gemini3-uiux-designer:create_wireframe",
+      "mcp:gemini3-uiux-designer:generate_high_fidelity_mockup",
+      "mcp:gemini3-uiux-designer:check_accessibility",
+      "mcp:gemini3-uiux-designer:analyze_usability",
+      "mcp:gemini3-uiux-designer:optimize_ux_writing",
+      "mcp:gemini3-uiux-designer:design_interaction_flow",
+      "mcp:gemini3-uiux-designer:create_animation_specs"
+    ],
+    "gemini3-general": [
+      "mcp:gemini3-general:generate_code",
+      "mcp:gemini3-general:analyze_code",
+      "mcp:gemini3-general:explain_concept",
+      "mcp:gemini3-general:solve_problem",
+      "mcp:gemini3-general:generate_text",
+      "mcp:gemini3-general:ask_gemini"
+    ],
+    "miyabi-tmux": [
+      "mcp:miyabi-tmux:tmux_list_sessions",
+      "mcp:miyabi-tmux:tmux_list_panes",
+      "mcp:miyabi-tmux:tmux_send_message",
+      "mcp:miyabi-tmux:tmux_join_commhub",
+      "mcp:miyabi-tmux:tmux_get_commhub_status",
+      "mcp:miyabi-tmux:tmux_broadcast",
+      "mcp:miyabi-tmux:tmux_pane_capture",
+      "mcp:miyabi-tmux:tmux_pane_search",
+      "mcp:miyabi-tmux:tmux_pane_tail",
+      "mcp:miyabi-tmux:tmux_pane_is_busy",
+      "mcp:miyabi-tmux:tmux_pane_current_command"
+    ],
+    "miyabi-rules": [
+      "mcp:miyabi-rules:miyabi_rules_list",
+      "mcp:miyabi-rules:miyabi_rules_validate",
+      "mcp:miyabi-rules:miyabi_rules_execute",
+      "mcp:miyabi-rules:miyabi_rules_sync",
+      "mcp:miyabi-rules:miyabi_rules_get_context"
+    ],
+    "miyabi-github": [
+      "mcp:miyabi-github:github_list_issues",
+      "mcp:miyabi-github:github_get_issue",
+      "mcp:miyabi-github:github_create_issue",
+      "mcp:miyabi-github:github_update_issue",
+      "mcp:miyabi-github:github_add_comment",
+      "mcp:miyabi-github:github_list_prs",
+      "mcp:miyabi-github:github_get_pr",
+      "mcp:miyabi-github:github_create_pr",
+      "mcp:miyabi-github:github_merge_pr",
+      "mcp:miyabi-github:github_list_labels",
+      "mcp:miyabi-github:github_add_labels",
+      "mcp:miyabi-github:github_list_milestones"
+    ],
+    "miyabi-file-access": [
+      "mcp:miyabi-file-access:read_file",
+      "mcp:miyabi-file-access:write_file",
+      "mcp:miyabi-file-access:list_files",
+      "mcp:miyabi-file-access:get_file_info",
+      "mcp:miyabi-file-access:delete_file",
+      "mcp:miyabi-file-access:create_directory",
+      "mcp:miyabi-file-access:copy_file",
+      "mcp:miyabi-file-access:move_file",
+      "mcp:miyabi-file-access:search_files"
+    ],
+    "miyabi-log-aggregator": [
+      "mcp:miyabi-log-aggregator:log_sources",
+      "mcp:miyabi-log-aggregator:log_get_recent",
+      "mcp:miyabi-log-aggregator:log_search",
+      "mcp:miyabi-log-aggregator:log_get_errors",
+      "mcp:miyabi-log-aggregator:log_get_warnings",
+      "mcp:miyabi-log-aggregator:log_tail"
+    ],
+    "miyabi-resource-monitor": [
+      "mcp:miyabi-resource-monitor:resource_cpu",
+      "mcp:miyabi-resource-monitor:resource_memory",
+      "mcp:miyabi-resource-monitor:resource_disk",
+      "mcp:miyabi-resource-monitor:resource_load",
+      "mcp:miyabi-resource-monitor:resource_overview",
+      "mcp:miyabi-resource-monitor:resource_processes",
+      "mcp:miyabi-resource-monitor:resource_uptime",
+      "mcp:miyabi-resource-monitor:resource_network_stats"
+    ],
+    "miyabi-agent-coordinator": [
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.orchestrate_agents",
+      "rust_crate:miyabi-agent-coordinator:a2a.coordinator.execute_dag"
+    ],
+    "miyabi-agent-codegen": [
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.generate_code",
+      "rust_crate:miyabi-agent-codegen:a2a.codegen.implement_feature"
+    ],
+    "miyabi-agent-review": [
+      "rust_crate:miyabi-agent-review:a2a.review.review_code",
+      "rust_crate:miyabi-agent-review:a2a.review.analyze_security"
+    ],
+    "miyabi-agent-issue": [
+      "rust_crate:miyabi-agent-issue:a2a.issue.analyze_issue",
+      "rust_crate:miyabi-agent-issue:a2a.issue.triage_issues"
+    ],
+    "miyabi-agent-pr": [
+      "rust_crate:miyabi-agent-pr:a2a.pr.create_pull_request",
+      "rust_crate:miyabi-agent-pr:a2a.pr.auto_merge"
+    ],
+    "task-subagent": [
+      "subagent:task-subagent:CoordinatorAgent",
+      "subagent:task-subagent:CodeGenAgent",
+      "subagent:task-subagent:ReviewAgent",
+      "subagent:task-subagent:IssueAgent",
+      "subagent:task-subagent:PRAgent",
+      "subagent:task-subagent:DeploymentAgent",
+      "subagent:task-subagent:RefresherAgent",
+      "subagent:task-subagent:AWSAgent",
+      "subagent:task-subagent:ImageGenAgent",
+      "subagent:task-subagent:YouTubeAgent",
+      "subagent:task-subagent:NoteAgent"
+    ]
+  }
+}

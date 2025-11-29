@@ -1,0 +1,188 @@
+{
+  "categories": {
+    "development": {
+      "displayName": "Development",
+      "description": "Software development tools",
+      "subcategories": {
+        "git": {
+          "patterns": ["git_*", "branch_*", "commit_*", "diff_*", "merge_*"],
+          "keywords": ["git", "version control", "branch", "commit", "repository"]
+        },
+        "github": {
+          "patterns": ["github_*", "issue_*", "pr_*", "pull_*"],
+          "keywords": ["github", "issue", "pull request", "pr", "review"]
+        },
+        "code": {
+          "patterns": ["code_*", "generate_*", "refactor_*", "analyze_*"],
+          "keywords": ["code", "generate", "refactor", "analyze", "lint"]
+        },
+        "test": {
+          "patterns": ["test_*", "assert_*", "verify_*", "check_*"],
+          "keywords": ["test", "unit test", "integration", "verify"]
+        }
+      }
+    },
+    "monitoring": {
+      "displayName": "System Monitoring",
+      "description": "System and resource monitoring tools",
+      "subcategories": {
+        "resource": {
+          "patterns": ["resource_*", "cpu_*", "memory_*", "disk_*"],
+          "keywords": ["cpu", "memory", "disk", "resource", "usage"]
+        },
+        "process": {
+          "patterns": ["process_*", "pid_*", "kill_*"],
+          "keywords": ["process", "pid", "running", "kill", "terminate"]
+        },
+        "network": {
+          "patterns": ["network_*", "port_*", "connection_*", "ping_*"],
+          "keywords": ["network", "port", "connection", "ping", "latency"]
+        },
+        "logs": {
+          "patterns": ["log_*", "tail_*", "search_log_*"],
+          "keywords": ["log", "tail", "error", "warning", "debug"]
+        }
+      }
+    },
+    "knowledge": {
+      "displayName": "Knowledge Management",
+      "description": "Documentation and knowledge base tools",
+      "subcategories": {
+        "obsidian": {
+          "patterns": ["obsidian_*", "note_*", "vault_*"],
+          "keywords": ["obsidian", "note", "vault", "markdown", "wiki"]
+        },
+        "search": {
+          "patterns": ["search_*", "find_*", "query_*"],
+          "keywords": ["search", "find", "query", "lookup"]
+        },
+        "docs": {
+          "patterns": ["doc_*", "readme_*", "documentation_*"],
+          "keywords": ["documentation", "readme", "docs", "manual"]
+        }
+      }
+    },
+    "ai_design": {
+      "displayName": "AI & Design",
+      "description": "AI-powered design and generation tools",
+      "subcategories": {
+        "gemini": {
+          "patterns": ["gemini_*", "generate_ui_*", "deep_reasoning_*"],
+          "keywords": ["gemini", "ai", "generate", "reasoning"]
+        },
+        "uiux": {
+          "patterns": ["review_design_*", "wireframe_*", "accessibility_*"],
+          "keywords": ["ui", "ux", "design", "wireframe", "accessibility"]
+        },
+        "image": {
+          "patterns": ["image_*", "generate_image_*"],
+          "keywords": ["image", "generate", "visual", "picture"]
+        }
+      }
+    },
+    "business": {
+      "displayName": "Business Tools",
+      "description": "Marketing, sales, and business analytics",
+      "subcategories": {
+        "marketing": {
+          "patterns": ["marketing_*", "campaign_*", "content_*"],
+          "keywords": ["marketing", "campaign", "content", "promotion"]
+        },
+        "sales": {
+          "patterns": ["sales_*", "crm_*", "lead_*"],
+          "keywords": ["sales", "crm", "lead", "customer"]
+        },
+        "analytics": {
+          "patterns": ["analytics_*", "metrics_*", "kpi_*"],
+          "keywords": ["analytics", "metrics", "kpi", "data", "report"]
+        }
+      }
+    },
+    "communication": {
+      "displayName": "Communication",
+      "description": "Messaging and session management",
+      "subcategories": {
+        "lark": {
+          "patterns": ["lark_*", "feishu_*", "message_*"],
+          "keywords": ["lark", "feishu", "message", "chat", "document"]
+        },
+        "tmux": {
+          "patterns": ["tmux_*", "session_*", "pane_*", "window_*"],
+          "keywords": ["tmux", "session", "pane", "terminal", "window"]
+        }
+      }
+    },
+    "rust_agents": {
+      "displayName": "Rust Agents",
+      "description": "Miyabi Rust-based agent tools",
+      "subcategories": {
+        "coordinator": {
+          "patterns": ["orchestrate_*", "coordinate_*", "dag_*"],
+          "keywords": ["orchestrate", "coordinate", "dag", "parallel"]
+        },
+        "codegen": {
+          "patterns": ["generate_code_*", "implement_*"],
+          "keywords": ["codegen", "generate", "implement", "code"]
+        },
+        "review": {
+          "patterns": ["review_code_*", "analyze_code_*"],
+          "keywords": ["review", "analyze", "quality", "lint"]
+        },
+        "issue": {
+          "patterns": ["analyze_issue_*", "label_*", "triage_*"],
+          "keywords": ["issue", "label", "triage", "analyze"]
+        },
+        "pr": {
+          "patterns": ["create_pr_*", "merge_pr_*"],
+          "keywords": ["pr", "pull request", "merge", "review"]
+        }
+      }
+    },
+    "file_operations": {
+      "displayName": "File Operations",
+      "description": "File and directory management",
+      "subcategories": {
+        "read": {
+          "patterns": ["read_*", "get_*", "list_*"],
+          "keywords": ["read", "get", "list", "view", "show"]
+        },
+        "write": {
+          "patterns": ["write_*", "create_*", "save_*"],
+          "keywords": ["write", "create", "save", "new"]
+        },
+        "watch": {
+          "patterns": ["watch_*", "monitor_*", "changes_*"],
+          "keywords": ["watch", "monitor", "changes", "modified"]
+        }
+      }
+    }
+  },
+  "alwaysLoadedTools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Task",
+    "WebFetch",
+    "WebSearch",
+    "github_list_issues",
+    "github_create_issue",
+    "github_get_issue",
+    "tmux_list_sessions",
+    "tmux_send_message",
+    "obsidian_search",
+    "obsidian_read_document"
+  ],
+  "highPriorityServers": [
+    "miyabi-github",
+    "miyabi-tmux",
+    "miyabi-obsidian"
+  ],
+  "lowPriorityServers": [
+    "miyabi-commercial-agents",
+    "gemini3-image-gen",
+    "lark-wiki-agents"
+  ]
+}
