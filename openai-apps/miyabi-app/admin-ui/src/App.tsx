@@ -10,11 +10,24 @@ import {
   LogOut,
   Settings,
   BarChart3,
-  Shield
+  Shield,
+  FolderGit2,
+  GitBranch,
+  Eye,
+  
+  ExternalLink
 } from 'lucide-react'
 import './App.css'
 
 // Types
+interface Project {
+  id: number
+  project_name: string
+  github_repo: string | null
+  project_root: string
+  created_at: string
+}
+
 interface User {
   user_id: string
   github_id?: string
@@ -24,6 +37,10 @@ interface User {
   status: string | null
   created_at: string
   last_active: string | null
+  project_count?: number
+  projects?: Project[]
+  api_calls?: number
+  tokens_used?: number
 }
 
 interface Stats {
@@ -50,9 +67,9 @@ interface AdminState {
   stats: Stats | null
   loading: boolean
   error: string | null
+  selectedUser: User | null
 }
 
-// API is on the same domain (served via /admin-ui/, API at root)
 const API_BASE = ''
 
 function App() {
@@ -63,6 +80,7 @@ function App() {
     stats: null,
     loading: false,
     error: null,
+    selectedUser: null,
   })
 
   const [tokenInput, setTokenInput] = useState('')
@@ -105,9 +123,20 @@ function App() {
     }
   }, [fetchWithAuth])
 
+  const loadUserDetails = async (userId: string) => {
+    try {
+      const userData = await fetchWithAuth(`/admin/user/${userId}`)
+      setState(prev => ({ ...prev, selectedUser: { ...userData.user, projects: userData.projects } }))
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: err instanceof Error ? err.message : 'Failed to load user details',
+      }))
+    }
+  }
+
   const handleLogin = async () => {
     if (!tokenInput.trim()) return
-
     localStorage.setItem('admin_token', tokenInput)
     setState(prev => ({ ...prev, token: tokenInput, isAuthenticated: true }))
   }
@@ -121,6 +150,7 @@ function App() {
       stats: null,
       loading: false,
       error: null,
+      selectedUser: null,
     })
   }
 
@@ -203,24 +233,15 @@ function App() {
           <h2>Miyabi Admin</h2>
         </div>
         <ul className="nav-links">
-          <li
-            className={selectedTab === 'dashboard' ? 'active' : ''}
-            onClick={() => setSelectedTab('dashboard')}
-          >
+          <li className={selectedTab === 'dashboard' ? 'active' : ''} onClick={() => setSelectedTab('dashboard')}>
             <BarChart3 size={20} />
             <span>Dashboard</span>
           </li>
-          <li
-            className={selectedTab === 'users' ? 'active' : ''}
-            onClick={() => setSelectedTab('users')}
-          >
+          <li className={selectedTab === 'users' ? 'active' : ''} onClick={() => setSelectedTab('users')}>
             <Users size={20} />
             <span>Users</span>
           </li>
-          <li
-            className={selectedTab === 'settings' ? 'active' : ''}
-            onClick={() => setSelectedTab('settings')}
-          >
+          <li className={selectedTab === 'settings' ? 'active' : ''} onClick={() => setSelectedTab('settings')}>
             <Settings size={20} />
             <span>Settings</span>
           </li>
@@ -257,42 +278,31 @@ function App() {
           <div className="dashboard">
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="stat-icon users">
-                  <Users size={24} />
-                </div>
+                <div className="stat-icon users"><Users size={24} /></div>
                 <div className="stat-content">
                   <h3>Total Users</h3>
                   <p className="stat-value">{state.stats.total_users}</p>
                   <span className="stat-detail">{state.stats.active_subscriptions || 0} active subscriptions</span>
                 </div>
               </div>
-
               <div className="stat-card">
-                <div className="stat-icon active">
-                  <Activity size={24} />
-                </div>
+                <div className="stat-icon active"><Activity size={24} /></div>
                 <div className="stat-content">
                   <h3>API Calls</h3>
                   <p className="stat-value">{(state.stats.total_api_calls || 0).toLocaleString()}</p>
                   <span className="stat-detail">Total API calls</span>
                 </div>
               </div>
-
               <div className="stat-card">
-                <div className="stat-icon projects">
-                  <Server size={24} />
-                </div>
+                <div className="stat-icon projects"><Server size={24} /></div>
                 <div className="stat-content">
                   <h3>Sandboxes</h3>
                   <p className="stat-value">{state.stats.active_sandboxes}</p>
                   <span className="stat-detail">Active sandboxes</span>
                 </div>
               </div>
-
               <div className="stat-card">
-                <div className="stat-icon revenue">
-                  <DollarSign size={24} />
-                </div>
+                <div className="stat-icon revenue"><DollarSign size={24} /></div>
                 <div className="stat-content">
                   <h3>Tokens Used</h3>
                   <p className="stat-value">{(state.stats.total_tokens_used || 0).toLocaleString()}</p>
@@ -300,38 +310,63 @@ function App() {
                 </div>
               </div>
             </div>
-
-            {state.stats.plan_breakdown && Object.keys(state.stats.plan_breakdown).length > 0 && (
-              <div className="charts-section">
-                <div className="chart-card">
-                  <h3>Plan Distribution</h3>
-                  <div className="plan-bars">
-                    {Object.entries(state.stats.plan_breakdown).map(([plan, count]) => (
-                      <div key={plan} className="plan-bar">
-                        <span className="plan-name">{plan}</span>
-                        <div className="bar-container">
-                          <div
-                            className={`bar ${plan}`}
-                            style={{ width: `${(count / state.stats!.total_users) * 100}%` }}
-                          />
-                        </div>
-                        <span className="plan-count">{count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
         {selectedTab === 'users' && (
           <div className="users-section">
+            {state.selectedUser && (
+              <div className="user-detail-modal">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h2>User Details</h2>
+                    <button onClick={() => setState(prev => ({ ...prev, selectedUser: null }))}>×</button>
+                  </div>
+                  <div className="modal-body">
+                    <div className="detail-row">
+                      <strong>User ID:</strong> <code>{state.selectedUser.user_id}</code>
+                    </div>
+                    <div className="detail-row">
+                      <strong>GitHub:</strong> {state.selectedUser.github_username || '-'}
+                    </div>
+                    <div className="detail-row">
+                      <strong>Plan:</strong> <span className={`plan-badge ${state.selectedUser.plan || 'free'}`}>{state.selectedUser.plan || 'free'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Status:</strong> <span className={`status-badge ${state.selectedUser.status || 'active'}`}>{state.selectedUser.status || 'active'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Created:</strong> {new Date(state.selectedUser.created_at).toLocaleString()}
+                    </div>
+                    <h3>Projects ({state.selectedUser.projects?.length || 0})</h3>
+                    <div className="projects-list">
+                      {state.selectedUser.projects?.map((proj) => (
+                        <div key={proj.id} className="project-item">
+                          <FolderGit2 size={16} />
+                          <span className="project-name">{proj.project_name}</span>
+                          {proj.github_repo && (
+                            <a href={`https://github.com/${proj.github_repo}`} target="_blank" rel="noreferrer" className="github-link">
+                              <GitBranch size={14} /> {proj.github_repo}
+                              <ExternalLink size={12} />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                      {(!state.selectedUser.projects || state.selectedUser.projects.length === 0) && (
+                        <p className="no-projects">No projects yet</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <table className="users-table">
               <thead>
                 <tr>
                   <th>User</th>
-                  <th>Email</th>
+                  <th>GitHub</th>
+                  <th>Projects</th>
                   <th>Plan</th>
                   <th>Status</th>
                   <th>Created</th>
@@ -345,21 +380,29 @@ function App() {
                     <td>
                       <div className="user-info">
                         {user.github_username ? (
-                          <img
-                            src={`https://github.com/${user.github_username}.png`}
-                            alt={user.github_username}
-                            className="user-avatar"
-                          />
+                          <img src={`https://github.com/${user.github_username}.png`} alt={user.github_username} className="user-avatar" />
                         ) : (
                           <div className="user-avatar placeholder">?</div>
                         )}
                         <div>
-                          <span className="username">{user.github_username || 'Unknown'}</span>
-                          <span className="user-id">{user.user_id.slice(0, 16)}...</span>
+                          <span className="user-id-short">{user.user_id.slice(0, 20)}...</span>
                         </div>
                       </div>
                     </td>
-                    <td>{user.email || '-'}</td>
+                    <td>
+                      {user.github_username ? (
+                        <a href={`https://github.com/${user.github_username}`} target="_blank" rel="noreferrer" className="github-username">
+                          @{user.github_username} <ExternalLink size={12} />
+                        </a>
+                      ) : (
+                        <span className="no-github">-</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className="project-count" onClick={() => loadUserDetails(user.user_id)} style={{cursor: 'pointer'}}>
+                        <FolderGit2 size={14} /> {user.project_count ?? '?'}
+                      </span>
+                    </td>
                     <td>
                       <select
                         value={user.plan || 'free'}
@@ -378,21 +421,16 @@ function App() {
                     </td>
                     <td>{new Date(user.created_at).toLocaleDateString()}</td>
                     <td>{user.last_active ? new Date(user.last_active).toLocaleDateString() : '-'}</td>
-                    <td>
+                    <td className="actions-cell">
+                      <button onClick={() => loadUserDetails(user.user_id)} className="btn-action view" title="View Details">
+                        <Eye size={16} />
+                      </button>
                       {user.status !== 'suspended' ? (
-                        <button
-                          onClick={() => handleSuspendUser(user.user_id)}
-                          className="btn-action suspend"
-                          title="Suspend User"
-                        >
+                        <button onClick={() => handleSuspendUser(user.user_id)} className="btn-action suspend" title="Suspend User">
                           <Ban size={16} />
                         </button>
                       ) : (
-                        <button
-                          onClick={() => handleReactivateUser(user.user_id)}
-                          className="btn-action reactivate"
-                          title="Reactivate User"
-                        >
+                        <button onClick={() => handleReactivateUser(user.user_id)} className="btn-action reactivate" title="Reactivate User">
                           <CheckCircle size={16} />
                         </button>
                       )}

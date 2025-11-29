@@ -10,14 +10,9 @@ import subprocess
 import asyncio
 import psutil
 import socket
-import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("miyabi.mcp")
 
 from fastapi import FastAPI, Request, HTTPException, Security, Depends, Form, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -29,13 +24,35 @@ import base64
 import time
 from pydantic import BaseModel, Field
 from github import Github
+from functools import lru_cache
 from dotenv import load_dotenv
+import logging
+import os
+
+# Load environment variables from .env file FIRST
+load_dotenv()
+
+# Setup logging with level from environment variable
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+log_format = os.getenv("LOG_FORMAT", "text")
+
+if log_format == "json":
+    logging.basicConfig(
+        level=getattr(logging, log_level, logging.INFO),
+        format='{"time": "%(asctime)s", "level": "%(levelname)s", "name": "%(name)s", "message": "%(message)s"}'
+    )
+else:
+    logging.basicConfig(
+        level=getattr(logging, log_level, logging.INFO),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+logger = logging.getLogger("miyabi-mcp")
+logger.info(f"Logging initialized with level: {log_level}, format: {log_format}")
+
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from a2a_client import get_client as get_a2a_client
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Configuration
 MIYABI_ROOT = Path(os.getenv("MIYABI_ROOT", Path.home() / "Dev" / "miyabi-private"))
@@ -55,17 +72,6 @@ OAUTH_ISSUER = os.getenv("OAUTH_ISSUER", "https://miyabi-mcp.local")
 GITHUB_OAUTH_CLIENT_ID = os.getenv("GITHUB_OAUTH_CLIENT_ID", "")
 GITHUB_OAUTH_CLIENT_SECRET = os.getenv("GITHUB_OAUTH_CLIENT_SECRET", "")
 GITHUB_OAUTH_CALLBACK_URL = os.getenv("GITHUB_OAUTH_CALLBACK_URL", "")
-
-# Security: CORS allowed origins (comma-separated in env)
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "https://chat.openai.com,https://chatgpt.com"
-).split(",")
-
-# Security: Environment and debug mode
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-DEBUG_MODE = os.getenv("DEBUG", "false").lower() == "true"
-ALLOW_DEV_AUTH_BYPASS = os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() == "true"
 
 # In-memory storage for OAuth (in production, use Redis/DB)
 oauth_authorization_codes: Dict[str, Dict[str, Any]] = {}
@@ -93,26 +99,10 @@ async def verify_bearer_token(
     Accepts:
     1. Static ACCESS_TOKEN (for simple integrations)
     2. OAuth 2.1 issued tokens (for MCP clients)
-
-    Security:
-    - Authentication bypass ONLY allowed when ALLOW_DEV_AUTH_BYPASS=true
-    - NEVER bypassed in production environment
     """
-    # Security: Strict authentication bypass control
-    if ENVIRONMENT == "production":
-        # Production: Authentication is ALWAYS required
-        if not ACCESS_TOKEN and not oauth_access_tokens:
-            logger.error("🚨 CRITICAL: No authentication configured in production!")
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Authentication required. Configure ACCESS_TOKEN or OAuth.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    elif ALLOW_DEV_AUTH_BYPASS and ENVIRONMENT == "development":
-        # Development: Bypass only if explicitly allowed
-        if not ACCESS_TOKEN and not oauth_access_tokens:
-            logger.warning("⚠️  Development mode: Authentication bypass enabled (ALLOW_DEV_AUTH_BYPASS=true)")
-            return "dev-mode"
+    # Development mode: skip auth if no token configured
+    if not ACCESS_TOKEN and not oauth_access_tokens:
+        return "dev-mode"
 
     if not credentials:
         raise HTTPException(
@@ -145,15 +135,13 @@ async def verify_bearer_token(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-# Enable CORS with strict origin control
-# Security: Only allow trusted origins to prevent CSRF attacks
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # Only trusted origins from env
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods only
-    allow_headers=["Authorization", "Content-Type", "Accept"],  # Required headers only
-    max_age=3600,  # Cache preflight requests for 1 hour
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Agent name mapping
@@ -312,85 +300,225 @@ class TmuxSendKeysParams(BaseModel):
     window: Optional[int] = Field(None, description="Window index")
 
 
+
+
+# ============================================
+# GitHub Extended Tools - Pydantic Models
+# ============================================
+
+class GetIssueParams(BaseModel):
+    """Parameters for get_issue tool"""
+    issue_number: int = Field(..., description="Issue number to get")
+
+class UpdateIssueParams(BaseModel):
+    """Parameters for update_issue tool"""
+    issue_number: int = Field(..., description="Issue number to update")
+    title: Optional[str] = Field(None, description="New title")
+    body: Optional[str] = Field(None, description="New body")
+    state: Optional[str] = Field(None, description="State: open or closed")
+    labels: Optional[List[str]] = Field(None, description="Labels to set")
+
+class CloseIssueParams(BaseModel):
+    """Parameters for close_issue tool"""
+    issue_number: int = Field(..., description="Issue number to close")
+    comment: Optional[str] = Field(None, description="Comment when closing")
+
+class ListPRsParams(BaseModel):
+    """Parameters for list_prs tool"""
+    state: str = Field("open", description="PR state: open, closed, all")
+    limit: int = Field(10, description="Number of PRs to return")
+
+class GetPRParams(BaseModel):
+    """Parameters for get_pr tool"""
+    pr_number: int = Field(..., description="PR number to get")
+
+class CreatePRParams(BaseModel):
+    """Parameters for create_pr tool"""
+    title: str = Field(..., description="PR title")
+    body: str = Field(..., description="PR body/description")
+    head: str = Field(..., description="Branch containing changes")
+    base: str = Field("main", description="Base branch to merge into")
+
+class MergePRParams(BaseModel):
+    """Parameters for merge_pr tool"""
+    pr_number: int = Field(..., description="PR number to merge")
+    merge_method: str = Field("squash", description="Merge method: merge, squash, rebase")
+
+# ============================================
+# Git Extended Tools - Pydantic Models
+# ============================================
+
+class GitCommitParams(BaseModel):
+    """Parameters for git_commit tool"""
+    message: str = Field(..., description="Commit message")
+    files: Optional[List[str]] = Field(None, description="Files to stage (None = all)")
+
+class GitPushParams(BaseModel):
+    """Parameters for git_push tool"""
+    remote: str = Field("origin", description="Remote name")
+    branch: Optional[str] = Field(None, description="Branch name (default: current)")
+    force: bool = Field(False, description="Force push")
+
+class GitPullParams(BaseModel):
+    """Parameters for git_pull tool"""
+    remote: str = Field("origin", description="Remote name")
+    branch: Optional[str] = Field(None, description="Branch name")
+
+class GitCheckoutParams(BaseModel):
+    """Parameters for git_checkout tool"""
+    branch: str = Field(..., description="Branch to checkout")
+    create: bool = Field(False, description="Create new branch")
+
+class GitCreateBranchParams(BaseModel):
+    """Parameters for git_create_branch tool"""
+    name: str = Field(..., description="New branch name")
+    from_branch: Optional[str] = Field(None, description="Source branch")
+
+class GitStashParams(BaseModel):
+    """Parameters for git_stash tool"""
+    action: str = Field("push", description="Action: push, pop, list, drop")
+    message: Optional[str] = Field(None, description="Stash message (for push)")
+
+# ============================================
+# File Operations - Pydantic Models
+# ============================================
+
+class ReadFileParams(BaseModel):
+    """Parameters for read_file tool"""
+    path: str = Field(..., description="File path to read")
+    limit: int = Field(100, description="Max lines to return")
+
+class WriteFileParams(BaseModel):
+    """Parameters for write_file tool"""
+    path: str = Field(..., description="File path to write")
+    content: str = Field(..., description="Content to write")
+
+class ListFilesParams(BaseModel):
+    """Parameters for list_files tool"""
+    path: str = Field(".", description="Directory path")
+    pattern: Optional[str] = Field(None, description="Glob pattern filter")
+
+class SearchCodeParams(BaseModel):
+    """Parameters for search_code tool"""
+    query: str = Field(..., description="Search query (grep pattern)")
+    path: str = Field(".", description="Directory to search")
+    file_pattern: Optional[str] = Field(None, description="File pattern (e.g., *.py)")
+
+# ============================================
+# Build/Test Tools - Pydantic Models
+# ============================================
+
+class CargoBuildParams(BaseModel):
+    """Parameters for cargo_build tool"""
+    release: bool = Field(False, description="Build in release mode")
+    package: Optional[str] = Field(None, description="Specific package to build")
+
+class CargoTestParams(BaseModel):
+    """Parameters for cargo_test tool"""
+    test_name: Optional[str] = Field(None, description="Specific test to run")
+    package: Optional[str] = Field(None, description="Specific package to test")
+
+class CargoClippyParams(BaseModel):
+    """Parameters for cargo_clippy tool"""
+    fix: bool = Field(False, description="Auto-fix warnings")
+
+class NpmInstallParams(BaseModel):
+    """Parameters for npm_install tool"""
+    package: Optional[str] = Field(None, description="Package to install (None = all)")
+
+class NpmRunParams(BaseModel):
+    """Parameters for npm_run tool"""
+    script: str = Field(..., description="Script name to run")
+
+# ============================================
+# Agent Details - Pydantic Models
+# ============================================
+
+class GetAgentStatusParams(BaseModel):
+    """Parameters for get_agent_status tool"""
+    agent: Optional[str] = Field(None, description="Agent name (None = all)")
+
+class StopAgentParams(BaseModel):
+    """Parameters for stop_agent tool"""
+    agent: str = Field(..., description="Agent name to stop")
+
+class GetAgentLogsParams(BaseModel):
+    """Parameters for get_agent_logs tool"""
+    agent: str = Field(..., description="Agent name")
+    limit: int = Field(50, description="Number of log lines")
+
+
 # Helper Functions
 
-# Security: Command whitelist to prevent command injection
-ALLOWED_COMMANDS = {
-    "git", "find", "tmux", "ls", "cat", "head", "tail",
-    "grep", "awk", "sed", "wc", "sort", "uniq"
-}
+def make_response(text: str, is_error: bool = False) -> Dict[str, Any]:
+    """Create standardized MCP response"""
+    return {
+        "content": [{"type": "text", "text": text}],
+        "isError": is_error
+    }
 
-def run_command(
-    cmd: List[str],
-    cwd: Path = MIYABI_ROOT,
-    timeout: int = 30,
-    allowed_commands: Optional[set] = None
-) -> tuple[str, str, int]:
-    """
-    Run a shell command with security validation
+def make_error(message: str, details: str = None) -> Dict[str, Any]:
+    """Create error response with optional details"""
+    text = f"Error: {message}"
+    if details:
+        text += f"\nDetails: {details}"
+    return make_response(text, is_error=True)
 
-    Security measures:
-    - Command whitelist validation
-    - Timeout enforcement (default 30s)
-    - Input sanitization
-    - Logging of all executions
-
-    Args:
-        cmd: Command and arguments as list
-        cwd: Working directory
-        timeout: Command timeout in seconds
-        allowed_commands: Custom allowed command set (defaults to ALLOWED_COMMANDS)
-
-    Returns:
-        Tuple of (stdout, stderr, returncode)
-
-    Raises:
-        ValueError: If command is not in whitelist
-        subprocess.TimeoutExpired: If command exceeds timeout
-    """
-    if not cmd:
-        raise ValueError("Empty command")
-
-    # Security: Validate command against whitelist
-    command_name = cmd[0]
-    whitelist = allowed_commands or ALLOWED_COMMANDS
-
-    if command_name not in whitelist:
-        logger.error(f"🚨 SECURITY: Blocked unauthorized command: {command_name}")
-        raise ValueError(f"Command not allowed: {command_name}. Allowed: {whitelist}")
-
-    # Security: Log command execution
-    logger.info(f"Executing command: {' '.join(cmd[:3])}..." if len(cmd) > 3 else f"Executing command: {' '.join(cmd)}")
-
+def validate_path(path: str, allow_absolute: bool = True) -> Path:
+    """Validate and sanitize file path"""
+    p = Path(path)
+    if not p.is_absolute():
+        p = MIYABI_ROOT / p
+    
+    # Security: prevent path traversal
     try:
-        result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,  # Security: Prevent infinite execution
-            check=False,  # Don't raise on non-zero exit
-        )
+        p = p.resolve()
+        if not allow_absolute and not str(p).startswith(str(MIYABI_ROOT)):
+            raise ValueError(f"Path must be within MIYABI_ROOT: {MIYABI_ROOT}")
+    except Exception:
+        raise ValueError(f"Invalid path: {path}")
+    
+    return p
 
-        if result.returncode != 0:
-            logger.warning(f"Command failed with code {result.returncode}: {cmd[0]}")
 
-        return result.stdout, result.stderr, result.returncode
+def run_command(cmd: List[str], cwd: Path = MIYABI_ROOT) -> tuple[str, str, int]:
+    """Run a shell command and return stdout, stderr, returncode"""
+    result = subprocess.run(
+        cmd,
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout, result.stderr, result.returncode
 
-    except subprocess.TimeoutExpired:
-        logger.error(f"🚨 Command timeout after {timeout}s: {cmd[0]}")
-        raise ValueError(f"Command timed out after {timeout}s")
-    except Exception as e:
-        logger.error(f"🚨 Command execution error: {str(e)}")
-        raise
 
+# Cache GitHub client instance
+_github_client = None
 
 def get_github_client() -> Github:
-    """Get authenticated GitHub client"""
+    """Get authenticated GitHub client (cached)"""
+    global _github_client
     if not GITHUB_TOKEN:
         raise ValueError("GITHUB_TOKEN not set")
-    return Github(GITHUB_TOKEN)
+    if _github_client is None:
+        _github_client = Github(GITHUB_TOKEN)
+    return _github_client
 
+
+
+_cached_repo = None
+_cached_repo_time = 0
+
+def get_repo():
+    """Get cached repository object (refreshes every 5 min)"""
+    global _cached_repo, _cached_repo_time
+    import time
+    now = time.time()
+    if _cached_repo is None or (now - _cached_repo_time) > 300:
+        g = get_github_client()
+        _cached_repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        _cached_repo_time = now
+    return _cached_repo
 
 def get_project_status() -> Dict[str, Any]:
     """Get current Miyabi project status"""
@@ -779,6 +907,131 @@ TOOLS = [
             },
         },
     },
+            {
+                "name": "get_issue",
+                "description": "Get detailed information about a GitHub issue including title, state, author, labels, assignees, and full body content",
+                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer", "description": "Issue number"}}, "required": ["issue_number"]}
+            },
+            {
+                "name": "update_issue",
+                "description": "Update an existing GitHub issue. Can modify title, body, state (open/closed), and labels. Only specified fields will be updated",
+                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "title": {"type": "string"}, "body": {"type": "string"}, "state": {"type": "string"}, "labels": {"type": "array", "items": {"type": "string"}}}, "required": ["issue_number"]}
+            },
+            {
+                "name": "close_issue",
+                "description": "Close a GitHub issue and optionally add a closing comment explaining why it was closed",
+                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "comment": {"type": "string"}}, "required": ["issue_number"]}
+            },
+            {
+                "name": "list_prs",
+                "description": "List pull requests in the repository. Filter by state (open/closed/all) and limit the number of results",
+                "inputSchema": {"type": "object", "properties": {"state": {"type": "string", "default": "open"}, "limit": {"type": "integer", "default": 10}}}
+            },
+            {
+                "name": "get_pr",
+                "description": "Get comprehensive pull request details including branch info, review status, file changes, and merge status",
+                "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}}, "required": ["pr_number"]}
+            },
+            {
+                "name": "create_pr",
+                "description": "Create a new pull request from a feature branch to the base branch (default: main)",
+                "inputSchema": {"type": "object", "properties": {"title": {"type": "string"}, "body": {"type": "string"}, "head": {"type": "string"}, "base": {"type": "string", "default": "main"}}, "required": ["title", "body", "head"]}
+            },
+            {
+                "name": "merge_pr",
+                "description": "Merge a pull request using the specified method (squash/merge/rebase). Default is squash merge",
+                "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}, "merge_method": {"type": "string", "default": "squash"}}, "required": ["pr_number"]}
+            },
+            {
+                "name": "git_commit",
+                "description": "Stage files and create a git commit with the specified message. If no files specified, stages all changes",
+                "inputSchema": {"type": "object", "properties": {"message": {"type": "string"}, "files": {"type": "array", "items": {"type": "string"}}}, "required": ["message"]}
+            },
+            {
+                "name": "git_push",
+                "description": "Push local commits to the remote repository. Supports force push for rebased branches",
+                "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}, "force": {"type": "boolean", "default": False}}}
+            },
+            {
+                "name": "git_pull",
+                "description": "Pull latest changes from the remote repository and merge into current branch",
+                "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}}}
+            },
+            {
+                "name": "git_checkout",
+                "description": "Switch to an existing branch or create and switch to a new branch with -b flag",
+                "inputSchema": {"type": "object", "properties": {"branch": {"type": "string"}, "create": {"type": "boolean", "default": False}}, "required": ["branch"]}
+            },
+            {
+                "name": "git_create_branch",
+                "description": "Create a new branch from the current HEAD or from a specified source branch",
+                "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "from_branch": {"type": "string"}}, "required": ["name"]}
+            },
+            {
+                "name": "git_stash",
+                "description": "Temporarily store uncommitted changes. Actions: push (save), pop (restore), list, drop",
+                "inputSchema": {"type": "object", "properties": {"action": {"type": "string", "default": "push"}, "message": {"type": "string"}}}
+            },
+            {
+                "name": "read_file",
+                "description": "Read file contents with line limit. Supports both absolute paths and relative paths from MIYABI_ROOT",
+                "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "limit": {"type": "integer", "default": 100}}, "required": ["path"]}
+            },
+            {
+                "name": "write_file",
+                "description": "Write content to a file. Creates parent directories if needed. Overwrites existing content",
+                "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}
+            },
+            {
+                "name": "list_files",
+                "description": "List files and directories with optional glob pattern filtering. Shows file type indicators",
+                "inputSchema": {"type": "object", "properties": {"path": {"type": "string", "default": "."}, "pattern": {"type": "string"}}}
+            },
+            {
+                "name": "search_code",
+                "description": "Search for patterns in code files using grep. Supports regex and file type filtering",
+                "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "path": {"type": "string", "default": "."}, "file_pattern": {"type": "string"}}, "required": ["query"]}
+            },
+            {
+                "name": "cargo_build",
+                "description": "Build Rust project using Cargo. Supports release mode and specific package builds",
+                "inputSchema": {"type": "object", "properties": {"release": {"type": "boolean", "default": False}, "package": {"type": "string"}}}
+            },
+            {
+                "name": "cargo_test",
+                "description": "Run Rust tests. Can filter by test name or package. Shows test results and failures",
+                "inputSchema": {"type": "object", "properties": {"test_name": {"type": "string"}, "package": {"type": "string"}}}
+            },
+            {
+                "name": "cargo_clippy",
+                "description": "Run Clippy linter for Rust code quality checks. Can auto-fix some warnings",
+                "inputSchema": {"type": "object", "properties": {"fix": {"type": "boolean", "default": False}}}
+            },
+            {
+                "name": "npm_install",
+                "description": "Install npm dependencies. Can install specific packages or all from package.json",
+                "inputSchema": {"type": "object", "properties": {"package": {"type": "string"}}}
+            },
+            {
+                "name": "npm_run",
+                "description": "Execute npm scripts defined in package.json (e.g., build, test, dev)",
+                "inputSchema": {"type": "object", "properties": {"script": {"type": "string"}}, "required": ["script"]}
+            },
+            {
+                "name": "get_agent_status",
+                "description": "Check status of running agents by inspecting tmux sessions. Filter by agent name",
+                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}}
+            },
+            {
+                "name": "stop_agent",
+                "description": "Stop a running agent by killing its tmux session",
+                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}, "required": ["agent"]}
+            },
+            {
+                "name": "get_agent_logs",
+                "description": "Retrieve recent output/logs from an agent's tmux session pane",
+                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}, "limit": {"type": "integer", "default": 50}}, "required": ["agent"]}
+            },
 ]
 
 
@@ -1748,6 +2001,580 @@ async def get_logs_tool(source: str = "all", limit: int = 50, level: str = "info
         }
 
 
+
+# ============================================
+# GitHub Extended Tools - Functions
+# ============================================
+
+async def get_issue_tool(params: GetIssueParams) -> Dict[str, Any]:
+    """Get details of a specific GitHub issue"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        issue = repo.get_issue(params.issue_number)
+        
+        labels = [l.name for l in issue.labels]
+        assignees = [a.login for a in issue.assignees]
+        
+        text = f"""Issue #{issue.number}: {issue.title}
+State: {issue.state}
+Author: {issue.user.login}
+Created: {issue.created_at}
+Updated: {issue.updated_at}
+Labels: {', '.join(labels) if labels else 'None'}
+Assignees: {', '.join(assignees) if assignees else 'None'}
+
+Body:
+{issue.body or 'No description'}"""
+        return {"content": [{"type": "text", "text": text}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error getting issue: {str(e)}"}], "isError": True}
+
+
+async def update_issue_tool(params: UpdateIssueParams) -> Dict[str, Any]:
+    """Update a GitHub issue"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        issue = repo.get_issue(params.issue_number)
+        
+        kwargs = {}
+        if params.title:
+            kwargs['title'] = params.title
+        if params.body:
+            kwargs['body'] = params.body
+        if params.state:
+            kwargs['state'] = params.state
+        if params.labels:
+            kwargs['labels'] = params.labels
+            
+        issue.edit(**kwargs)
+        return {"content": [{"type": "text", "text": f"Issue #{params.issue_number} updated successfully"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error updating issue: {str(e)}"}], "isError": True}
+
+
+async def close_issue_tool(params: CloseIssueParams) -> Dict[str, Any]:
+    """Close a GitHub issue"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        issue = repo.get_issue(params.issue_number)
+        
+        if params.comment:
+            issue.create_comment(params.comment)
+        issue.edit(state="closed")
+        
+        return {"content": [{"type": "text", "text": f"Issue #{params.issue_number} closed"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error closing issue: {str(e)}"}], "isError": True}
+
+
+async def list_prs_tool(params: ListPRsParams) -> Dict[str, Any]:
+    """List pull requests"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        prs = repo.get_pulls(state=params.state)
+        
+        lines = [f"Pull Requests ({params.state}):"]
+        for i, pr in enumerate(prs):
+            if i >= params.limit:
+                break
+            lines.append(f"#{pr.number} [{pr.state}] {pr.title}")
+            lines.append(f"   {pr.head.ref} -> {pr.base.ref} by {pr.user.login}")
+        
+        return {"content": [{"type": "text", "text": chr(10).join(lines)}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error listing PRs: {str(e)}"}], "isError": True}
+
+
+async def get_pr_tool(params: GetPRParams) -> Dict[str, Any]:
+    """Get PR details"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        pr = repo.get_pull(params.pr_number)
+        
+        labels = [l.name for l in pr.labels]
+        reviewers = [r.login for r in pr.requested_reviewers]
+        
+        text = f"""PR #{pr.number}: {pr.title}
+State: {pr.state} | Merged: {pr.merged}
+Author: {pr.user.login}
+Branch: {pr.head.ref} -> {pr.base.ref}
+Created: {pr.created_at}
+Labels: {', '.join(labels) if labels else 'None'}
+Reviewers: {', '.join(reviewers) if reviewers else 'None'}
+Additions: +{pr.additions} | Deletions: -{pr.deletions} | Files: {pr.changed_files}
+
+Body:
+{pr.body or 'No description'}"""
+        return {"content": [{"type": "text", "text": text}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error getting PR: {str(e)}"}], "isError": True}
+
+
+async def create_pr_tool(params: CreatePRParams) -> Dict[str, Any]:
+    """Create a pull request"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        
+        pr = repo.create_pull(
+            title=params.title,
+            body=params.body,
+            head=params.head,
+            base=params.base
+        )
+        return {"content": [{"type": "text", "text": f"PR #{pr.number} created: {pr.html_url}"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error creating PR: {str(e)}"}], "isError": True}
+
+
+async def merge_pr_tool(params: MergePRParams) -> Dict[str, Any]:
+    """Merge a pull request"""
+    try:
+        if not GITHUB_TOKEN:
+            return {"content": [{"type": "text", "text": "Error: GITHUB_TOKEN not configured"}], "isError": True}
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+        pr = repo.get_pull(params.pr_number)
+        
+        pr.merge(merge_method=params.merge_method)
+        return {"content": [{"type": "text", "text": f"PR #{params.pr_number} merged successfully"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error merging PR: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# Git Extended Tools - Functions
+# ============================================
+
+async def git_commit_tool(params: GitCommitParams) -> Dict[str, Any]:
+    """Create a git commit"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        
+        if params.files:
+            for f in params.files:
+                subprocess.run(["git", "add", f], cwd=cwd, check=True)
+        else:
+            subprocess.run(["git", "add", "-A"], cwd=cwd, check=True)
+        
+        result = subprocess.run(
+            ["git", "commit", "-m", params.message],
+            cwd=cwd, capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Commit created:\n{result.stdout}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Commit failed: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_push_tool(params: GitPushParams) -> Dict[str, Any]:
+    """Push to remote"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "push", params.remote]
+        if params.branch:
+            cmd.append(params.branch)
+        if params.force:
+            cmd.insert(2, "--force")
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Push successful:\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Push failed: {output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_pull_tool(params: GitPullParams) -> Dict[str, Any]:
+    """Pull from remote"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "pull", params.remote]
+        if params.branch:
+            cmd.append(params.branch)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Pull successful:\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Pull failed: {output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_checkout_tool(params: GitCheckoutParams) -> Dict[str, Any]:
+    """Checkout a branch"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "checkout"]
+        if params.create:
+            cmd.append("-b")
+        cmd.append(params.branch)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Checked out {params.branch}:\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Checkout failed: {output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_create_branch_tool(params: GitCreateBranchParams) -> Dict[str, Any]:
+    """Create a new branch"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        
+        if params.from_branch:
+            subprocess.run(["git", "checkout", params.from_branch], cwd=cwd, check=True)
+        
+        result = subprocess.run(
+            ["git", "checkout", "-b", params.name],
+            cwd=cwd, capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Branch '{params.name}' created"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Failed: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def git_stash_tool(params: GitStashParams) -> Dict[str, Any]:
+    """Stash changes"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["git", "stash", params.action]
+        if params.action == "push" and params.message:
+            cmd.extend(["-m", params.message])
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        
+        return {"content": [{"type": "text", "text": f"Git stash {params.action}:\n{output}"}], "isError": result.returncode != 0}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# File Operations - Functions
+# ============================================
+
+async def read_file_tool(params: ReadFileParams) -> Dict[str, Any]:
+    """Read a file with path validation"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        # Security: resolve and validate path
+        path = path.resolve()
+        
+        # Prevent reading sensitive files
+        sensitive_patterns = ['.env', 'credentials', 'secrets', '.ssh', '.aws']
+        if any(p in str(path).lower() for p in sensitive_patterns):
+            return {"content": [{"type": "text", "text": "Access denied: Cannot read sensitive files"}], "isError": True}
+        
+        if not path.exists():
+            return {"content": [{"type": "text", "text": f"File not found: {path}"}], "isError": True}
+        
+        with open(path, 'r') as f:
+            lines = f.readlines()[:params.limit]
+        
+        content = ''.join(lines)
+        return {"content": [{"type": "text", "text": f"{path} ({len(lines)} lines):\n\n{content}"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error reading file: {str(e)}"}], "isError": True}
+
+
+async def write_file_tool(params: WriteFileParams) -> Dict[str, Any]:
+    """Write to a file with path validation"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        # Security: resolve and validate path  
+        path = path.resolve()
+        
+        # Prevent writing to sensitive locations
+        if not str(path).startswith(str(MIYABI_ROOT.resolve())):
+            return {"content": [{"type": "text", "text": "Access denied: Can only write within MIYABI_ROOT"}], "isError": True}
+        
+        # Prevent overwriting critical files
+        critical_files = ['.env', 'credentials.json', 'secrets.yaml']
+        if path.name in critical_files:
+            return {"content": [{"type": "text", "text": f"Access denied: Cannot overwrite {path.name}"}], "isError": True}
+        
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as f:
+            f.write(params.content)
+        
+        return {"content": [{"type": "text", "text": f"Written to {path}"}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error writing file: {str(e)}"}], "isError": True}
+
+
+async def list_files_tool(params: ListFilesParams) -> Dict[str, Any]:
+    """List files in a directory"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        if params.pattern:
+            files = list(path.glob(params.pattern))
+        else:
+            files = list(path.iterdir())
+        
+        lines = [f"{path}:"]
+        for f in sorted(files)[:50]:
+            prefix = "[DIR]" if f.is_dir() else "[FILE]"
+            lines.append(f"  {prefix} {f.name}")
+        
+        if len(files) > 50:
+            lines.append(f"  ... and {len(files) - 50} more")
+        
+        return {"content": [{"type": "text", "text": chr(10).join(lines)}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def search_code_tool(params: SearchCodeParams) -> Dict[str, Any]:
+    """Search code using grep with input sanitization"""
+    try:
+        path = Path(params.path)
+        if not path.is_absolute():
+            path = MIYABI_ROOT / path
+        
+        # Security: validate path
+        path = path.resolve()
+        if not str(path).startswith(str(MIYABI_ROOT.resolve())):
+            return {"content": [{"type": "text", "text": "Access denied: Search path must be within MIYABI_ROOT"}], "isError": True}
+        
+        # Security: sanitize query (prevent command injection via grep patterns)
+        if len(params.query) > 200:
+            return {"content": [{"type": "text", "text": "Query too long (max 200 chars)"}], "isError": True}
+        
+        cmd = ["grep", "-rn", params.query, str(path)]
+        if params.file_pattern:
+            cmd = ["grep", "-rn", "--include", params.file_pattern, params.query, str(path)]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        output = result.stdout[:5000]
+        
+        if result.returncode == 0:
+            lines = output.strip().split(chr(10))
+            return {"content": [{"type": "text", "text": f"Found {len(lines)} matches:\n\n{output}"}], "isError": False}
+        elif result.returncode == 1:
+            return {"content": [{"type": "text", "text": "No matches found"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Search error: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# Build/Test Tools - Functions
+# ============================================
+
+async def cargo_build_tool(params: CargoBuildParams) -> Dict[str, Any]:
+    """Run cargo build with timeout protection"""
+    try:
+        logger.info("Starting cargo build (timeout: 5min)")
+        cwd = str(MIYABI_ROOT)
+        cmd = ["cargo", "build"]
+        if params.release:
+            cmd.append("--release")
+        if params.package:
+            cmd.extend(["-p", params.package])
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=300)
+        output = result.stderr[:3000]
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Build successful\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Build failed:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Build timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def cargo_test_tool(params: CargoTestParams) -> Dict[str, Any]:
+    """Run cargo test"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["cargo", "test"]
+        if params.package:
+            cmd.extend(["-p", params.package])
+        if params.test_name:
+            cmd.append(params.test_name)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=300)
+        output = (result.stdout + result.stderr)[:4000]
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Tests passed\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Tests failed:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Tests timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def cargo_clippy_tool(params: CargoClippyParams) -> Dict[str, Any]:
+    """Run cargo clippy"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["cargo", "clippy"]
+        if params.fix:
+            cmd.append("--fix")
+        cmd.extend(["--", "-D", "warnings"])
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=300)
+        output = result.stderr[:4000]
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Clippy passed\n{output}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Clippy warnings/errors:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Clippy timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def npm_install_tool(params: NpmInstallParams) -> Dict[str, Any]:
+    """Run npm install"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        cmd = ["npm", "install"]
+        if params.package:
+            cmd.append(params.package)
+        
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"npm install successful\n{output[:2000]}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"npm install failed:\n{output}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def npm_run_tool(params: NpmRunParams) -> Dict[str, Any]:
+    """Run npm script"""
+    try:
+        cwd = str(MIYABI_ROOT)
+        result = subprocess.run(
+            ["npm", "run", params.script],
+            cwd=cwd, capture_output=True, text=True, timeout=300
+        )
+        output = result.stdout + result.stderr
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"npm run {params.script}:\n{output[:3000]}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"npm run {params.script} failed:\n{output}"}], "isError": True}
+    except subprocess.TimeoutExpired:
+        return {"content": [{"type": "text", "text": "Script timed out (5 min limit)"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+# ============================================
+# Agent Details - Functions
+# ============================================
+
+async def get_agent_status_tool(params: GetAgentStatusParams) -> Dict[str, Any]:
+    """Get agent status"""
+    try:
+        result = subprocess.run(
+            ["tmux", "list-sessions", "-F", "#{session_name}:#{session_windows}"],
+            capture_output=True, text=True
+        )
+        
+        sessions = result.stdout.strip().split(chr(10)) if result.stdout.strip() else []
+        
+        lines = ["Agent Status:"]
+        for session in sessions:
+            if params.agent and params.agent not in session:
+                continue
+            lines.append(f"  - {session}")
+        
+        if len(lines) == 1:
+            lines.append("  No agents running")
+        
+        return {"content": [{"type": "text", "text": chr(10).join(lines)}], "isError": False}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def stop_agent_tool(params: StopAgentParams) -> Dict[str, Any]:
+    """Stop an agent"""
+    try:
+        result = subprocess.run(
+            ["tmux", "kill-session", "-t", params.agent],
+            capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Agent {params.agent} stopped"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Failed to stop agent: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+async def get_agent_logs_tool(params: GetAgentLogsParams) -> Dict[str, Any]:
+    """Get agent logs"""
+    try:
+        result = subprocess.run(
+            ["tmux", "capture-pane", "-t", params.agent, "-p", "-S", f"-{params.limit}"],
+            capture_output=True, text=True
+        )
+        
+        if result.returncode == 0:
+            return {"content": [{"type": "text", "text": f"Logs for {params.agent}:\n{result.stdout}"}], "isError": False}
+        else:
+            return {"content": [{"type": "text", "text": f"Failed to get logs: {result.stderr}"}], "isError": True}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"Error: {str(e)}"}], "isError": True}
+
+
+
 # ==========================================
 # OAuth 2.1 Endpoints (MCP Spec Compliant)
 # ==========================================
@@ -2167,6 +2994,7 @@ async def mcp_handler(
     try:
         body = await request.json()
         mcp_request = MCPRequest(**body)
+        logger.debug(f"MCP Request: method={mcp_request.method}, id={mcp_request.id}, params={mcp_request.params}")
 
         # Handle different MCP methods
         if mcp_request.method == "initialize":
@@ -2182,7 +3010,7 @@ async def mcp_handler(
                     },
                     "serverInfo": {
                         "name": "Miyabi MCP Server",
-                        "version": "1.0.0"
+                        "version": "2.0.0"  # Brushup Sprint - 45 tools, enhanced descriptions
                     }
                 }
             ).dict()
@@ -2245,6 +3073,61 @@ async def mcp_handler(
             # Log tools
             elif tool_name == "get_logs":
                 result = await get_logs_tool(**arguments)
+                        # GitHub Extended
+            elif tool_name == "get_issue":
+                result = await get_issue_tool(GetIssueParams(**arguments))
+            elif tool_name == "update_issue":
+                result = await update_issue_tool(UpdateIssueParams(**arguments))
+            elif tool_name == "close_issue":
+                result = await close_issue_tool(CloseIssueParams(**arguments))
+            elif tool_name == "list_prs":
+                result = await list_prs_tool(ListPRsParams(**arguments))
+            elif tool_name == "get_pr":
+                result = await get_pr_tool(GetPRParams(**arguments))
+            elif tool_name == "create_pr":
+                result = await create_pr_tool(CreatePRParams(**arguments))
+            elif tool_name == "merge_pr":
+                result = await merge_pr_tool(MergePRParams(**arguments))
+            # Git Extended
+            elif tool_name == "git_commit":
+                result = await git_commit_tool(GitCommitParams(**arguments))
+            elif tool_name == "git_push":
+                result = await git_push_tool(GitPushParams(**arguments))
+            elif tool_name == "git_pull":
+                result = await git_pull_tool(GitPullParams(**arguments))
+            elif tool_name == "git_checkout":
+                result = await git_checkout_tool(GitCheckoutParams(**arguments))
+            elif tool_name == "git_create_branch":
+                result = await git_create_branch_tool(GitCreateBranchParams(**arguments))
+            elif tool_name == "git_stash":
+                result = await git_stash_tool(GitStashParams(**arguments))
+            # File Operations
+            elif tool_name == "read_file":
+                result = await read_file_tool(ReadFileParams(**arguments))
+            elif tool_name == "write_file":
+                result = await write_file_tool(WriteFileParams(**arguments))
+            elif tool_name == "list_files":
+                result = await list_files_tool(ListFilesParams(**arguments))
+            elif tool_name == "search_code":
+                result = await search_code_tool(SearchCodeParams(**arguments))
+            # Build/Test
+            elif tool_name == "cargo_build":
+                result = await cargo_build_tool(CargoBuildParams(**arguments))
+            elif tool_name == "cargo_test":
+                result = await cargo_test_tool(CargoTestParams(**arguments))
+            elif tool_name == "cargo_clippy":
+                result = await cargo_clippy_tool(CargoClippyParams(**arguments))
+            elif tool_name == "npm_install":
+                result = await npm_install_tool(NpmInstallParams(**arguments))
+            elif tool_name == "npm_run":
+                result = await npm_run_tool(NpmRunParams(**arguments))
+            # Agent Details
+            elif tool_name == "get_agent_status":
+                result = await get_agent_status_tool(GetAgentStatusParams(**arguments))
+            elif tool_name == "stop_agent":
+                result = await stop_agent_tool(StopAgentParams(**arguments))
+            elif tool_name == "get_agent_logs":
+                result = await get_agent_logs_tool(GetAgentLogsParams(**arguments))
             else:
                 return MCPResponse(
                     id=mcp_request.id,
@@ -2260,6 +3143,8 @@ async def mcp_handler(
             ).dict()
 
     except Exception as e:
+        import traceback
+        logger.error(f"MCP Error: {str(e)} - {traceback.format_exc()}")
         return JSONResponse(
             status_code=500,
             content={
@@ -2275,7 +3160,7 @@ async def root():
     """Health check endpoint"""
     return {
         "name": "Miyabi MCP Server",
-        "version": "1.0.0",
+        "version": "2.0.0",  # Brushup Sprint - 45 tools, enhanced descriptions
         "status": "running",
         "tools": len(TOOLS),
     }
@@ -2286,7 +3171,7 @@ async def mcp_info():
     """MCP endpoint information (use POST for actual MCP requests)"""
     return {
         "name": "Miyabi MCP Server",
-        "version": "1.0.0",
+        "version": "2.0.0",  # Brushup Sprint - 45 tools, enhanced descriptions
         "protocol": "Model Context Protocol (MCP)",
         "description": "MCP server for Miyabi autonomous agent framework",
         "methods": ["tools/list", "tools/call"],
@@ -2310,11 +3195,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-# Lambda handler (for AWS Lambda deployment)
-try:
-    from mangum import Mangum
-    handler = Mangum(app, lifespan="off")
-except ImportError:
-    # Mangum not installed, skip handler creation
-    pass

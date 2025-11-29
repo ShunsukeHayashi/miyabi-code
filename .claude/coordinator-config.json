@@ -1,0 +1,22 @@
+{
+  "role": "coordinator",
+  "name": "Orchestra Conductor",
+  "type": "claude-code",
+  "responsibilities": [
+    "task_distribution",
+    "worker_management", 
+    "progress_monitoring",
+    "result_aggregation",
+    "error_handling"
+  ],
+  "workers": {
+    "type": "codex",
+    "count": 100,
+    "location": "/home/agent-*/",
+    "communication": "tmux"
+  },
+  "squads": {
+    "count": 10,
+    "agents_per_squad": 10
+  }
+}

@@ -509,7 +509,7 @@ class SandboxManager:
         """List all users (admin)"""
         async with self.db_pool.acquire() as conn:
             rows = await conn.fetch('''
-                SELECT u.user_id, u.github_username, u.created_at, u.last_active,
+                SELECT u.user_id, u.github_username, u.created_at, u.last_active, (SELECT COUNT(*) FROM mcp_user_projects p WHERE p.user_id = u.user_id) as project_count,
                        s.plan, s.status
                 FROM mcp_users u
                 LEFT JOIN mcp_subscriptions s ON u.user_id = s.user_id
