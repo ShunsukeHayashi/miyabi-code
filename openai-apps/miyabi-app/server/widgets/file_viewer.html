@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 700px; }
+    .file-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .file-icon { font-size: 24px; }
+    .file-info { flex: 1; }
+    .file-name { font-size: 16px; font-weight: 600; }
+    .file-path {
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-secondary, #666);
+    }
+    .file-meta {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--text-secondary, #666);
+    }
+    .meta-item { display: flex; align-items: center; gap: 4px; }
+    .code-container {
+      background: var(--bg-code, #1e1e1e);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--bg-code-header, #2d2d2d);
+      border-bottom: 1px solid #3d3d3d;
+    }
+    .code-language {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--accent, #667eea);
+      color: white;
+      border-radius: 4px;
+    }
+    .code-actions { display: flex; gap: 8px; }
+    .code-action {
+      background: transparent;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .code-action:hover { background: #3d3d3d; color: white; }
+    .code-content {
+      display: flex;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .line-numbers {
+      padding: 12px;
+      text-align: right;
+      color: #666;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      background: #252525;
+      user-select: none;
+      min-width: 50px;
+    }
+    .code-lines {
+      flex: 1;
+      padding: 12px;
+      overflow-x: auto;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #d4d4d4;
+    }
+    .code-line { white-space: pre; }
+    .code-line:hover { background: rgba(255,255,255,0.05); }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+    @media (prefers-color-scheme: light) {
+      .code-container { background: #f6f8fa; }
+      .code-header { background: #e6e8eb; border-color: #d0d7de; }
+      .line-numbers { background: #eee; color: #999; }
+      .code-lines { color: #24292f; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const {
+      path = '',
+      name = '',
+      content = '',
+      lines = [],
+      language = '',
+      size = 0,
+      encoding = 'utf-8'
+    } = data;
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop()?.toLowerCase();
+      const icons = {
+        rs: '🦀', py: '🐍', js: '📜', ts: '📘', tsx: '⚛️',
+        md: '📝', json: '📋', yaml: '📋', yml: '📋',
+        html: '🌐', css: '🎨', sh: '💻', toml: '⚙️'
+      };
+      return icons[ext] || '📄';
+    }
+
+    function detectLanguage(filename) {
+      const ext = filename.split('.').pop()?.toLowerCase();
+      const langs = {
+        rs: 'rust', py: 'python', js: 'javascript', ts: 'typescript',
+        tsx: 'tsx', jsx: 'jsx', md: 'markdown', json: 'json',
+        yaml: 'yaml', yml: 'yaml', html: 'html', css: 'css',
+        sh: 'bash', toml: 'toml'
+      };
+      return langs[ext] || ext || 'text';
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    const filename = name || path.split('/').pop() || 'file';
+    const codeLines = lines.length > 0 ? lines : content.split('\n');
+    const lang = language || detectLanguage(filename);
+
+    root.innerHTML = `
+      <div class="file-header">
+        <span class="file-icon">${getFileIcon(filename)}</span>
+        <div class="file-info">
+          <div class="file-name">${filename}</div>
+          <div class="file-path">${path}</div>
+        </div>
+      </div>
+
+      <div class="file-meta">
+        <div class="meta-item">
+          <span>📏</span>
+          <span>${codeLines.length} lines</span>
+        </div>
+        ${size ? `
+        <div class="meta-item">
+          <span>💾</span>
+          <span>${formatSize(size)}</span>
+        </div>
+        ` : ''}
+        <div class="meta-item">
+          <span>📝</span>
+          <span>${lang}</span>
+        </div>
+      </div>
+
+      ${codeLines.length > 0 ? `
+      <div class="code-container">
+        <div class="code-header">
+          <span class="code-language">${lang}</span>
+          <div class="code-actions">
+            <button class="code-action" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <div class="code-content">
+          <div class="line-numbers">
+            ${codeLines.map((_, i) => `<div>${i + 1}</div>`).join('')}
+          </div>
+          <div class="code-lines">
+            ${codeLines.map(line => `<div class="code-line">${escapeHtml(line)}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      ` : `
+      <div class="empty-state">No content to display</div>
+      `}
+    `;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.getElementById('copyBtn')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(content || codeLines.join('\n'));
+    });
+
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(Math.min(root.scrollHeight, 600));
+    }
+  </script>
+</body>
+</html>

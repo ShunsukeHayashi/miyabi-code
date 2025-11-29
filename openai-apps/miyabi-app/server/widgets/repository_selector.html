@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 600px; }
+    .header { margin-bottom: 16px; }
+    .title { font-size: 18px; font-weight: 600; }
+    .subtitle { font-size: 13px; color: var(--text-secondary, #666); margin-top: 4px; }
+    .search-box {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border, #e0e0e0);
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      background: var(--bg-secondary, #f5f5f5);
+    }
+    .search-box:focus {
+      outline: none;
+      border-color: var(--accent, #667eea);
+    }
+    .repo-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+    .repo-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.1s;
+    }
+    .repo-card:hover { background: var(--bg-hover, #eee); }
+    .repo-card.selected { border-color: var(--accent, #667eea); }
+    .repo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--bg-tertiary, #e0e0e0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .repo-info { flex: 1; }
+    .repo-name { font-size: 14px; font-weight: 600; }
+    .repo-full { font-size: 12px; color: var(--text-secondary, #666); }
+    .repo-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-tertiary, #999);
+    }
+    .private-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #fff3cd;
+      color: #856404;
+    }
+    .action-bar {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--accent, #667eea);
+      color: white;
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .repo-card, .search-box { background: #2a2a2a; border-color: #333; }
+      .repo-card:hover { background: #333; }
+      .repo-full, .repo-meta { color: #999; }
+      .private-badge { background: #3d3d00; color: #ffd700; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+    let widgetState = window.openai?.widgetState ?? { selectedRepo: null, searchQuery: '' };
+
+    const { repositories = [], user = {} } = data;
+
+    function filterRepos() {
+      const q = widgetState.searchQuery.toLowerCase();
+      if (!q) return repositories;
+      return repositories.filter(r =>
+        r.name.toLowerCase().includes(q) ||
+        r.full_name?.toLowerCase().includes(q)
+      );
+    }
+
+    function selectRepo(repoId) {
+      widgetState.selectedRepo = repoId;
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+      render();
+    }
+
+    function onSearch(e) {
+      widgetState.searchQuery = e.target.value;
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+      render();
+    }
+
+    async function connectRepo() {
+      const selected = repositories.find(r => r.id === widgetState.selectedRepo);
+      if (!selected) return;
+      if (window.openai?.callTool) {
+        await window.openai.callTool('set_project', {
+          repository: selected.full_name
+        });
+      }
+    }
+
+    function render() {
+      const repos = filterRepos();
+      const selected = widgetState.selectedRepo;
+
+      root.innerHTML = `
+        <div class="header">
+          <div class="title">Select Repository</div>
+          <div class="subtitle">Choose a repository to connect with Miyabi</div>
+        </div>
+        <input type="text" class="search-box" placeholder="Search repositories..." value="${widgetState.searchQuery}" id="searchInput">
+        <div class="repo-list">
+          ${repos.length === 0 ? '<div style="text-align:center;padding:20px;color:#666;">No repositories found</div>' : ''}
+          ${repos.map(repo => `
+            <div class="repo-card ${selected === repo.id ? 'selected' : ''}" data-repo="${repo.id}">
+              <div class="repo-icon">${repo.private ? '🔒' : '📁'}</div>
+              <div class="repo-info">
+                <div class="repo-name">${repo.name}</div>
+                <div class="repo-full">${repo.full_name || repo.owner + '/' + repo.name}</div>
+                <div class="repo-meta">
+                  ${repo.language ? `<span>${repo.language}</span>` : ''}
+                  ${repo.stars ? `<span>★ ${repo.stars}</span>` : ''}
+                  ${repo.updated_at ? `<span>Updated ${new Date(repo.updated_at).toLocaleDateString()}</span>` : ''}
+                </div>
+              </div>
+              ${repo.private ? '<span class="private-badge">Private</span>' : ''}
+            </div>
+          `).join('')}
+        </div>
+        <div class="action-bar">
+          <button class="btn btn-primary" ${!selected ? 'disabled' : ''} id="connectBtn">
+            Connect Repository
+          </button>
+        </div>
+      `;
+
+      document.getElementById('searchInput')?.addEventListener('input', onSearch);
+      document.querySelectorAll('.repo-card').forEach(card => {
+        card.addEventListener('click', () => selectRepo(parseInt(card.dataset.repo)));
+      });
+      document.getElementById('connectBtn')?.addEventListener('click', connectRepo);
+    }
+
+    render();
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>

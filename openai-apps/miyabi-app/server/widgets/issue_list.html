@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 12px; max-width: 600px; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .title { font-size: 16px; font-weight: 600; }
+    .count {
+      background: var(--bg-secondary, #f0f0f0);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    .issue-list { display: flex; flex-direction: column; gap: 8px; }
+    .issue-card {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .issue-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .issue-card.selected {
+      border: 2px solid var(--accent, #667eea);
+    }
+    .issue-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .issue-number {
+      font-weight: 600;
+      color: var(--accent, #667eea);
+      font-size: 14px;
+    }
+    .issue-title {
+      font-size: 14px;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .issue-labels {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .label {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #e1e4e8;
+    }
+    .label.bug { background: #ffeef0; color: #d73a49; }
+    .label.feature { background: #dcffe4; color: #28a745; }
+    .label.enhancement { background: #ddf4ff; color: #0366d6; }
+    .issue-meta {
+      font-size: 11px;
+      color: var(--text-secondary, #666);
+      margin-top: 6px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-secondary, #666);
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .issue-card, .count { background: #2a2a2a; }
+      .issue-meta { color: #999; }
+      .label { background: #333; color: #e5e5e5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root">
+    <div class="loading">Loading issues...</div>
+  </div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+    const widgetState = window.openai?.widgetState ?? { selectedIssue: null };
+
+    const { issues = [], total = 0, state = 'open' } = data;
+
+    function getLabelClass(label) {
+      const l = label.toLowerCase();
+      if (l.includes('bug')) return 'bug';
+      if (l.includes('feature')) return 'feature';
+      if (l.includes('enhancement')) return 'enhancement';
+      return '';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function selectIssue(issueNumber) {
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState({ selectedIssue: issueNumber });
+      }
+      // Re-render with selection
+      render();
+    }
+
+    function render() {
+      const currentSelected = window.openai?.widgetState?.selectedIssue;
+
+      if (issues.length === 0) {
+        root.innerHTML = `
+          <div class="header">
+            <span class="title">Issues</span>
+            <span class="count">${state}</span>
+          </div>
+          <div class="empty-state">No ${state} issues found</div>
+        `;
+        return;
+      }
+
+      root.innerHTML = `
+        <div class="header">
+          <span class="title">Issues</span>
+          <span class="count">${total} ${state}</span>
+        </div>
+        <div class="issue-list">
+          ${issues.map(issue => `
+            <div class="issue-card ${currentSelected === issue.number ? 'selected' : ''}"
+                 data-issue="${issue.number}">
+              <div class="issue-header">
+                <span class="issue-number">#${issue.number}</span>
+                <span class="issue-title">${issue.title || 'Untitled'}</span>
+              </div>
+              ${issue.labels?.length ? `
+                <div class="issue-labels">
+                  ${issue.labels.slice(0, 3).map(l => `
+                    <span class="label ${getLabelClass(l)}">${l}</span>
+                  `).join('')}
+                </div>
+              ` : ''}
+              <div class="issue-meta">
+                ${issue.author ? `by ${issue.author}` : ''}
+                ${issue.created_at ? ` - ${formatDate(issue.created_at)}` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Add click handlers
+      document.querySelectorAll('.issue-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const issueNum = parseInt(card.dataset.issue);
+          selectIssue(issueNum);
+        });
+      });
+    }
+
+    render();
+
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>

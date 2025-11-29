@@ -606,10 +606,110 @@ def create_widget_html(widget_name: str, data: Dict[str, Any]) -> str:
 </html>"""
 
 
-# MCP Tool Definitions
+# ==========================================
+# OpenAI Apps SDK - Widget Resources
+# ==========================================
+
+WIDGETS_DIR = Path(__file__).parent / "widgets"
+
+# Widget Resource Definitions (text/html+skybridge)
+WIDGET_RESOURCES = {
+    "project_status": {
+        "uri": "ui://widget/project-status.html",
+        "description": "Miyabi project status dashboard widget",
+    },
+    "issue_list": {
+        "uri": "ui://widget/issue-list.html",
+        "description": "GitHub issues list widget",
+    },
+    "agent_selector": {
+        "uri": "ui://widget/agent-selector.html",
+        "description": "Interactive agent selection widget",
+    },
+    "agent_cards": {
+        "uri": "ui://widget/agent-cards.html",
+        "description": "TCG-style agent cards display widget",
+    },
+    "agent_execution": {
+        "uri": "ui://widget/agent-execution.html",
+        "description": "Agent execution result widget",
+    },
+    "repository_selector": {
+        "uri": "ui://widget/repository-selector.html",
+        "description": "Repository selection widget",
+    },
+    "git_status": {
+        "uri": "ui://widget/git-status.html",
+        "description": "Git status display widget",
+    },
+    "code_search": {
+        "uri": "ui://widget/code-search.html",
+        "description": "Code search results widget",
+    },
+    "pr_list": {
+        "uri": "ui://widget/pr-list.html",
+        "description": "Pull requests list widget",
+    },
+    "system_resources": {
+        "uri": "ui://widget/system-resources.html",
+        "description": "System resources monitoring widget",
+    },
+    "user_profile": {
+        "uri": "ui://widget/user-profile.html",
+        "description": "User profile display widget",
+    },
+    "file_viewer": {
+        "uri": "ui://widget/file-viewer.html",
+        "description": "File content viewer widget",
+    },
+    "commit_history": {
+        "uri": "ui://widget/commit-history.html",
+        "description": "Git commit history timeline widget",
+    },
+    "build_output": {
+        "uri": "ui://widget/build-output.html",
+        "description": "Build/test output terminal widget",
+    },
+}
+
+# Widget CSP and Domain configuration
+WIDGET_META = {
+    "openai/widgetPrefersBorder": True,
+    "openai/widgetDomain": "https://mcp.miyabi-world.com",
+    "openai/widgetCSP": {
+        "connect_domains": ["https://mcp.miyabi-world.com", "https://api.github.com"],
+        "resource_domains": ["https://avatars.githubusercontent.com"],
+    },
+}
+
+
+def load_widget_html(widget_name: str) -> str:
+    """Load widget HTML from file"""
+    file_path = WIDGETS_DIR / f"{widget_name}.html"
+    if file_path.exists():
+        return file_path.read_text(encoding="utf-8")
+    return f"<div>Widget {widget_name} not found</div>"
+
+
+def get_widget_resource(widget_name: str) -> Dict[str, Any]:
+    """Get widget resource for MCP resources/read"""
+    if widget_name not in WIDGET_RESOURCES:
+        return None
+    widget = WIDGET_RESOURCES[widget_name]
+    html = load_widget_html(widget_name)
+    return {
+        "uri": widget["uri"],
+        "mimeType": "text/html+skybridge",
+        "text": html,
+        "_meta": WIDGET_META,
+    }
+
+
+# MCP Tool Definitions with OpenAI Apps SDK metadata
 TOOLS = [
     {
         "name": "execute_agent",
+        "title": "Execute Miyabi Agent",
         "description": "Execute a Miyabi agent (CodeGen, Review, Issue, PR, Deploy, etc.)",
         "inputSchema": {
             "type": "object",
@@ -634,9 +734,16 @@ TOOLS = [
             },
             "required": ["agent"],
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-execution.html",
+            "openai/toolInvocation/invoking": "Executing agent...",
+            "openai/toolInvocation/invoked": "Agent execution complete.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "create_issue",
+        "title": "Create GitHub Issue",
         "description": "Create a new GitHub issue in the Miyabi repository",
         "inputSchema": {
             "type": "object",
@@ -651,9 +758,15 @@ TOOLS = [
             },
             "required": ["title", "body"],
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/issue-list.html",
+            "openai/toolInvocation/invoking": "Creating issue...",
+            "openai/toolInvocation/invoked": "Issue created.",
+        },
     },
     {
         "name": "list_issues",
+        "title": "List GitHub Issues",
         "description": "List GitHub issues in the Miyabi repository",
         "inputSchema": {
             "type": "object",
@@ -671,24 +784,52 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/issue-list.html",
+            "openai/toolInvocation/invoking": "Loading issues...",
+            "openai/toolInvocation/invoked": "Issues loaded.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "get_project_status",
+        "title": "Project Status",
         "description": "Get current Miyabi project status (branch, crates, agents, commits)",
         "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/project-status.html",
+            "openai/toolInvocation/invoking": "Loading project status...",
+            "openai/toolInvocation/invoked": "Project status ready.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "list_agents",
+        "title": "Agent Selector",
         "description": "Show interactive agent selector with all 21 Miyabi agents",
         "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-selector.html",
+            "openai/toolInvocation/invoking": "Loading agents...",
+            "openai/toolInvocation/invoked": "Agents ready.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "show_agent_cards",
+        "title": "Agent Trading Cards",
         "description": "Display Miyabi agents as collectible TCG trading cards with stats, skills, and achievements",
         "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-cards.html",
+            "openai/toolInvocation/invoking": "Summoning agent cards...",
+            "openai/toolInvocation/invoked": "Agent cards summoned!",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "execute_agents_parallel",
+        "title": "Execute Agents in Parallel",
         "description": "Execute multiple Miyabi agents in parallel for faster processing",
         "inputSchema": {
             "type": "object",
@@ -714,12 +855,19 @@ TOOLS = [
             },
             "required": ["agents"],
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-execution.html",
+            "openai/toolInvocation/invoking": "Executing agents in parallel...",
+            "openai/toolInvocation/invoked": "All agents completed.",
+            "openai/widgetAccessible": True,
+        },
     },
     # ==========================================
     # Git Operation Tools
     # ==========================================
     {
         "name": "git_status",
+        "title": "Git Status",
         "description": "Get current git status showing modified, staged, and untracked files",
         "inputSchema": {
             "type": "object",
@@ -730,9 +878,16 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/git-status.html",
+            "openai/toolInvocation/invoking": "Checking git status...",
+            "openai/toolInvocation/invoked": "Git status ready.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "git_diff",
+        "title": "Git Diff",
         "description": "Show git diff of changes in the repository",
         "inputSchema": {
             "type": "object",
@@ -748,9 +903,15 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/file-viewer.html",
+            "openai/toolInvocation/invoking": "Loading diff...",
+            "openai/toolInvocation/invoked": "Diff ready.",
+        },
     },
     {
         "name": "git_log",
+        "title": "Commit History",
         "description": "Show git commit history",
         "inputSchema": {
             "type": "object",
@@ -767,9 +928,16 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/commit-history.html",
+            "openai/toolInvocation/invoking": "Loading commit history...",
+            "openai/toolInvocation/invoked": "Commit history ready.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "git_branch",
+        "title": "Git Branches",
         "description": "List git branches",
         "inputSchema": {
             "type": "object",
@@ -781,17 +949,29 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Loading branches...",
+            "openai/toolInvocation/invoked": "Branches loaded.",
+        },
     },
     # ==========================================
     # System Monitoring Tools
     # ==========================================
     {
         "name": "system_resources",
+        "title": "System Resources",
         "description": "Get system resource usage (CPU, memory, disk)",
         "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/system-resources.html",
+            "openai/toolInvocation/invoking": "Loading system resources...",
+            "openai/toolInvocation/invoked": "System resources ready.",
+            "openai/widgetAccessible": True,
+        },
     },
     {
         "name": "process_list",
+        "title": "Process List",
         "description": "List running processes sorted by resource usage",
         "inputSchema": {
             "type": "object",
@@ -809,9 +989,14 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Loading processes...",
+            "openai/toolInvocation/invoked": "Processes loaded.",
+        },
     },
     {
         "name": "network_status",
+        "title": "Network Status",
         "description": "Get network interface status and statistics",
         "inputSchema": {
             "type": "object",
@@ -823,12 +1008,17 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Checking network...",
+            "openai/toolInvocation/invoked": "Network status ready.",
+        },
     },
     # ==========================================
     # Obsidian Tools
     # ==========================================
     {
         "name": "obsidian_create_note",
+        "title": "Create Note",
         "description": "Create a new note in the Obsidian vault",
         "inputSchema": {
             "type": "object",
@@ -844,9 +1034,14 @@ TOOLS = [
             },
             "required": ["title", "content"],
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Creating note...",
+            "openai/toolInvocation/invoked": "Note created.",
+        },
     },
     {
         "name": "obsidian_search",
+        "title": "Search Notes",
         "description": "Search notes in the Obsidian vault",
         "inputSchema": {
             "type": "object",
@@ -860,9 +1055,14 @@ TOOLS = [
             },
             "required": ["query"],
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Searching notes...",
+            "openai/toolInvocation/invoked": "Search complete.",
+        },
     },
     {
         "name": "obsidian_update_note",
+        "title": "Update Note",
         "description": "Update an existing note in the Obsidian vault",
         "inputSchema": {
             "type": "object",
@@ -877,12 +1077,17 @@ TOOLS = [
             },
             "required": ["title", "content"],
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Updating note...",
+            "openai/toolInvocation/invoked": "Note updated.",
+        },
     },
     # ==========================================
     # Tmux Tools
     # ==========================================
     {
         "name": "tmux_list_sessions",
+        "title": "Tmux Sessions",
         "description": "List all tmux sessions and their windows",
         "inputSchema": {
             "type": "object",
@@ -894,9 +1099,14 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Loading sessions...",
+            "openai/toolInvocation/invoked": "Sessions loaded.",
+        },
     },
     {
         "name": "tmux_send_keys",
+        "title": "Send Tmux Keys",
         "description": "Send keys/command to a tmux session",
         "inputSchema": {
             "type": "object",
@@ -907,12 +1117,17 @@ TOOLS = [
             },
             "required": ["session", "keys"],
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Sending keys...",
+            "openai/toolInvocation/invoked": "Keys sent.",
+        },
     },
     # ==========================================
     # Log Aggregation Tools
     # ==========================================
     {
         "name": "get_logs",
+        "title": "Get Logs",
         "description": "Get aggregated logs from the Miyabi project",
         "inputSchema": {
             "type": "object",
@@ -936,142 +1151,301 @@ TOOLS = [
                 },
             },
         },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Loading logs...",
+            "openai/toolInvocation/invoked": "Logs loaded.",
+        },
     },
-            {
-                "name": "get_issue",
-                "description": "Get detailed information about a GitHub issue including title, state, author, labels, assignees, and full body content",
-                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer", "description": "Issue number"}}, "required": ["issue_number"]}
-            },
-            {
-                "name": "update_issue",
-                "description": "Update an existing GitHub issue. Can modify title, body, state (open/closed), and labels. Only specified fields will be updated",
-                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "title": {"type": "string"}, "body": {"type": "string"}, "state": {"type": "string"}, "labels": {"type": "array", "items": {"type": "string"}}}, "required": ["issue_number"]}
-            },
-            {
-                "name": "close_issue",
-                "description": "Close a GitHub issue and optionally add a closing comment explaining why it was closed",
-                "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "comment": {"type": "string"}}, "required": ["issue_number"]}
-            },
-            {
-                "name": "list_prs",
-                "description": "List pull requests in the repository. Filter by state (open/closed/all) and limit the number of results",
-                "inputSchema": {"type": "object", "properties": {"state": {"type": "string", "default": "open"}, "limit": {"type": "integer", "default": 10}}}
-            },
-            {
-                "name": "get_pr",
-                "description": "Get comprehensive pull request details including branch info, review status, file changes, and merge status",
-                "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}}, "required": ["pr_number"]}
-            },
-            {
-                "name": "create_pr",
-                "description": "Create a new pull request from a feature branch to the base branch (default: main)",
-                "inputSchema": {"type": "object", "properties": {"title": {"type": "string"}, "body": {"type": "string"}, "head": {"type": "string"}, "base": {"type": "string", "default": "main"}}, "required": ["title", "body", "head"]}
-            },
-            {
-                "name": "merge_pr",
-                "description": "Merge a pull request using the specified method (squash/merge/rebase). Default is squash merge",
-                "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}, "merge_method": {"type": "string", "default": "squash"}}, "required": ["pr_number"]}
-            },
-            {
-                "name": "git_commit",
-                "description": "Stage files and create a git commit with the specified message. If no files specified, stages all changes",
-                "inputSchema": {"type": "object", "properties": {"message": {"type": "string"}, "files": {"type": "array", "items": {"type": "string"}}}, "required": ["message"]}
-            },
-            {
-                "name": "git_push",
-                "description": "Push local commits to the remote repository. Supports force push for rebased branches",
-                "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}, "force": {"type": "boolean", "default": False}}}
-            },
-            {
-                "name": "git_pull",
-                "description": "Pull latest changes from the remote repository and merge into current branch",
-                "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}}}
-            },
-            {
-                "name": "git_checkout",
-                "description": "Switch to an existing branch or create and switch to a new branch with -b flag",
-                "inputSchema": {"type": "object", "properties": {"branch": {"type": "string"}, "create": {"type": "boolean", "default": False}}, "required": ["branch"]}
-            },
-            {
-                "name": "git_create_branch",
-                "description": "Create a new branch from the current HEAD or from a specified source branch",
-                "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "from_branch": {"type": "string"}}, "required": ["name"]}
-            },
-            {
-                "name": "git_stash",
-                "description": "Temporarily store uncommitted changes. Actions: push (save), pop (restore), list, drop",
-                "inputSchema": {"type": "object", "properties": {"action": {"type": "string", "default": "push"}, "message": {"type": "string"}}}
-            },
-            {
-                "name": "read_file",
-                "description": "Read file contents with line limit. Supports both absolute paths and relative paths from MIYABI_ROOT",
-                "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "limit": {"type": "integer", "default": 100}}, "required": ["path"]}
-            },
-            {
-                "name": "write_file",
-                "description": "Write content to a file. Creates parent directories if needed. Overwrites existing content",
-                "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}
-            },
-            {
-                "name": "list_files",
-                "description": "List files and directories with optional glob pattern filtering. Shows file type indicators",
-                "inputSchema": {"type": "object", "properties": {"path": {"type": "string", "default": "."}, "pattern": {"type": "string"}}}
-            },
-            {
-                "name": "search_code",
-                "description": "Search for patterns in code files using grep. Supports regex and file type filtering",
-                "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "path": {"type": "string", "default": "."}, "file_pattern": {"type": "string"}}, "required": ["query"]}
-            },
-            {
-                "name": "cargo_build",
-                "description": "Build Rust project using Cargo. Supports release mode and specific package builds",
-                "inputSchema": {"type": "object", "properties": {"release": {"type": "boolean", "default": False}, "package": {"type": "string"}}}
-            },
-            {
-                "name": "cargo_test",
-                "description": "Run Rust tests. Can filter by test name or package. Shows test results and failures",
-                "inputSchema": {"type": "object", "properties": {"test_name": {"type": "string"}, "package": {"type": "string"}}}
-            },
-            {
-                "name": "cargo_clippy",
-                "description": "Run Clippy linter for Rust code quality checks. Can auto-fix some warnings",
-                "inputSchema": {"type": "object", "properties": {"fix": {"type": "boolean", "default": False}}}
-            },
-            {
-                "name": "npm_install",
-                "description": "Install npm dependencies. Can install specific packages or all from package.json",
-                "inputSchema": {"type": "object", "properties": {"package": {"type": "string"}}}
-            },
-            {
-                "name": "npm_run",
-                "description": "Execute npm scripts defined in package.json (e.g., build, test, dev)",
-                "inputSchema": {"type": "object", "properties": {"script": {"type": "string"}}, "required": ["script"]}
-            },
-            {
-                "name": "get_agent_status",
-                "description": "Check status of running agents by inspecting tmux sessions. Filter by agent name",
-                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}}
-            },
-            {
-                "name": "stop_agent",
-                "description": "Stop a running agent by killing its tmux session",
-                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}, "required": ["agent"]}
-            },
-            {
-                "name": "get_agent_logs",
-                "description": "Retrieve recent output/logs from an agent's tmux session pane",
-                "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}, "limit": {"type": "integer", "default": 50}}, "required": ["agent"]}
-            },
-            {
-                "name": "get_agent_card",
-                "description": "Get a single Miyabi agent TCG card with image. Available agents: shikiroon, tsukuroon, medaman, mitsukeroon, matomeroon, hakoboon, tsunagun",
-                "inputSchema": {"type": "object", "properties": {"agent_name": {"type": "string", "description": "Agent name in English"}}, "required": ["agent_name"]}
-            },
-            {
-                "name": "setup_project",
-                "description": "Setup or configure your GitHub repository for Miyabi. Use this to connect your repo and start using Miyabi tools.",
-                "inputSchema": {"type": "object", "properties": {}}
-            },
+    {
+        "name": "get_issue",
+        "title": "Get Issue",
+        "description": "Get detailed information about a GitHub issue including title, state, author, labels, assignees, and full body content",
+        "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer", "description": "Issue number"}}, "required": ["issue_number"]},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/issue-list.html",
+            "openai/toolInvocation/invoking": "Loading issue...",
+            "openai/toolInvocation/invoked": "Issue loaded.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "update_issue",
+        "title": "Update Issue",
+        "description": "Update an existing GitHub issue. Can modify title, body, state (open/closed), and labels. Only specified fields will be updated",
+        "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "title": {"type": "string"}, "body": {"type": "string"}, "state": {"type": "string"}, "labels": {"type": "array", "items": {"type": "string"}}}, "required": ["issue_number"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Updating issue...",
+            "openai/toolInvocation/invoked": "Issue updated.",
+        },
+    },
+    {
+        "name": "close_issue",
+        "title": "Close Issue",
+        "description": "Close a GitHub issue and optionally add a closing comment explaining why it was closed",
+        "inputSchema": {"type": "object", "properties": {"issue_number": {"type": "integer"}, "comment": {"type": "string"}}, "required": ["issue_number"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Closing issue...",
+            "openai/toolInvocation/invoked": "Issue closed.",
+        },
+    },
+    {
+        "name": "list_prs",
+        "title": "List Pull Requests",
+        "description": "List pull requests in the repository. Filter by state (open/closed/all) and limit the number of results",
+        "inputSchema": {"type": "object", "properties": {"state": {"type": "string", "default": "open"}, "limit": {"type": "integer", "default": 10}}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/pr-list.html",
+            "openai/toolInvocation/invoking": "Loading pull requests...",
+            "openai/toolInvocation/invoked": "Pull requests loaded.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "get_pr",
+        "title": "Get Pull Request",
+        "description": "Get comprehensive pull request details including branch info, review status, file changes, and merge status",
+        "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}}, "required": ["pr_number"]},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/pr-list.html",
+            "openai/toolInvocation/invoking": "Loading PR details...",
+            "openai/toolInvocation/invoked": "PR details loaded.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "create_pr",
+        "title": "Create Pull Request",
+        "description": "Create a new pull request from a feature branch to the base branch (default: main)",
+        "inputSchema": {"type": "object", "properties": {"title": {"type": "string"}, "body": {"type": "string"}, "head": {"type": "string"}, "base": {"type": "string", "default": "main"}}, "required": ["title", "body", "head"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Creating pull request...",
+            "openai/toolInvocation/invoked": "Pull request created.",
+        },
+    },
+    {
+        "name": "merge_pr",
+        "title": "Merge Pull Request",
+        "description": "Merge a pull request using the specified method (squash/merge/rebase). Default is squash merge",
+        "inputSchema": {"type": "object", "properties": {"pr_number": {"type": "integer"}, "merge_method": {"type": "string", "default": "squash"}}, "required": ["pr_number"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Merging pull request...",
+            "openai/toolInvocation/invoked": "Pull request merged.",
+        },
+    },
+    {
+        "name": "git_commit",
+        "title": "Git Commit",
+        "description": "Stage files and create a git commit with the specified message. If no files specified, stages all changes",
+        "inputSchema": {"type": "object", "properties": {"message": {"type": "string"}, "files": {"type": "array", "items": {"type": "string"}}}, "required": ["message"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Creating commit...",
+            "openai/toolInvocation/invoked": "Commit created.",
+        },
+    },
+    {
+        "name": "git_push",
+        "title": "Git Push",
+        "description": "Push local commits to the remote repository. Supports force push for rebased branches",
+        "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}, "force": {"type": "boolean", "default": False}}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Pushing changes...",
+            "openai/toolInvocation/invoked": "Changes pushed.",
+        },
+    },
+    {
+        "name": "git_pull",
+        "title": "Git Pull",
+        "description": "Pull latest changes from the remote repository and merge into current branch",
+        "inputSchema": {"type": "object", "properties": {"remote": {"type": "string", "default": "origin"}, "branch": {"type": "string"}}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Pulling changes...",
+            "openai/toolInvocation/invoked": "Changes pulled.",
+        },
+    },
+    {
+        "name": "git_checkout",
+        "title": "Git Checkout",
+        "description": "Switch to an existing branch or create and switch to a new branch with -b flag",
+        "inputSchema": {"type": "object", "properties": {"branch": {"type": "string"}, "create": {"type": "boolean", "default": False}}, "required": ["branch"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Switching branch...",
+            "openai/toolInvocation/invoked": "Branch switched.",
+        },
+    },
+    {
+        "name": "git_create_branch",
+        "title": "Create Branch",
+        "description": "Create a new branch from the current HEAD or from a specified source branch",
+        "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "from_branch": {"type": "string"}}, "required": ["name"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Creating branch...",
+            "openai/toolInvocation/invoked": "Branch created.",
+        },
+    },
+    {
+        "name": "git_stash",
+        "title": "Git Stash",
+        "description": "Temporarily store uncommitted changes. Actions: push (save), pop (restore), list, drop",
+        "inputSchema": {"type": "object", "properties": {"action": {"type": "string", "default": "push"}, "message": {"type": "string"}}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Managing stash...",
+            "openai/toolInvocation/invoked": "Stash operation complete.",
+        },
+    },
+    {
+        "name": "read_file",
+        "title": "Read File",
+        "description": "Read file contents with line limit. Supports both absolute paths and relative paths from MIYABI_ROOT",
+        "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "limit": {"type": "integer", "default": 100}}, "required": ["path"]},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/file-viewer.html",
+            "openai/toolInvocation/invoking": "Reading file...",
+            "openai/toolInvocation/invoked": "File loaded.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "write_file",
+        "title": "Write File",
+        "description": "Write content to a file. Creates parent directories if needed. Overwrites existing content",
+        "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Writing file...",
+            "openai/toolInvocation/invoked": "File saved.",
+        },
+    },
+    {
+        "name": "list_files",
+        "title": "List Files",
+        "description": "List files and directories with optional glob pattern filtering. Shows file type indicators",
+        "inputSchema": {"type": "object", "properties": {"path": {"type": "string", "default": "."}, "pattern": {"type": "string"}}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Listing files...",
+            "openai/toolInvocation/invoked": "Files listed.",
+        },
+    },
+    {
+        "name": "search_code",
+        "title": "Search Code",
+        "description": "Search for patterns in code files using grep. Supports regex and file type filtering",
+        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "path": {"type": "string", "default": "."}, "file_pattern": {"type": "string"}}, "required": ["query"]},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/code-search.html",
+            "openai/toolInvocation/invoking": "Searching code...",
+            "openai/toolInvocation/invoked": "Search complete.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "cargo_build",
+        "title": "Cargo Build",
+        "description": "Build Rust project using Cargo. Supports release mode and specific package builds",
+        "inputSchema": {"type": "object", "properties": {"release": {"type": "boolean", "default": False}, "package": {"type": "string"}}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/build-output.html",
+            "openai/toolInvocation/invoking": "Building project...",
+            "openai/toolInvocation/invoked": "Build complete.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "cargo_test",
+        "title": "Cargo Test",
+        "description": "Run Rust tests. Can filter by test name or package. Shows test results and failures",
+        "inputSchema": {"type": "object", "properties": {"test_name": {"type": "string"}, "package": {"type": "string"}}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/build-output.html",
+            "openai/toolInvocation/invoking": "Running tests...",
+            "openai/toolInvocation/invoked": "Tests complete.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "cargo_clippy",
+        "title": "Cargo Clippy",
+        "description": "Run Clippy linter for Rust code quality checks. Can auto-fix some warnings",
+        "inputSchema": {"type": "object", "properties": {"fix": {"type": "boolean", "default": False}}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/build-output.html",
+            "openai/toolInvocation/invoking": "Running Clippy...",
+            "openai/toolInvocation/invoked": "Clippy complete.",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "npm_install",
+        "title": "NPM Install",
+        "description": "Install npm dependencies. Can install specific packages or all from package.json",
+        "inputSchema": {"type": "object", "properties": {"package": {"type": "string"}}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Installing packages...",
+            "openai/toolInvocation/invoked": "Packages installed.",
+        },
+    },
+    {
+        "name": "npm_run",
+        "title": "NPM Run",
+        "description": "Execute npm scripts defined in package.json (e.g., build, test, dev)",
+        "inputSchema": {"type": "object", "properties": {"script": {"type": "string"}}, "required": ["script"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Running script...",
+            "openai/toolInvocation/invoked": "Script complete.",
+        },
+    },
+    {
+        "name": "get_agent_status",
+        "title": "Agent Status",
+        "description": "Check status of running agents by inspecting tmux sessions. Filter by agent name",
+        "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Checking agent status...",
+            "openai/toolInvocation/invoked": "Agent status ready.",
+        },
+    },
+    {
+        "name": "stop_agent",
+        "title": "Stop Agent",
+        "description": "Stop a running agent by killing its tmux session",
+        "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}}, "required": ["agent"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Stopping agent...",
+            "openai/toolInvocation/invoked": "Agent stopped.",
+        },
+    },
+    {
+        "name": "get_agent_logs",
+        "title": "Agent Logs",
+        "description": "Retrieve recent output/logs from an agent's tmux session pane",
+        "inputSchema": {"type": "object", "properties": {"agent": {"type": "string"}, "limit": {"type": "integer", "default": 50}}, "required": ["agent"]},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Loading agent logs...",
+            "openai/toolInvocation/invoked": "Agent logs loaded.",
+        },
+    },
+    {
+        "name": "get_agent_card",
+        "title": "Get Agent Card",
+        "description": "Get a single Miyabi agent TCG card with image. Available agents: shikiroon, tsukuroon, medaman, mitsukeroon, matomeroon, hakoboon, tsunagun",
+        "inputSchema": {"type": "object", "properties": {"agent_name": {"type": "string", "description": "Agent name in English"}}, "required": ["agent_name"]},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-cards.html",
+            "openai/toolInvocation/invoking": "Summoning agent card...",
+            "openai/toolInvocation/invoked": "Agent card ready!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "setup_project",
+        "title": "Setup Project",
+        "description": "Setup or configure your GitHub repository for Miyabi. Use this to connect your repo and start using Miyabi tools.",
+        "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/repository-selector.html",
+            "openai/toolInvocation/invoking": "Setting up project...",
+            "openai/toolInvocation/invoked": "Project setup complete.",
+            "openai/widgetAccessible": True,
+        },
+    },
 ]
 
 # Tools that can be executed in sandbox
@@ -3499,12 +3873,16 @@ async def process_mcp_request(mcp_request: MCPRequest) -> dict:
                 "capabilities": {
                     "tools": {"listChanged": False},
                     "prompts": {},
-                    "resources": {}
+                    "resources": {
+                        "listChanged": False,
+                        "subscribe": False,
+                    }
                 },
                 "serverInfo": {
                     "name": "Miyabi MCP Server",
-                    "version": "2.0.0"
-                }
+                    "version": "2.1.0"
+                },
+                "_meta": WIDGET_META,
             }
         ).dict()
     
@@ -3513,11 +3891,58 @@ async def process_mcp_request(mcp_request: MCPRequest) -> dict:
     
     elif mcp_request.method == "tools/list":
         return MCPResponse(id=mcp_request.id, result={"tools": TOOLS}).dict()
-    
+
     elif mcp_request.method == "tools/call":
         # Delegate to existing tool handler
         return await handle_tool_call(mcp_request)
-    
+
+    elif mcp_request.method == "resources/list":
+        # Return widget resources list for OpenAI Apps SDK
+        resources_list = []
+        for widget_name, widget_info in WIDGET_RESOURCES.items():
+            resources_list.append({
+                "uri": widget_info["uri"],
+                "name": widget_name.replace("_", " ").title(),
+                "description": widget_info.get("description", ""),
+                "mimeType": "text/html+skybridge",
+            })
+        return MCPResponse(id=mcp_request.id, result={"resources": resources_list}).dict()
+
+    elif mcp_request.method == "resources/read":
+        # Read a specific widget resource
+        uri = mcp_request.params.get("uri", "")
+
+        # Parse widget name from URI (ui://widget/xxx.html -> xxx)
+        widget_name = None
+        if uri.startswith("ui://widget/"):
+            filename = uri.replace("ui://widget/", "").replace(".html", "")
+            # Convert kebab-case to snake_case
+            widget_name = filename.replace("-", "_")
+
+        if widget_name and widget_name in WIDGET_RESOURCES:
+            resource = get_widget_resource(widget_name)
+            if resource:
+                return MCPResponse(
+                    id=mcp_request.id,
+                    result={
+                        "contents": [{
+                            "uri": resource["uri"],
+                            "mimeType": resource["mimeType"],
+                            "text": resource["text"],
+                        }],
+                        "_meta": resource.get("_meta", {}),
+                    }
+                ).dict()
+
+        return {
+            "jsonrpc": "2.0",
+            "id": mcp_request.id,
+            "error": {
+                "code": -32602,
+                "message": f"Resource not found: {uri}"
+            }
+        }
+
     else:
         return {
             "jsonrpc": "2.0",

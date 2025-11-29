@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; }
+    .header { margin-bottom: 16px; text-align: center; }
+    .title { font-size: 20px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: var(--text-secondary, #666); }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      border-radius: 16px;
+      padding: 16px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px) rotateX(5deg);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .card.coding { background: linear-gradient(145deg, #0f4c81 0%, #1e3a5f 50%, #0d2137 100%); }
+    .card.business { background: linear-gradient(145deg, #4a1c59 0%, #2d1f3d 50%, #1a1025 100%); }
+    .card-shine {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.1) 50%,
+        rgba(255,255,255,0) 100%
+      );
+      transform: rotate(30deg);
+      pointer-events: none;
+    }
+    .card-rarity {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255,215,0,0.3);
+      color: gold;
+    }
+    .card-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .card-name {
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .card-type {
+      font-size: 10px;
+      text-align: center;
+      opacity: 0.7;
+      margin-bottom: 12px;
+    }
+    .card-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      text-align: center;
+      padding: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+    }
+    .stat-value { font-size: 14px; font-weight: 700; }
+    .stat-label { font-size: 8px; opacity: 0.7; }
+    .card-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .skill {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.15);
+    }
+    @media (prefers-color-scheme: dark) {
+      .card { box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const AGENTS = [
+      { id: 'coordinator', name: 'Coordinator', type: 'Coding', rarity: 'SSR', icon: '🎯', atk: 95, def: 85, spd: 90, skills: ['Orchestrate', 'DAG Planning'] },
+      { id: 'codegen', name: 'CodeGen', type: 'Coding', rarity: 'SSR', icon: '⚡', atk: 100, def: 70, spd: 85, skills: ['Generate', 'Refactor'] },
+      { id: 'review', name: 'Review', type: 'Coding', rarity: 'SR', icon: '🔍', atk: 80, def: 95, spd: 75, skills: ['Audit', 'Security Scan'] },
+      { id: 'issue', name: 'Issue', type: 'Coding', rarity: 'SR', icon: '📋', atk: 75, def: 80, spd: 90, skills: ['Analyze', 'Label'] },
+      { id: 'pr', name: 'PR Agent', type: 'Coding', rarity: 'SR', icon: '🔀', atk: 85, def: 75, spd: 85, skills: ['Draft', 'Merge'] },
+      { id: 'deploy', name: 'Deploy', type: 'Coding', rarity: 'SSR', icon: '🚀', atk: 90, def: 90, spd: 80, skills: ['CI/CD', 'Rollback'] },
+      { id: 'refresher', name: 'Refresher', type: 'Coding', rarity: 'R', icon: '🔄', atk: 60, def: 85, spd: 95, skills: ['Monitor', 'Update'] },
+      { id: 'market_research', name: 'Market Research', type: 'Business', rarity: 'SSR', icon: '📊', atk: 85, def: 80, spd: 75, skills: ['TAM Analysis', 'Competitor'] },
+      { id: 'persona', name: 'Persona', type: 'Business', rarity: 'SR', icon: '👤', atk: 80, def: 75, spd: 85, skills: ['Journey Map', 'Segment'] },
+      { id: 'content_creation', name: 'Content', type: 'Business', rarity: 'SR', icon: '✍️', atk: 90, def: 65, spd: 80, skills: ['Write', 'SEO'] },
+      { id: 'youtube', name: 'YouTube', type: 'Business', rarity: 'SSR', icon: '🎬', atk: 95, def: 70, spd: 75, skills: ['Script', 'Optimize'] },
+      { id: 'analytics', name: 'Analytics', type: 'Business', rarity: 'SSR', icon: '📈', atk: 88, def: 85, spd: 80, skills: ['KPI', 'Dashboard'] }
+    ];
+
+    function render() {
+      root.innerHTML = `
+        <div class="header">
+          <div class="title">Miyabi Agent Collection</div>
+          <div class="subtitle">Collect and deploy powerful AI agents</div>
+        </div>
+        <div class="cards-grid">
+          ${AGENTS.map(agent => `
+            <div class="card ${agent.type.toLowerCase()}" data-agent="${agent.id}">
+              <div class="card-shine"></div>
+              <div class="card-rarity">${agent.rarity}</div>
+              <div class="card-avatar">${agent.icon}</div>
+              <div class="card-name">${agent.name}</div>
+              <div class="card-type">${agent.type} Agent</div>
+              <div class="card-stats">
+                <div class="stat">
+                  <div class="stat-value">${agent.atk}</div>
+                  <div class="stat-label">ATK</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-value">${agent.def}</div>
+                  <div class="stat-label">DEF</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-value">${agent.spd}</div>
+                  <div class="stat-label">SPD</div>
+                </div>
+              </div>
+              <div class="card-skills">
+                ${agent.skills.map(s => `<span class="skill">${s}</span>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', async () => {
+          if (window.openai?.callTool) {
+            await window.openai.callTool('execute_agent', {
+              agent: card.dataset.agent
+            });
+          }
+        });
+      });
+    }
+
+    render();
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>

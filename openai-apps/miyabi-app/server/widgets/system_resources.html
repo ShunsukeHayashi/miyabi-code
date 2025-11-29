@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 600px; }
+    .header { margin-bottom: 16px; }
+    .title { font-size: 18px; font-weight: 600; }
+    .subtitle { font-size: 12px; color: var(--text-secondary, #666); }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric-card {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .metric-label { font-size: 12px; color: var(--text-secondary, #666); }
+    .metric-icon { font-size: 18px; }
+    .metric-value { font-size: 28px; font-weight: 700; }
+    .metric-unit { font-size: 14px; color: var(--text-secondary, #666); }
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-tertiary, #e0e0e0);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+    .progress-fill.low { background: #22c55e; }
+    .progress-fill.medium { background: #eab308; }
+    .progress-fill.high { background: #ef4444; }
+    .disk-section { margin-top: 16px; }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .disk-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .disk-icon { font-size: 20px; }
+    .disk-info { flex: 1; }
+    .disk-name { font-size: 13px; font-weight: 500; }
+    .disk-path { font-size: 11px; color: var(--text-secondary, #666); }
+    .disk-usage { text-align: right; }
+    .disk-percent { font-size: 14px; font-weight: 600; }
+    .disk-size { font-size: 11px; color: var(--text-secondary, #666); }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .metric-card, .disk-item { background: #2a2a2a; }
+      .metric-label, .subtitle, .disk-path, .disk-size { color: #999; }
+      .progress-bar { background: #333; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const {
+      cpu = { percent: 0, cores: 0 },
+      memory = { percent: 0, used: 0, total: 0 },
+      disk = { percent: 0, used: 0, total: 0 },
+      disks = [],
+      uptime = '',
+      load_average = []
+    } = data;
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+      let i = 0;
+      while (bytes >= 1024 && i < units.length - 1) {
+        bytes /= 1024;
+        i++;
+      }
+      return `${bytes.toFixed(1)} ${units[i]}`;
+    }
+
+    function getProgressClass(percent) {
+      if (percent < 60) return 'low';
+      if (percent < 85) return 'medium';
+      return 'high';
+    }
+
+    function formatUptime(seconds) {
+      if (!seconds) return 'Unknown';
+      const days = Math.floor(seconds / 86400);
+      const hours = Math.floor((seconds % 86400) / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      if (days > 0) return `${days}d ${hours}h`;
+      if (hours > 0) return `${hours}h ${mins}m`;
+      return `${mins}m`;
+    }
+
+    const cpuPercent = cpu.percent || cpu.usage || 0;
+    const memPercent = memory.percent || (memory.used / memory.total * 100) || 0;
+    const diskPercent = disk.percent || (disk.used / disk.total * 100) || 0;
+
+    root.innerHTML = `
+      <div class="header">
+        <div class="title">System Resources</div>
+        <div class="subtitle">${uptime ? `Uptime: ${formatUptime(uptime)}` : ''} ${load_average?.length ? `Load: ${load_average.map(l => l.toFixed(2)).join(', ')}` : ''}</div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">CPU</span>
+            <span class="metric-icon">⚡</span>
+          </div>
+          <div class="metric-value">${cpuPercent.toFixed(1)}<span class="metric-unit">%</span></div>
+          <div class="progress-bar">
+            <div class="progress-fill ${getProgressClass(cpuPercent)}" style="width: ${cpuPercent}%"></div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Memory</span>
+            <span class="metric-icon">🧠</span>
+          </div>
+          <div class="metric-value">${memPercent.toFixed(1)}<span class="metric-unit">%</span></div>
+          <div class="progress-bar">
+            <div class="progress-fill ${getProgressClass(memPercent)}" style="width: ${memPercent}%"></div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Disk</span>
+            <span class="metric-icon">💾</span>
+          </div>
+          <div class="metric-value">${diskPercent.toFixed(1)}<span class="metric-unit">%</span></div>
+          <div class="progress-bar">
+            <div class="progress-fill ${getProgressClass(diskPercent)}" style="width: ${diskPercent}%"></div>
+          </div>
+        </div>
+
+        ${cpu.cores ? `
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Cores</span>
+            <span class="metric-icon">🔲</span>
+          </div>
+          <div class="metric-value">${cpu.cores}</div>
+        </div>
+        ` : ''}
+      </div>
+
+      ${disks?.length ? `
+      <div class="disk-section">
+        <div class="section-title">Storage Volumes</div>
+        ${disks.map(d => `
+          <div class="disk-item">
+            <span class="disk-icon">📁</span>
+            <div class="disk-info">
+              <div class="disk-name">${d.device || d.name || 'Disk'}</div>
+              <div class="disk-path">${d.mountpoint || d.path || '/'}</div>
+            </div>
+            <div class="disk-usage">
+              <div class="disk-percent">${(d.percent || d.usage || 0).toFixed(1)}%</div>
+              <div class="disk-size">${formatBytes(d.used)} / ${formatBytes(d.total)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      ` : ''}
+    `;
+
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>

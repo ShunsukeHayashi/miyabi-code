@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 12px; max-width: 600px; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .title { font-size: 16px; font-weight: 600; }
+    .tabs { display: flex; gap: 4px; }
+    .tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: var(--bg-secondary, #f0f0f0);
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+    }
+    .tab.active { background: var(--accent, #667eea); color: white; }
+    .pr-list { display: flex; flex-direction: column; gap: 8px; }
+    .pr-card {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.1s;
+    }
+    .pr-card:hover { transform: translateX(2px); }
+    .pr-card.selected { border-color: var(--accent, #667eea); }
+    .pr-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .pr-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .pr-status.open { background: #22c55e; }
+    .pr-status.closed { background: #ef4444; }
+    .pr-status.merged { background: #8b5cf6; }
+    .pr-number {
+      font-weight: 600;
+      color: var(--accent, #667eea);
+      font-size: 13px;
+    }
+    .pr-title {
+      font-size: 14px;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pr-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-secondary, #666);
+    }
+    .pr-branch {
+      font-family: monospace;
+      font-size: 11px;
+      background: var(--bg-tertiary, #e0e0e0);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .pr-checks {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .check {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .check.pass { background: #dcfce7; color: #16a34a; }
+    .check.fail { background: #fee2e2; color: #dc2626; }
+    .check.pending { background: #fef3c7; color: #d97706; }
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-secondary, #666);
+    }
+    .action-bar { margin-top: 16px; }
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      background: var(--accent, #667eea);
+      color: white;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .pr-card, .tab { background: #2a2a2a; }
+      .pr-meta { color: #999; }
+      .pr-branch { background: #333; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+    let widgetState = window.openai?.widgetState ?? { selectedPR: null, filter: 'open' };
+
+    const { pull_requests = [], prs = pull_requests } = data;
+
+    function filterPRs() {
+      if (widgetState.filter === 'all') return prs;
+      return prs.filter(pr => pr.state === widgetState.filter || pr.status === widgetState.filter);
+    }
+
+    function selectPR(prNumber) {
+      widgetState.selectedPR = prNumber;
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+      render();
+    }
+
+    function setFilter(filter) {
+      widgetState.filter = filter;
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+      render();
+    }
+
+    async function viewPR() {
+      if (!widgetState.selectedPR) return;
+      if (window.openai?.callTool) {
+        await window.openai.callTool('get_pr', { pr_number: widgetState.selectedPR });
+      }
+    }
+
+    function render() {
+      const filteredPRs = filterPRs();
+
+      root.innerHTML = `
+        <div class="header">
+          <span class="title">Pull Requests</span>
+          <div class="tabs">
+            <button class="tab ${widgetState.filter === 'open' ? 'active' : ''}" data-filter="open">Open</button>
+            <button class="tab ${widgetState.filter === 'closed' ? 'active' : ''}" data-filter="closed">Closed</button>
+            <button class="tab ${widgetState.filter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+          </div>
+        </div>
+
+        ${filteredPRs.length === 0 ? `
+          <div class="empty-state">No ${widgetState.filter} pull requests</div>
+        ` : `
+          <div class="pr-list">
+            ${filteredPRs.map(pr => `
+              <div class="pr-card ${widgetState.selectedPR === pr.number ? 'selected' : ''}" data-pr="${pr.number}">
+                <div class="pr-header">
+                  <div class="pr-status ${pr.merged ? 'merged' : pr.state || 'open'}"></div>
+                  <span class="pr-number">#${pr.number}</span>
+                  <span class="pr-title">${pr.title}</span>
+                </div>
+                <div class="pr-meta">
+                  <span>${pr.author || pr.user?.login || 'Unknown'}</span>
+                  <span class="pr-branch">${pr.head?.ref || pr.branch || 'branch'}</span>
+                  ${pr.comments ? `<span>${pr.comments} comments</span>` : ''}
+                </div>
+                ${pr.checks ? `
+                  <div class="pr-checks">
+                    ${pr.checks.map(c => `
+                      <span class="check ${c.status || c.conclusion}">${c.name}</span>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="action-bar">
+            <button class="btn" ${!widgetState.selectedPR ? 'disabled' : ''} id="viewBtn">
+              View Details
+            </button>
+          </div>
+        `}
+      `;
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => setFilter(tab.dataset.filter));
+      });
+      document.querySelectorAll('.pr-card').forEach(card => {
+        card.addEventListener('click', () => selectPR(parseInt(card.dataset.pr)));
+      });
+      document.getElementById('viewBtn')?.addEventListener('click', viewPR);
+    }
+
+    render();
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>

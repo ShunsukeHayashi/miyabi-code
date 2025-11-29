@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 600px; }
+    .agent-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .agent-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .agent-avatar.success { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .agent-avatar.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .agent-avatar.running { background: linear-gradient(135deg, #3b82f6, #2563eb); animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .agent-info { flex: 1; }
+    .agent-name { font-size: 18px; font-weight: 600; }
+    .agent-status { font-size: 13px; color: var(--text-secondary, #666); margin-top: 2px; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-badge.success { background: #dcfce7; color: #16a34a; }
+    .status-badge.error { background: #fee2e2; color: #dc2626; }
+    .status-badge.running { background: #dbeafe; color: #2563eb; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      text-align: center;
+      padding: 12px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 10px;
+    }
+    .metric-value { font-size: 20px; font-weight: 700; }
+    .metric-label { font-size: 11px; color: var(--text-secondary, #666); margin-top: 4px; }
+    .output-section {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .output-header {
+      padding: 10px 12px;
+      background: var(--bg-tertiary, #eee);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    .output-content {
+      padding: 12px;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .files-section { margin-top: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .file-list { display: flex; flex-direction: column; gap: 6px; }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .file-icon { font-size: 14px; }
+    .file-path { font-family: monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .file-change { font-size: 11px; color: var(--text-secondary, #666); }
+    .file-change.add { color: #22c55e; }
+    .file-change.del { color: #ef4444; }
+    .action-bar { margin-top: 16px; display: flex; gap: 8px; }
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--accent, #667eea); color: white; }
+    .btn-secondary { background: var(--bg-secondary, #e5e5e5); }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .metric, .output-section, .file-item { background: #2a2a2a; }
+      .output-header { background: #222; }
+      .metric-label, .agent-status, .file-change { color: #999; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const {
+      agent = 'Agent',
+      status = 'success',
+      output = '',
+      duration_ms = 0,
+      files_changed = [],
+      commits = [],
+      error = ''
+    } = data;
+
+    const statusIcons = {
+      success: '✓',
+      error: '✗',
+      running: '⟳'
+    };
+
+    function formatDuration(ms) {
+      if (ms < 1000) return `${ms}ms`;
+      if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+      return `${(ms / 60000).toFixed(1)}m`;
+    }
+
+    root.innerHTML = `
+      <div class="agent-header">
+        <div class="agent-avatar ${status}">${statusIcons[status] || '?'}</div>
+        <div class="agent-info">
+          <div class="agent-name">${agent}</div>
+          <div class="agent-status">
+            <span class="status-badge ${status}">
+              ${status.charAt(0).toUpperCase() + status.slice(1)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-value">${formatDuration(duration_ms)}</div>
+          <div class="metric-label">Duration</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">${files_changed.length}</div>
+          <div class="metric-label">Files Changed</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">${commits.length}</div>
+          <div class="metric-label">Commits</div>
+        </div>
+      </div>
+
+      ${output || error ? `
+      <div class="output-section">
+        <div class="output-header">
+          <span>${error ? 'Error' : 'Output'}</span>
+          <span>${(output || error).length} chars</span>
+        </div>
+        <div class="output-content">${error || output}</div>
+      </div>
+      ` : ''}
+
+      ${files_changed.length > 0 ? `
+      <div class="files-section">
+        <div class="section-title">Files Changed</div>
+        <div class="file-list">
+          ${files_changed.slice(0, 10).map(f => {
+            const file = typeof f === 'string' ? { path: f } : f;
+            return `
+              <div class="file-item">
+                <span class="file-icon">📄</span>
+                <span class="file-path">${file.path || file.name || file}</span>
+                ${file.additions ? `<span class="file-change add">+${file.additions}</span>` : ''}
+                ${file.deletions ? `<span class="file-change del">-${file.deletions}</span>` : ''}
+              </div>
+            `;
+          }).join('')}
+          ${files_changed.length > 10 ? `
+            <div class="file-item" style="justify-content: center; color: var(--text-secondary, #666);">
+              +${files_changed.length - 10} more files
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      ` : ''}
+
+      ${commits.length > 0 ? `
+      <div class="files-section">
+        <div class="section-title">Commits</div>
+        <div class="file-list">
+          ${commits.map(c => `
+            <div class="file-item">
+              <span class="file-icon">📝</span>
+              <span class="file-path">${typeof c === 'string' ? c : c.message || c.sha?.slice(0,7) || c}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="action-bar">
+        <button class="btn btn-secondary" id="viewLogsBtn">View Logs</button>
+        ${status === 'error' ? `<button class="btn btn-primary" id="retryBtn">Retry</button>` : ''}
+      </div>
+    `;
+
+    document.getElementById('viewLogsBtn')?.addEventListener('click', async () => {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('get_agent_logs', { agent: agent.toLowerCase().replace('agent', '') });
+      }
+    });
+
+    document.getElementById('retryBtn')?.addEventListener('click', async () => {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('execute_agent', { agent: agent.toLowerCase().replace('agent', '') });
+      }
+    });
+
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>

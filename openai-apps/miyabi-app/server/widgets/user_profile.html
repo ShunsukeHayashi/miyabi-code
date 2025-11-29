@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 500px; }
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: white;
+      overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-info { flex: 1; }
+    .profile-name { font-size: 20px; font-weight: 600; }
+    .profile-username { font-size: 14px; color: var(--text-secondary, #666); }
+    .profile-bio { font-size: 13px; margin-top: 4px; }
+    .stats-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+      padding: 16px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+    }
+    .stat { text-align: center; }
+    .stat-value { font-size: 20px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--text-secondary, #666); }
+    .section { margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .info-list { display: flex; flex-direction: column; gap: 8px; }
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .info-icon { font-size: 16px; width: 24px; text-align: center; }
+    .info-value { color: var(--text-secondary, #666); }
+    .info-value a { color: var(--accent, #667eea); text-decoration: none; }
+    .current-project {
+      padding: 16px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+    }
+    .project-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .project-icon { font-size: 20px; }
+    .project-name { font-size: 14px; font-weight: 600; }
+    .project-repo {
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--accent, #667eea);
+    }
+    .action-bar { margin-top: 16px; display: flex; gap: 8px; }
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--accent, #667eea); color: white; }
+    .btn-secondary { background: var(--bg-secondary, #e5e5e5); }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .stats-row, .current-project { background: #2a2a2a; }
+      .profile-username, .stat-label, .info-value { color: #999; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const {
+      user = {},
+      project = {},
+      stats = {}
+    } = data;
+
+    const {
+      login = 'User',
+      name = '',
+      avatar_url = '',
+      bio = '',
+      company = '',
+      location = '',
+      email = '',
+      blog = '',
+      public_repos = 0,
+      followers = 0,
+      following = 0,
+      created_at = ''
+    } = user;
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    }
+
+    const initial = (name || login || 'U').charAt(0).toUpperCase();
+
+    root.innerHTML = `
+      <div class="profile-header">
+        <div class="avatar">
+          ${avatar_url ? `<img src="${avatar_url}" alt="${login}">` : initial}
+        </div>
+        <div class="profile-info">
+          <div class="profile-name">${name || login}</div>
+          <div class="profile-username">@${login}</div>
+          ${bio ? `<div class="profile-bio">${bio}</div>` : ''}
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-value">${public_repos}</div>
+          <div class="stat-label">Repositories</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${followers}</div>
+          <div class="stat-label">Followers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${following}</div>
+          <div class="stat-label">Following</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Details</div>
+        <div class="info-list">
+          ${company ? `
+            <div class="info-item">
+              <span class="info-icon">🏢</span>
+              <span class="info-value">${company}</span>
+            </div>
+          ` : ''}
+          ${location ? `
+            <div class="info-item">
+              <span class="info-icon">📍</span>
+              <span class="info-value">${location}</span>
+            </div>
+          ` : ''}
+          ${email ? `
+            <div class="info-item">
+              <span class="info-icon">📧</span>
+              <span class="info-value"><a href="mailto:${email}">${email}</a></span>
+            </div>
+          ` : ''}
+          ${blog ? `
+            <div class="info-item">
+              <span class="info-icon">🔗</span>
+              <span class="info-value"><a href="${blog}" target="_blank">${blog}</a></span>
+            </div>
+          ` : ''}
+          ${created_at ? `
+            <div class="info-item">
+              <span class="info-icon">📅</span>
+              <span class="info-value">Joined ${formatDate(created_at)}</span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      ${project.repository || project.github_repo ? `
+      <div class="section">
+        <div class="section-title">Current Project</div>
+        <div class="current-project">
+          <div class="project-header">
+            <span class="project-icon">📁</span>
+            <span class="project-name">${project.name || 'Active Project'}</span>
+          </div>
+          <div class="project-repo">${project.repository || project.github_repo}</div>
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="action-bar">
+        <button class="btn btn-primary" id="reposBtn">View Repositories</button>
+        <button class="btn btn-secondary" id="settingsBtn">Settings</button>
+      </div>
+    `;
+
+    document.getElementById('reposBtn')?.addEventListener('click', async () => {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('list_repositories', {});
+      }
+    });
+
+    document.getElementById('settingsBtn')?.addEventListener('click', async () => {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('setup_project', {});
+      }
+    });
+
+    if (window.openai?.notifyIntrinsicHeight) {
+      window.openai.notifyIntrinsicHeight(root.scrollHeight);
+    }
+  </script>
+</body>
+</html>
