@@ -1,55 +1,159 @@
 {
   "name": "miyabi-official-plugins",
-  "description": "完全自律型AI開発プラットフォーム Miyabi の公式プラグインコレクション",
+  "description": "Miyabi - 完全自律型AI開発オペレーションプラットフォーム。25+ Agents, 22 Skills, 50+ Commands",
   "owner": {
     "name": "Shunsuke Hayashi",
+    "email": "supernovasyun@gmail.com",
     "url": "https://github.com/ShunsukeHayashi"
   },
-  "repository": "https://github.com/ShunsukeHayashi/Miyabi",
-  "version": "1.0.0",
+  "repository": "https://github.com/customer-cloud/miyabi-private",
+  "version": "2.0.0",
+  "metadata": {
+    "homepage": "https://miyabi-world.com",
+    "documentation": "https://github.com/customer-cloud/miyabi-private/blob/main/.claude/README.md"
+  },
   "plugins": [
     {
-      "name": "miyabi",
-      "source": "./.claude-plugin",
-      "version": "0.8.2",
-      "description": "Miyabi 完全パッケージ - 7つのAgent、7つのコマンド、4つのHook",
+      "name": "miyabi-full",
+      "source": "./plugins/miyabi-full",
+      "version": "2.0.0",
+      "description": "Miyabi 完全パッケージ - 25 Agents + 22 Skills + 50 Commands + MCP + Hooks",
       "category": "automation",
-      "tags": ["ai", "agents", "devops", "automation", "github"],
+      "tags": ["ai", "agents", "devops", "automation", "github", "rust"],
       "author": {
         "name": "Shunsuke Hayashi",
         "email": "supernovasyun@gmail.com",
         "url": "https://github.com/ShunsukeHayashi"
       },
       "license": "Apache-2.0",
-      "featured": true
+      "featured": true,
+      "keywords": ["miyabi", "autonomous", "ai-agents", "full-stack"]
     },
     {
-      "name": "miyabi-core",
-      "source": "./plugins/miyabi-core",
-      "version": "0.8.2",
-      "description": "Miyabi コア機能のみ（init, status, auto）",
+      "name": "miyabi-coding-agents",
+      "source": "./plugins/miyabi-coding-agents",
+      "version": "2.0.0",
+      "description": "9 Coding Agents: Coordinator, CodeGen, Review, Issue, PR, Deployment, Hooks, Refresher, TmuxControl",
+      "category": "development",
+      "tags": ["coding", "agents", "rust", "github", "ci-cd"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["code-generation", "code-review", "github-automation"]
+    },
+    {
+      "name": "miyabi-business-agents",
+      "source": "./plugins/miyabi-business-agents",
+      "version": "2.0.0",
+      "description": "16 Business Agents: Entrepreneur, Persona, Market, Product, Content, Marketing, Sales, CRM, Analytics, YouTube, SNS, Note, ImageGen, Design, Funnel, Course",
+      "category": "business",
+      "tags": ["business", "marketing", "sales", "content", "analytics"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["business-automation", "marketing", "content-creation"]
+    },
+    {
+      "name": "miyabi-skills",
+      "source": "./plugins/miyabi-skills",
+      "version": "2.0.0",
+      "description": "22 Development Skills: Rust, TDD, Git, Security, Performance, Debugging, Documentation, etc.",
+      "category": "development",
+      "tags": ["skills", "rust", "testing", "security", "workflows"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["development-skills", "automation-workflows"]
+    },
+    {
+      "name": "miyabi-commands",
+      "source": "./plugins/miyabi-commands",
+      "version": "2.0.0",
+      "description": "50+ Slash Commands: /agent-run, /deploy, /review, /security-scan, /daily-update, /voicevox, etc.",
       "category": "productivity",
-      "tags": ["ai", "automation"],
+      "tags": ["commands", "cli", "automation"],
       "author": {
         "name": "Shunsuke Hayashi",
-        "email": "supernovasyun@gmail.com",
-        "url": "https://github.com/ShunsukeHayashi"
+        "email": "supernovasyun@gmail.com"
       },
-      "license": "Apache-2.0"
+      "license": "Apache-2.0",
+      "keywords": ["slash-commands", "productivity"]
     },
     {
-      "name": "miyabi-agents-only",
-      "source": "./plugins/miyabi-agents",
-      "version": "0.8.2",
-      "description": "Miyabi の7つのAgent定義のみ",
-      "category": "agents",
-      "tags": ["ai", "agents"],
+      "name": "miyabi-mcp-servers",
+      "source": "./plugins/miyabi-mcp-servers",
+      "version": "2.0.0",
+      "description": "MCP Server Configurations: Gemini 3, Lark, Obsidian, GitHub, tmux, and more",
+      "category": "integrations",
+      "tags": ["mcp", "servers", "integrations"],
       "author": {
         "name": "Shunsuke Hayashi",
-        "email": "supernovasyun@gmail.com",
-        "url": "https://github.com/ShunsukeHayashi"
+        "email": "supernovasyun@gmail.com"
       },
-      "license": "Apache-2.0"
+      "license": "Apache-2.0",
+      "keywords": ["mcp", "external-services"]
+    },
+    {
+      "name": "miyabi-hooks",
+      "source": "./plugins/miyabi-hooks",
+      "version": "2.0.0",
+      "description": "Pre/Post Tool Hooks: Session management, Git integration, MCP initialization",
+      "category": "automation",
+      "tags": ["hooks", "events", "automation"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["hooks", "triggers"]
+    },
+    {
+      "name": "miyabi-honoka",
+      "source": "./plugins/miyabi-honoka",
+      "version": "2.0.0",
+      "description": "穂花(ほのか) Agent - Udemy コース作成＆コンテンツ販売の専門家",
+      "category": "education",
+      "tags": ["udemy", "course", "education", "content"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["udemy", "online-course", "education"]
+    },
+    {
+      "name": "miyabi-water-spider",
+      "source": "./plugins/miyabi-water-spider",
+      "version": "2.0.0",
+      "description": "Water Spider Agent - システム監視・自動復旧・健全性チェック",
+      "category": "monitoring",
+      "tags": ["monitoring", "health-check", "auto-recovery"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["monitoring", "devops", "auto-recovery"]
+    },
+    {
+      "name": "miyabi-guardian",
+      "source": "./plugins/miyabi-guardian",
+      "version": "2.0.0",
+      "description": "Guardian Agent - 手動エスカレーション・クリティカル障害対応",
+      "category": "security",
+      "tags": ["security", "escalation", "incident-response"],
+      "author": {
+        "name": "Shunsuke Hayashi",
+        "email": "supernovasyun@gmail.com"
+      },
+      "license": "Apache-2.0",
+      "keywords": ["security", "incident-management"]
     }
   ]
 }

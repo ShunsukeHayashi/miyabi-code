@@ -1,0 +1,12 @@
+{
+  "name": "miyabi-water-spider",
+  "version": "2.0.0",
+  "description": "Water Spider Agent - システム監視・自動復旧・健全性チェック",
+  "author": {
+    "name": "Shunsuke Hayashi",
+    "email": "supernovasyun@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["monitoring", "health-check", "auto-recovery", "devops"],
+  "agents": "./agents"
+}
