@@ -4205,6 +4205,50 @@ async def mcp_handler(
         elif mcp_request.method == "tools/list":
             return MCPResponse(id=mcp_request.id, result={"tools": TOOLS}).dict()
 
+        elif mcp_request.method == "resources/list":
+            # Return widget resources list for OpenAI Apps SDK
+            resources_list = []
+            for widget_name, widget_info in WIDGET_RESOURCES.items():
+                resources_list.append({
+                    "uri": widget_info["uri"],
+                    "name": widget_name.replace("_", " ").title(),
+                    "description": widget_info.get("description", ""),
+                    "mimeType": "text/html+skybridge",
+                })
+            return MCPResponse(id=mcp_request.id, result={"resources": resources_list}).dict()
+
+        elif mcp_request.method == "resources/read":
+            # Read a specific widget resource
+            uri = mcp_request.params.get("uri", "")
+            widget_name = None
+            if uri.startswith("ui://widget/"):
+                filename = uri.replace("ui://widget/", "").replace(".html", "")
+                widget_name = filename.replace("-", "_")
+
+            if widget_name and widget_name in WIDGET_RESOURCES:
+                resource = get_widget_resource(widget_name)
+                if resource:
+                    return MCPResponse(
+                        id=mcp_request.id,
+                        result={
+                            "contents": [{
+                                "uri": resource["uri"],
+                                "mimeType": resource["mimeType"],
+                                "text": resource["text"],
+                            }],
+                            "_meta": resource.get("_meta", {}),
+                        }
+                    ).dict()
+
+            return {
+                "jsonrpc": "2.0",
+                "id": mcp_request.id,
+                "error": {
+                    "code": -32602,
+                    "message": f"Resource not found: {uri}"
+                }
+            }
+
         elif mcp_request.method == "tools/call":
             tool_name = mcp_request.params.get("name")
             arguments = mcp_request.params.get("arguments", {})
