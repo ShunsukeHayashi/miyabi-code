@@ -1,0 +1,236 @@
+name: 📨 Reserve Task Request
+description: Request A5-Reserve team to handle overflow task from your team
+title: "[RESERVE] "
+labels: ["📨 reserve:incoming", "🔥 priority:P1-High"]
+assignees:
+  - a5-lead
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 📨 Reserve Task Request
+
+        Thank you for requesting A5-Reserve team support. Please fill out all required fields to help us triage your request efficiently.
+
+        **Note**: This is for **overflow tasks only**. Regular work should be handled by your primary team.
+
+        **SLA**: We will triage within 2 hours and provide accept/reject decision within 4 hours for P1 tasks.
+
+  - type: dropdown
+    id: originating-team
+    attributes:
+      label: "👥 Originating Team"
+      description: Which team is requesting this overflow support?
+      options:
+        - "A1-Alpha"
+        - "A2-Beta"
+        - "A3-Gamma"
+        - "A4-Delta"
+        - "External"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "🔥 Priority Level"
+      description: What is the priority of this task? (Be honest - we verify!)
+      options:
+        - "P0-Critical - Security, Production Down, Data Loss"
+        - "P1-High - Major feature, significant bug"
+        - "P2-Medium - Standard feature or bug"
+        - "P3-Low - Nice-to-have, minor improvement"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: "✨ Task Type"
+      description: What type of work is this?
+      options:
+        - "Feature - New functionality"
+        - "Bug - Bug fix"
+        - "Refactor - Code improvement"
+        - "Docs - Documentation"
+        - "Test - Testing"
+        - "Deployment - Infrastructure/deployment"
+        - "Architecture - System design"
+    validations:
+      required: true
+
+  - type: textarea
+    id: overflow-reason
+    attributes:
+      label: "🚨 Why is this overflow?"
+      description: Explain why your team cannot handle this task
+      placeholder: |
+        Example:
+        - Team at full capacity with P0 incident response
+        - Requires skills not available in our team
+        - Blocking critical path and our team is bottlenecked
+        - Emergency task outside normal sprint planning
+    validations:
+      required: true
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: "📋 Task Description"
+      description: Clear, detailed description of what needs to be done
+      placeholder: |
+        Provide comprehensive details:
+        - What is the current state?
+        - What needs to change?
+        - Why is this needed?
+        - Any context or background information
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "✅ Acceptance Criteria"
+      description: How will we know this task is complete?
+      placeholder: |
+        List specific, measurable criteria:
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+
+        Example:
+        - [ ] API endpoint returns 200 status
+        - [ ] Unit tests pass with >80% coverage
+        - [ ] Documentation updated
+        - [ ] Deployed to staging and verified
+    validations:
+      required: true
+
+  - type: input
+    id: deadline
+    attributes:
+      label: "⏰ Deadline"
+      description: "When does this need to be completed? (YYYY-MM-DD HH:MM format)"
+      placeholder: "2025-12-01 17:00"
+    validations:
+      required: false
+
+  - type: textarea
+    id: business-impact
+    attributes:
+      label: "💼 Business Impact"
+      description: What happens if this is NOT done or delayed?
+      placeholder: |
+        Describe the impact:
+        - Customer-facing impact
+        - Revenue impact
+        - Security/compliance impact
+        - Team productivity impact
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "🔗 Dependencies & Blockers"
+      description: Are there any dependencies or blockers?
+      placeholder: |
+        List any:
+        - Dependent issues (use #issue-number)
+        - External dependencies
+        - Required resources
+        - Known blockers
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical-context
+    attributes:
+      label: "🔧 Technical Context"
+      description: Any technical details that would help us?
+      placeholder: |
+        Provide:
+        - Relevant code locations
+        - Architecture diagrams
+        - API specs
+        - Database schema
+        - Related PRs or issues
+        - Error logs or stack traces
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity-estimate
+    attributes:
+      label: "📊 Complexity Estimate"
+      description: "Your rough estimate of task complexity"
+      options:
+        - "Small - Few hours"
+        - "Medium - 1-2 days"
+        - "Large - 3-5 days"
+        - "Extra Large - 1+ weeks"
+        - "Unknown - Need analysis"
+    validations:
+      required: true
+
+  - type: textarea
+    id: resources-provided
+    attributes:
+      label: "📦 Resources Provided"
+      description: What resources/support can you provide?
+      placeholder: |
+        Examples:
+        - Subject matter expert available for questions
+        - Existing code/documentation links
+        - Test environment access
+        - Design mockups
+        - API credentials (via secure channel)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: quality-requirements
+    attributes:
+      label: "⭐ Quality Requirements"
+      description: What quality standards apply?
+      options:
+        - label: "Unit tests required"
+        - label: "Integration tests required"
+        - label: "Code review required"
+        - label: "Security review required"
+        - label: "Performance testing required"
+        - label: "Documentation required"
+
+  - type: input
+    id: contact
+    attributes:
+      label: "📞 Primary Contact"
+      description: "Who should we contact for questions? (@github-username)"
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: "📝 Additional Notes"
+      description: Anything else we should know?
+      placeholder: "Any other relevant information..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: "✅ Confirmation"
+      description: Please confirm you've reviewed the protocol
+      options:
+        - label: "I have read the [Reserve Task Acceptance Protocol](.claude/protocols/reserve-task-acceptance-protocol.md)"
+          required: true
+        - label: "This is a true overflow task that my team cannot handle"
+          required: true
+        - label: "I understand A5-Reserve may reject this request if capacity is unavailable"
+          required: true
+        - label: "I will be available to answer questions during task execution"
+          required: true
