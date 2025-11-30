@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 800px; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #ec4899, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-secondary, #666);
+      margin-top: 4px;
+    }
+    .collection-stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #6366f1;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-secondary, #666);
+      text-transform: uppercase;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: var(--bg-secondary, #f0f0f0);
+      color: var(--text-secondary, #666);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .filter-tab:hover {
+      transform: translateY(-2px);
+    }
+    .filter-tab.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .filter-tab:focus-visible {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      perspective: 1000px;
+    }
+
+    /* Card Container */
+    .card-container {
+      perspective: 1000px;
+    }
+
+    /* Card with 3D flip */
+    .card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/4;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Card Front */
+    .card-front {
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      color: white;
+    }
+    .card-front.coding {
+      background: linear-gradient(145deg, #0f4c81 0%, #1e3a5f 50%, #0d2137 100%);
+    }
+    .card-front.business {
+      background: linear-gradient(145deg, #4a1c59 0%, #2d1f3d 50%, #1a1025 100%);
+    }
+    .card-front.special {
+      background: linear-gradient(145deg, #f59e0b 0%, #d97706 50%, #92400e 100%);
+    }
+
+    /* Holographic effect */
+    .card-holo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        125deg,
+        transparent 0%,
+        rgba(255,255,255,0.1) 25%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0.1) 75%,
+        transparent 100%
+      );
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .card:hover .card-holo {
+      opacity: 1;
+      animation: holoShine 1.5s ease-in-out infinite;
+    }
+    @keyframes holoShine {
+      0% { transform: translateX(-100%) rotate(25deg); }
+      100% { transform: translateX(100%) rotate(25deg); }
+    }
+
+    /* Rarity badge */
+    .card-rarity {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .rarity-ssr {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a1a;
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+    }
+    .rarity-sr {
+      background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+      color: #1a1a1a;
+    }
+    .rarity-r {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    /* Card avatar with image */
+    .card-avatar {
+      width: 80px;
+      height: 80px;
+      margin: 20px auto 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+    .card-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-avatar.loading::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Card info */
+    .card-name {
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .card-type {
+      font-size: 11px;
+      text-align: center;
+      opacity: 0.7;
+      margin-bottom: 16px;
+    }
+
+    /* Stats bars */
+    .stats-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-icon {
+      width: 20px;
+      font-size: 12px;
+      text-align: center;
+    }
+    .stat-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .stat-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease-out;
+    }
+    .stat-bar.atk { background: linear-gradient(90deg, #ef4444, #f97316); }
+    .stat-bar.def { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+    .stat-bar.spd { background: linear-gradient(90deg, #22c55e, #84cc16); }
+    .stat-bar.int { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+    .stat-value-label {
+      width: 30px;
+      text-align: right;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Skills */
+    .card-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: auto;
+    }
+    .skill {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Card Back */
+    .card-back {
+      transform: rotateY(180deg);
+      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .back-header {
+      text-align: center;
+      margin-bottom: 12px;
+      color: white;
+    }
+    .back-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .back-description {
+      font-size: 11px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 16px;
+      flex: 1;
+    }
+    .back-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .back-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .back-btn:hover {
+      transform: translateY(-2px);
+    }
+    .back-btn.primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .back-btn.secondary {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+    .back-btn:focus-visible {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+
+    /* Modal for detailed view */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border, #e5e5e5);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-secondary, #f0f0f0);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .modal-image {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 16px;
+    }
+    .modal-analysis {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .analysis-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary, #666);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .analysis-content {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .analysis-loading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary, #666);
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--bg-secondary, #e5e5e5);
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary, #666);
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .filter-tab { background: #2a2a2a; color: #999; }
+      .modal-content { background: #1a1a1a; }
+      .modal-close { background: #333; color: #e5e5e5; }
+      .modal-analysis { background: #2a2a2a; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <div class="modal-overlay" id="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Agent Details</div>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    const root = document.getElementById('root');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalClose = document.getElementById('modalClose');
+    const data = window.openai?.toolOutput ?? {};
+
+    let widgetState = window.openai?.widgetState ?? {
+      filter: 'all',
+      flippedCards: {},
+      collectedAgents: [],
+      imageAnalysis: {}
+    };
+
+    const AGENTS = [
+      // Coding Agents (7)
+      { id: 'coordinator', name: 'Tsunagun', nameJa: '繋軍', type: 'Coding', rarity: 'SSR', icon: '🎯',
+        atk: 95, def: 85, spd: 90, int: 98, skills: ['Orchestrate', 'DAG Planning', 'Parallel Exec'],
+        description: 'The supreme commander who coordinates all agents. Masters the art of parallel task execution.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/tsunagun.png' },
+      { id: 'codegen', name: 'Tsukuroon', nameJa: '作ろーん', type: 'Coding', rarity: 'SSR', icon: '⚡',
+        atk: 100, def: 70, spd: 85, int: 95, skills: ['Generate', 'Refactor', 'Optimize'],
+        description: 'Lightning-fast code generator. Transforms ideas into production-ready code.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/tsukuroon.png' },
+      { id: 'review', name: 'Medaman', nameJa: '目玉マン', type: 'Coding', rarity: 'SR', icon: '🔍',
+        atk: 80, def: 95, spd: 75, int: 92, skills: ['Audit', 'Security Scan', 'Code Quality'],
+        description: 'The all-seeing eye. No bug escapes its thorough code review.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/medaman.png' },
+      { id: 'issue', name: 'Shikiroon', nameJa: '仕切ろーん', type: 'Coding', rarity: 'SR', icon: '📋',
+        atk: 75, def: 80, spd: 90, int: 88, skills: ['Analyze', 'Label', 'Prioritize'],
+        description: 'Master organizer of GitHub issues. Brings order to chaos.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/shikiroon.png' },
+      { id: 'pr', name: 'Matomeroon', nameJa: 'まとめろーん', type: 'Coding', rarity: 'SR', icon: '🔀',
+        atk: 85, def: 75, spd: 85, int: 86, skills: ['Draft', 'Merge', 'Conventional'],
+        description: 'The pull request specialist. Crafts perfect PRs every time.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/matomeroon.png' },
+      { id: 'deploy', name: 'Hakoboon', nameJa: '運ぼーん', type: 'Coding', rarity: 'SSR', icon: '🚀',
+        atk: 90, def: 90, spd: 80, int: 90, skills: ['CI/CD', 'Rollback', 'Health Check'],
+        description: 'Deployment master. Launches code to production with zero downtime.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/hakoboon.png' },
+      { id: 'refresher', name: 'Mitsukeroon', nameJa: '見つけろーん', type: 'Coding', rarity: 'R', icon: '🔄',
+        atk: 60, def: 85, spd: 95, int: 82, skills: ['Monitor', 'Update', 'Refresh'],
+        description: 'The vigilant watcher. Keeps everything up to date.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/mitsukeroon.png' },
+
+      // Business Agents (7)
+      { id: 'entrepreneur', name: 'AI Entrepreneur', type: 'Business', rarity: 'SSR', icon: '💼',
+        atk: 88, def: 82, spd: 78, int: 96, skills: ['Strategy', 'Vision', 'Leadership'],
+        description: 'The visionary founder. Guides startups from idea to success.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/entrepreneur.png' },
+      { id: 'market_research', name: 'Market Analyst', type: 'Business', rarity: 'SSR', icon: '📊',
+        atk: 85, def: 80, spd: 75, int: 94, skills: ['TAM Analysis', 'Competitor', 'Trends'],
+        description: 'Market intelligence expert. Uncovers insights from data.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/market.png' },
+      { id: 'persona', name: 'Persona Designer', type: 'Business', rarity: 'SR', icon: '👤',
+        atk: 80, def: 75, spd: 85, int: 90, skills: ['Journey Map', 'Segment', 'Empathy'],
+        description: 'Customer understanding specialist. Creates detailed personas.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/persona.png' },
+      { id: 'content', name: 'Content Creator', type: 'Business', rarity: 'SR', icon: '✍️',
+        atk: 90, def: 65, spd: 80, int: 88, skills: ['Write', 'SEO', 'Engage'],
+        description: 'Creative wordsmith. Produces viral content at scale.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/content.png' },
+      { id: 'youtube', name: 'YouTube Master', type: 'Business', rarity: 'SSR', icon: '🎬',
+        atk: 95, def: 70, spd: 75, int: 92, skills: ['Script', 'Optimize', 'Growth'],
+        description: 'Video content virtuoso. Grows channels exponentially.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/youtube.png' },
+      { id: 'analytics', name: 'Data Analyst', type: 'Business', rarity: 'SSR', icon: '📈',
+        atk: 88, def: 85, spd: 80, int: 97, skills: ['KPI', 'Dashboard', 'Predict'],
+        description: 'Data wizard. Transforms numbers into actionable insights.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/analytics.png' },
+      { id: 'sales', name: 'Sales Agent', type: 'Business', rarity: 'SR', icon: '🤝',
+        atk: 92, def: 78, spd: 88, int: 85, skills: ['Pitch', 'Negotiate', 'Close'],
+        description: 'Deal closer extraordinaire. Turns leads into loyal customers.',
+        image: 'https://mcp.miyabi-world.com/assets/agents/sales.png' }
+    ];
+
+    function updateState() {
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+    }
+
+    function getFilteredAgents() {
+      if (widgetState.filter === 'all') return AGENTS;
+      if (widgetState.filter === 'collected') {
+        return AGENTS.filter(a => widgetState.collectedAgents.includes(a.id));
+      }
+      return AGENTS.filter(a => a.type.toLowerCase() === widgetState.filter);
+    }
+
+    function toggleFlip(agentId) {
+      widgetState.flippedCards[agentId] = !widgetState.flippedCards[agentId];
+      updateState();
+      render();
+    }
+
+    async function executeAgent(agent) {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('execute_agent', { agent: agent.id });
+      }
+    }
+
+    async function analyzeAgentImage(agent) {
+      modalTitle.textContent = agent.name;
+      modalBody.innerHTML = `
+        <img class="modal-image" src="${agent.image}" alt="${agent.name}" onerror="this.style.display='none'">
+        <div class="modal-analysis">
+          <div class="analysis-title">
+            <span>🔮</span> Gemini 3 Pro Analysis
+          </div>
+          <div class="analysis-loading">
+            <div class="spinner"></div>
+            <span>Analyzing with Gemini 3 Pro...</span>
+          </div>
+        </div>
+      `;
+      modal.classList.add('active');
+
+      if (window.openai?.callTool) {
+        try {
+          const result = await window.openai.callTool('gemini_analyze_image', {
+            image_url: agent.image,
+            prompt: `Analyze this AI agent character card image for "${agent.name}". Describe its visual design, character style, and how it represents the agent's abilities: ${agent.skills.join(', ')}. Provide insights for UI/UX improvement.`,
+            analysis_type: 'ui_review'
+          });
+
+          widgetState.imageAnalysis[agent.id] = result?.analysis || 'Analysis complete';
+          updateState();
+
+          const analysisEl = modalBody.querySelector('.modal-analysis');
+          if (analysisEl) {
+            analysisEl.innerHTML = `
+              <div class="analysis-title">
+                <span>🔮</span> Gemini 3 Pro Analysis
+              </div>
+              <div class="analysis-content">${widgetState.imageAnalysis[agent.id]}</div>
+            `;
+          }
+        } catch (e) {
+          console.error('Analysis failed:', e);
+        }
+      }
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    function render() {
+      const agents = getFilteredAgents();
+      const ssrCount = AGENTS.filter(a => a.rarity === 'SSR').length;
+      const srCount = AGENTS.filter(a => a.rarity === 'SR').length;
+
+      root.innerHTML = `
+        <div class="header">
+          <div class="logo">🌸</div>
+          <div class="title">Miyabi Agent TCG</div>
+          <div class="subtitle">Collect, Train, and Deploy AI Agents</div>
+          <div class="collection-stats">
+            <div class="stat-item">
+              <div class="stat-value">${AGENTS.length}</div>
+              <div class="stat-label">Total Agents</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${ssrCount}</div>
+              <div class="stat-label">SSR Cards</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${srCount}</div>
+              <div class="stat-label">SR Cards</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-tabs">
+          ${['all', 'coding', 'business', 'collected'].map(filter => `
+            <button class="filter-tab ${widgetState.filter === filter ? 'active' : ''}" data-filter="${filter}">
+              ${filter === 'all' ? '🎴 All' : filter === 'coding' ? '💻 Coding' : filter === 'business' ? '💼 Business' : '⭐ Collected'}
+            </button>
+          `).join('')}
+        </div>
+
+        ${agents.length === 0 ? `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div>No agents in this category</div>
+          </div>
+        ` : `
+          <div class="cards-grid">
+            ${agents.map(agent => `
+              <div class="card-container">
+                <div class="card ${widgetState.flippedCards[agent.id] ? 'flipped' : ''}" data-agent="${agent.id}">
+                  <div class="card-face card-front ${agent.type.toLowerCase()}">
+                    <div class="card-holo"></div>
+                    <div class="card-rarity rarity-${agent.rarity.toLowerCase()}">${agent.rarity}</div>
+                    <div class="card-avatar ${!agent.image ? '' : 'has-image'}">
+                      ${agent.image ? `<img src="${agent.image}" alt="${agent.name}" onerror="this.parentElement.innerHTML='${agent.icon}'">` : agent.icon}
+                    </div>
+                    <div class="card-name">${agent.name}</div>
+                    <div class="card-type">${agent.nameJa || ''} · ${agent.type}</div>
+                    <div class="stats-container">
+                      <div class="stat-row">
+                        <span class="stat-icon">⚔️</span>
+                        <div class="stat-bar-bg"><div class="stat-bar atk" style="width: ${agent.atk}%"></div></div>
+                        <span class="stat-value-label">${agent.atk}</span>
+                      </div>
+                      <div class="stat-row">
+                        <span class="stat-icon">🛡️</span>
+                        <div class="stat-bar-bg"><div class="stat-bar def" style="width: ${agent.def}%"></div></div>
+                        <span class="stat-value-label">${agent.def}</span>
+                      </div>
+                      <div class="stat-row">
+                        <span class="stat-icon">💨</span>
+                        <div class="stat-bar-bg"><div class="stat-bar spd" style="width: ${agent.spd}%"></div></div>
+                        <span class="stat-value-label">${agent.spd}</span>
+                      </div>
+                      <div class="stat-row">
+                        <span class="stat-icon">🧠</span>
+                        <div class="stat-bar-bg"><div class="stat-bar int" style="width: ${agent.int}%"></div></div>
+                        <span class="stat-value-label">${agent.int}</span>
+                      </div>
+                    </div>
+                    <div class="card-skills">
+                      ${agent.skills.map(s => `<span class="skill">${s}</span>`).join('')}
+                    </div>
+                  </div>
+                  <div class="card-face card-back">
+                    <div class="back-header">
+                      <div class="back-name">${agent.name}</div>
+                    </div>
+                    <div class="back-description">${agent.description}</div>
+                    <div class="back-actions">
+                      <button class="back-btn primary" data-action="execute" data-agent="${agent.id}">
+                        ▶️ Execute
+                      </button>
+                      <button class="back-btn secondary" data-action="analyze" data-agent="${agent.id}">
+                        🔮 Analyze
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      `;
+
+      // Event listeners
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          widgetState.filter = tab.dataset.filter;
+          updateState();
+          render();
+        });
+      });
+
+      document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (!e.target.closest('.back-btn')) {
+            toggleFlip(card.dataset.agent);
+          }
+        });
+      });
+
+      document.querySelectorAll('.back-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const agentId = btn.dataset.agent;
+          const agent = AGENTS.find(a => a.id === agentId);
+          if (!agent) return;
+
+          if (btn.dataset.action === 'execute') {
+            executeAgent(agent);
+          } else if (btn.dataset.action === 'analyze') {
+            analyzeAgentImage(agent);
+          }
+        });
+      });
+
+      if (window.openai?.notifyIntrinsicHeight) {
+        window.openai.notifyIntrinsicHeight(root.scrollHeight);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

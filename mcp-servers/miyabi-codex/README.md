@@ -90,7 +90,25 @@ Use codex_exec with prompt "Refactor this function" and model "opus" and cd "/pa
 
 ---
 
-### 2. `codex_exec_yolo`
+### 2. `codex_reply`
+
+Send a follow-up prompt to the active Claude Code session (codex reply).
+
+**Parameters**:
+- `prompt` (required): Follow-up content
+- `model` (optional): `sonnet`, `opus`, or `haiku`
+- `cd` (optional): Working directory
+- `search` (optional): Enable web search
+- `full_auto` (optional): Run without approvals (limited sandboxing)
+
+**Example**:
+```
+Use codex_reply with prompt "続き: テスト追加もお願い" and cd "/path/to/project"
+```
+
+---
+
+### 3. `codex_exec_yolo`
 
 🚨 **DANGEROUS**: Execute codex in YOLO mode (NO approvals, NO sandboxing).
 
@@ -113,7 +131,7 @@ Use codex_exec_yolo with prompt "Deploy to production" and confirm_danger true
 
 ---
 
-### 3. `codex_resume`
+### 4. `codex_resume`
 
 Resume the previous codex session.
 
@@ -127,7 +145,7 @@ Use codex_resume to continue previous work
 
 ---
 
-### 4. `codex_version`
+### 5. `codex_version`
 
 Get codex CLI version.
 
@@ -143,7 +161,7 @@ codex-cli 0.58.0
 
 ---
 
-### 5. `codex_login`
+### 6. `codex_login`
 
 Login to codex (ChatGPT OAuth or API key).
 

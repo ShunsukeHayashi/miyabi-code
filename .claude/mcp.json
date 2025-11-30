@@ -75,6 +75,15 @@
 
     "//": "=== Optional Servers (Enable as needed) ===",
 
+    "miyabi-codex": {
+      "command": "node",
+      "args": [
+        "/Users/shunsuke/Dev/01-miyabi/_core/miyabi-private/mcp-servers/miyabi-codex/dist/index.js"
+      ],
+      "disabled": false,
+      "description": "Codex CLI MCP wrapper (codex_exec, codex_reply, etc.)"
+    },
+
     "context-engineering": {
       "command": "node",
       "args": [

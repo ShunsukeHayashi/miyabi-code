@@ -1,0 +1,4 @@
+include LICENSE
+include docs/README.md
+include requirements.txt
+recursive-include webapp_framework *.py

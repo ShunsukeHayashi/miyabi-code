@@ -1,0 +1,33 @@
+# Agent Orchestration Framework - 依存関係
+# Claude Code & OpenAI Agents SDK 協調フレームワーク
+
+# コアライブラリ
+anthropic>=0.18.0
+openai>=1.12.0
+tiktoken>=0.5.2
+
+# 非同期処理
+asyncio
+
+# ロギング（標準ライブラリだが明示）
+# logging
+
+# データ検証
+pydantic>=2.0.0
+
+# テスト
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# モック/スタブ
+pytest-mock>=3.11.0
+
+# セキュリティ
+cryptography>=41.0.0
+
+# ユーティリティ
+python-dotenv>=1.0.0
+
+# オプション: Miyabi統合用
+# miyabi-agent-sdk>=1.0.0  # Miyabi固有のSDK（存在する場合）

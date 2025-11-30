@@ -17,6 +17,14 @@ const CodexExecSchema = z.object({
   full_auto: z.boolean().optional(),
 });
 
+const CodexReplySchema = z.object({
+  prompt: z.string(),
+  model: z.enum(['sonnet', 'opus', 'haiku']).optional(),
+  cd: z.string().optional(),
+  search: z.boolean().optional(),
+  full_auto: z.boolean().optional(),
+});
+
 const CodexExecYoloSchema = z.object({
   prompt: z.string(),
   model: z.enum(['sonnet', 'opus', 'haiku']).optional(),
@@ -46,10 +54,13 @@ async function execCodex(args: string[]): Promise<string> {
   }
 }
 
+type CodexSubcommand = 'exec' | 'reply';
+
 /**
  * Build codex command arguments
  */
 function buildCodexArgs(
+  subcommand: CodexSubcommand,
   prompt: string,
   options: {
     model?: string;
@@ -59,7 +70,7 @@ function buildCodexArgs(
     yolo?: boolean;
   }
 ): string[] {
-  const args: string[] = ['exec'];
+  const args: string[] = [subcommand];
 
   // Add model flag
   if (options.model) {
@@ -102,7 +113,7 @@ async function codexExec(
   search?: boolean,
   fullAuto?: boolean
 ): Promise<string> {
-  const args = buildCodexArgs(prompt, {
+  const args = buildCodexArgs('exec', prompt, {
     model,
     cd,
     search,
@@ -129,7 +140,7 @@ async function codexExecYolo(
     );
   }
 
-  const args = buildCodexArgs(prompt, {
+  const args = buildCodexArgs('exec', prompt, {
     model,
     cd,
     yolo: true,
@@ -184,6 +195,26 @@ async function codexLogin(): Promise<string> {
   }
 }
 
+/**
+ * Tool 6: Reply to an existing codex session
+ */
+async function codexReply(
+  prompt: string,
+  model?: string,
+  cd?: string,
+  search?: boolean,
+  fullAuto?: boolean
+): Promise<string> {
+  const args = buildCodexArgs('reply', prompt, {
+    model,
+    cd,
+    search,
+    fullAuto,
+  });
+
+  return await execCodex(args);
+}
+
 // Create MCP Server
 const server = new Server(
   {
@@ -209,6 +240,37 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           prompt: {
             type: 'string',
             description: 'Task description for codex to execute',
+          },
+          model: {
+            type: 'string',
+            enum: ['sonnet', 'opus', 'haiku'],
+            description: 'Claude model to use (default: sonnet)',
+          },
+          cd: {
+            type: 'string',
+            description: 'Working directory',
+          },
+          search: {
+            type: 'boolean',
+            description: 'Enable web search',
+          },
+          full_auto: {
+            type: 'boolean',
+            description: 'Run without approvals (limited sandboxing)',
+          },
+        },
+        required: ['prompt'],
+      },
+    },
+    {
+      name: 'codex_reply',
+      description: 'Reply to an existing Claude Code CLI session (codex reply)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          prompt: {
+            type: 'string',
+            description: 'Follow-up prompt for the active codex session',
           },
           model: {
             type: 'string',
@@ -302,6 +364,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'codex_exec': {
         const validated = CodexExecSchema.parse(args || {});
         result = await codexExec(
+          validated.prompt,
+          validated.model,
+          validated.cd,
+          validated.search,
+          validated.full_auto
+        );
+        break;
+      }
+
+      case 'codex_reply': {
+        const validated = CodexReplySchema.parse(args || {});
+        result = await codexReply(
           validated.prompt,
           validated.model,
           validated.cd,

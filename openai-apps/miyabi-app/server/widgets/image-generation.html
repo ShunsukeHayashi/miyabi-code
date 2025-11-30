@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 600px; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .header-text { flex: 1; }
+    .title { font-size: 18px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: var(--text-secondary, #666); }
+
+    /* Generation Status */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .status-badge.generating {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+    .status-badge.completed {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+    .status-badge.error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    /* Loading Animation */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      text-align: center;
+    }
+    .loading-animation {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+    }
+    .loading-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 3px solid transparent;
+      border-radius: 50%;
+      animation: ringRotate 1.5s linear infinite;
+    }
+    .loading-ring:nth-child(1) {
+      border-top-color: #f59e0b;
+      animation-delay: 0s;
+    }
+    .loading-ring:nth-child(2) {
+      width: 80%;
+      height: 80%;
+      top: 10%;
+      left: 10%;
+      border-right-color: #ef4444;
+      animation-delay: -0.5s;
+      animation-direction: reverse;
+    }
+    .loading-ring:nth-child(3) {
+      width: 60%;
+      height: 60%;
+      top: 20%;
+      left: 20%;
+      border-bottom-color: #8b5cf6;
+      animation-delay: -1s;
+    }
+    .loading-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+    }
+    @keyframes ringRotate {
+      to { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .loading-subtext {
+      font-size: 13px;
+      color: var(--text-secondary, #666);
+    }
+    .loading-progress {
+      width: 200px;
+      height: 4px;
+      background: var(--bg-secondary, #e5e5e5);
+      border-radius: 2px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .loading-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b, #ef4444, #8b5cf6);
+      background-size: 200% 100%;
+      animation: progressFlow 2s ease-in-out infinite;
+      transform-origin: left;
+    }
+    @keyframes progressFlow {
+      0% { transform: scaleX(0); background-position: 0% 0%; }
+      50% { transform: scaleX(0.7); background-position: 100% 0%; }
+      100% { transform: scaleX(1); background-position: 0% 0%; }
+    }
+
+    /* Generated Image Display */
+    .image-result {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--bg-secondary, #f5f5f5);
+      margin-bottom: 20px;
+    }
+    .generated-image {
+      width: 100%;
+      display: block;
+      border-radius: 16px;
+    }
+    .image-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+    }
+    .image-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .image-meta {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    /* Card Preview (TCG Style) */
+    .card-preview {
+      position: relative;
+      width: 280px;
+      margin: 0 auto 20px;
+      perspective: 1000px;
+    }
+    .card-frame {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+    .card-preview:hover .card-frame {
+      transform: rotateY(10deg) rotateX(5deg);
+    }
+    .card-image {
+      width: 100%;
+      display: block;
+    }
+    .card-holographic {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        125deg,
+        transparent 0%,
+        rgba(255,255,255,0.1) 25%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0.1) 75%,
+        transparent 100%
+      );
+      background-size: 200% 200%;
+      animation: holoShine 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes holoShine {
+      0%, 100% { background-position: 200% 200%; opacity: 0; }
+      50% { background-position: 0% 0%; opacity: 1; }
+    }
+    .rarity-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .rarity-R { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+    .rarity-SR { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+    .rarity-SSR { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .rarity-UR { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+
+    /* Generation Config Display */
+    .config-section {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .config-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-secondary, #666);
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .config-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .config-label {
+      font-size: 11px;
+      color: var(--text-tertiary, #999);
+      text-transform: uppercase;
+    }
+    .config-value {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn:focus-visible {
+      outline: 2px solid #f59e0b;
+      outline-offset: 2px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: white;
+    }
+    .btn-secondary {
+      background: var(--bg-secondary, #f0f0f0);
+      color: var(--text-primary, #1a1a1a);
+    }
+
+    /* Error State */
+    .error-container {
+      text-align: center;
+      padding: 40px;
+    }
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .error-text {
+      font-size: 14px;
+      color: #ef4444;
+      margin-bottom: 16px;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .config-section { background: #2a2a2a; }
+      .btn-secondary { background: #333; color: #e5e5e5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const {
+      status = 'idle', // idle, generating, completed, error
+      agent_name = '',
+      style = 'anime',
+      rarity = 'SR',
+      element = 'tech',
+      image_url = null,
+      image_base64 = null,
+      prompt_used = '',
+      error = null,
+      generation_time = null
+    } = data;
+
+    const STYLE_LABELS = {
+      'anime': 'Anime',
+      'pixel_art': 'Pixel Art',
+      'realistic': 'Realistic',
+      'chibi': 'Chibi',
+      'cyberpunk': 'Cyberpunk'
+    };
+
+    const ELEMENT_ICONS = {
+      'fire': '🔥',
+      'water': '💧',
+      'earth': '🌍',
+      'wind': '💨',
+      'light': '✨',
+      'dark': '🌙',
+      'tech': '⚡'
+    };
+
+    async function regenerate() {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('generate_agent_card_image', {
+          agent_name: agent_name,
+          style: style,
+          rarity: rarity,
+          element: element
+        });
+      }
+    }
+
+    async function downloadImage() {
+      if (image_url) {
+        const link = document.createElement('a');
+        link.href = image_url;
+        link.download = `${agent_name}_${rarity}_card.png`;
+        link.click();
+      } else if (image_base64) {
+        const link = document.createElement('a');
+        link.href = `data:image/png;base64,${image_base64}`;
+        link.download = `${agent_name}_${rarity}_card.png`;
+        link.click();
+      }
+    }
+
+    async function saveToCollection() {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('save_to_collection', {
+          agent_name: agent_name,
+          image_url: image_url || `data:image/png;base64,${image_base64}`,
+          rarity: rarity
+        });
+      }
+    }
+
+    function render() {
+      // Error state
+      if (status === 'error' || error) {
+        root.innerHTML = `
+          <div class="header">
+            <div class="header-icon">🎨</div>
+            <div class="header-text">
+              <div class="title">Gemini 3 Pro</div>
+              <div class="subtitle">Image Generation</div>
+            </div>
+          </div>
+          <div class="error-container">
+            <div class="error-icon">❌</div>
+            <div class="error-text">${error || 'Generation failed'}</div>
+            <button class="btn btn-primary" id="retryBtn">
+              🔄 Try Again
+            </button>
+          </div>
+        `;
+        document.getElementById('retryBtn')?.addEventListener('click', regenerate);
+        return;
+      }
+
+      // Loading/Generating state
+      if (status === 'generating' || (!image_url && !image_base64 && agent_name)) {
+        root.innerHTML = `
+          <div class="header">
+            <div class="header-icon">🎨</div>
+            <div class="header-text">
+              <div class="title">Gemini 3 Pro</div>
+              <div class="subtitle">Image Generation</div>
+            </div>
+          </div>
+          <span class="status-badge generating">
+            ⏳ Generating...
+          </span>
+          <div class="loading-container">
+            <div class="loading-animation">
+              <div class="loading-ring"></div>
+              <div class="loading-ring"></div>
+              <div class="loading-ring"></div>
+              <div class="loading-center">🎴</div>
+            </div>
+            <div class="loading-text">Creating ${agent_name} Card</div>
+            <div class="loading-subtext">
+              ${STYLE_LABELS[style] || style} style • ${rarity} rarity • ${ELEMENT_ICONS[element] || ''} ${element}
+            </div>
+            <div class="loading-progress">
+              <div class="loading-progress-bar"></div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Completed state with image
+      if (image_url || image_base64) {
+        const imageSrc = image_url || `data:image/png;base64,${image_base64}`;
+
+        root.innerHTML = `
+          <div class="header">
+            <div class="header-icon">🎨</div>
+            <div class="header-text">
+              <div class="title">Gemini 3 Pro</div>
+              <div class="subtitle">Image Generation</div>
+            </div>
+          </div>
+          <span class="status-badge completed">
+            ✅ Generated Successfully
+          </span>
+
+          <div class="card-preview">
+            <div class="card-frame">
+              <img class="card-image" src="${imageSrc}" alt="${agent_name} Card" />
+              <div class="card-holographic"></div>
+              <span class="rarity-badge rarity-${rarity}">${rarity}</span>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <div class="config-title">Generation Details</div>
+            <div class="config-grid">
+              <div class="config-item">
+                <span class="config-label">Agent</span>
+                <span class="config-value">${agent_name}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Style</span>
+                <span class="config-value">${STYLE_LABELS[style] || style}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Rarity</span>
+                <span class="config-value">${rarity}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Element</span>
+                <span class="config-value">${ELEMENT_ICONS[element] || ''} ${element}</span>
+              </div>
+              ${generation_time ? `
+                <div class="config-item">
+                  <span class="config-label">Generation Time</span>
+                  <span class="config-value">${generation_time}s</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          ${prompt_used ? `
+            <div class="config-section">
+              <div class="config-title">Prompt Used</div>
+              <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary, #666);">
+                ${prompt_used}
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="actions">
+            <button class="btn btn-secondary" id="downloadBtn">
+              📥 Download
+            </button>
+            <button class="btn btn-primary" id="regenerateBtn">
+              🔄 Regenerate
+            </button>
+          </div>
+        `;
+
+        document.getElementById('downloadBtn')?.addEventListener('click', downloadImage);
+        document.getElementById('regenerateBtn')?.addEventListener('click', regenerate);
+      } else {
+        // Idle state - no generation yet
+        root.innerHTML = `
+          <div class="header">
+            <div class="header-icon">🎨</div>
+            <div class="header-text">
+              <div class="title">Gemini 3 Pro</div>
+              <div class="subtitle">Image Generation</div>
+            </div>
+          </div>
+          <div class="loading-container">
+            <div style="font-size: 64px; margin-bottom: 16px;">🎴</div>
+            <div class="loading-text">Ready to Generate</div>
+            <div class="loading-subtext">
+              Use the generate_agent_card_image tool to create a new agent card
+            </div>
+          </div>
+        `;
+      }
+
+      if (window.openai?.notifyIntrinsicHeight) {
+        window.openai.notifyIntrinsicHeight(root.scrollHeight);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

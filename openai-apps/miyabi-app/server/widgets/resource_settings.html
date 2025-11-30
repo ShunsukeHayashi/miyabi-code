@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 20px; max-width: 700px; }
+    .header { margin-bottom: 24px; }
+    .title { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .title-icon { font-size: 24px; }
+    .subtitle { font-size: 13px; color: var(--text-secondary, #666); margin-top: 6px; }
+
+    .section { margin-bottom: 24px; }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary, #666); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .current-repo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .current-repo-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+    }
+    .current-repo-info { flex: 1; }
+    .current-repo-name { font-size: 16px; font-weight: 600; }
+    .current-repo-full { font-size: 12px; color: var(--text-secondary, #666); margin-top: 2px; }
+    .current-repo-status { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+    .status-text { font-size: 11px; color: #22c55e; }
+
+    .search-container { position: relative; margin-bottom: 12px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #999; }
+    .search-box {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border: 1px solid var(--border, #e0e0e0);
+      border-radius: 10px;
+      font-size: 14px;
+      background: var(--bg-secondary, #f5f5f5);
+      transition: all 0.2s;
+    }
+    .search-box:focus {
+      outline: none;
+      border-color: var(--accent, #6366f1);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .filter-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      border: 1px solid var(--border, #e0e0e0);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover { background: var(--bg-secondary, #f5f5f5); }
+    .filter-tab.active {
+      background: var(--accent, #6366f1);
+      color: white;
+      border-color: var(--accent, #6366f1);
+    }
+
+    .repo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .repo-list::-webkit-scrollbar { width: 6px; }
+    .repo-list::-webkit-scrollbar-track { background: transparent; }
+    .repo-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    .repo-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .repo-card:hover {
+      background: var(--bg-hover, #eee);
+      transform: translateX(4px);
+    }
+    .repo-card.selected {
+      border-color: var(--accent, #6366f1);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .repo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--bg-tertiary, #e0e0e0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .repo-info { flex: 1; min-width: 0; }
+    .repo-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .repo-full { font-size: 11px; color: var(--text-secondary, #666); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .repo-meta {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--text-tertiary, #999);
+    }
+    .repo-meta span { display: flex; align-items: center; gap: 3px; }
+    .private-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(251, 191, 36, 0.2);
+      color: #d97706;
+      font-weight: 500;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary, #666);
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .empty-desc { font-size: 12px; }
+
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border, #e0e0e0);
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      flex: 1;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary {
+      background: var(--bg-secondary, #f5f5f5);
+      color: var(--text-primary, #1a1a1a);
+    }
+    .btn-secondary:hover { background: var(--bg-hover, #e5e5e5); }
+
+    .loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border, #e0e0e0);
+      border-top-color: var(--accent, #6366f1);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .repo-card, .search-box { background: #2a2a2a; border-color: #3d3d3d; }
+      .repo-card:hover { background: #333; }
+      .repo-full, .repo-meta { color: #999; }
+      .current-repo { background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)); }
+      .filter-tab { border-color: #3d3d3d; }
+      .filter-tab:hover { background: #333; }
+      .btn-secondary { background: #333; color: #e5e5e5; }
+      .btn-secondary:hover { background: #404040; }
+      .private-badge { background: rgba(251, 191, 36, 0.15); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+    let widgetState = window.openai?.widgetState ?? {
+      selectedRepo: null,
+      searchQuery: '',
+      filter: 'all',
+      loading: false
+    };
+
+    const {
+      repositories = [],
+      current_project = null,
+      user = {},
+      error = null
+    } = data;
+
+    function filterRepos() {
+      let filtered = repositories;
+      const q = widgetState.searchQuery.toLowerCase();
+
+      // Apply search filter
+      if (q) {
+        filtered = filtered.filter(r =>
+          r.name.toLowerCase().includes(q) ||
+          r.full_name?.toLowerCase().includes(q) ||
+          r.description?.toLowerCase().includes(q)
+        );
+      }
+
+      // Apply type filter
+      if (widgetState.filter === 'private') {
+        filtered = filtered.filter(r => r.private);
+      } else if (widgetState.filter === 'public') {
+        filtered = filtered.filter(r => !r.private);
+      } else if (widgetState.filter === 'owned') {
+        filtered = filtered.filter(r => r.owner?.login === user.login || r.owner === user.login);
+      }
+
+      return filtered;
+    }
+
+    function selectRepo(repoId) {
+      widgetState.selectedRepo = widgetState.selectedRepo === repoId ? null : repoId;
+      updateState();
+      render();
+    }
+
+    function setFilter(filter) {
+      widgetState.filter = filter;
+      updateState();
+      render();
+    }
+
+    function onSearch(e) {
+      widgetState.searchQuery = e.target.value;
+      updateState();
+      render();
+    }
+
+    function updateState() {
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+    }
+
+    async function connectRepo() {
+      const selected = repositories.find(r => r.id === widgetState.selectedRepo);
+      if (!selected) return;
+
+      widgetState.loading = true;
+      render();
+
+      if (window.openai?.callTool) {
+        try {
+          await window.openai.callTool('set_project', {
+            repository: selected.full_name,
+            owner: selected.owner?.login || selected.owner,
+            name: selected.name
+          });
+        } catch (e) {
+          console.error('Failed to set project:', e);
+        }
+      }
+
+      widgetState.loading = false;
+      render();
+    }
+
+    async function refreshRepos() {
+      widgetState.loading = true;
+      render();
+
+      if (window.openai?.callTool) {
+        try {
+          await window.openai.callTool('list_repositories', { refresh: true });
+        } catch (e) {
+          console.error('Failed to refresh:', e);
+        }
+      }
+
+      widgetState.loading = false;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diff = now - d;
+      if (diff < 86400000) return 'Today';
+      if (diff < 172800000) return 'Yesterday';
+      if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function render() {
+      if (widgetState.loading) {
+        root.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        return;
+      }
+
+      const repos = filterRepos();
+      const selected = widgetState.selectedRepo;
+      const currentRepo = current_project?.repository || current_project?.github_repo;
+
+      root.innerHTML = `
+        <div class="header">
+          <div class="title">
+            <span class="title-icon">⚙️</span>
+            Resource Settings
+          </div>
+          <div class="subtitle">Configure GitHub repository connection for Miyabi agents</div>
+        </div>
+
+        ${currentRepo ? `
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Current Repository</span>
+          </div>
+          <div class="current-repo">
+            <div class="current-repo-icon">📦</div>
+            <div class="current-repo-info">
+              <div class="current-repo-name">${currentRepo.split('/').pop()}</div>
+              <div class="current-repo-full">${currentRepo}</div>
+              <div class="current-repo-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Connected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">${currentRepo ? 'Change Repository' : 'Select Repository'}</span>
+          </div>
+
+          <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-box" placeholder="Search repositories..." value="${widgetState.searchQuery}" id="searchInput">
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab ${widgetState.filter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+            <button class="filter-tab ${widgetState.filter === 'owned' ? 'active' : ''}" data-filter="owned">Owned</button>
+            <button class="filter-tab ${widgetState.filter === 'private' ? 'active' : ''}" data-filter="private">Private</button>
+            <button class="filter-tab ${widgetState.filter === 'public' ? 'active' : ''}" data-filter="public">Public</button>
+          </div>
+
+          <div class="repo-list">
+            ${repos.length === 0 ? `
+              <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-title">No repositories found</div>
+                <div class="empty-desc">${widgetState.searchQuery ? 'Try a different search term' : 'Connect your GitHub account to see repositories'}</div>
+              </div>
+            ` : repos.map(repo => `
+              <div class="repo-card ${selected === repo.id ? 'selected' : ''}" data-repo="${repo.id}">
+                <div class="repo-icon">${repo.private ? '🔒' : repo.fork ? '🔱' : '📁'}</div>
+                <div class="repo-info">
+                  <div class="repo-name">${repo.name}</div>
+                  <div class="repo-full">${repo.full_name || (repo.owner?.login || repo.owner) + '/' + repo.name}</div>
+                  <div class="repo-meta">
+                    ${repo.language ? `<span>💻 ${repo.language}</span>` : ''}
+                    ${repo.stargazers_count || repo.stars ? `<span>⭐ ${repo.stargazers_count || repo.stars}</span>` : ''}
+                    ${repo.updated_at ? `<span>📅 ${formatDate(repo.updated_at)}</span>` : ''}
+                  </div>
+                </div>
+                ${repo.private ? '<span class="private-badge">Private</span>' : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-secondary" id="refreshBtn">
+            🔄 Refresh
+          </button>
+          <button class="btn btn-primary" ${!selected ? 'disabled' : ''} id="connectBtn">
+            ${selected ? '✓ Connect Repository' : 'Select a Repository'}
+          </button>
+        </div>
+      `;
+
+      // Attach event listeners
+      document.getElementById('searchInput')?.addEventListener('input', onSearch);
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => setFilter(tab.dataset.filter));
+      });
+      document.querySelectorAll('.repo-card').forEach(card => {
+        card.addEventListener('click', () => selectRepo(parseInt(card.dataset.repo)));
+      });
+      document.getElementById('connectBtn')?.addEventListener('click', connectRepo);
+      document.getElementById('refreshBtn')?.addEventListener('click', refreshRepos);
+
+      if (window.openai?.notifyIntrinsicHeight) {
+        window.openai.notifyIntrinsicHeight(Math.min(root.scrollHeight, 600));
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

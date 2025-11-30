@@ -1,0 +1,22 @@
+Create a Python package 'data_toolkit' in the current directory with:
+
+Core structure:
+data_toolkit/
+├── __init__.py
+├── loader.py (DataLoader class with 5 methods: load_csv, load_json, validate, transform, save)
+├── analyzer.py (Analyzer class with 5 methods: mean, median, correlation, regression, summary)
+├── plotter.py (Plotter class with 5 methods: line_plot, scatter, histogram, boxplot, heatmap)
+├── utils.py (5 utility functions)
+└── tests/
+    ├── __init__.py
+    ├── test_loader.py (5 tests)
+    ├── test_analyzer.py (5 tests)
+    └── test_plotter.py (5 tests)
+
+Plus:
+- setup.py
+- README.md
+- requirements.txt
+
+Create all files in current directory. Do NOT use git worktree.
+Total: ~12 files, ~25 methods, 15 tests

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 600px; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .header-text { flex: 1; }
+    .title { font-size: 18px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: var(--text-secondary, #666); }
+
+    /* Image Preview */
+    .image-container {
+      position: relative;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--bg-secondary, #f5f5f5);
+    }
+    .image-preview {
+      width: 100%;
+      aspect-ratio: 16/10;
+      object-fit: contain;
+      background: #000;
+    }
+    .image-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+    }
+    .image-url {
+      font-size: 11px;
+      opacity: 0.8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Analysis Type Badge */
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .type-badge.ui_review { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+    .type-badge.code_analysis { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    .type-badge.diagram { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .type-badge.general { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+    /* Analysis Content */
+    .analysis-section {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .analysis-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .analysis-icon { font-size: 18px; }
+    .analysis-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .analysis-content {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .analysis-content ul {
+      margin: 12px 0;
+      padding-left: 20px;
+    }
+    .analysis-content li {
+      margin-bottom: 8px;
+    }
+    .analysis-content strong {
+      color: #6366f1;
+    }
+
+    /* Loading State */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--bg-secondary, #e5e5e5);
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-size: 14px;
+      color: var(--text-secondary, #666);
+    }
+    .loading-subtext {
+      font-size: 12px;
+      color: var(--text-tertiary, #999);
+      margin-top: 4px;
+    }
+
+    /* Insights Grid */
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .insight-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .insight-label {
+      font-size: 11px;
+      color: var(--text-secondary, #666);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .insight-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* Rating */
+    .rating {
+      display: flex;
+      gap: 4px;
+    }
+    .star {
+      font-size: 16px;
+    }
+    .star.filled { color: #f59e0b; }
+    .star.empty { color: #d1d5db; }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn:focus-visible {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .btn-secondary {
+      background: var(--bg-secondary, #f0f0f0);
+      color: var(--text-primary, #1a1a1a);
+    }
+
+    /* Error State */
+    .error-container {
+      text-align: center;
+      padding: 40px;
+      color: #ef4444;
+    }
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .error-text {
+      font-size: 14px;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .analysis-section { background: #2a2a2a; }
+      .insight-card { background: #333; box-shadow: none; }
+      .btn-secondary { background: #333; color: #e5e5e5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+
+    const {
+      image_url = '',
+      analysis_type = 'general',
+      analysis = null,
+      loading = false,
+      error = null,
+      insights = {}
+    } = data;
+
+    const TYPE_LABELS = {
+      'ui_review': { icon: '🎨', label: 'UI/UX Review' },
+      'code_analysis': { icon: '💻', label: 'Code Analysis' },
+      'diagram': { icon: '📊', label: 'Diagram Analysis' },
+      'general': { icon: '🔍', label: 'General Analysis' }
+    };
+
+    function renderStars(rating) {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(`<span class="star ${i <= rating ? 'filled' : 'empty'}">★</span>`);
+      }
+      return stars.join('');
+    }
+
+    function formatAnalysis(text) {
+      if (!text) return '';
+      // Convert markdown-like formatting
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n- /g, '<br>• ')
+        .replace(/\n/g, '<br>');
+    }
+
+    async function reanalyze() {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('gemini_analyze_image', {
+          image_url: image_url,
+          analysis_type: analysis_type
+        });
+      }
+    }
+
+    async function copyAnalysis() {
+      if (analysis) {
+        await navigator.clipboard.writeText(analysis);
+        // Show toast
+        if (window.openai?.callTool) {
+          await window.openai.callTool('show_notification', {
+            type: 'success',
+            title: 'Copied',
+            message: 'Analysis copied to clipboard'
+          });
+        }
+      }
+    }
+
+    function render() {
+      if (error) {
+        root.innerHTML = `
+          <div class="error-container">
+            <div class="error-icon">❌</div>
+            <div class="error-text">${error}</div>
+          </div>
+        `;
+        return;
+      }
+
+      if (loading || (!analysis && image_url)) {
+        root.innerHTML = `
+          <div class="header">
+            <div class="header-icon">🔮</div>
+            <div class="header-text">
+              <div class="title">Gemini 3 Pro</div>
+              <div class="subtitle">Image Analysis</div>
+            </div>
+          </div>
+          ${image_url ? `
+            <div class="image-container">
+              <img class="image-preview" src="${image_url}" alt="Analyzing..." onerror="this.style.display='none'">
+            </div>
+          ` : ''}
+          <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Analyzing with Gemini 3 Pro...</div>
+            <div class="loading-subtext">This may take a few seconds</div>
+          </div>
+        `;
+        return;
+      }
+
+      const typeInfo = TYPE_LABELS[analysis_type] || TYPE_LABELS.general;
+
+      root.innerHTML = `
+        <div class="header">
+          <div class="header-icon">🔮</div>
+          <div class="header-text">
+            <div class="title">Gemini 3 Pro</div>
+            <div class="subtitle">Image Analysis</div>
+          </div>
+        </div>
+
+        ${image_url ? `
+          <div class="image-container">
+            <img class="image-preview" src="${image_url}" alt="Analyzed image" onerror="this.style.display='none'">
+            <div class="image-overlay">
+              <div class="image-url">${image_url}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        <span class="type-badge ${analysis_type}">
+          ${typeInfo.icon} ${typeInfo.label}
+        </span>
+
+        <div class="analysis-section">
+          <div class="analysis-header">
+            <span class="analysis-icon">📝</span>
+            <span class="analysis-title">Analysis Result</span>
+          </div>
+          <div class="analysis-content">
+            ${formatAnalysis(analysis) || 'No analysis available'}
+          </div>
+
+          ${Object.keys(insights).length > 0 ? `
+            <div class="insights-grid">
+              ${insights.quality ? `
+                <div class="insight-card">
+                  <div class="insight-label">Quality Score</div>
+                  <div class="rating">${renderStars(insights.quality)}</div>
+                </div>
+              ` : ''}
+              ${insights.accessibility ? `
+                <div class="insight-card">
+                  <div class="insight-label">Accessibility</div>
+                  <div class="rating">${renderStars(insights.accessibility)}</div>
+                </div>
+              ` : ''}
+              ${insights.complexity ? `
+                <div class="insight-card">
+                  <div class="insight-label">Complexity</div>
+                  <div class="insight-value">${insights.complexity}</div>
+                </div>
+              ` : ''}
+              ${insights.recommendation ? `
+                <div class="insight-card">
+                  <div class="insight-label">Recommendation</div>
+                  <div class="insight-value">${insights.recommendation}</div>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" id="copyBtn">
+            📋 Copy
+          </button>
+          <button class="btn btn-primary" id="reanalyzeBtn">
+            🔄 Re-analyze
+          </button>
+        </div>
+      `;
+
+      document.getElementById('copyBtn')?.addEventListener('click', copyAnalysis);
+      document.getElementById('reanalyzeBtn')?.addEventListener('click', reanalyze);
+
+      if (window.openai?.notifyIntrinsicHeight) {
+        window.openai.notifyIntrinsicHeight(root.scrollHeight);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 20px; max-width: 700px; }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .header-title { font-size: 20px; font-weight: 700; }
+    .header-subtitle { font-size: 13px; color: var(--text-secondary, #666); }
+
+    /* Current Plan */
+    .current-plan {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .plan-info {}
+    .plan-name {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .plan-badge {
+      padding: 4px 8px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .plan-status {
+      font-size: 12px;
+      color: var(--text-secondary, #666);
+      margin-top: 4px;
+    }
+    .plan-status.active { color: #22c55e; }
+    .plan-price {
+      text-align: right;
+    }
+    .plan-amount {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .plan-period {
+      font-size: 12px;
+      color: var(--text-secondary, #666);
+    }
+
+    /* Usage */
+    .usage-section {
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .usage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .usage-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary, #666);
+    }
+    .usage-value {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-tertiary, #e0e0e0);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      border-radius: 4px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .progress-fill.warning { background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .progress-fill.danger { background: linear-gradient(90deg, #ef4444, #f43f5e); }
+    .usage-detail {
+      font-size: 11px;
+      color: var(--text-tertiary, #999);
+    }
+
+    /* Features */
+    .features-section {
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary, #666);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .feature-icon { font-size: 16px; }
+    .feature-icon.included { color: #22c55e; }
+    .feature-icon.locked { color: var(--text-tertiary, #999); opacity: 0.5; }
+    .feature-name { flex: 1; }
+    .feature-name.locked { color: var(--text-tertiary, #999); }
+
+    /* Pricing Tiers */
+    .pricing-section { margin-bottom: 24px; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .tier-card {
+      padding: 16px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 12px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .tier-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    .tier-card.current {
+      border-color: #6366f1;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+    }
+    .tier-card.popular::before {
+      content: 'POPULAR';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 12px;
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 4px;
+    }
+    .tier-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .tier-price {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .tier-price span {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary, #666);
+    }
+    .tier-features {
+      font-size: 11px;
+      color: var(--text-secondary, #666);
+      line-height: 1.6;
+    }
+    .tier-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tier-btn.primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .tier-btn.secondary {
+      background: var(--bg-tertiary, #e0e0e0);
+      color: var(--text-primary, #1a1a1a);
+    }
+    .tier-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Actions */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+    }
+    .btn-secondary {
+      background: var(--bg-secondary, #f0f0f0);
+      color: var(--text-primary, #1a1a1a);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-hover, #e5e5e5);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border, #e0e0e0);
+      color: var(--text-secondary, #666);
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .current-plan { background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(236, 72, 153, 0.15)); }
+      .usage-section, .feature-item, .tier-card { background: #2a2a2a; }
+      .tier-card:hover { background: #333; }
+      .progress-bar { background: #333; }
+      .btn-secondary { background: #333; color: #e5e5e5; }
+    }
+
+    /* Responsive */
+    @media (max-width: 500px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root">
+    <div style="text-align:center;padding:40px;color:#666;">Loading subscription...</div>
+  </div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+    let widgetState = window.openai?.widgetState ?? {
+      selectedTier: null
+    };
+
+    const {
+      subscription = null,
+      usage = {},
+      user = {}
+    } = data;
+
+    // Default subscription data if not provided
+    const currentSub = subscription || {
+      plan: 'free',
+      status: 'active',
+      current_period_end: null,
+      cancel_at_period_end: false
+    };
+
+    const currentUsage = {
+      agent_runs: usage.agent_runs || 0,
+      agent_limit: usage.agent_limit || 100,
+      storage_used: usage.storage_used || 0,
+      storage_limit: usage.storage_limit || 1
+    };
+
+    const TIERS = [
+      {
+        id: 'free',
+        name: 'Free',
+        price: '¥0',
+        period: '/mo',
+        features: ['3 Agents', '100 runs/mo', 'Community support'],
+        btnText: 'Current Plan',
+        btnClass: 'secondary'
+      },
+      {
+        id: 'pro',
+        name: 'Pro',
+        price: '¥2,980',
+        period: '/mo',
+        features: ['25 Agents', '1,000 runs/mo', 'Priority support', 'Custom workflows'],
+        btnText: 'Upgrade',
+        btnClass: 'primary',
+        popular: true
+      },
+      {
+        id: 'enterprise',
+        name: 'Enterprise',
+        price: 'Custom',
+        period: '',
+        features: ['Unlimited', 'Dedicated support', 'SLA guarantee', 'On-premise option'],
+        btnText: 'Contact Sales',
+        btnClass: 'secondary'
+      }
+    ];
+
+    const FEATURES = [
+      { name: '25 AI Agents', included: ['pro', 'enterprise'] },
+      { name: 'Priority Queue', included: ['pro', 'enterprise'] },
+      { name: 'Custom Workflows', included: ['pro', 'enterprise'] },
+      { name: 'Team Collaboration', included: ['pro', 'enterprise'] },
+      { name: 'API Access', included: ['pro', 'enterprise'] },
+      { name: 'Analytics Dashboard', included: ['enterprise'] },
+      { name: 'Dedicated Support', included: ['enterprise'] },
+      { name: 'SLA Guarantee', included: ['enterprise'] }
+    ];
+
+    function updateState() {
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+    }
+
+    function getUsagePercent() {
+      return Math.min(100, Math.round((currentUsage.agent_runs / currentUsage.agent_limit) * 100));
+    }
+
+    function getUsageClass() {
+      const percent = getUsagePercent();
+      if (percent >= 90) return 'danger';
+      if (percent >= 70) return 'warning';
+      return '';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'Never';
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    async function handleUpgrade(tierId) {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('start_checkout', {
+          plan: tierId
+        });
+      }
+    }
+
+    async function handleManage() {
+      if (window.openai?.callTool) {
+        await window.openai.callTool('manage_subscription', {});
+      }
+    }
+
+    function render() {
+      const usagePercent = getUsagePercent();
+      const usageClass = getUsageClass();
+      const planName = currentSub.plan?.charAt(0).toUpperCase() + currentSub.plan?.slice(1) || 'Free';
+
+      root.innerHTML = `
+        <div class="header">
+          <div class="header-left">
+            <div class="header-icon">💎</div>
+            <div>
+              <div class="header-title">Subscription</div>
+              <div class="header-subtitle">Manage your Miyabi Society plan</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="current-plan">
+          <div class="plan-header">
+            <div class="plan-info">
+              <div class="plan-name">
+                ${planName} Plan
+                ${currentSub.plan !== 'free' ? `<span class="plan-badge">${currentSub.status}</span>` : ''}
+              </div>
+              <div class="plan-status ${currentSub.status === 'active' ? 'active' : ''}">
+                ${currentSub.cancel_at_period_end
+                  ? `Cancels on ${formatDate(currentSub.current_period_end)}`
+                  : currentSub.current_period_end
+                    ? `Renews on ${formatDate(currentSub.current_period_end)}`
+                    : 'Free forever'}
+              </div>
+            </div>
+            <div class="plan-price">
+              <div class="plan-amount">${TIERS.find(t => t.id === currentSub.plan)?.price || '¥0'}</div>
+              <div class="plan-period">per month</div>
+            </div>
+          </div>
+
+          <div class="usage-section">
+            <div class="usage-header">
+              <span class="usage-title">Agent Runs This Month</span>
+              <span class="usage-value">${currentUsage.agent_runs.toLocaleString()} / ${currentUsage.agent_limit.toLocaleString()}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${usageClass}" style="width: ${usagePercent}%"></div>
+            </div>
+            <div class="usage-detail">
+              ${usagePercent >= 90
+                ? '⚠️ You are approaching your limit. Consider upgrading.'
+                : `${currentUsage.agent_limit - currentUsage.agent_runs} runs remaining`}
+            </div>
+          </div>
+        </div>
+
+        <div class="features-section">
+          <div class="section-title">Your Features</div>
+          <div class="features-grid">
+            ${FEATURES.map(feature => {
+              const isIncluded = feature.included.includes(currentSub.plan);
+              return `
+                <div class="feature-item">
+                  <span class="feature-icon ${isIncluded ? 'included' : 'locked'}">
+                    ${isIncluded ? '✓' : '🔒'}
+                  </span>
+                  <span class="feature-name ${isIncluded ? '' : 'locked'}">${feature.name}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="pricing-section">
+          <div class="section-title">Available Plans</div>
+          <div class="pricing-grid">
+            ${TIERS.map(tier => `
+              <div class="tier-card ${tier.id === currentSub.plan ? 'current' : ''} ${tier.popular ? 'popular' : ''}">
+                <div class="tier-name">${tier.name}</div>
+                <div class="tier-price">${tier.price}<span>${tier.period}</span></div>
+                <div class="tier-features">
+                  ${tier.features.map(f => `• ${f}`).join('<br>')}
+                </div>
+                <button class="tier-btn ${tier.btnClass}"
+                        data-tier="${tier.id}"
+                        ${tier.id === currentSub.plan ? 'disabled' : ''}>
+                  ${tier.id === currentSub.plan ? 'Current Plan' : tier.btnText}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="action-bar">
+          ${currentSub.plan !== 'free' ? `
+            <button class="btn btn-outline" id="manageBtn">
+              Manage Billing
+            </button>
+          ` : ''}
+          <button class="btn btn-secondary" id="invoicesBtn">
+            📄 View Invoices
+          </button>
+        </div>
+      `;
+
+      // Event listeners
+      document.querySelectorAll('.tier-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tierId = btn.dataset.tier;
+          if (tierId !== currentSub.plan) {
+            handleUpgrade(tierId);
+          }
+        });
+      });
+
+      document.getElementById('manageBtn')?.addEventListener('click', handleManage);
+      document.getElementById('invoicesBtn')?.addEventListener('click', () => {
+        if (window.openai?.callTool) {
+          window.openai.callTool('list_invoices', {});
+        }
+      });
+
+      if (window.openai?.notifyIntrinsicHeight) {
+        window.openai.notifyIntrinsicHeight(Math.min(root.scrollHeight, 800));
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

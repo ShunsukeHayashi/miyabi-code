@@ -1,0 +1,17 @@
+Create a Python class 'DataProcessor' in 'data_processor.py' with 10 methods:
+
+1. __init__(self, data: list) - initialize with data list
+2. get_data(self) - return the data
+3. add_item(self, item) - add an item to data
+4. remove_item(self, item) - remove an item from data
+5. get_length(self) - return data length
+6. get_sum(self) - return sum of numeric items
+7. get_average(self) - return average of numeric items
+8. filter_positive(self) - return only positive numbers
+9. sort_data(self, reverse=False) - sort the data
+10. clear_data(self) - clear all data
+
+Include:
+- Type hints for all methods
+- Docstrings for all methods
+- Error handling where appropriate

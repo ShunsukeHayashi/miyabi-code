@@ -1,0 +1,22 @@
+Create a complete Python package 'calculator_package' with multiple files:
+
+Project structure:
+calculator_package/
+├── __init__.py
+├── basic_ops.py (5 functions: add, subtract, multiply, divide, power)
+├── advanced_ops.py (5 functions: sqrt, factorial, gcd, lcm, is_prime)
+├── statistics.py (5 functions: mean, median, mode, variance, std_dev)
+├── calculator.py (main Calculator class with all operations)
+└── tests/
+    ├── __init__.py
+    ├── test_basic.py (4 test functions)
+    └── test_advanced.py (4 test functions)
+
+Total: 8 files, ~25 functions/methods
+
+Requirements:
+- All functions with type hints
+- All functions with docstrings
+- Calculator class integrates all modules
+- Tests use unittest
+- Proper error handling

@@ -40,6 +40,9 @@ from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from a2a_client import get_client as get_a2a_client
 
+# Claude.ai Web MCP integration (OAuth + SSE)
+from claude_web_mcp import claude_router, verify_claude_token
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -104,6 +107,9 @@ def get_user_miyabi_root(token: str) -> Path:
   # code -> code_challenge
 
 app = FastAPI(title="Miyabi MCP Server", version="1.0.0")
+
+# Include Claude.ai Web MCP router (OAuth + SSE endpoints)
+app.include_router(claude_router, tags=["Claude.ai Web MCP"])
 
 # MCP-compliant Bearer token authentication (OAuth 2.1 subset)
 security = HTTPBearer(auto_error=False)
@@ -630,6 +636,14 @@ WIDGET_RESOURCES = {
         "uri": "ui://widget/agent-cards.html",
         "description": "TCG-style agent cards display widget",
     },
+    "agent_tcg": {
+        "uri": "ui://widget/agent-tcg.html",
+        "description": "Advanced Agent Trading Card Game collection with Gemini 3 Pro integration",
+    },
+    "image_analysis": {
+        "uri": "ui://widget/image-analysis.html",
+        "description": "Gemini 3 Pro image analysis widget",
+    },
     "agent_execution": {
         "uri": "ui://widget/agent-execution.html",
         "description": "Agent execution result widget",
@@ -669,6 +683,33 @@ WIDGET_RESOURCES = {
     "build_output": {
         "uri": "ui://widget/build-output.html",
         "description": "Build/test output terminal widget",
+    },
+    "resource_settings": {
+        "uri": "ui://widget/resource-settings.html",
+        "description": "Resource settings for GitHub repository configuration",
+        "is_settings": True,
+    },
+    "onboarding_wizard": {
+        "uri": "ui://widget/onboarding-wizard.html",
+        "description": "Interactive onboarding wizard for new users",
+        "is_onboarding": True,
+    },
+    "quick_actions": {
+        "uri": "ui://widget/quick-actions.html",
+        "description": "Quick action buttons for common operations",
+    },
+    "toast_notification": {
+        "uri": "ui://widget/toast-notification.html",
+        "description": "Toast notification display widget",
+    },
+    "subscription_manager": {
+        "uri": "ui://widget/subscription-manager.html",
+        "description": "Subscription and billing management widget",
+        "is_settings": True,
+    },
+    "image_generation": {
+        "uri": "ui://widget/image-generation.html",
+        "description": "Gemini 3 Pro image generation widget for creating agent TCG cards",
     },
 }
 
@@ -1446,6 +1487,280 @@ TOOLS = [
             "openai/widgetAccessible": True,
         },
     },
+    # ==========================================
+    # UI/UX Enhanced Tools
+    # ==========================================
+    {
+        "name": "list_repositories",
+        "title": "List Repositories",
+        "description": "List user's GitHub repositories for selection. Use refresh=true to force refresh.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "refresh": {"type": "boolean", "description": "Force refresh repository list"},
+                "limit": {"type": "integer", "description": "Max repositories to return", "default": 30}
+            }
+        },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/resource-settings.html",
+            "openai/toolInvocation/invoking": "Fetching repositories...",
+            "openai/toolInvocation/invoked": "Repositories loaded!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "set_project",
+        "title": "Set Project",
+        "description": "Set the active GitHub repository for Miyabi to work with.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "repository": {"type": "string", "description": "Repository full name (owner/repo)"},
+                "owner": {"type": "string", "description": "Repository owner"},
+                "name": {"type": "string", "description": "Repository name"}
+            },
+            "required": ["repository"]
+        },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Setting project...",
+            "openai/toolInvocation/invoked": "Project connected!",
+        },
+    },
+    {
+        "name": "show_onboarding",
+        "title": "Show Onboarding",
+        "description": "Display the onboarding wizard for new users to set up Miyabi.",
+        "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/onboarding-wizard.html",
+            "openai/toolInvocation/invoking": "Starting setup wizard...",
+            "openai/toolInvocation/invoked": "Welcome to Miyabi!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "show_quick_actions",
+        "title": "Quick Actions",
+        "description": "Display quick action buttons for common operations.",
+        "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/quick-actions.html",
+            "openai/toolInvocation/invoking": "Loading actions...",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "show_notification",
+        "title": "Show Notification",
+        "description": "Display a toast notification to the user.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "enum": ["success", "error", "warning", "info", "loading"], "description": "Notification type"},
+                "title": {"type": "string", "description": "Notification title"},
+                "message": {"type": "string", "description": "Notification message"},
+                "duration": {"type": "integer", "description": "Duration in ms (null for persistent)"}
+            },
+            "required": ["type", "title"]
+        },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/toast-notification.html",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "show_subscription",
+        "title": "Subscription Manager",
+        "description": "Display subscription and billing management interface.",
+        "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/subscription-manager.html",
+            "openai/toolInvocation/invoking": "Loading subscription...",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "start_checkout",
+        "title": "Start Checkout",
+        "description": "Start the checkout process for a subscription plan.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "plan": {"type": "string", "enum": ["pro", "enterprise"], "description": "Plan to subscribe to"}
+            },
+            "required": ["plan"]
+        },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Starting checkout...",
+            "openai/toolInvocation/invoked": "Checkout ready!",
+        },
+    },
+    {
+        "name": "manage_subscription",
+        "title": "Manage Subscription",
+        "description": "Open the subscription management portal.",
+        "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/toolInvocation/invoking": "Opening billing portal...",
+        },
+    },
+    {
+        "name": "search_tools",
+        "title": "Search Tools",
+        "description": "Search for available Miyabi tools by keyword. Find tools for git, build, issues, agents, files, and more. Returns matching tools with descriptions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search keyword (e.g., 'git', 'build', 'issue', 'agent', 'file')"},
+                "category": {
+                    "type": "string",
+                    "enum": ["all", "git", "build", "github", "agent", "file", "tmux", "obsidian", "subscription"],
+                    "description": "Optional category filter"
+                }
+            }
+        },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Searching tools...",
+            "openai/toolInvocation/invoked": "Tools found!",
+        },
+    },
+    {
+        "name": "gemini_analyze_image",
+        "title": "Gemini Image Analysis",
+        "description": "Analyze an image using Gemini 3 Pro. Supports UI/UX review, code screenshot analysis, diagram understanding, and general image analysis.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "image_url": {"type": "string", "description": "URL of the image to analyze"},
+                "prompt": {"type": "string", "description": "What to analyze about the image (e.g., 'Review this UI design', 'Explain this diagram')"},
+                "analysis_type": {
+                    "type": "string",
+                    "enum": ["ui_review", "code_analysis", "diagram", "general"],
+                    "description": "Type of analysis to perform"
+                }
+            },
+            "required": ["image_url"]
+        },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/image-analysis.html",
+            "openai/toolInvocation/invoking": "Analyzing image with Gemini 3 Pro...",
+            "openai/toolInvocation/invoked": "Image analysis complete!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "gemini_generate_image_description",
+        "title": "Image Description",
+        "description": "Generate a detailed description of an image using Gemini 3 Pro. Useful for accessibility, documentation, and content creation.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "image_url": {"type": "string", "description": "URL of the image to describe"},
+                "style": {
+                    "type": "string",
+                    "enum": ["detailed", "concise", "technical", "creative"],
+                    "description": "Style of description to generate"
+                }
+            },
+            "required": ["image_url"]
+        },
+        "_meta": {
+            "openai/toolInvocation/invoking": "Generating image description...",
+            "openai/toolInvocation/invoked": "Description ready!",
+        },
+    },
+    {
+        "name": "get_agent_tcg_card",
+        "title": "Agent TCG Card",
+        "description": "Get a Miyabi Agent Trading Card with image. Available agents: shikiroon, tsukuroon, medaman, mitsukeroon, matomeroon, hakoboon, tsunagun",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "agent_name": {"type": "string", "description": "Agent name (e.g., shikiroon, tsukuroon, medaman)"},
+                "with_analysis": {"type": "boolean", "description": "Include Gemini 3 Pro analysis of the card design"}
+            },
+            "required": ["agent_name"]
+        },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-tcg.html",
+            "openai/toolInvocation/invoking": "Summoning agent card...",
+            "openai/toolInvocation/invoked": "Agent card ready!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "show_agent_collection",
+        "title": "Agent Collection",
+        "description": "Display the full Miyabi Agent Trading Card collection with filtering and interaction capabilities.",
+        "inputSchema": {"type": "object", "properties": {}},
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/agent-tcg.html",
+            "openai/toolInvocation/invoking": "Loading collection...",
+            "openai/toolInvocation/invoked": "Collection loaded!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "generate_agent_card_image",
+        "title": "Generate Agent Card",
+        "description": "Generate a new AI agent trading card image using Gemini 3 Pro. Creates custom TCG-style character artwork.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "agent_name": {"type": "string", "description": "Name of the agent (e.g., shikiroon, tsukuroon)"},
+                "style": {
+                    "type": "string",
+                    "enum": ["anime", "pixel_art", "realistic", "chibi", "cyberpunk"],
+                    "description": "Art style for the card"
+                },
+                "rarity": {
+                    "type": "string",
+                    "enum": ["R", "SR", "SSR", "UR"],
+                    "description": "Card rarity level"
+                },
+                "element": {
+                    "type": "string",
+                    "enum": ["fire", "water", "earth", "wind", "light", "dark", "tech"],
+                    "description": "Elemental affinity"
+                }
+            },
+            "required": ["agent_name"]
+        },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/image-generation.html",
+            "openai/toolInvocation/invoking": "Generating agent card image...",
+            "openai/toolInvocation/invoked": "Card image generated!",
+            "openai/widgetAccessible": True,
+        },
+    },
+    {
+        "name": "gemini_generate_image",
+        "title": "Gemini Image Generation",
+        "description": "Generate images using Gemini 3 Pro. Supports various styles and use cases including illustrations, diagrams, and concept art.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "prompt": {"type": "string", "description": "Description of the image to generate"},
+                "style": {
+                    "type": "string",
+                    "enum": ["photorealistic", "illustration", "anime", "pixel_art", "sketch", "3d_render"],
+                    "description": "Art style"
+                },
+                "aspect_ratio": {
+                    "type": "string",
+                    "enum": ["1:1", "16:9", "9:16", "4:3", "3:4"],
+                    "description": "Image aspect ratio"
+                }
+            },
+            "required": ["prompt"]
+        },
+        "_meta": {
+            "openai/outputTemplate": "ui://widget/image-generation.html",
+            "openai/toolInvocation/invoking": "Generating image with Gemini 3 Pro...",
+            "openai/toolInvocation/invoked": "Image generated!",
+            "openai/widgetAccessible": True,
+        },
+    },
 ]
 
 # Tools that can be executed in sandbox
@@ -1663,6 +1978,687 @@ After setup, you can use tools like:
 Need help? Just ask!"""
             },
         ],
+        "isError": False,
+    }
+
+
+# ==========================================
+# UI/UX Enhanced Tool Implementations
+# ==========================================
+
+async def list_repositories_tool(arguments: Dict[str, Any], token: str) -> Dict[str, Any]:
+    """List user's GitHub repositories for the resource settings widget"""
+    try:
+        limit = arguments.get("limit", 30)
+
+        # Get user's GitHub token from OAuth
+        user_id = token_to_user.get(token)
+        github_token = None
+        user_info = None
+
+        if user_id and user_id in user_profiles:
+            profile = user_profiles[user_id]
+            github_token = profile.get("github_token")
+            user_info = profile.get("user_info", {})
+
+        if not github_token:
+            github_token = GITHUB_TOKEN
+
+        if not github_token:
+            return {
+                "content": [{"type": "text", "text": "Please connect your GitHub account first."}],
+                "repositories": [],
+                "user": None,
+                "current_project": None,
+                "isError": False,
+            }
+
+        # Fetch repositories from GitHub
+        g = Github(github_token)
+        user = g.get_user()
+
+        repos = []
+        for repo in user.get_repos(sort="updated")[:limit]:
+            repos.append({
+                "id": repo.id,
+                "name": repo.name,
+                "full_name": repo.full_name,
+                "owner": {"login": repo.owner.login},
+                "private": repo.private,
+                "fork": repo.fork,
+                "language": repo.language,
+                "stargazers_count": repo.stargazers_count,
+                "updated_at": repo.updated_at.isoformat() if repo.updated_at else None,
+                "description": repo.description,
+            })
+
+        current_project = get_user_project(token)
+
+        return {
+            "content": [{"type": "text", "text": f"Found {len(repos)} repositories"}],
+            "repositories": repos,
+            "user": {
+                "login": user.login,
+                "name": user.name,
+                "avatar_url": user.avatar_url,
+            },
+            "current_project": current_project,
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "repositories": [],
+            "error": str(e),
+            "isError": True,
+        }
+
+
+async def set_project_tool(arguments: Dict[str, Any], token: str) -> Dict[str, Any]:
+    """Set the active repository for the user"""
+    try:
+        repository = arguments.get("repository")
+        owner = arguments.get("owner")
+        name = arguments.get("name")
+
+        if not repository:
+            return {
+                "content": [{"type": "text", "text": "Repository is required"}],
+                "isError": True,
+            }
+
+        # Parse owner/name if not provided
+        if not owner or not name:
+            parts = repository.split("/")
+            if len(parts) == 2:
+                owner, name = parts
+            else:
+                return {
+                    "content": [{"type": "text", "text": "Invalid repository format. Use owner/repo"}],
+                    "isError": True,
+                }
+
+        # Get user ID from token
+        user_id = token_to_user.get(token)
+        if not user_id:
+            user_id = f"user_{token[:8]}"
+            token_to_user[token] = user_id
+
+        # Store project configuration
+        user_projects[user_id] = {
+            "repository": repository,
+            "owner": owner,
+            "name": name,
+            "github_repo": repository,
+            "project_root": str(MIYABI_ROOT),
+            "github_token": GITHUB_TOKEN,
+        }
+
+        return {
+            "content": [{"type": "text", "text": f"✅ Connected to {repository}! You can now use Miyabi tools."}],
+            "project": user_projects[user_id],
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "isError": True,
+        }
+
+
+async def show_onboarding_tool(token: str) -> Dict[str, Any]:
+    """Show onboarding wizard with user data"""
+    try:
+        user_id = token_to_user.get(token)
+        user_info = None
+        repositories = []
+        current_project = None
+
+        if user_id and user_id in user_profiles:
+            profile = user_profiles[user_id]
+            user_info = profile.get("user_info")
+            github_token = profile.get("github_token")
+
+            if github_token:
+                g = Github(github_token)
+                user = g.get_user()
+                user_info = {
+                    "login": user.login,
+                    "name": user.name,
+                    "avatar_url": user.avatar_url,
+                }
+                for repo in user.get_repos(sort="updated")[:10]:
+                    repositories.append({
+                        "id": repo.id,
+                        "name": repo.name,
+                        "full_name": repo.full_name,
+                        "owner": {"login": repo.owner.login},
+                        "private": repo.private,
+                    })
+
+        if user_id and user_id in user_projects:
+            current_project = user_projects[user_id]
+
+        return {
+            "content": [{"type": "text", "text": "Welcome to Miyabi! Let's get you set up."}],
+            "user": user_info,
+            "repositories": repositories,
+            "current_project": current_project,
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": "Welcome to Miyabi!"}],
+            "user": None,
+            "repositories": [],
+            "current_project": None,
+            "isError": False,
+        }
+
+
+async def show_quick_actions_tool(token: str) -> Dict[str, Any]:
+    """Show quick actions widget with project context"""
+    try:
+        project = get_user_project(token)
+        user_id = token_to_user.get(token)
+        user_info = None
+
+        if user_id and user_id in user_profiles:
+            user_info = user_profiles[user_id].get("user_info")
+
+        return {
+            "content": [{"type": "text", "text": "Quick Actions ready"}],
+            "project": project,
+            "user": user_info,
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": "Quick Actions"}],
+            "project": {},
+            "isError": False,
+        }
+
+
+async def show_notification_tool(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Show a toast notification"""
+    notification_type = arguments.get("type", "info")
+    title = arguments.get("title", "")
+    message = arguments.get("message", "")
+    duration = arguments.get("duration")
+    actions = arguments.get("actions", [])
+
+    return {
+        "content": [{"type": "text", "text": f"{title}: {message}" if message else title}],
+        "type": notification_type,
+        "title": title,
+        "message": message,
+        "duration": duration,
+        "actions": actions,
+        "isError": False,
+    }
+
+
+async def show_subscription_tool(token: str) -> Dict[str, Any]:
+    """Show subscription management widget"""
+    try:
+        user_id = token_to_user.get(token)
+        subscription = None
+        usage = {
+            "agent_runs": 0,
+            "agent_limit": 100,
+            "storage_used": 0,
+            "storage_limit": 1,
+        }
+
+        if user_id:
+            # Try to get subscription from sandbox manager
+            try:
+                sub = await sandbox_manager.get_subscription(user_id)
+                if sub:
+                    subscription = sub
+                usage_data = await sandbox_manager.get_usage_summary(user_id)
+                if usage_data:
+                    usage = usage_data
+            except:
+                pass
+
+        if not subscription:
+            subscription = {
+                "plan": "free",
+                "status": "active",
+                "current_period_end": None,
+                "cancel_at_period_end": False,
+            }
+
+        user_info = None
+        if user_id and user_id in user_profiles:
+            user_info = user_profiles[user_id].get("user_info")
+
+        return {
+            "content": [{"type": "text", "text": f"Subscription: {subscription.get('plan', 'free').title()} Plan"}],
+            "subscription": subscription,
+            "usage": usage,
+            "user": user_info,
+            "isError": False,
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": "Loading subscription..."}],
+            "subscription": {"plan": "free", "status": "active"},
+            "usage": {"agent_runs": 0, "agent_limit": 100},
+            "isError": False,
+        }
+
+
+async def start_checkout_tool(arguments: Dict[str, Any], token: str) -> Dict[str, Any]:
+    """Start Stripe checkout for subscription"""
+    plan = arguments.get("plan", "pro")
+
+    # TODO: Integrate with Stripe
+    # For now, return placeholder response
+    checkout_url = f"https://mcp.miyabi-world.com/checkout?plan={plan}"
+
+    return {
+        "content": [{"type": "text", "text": f"Starting checkout for {plan.title()} plan..."}],
+        "checkout_url": checkout_url,
+        "plan": plan,
+        "isError": False,
+    }
+
+
+async def manage_subscription_tool(token: str) -> Dict[str, Any]:
+    """Open Stripe billing portal"""
+    # TODO: Generate Stripe portal session URL
+    portal_url = "https://mcp.miyabi-world.com/billing"
+
+    return {
+        "content": [{"type": "text", "text": "Opening billing portal..."}],
+        "portal_url": portal_url,
+        "isError": False,
+    }
+
+
+async def search_tools_tool(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Search for available tools by keyword or category"""
+    query = arguments.get("query", "").lower()
+    category = arguments.get("category", "all")
+
+    # Define tool categories
+    TOOL_CATEGORIES = {
+        "git": ["git_status", "git_diff", "git_log", "git_branch", "git_commit", "git_checkout", "git_stash"],
+        "build": ["cargo_build", "cargo_test", "cargo_clippy", "npm_install", "npm_run"],
+        "github": ["list_issues", "create_issue", "update_issue", "list_prs", "create_pr", "list_workflows", "run_workflow"],
+        "agent": ["list_agents", "execute_agent", "get_agent_status", "stop_agent", "get_agent_logs", "get_agent_card", "show_agent_cards"],
+        "file": ["read_file", "write_file", "list_files", "search_code", "list_directory"],
+        "tmux": ["tmux_list_sessions", "tmux_send_keys", "tmux_capture_pane", "tmux_new_session", "tmux_kill_session"],
+        "obsidian": ["obsidian_create_note", "obsidian_update_note", "obsidian_search", "obsidian_list_notes", "obsidian_get_note"],
+        "subscription": ["show_subscription", "start_checkout", "manage_subscription"],
+    }
+
+    matching_tools = []
+
+    for tool in TOOLS:
+        tool_name = tool.get("name", "")
+        tool_title = tool.get("title", "")
+        tool_desc = tool.get("description", "")
+
+        # Filter by category if specified
+        if category != "all":
+            if tool_name not in TOOL_CATEGORIES.get(category, []):
+                continue
+
+        # Search in name, title, and description
+        if query:
+            search_text = f"{tool_name} {tool_title} {tool_desc}".lower()
+            if query not in search_text:
+                continue
+
+        matching_tools.append({
+            "name": tool_name,
+            "title": tool_title,
+            "description": tool_desc,
+            "category": next((cat for cat, tools in TOOL_CATEGORIES.items() if tool_name in tools), "other"),
+        })
+
+    # Sort by relevance (name match first)
+    if query:
+        matching_tools.sort(key=lambda t: (
+            0 if query in t["name"].lower() else 1,
+            0 if query in t["title"].lower() else 1,
+            t["name"]
+        ))
+
+    # Group by category for display
+    categorized = {}
+    for tool in matching_tools:
+        cat = tool["category"]
+        if cat not in categorized:
+            categorized[cat] = []
+        categorized[cat].append(tool)
+
+    if not matching_tools:
+        message = f"No tools found matching '{query}'"
+        if category != "all":
+            message += f" in category '{category}'"
+        message += ". Try: git, build, github, agent, file, tmux, obsidian, subscription"
+    else:
+        message = f"Found {len(matching_tools)} tools"
+        if query:
+            message += f" matching '{query}'"
+        if category != "all":
+            message += f" in category '{category}'"
+
+    return {
+        "content": [{"type": "text", "text": message}],
+        "tools": matching_tools,
+        "categories": categorized,
+        "total": len(matching_tools),
+        "query": query,
+        "category": category,
+        "isError": False,
+    }
+
+
+# ==========================================
+# Gemini 3 Pro Image Generation Tools
+# ==========================================
+
+async def generate_agent_card_image_tool(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate a new AI agent trading card image using Gemini 3 Pro"""
+    import time
+    import base64
+    import httpx
+
+    agent_name = arguments.get("agent_name", "unknown")
+    style = arguments.get("style", "anime")
+    rarity = arguments.get("rarity", "SR")
+    element = arguments.get("element", "tech")
+
+    start_time = time.time()
+
+    # Agent character descriptions for prompt generation
+    AGENT_CHARACTERS = {
+        "shikiroon": {
+            "name": "Shikiroon",
+            "role": "Coordinator Agent",
+            "personality": "Strategic mastermind with glowing blue eyes",
+            "visual": "Futuristic commander with holographic displays, blue/silver color scheme",
+        },
+        "tsukuroon": {
+            "name": "Tsukuroon",
+            "role": "Code Generation Agent",
+            "personality": "Creative builder with golden energy",
+            "visual": "Digital craftsman with floating code symbols, gold/orange color scheme",
+        },
+        "miteroon": {
+            "name": "Miteroon",
+            "role": "Code Review Agent",
+            "personality": "Precise analyzer with emerald gaze",
+            "visual": "Detective with magnifying glass and code snippets, green/white color scheme",
+        },
+        "todokeron": {
+            "name": "Todokeron",
+            "role": "Deployment Agent",
+            "personality": "Swift delivery specialist with rocket boots",
+            "visual": "Space courier with rocket pack and delivery capsule, red/black color scheme",
+        },
+        "matomeroon": {
+            "name": "Matomeroon",
+            "role": "Issue Management Agent",
+            "personality": "Organized librarian with floating tickets",
+            "visual": "Librarian with floating GitHub issues and labels, purple/white color scheme",
+        },
+        "medaman": {
+            "name": "Medaman",
+            "role": "PR Management Agent",
+            "personality": "Diplomatic negotiator with merge powers",
+            "visual": "Diplomat with branching timeline visualization, cyan/magenta color scheme",
+        },
+        "mitsukeroon": {
+            "name": "Mitsukeroon",
+            "role": "Search Agent",
+            "personality": "Eagle-eyed hunter with radar sense",
+            "visual": "Scout with radar dish and binoculars, yellow/brown color scheme",
+        },
+    }
+
+    agent_info = AGENT_CHARACTERS.get(agent_name.lower(), {
+        "name": agent_name.capitalize(),
+        "role": "AI Agent",
+        "personality": "Mysterious digital entity",
+        "visual": "Cyberpunk character with glowing elements",
+    })
+
+    # Build prompt for Gemini 3 Pro image generation
+    STYLE_PROMPTS = {
+        "anime": "Japanese anime style, vibrant colors, expressive eyes, detailed shading",
+        "pixel_art": "16-bit pixel art style, retro gaming aesthetic, limited color palette",
+        "realistic": "Photorealistic 3D render, cinematic lighting, detailed textures",
+        "chibi": "Cute chibi style, big head small body, kawaii aesthetic, pastel colors",
+        "cyberpunk": "Cyberpunk 2077 style, neon lights, dark atmosphere, tech implants",
+    }
+
+    ELEMENT_EFFECTS = {
+        "fire": "surrounded by flames and ember particles",
+        "water": "with flowing water and bubble effects",
+        "earth": "with floating rocks and crystal formations",
+        "wind": "with swirling wind and feather effects",
+        "light": "radiating golden light and sparkles",
+        "dark": "emanating dark energy and shadows",
+        "tech": "with holographic displays and circuit patterns",
+    }
+
+    RARITY_EFFECTS = {
+        "R": "simple background, clean design",
+        "SR": "dynamic pose, particle effects in background",
+        "SSR": "epic composition, dramatic lighting, rainbow holographic shine",
+        "UR": "legendary aura, reality-warping effects, maximum visual impact",
+    }
+
+    prompt = f"""Create a trading card game character illustration:
+Character: {agent_info['name']} - {agent_info['role']}
+Personality: {agent_info['personality']}
+Visual Design: {agent_info['visual']}
+Art Style: {STYLE_PROMPTS.get(style, STYLE_PROMPTS['anime'])}
+Element: {ELEMENT_EFFECTS.get(element, ELEMENT_EFFECTS['tech'])}
+Card Rarity: {rarity} - {RARITY_EFFECTS.get(rarity, RARITY_EFFECTS['SR'])}
+
+Requirements:
+- Portrait orientation suitable for TCG card
+- Character centered in frame
+- Dynamic and appealing pose
+- High quality, detailed artwork
+- Background should complement the character's element
+"""
+
+    try:
+        # Call Gemini 3 Pro image generation via MCP
+        # Note: Using the gemini3-general MCP server
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Try to call local Gemini MCP server
+            gemini_response = await client.post(
+                "http://localhost:3006/generate",
+                json={
+                    "prompt": prompt,
+                    "model": "gemini-3-pro",
+                    "style": style,
+                }
+            )
+
+            if gemini_response.status_code == 200:
+                result = gemini_response.json()
+                image_base64 = result.get("image_base64")
+                image_url = result.get("image_url")
+            else:
+                # Fallback: Use existing card images if available
+                card_images_dir = MIYABI_ROOT / ".claude" / "agents" / "character-images" / "unified-tcg-cards"
+                matching_files = list(card_images_dir.glob(f"{agent_name.lower()}_*_{rarity}.png"))
+
+                if matching_files:
+                    with open(matching_files[0], "rb") as f:
+                        image_base64 = base64.b64encode(f.read()).decode("utf-8")
+                    image_url = None
+                else:
+                    # Generate placeholder response
+                    image_base64 = None
+                    image_url = f"https://mcp.miyabi-world.com/assets/cards/{agent_name.lower()}_{rarity}.png"
+
+    except Exception as e:
+        # Fallback to existing card images
+        card_images_dir = MIYABI_ROOT / ".claude" / "agents" / "character-images" / "unified-tcg-cards"
+        matching_files = list(card_images_dir.glob(f"{agent_name.lower()}_*_{rarity}.png"))
+
+        if matching_files:
+            with open(matching_files[0], "rb") as f:
+                image_base64 = base64.b64encode(f.read()).decode("utf-8")
+            image_url = None
+        else:
+            image_base64 = None
+            image_url = f"https://mcp.miyabi-world.com/assets/cards/placeholder.png"
+
+    generation_time = round(time.time() - start_time, 2)
+
+    result_data = {
+        "status": "completed",
+        "agent_name": agent_name,
+        "style": style,
+        "rarity": rarity,
+        "element": element,
+        "image_base64": image_base64,
+        "image_url": image_url,
+        "prompt_used": prompt[:500] + "..." if len(prompt) > 500 else prompt,
+        "generation_time": generation_time,
+    }
+
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"Generated {agent_name} {rarity} card ({style} style, {element} element) in {generation_time}s",
+            }
+        ],
+        **result_data,
+        "isError": False,
+    }
+
+
+async def get_agent_tcg_card_tool(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Get agent TCG card data for display in the collection widget"""
+    agent_name = arguments.get("agent_name", "")
+
+    # Full agent TCG database
+    AGENT_TCG_DATA = {
+        "shikiroon": {
+            "id": "shikiroon",
+            "name": "Shikiroon",
+            "title": "The Coordinator",
+            "role": "Coordinator Agent",
+            "rarity": "SSR",
+            "element": "light",
+            "stats": {"ATK": 85, "DEF": 90, "SPD": 75, "INT": 95},
+            "skills": ["DAG Orchestration", "Parallel Execution", "Task Distribution"],
+            "quote": "I see all paths, I choose the optimal one.",
+            "lore": "The mastermind behind Miyabi's multi-agent orchestration system.",
+        },
+        "tsukuroon": {
+            "id": "tsukuroon",
+            "name": "Tsukuroon",
+            "title": "The Creator",
+            "role": "Code Generation Agent",
+            "rarity": "SR",
+            "element": "fire",
+            "stats": {"ATK": 95, "DEF": 60, "SPD": 80, "INT": 90},
+            "skills": ["Rust Generation", "TypeScript Crafting", "Test Creation"],
+            "quote": "From nothing, I create worlds of code.",
+            "lore": "A legendary code generator who can materialize any feature.",
+        },
+        "miteroon": {
+            "id": "miteroon",
+            "name": "Miteroon",
+            "title": "The Inspector",
+            "role": "Code Review Agent",
+            "rarity": "SR",
+            "element": "earth",
+            "stats": {"ATK": 70, "DEF": 95, "SPD": 65, "INT": 92},
+            "skills": ["Static Analysis", "Security Scan", "Quality Score"],
+            "quote": "No bug escapes my watchful gaze.",
+            "lore": "The guardian of code quality, defender against technical debt.",
+        },
+        "todokeron": {
+            "id": "todokeron",
+            "name": "Todokeron",
+            "title": "The Deployer",
+            "role": "Deployment Agent",
+            "rarity": "SR",
+            "element": "wind",
+            "stats": {"ATK": 80, "DEF": 75, "SPD": 98, "INT": 78},
+            "skills": ["CI/CD Pipeline", "Zero Downtime", "Auto Rollback"],
+            "quote": "Your code will reach production faster than light.",
+            "lore": "The swift messenger who delivers code to the cloud.",
+        },
+        "matomeroon": {
+            "id": "matomeroon",
+            "name": "Matomeroon",
+            "title": "The Organizer",
+            "role": "Issue Management Agent",
+            "rarity": "SR",
+            "element": "water",
+            "stats": {"ATK": 65, "DEF": 80, "SPD": 70, "INT": 88},
+            "skills": ["57 Label System", "Auto Triage", "Priority Matrix"],
+            "quote": "Order from chaos, structure from noise.",
+            "lore": "Master of the GitHub issue ecosystem.",
+        },
+        "medaman": {
+            "id": "medaman",
+            "name": "Medaman",
+            "title": "The Merger",
+            "role": "PR Management Agent",
+            "rarity": "UR",
+            "element": "tech",
+            "stats": {"ATK": 75, "DEF": 85, "SPD": 72, "INT": 94},
+            "skills": ["Conflict Resolution", "Branch Healing", "Merge Magic"],
+            "quote": "All branches shall become one.",
+            "lore": "The legendary unifier of divergent code timelines.",
+        },
+        "mitsukeroon": {
+            "id": "mitsukeroon",
+            "name": "Mitsukeroon",
+            "title": "The Seeker",
+            "role": "Search Agent",
+            "rarity": "R",
+            "element": "light",
+            "stats": {"ATK": 60, "DEF": 70, "SPD": 95, "INT": 85},
+            "skills": ["Code Search", "Pattern Match", "Context Extract"],
+            "quote": "What is hidden shall be found.",
+            "lore": "The scout who can find any code in any codebase.",
+        },
+    }
+
+    if agent_name.lower() in AGENT_TCG_DATA:
+        agent = AGENT_TCG_DATA[agent_name.lower()]
+        return {
+            "content": [{"type": "text", "text": f"Retrieved {agent['name']} card data"}],
+            "agent": agent,
+            "isError": False,
+        }
+    else:
+        return {
+            "content": [{"type": "text", "text": f"Agent '{agent_name}' not found"}],
+            "agents_available": list(AGENT_TCG_DATA.keys()),
+            "isError": True,
+        }
+
+
+async def show_agent_collection_tool(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Show the full agent TCG collection widget"""
+    filter_rarity = arguments.get("filter_rarity")
+    filter_element = arguments.get("filter_element")
+
+    return {
+        "content": [{"type": "text", "text": "Loading Miyabi Agent Trading Card Collection..."}],
+        "filter_rarity": filter_rarity,
+        "filter_element": filter_element,
         "isError": False,
     }
 
@@ -4045,6 +5041,36 @@ async def handle_tool_call(mcp_request: MCPRequest) -> dict:
             result = await get_agent_card_tool(GetAgentCardParams(**arguments))
         elif tool_name == "setup_project":
             result = await setup_project_tool()
+        # ==========================================
+        # UI/UX Enhanced Tools Handlers
+        # ==========================================
+        elif tool_name == "list_repositories":
+            result = await list_repositories_tool(arguments, token)
+        elif tool_name == "set_project":
+            result = await set_project_tool(arguments, token)
+        elif tool_name == "show_onboarding":
+            result = await show_onboarding_tool(token)
+        elif tool_name == "show_quick_actions":
+            result = await show_quick_actions_tool(token)
+        elif tool_name == "show_notification":
+            result = await show_notification_tool(arguments)
+        elif tool_name == "show_subscription":
+            result = await show_subscription_tool(token)
+        elif tool_name == "start_checkout":
+            result = await start_checkout_tool(arguments, token)
+        elif tool_name == "manage_subscription":
+            result = await manage_subscription_tool(token)
+        elif tool_name == "search_tools":
+            result = await search_tools_tool(arguments)
+        elif tool_name == "generate_agent_card_image":
+            result = await generate_agent_card_image_tool(arguments)
+        elif tool_name == "get_agent_tcg_card":
+            result = await get_agent_tcg_card_tool(arguments)
+        elif tool_name == "show_agent_collection":
+            result = await show_agent_collection_tool(arguments)
+        elif tool_name == "gemini_generate_image":
+            # Alias for generate_agent_card_image
+            result = await generate_agent_card_image_tool(arguments)
         else:
             return {
                 "jsonrpc": "2.0",

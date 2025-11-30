@@ -14,6 +14,13 @@ const CodexExecSchema = z.object({
     search: z.boolean().optional(),
     full_auto: z.boolean().optional(),
 });
+const CodexReplySchema = z.object({
+    prompt: z.string(),
+    model: z.enum(['sonnet', 'opus', 'haiku']).optional(),
+    cd: z.string().optional(),
+    search: z.boolean().optional(),
+    full_auto: z.boolean().optional(),
+});
 const CodexExecYoloSchema = z.object({
     prompt: z.string(),
     model: z.enum(['sonnet', 'opus', 'haiku']).optional(),
@@ -43,8 +50,8 @@ async function execCodex(args) {
 /**
  * Build codex command arguments
  */
-function buildCodexArgs(prompt, options) {
-    const args = ['exec'];
+function buildCodexArgs(subcommand, prompt, options) {
+    const args = [subcommand];
     // Add model flag
     if (options.model) {
         args.push('--model', options.model);
@@ -73,7 +80,7 @@ function buildCodexArgs(prompt, options) {
  * Tool 1: Execute codex with standard options
  */
 async function codexExec(prompt, model, cd, search, fullAuto) {
-    const args = buildCodexArgs(prompt, {
+    const args = buildCodexArgs('exec', prompt, {
         model,
         cd,
         search,
@@ -90,7 +97,7 @@ async function codexExecYolo(prompt, model, cd, confirmDanger) {
             'Set confirm_danger: true to proceed. ' +
             'Only use in externally hardened environments!');
     }
-    const args = buildCodexArgs(prompt, {
+    const args = buildCodexArgs('exec', prompt, {
         model,
         cd,
         yolo: true,
@@ -137,6 +144,18 @@ async function codexLogin() {
         throw new Error(`Login failed: ${errorMessage}`);
     }
 }
+/**
+ * Tool 6: Reply to an existing codex session
+ */
+async function codexReply(prompt, model, cd, search, fullAuto) {
+    const args = buildCodexArgs('reply', prompt, {
+        model,
+        cd,
+        search,
+        fullAuto,
+    });
+    return await execCodex(args);
+}
 // Create MCP Server
 const server = new Server({
     name: 'miyabi-codex',
@@ -158,6 +177,37 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
                     prompt: {
                         type: 'string',
                         description: 'Task description for codex to execute',
+                    },
+                    model: {
+                        type: 'string',
+                        enum: ['sonnet', 'opus', 'haiku'],
+                        description: 'Claude model to use (default: sonnet)',
+                    },
+                    cd: {
+                        type: 'string',
+                        description: 'Working directory',
+                    },
+                    search: {
+                        type: 'boolean',
+                        description: 'Enable web search',
+                    },
+                    full_auto: {
+                        type: 'boolean',
+                        description: 'Run without approvals (limited sandboxing)',
+                    },
+                },
+                required: ['prompt'],
+            },
+        },
+        {
+            name: 'codex_reply',
+            description: 'Reply to an existing Claude Code CLI session (codex reply)',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    prompt: {
+                        type: 'string',
+                        description: 'Follow-up prompt for the active codex session',
                     },
                     model: {
                         type: 'string',
@@ -247,6 +297,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case 'codex_exec': {
                 const validated = CodexExecSchema.parse(args || {});
                 result = await codexExec(validated.prompt, validated.model, validated.cd, validated.search, validated.full_auto);
+                break;
+            }
+            case 'codex_reply': {
+                const validated = CodexReplySchema.parse(args || {});
+                result = await codexReply(validated.prompt, validated.model, validated.cd, validated.search, validated.full_auto);
                 break;
             }
             case 'codex_exec_yolo': {

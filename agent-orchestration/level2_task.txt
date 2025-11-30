@@ -1,0 +1,8 @@
+Create a Python module 'string_utils.py' with 5 functions:
+1. reverse_string(s) - reverse a string
+2. is_palindrome(s) - check if string is palindrome
+3. count_vowels(s) - count vowels in string
+4. capitalize_words(s) - capitalize each word
+5. remove_spaces(s) - remove all spaces
+
+Include docstrings for all functions.

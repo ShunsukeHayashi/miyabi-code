@@ -896,6 +896,58 @@ csm close <session_id>
 
 ---
 
+---
+
+## 🎨 TCG Card Generation System
+
+**Purpose**: Generate MIYABI TCG card images for all 24 agents using BytePlus ARK API
+
+### Quick Start
+
+```bash
+# 1. Check environment
+python3 scripts/check_tcg_env.py
+
+# 2. Generate all cards
+python3 scripts/generate_tcg_cards.py
+
+# 3. Verify results
+python3 scripts/verify_cards.py
+```
+
+### TCG Scripts
+
+| Script | Purpose | Output |
+|--------|---------|--------|
+| **check_tcg_env.py** | Environment validation | Readiness report |
+| **generate_tcg_cards.py** | Generate 19 missing cards | 19 PNG files |
+| **verify_cards.py** | Verify all 24 cards | Quality report |
+
+### Card Specifications
+
+- **Total**: 24 cards (5 existing + 19 new)
+- **Rarities**: 6R, 12SR, 4SSR, 2UR
+- **Resolution**: 1024x1024 PNG
+- **File Size**: 100-200 KB
+- **Style**: Cyberpunk anime TCG
+
+### Documentation
+
+- **QUICK_START_TCG_GENERATION.md** - 3-step quick guide
+- **README_TCG_GENERATION.md** - Complete usage guide
+- **TCG_GENERATION_SUMMARY.md** - Technical summary
+- **CARD_DESIGN_SPEC.md** - Design specifications
+- **VERIFICATION_CHECKLIST.md** - QA checklist
+- **TCG_CARD_GENERATION_COMPLETE.md** - Full package overview
+
+### API Details
+
+- **Model**: BytePlus ARK seedream-4-0-250828
+- **Cost**: ~$0.20-0.40 for 19 cards
+- **Time**: 40-60 seconds total
+
+---
+
 ## 🔗 Related Documentation
 
 - **Master Plan**: `docs/MIYABI_AUTONOMOUS_OPERATION_MASTER_PLAN.md`
@@ -904,6 +956,8 @@ csm close <session_id>
 - **Human Intervention**: `docs/HUMAN_INTERVENTION_PATTERNS.puml`
 - **Headless Tools**: `tools/claude-headless/README.md`
 - **Claude Code Integration**: `docs/CLAUDE_CODE_INTEGRATION_STRATEGY.md`
+- **Agent Characters**: `.claude/agents/AGENT_CHARACTERS.md`
+- **ImageGenAgent Spec**: `.claude/agents/specs/coding/imagegen-agent.md`
 
 ---
 

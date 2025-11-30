@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary, #1a1a1a);
+    }
+    .container { padding: 16px; max-width: 600px; }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .title { font-size: 16px; font-weight: 600; }
+    .subtitle { font-size: 12px; color: var(--text-secondary, #666); }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+      gap: 12px;
+    }
+    @media (min-width: 350px) {
+      .actions-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 8px;
+      background: var(--bg-secondary, #f5f5f5);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, var(--action-color-1, #6366f1), var(--action-color-2, #8b5cf6));
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 0;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-btn:hover::before {
+      opacity: 1;
+    }
+
+    .action-btn:focus-visible {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+
+    .action-icon,
+    .action-label {
+      position: relative;
+      z-index: 1;
+    }
+
+    .action-btn:hover .action-icon,
+    .action-btn:hover .action-label {
+      color: white;
+    }
+
+    .action-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .action-icon {
+      font-size: 28px;
+      transition: color 0.2s;
+    }
+
+    .action-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary, #666);
+      transition: color 0.2s;
+      text-align: center;
+    }
+
+    /* Color variants */
+    .action-btn.blue { --action-color-1: #3b82f6; --action-color-2: #6366f1; }
+    .action-btn.purple { --action-color-1: #8b5cf6; --action-color-2: #a855f7; }
+    .action-btn.pink { --action-color-1: #ec4899; --action-color-2: #f472b6; }
+    .action-btn.green { --action-color-1: #22c55e; --action-color-2: #10b981; }
+    .action-btn.orange { --action-color-1: #f59e0b; --action-color-2: #f97316; }
+    .action-btn.cyan { --action-color-1: #06b6d4; --action-color-2: #0ea5e9; }
+    .action-btn.red { --action-color-1: #ef4444; --action-color-2: #f43f5e; }
+    .action-btn.indigo { --action-color-1: #6366f1; --action-color-2: #818cf8; }
+
+    /* Badge for new features */
+    .action-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    /* Recent Actions */
+    .recent-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border, #e5e5e5);
+    }
+
+    .recent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .recent-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary, #666);
+    }
+
+    .recent-clear {
+      font-size: 11px;
+      color: var(--text-tertiary, #999);
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-secondary, #f5f5f5);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .recent-item:hover {
+      background: var(--bg-hover, #eee);
+      transform: translateX(4px);
+    }
+
+    .recent-item:focus-visible {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+
+    .recent-icon { font-size: 18px; }
+    .recent-info { flex: 1; }
+    .recent-action { font-size: 13px; font-weight: 500; }
+    .recent-time { font-size: 10px; color: var(--text-tertiary, #999); }
+    .recent-arrow { color: var(--text-tertiary, #999); }
+
+    /* Loading state */
+    .action-btn.loading .action-icon {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { color: #e5e5e5; }
+      .action-btn { background: #2a2a2a; }
+      .recent-item { background: #2a2a2a; }
+      .recent-item:hover { background: #333; }
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="root"></div>
+  <script type="module">
+    const root = document.getElementById('root');
+    const data = window.openai?.toolOutput ?? {};
+    let widgetState = window.openai?.widgetState ?? {
+      recentActions: [],
+      loading: null
+    };
+
+    const { project = {}, user = {} } = data;
+
+    const QUICK_ACTIONS = [
+      { id: 'git_status', icon: '📊', label: 'Git Status', color: 'blue', tool: 'git_status' },
+      { id: 'list_issues', icon: '📋', label: 'Issues', color: 'purple', tool: 'list_issues' },
+      { id: 'list_prs', icon: '🔀', label: 'Pull Requests', color: 'pink', tool: 'list_prs' },
+      { id: 'cargo_build', icon: '🔨', label: 'Build', color: 'orange', tool: 'cargo_build' },
+      { id: 'cargo_test', icon: '🧪', label: 'Test', color: 'green', tool: 'cargo_test' },
+      { id: 'codegen', icon: '💻', label: 'CodeGen', color: 'cyan', tool: 'execute_agent', params: { agent: 'codegen' } },
+      { id: 'review', icon: '🔍', label: 'Review', color: 'indigo', tool: 'execute_agent', params: { agent: 'review' } },
+      { id: 'deploy', icon: '🚀', label: 'Deploy', color: 'red', tool: 'execute_agent', params: { agent: 'deploy' }, isNew: true }
+    ];
+
+    function updateState() {
+      if (window.openai?.setWidgetState) {
+        window.openai.setWidgetState(widgetState);
+      }
+    }
+
+    function formatTime(timestamp) {
+      if (!timestamp) return '';
+      const diff = Date.now() - timestamp;
+      if (diff < 60000) return 'Just now';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+      if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+      return new Date(timestamp).toLocaleDateString();
+    }
+
+    async function executeAction(action) {
+      widgetState.loading = action.id;
+      render();
+
+      // Add to recent
+      widgetState.recentActions = [
+        { ...action, timestamp: Date.now() },
+        ...widgetState.recentActions.filter(a => a.id !== action.id).slice(0, 4)
+      ];
+      updateState();
+
+      if (window.openai?.callTool) {
+        try {
+          await window.openai.callTool(action.tool, action.params || {});
+        } catch (e) {
+          console.error('Action failed:', e);
+        }
+      }
+
+      widgetState.loading = null;
+      render();
+    }
+
+    function clearRecent() {
+      widgetState.recentActions = [];
+      updateState();
+      render();
+    }
+
+    function render() {
+      root.innerHTML = `
+        <div class="header">
+          <div>
+            <div class="title">Quick Actions</div>
+            <div class="subtitle">${project.repository || project.github_repo || 'No project selected'}</div>
+          </div>
+        </div>
+
+        <div class="actions-grid">
+          ${QUICK_ACTIONS.map(action => `
+            <button class="action-btn ${action.color} ${widgetState.loading === action.id ? 'loading' : ''}" data-action="${action.id}">
+              ${action.isNew ? '<span class="action-badge"></span>' : ''}
+              <span class="action-icon">${action.icon}</span>
+              <span class="action-label">${action.label}</span>
+            </button>
+          `).join('')}
+        </div>
+
+        ${widgetState.recentActions.length > 0 ? `
+          <div class="recent-section">
+            <div class="recent-header">
+              <span class="recent-title">Recent</span>
+              <button class="recent-clear" id="clearBtn">Clear</button>
+            </div>
+            <div class="recent-list">
+              ${widgetState.recentActions.slice(0, 3).map(action => `
+                <div class="recent-item" data-action="${action.id}">
+                  <span class="recent-icon">${action.icon}</span>
+                  <div class="recent-info">
+                    <div class="recent-action">${action.label}</div>
+                    <div class="recent-time">${formatTime(action.timestamp)}</div>
+                  </div>
+                  <span class="recent-arrow">→</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      `;
+
+      // Event listeners
+      document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const actionId = btn.dataset.action;
+          const action = QUICK_ACTIONS.find(a => a.id === actionId);
+          if (action && !widgetState.loading) {
+            executeAction(action);
+          }
+        });
+      });
+
+      document.querySelectorAll('.recent-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const actionId = item.dataset.action;
+          const action = QUICK_ACTIONS.find(a => a.id === actionId);
+          if (action && !widgetState.loading) {
+            executeAction(action);
+          }
+        });
+      });
+
+      document.getElementById('clearBtn')?.addEventListener('click', clearRecent);
+
+      if (window.openai?.notifyIntrinsicHeight) {
+        window.openai.notifyIntrinsicHeight(root.scrollHeight);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
