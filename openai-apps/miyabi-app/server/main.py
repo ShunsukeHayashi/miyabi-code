@@ -4640,11 +4640,18 @@ github_user_tokens: Dict[str, Dict[str, Any]] = {}
 @app.get("/auth/github")
 async def github_auth_start(
     redirect_uri: Optional[str] = Query(None),
-    scope: str = Query("repo,read:user"),
+    scope: str = Query("repo,user,read:org,admin:repo_hook,workflow"),
 ):
     """
     Start GitHub OAuth flow
     Redirects user to GitHub for authentication
+
+    Default scopes:
+    - repo: Full access to private repositories
+    - user: Read/write access to profile info (includes user:email)
+    - read:org: Read organization membership and teams
+    - admin:repo_hook: Manage repository webhooks
+    - workflow: Update GitHub Actions workflows
     """
     if not GITHUB_OAUTH_CLIENT_ID:
         raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
@@ -4745,58 +4752,8 @@ async def github_auth_callback(
 
     # State already consumed by validate_and_consume_state (one-time use)
 
-    # Check if user has completed onboarding
-    user_id = f"github_{user_info['id']}"
-    try:
-        projects = await sandbox_manager.get_user_projects(user_id)
-        has_projects = len(projects) > 0
-    except Exception:
-        has_projects = False
-
-    # Check if this is from ChatGPT/MCP client (no redirect_uri or specific patterns)
-    redirect_uri = state_info.redirect_uri
-    is_mcp_client = not redirect_uri or "chatgpt.com" in (redirect_uri or "") or "connector" in (redirect_uri or "")
-    
-    if is_mcp_client:
-        # Return HTML completion page for MCP clients with embedded repository selection
-        dashboard_url = f"https://mcp.miyabi-world.com/admin-ui/?access_token={our_access_token}&github_user={user_info['login']}"
-
-        if has_projects:
-            # User already has projects - show completion page
-            html_content = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miyabi - Connected</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #0f1117 0%, #1a1d24 100%); color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }}
-        .card {{ background: #1a1d24; border: 1px solid #2d3139; border-radius: 16px; padding: 40px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }}
-        .success-icon {{ width: 80px; height: 80px; background: rgba(34, 197, 94, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }}
-        .success-icon svg {{ width: 40px; height: 40px; color: #22c55e; }}
-        h1 {{ font-size: 24px; margin-bottom: 16px; }}
-        p {{ color: #a0a8b8; margin-bottom: 24px; }}
-        .btn {{ display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #6366f1; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s; }}
-        .btn:hover {{ background: #818cf8; }}
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="success-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-        </div>
-        <h1>Connected as {user_info['login']}</h1>
-        <p>You have {len(projects)} project(s) configured. Return to ChatGPT to start using Miyabi tools!</p>
-        <a href="{dashboard_url}" class="btn">Open Dashboard</a>
-    </div>
-</body>
-</html>
-"""
-        else:
-            # User has no projects - show inline repository selection
-            html_content = f"""
+    # Always show repository selection page after OAuth
+    html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4811,40 +4768,37 @@ async def github_auth_callback(
         .header h1 {{ font-size: 22px; margin-bottom: 8px; }}
         .header p {{ color: #a0a8b8; font-size: 14px; }}
         .user-badge {{ display: inline-flex; align-items: center; gap: 8px; background: #242830; padding: 6px 12px; border-radius: 9999px; font-size: 13px; color: #a0a8b8; margin-top: 12px; }}
-        .search-box {{ display: flex; gap: 8px; margin-bottom: 16px; }}
-        .search-box input {{ flex: 1; background: #242830; border: 1px solid #2d3139; border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; }}
+        .search-box {{ margin-bottom: 16px; }}
+        .search-box input {{ width: 100%; background: #242830; border: 1px solid #2d3139; border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; }}
         .search-box input:focus {{ border-color: #6366f1; }}
         .repos-list {{ max-height: 320px; overflow-y: auto; border: 1px solid #2d3139; border-radius: 8px; margin-bottom: 16px; }}
         .repo-item {{ display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #2d3139; cursor: pointer; transition: background 0.15s; }}
         .repo-item:last-child {{ border-bottom: none; }}
         .repo-item:hover {{ background: #242830; }}
-        .repo-item.selected {{ background: rgba(99, 102, 241, 0.2); border-color: #6366f1; }}
+        .repo-item.selected {{ background: rgba(99, 102, 241, 0.2); border-left: 3px solid #6366f1; }}
         .repo-icon {{ color: #a0a8b8; flex-shrink: 0; }}
         .repo-info {{ flex: 1; min-width: 0; }}
-        .repo-name {{ font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+        .repo-name {{ font-size: 14px; font-weight: 500; }}
         .repo-name .owner {{ color: #a0a8b8; }}
-        .repo-desc {{ font-size: 12px; color: #6b7280; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
-        .repo-meta {{ font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; gap: 12px; }}
+        .repo-desc {{ font-size: 12px; color: #6b7280; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
         .check-icon {{ color: #6366f1; flex-shrink: 0; }}
-        .footer {{ display: flex; justify-content: space-between; align-items: center; }}
-        .btn {{ display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #6366f1; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }}
+        .footer {{ display: flex; justify-content: flex-end; gap: 12px; }}
+        .btn {{ padding: 10px 20px; background: #6366f1; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }}
         .btn:hover:not(:disabled) {{ background: #818cf8; }}
         .btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
-        .btn-text {{ background: transparent; color: #a0a8b8; }}
-        .btn-text:hover {{ color: #fff; background: transparent; }}
         .loading {{ text-align: center; padding: 40px; color: #a0a8b8; }}
-        .spinner {{ animation: spin 1s linear infinite; }}
+        .spinner {{ animation: spin 1s linear infinite; display: inline-block; }}
         @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
         .error {{ background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #f87171; font-size: 13px; }}
-        .success-view {{ text-align: center; padding: 20px 0; }}
-        .success-icon {{ width: 64px; height: 64px; background: rgba(34, 197, 94, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }}
         .hidden {{ display: none; }}
+        .success-message {{ background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 16px; text-align: center; }}
+        .success-message h2 {{ color: #22c55e; margin-bottom: 8px; }}
     </style>
 </head>
 <body>
     <div class="card">
         <div id="loading-view" class="loading">
-            <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+            <div class="spinner">⏳</div>
             <p style="margin-top: 12px;">Loading repositories...</p>
         </div>
 
@@ -4853,8 +4807,7 @@ async def github_auth_callback(
                 <h1>Select a Repository</h1>
                 <p>Choose a GitHub repository to connect with Miyabi</p>
                 <div class="user-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    {user_info['login']}
+                    <span>👤</span> {user_info['login']}
                 </div>
             </div>
             <div id="error-box" class="error hidden"></div>
@@ -4863,26 +4816,17 @@ async def github_auth_callback(
             </div>
             <div class="repos-list" id="repos-list"></div>
             <div class="footer">
-                <button class="btn btn-text" onclick="window.close()">Skip for now</button>
-                <button class="btn" id="create-btn" disabled onclick="createProject()">
+                <button class="btn" id="connect-btn" disabled onclick="connectRepository()">
                     Connect Repository
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
 
-        <div id="creating-view" class="hidden loading">
-            <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-            <p style="margin-top: 12px;">Creating project...</p>
-        </div>
-
-        <div id="success-view" class="hidden success-view">
-            <div class="success-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        <div id="success-view" class="hidden">
+            <div class="success-message">
+                <h2>✓ Connected Successfully!</h2>
+                <p>Repository connected. You can now close this window and return to ChatGPT.</p>
             </div>
-            <h1 style="font-size: 20px; margin-bottom: 8px;">Project Created!</h1>
-            <p style="color: #a0a8b8; margin-bottom: 20px;">You can now close this window and use Miyabi in ChatGPT.</p>
-            <button class="btn" onclick="window.close()">Close Window</button>
         </div>
     </div>
 
@@ -4903,6 +4847,8 @@ async def github_auth_callback(
                 document.getElementById('loading-view').classList.add('hidden');
                 document.getElementById('select-view').classList.remove('hidden');
             }} catch (e) {{
+                document.getElementById('loading-view').classList.add('hidden');
+                document.getElementById('select-view').classList.remove('hidden');
                 showError(e.message);
             }}
         }}
@@ -4916,20 +4862,21 @@ async def github_auth_callback(
             );
 
             const list = document.getElementById('repos-list');
+            if (filtered.length === 0) {{
+                list.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">No repositories found</div>';
+                return;
+            }}
+
             list.innerHTML = filtered.map(r => `
                 <div class="repo-item ${{selectedRepo && selectedRepo.id === r.id ? 'selected' : ''}}" onclick="selectRepo(${{r.id}})">
                     <div class="repo-icon">
-                        ${{r.private ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'}}
+                        ${{r.private ? '🔒' : '🌐'}}
                     </div>
                     <div class="repo-info">
                         <div class="repo-name"><span class="owner">${{r.owner.login}}/</span>${{r.name}}</div>
                         ${{r.description ? `<div class="repo-desc">${{r.description}}</div>` : ''}}
-                        <div class="repo-meta">
-                            ${{r.language ? `<span>${{r.language}}</span>` : ''}}
-                            <span>${{r.default_branch}}</span>
-                        </div>
                     </div>
-                    ${{selectedRepo && selectedRepo.id === r.id ? '<div class="check-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>' : ''}}
+                    ${{selectedRepo && selectedRepo.id === r.id ? '<div class="check-icon">✓</div>' : ''}}
                 </div>
             `).join('');
         }}
@@ -4937,18 +4884,18 @@ async def github_auth_callback(
         function selectRepo(id) {{
             selectedRepo = repos.find(r => r.id === id);
             renderRepos();
-            document.getElementById('create-btn').disabled = !selectedRepo;
+            document.getElementById('connect-btn').disabled = !selectedRepo;
         }}
 
         function filterRepos() {{
             renderRepos();
         }}
 
-        async function createProject() {{
+        async function connectRepository() {{
             if (!selectedRepo) return;
 
-            document.getElementById('select-view').classList.add('hidden');
-            document.getElementById('creating-view').classList.remove('hidden');
+            document.getElementById('connect-btn').disabled = true;
+            document.getElementById('connect-btn').textContent = 'Connecting...';
 
             try {{
                 const res = await fetch('/user/projects', {{
@@ -4965,14 +4912,17 @@ async def github_auth_callback(
 
                 if (!res.ok) {{
                     const data = await res.json();
-                    throw new Error(data.detail || 'Failed to create project');
+                    throw new Error(data.detail || 'Failed to connect repository');
                 }}
 
-                document.getElementById('creating-view').classList.add('hidden');
+                document.getElementById('select-view').classList.add('hidden');
                 document.getElementById('success-view').classList.remove('hidden');
+
+                // Auto-close after 2 seconds
+                setTimeout(() => window.close(), 2000);
             }} catch (e) {{
-                document.getElementById('creating-view').classList.add('hidden');
-                document.getElementById('select-view').classList.remove('hidden');
+                document.getElementById('connect-btn').disabled = false;
+                document.getElementById('connect-btn').textContent = 'Connect Repository';
                 showError(e.message);
             }}
         }}
@@ -4988,19 +4938,7 @@ async def github_auth_callback(
 </body>
 </html>
 """
-        return HTMLResponse(content=html_content)
-    
-    # For other clients, redirect normally
-    if not redirect_uri or redirect_uri == "/":
-        if has_projects:
-            redirect_uri = "/admin-ui/"
-        else:
-            redirect_uri = "/onboarding/"
-    
-    separator = "&" if "?" in redirect_uri else "?"
-    return RedirectResponse(
-        url=f"{redirect_uri}{separator}access_token={our_access_token}&token_type=Bearer&github_user={user_info['login']}&github_id={user_info['id']}"
-    )
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/auth/github/user")
