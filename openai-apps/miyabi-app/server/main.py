@@ -5298,7 +5298,13 @@ async def handle_tool_call(mcp_request: MCPRequest) -> dict:
         elif tool_name == "search_code":
             result = await search_code_tool(SearchCodeParams(**arguments))
         elif tool_name == "list_directory":
-            result = await list_directory_tool(ListDirectoryParams(**arguments))
+            result = await list_files_tool(ListFilesParams(**arguments))
+        elif tool_name == "list_files":
+            result = await list_files_tool(ListFilesParams(**arguments))
+        elif tool_name == "git_stash":
+            result = await git_stash_tool(GitStashParams(**arguments))
+        elif tool_name == "get_agent_status":
+            result = await get_agent_status_tool(GetAgentStatusParams(**arguments))
         elif tool_name == "cargo_build":
             result = await cargo_build_tool(CargoBuildParams(**arguments))
         elif tool_name == "cargo_test":
